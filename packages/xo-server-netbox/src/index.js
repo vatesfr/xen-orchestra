@@ -324,13 +324,25 @@ class Netbox {
     // Some props need to be flattened to satisfy the POST request schema
     const flattenNested = vm => ({ ...vm, cluster: vm.cluster?.id, status: vm.status?.value })
 
-    const _netboxVms = await this.#request(`/virtualization/virtual-machines/?${clusterFilter}`)
+    // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
+    // we're not synchronizing right now, so we can "migrate" them back if
+    // necessary
+    const allNetboxVmsList = (await this.#request(`/virtualization/virtual-machines/`)).filter(
+      netboxVm =>
+        Object.values(clusters).find(cluster => cluster.id === netboxVm.cluster.id)?.type.id === clusterType.id
+    )
+    // Then get only the ones from the pools we're synchronizing
+    const netboxVmsList = allNetboxVmsList.filter(
+      netboxVm => Object.values(clusters).find(cluster => cluster.id === netboxVm.cluster.id) !== undefined
+    )
+    // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
-    const netboxVms = keyBy(_netboxVms, 'custom_fields.uuid')
+    const allNetboxVms = keyBy(allNetboxVmsList, 'custom_fields.uuid')
+    const netboxVms = keyBy(netboxVmsList, 'custom_fields.uuid')
 
     const usedNames = [] // Used for name deduplication
     // Build the 3 collections of VMs and perform all the API calls at the end
-    const vmsToDelete = _netboxVms
+    const vmsToDelete = netboxVmsList
       .filter(netboxVm => netboxVm.custom_fields.uuid == null)
       .map(netboxVm => ({ id: netboxVm.id }))
     const vmsToUpdate = []
@@ -342,11 +354,14 @@ class Netbox {
       const cluster = clusters[poolId]
 
       // Get Netbox VMs that are supposed to be in this pool
-      const poolNetboxVms = pickBy(netboxVms, { cluster: cluster.id })
+      const poolNetboxVms = pickBy(netboxVms, netboxVm => netboxVm.cluster.id === cluster.id)
 
       // For each XO VM of this pool (I)
       for (const vm of Object.values(poolVms)) {
-        const netboxVm = netboxVms[vm.uuid]
+        // Grab the Netbox VM from the list of all VMs so that if the VM is on
+        // another cluster, we update the existing object instead of creating a
+        // new one
+        const netboxVm = allNetboxVms[vm.uuid]
         delete poolNetboxVms[vm.uuid]
 
         const updatedVm = createNetboxVm(vm, cluster)
@@ -370,6 +385,7 @@ class Netbox {
       for (const netboxVm of Object.values(poolNetboxVms)) {
         const vmUuid = netboxVm.custom_fields?.uuid
         const vm = this.getObject(vmUuid)
+        // We check if the VM was moved to another pool in XO
         const pool = this.getObject(vm?.$pool)
         const cluster = clusters[pool?.uuid]
         if (cluster !== undefined) {
@@ -442,11 +458,11 @@ class Netbox {
       return netboxIf
     }
 
-    const _netboxIfs = await this.#request(`/virtualization/interfaces/?${clusterFilter}`)
+    const netboxIfsList = await this.#request(`/virtualization/interfaces/?${clusterFilter}`)
     // { ID → Interface }
-    const netboxIfs = keyBy(_netboxIfs, 'custom_fields.uuid')
+    const netboxIfs = keyBy(netboxIfsList, 'custom_fields.uuid')
 
-    const ifsToDelete = _netboxIfs
+    const ifsToDelete = netboxIfsList
       .filter(netboxIf => netboxIf.custom_fields.uuid == null)
       .map(netboxIf => ({ id: netboxIf.id }))
     const ifsToUpdate = []
