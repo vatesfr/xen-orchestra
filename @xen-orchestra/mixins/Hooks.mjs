@@ -11,10 +11,18 @@ const runHook = async (emitter, hook, onResult = noop) => {
   const listeners = emitter.listeners(hook)
   await Promise.all(
     listeners.map(async listener => {
+      const handle = setInterval(() => {
+        warn(
+          `${hook} ${listener.name || 'anonymous'} listener is still running`,
+          listener.name ? undefined : { source: listener.toString() }
+        )
+      }, 5e3)
       try {
         onResult(await listener.call(emitter))
       } catch (error) {
         warn(`${hook} failure`, { error })
+      } finally {
+        clearInterval(handle)
       }
     })
   )

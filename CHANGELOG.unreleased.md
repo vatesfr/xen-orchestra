@@ -40,6 +40,7 @@
 - @vates/nbd-client major
 - @vates/node-vsphere-soap major
 - @xen-orchestra/backups minor
+- @xen-orchestra/mixins minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/xapi major
 - @vates/read-chunk minor
