@@ -69,6 +69,22 @@ function set(node, i, keys, value) {
   return node
 }
 
+function* values(node) {
+  if (node !== undefined) {
+    if (node instanceof Node) {
+      const { value } = node
+      if (value !== undefined) {
+        yield node.value
+      }
+      for (const child of node.children.values()) {
+        yield* values(child)
+      }
+    } else {
+      yield node
+    }
+  }
+}
+
 exports.MultiKeyMap = class MultiKeyMap {
   constructor() {
     // each node is either a value or a Node if it contains children
@@ -85,5 +101,9 @@ exports.MultiKeyMap = class MultiKeyMap {
 
   set(keys, value) {
     this._root = set(this._root, 0, keys, value)
+  }
+
+  values() {
+    return values(this._root)
   }
 }

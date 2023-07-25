@@ -380,3 +380,41 @@ fetchFiles.params = {
     type: 'string',
   },
 }
+
+export function mountPartition({ remote, disk, partition }) {
+  return this.mountPartition(remote, disk, partition)
+}
+
+mountPartition.permission = 'admin'
+
+mountPartition.params = {
+  disk: {
+    type: 'string',
+  },
+  partition: {
+    optional: true,
+    type: 'string',
+  },
+  remote: {
+    type: 'string',
+  },
+}
+
+export function unmountPartition({ remote, disk, partition }) {
+  return this.unmountPartition(remote, disk, partition)
+}
+
+unmountPartition.permission = 'admin'
+
+unmountPartition.params = {
+  disk: {
+    type: 'string',
+  },
+  partition: {
+    optional: true,
+    type: 'string',
+  },
+  remote: {
+    type: 'string',
+  },
+}

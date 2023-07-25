@@ -1,5 +1,8 @@
 import Disposable from 'promise-toolbox/Disposable'
+import { asyncEach } from '@vates/async-each'
+import { decorateWith } from '@vates/decorate-with'
 import { execa } from 'execa'
+import { MultiKeyMap } from '@vates/multi-key-map'
 
 // - [x] list partitions
 // - [x] list files in a partition
@@ -22,6 +25,8 @@ import { execa } from 'execa'
 //       - [ ] getMountedPartitions
 //       - [ ] unmountPartition
 export default class BackupNgFileRestore {
+  #mounts = new MultiKeyMap()
+
   constructor(app) {
     this._app = app
 
@@ -31,6 +36,12 @@ export default class BackupNgFileRestore {
       await Promise.all([execa('losetup', ['-D']), execa('vgchange', ['-an'])])
       await execa('pvscan', ['--cache'])
     })
+
+    app.hooks.on('stop', () =>
+      asyncEach(this.#mounts.values(), async pDisposable => {
+        await (await pDisposable).dispose()
+      })
+    )
   }
 
   async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths, format) {
@@ -107,5 +118,44 @@ export default class BackupNgFileRestore {
       : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
           adapter.listPartitionFiles(diskId, partitionId, path)
         )
+  }
+
+  @decorateWith(Disposable.factory)
+  *_mountPartition(remoteId, diskId, partitionId) {
+    const adapter = yield this._app.getBackupsRemoteAdapter(remoteId)
+
+    // yield(2) the disposable to use it
+    // yield(1) the value to make it available
+    yield yield adapter.getPartition(diskId, partitionId)
+  }
+
+  async mountPartition(remoteId, diskId, partitionId) {
+    const mounts = this.#mounts
+    const key = [remoteId, diskId, partitionId]
+
+    let pDisposable = mounts.get(key)
+    if (pDisposable === undefined) {
+      pDisposable = this._mountPartition(remoteId, diskId, partitionId)
+      mounts.set(key, pDisposable)
+      pDisposable.catch(() => {
+        mounts.delete(key)
+      })
+    }
+
+    return (await pDisposable).value
+  }
+
+  async unmountPartition(remoteId, diskId, partitionId) {
+    const mounts = this.#mounts
+    const key = [remoteId, diskId, partitionId]
+
+    const pDisposable = mounts.get(key)
+    if (pDisposable === undefined) {
+      return
+    }
+
+    mounts.delete(key)
+
+    await (await pDisposable).dispose()
   }
 }

@@ -14,6 +14,7 @@
 - [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [#7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
 - [REST API] `tags` property can be updated (PR [#7196](https://github.com/vatesfr/xen-orchestra/pull/7196))
 - [REST API] A VDI export can now be imported in an existing VDI (PR [#7199](https://github.com/vatesfr/xen-orchestra/pull/7199))
+- [File Restore] API method `backupNg.mountPartition` to manually mount a backup disk on the XOA
 
 ### Bug fixes
 
@@ -40,6 +41,7 @@
 
 <!--packages-start-->
 
+- @vates/multi-key-map minor
 - @vates/nbd-client patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/cr-seed-cli major
@@ -51,5 +53,6 @@
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
+- xo-server minor
 
 <!--packages-end-->
