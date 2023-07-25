@@ -1,7 +1,11 @@
 import ipaddr from 'ipaddr.js'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
-import { find, keyBy, pick, pickBy, trimEnd } from 'lodash'
+import find from 'lodash/find'
+import keyBy from 'lodash/keyBy'
+import pick from 'lodash/pick'
+import pickBy from 'lodash/pickBy'
+import trimEnd from 'lodash/trimEnd'
 
 import diff from './diff'
 import { deduplicateName } from './name-dedup'
