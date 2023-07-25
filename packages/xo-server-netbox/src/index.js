@@ -2,6 +2,7 @@ import ipaddr from 'ipaddr.js'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import find from 'lodash/find'
+import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import pick from 'lodash/pick'
 import pickBy from 'lodash/pickBy'
@@ -242,10 +243,17 @@ class Netbox {
     })
 
     // { Pool UUID → cluster }
-    const clusters = keyBy(
+    const allClusters = keyBy(
       await this.#request(`/virtualization/clusters/?type_id=${clusterType.id}`),
       'custom_fields.uuid'
     )
+    const clusters = pickBy(allClusters, cluster => pools.includes(cluster.custom_fields.uuid))
+
+    if (!isEmpty(allClusters[undefined])) {
+      // FIXME: Should we delete clusters from this cluster type that don't have
+      //        a UUID?
+      log.warn('Found some clusters with missing UUID custom field', allClusters[undefined])
+    }
 
     const clustersToCreate = []
     const clustersToUpdate = []
@@ -270,8 +278,6 @@ class Netbox {
       }
       // FIXME: Should we deduplicate cluster names even though it also fails
       //        when a cluster within another cluster type has the same name?
-      // FIXME: Should we delete clusters from this cluster type that don't have
-      //        a UUID?
       const newClusters = []
       if (clustersToUpdate.length > 0) {
         log.info(`Updating ${clustersToUpdate.length} clusters`)
@@ -282,6 +288,7 @@ class Netbox {
         newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
       }
       Object.assign(clusters, keyBy(newClusters, 'custom_fields.uuid'))
+      Object.assign(allClusters, clusters)
     }
 
     const clusterFilter = Object.values(pick(clusters, pools))
@@ -328,8 +335,7 @@ class Netbox {
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
     const allNetboxVmsList = (await this.#request(`/virtualization/virtual-machines/`)).filter(
-      netboxVm =>
-        Object.values(clusters).find(cluster => cluster.id === netboxVm.cluster.id)?.type.id === clusterType.id
+      netboxVm => Object.values(allClusters).find(cluster => cluster.id === netboxVm.cluster.id) !== undefined
     )
     // Then get only the ones from the pools we're synchronizing
     const netboxVmsList = allNetboxVmsList.filter(
@@ -387,7 +393,7 @@ class Netbox {
         const vm = this.getObject(vmUuid)
         // We check if the VM was moved to another pool in XO
         const pool = this.getObject(vm?.$pool)
-        const cluster = clusters[pool?.uuid]
+        const cluster = allClusters[pool?.uuid]
         if (cluster !== undefined) {
           // If the VM is found in XO: update it if necessary (II.1)
           const updatedVm = createNetboxVm(vm, cluster)
@@ -436,6 +442,7 @@ class Netbox {
       newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'POST', vmsToCreate)))
     }
     Object.assign(netboxVms, keyBy(newVms, 'custom_fields.uuid'))
+    Object.assign(allNetboxVms, netboxVms)
 
     // VIFs --------------------------------------------------------------------
 
