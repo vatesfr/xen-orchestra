@@ -296,7 +296,7 @@ class Netbox {
       const netboxVm = {
         custom_fields: { uuid: vm.uuid },
         name: vm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
-        comments: vm.name_description.slice(0, DESCRIPTION_MAX_LENGTH).trim() || null,
+        comments: vm.name_description.slice(0, DESCRIPTION_MAX_LENGTH).trim(),
         vcpus: vm.CPUs.number,
         disk: Math.floor(
           vm.$VBDs
