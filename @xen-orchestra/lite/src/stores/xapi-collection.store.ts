@@ -1,7 +1,7 @@
-import type { RawObjectType, XenApiRecord } from "@/libs/xen-api";
+import type { RawObjectType } from "@/libs/xen-api";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import type {
-  RawTypeToObject,
+  RawTypeToRecord,
   SubscribeOptions,
   Subscription,
 } from "@/types/xapi-collection";
@@ -10,16 +10,13 @@ import { defineStore } from "pinia";
 import { computed, readonly, ref } from "vue";
 
 export const useXapiCollectionStore = defineStore("xapiCollection", () => {
-  const collections = ref(
-    new Map<RawObjectType, ReturnType<typeof createXapiCollection<any>>>()
-  );
+  const collections = ref(new Map());
 
-  function get<
-    T extends RawObjectType,
-    S extends XenApiRecord<string> = RawTypeToObject[T]
-  >(type: T): ReturnType<typeof createXapiCollection<S>> {
+  function get<T extends RawObjectType>(
+    type: T
+  ): ReturnType<typeof createXapiCollection<T, RawTypeToRecord<T>>> {
     if (!collections.value.has(type)) {
-      collections.value.set(type, createXapiCollection<S>(type));
+      collections.value.set(type, createXapiCollection(type));
     }
 
     return collections.value.get(type)!;
@@ -28,8 +25,11 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
   return { get };
 });
 
-const createXapiCollection = <T extends XenApiRecord<string>>(
-  type: RawObjectType
+const createXapiCollection = <
+  T extends RawObjectType,
+  R extends RawTypeToRecord<T>
+>(
+  type: T
 ) => {
   const isReady = ref(false);
   const isFetching = ref(false);
@@ -37,31 +37,31 @@ const createXapiCollection = <T extends XenApiRecord<string>>(
   const lastError = ref<string>();
   const hasError = computed(() => lastError.value !== undefined);
   const subscriptions = ref(new Set<symbol>());
-  const recordsByOpaqueRef = ref(new Map<T["$ref"], T>());
-  const recordsByUuid = ref(new Map<T["uuid"], T>());
-  const filter = ref<(record: T) => boolean>();
-  const sort = ref<(record1: T, record2: T) => 1 | 0 | -1>();
+  const recordsByOpaqueRef = ref(new Map<R["$ref"], R>());
+  const recordsByUuid = ref(new Map<R["uuid"], R>());
+  const filter = ref<(record: R) => boolean>();
+  const sort = ref<(record1: R, record2: R) => 1 | 0 | -1>();
   const xenApiStore = useXenApiStore();
 
-  const setFilter = (newFilter: (record: T) => boolean) =>
+  const setFilter = (newFilter: (record: R) => boolean) =>
     (filter.value = newFilter);
 
-  const setSort = (newSort: (record1: T, record2: T) => 1 | 0 | -1) =>
+  const setSort = (newSort: (record1: R, record2: R) => 1 | 0 | -1) =>
     (sort.value = newSort);
 
-  const records = computed<T[]>(() => {
+  const records = computed<R[]>(() => {
     const records = Array.from(recordsByOpaqueRef.value.values()).sort(
       sort.value
     );
     return filter.value !== undefined ? records.filter(filter.value) : records;
   });
 
-  const getByOpaqueRef = (opaqueRef: T["$ref"]) =>
+  const getByOpaqueRef = (opaqueRef: R["$ref"]) =>
     recordsByOpaqueRef.value.get(opaqueRef);
 
-  const getByUuid = (uuid: T["uuid"]) => recordsByUuid.value.get(uuid);
+  const getByUuid = (uuid: R["uuid"]) => recordsByUuid.value.get(uuid);
 
-  const hasUuid = (uuid: T["uuid"]) => recordsByUuid.value.has(uuid);
+  const hasUuid = (uuid: R["uuid"]) => recordsByUuid.value.has(uuid);
 
   const hasSubscriptions = computed(() => subscriptions.value.size > 0);
 
@@ -69,7 +69,7 @@ const createXapiCollection = <T extends XenApiRecord<string>>(
     try {
       isFetching.value = true;
       lastError.value = undefined;
-      const records = await xenApiStore.getXapi().loadRecords<T>(type);
+      const records = await xenApiStore.getXapi().loadRecords<T, R>(type);
       recordsByOpaqueRef.value.clear();
       recordsByUuid.value.clear();
       records.forEach(add);
@@ -81,17 +81,17 @@ const createXapiCollection = <T extends XenApiRecord<string>>(
     }
   };
 
-  const add = (record: T) => {
+  const add = (record: R) => {
     recordsByOpaqueRef.value.set(record.$ref, record);
     recordsByUuid.value.set(record.uuid, record);
   };
 
-  const update = (record: T) => {
+  const update = (record: R) => {
     recordsByOpaqueRef.value.set(record.$ref, record);
     recordsByUuid.value.set(record.uuid, record);
   };
 
-  const remove = (opaqueRef: T["$ref"]) => {
+  const remove = (opaqueRef: R["$ref"]) => {
     if (!recordsByOpaqueRef.value.has(opaqueRef)) {
       return;
     }

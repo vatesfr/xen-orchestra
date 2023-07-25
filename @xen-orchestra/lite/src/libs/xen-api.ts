@@ -1,4 +1,5 @@
 import { buildXoObject, parseDateTime } from "@/libs/utils";
+import type { RawTypeToRecord } from "@/types/xapi-collection";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
 
@@ -90,14 +91,17 @@ export enum VM_OPERATION {
 
 declare const __brand: unique symbol;
 
-export interface XenApiRecord<Name extends string> {
+export interface XenApiRecord<Name extends RawObjectType> {
   $ref: string & { [__brand]: `${Name}Ref` };
   uuid: string & { [__brand]: `${Name}Uuid` };
 }
 
-export type RawXenApiRecord<T extends XenApiRecord<string>> = Omit<T, "$ref">;
+export type RawXenApiRecord<T extends XenApiRecord<RawObjectType>> = Omit<
+  T,
+  "$ref"
+>;
 
-export interface XenApiPool extends XenApiRecord<"Pool"> {
+export interface XenApiPool extends XenApiRecord<"pool"> {
   cpu_info: {
     cpu_count: string;
   };
@@ -105,7 +109,7 @@ export interface XenApiPool extends XenApiRecord<"Pool"> {
   name_label: string;
 }
 
-export interface XenApiHost extends XenApiRecord<"Host"> {
+export interface XenApiHost extends XenApiRecord<"host"> {
   address: string;
   name_label: string;
   metrics: XenApiHostMetrics["$ref"];
@@ -114,13 +118,13 @@ export interface XenApiHost extends XenApiRecord<"Host"> {
   software_version: { product_version: string };
 }
 
-export interface XenApiSr extends XenApiRecord<"Sr"> {
+export interface XenApiSr extends XenApiRecord<"SR"> {
   name_label: string;
   physical_size: number;
   physical_utilisation: number;
 }
 
-export interface XenApiVm extends XenApiRecord<"Vm"> {
+export interface XenApiVm extends XenApiRecord<"VM"> {
   current_operations: Record<string, VM_OPERATION>;
   guest_metrics: string;
   metrics: XenApiVmMetrics["$ref"];
@@ -135,24 +139,24 @@ export interface XenApiVm extends XenApiRecord<"Vm"> {
   VCPUs_at_startup: number;
 }
 
-export interface XenApiConsole extends XenApiRecord<"Console"> {
+export interface XenApiConsole extends XenApiRecord<"console"> {
   protocol: string;
   location: string;
 }
 
-export interface XenApiHostMetrics extends XenApiRecord<"HostMetrics"> {
+export interface XenApiHostMetrics extends XenApiRecord<"host_metrics"> {
   live: boolean;
   memory_free: number;
   memory_total: number;
 }
 
-export interface XenApiVmMetrics extends XenApiRecord<"VmMetrics"> {
+export interface XenApiVmMetrics extends XenApiRecord<"VM_metrics"> {
   VCPUs_number: number;
 }
 
-export type XenApiVmGuestMetrics = XenApiRecord<"VmGuestMetrics">;
+export type XenApiVmGuestMetrics = XenApiRecord<"VM_guest_metrics">;
 
-export interface XenApiTask extends XenApiRecord<"Task"> {
+export interface XenApiTask extends XenApiRecord<"task"> {
   name_label: string;
   resident_on: XenApiHost["$ref"];
   created: string;
@@ -161,17 +165,22 @@ export interface XenApiTask extends XenApiRecord<"Task"> {
   progress: number;
 }
 
-export interface XenApiMessage extends XenApiRecord<"Message"> {
+export interface XenApiMessage<T extends RawObjectType = RawObjectType>
+  extends XenApiRecord<"message"> {
+  body: string;
+  cls: T;
   name: string;
-  cls: RawObjectType;
+  obj_uuid: RawTypeToRecord<T>["uuid"];
+  priority: number;
+  timestamp: string;
 }
 
 type WatchCallbackResult = {
   id: string;
   class: ObjectType;
   operation: "add" | "mod" | "del";
-  ref: XenApiRecord<string>["$ref"];
-  snapshot: RawXenApiRecord<XenApiRecord<string>>;
+  ref: XenApiRecord<RawObjectType>["$ref"];
+  snapshot: RawXenApiRecord<XenApiRecord<RawObjectType>>;
 };
 
 type WatchCallback = (results: WatchCallbackResult[]) => void;
@@ -284,16 +293,17 @@ export default class XenApi {
     return fetch(url, { signal: abortSignal });
   }
 
-  async loadRecords<T extends XenApiRecord<string>>(
-    type: RawObjectType
-  ): Promise<T[]> {
-    const result = await this.#call<{ [key: string]: RawXenApiRecord<T> }>(
+  async loadRecords<
+    T extends RawObjectType,
+    R extends RawTypeToRecord<T> = RawTypeToRecord<T>
+  >(type: T): Promise<R[]> {
+    const result = await this.#call<{ [key: string]: R }>(
       `${type}.get_all_records`,
       [this.sessionId]
     );
 
     return Object.entries(result).map(([opaqueRef, record]) =>
-      buildXoObject(record, { opaqueRef: opaqueRef as T["$ref"] })
+      buildXoObject(record, { opaqueRef: opaqueRef as R["$ref"] })
     );
   }
 

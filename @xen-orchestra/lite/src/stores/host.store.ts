@@ -4,7 +4,7 @@ import type {
   HostStats,
   XapiStatsResponse,
 } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiHostMetrics } from "@/libs/xen-api";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import type { Subscription } from "@/types/xapi-collection";
@@ -25,7 +25,7 @@ type GetStatsExtension = {
 
 type RunningHostsExtension = [
   { runningHosts: ComputedRef<XenApiHost[]> },
-  { hostMetricsSubscription: Subscription<XenApiHostMetrics, any> }
+  { hostMetricsSubscription: Subscription<"host_metrics", any> }
 ];
 
 type Extensions = [GetStatsExtension, RunningHostsExtension];
@@ -36,7 +36,7 @@ export const useHostStore = defineStore("host", () => {
 
   hostCollection.setSort(sortRecordsByNameLabel);
 
-  const subscribe = createSubscribe<XenApiHost, Extensions>((options) => {
+  const subscribe = createSubscribe<"host", Extensions>((options) => {
     const originalSubscription = hostCollection.subscribe(options);
 
     const getStats: GetStats = (

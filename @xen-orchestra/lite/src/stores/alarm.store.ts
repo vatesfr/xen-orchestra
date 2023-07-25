@@ -1,4 +1,3 @@
-import type { XenApiMessage } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { createSubscribe } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
@@ -7,7 +6,7 @@ import { computed } from "vue";
 export const useAlarmStore = defineStore("alarm", () => {
   const messageCollection = useXapiCollectionStore().get("message");
 
-  const subscribe = createSubscribe<XenApiMessage, []>((options) => {
+  const subscribe = createSubscribe<"message", []>((options) => {
     const originalSubscription = messageCollection.subscribe(options);
 
     const extendedSubscription = {

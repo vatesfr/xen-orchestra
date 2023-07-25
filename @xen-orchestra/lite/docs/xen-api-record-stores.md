@@ -40,7 +40,7 @@ export const useConsoleStore = defineStore("console", () =>
 
 To extend the base Subscription, you'll need to override the `subscribe` method.
 
-For that, you can use the `createSubscribe<XenApiRecord, Extensions>((options) => { /* ... */})` helper.
+For that, you can use the `createSubscribe<RawObjectType, Extensions>((options) => { /* ... */})` helper.
 
 ### Define the extensions
 
@@ -82,7 +82,7 @@ type Extensions = [
 export const useConsoleStore = defineStore("console", () => {
   const consoleCollection = useXapiCollectionStore().get("console");
 
-  const subscribe = createSubscribe<XenApiConsole, Extensions>((options) => {
+  const subscribe = createSubscribe<"console", Extensions>((options) => {
     const originalSubscription = consoleCollection.subscribe(options);
 
     const extendedSubscription = {
