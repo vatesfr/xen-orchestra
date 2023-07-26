@@ -46,7 +46,6 @@ import User from './user'
 import Vm from './vm'
 import Xoa from './xoa'
 import XoaUpdates from './xoa/update'
-import Xosan from './xosan'
 import Xostor from './xostor'
 import Import from './import'
 
@@ -129,7 +128,6 @@ export const ICON_POOL_LICENSE = {
   'vms/new': NewVm,
   'vms/:id': Vm,
   xoa: Xoa,
-  xosan: Xosan,
   xostor: Xostor,
   import: Import,
   hub: Hub,

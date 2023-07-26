@@ -478,7 +478,6 @@ export default class Menu extends Component {
         label: 'taskMenu',
         pill: nResolvedTasks,
       },
-      isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       isAdmin && {
         to: '/xostor',
         label: 'xostor',
