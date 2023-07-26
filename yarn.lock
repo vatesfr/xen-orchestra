@@ -12759,6 +12759,11 @@ istanbul-reports@^3.0.2, istanbul-reports@^3.1.3:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
+isutf8@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/isutf8/-/isutf8-4.0.0.tgz#8b0061a96cf896faff3f086d7efa4ae93be8a872"
+  integrity sha512-mJtsQGFfAphKdVuRitEpc0eon4v5fuaB6v9ZJIrLnIyybh02sIIwJ2RQbLMp6UICVCfquezllupZIVcqzGzCPg==
+
 iterable-backoff@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/iterable-backoff/-/iterable-backoff-0.1.0.tgz#2e0d0292a0a268d8037eebd28a894663e995fda2"
