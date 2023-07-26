@@ -88,7 +88,7 @@
   "scripts": {
     "build": "turbo run build --scope xo-server --scope xo-server-'*' --scope xo-web",
     "build:xo-lite": "turbo run build --scope @xen-orchestra/lite",
-    "ci": "yarn && yarn build && yarn test-lint && yarn test-integration",
+    "ci": "npm ci && npm run build && npm run test-lint && npm run test-integration",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
@@ -104,6 +104,5 @@
   "workspaces": [
     "@*/*",
     "packages/*"
-  ],
-  "packageManager": "yarn@1.22.19"
+  ]
 }

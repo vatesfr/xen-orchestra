@@ -7,7 +7,7 @@
     "preview": "vite preview --port 4173",
     "build-only": "GIT_HEAD=$(git rev-parse HEAD) vite build",
     "deploy": "./scripts/deploy.sh",
-    "test": "yarn run type-check",
+    "test": "npm run type-check",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {

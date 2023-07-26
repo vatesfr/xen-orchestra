@@ -33,9 +33,9 @@
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prebuild": "npm run clean",
+    "predev": "npm run prebuild",
+    "prepublishOnly": "npm run build"
   },
   "private": true,
   "author": {

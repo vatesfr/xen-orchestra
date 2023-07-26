@@ -24,7 +24,6 @@ esac
 if [ $# -ge 2 ]
 then
   npm --save=false --workspaces=false version "$2"
-  git checkout HEAD :/yarn.lock
 fi
 # if version is not passed, simply update other packages
 
