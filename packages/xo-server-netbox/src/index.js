@@ -247,7 +247,7 @@ class Netbox {
       await this.#request(`/virtualization/clusters/?type_id=${clusterType.id}`),
       'custom_fields.uuid'
     )
-    const clusters = pickBy(allClusters, cluster => pools.includes(cluster.custom_fields.uuid))
+    const clusters = pick(allClusters, pools)
 
     if (!isEmpty(allClusters[undefined])) {
       // FIXME: Should we delete clusters from this cluster type that don't have
@@ -260,7 +260,10 @@ class Netbox {
     for (const poolId of pools) {
       const pool = this.getObject(poolId)
       if (pool === undefined) {
-        log.warn('Synchronizing pools: cannot find pool', { pool: poolId, pools })
+        // If we can't find the pool, don't synchronize anything within that pool
+        log.warn('Synchronizing pools: cannot find pool', { pool: poolId })
+        delete allClusters[poolId]
+        delete clusters[poolId]
         continue
       }
       const cluster = clusters[pool.uuid]
@@ -276,22 +279,25 @@ class Netbox {
           clustersToUpdate.push(patch)
         }
       }
-      // FIXME: Should we deduplicate cluster names even though it also fails
-      //        when a cluster within another cluster type has the same name?
-      const newClusters = []
-      if (clustersToUpdate.length > 0) {
-        log.info(`Updating ${clustersToUpdate.length} clusters`)
-        newClusters.push(...(await this.#request('/virtualization/clusters/', 'PATCH', clustersToUpdate)))
-      }
-      if (clustersToCreate.length > 0) {
-        log.info(`Creating ${clustersToCreate.length} clusters`)
-        newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
-      }
-      Object.assign(clusters, keyBy(newClusters, 'custom_fields.uuid'))
-      Object.assign(allClusters, clusters)
     }
 
-    const clusterFilter = Object.values(pick(clusters, pools))
+    // FIXME: Should we deduplicate cluster names even though it also fails
+    //        when a cluster within another cluster type has the same name?
+    const newClusters = []
+    if (clustersToUpdate.length > 0) {
+      log.info(`Updating ${clustersToUpdate.length} clusters`)
+      newClusters.push(...(await this.#request('/virtualization/clusters/', 'PATCH', clustersToUpdate)))
+    }
+    if (clustersToCreate.length > 0) {
+      log.info(`Creating ${clustersToCreate.length} clusters`)
+      newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
+    }
+    Object.assign(clusters, keyBy(newClusters, 'custom_fields.uuid'))
+    Object.assign(allClusters, clusters)
+    // Only keep pools that were found in XO and up to date in Netbox
+    pools = Object.keys(clusters)
+
+    const clusterFilter = Object.values(clusters)
       .map(cluster => `cluster_id=${cluster.id}`)
       .join('&')
 
