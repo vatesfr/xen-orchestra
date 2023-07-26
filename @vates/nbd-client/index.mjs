@@ -307,11 +307,11 @@ export default class NbdClient {
     })
   }
 
-  async *readBlocks(indexGenerator) {
+  async *readBlocks(indexGenerator = 2*1024*1024) {
     // default : read all blocks
-    if (indexGenerator === undefined) {
+    if (typeof indexGenerator === 'number') {
       const exportSize = this.#exportSize
-      const chunkSize = 2 * 1024 * 1024
+      const chunkSize =  indexGenerator
       indexGenerator = function* () {
         const nbBlocks = Math.ceil(Number(exportSize / BigInt(chunkSize)))
         for (let index = 0; BigInt(index) < nbBlocks; index++) {
@@ -319,6 +319,7 @@ export default class NbdClient {
         }
       }
     }
+
     const readAhead = []
     const readAheadMaxLength = this.#readAhead
     const makeReadBlockPromise = (index, size) => {
