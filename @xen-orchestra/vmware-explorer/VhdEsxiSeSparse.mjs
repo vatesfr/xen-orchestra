@@ -243,6 +243,11 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     return this.#footer
   }
 
+  static async open(esxi, datastore, path, parentVhd, opts) {
+    const vhd = new VhdEsxiSeSparse(esxi, datastore, path, parentVhd, opts)
+    await vhd.readHeaderAndFooter()
+    return vhd
+  }
   containsBlock (blockId) {
     notEqual(this.compressedTable, undefined, 'bat must be loaded to use contain blocks\'')
     if (this.blocksInFile.has(blockId)) {
@@ -305,7 +310,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
 
     this.grainOffsetBytes = readInt64(buffer, 24) * 512
 
-    const sizeBytes = readInt64(buffer, 2) * this.grainSizeBytes
+    const sizeBytes = readInt64(buffer, 2) * 512
     this.#header = unpackHeader(createHeader(Math.ceil(sizeBytes / VHD_BLOCK_SIZE_BYTES)))
     const geometry = _computeGeometryForSize(sizeBytes)
     const actualSize = geometry.actualSize
