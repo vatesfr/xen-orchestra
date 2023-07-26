@@ -41,7 +41,7 @@ const esxi = {
  
 
 async function read(){
-    const flat =  await VhdEsxiRaw.open(esxi, '/home/florent/Téléchargements', 'test-flat.vmdk',{thin: false})
+    const flat =  await VhdEsxiRaw.open(esxi, '/home/florent/Téléchargements', 'test-flat.vmdk',{thin: true})
     await flat.readBlockAllocationTable()
 
     const sesparse1 = await VHDEsxiSparse2.open(esxi, '/home/florent/Téléchargements', 'test-000001-sesparse.vmdk' , flat)
@@ -50,20 +50,29 @@ async function read(){
     
     const sesparse2 = await VHDEsxiSparse2.open(esxi, '/home/florent/Téléchargements', 'test-000002-sesparse.vmdk' , sesparse1)
     await sesparse2.readBlockAllocationTable()
-
+/*
     const nBlocks = sesparse2.header.maxTableEntries
     const out = createWriteStream('/tmp/outsesparse.raw')
     log = false
     
     for (let blockId = 0; blockId < nBlocks; ++blockId) {
         if (await sesparse2.containsBlock(blockId)) {
-           const block = await sesparse2.readBlock(blockId)
-           await out.write(Buffer.from(block.data))
+            const block = await sesparse2.readBlock(blockId)
+            await out.write(Buffer.from(block.data))
         } else {
             await out.write(Buffer.alloc(2*1024*1024,0))
         }
-      } 
-      out.close()
+    } 
+    out.close()*/
+    const vhdFileStream = createWriteStream('/tmp/outsesparse.vhd')
+    const vhdSourceStream =  sesparse2.stream()
+    vhdSourceStream.pipe(vhdFileStream)
+    await new Promise(resolve =>{
+        vhdSourceStream.on('end', ()=>{
+            vhdFileStream.close()
+            resolve()
+        })
+    })
 
 }
 

@@ -98,7 +98,9 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
   }
 
   async #read(start, length) {
-    return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
+    const buffer = await (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
+    strictEqual(buffer.length, length)
+    return buffer
   }
 
   async readHeaderAndFooter() {
@@ -111,7 +113,6 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
     console.log('grainDirOffsetBytes', this.grainDirOffsetBytes)
     this.grainDirSizeBytes = readInt64(vmdkHeaderBuffer, 17) * 512
     console.log('grainDirSizeBytes', this.grainDirSizeBytes) 
-    this.grainDirCount = this.grainDirSizeBytes / 8  // count is the number of 64b entries in the array
 
     this.grainSizeSectors = readInt64(vmdkHeaderBuffer, 3)
     this.grainSizeBytes = this.grainSizeSectors * 512 // 8 sectors = 4KB default
@@ -122,6 +123,7 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
 
     this.grainTableCount = readInt64(vmdkHeaderBuffer, 4) * 512 / 8// count is the number of 64b entries in each tables
     console.log('grainTableCount', this.grainTableCount)
+    strictEqual(this.grainTableCount, 4096)
 
     this.grainOffsetBytes = readInt64(vmdkHeaderBuffer, 24) * 512
     console.log('grainOffsetBytes', this.grainOffsetBytes)
@@ -129,11 +131,12 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
     const sizeBytes = readInt64(vmdkHeaderBuffer, 2) * 512
     console.log('sizeBytes', sizeBytes)
 
-    this.#header = unpackHeader(createHeader(Math.ceil(sizeBytes / VHD_BLOCK_SIZE_BYTES)))
+    const nbBlocks = Math.ceil(sizeBytes / VHD_BLOCK_SIZE_BYTES)
+    console.log('BLOCKS', nbBlocks)
+    this.#header = unpackHeader(createHeader(nbBlocks))
     const geometry = _computeGeometryForSize(sizeBytes)
-    const actualSize = geometry.actualSize
     this.#footer = unpackFooter(
-      createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DYNAMIC)
+      createFooter(sizeBytes, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DYNAMIC)
     )
   }
 
@@ -141,9 +144,9 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
     
     this.#grainIndex = new Map()
 
-    const grainDirBuffer = await this.#read(this.grainDirOffsetBytes, this.grainDirOffsetBytes +  this.grainDirSizeBytes)
+    const grainDirBuffer = await this.#read(this.grainDirOffsetBytes, this.grainDirSizeBytes)
     // read the grain dir ( first level )
-    for(let grainDirIndex=0 ; grainDirIndex < this.grainDirCount ; grainDirIndex++){
+    for(let grainDirIndex=0 ; grainDirIndex < buffer.length / 8 ; grainDirIndex++){
         const {type:grainDirType, tableIndex} = readSeSparseDir(grainDirBuffer, grainDirIndex)
         if(grainDirType ===SE_SPARSE_DIR_NON_ALLOCATED){
           // no grain table allocated at all in this grain dir
@@ -152,18 +155,19 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
         strictEqual(grainDirType, SE_SPARSE_DIR_ALLOCATED)
         // read the corresponding grain table ( second level )
         const grainTableBuffer = await this.#read(this.grainTableOffsetBytes + tableIndex * this.grainTableCount*8,this.grainTableCount*8)
-        let grains = []
+        // offset in bytes if >0, grainType if <=0 
+        let grainOffsets = []
         let blockId = grainDirIndex * 8
 
         const  addGrain = (val) => {
-            grains.push(val)
+            grainOffsets.push(val)
             // 4096 block of 4Kb per dir entry =>16MB/grain dir
             // 1 block = 2MB
             // 512 grain => 1 block
             // 8 block per dir entry
-            if(grains.length === 512){ 
-                this.#grainIndex.set(blockId, grains)
-                grains = []
+            if(grainOffsets.length === 512){ 
+                this.#grainIndex.set(blockId, grainOffsets)
+                grainOffsets = []
                 blockId ++
             }
         }
@@ -177,10 +181,10 @@ export default class VHDEsxiSparse2 extends VhdAbstract {
           } else {
             // multiply by -1 to differenciate type and offset
             // no offset can be zero 
-            addGrain(grainType  * -1 )
+            addGrain(-grainType)
           }
         } 
-        strictEqual(grains.length, 0)
+        strictEqual(grainOffsets.length, 0)
     }
   }
 
