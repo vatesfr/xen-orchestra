@@ -12,7 +12,7 @@ import { compareNames } from './name-dedup'
  * @returns {Object|undefined} The patch that needs to be applied to older to get newer
  */
 export default function diff(newer, older) {
-  if (typeof newer !== 'object') {
+  if (typeof newer !== 'object' || newer === null) {
     return newer === older ? undefined : newer
   }
 

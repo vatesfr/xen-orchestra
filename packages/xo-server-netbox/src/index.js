@@ -10,6 +10,7 @@ import trimEnd from 'lodash/trimEnd'
 
 import diff from './diff'
 import { deduplicateName } from './name-dedup'
+import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
@@ -223,7 +224,7 @@ class Netbox {
       log.info('Creating cluster type')
       clusterType = await this.#request('/virtualization/cluster-types/', 'POST', {
         name: CLUSTER_TYPE,
-        slug: CLUSTER_TYPE.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        slug: slugify(CLUSTER_TYPE),
         description: 'Created by Xen Orchestra',
       })
     } else {
@@ -305,7 +306,7 @@ class Netbox {
 
     log.info('Synchronizing VMs')
 
-    const createNetboxVm = (vm, cluster) => {
+    const createNetboxVm = async (vm, { cluster, platforms }) => {
       const netboxVm = {
         custom_fields: { uuid: vm.uuid },
         name: vm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
@@ -321,6 +322,23 @@ class Netbox {
         memory: Math.floor(vm.memory.dynamic[1] / M),
         cluster: cluster.id,
         status: vm.power_state === 'Running' ? 'active' : 'offline',
+        platform: null,
+      }
+
+      const distro = vm.os_version?.distro
+      if (distro != null) {
+        const slug = slugify(distro)
+        let platform = find(platforms, { slug })
+        if (platform === undefined) {
+          // TODO: Should we also delete/update platforms in Netbox?
+          platform = await this.#request('/dcim/platforms/', 'POST', {
+            name: distro,
+            slug,
+          })
+          platforms[platform.id] = platform
+        }
+
+        netboxVm.platform = platform.id
       }
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
@@ -335,12 +353,19 @@ class Netbox {
     }
 
     // Some props need to be flattened to satisfy the POST request schema
-    const flattenNested = vm => ({ ...vm, cluster: vm.cluster?.id, status: vm.status?.value })
+    const flattenNested = vm => ({
+      ...vm,
+      cluster: vm.cluster?.id ?? null,
+      status: vm.status?.value ?? null,
+      platform: vm.platform?.id ?? null,
+    })
+
+    const platforms = keyBy(await this.#request('/dcim/platforms'), 'id')
 
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
-    const allNetboxVmsList = (await this.#request(`/virtualization/virtual-machines/`)).filter(
+    const allNetboxVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(
       netboxVm => Object.values(allClusters).find(cluster => cluster.id === netboxVm.cluster.id) !== undefined
     )
     // Then get only the ones from the pools we're synchronizing
@@ -376,7 +401,7 @@ class Netbox {
         const netboxVm = allNetboxVms[vm.uuid]
         delete poolNetboxVms[vm.uuid]
 
-        const updatedVm = createNetboxVm(vm, cluster)
+        const updatedVm = await createNetboxVm(vm, { cluster, platforms })
 
         if (netboxVm !== undefined) {
           // VM found in Netbox: update VM (I.1)
@@ -402,7 +427,7 @@ class Netbox {
         const cluster = allClusters[pool?.uuid]
         if (cluster !== undefined) {
           // If the VM is found in XO: update it if necessary (II.1)
-          const updatedVm = createNetboxVm(vm, cluster)
+          const updatedVm = await createNetboxVm(vm, { cluster, platforms })
           const patch = diff(updatedVm, flattenNested(netboxVm))
 
           if (patch === undefined) {
