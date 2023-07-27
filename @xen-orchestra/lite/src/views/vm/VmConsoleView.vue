@@ -1,6 +1,7 @@
 <template>
   <div class="vm-console-view">
-    <UiSpinner v-if="!isReady" class="spinner" />
+    <div v-if="hasError">{{ $t("error-occurred") }}</div>
+    <UiSpinner v-else-if="!isReady" class="spinner" />
     <div v-else-if="!isVmRunning" class="not-running">
       <div><img alt="" src="@/assets/monitor.svg" /></div>
       {{ $t("power-on-for-console") }}
@@ -40,12 +41,21 @@ usePageTitleStore().setTitle(useI18n().t("console"));
 
 const route = useRoute();
 
-const { isReady: isVmReady, getByUuid: getVmByUuid } = useVmStore().subscribe();
+const {
+  isReady: isVmReady,
+  getByUuid: getVmByUuid,
+  hasError: hasVmError,
+} = useVmStore().subscribe();
 
-const { isReady: isConsoleReady, getByOpaqueRef: getConsoleByOpaqueRef } =
-  useConsoleStore().subscribe();
+const {
+  isReady: isConsoleReady,
+  getByOpaqueRef: getConsoleByOpaqueRef,
+  hasError: hasConsoleError,
+} = useConsoleStore().subscribe();
 
 const isReady = computed(() => isVmReady.value && isConsoleReady.value);
+
+const hasError = computed(() => hasVmError.value || hasConsoleError.value);
 
 const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm["uuid"]));
 
