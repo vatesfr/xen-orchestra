@@ -77,6 +77,8 @@
   "news": "Actualités",
   "news-name": "Actualités {name}",
   "new-features-are-coming": "De nouvelles fonctionnalités arrivent bientôt !",
+  "no-tasks": "Aucune tâche",
+  "not-found": "Non trouvé",
   "object": "Objet",
   "object-not-found": "L'objet {id} est introuvable…",
   "or": "Ou",
@@ -127,7 +129,6 @@
   "system": "Système",
   "task": {
     "estimated-end": "Fin estimée",
-    "page-title": "Tâches | (1) Tâches | ({n}) Tâches",
     "progress": "Progression",
     "started": "Démarré"
   },

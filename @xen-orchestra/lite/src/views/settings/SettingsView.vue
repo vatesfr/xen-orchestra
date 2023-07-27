@@ -157,6 +157,7 @@
 </template>
 
 <script lang="ts" setup>
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { computed } from "vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
@@ -181,7 +182,9 @@ import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
 
 const xoLiteVersion = XO_LITE_VERSION;
 const xoLiteGitHead = XO_LITE_GIT_HEAD;
-const { locale } = useI18n();
+const { t, locale } = useI18n();
+
+usePageTitleStore().setTitle(() => t("settings"));
 
 const { pool } = usePoolStore().subscribe();
 const { getByOpaqueRef: getHost } = useHostStore().subscribe();

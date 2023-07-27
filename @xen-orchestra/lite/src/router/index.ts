@@ -33,7 +33,7 @@ const router = createRouter({
     },
     {
       path: "/:pathMatch(.*)*",
-      name: "notFound",
+      name: "not-found",
       component: () => import("@/views/PageNotFoundView.vue"),
     },
   ],
