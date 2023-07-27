@@ -6,6 +6,10 @@
       <div><img alt="" src="@/assets/monitor.svg" /></div>
       {{ $t("power-on-for-console") }}
     </div>
+    <div v-else-if="!isConsoleAvailable" class="not-available">
+      <div><img alt="" src="@/assets/monitor.svg" /></div>
+      {{ $t("console-unavailable") }}
+    </div>
     <RemoteConsole
       v-else-if="vm && vmConsole"
       :is-console-available="isConsoleAvailable"
