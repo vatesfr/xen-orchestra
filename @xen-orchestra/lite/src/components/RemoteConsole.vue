@@ -1,13 +1,28 @@
 <template>
-  <div ref="consoleContainer" class="remote-console" />
+  <div ref="consoleContainer" class="remote-console">
+    <div v-if="!isConsoleAvailable">
+      {{ $t("console-unavailable") }}
+    </div>
+    <div v-else-if="vncClient === undefined">
+      <UiCardSpinner />
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import VncClient from "@novnc/novnc/core/rfb";
 import { promiseTimeout } from "@vueuse/shared";
 import { fibonacci } from "iterable-backoff";
-import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  ref,
+  type ShallowRef,
+  shallowRef,
+  watchEffect,
+} from "vue";
 
 const N_TOTAL_TRIES = 8;
 const FIBONACCI_MS_ARRAY: number[] = Array.from(
@@ -31,7 +46,7 @@ const url = computed(() => {
   return _url;
 });
 
-let vncClient: VncClient | undefined;
+const vncClient = shallowRef() as ShallowRef<VncClient | undefined>;
 let nConnectionAttempts = 0;
 
 const handleDisconnectionEvent = () => {
@@ -59,18 +74,18 @@ const handleDisconnectionEvent = () => {
 const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
 const clearVncClient = () => {
-  if (vncClient === undefined) {
+  if (vncClient.value === undefined) {
     return;
   }
 
-  vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
-  vncClient.removeEventListener("connect", handleConnectionEvent);
+  vncClient.value.removeEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.value.removeEventListener("connect", handleConnectionEvent);
 
-  if (vncClient._rfbConnectionState !== "disconnected") {
-    vncClient.disconnect();
+  if (vncClient.value._rfbConnectionState !== "disconnected") {
+    vncClient.value.disconnect();
   }
 
-  vncClient = undefined;
+  vncClient.value = undefined;
 };
 
 const createVncConnection = async () => {
@@ -78,13 +93,17 @@ const createVncConnection = async () => {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]);
   }
 
-  vncClient = new VncClient(consoleContainer.value!, url.value!.toString(), {
-    wsProtocols: ["binary"],
-  });
-  vncClient.scaleViewport = true;
+  vncClient.value = new VncClient(
+    consoleContainer.value!,
+    url.value!.toString(),
+    {
+      wsProtocols: ["binary"],
+    }
+  );
+  vncClient.value.scaleViewport = true;
 
-  vncClient.addEventListener("disconnect", handleDisconnectionEvent);
-  vncClient.addEventListener("connect", handleConnectionEvent);
+  vncClient.value.addEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.value.addEventListener("connect", handleConnectionEvent);
 };
 
 watchEffect(() => {
