@@ -27,6 +27,7 @@
 - [Pool] Fix IPv6 handling when adding hosts
 - [New SR] Send provided NFS version to XAPI when probing a share
 - [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
+- [Backup] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
 
 ### Packages to release
 
