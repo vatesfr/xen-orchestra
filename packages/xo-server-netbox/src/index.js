@@ -44,6 +44,7 @@ class Netbox {
   #pools
   #removeApiMethods
   #syncInterval
+  #ignoredVmTags
   #token
   #xo
 
@@ -60,6 +61,7 @@ class Netbox {
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoredVmTags =  new Set( configuration.ignoredVmTags)
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (this.#loaded) {
@@ -254,7 +256,10 @@ class Netbox {
     )
 
     // VMs
-    const vms = xo.getObjects({ filter: object => object.type === 'VM' && pools.includes(object.$pool) })
+    const vms = xo.getObjects({ filter: object => object.type === 'VM' && 
+                                pools.includes(object.$pool) &&
+                                !object.tags.some(tag => this.#ignoredVmTags.has(tag))
+                              })
     let oldNetboxVms = flatten(
       // FIXME: It should be doable with one request:
       // `cluster_id=1&cluster_id=2` but it doesn't work
@@ -595,25 +600,30 @@ class Netbox {
     if (ignoredIps.length > 0) {
       log.warn('Could not find prefix for some IPs: ignoring them.', { ips: ignoredIps })
     }
-
+    log.debug('ip address promises')
+    // log.warn('ipsToDelete:', ipsToDelete)
+    // log.warn('ipsToCreate:', ipsToCreate)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
-      ipsToCreate.length !== 0 &&
-        this.#makeRequest(
-          '/ipam/ip-addresses/',
-          'POST',
-          ipsToCreate.map(ip => omit(ip, 'vifId'))
-        ).then(newNetboxIps => {
-          newNetboxIps.forEach((newNetboxIp, i) => {
-            const { vifId } = ipsToCreate[i]
-            if (netboxIpsByVif[vifId] === undefined) {
-              netboxIpsByVif[vifId] = []
-            }
-            netboxIpsByVif[vifId].push(newNetboxIp)
-          })
-        }),
     ])
 
+    // breaking up creating/assigning of ip's into multiple calls. 
+    // one bad entry will stop netbox accepting any of the changes and will not give a detailed error response
+    for (const create_ip_obj of ipsToCreate) {
+      log.debug('attempting to add ip: ', create_ip_obj)
+      try {
+        await this.#makeRequest(
+          '/ipam/ip-addresses/',
+          'POST',
+          omit(create_ip_obj, 'vifId')
+        )
+      } catch (error) {
+        log.error("unable to add ip ", [error, create_ip_obj])
+      }
+    }
+    
+    log.debug('set primary ips')
+    
     // Primary IPs
     vmsToUpdate = []
     Object.entries(netboxVms).forEach(([vmId, netboxVm]) => {
@@ -648,7 +658,7 @@ class Netbox {
         vmsToUpdate.push(newNetboxVm)
       }
     })
-
+    log.debug('vmsToUpdate:', vmsToUpdate)
     if (vmsToUpdate.length > 0) {
       await this.#makeRequest('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
     }
@@ -713,6 +723,16 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       type: 'number',
       title: 'Interval',
       description: 'Synchronization interval in hours - leave empty to disable auto-sync',
+    },
+    ignoredVmTags: {
+      type: 'array',
+      title: 'Ignored VM tags',
+      description: 'list of VM tags to never sync to netbox',
+
+      items: {
+        type: 'string',
+        $type: 'Tag',
+      },
     },
   },
   required: ['endpoint', 'token', 'pools'],
