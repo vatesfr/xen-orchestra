@@ -34,7 +34,6 @@ const {
   isReady: isVmReady,
   records: vms,
   hasError: hasVmError,
-  runningVms,
 } = useVmStore().subscribe();
 
 const {
@@ -55,5 +54,7 @@ const activeHostsCount = computed(
 
 const totalVmsCount = computed(() => vms.value.length);
 
-const activeVmsCount = computed(() => runningVms.value.length);
+const activeVmsCount = computed(
+  () => vms.value.filter((vm) => vm.power_state === "Running").length
+);
 </script>
