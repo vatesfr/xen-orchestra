@@ -33,7 +33,7 @@ export default class BackupNgFileRestore {
     })
   }
 
-  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths) {
+  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths, format) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
     return remote.proxy !== undefined
@@ -48,11 +48,14 @@ export default class BackupNgFileRestore {
             },
             partition: partitionId,
             paths,
+
+            // don't send the legacy default format to keep compatibility with old proxies
+            format: format === 'zip' ? undefined : format,
           },
           { assertType: 'stream' }
         )
       : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
-          adapter.fetchPartitionFiles(diskId, partitionId, paths)
+          adapter.fetchPartitionFiles(diskId, partitionId, paths, format)
         )
   }
 

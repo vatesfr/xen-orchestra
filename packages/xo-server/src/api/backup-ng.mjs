@@ -336,21 +336,21 @@ listFiles.params = {
   },
 }
 
-async function handleFetchFiles(req, res, { remote, disk, partition, paths }) {
-  const zipStream = await this.fetchBackupNgPartitionFiles(remote, disk, partition, paths)
+async function handleFetchFiles(req, res, { remote, disk, format, partition, paths }) {
+  const stream = await this.fetchBackupNgPartitionFiles(remote, disk, partition, paths, format)
 
   res.setHeader('content-disposition', 'attachment')
   res.setHeader('content-type', 'application/octet-stream')
-  return zipStream
+  return stream
 }
 
 export async function fetchFiles(params) {
-  const { paths } = params
+  const { format, paths } = params
   let filename = `restore_${safeDateFormat(new Date())}`
   if (paths.length === 1) {
     filename += `_${basename(paths[0])}`
   }
-  filename += '.zip'
+  filename += '.' + format
 
   return this.registerHttpRequest(handleFetchFiles, params, {
     suffix: '/' + encodeURIComponent(filename),
@@ -362,6 +362,10 @@ fetchFiles.permission = 'admin'
 fetchFiles.params = {
   disk: {
     type: 'string',
+  },
+  format: {
+    type: 'string',
+    default: 'tgz',
   },
   partition: {
     optional: true,
