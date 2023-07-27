@@ -58,7 +58,7 @@ const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable
 
 export default class Api {
   constructor(app, { appVersion, httpServer }) {
-    this._ajv = new Ajv({ allErrors: true })
+    this._ajv = new Ajv({ allErrors: true, useDefaults: true })
     this._methods = { __proto__: null }
     const PREFIX = '/api/v1'
     const router = new Router({ prefix: PREFIX }).post('/', async ctx => {
