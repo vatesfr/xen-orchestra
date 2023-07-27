@@ -31,8 +31,23 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
+import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
+import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
+import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
+import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
+import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
+import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
+import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
+import useFetchStats from "@/composables/fetch-stats.composable";
+import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
+import { useHostStore } from "@/stores/host.store";
+import { usePageTitleStore } from "@/stores/page-title.store";
+import { useVmStore } from "@/stores/vm.store";
 import {
   IK_HOST_LAST_WEEK_STATS,
   IK_HOST_STATS,
@@ -40,20 +55,9 @@ import {
 } from "@/types/injection-keys";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
-import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
-import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
-import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
-import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
-import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
-import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
-import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
-import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
-import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import useFetchStats from "@/composables/fetch-stats.composable";
-import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
-import { useVmStore } from "@/stores/vm.store";
+import { useI18n } from "vue-i18n";
+
+usePageTitleStore().setTitle(useI18n().t("dashboard"));
 
 const hostMetricsSubscription = useHostMetricsStore().subscribe();
 

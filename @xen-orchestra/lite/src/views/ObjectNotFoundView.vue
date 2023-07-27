@@ -9,12 +9,16 @@
 </template>
 
 <script setup lang="ts">
+import { usePageTitleStore } from "@/stores/page-title.store";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import UiButton from "@/components/ui/UiButton.vue";
 
 defineProps<{
   id: string;
 }>();
+
+usePageTitleStore().setTitle(useI18n().t("not-found"));
 
 const router = useRouter();
 </script>
