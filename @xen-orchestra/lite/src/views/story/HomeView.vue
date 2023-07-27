@@ -4,12 +4,7 @@
 
     <div class="row">
       Choose a component
-      <FormSelect v-model="componentPath">
-        <option value="" />
-        <option v-for="path in componentPaths" :key="path">
-          {{ path }}
-        </option>
-      </FormSelect>
+      <FormSelect v-model="componentPath" :options="componentPaths" />
     </div>
 
     <div class="row">

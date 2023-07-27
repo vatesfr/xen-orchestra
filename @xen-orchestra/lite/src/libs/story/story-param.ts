@@ -102,10 +102,24 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
   #isRequired = false;
   #defaultValue: any;
   #isVModel: boolean;
+  #onChangeHandler: ((value: any, context: object) => void) | undefined;
 
   constructor(name: string, isVModel = false) {
     super(name);
     this.#isVModel = isVModel;
+  }
+
+  onChange(handler: (value: any, context: object) => void) {
+    this.#onChangeHandler = handler;
+    return this;
+  }
+
+  hasChangeHandler() {
+    return this.#onChangeHandler !== undefined;
+  }
+
+  getOnChangeHandler() {
+    return this.#onChangeHandler;
   }
 
   isRequired() {

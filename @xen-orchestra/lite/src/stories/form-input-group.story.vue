@@ -3,13 +3,12 @@
     :params="[slot().help('Can contains multiple FormInput and FormSelect')]"
   >
     <FormInputGroup>
-      <FormInput />
-      <FormInput />
-      <FormSelect>
-        <option>Option 1</option>
-        <option>Option 2</option>
-        <option>Option 3</option>
-      </FormSelect>
+      <FormInput v-model="model" />
+      <FormInput v-model="model" />
+      <FormSelect
+        v-model="model"
+        :options="['Option 1', 'Option 2', 'Option 3']"
+      />
     </FormInputGroup>
   </ComponentStory>
 </template>
@@ -20,4 +19,7 @@ import FormInput from "@/components/form/FormInput.vue";
 import FormInputGroup from "@/components/form/FormInputGroup.vue";
 import FormSelect from "@/components/form/FormSelect.vue";
 import { slot } from "@/libs/story/story-param";
+import { ref } from "vue";
+
+const model = ref("");
 </script>

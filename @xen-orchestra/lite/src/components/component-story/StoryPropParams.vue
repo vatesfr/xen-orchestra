@@ -10,7 +10,7 @@
         <th><!-- Reset Default --></th>
         <th><!-- Widget --></th>
         <th>Default</th>
-        <th>Help</th>
+        <th><!-- Help --></th>
       </tr>
     </thead>
     <tfoot>
@@ -78,7 +78,11 @@
           <span v-else>-</span>
         </td>
         <td class="help">
-          {{ param.getHelp() }}
+          <UiIcon
+            v-if="param.getHelp()"
+            v-tooltip="param.getHelp()"
+            :icon="faInfoCircle"
+          />
         </td>
       </tr>
     </tbody>
@@ -95,7 +99,11 @@ import useModal from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { PropParam } from "@/libs/story/story-param";
-import { faClose, faRepeat } from "@fortawesome/free-solid-svg-icons";
+import {
+  faClose,
+  faInfoCircle,
+  faRepeat,
+} from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import { toRef } from "vue";
 
@@ -168,6 +176,7 @@ const {
 .help {
   font-style: italic;
   color: var(--color-blue-scale-200);
+  text-align: center;
 }
 
 .default-value {

@@ -1,34 +1,25 @@
 <template>
-  <FormSelect
-    v-if="isSelectWidget(widget)"
-    v-model="model"
-    :wrapper-attrs="{ class: 'full-width' }"
-  >
-    <option v-if="!required && model === undefined" :value="undefined" />
-    <option
-      v-for="choice in widget.choices"
-      :key="choice.label"
-      :value="choice.value"
-    >
-      {{ choice.label }}
-    </option>
-  </FormSelect>
-  <div v-else-if="isRadioWidget(widget)" class="radio">
-    <FormInputWrapper v-for="choice in widget.choices" :key="choice.label">
-      <FormRadio v-model="model" :value="choice.value" />
-      {{ choice.label }}
-    </FormInputWrapper>
+  <div class="story-widget">
+    <div v-if="isSelectWidget(widget)">
+      <FormSelect :options="widget.choices" v-model="model" />
+    </div>
+    <div v-else-if="isRadioWidget(widget)" class="radio">
+      <FormInputWrapper v-for="choice in widget.choices" :key="choice.label">
+        <FormRadio v-model="model" :value="choice.value" />
+        {{ choice.label }}
+      </FormInputWrapper>
+    </div>
+    <div v-else-if="isBooleanWidget(widget)">
+      <FormCheckbox v-model="model" />
+    </div>
+    <FormInput
+      v-else-if="isNumberWidget(widget)"
+      v-model.number="model"
+      type="number"
+    />
+    <FormInput v-else-if="isTextWidget(widget)" v-model="model" />
+    <FormJson v-else-if="isObjectWidget(widget)" v-model="model" />
   </div>
-  <div v-else-if="isBooleanWidget(widget)">
-    <FormCheckbox v-model="model" />
-  </div>
-  <FormInput
-    v-else-if="isNumberWidget(widget)"
-    v-model.number="model"
-    type="number"
-  />
-  <FormInput v-else-if="isTextWidget(widget)" v-model="model" />
-  <FormJson v-else-if="isObjectWidget(widget)" v-model="model" />
 </template>
 
 <script lang="ts" setup>
@@ -82,9 +73,11 @@ const model = useVModel(props, "modelValue", emit);
   gap: 1rem;
 }
 
-.form-select,
-.form-input,
-.form-json {
-  font-size: 1.4rem;
+.story-widget {
+  &:deep(.form-select),
+  &:deep(.form-input),
+  &:deep(.form-json) {
+    font-size: 1.4rem;
+  }
 }
 </style>

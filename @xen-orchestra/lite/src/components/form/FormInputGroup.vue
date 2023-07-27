@@ -9,8 +9,8 @@
   display: inline-flex;
   align-items: center;
 
-  :slotted(.form-input),
-  :slotted(.form-select) {
+  &:deep(.form-input),
+  &:deep(.form-select) {
     &:hover {
       z-index: 1;
     }
@@ -23,7 +23,8 @@
       margin-left: -1px;
 
       .input,
-      .select {
+      .select,
+      .multiselect {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
       }
@@ -31,7 +32,8 @@
 
     &:not(:last-child) {
       .input,
-      .select {
+      .select,
+      .multiselect {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
       }

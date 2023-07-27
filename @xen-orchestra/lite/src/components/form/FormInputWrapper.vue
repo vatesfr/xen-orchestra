@@ -41,7 +41,6 @@ import type { Color } from "@/types";
 import {
   IK_FORM_HAS_LABEL,
   IK_FORM_INPUT_COLOR,
-  IK_FORM_LABEL_DISABLED,
   IK_INPUT_ID,
 } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
@@ -59,7 +58,6 @@ const props = defineProps<{
   warning?: string;
   error?: string;
   help?: string;
-  disabled?: boolean;
 }>();
 
 const id = computed(() => props.id ?? uniqueId("form-input-"));
@@ -82,11 +80,6 @@ provide(IK_FORM_INPUT_COLOR, color);
 provide(
   IK_FORM_HAS_LABEL,
   computed(() => slots.label !== undefined)
-);
-
-provide(
-  IK_FORM_LABEL_DISABLED,
-  computed(() => props.disabled ?? false)
 );
 </script>
 
