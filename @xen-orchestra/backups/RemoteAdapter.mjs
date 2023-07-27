@@ -18,6 +18,7 @@ import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
 import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
+import tar from 'tar'
 import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
@@ -201,15 +202,24 @@ export class RemoteAdapter {
     })
   }
 
-  fetchPartitionFiles(diskId, partitionId, paths) {
+  fetchPartitionFiles(diskId, partitionId, paths, format) {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
       async function* () {
         const path = yield this.getPartition(diskId, partitionId)
-        const zip = new ZipFile()
-        await addZipEntries(zip, path, '', paths.map(makeRelative))
-        zip.end()
-        const { outputStream } = zip
+        let outputStream
+
+        if (format === 'tgz') {
+          outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
+        } else if (format === 'zip') {
+          const zip = new ZipFile()
+          await addZipEntries(zip, path, '', paths.map(makeRelative))
+          zip.end()
+          ;({ outputStream } = zip)
+        } else {
+          throw new Error('unsupported format ' + format)
+        }
+
         resolve(outputStream)
         await fromEvent(outputStream, 'end')
       }.bind(this)
