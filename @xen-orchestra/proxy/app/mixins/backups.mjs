@@ -174,12 +174,15 @@ export default class Backups {
           },
         ],
         fetchPartitionFiles: [
-          ({ disk: diskId, remote, partition: partitionId, paths }) =>
-            Disposable.use(this.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
+          ({ disk: diskId, format, remote, partition: partitionId, paths }) =>
+            Disposable.use(this.getAdapter(remote), adapter =>
+              adapter.fetchPartitionFiles(diskId, partitionId, paths, format)
+            ),
           {
             description: 'fetch files from partition',
             params: {
               disk: { type: 'string' },
+              format: { type: 'string', default: 'zip' },
               partition: { type: 'string', optional: true },
               paths: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
