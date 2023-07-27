@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup/Restore] Button to open the raw log in the REST API (PR [#6936](https://github.com/vatesfr/xen-orchestra/pull/6936))
+- [Vmware/Import] Support esxi 6.5+ with snapshot (PR [#6909](https://github.com/vatesfr/xen-orchestra/pull/6909))
 
 ### Bug fixes
 
@@ -45,7 +46,7 @@
 - @vates/read-chunk minor
 - complex-matcher patch
 - xen-api patch
-- xo-server patch
+- xo-server minor
 - xo-server-transport-xmpp patch
 - xo-server-audit patch
 - xo-web minor
