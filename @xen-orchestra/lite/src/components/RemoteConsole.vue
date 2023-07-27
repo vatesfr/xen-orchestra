@@ -1,23 +1,13 @@
 <template>
-  <div ref="consoleContainer" class="remote-console">
-    <UiCardSpinner v-if="vncClient === undefined" />
-  </div>
+  <div ref="vmConsoleContainer" class="vm-console" />
 </template>
 
 <script lang="ts" setup>
-import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import VncClient from "@novnc/novnc/core/rfb";
 import { promiseTimeout } from "@vueuse/shared";
 import { fibonacci } from "iterable-backoff";
-import {
-  computed,
-  onBeforeUnmount,
-  ref,
-  type ShallowRef,
-  shallowRef,
-  watchEffect,
-} from "vue";
+import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
 
 const N_TOTAL_TRIES = 8;
 const FIBONACCI_MS_ARRAY: number[] = Array.from(
@@ -26,9 +16,10 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(
 
 const props = defineProps<{
   location: string;
+  isConsoleAvailable: boolean;
 }>();
 
-const consoleContainer = ref<HTMLDivElement>();
+const vmConsoleContainer = ref<HTMLDivElement>();
 const xenApiStore = useXenApiStore();
 const url = computed(() => {
   if (xenApiStore.currentSessionId == null) {
@@ -40,44 +31,46 @@ const url = computed(() => {
   return _url;
 });
 
-const vncClient = shallowRef() as ShallowRef<VncClient | undefined>;
+let vncClient: VncClient | undefined;
 let nConnectionAttempts = 0;
 
 const handleDisconnectionEvent = () => {
   clearVncClient();
 
-  nConnectionAttempts++;
+  if (props.isConsoleAvailable) {
+    nConnectionAttempts++;
 
-  if (nConnectionAttempts > N_TOTAL_TRIES) {
+    if (nConnectionAttempts > N_TOTAL_TRIES) {
+      console.error(
+        "The number of reconnection attempts has been exceeded for:",
+        props.location
+      );
+      return;
+    }
+
     console.error(
-      "The number of reconnection attempts has been exceeded for:",
-      props.location
+      `Connection lost for the remote console: ${
+        props.location
+      }. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
     );
-    return;
+    createVncConnection();
   }
-
-  console.error(
-    `Connection lost for the remote console: ${
-      props.location
-    }. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
-  );
-  createVncConnection();
 };
 const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
 const clearVncClient = () => {
-  if (vncClient.value === undefined) {
+  if (vncClient === undefined) {
     return;
   }
 
-  vncClient.value.removeEventListener("disconnect", handleDisconnectionEvent);
-  vncClient.value.removeEventListener("connect", handleConnectionEvent);
+  vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.removeEventListener("connect", handleConnectionEvent);
 
-  if (vncClient.value._rfbConnectionState !== "disconnected") {
-    vncClient.value.disconnect();
+  if (vncClient._rfbConnectionState !== "disconnected") {
+    vncClient.disconnect();
   }
 
-  vncClient.value = undefined;
+  vncClient = undefined;
 };
 
 const createVncConnection = async () => {
@@ -85,21 +78,21 @@ const createVncConnection = async () => {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]);
   }
 
-  vncClient.value = new VncClient(
-    consoleContainer.value!,
-    url.value!.toString(),
-    {
-      wsProtocols: ["binary"],
-    }
-  );
-  vncClient.value.scaleViewport = true;
+  vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
+    wsProtocols: ["binary"],
+  });
+  vncClient.scaleViewport = true;
 
-  vncClient.value.addEventListener("disconnect", handleDisconnectionEvent);
-  vncClient.value.addEventListener("connect", handleConnectionEvent);
+  vncClient.addEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.addEventListener("connect", handleConnectionEvent);
 };
 
 watchEffect(() => {
-  if (url.value === undefined || consoleContainer.value === undefined) {
+  if (
+    url.value === undefined ||
+    vmConsoleContainer.value === undefined ||
+    !props.isConsoleAvailable
+  ) {
     return;
   }
 
@@ -115,7 +108,11 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="postcss" scoped>
-.remote-console > :deep(div) {
-  background-color: transparent !important;
+.vm-console {
+  height: 80rem;
+
+  & > :deep(div) {
+    background-color: transparent !important;
+  }
 }
 </style>
