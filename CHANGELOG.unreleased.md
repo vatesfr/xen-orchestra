@@ -53,12 +53,9 @@
 - @xen-orchestra/xapi major
 - @vates/read-chunk minor
 - complex-matcher patch
-  <<<<<<< HEAD
 - xen-api patch
-- xo-server patch
-- # xo-server-transport-xmpp patch
 - xo-server minor
-  > > > > > > > ca3d460f1... changelog.md
+- xo-server-transport-xmpp patch
 - xo-server-audit patch
 - xo-server-netbox major
 - xo-web minor
