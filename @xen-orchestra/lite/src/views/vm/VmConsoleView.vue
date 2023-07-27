@@ -6,9 +6,12 @@
       <div><img alt="" src="@/assets/monitor.svg" /></div>
       {{ $t("power-on-for-console") }}
     </div>
+    <div v-else-if="!isConsoleAvailable" class="not-available">
+      <div><img alt="" src="@/assets/monitor.svg" /></div>
+      {{ $t("console-unavailable") }}
+    </div>
     <RemoteConsole
       v-else-if="vm && vmConsole"
-      :is-console-available="!isOperationsPending(vm, STOP_OPERATIONS)"
       :location="vmConsole.location"
       class="remote-console"
     />
@@ -72,6 +75,11 @@ const vmConsole = computed(() => {
 
   return getConsoleByOpaqueRef(consoleOpaqueRef);
 });
+
+const isConsoleAvailable = computed(
+  () =>
+    vm.value !== undefined && !isOperationsPending(vm.value, STOP_OPERATIONS)
+);
 </script>
 
 <style lang="postcss" scoped>
@@ -96,7 +104,8 @@ const vmConsole = computed(() => {
   height: 100%;
 }
 
-.not-running {
+.not-running,
+.not-available {
   display: flex;
   align-items: center;
   justify-content: center;

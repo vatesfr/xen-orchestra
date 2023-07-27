@@ -1,11 +1,6 @@
 <template>
   <div ref="consoleContainer" class="remote-console">
-    <div v-if="!isConsoleAvailable">
-      {{ $t("console-unavailable") }}
-    </div>
-    <div v-else-if="vncClient === undefined">
-      <UiCardSpinner />
-    </div>
+    <UiCardSpinner v-if="vncClient === undefined" />
   </div>
 </template>
 
@@ -31,7 +26,6 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(
 
 const props = defineProps<{
   location: string;
-  isConsoleAvailable: boolean;
 }>();
 
 const consoleContainer = ref<HTMLDivElement>();
@@ -52,24 +46,22 @@ let nConnectionAttempts = 0;
 const handleDisconnectionEvent = () => {
   clearVncClient();
 
-  if (props.isConsoleAvailable) {
-    nConnectionAttempts++;
+  nConnectionAttempts++;
 
-    if (nConnectionAttempts > N_TOTAL_TRIES) {
-      console.error(
-        "The number of reconnection attempts has been exceeded for:",
-        props.location
-      );
-      return;
-    }
-
+  if (nConnectionAttempts > N_TOTAL_TRIES) {
     console.error(
-      `Connection lost for the remote console: ${
-        props.location
-      }. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
+      "The number of reconnection attempts has been exceeded for:",
+      props.location
     );
-    createVncConnection();
+    return;
   }
+
+  console.error(
+    `Connection lost for the remote console: ${
+      props.location
+    }. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
+  );
+  createVncConnection();
 };
 const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
@@ -107,11 +99,7 @@ const createVncConnection = async () => {
 };
 
 watchEffect(() => {
-  if (
-    url.value === undefined ||
-    consoleContainer.value === undefined ||
-    !props.isConsoleAvailable
-  ) {
+  if (url.value === undefined || consoleContainer.value === undefined) {
     return;
   }
 
