@@ -8,6 +8,13 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup/Restore] Button to open the raw log in the REST API (PR [#6936](https://github.com/vatesfr/xen-orchestra/pull/6936))
+- [Netbox] New major version. BREAKING: in order for this new version to work, you need to assign the type `virtualization > vminterface` to the custom field `UUID` in your Netbox instance. [See documentation](https://xen-orchestra.com/docs/advanced.html#netbox). [#6038](https://github.com/vatesfr/xen-orchestra/issues/6038) [#6135](https://github.com/vatesfr/xen-orchestra/issues/6135) [#6024](https://github.com/vatesfr/xen-orchestra/issues/6024) [#6036](https://github.com/vatesfr/xen-orchestra/issues/6036) (PR [#6950](https://github.com/vatesfr/xen-orchestra/pull/6950))
+  - Synchronize VM description
+  - Fix duplicated VMs in Netbox after disconnecting one pool
+  - Migrating a VM from one pool to another keeps VM data added manually
+  - Fix largest IP prefix being picked instead of smallest
+  - Fix synchronization not working if some pools are unavailable
+  - Better error messages
 
 ### Bug fixes
 
@@ -48,6 +55,7 @@
 - xo-server patch
 - xo-server-transport-xmpp patch
 - xo-server-audit patch
+- xo-server-netbox major
 - xo-web minor
 
 <!--packages-end-->
