@@ -5,7 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
-import { dirname, join, normalize, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { execFile } from 'child_process'
 import { mount } from '@vates/fuse-vhd'
 import { readdir, lstat } from 'node:fs/promises'
@@ -41,20 +41,23 @@ const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 const noop = Function.prototype
 
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
+const makeRelative = path => resolve('/', path).slice(1)
+const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
 
-const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
+async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
+  for (const relativePath of relativePaths) {
+    const realPath = join(realBasePath, relativePath)
+    const virtualPath = join(virtualBasePath, relativePath)
 
-async function addDirectory(files, realPath, metadataPath) {
-  const stats = await lstat(realPath)
-  if (stats.isDirectory()) {
-    await asyncMap(await readdir(realPath), file =>
-      addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)
-    )
-  } else if (stats.isFile()) {
-    files.push({
-      realPath,
-      metadataPath,
-    })
+    const stats = await lstat(realPath)
+    const { mode, mtime } = stats
+    const opts = { mode, mtime }
+    if (stats.isDirectory()) {
+      zip.addEmptyDirectory(virtualPath, opts)
+      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
+    } else if (stats.isFile()) {
+      zip.addFile(realPath, virtualPath, opts)
+    }
   }
 }
 
@@ -182,17 +185,6 @@ export class RemoteAdapter {
     })
   }
 
-  async *_usePartitionFiles(diskId, partitionId, paths) {
-    const path = yield this.getPartition(diskId, partitionId)
-
-    const files = []
-    await asyncMap(paths, file =>
-      addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, ''))
-    )
-
-    return files
-  }
-
   // check if we will be allowed to merge a a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
@@ -213,9 +205,9 @@ export class RemoteAdapter {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
       async function* () {
-        const files = yield this._usePartitionFiles(diskId, partitionId, paths)
+        const path = yield this.getPartition(diskId, partitionId)
         const zip = new ZipFile()
-        files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+        await addZipEntries(zip, path, '', paths.map(makeRelative))
         zip.end()
         const { outputStream } = zip
         resolve(outputStream)
@@ -823,8 +815,6 @@ decorateMethodsWith(RemoteAdapter, {
     [deduped, (devicePath, partition) => [devicePath, partition?.id]],
     debounceResourceFactory,
   ]),
-
-  _usePartitionFiles: Disposable.factory,
 
   getDisk: compose([Disposable.factory, [deduped, diskId => [diskId]], debounceResourceFactory]),
 
