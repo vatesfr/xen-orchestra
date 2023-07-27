@@ -15,7 +15,7 @@ const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
 exports.createNbdRawStream = async function createRawStream(nbdClient) {
-  const stream = Readable.from(nbdClient.readBlocks())
+  const stream = Readable.from(nbdClient.readBlocks(524288))
 
   stream.on('error', () => nbdClient.disconnect())
   stream.on('end', () => nbdClient.disconnect())

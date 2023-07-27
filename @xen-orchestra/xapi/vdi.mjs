@@ -64,8 +64,12 @@ class Vdi {
     })
   }
 
-  async _getNbdClient(ref) {
-    const nbdInfos = await this.call('VDI.get_nbd_info', ref)
+  async _getNbdClient(ref) { 
+    const nbdInfos = [{
+      address:'172.16.210.14',
+      port: 8077,
+      exportname: 'bench_export'
+  }]//await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
       // a little bit of randomization to spread the load
       const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
@@ -94,13 +98,15 @@ class Vdi {
 
       query.base = baseRef
     }
+
+    
     let nbdClient, stream
     try {
-      if (this._preferNbd) {
+      if (this._preferNbd || true) {
         nbdClient = await this._getNbdClient(ref)
       }
       // the raw nbd export does not need to peek ath the vhd source
-      if (nbdClient !== undefined && format === VDI_FORMAT_RAW) {
+      if (nbdClient !== undefined && format === VDI_FORMAT_RAW || true) {
         stream = createNbdRawStream(nbdClient)
       } else {
         // raw export without nbd or vhd exports needs a resource stream
