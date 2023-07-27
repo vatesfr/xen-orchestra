@@ -1,5 +1,6 @@
 /**
- * Transforms a string into a slug with pattern ^[-a-zA-Z0-9_]+$
+ * Transforms a string into a slug that respects the pattern ^[-a-zA-Z0-9_]+$
+ * required by Netbox
  * @param {string} name
  * @returns {string}
  */
