@@ -16,6 +16,7 @@
   - Fix largest IP prefix being picked instead of smallest
   - Fix synchronization not working if some pools are unavailable
   - Better error messages
+- [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
 
 ### Bug fixes
 
@@ -55,7 +56,7 @@
 - @vates/read-chunk minor
 - complex-matcher patch
 - xen-api patch
-- xo-server patch
+- xo-server minor
 - xo-server-transport-xmpp patch
 - xo-server-audit patch
 - xo-server-netbox major
