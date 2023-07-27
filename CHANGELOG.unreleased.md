@@ -18,6 +18,7 @@
   - Fix synchronization not working if some pools are unavailable
   - Better error messages
 - [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
+- [Backup/File restore] Faster and more robust ZIP export
 
 ### Bug fixes
 
