@@ -19,6 +19,7 @@
   - Better error messages
 - [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
 - [Backup/File restore] Faster and more robust ZIP export
+- [Backup/File restore] Add faster tar+gzip (`.tgz`) export
 
 ### Bug fixes
 

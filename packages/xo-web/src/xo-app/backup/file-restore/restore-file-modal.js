@@ -75,15 +75,17 @@ const formatFilesOptions = (rawFiles, path) => {
 
 export default class RestoreFileModalBody extends Component {
   state = {
+    format: 'tgz',
     selectedFiles: [],
   }
 
   get value() {
-    const { disk, partition, selectedFiles, backup } = this.state
+    const { disk, format, partition, selectedFiles, backup } = this.state
     const redundantFiles = this._getRedundantFiles()
 
     return {
       disk,
+      format,
       partition,
       paths: map(
         selectedFiles.filter(({ path }) => !redundantFiles[path]),
@@ -260,12 +262,26 @@ export default class RestoreFileModalBody extends Component {
     }
   )
 
+  _linkState = ({ target }) => {
+    this.setState({ [target.name]: target.value })
+  }
+
   // ---------------------------------------------------------------------------
 
   render() {
     const { backups } = this.props
-    const { backup, disk, partition, partitions, path, scanDiskError, listFilesError, scanningFiles, selectedFiles } =
-      this.state
+    const {
+      backup,
+      disk,
+      format,
+      partition,
+      partitions,
+      path,
+      scanDiskError,
+      listFilesError,
+      scanningFiles,
+      selectedFiles,
+    } = this.state
     const noPartitions = isEmpty(partitions)
     const redundantFiles = this._getRedundantFiles()
 
@@ -390,6 +406,25 @@ export default class RestoreFileModalBody extends Component {
             <em>{_('restoreFilesNoFilesSelected')}</em>
           ),
         ]}
+        <Container className='mt-1'>
+          <Row>
+            <Col>{_('restoreFilesExportFormat')}</Col>
+          </Row>
+          <Row>
+            <Col size={6}>
+              <label>
+                <input checked={format === 'tgz'} name='format' onChange={this._linkState} type='radio' value='tgz' />{' '}
+                {_('restoreFilesTgz')}
+              </label>
+            </Col>
+            <Col size={6}>
+              <label>
+                <input checked={format === 'zip'} name='format' onChange={this._linkState} type='radio' value='zip' />{' '}
+                {_('restoreFilesZip')}
+              </label>
+            </Col>
+          </Row>
+        </Container>
       </div>
     )
   }

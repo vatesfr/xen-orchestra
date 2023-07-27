@@ -1782,6 +1782,7 @@ const messages = {
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',
   restoreFilesError: 'Invalid options',
+  restoreFilesExportFormat: 'Export format:',
   restoreFilesFromBackup: 'Restore file from {name}',
   restoreFilesSelectBackup: 'Select a backup…',
   restoreFilesSelectDisk: 'Select a disk…',
@@ -1792,7 +1793,9 @@ const messages = {
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",
   restoreFilesSelectFolder: 'Select this folder',
+  restoreFilesTgz: 'tar+gzip (.tgz)',
   restoreFilesUnselectAll: 'Unselect all files',
+  restoreFilesZip: 'ZIP (slow)',
 
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
