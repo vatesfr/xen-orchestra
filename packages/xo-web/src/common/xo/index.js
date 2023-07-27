@@ -2686,8 +2686,8 @@ export const listPartitions = (remote, disk) => _call('backupNg.listPartitions',
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFiles = (remote, disk, partition, paths) =>
-  _call('backupNg.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(({ $getFrom: url }) => {
+export const fetchFiles = (remote, disk, partition, paths, format) =>
+  _call('backupNg.fetchFiles', resolveIds({ remote, disk, format, partition, paths })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 
