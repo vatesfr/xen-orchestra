@@ -354,7 +354,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
 - Add a UUID custom field:
   - Go to Other > Custom fields > Add
   - Create a custom field called "uuid" (lower case!)
-  - Assign it to object types `virtualization > cluster` and `virtualization > virtual machine`
+  - Assign it to object types `virtualization > cluster`, `virtualization > virtual machine` and `virtualization > vminterface`
 
 ![](./assets/customfield.png)
 
