@@ -308,7 +308,7 @@ class Netbox {
 
     log.info('Synchronizing VMs')
 
-    const createNbVm = async (xoVm, { nbCluster, nbPlatforms }) => {
+    const createNbVm = async (xoVm, { nbCluster, nbPlatforms, nbTags }) => {
       const nbVm = {
         custom_fields: { uuid: xoVm.uuid },
         name: xoVm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
@@ -325,6 +325,7 @@ class Netbox {
         cluster: nbCluster.id,
         status: xoVm.power_state === 'Running' ? 'active' : 'offline',
         platform: null,
+        tags: [],
       }
 
       const distro = xoVm.os_version?.distro
@@ -343,6 +344,32 @@ class Netbox {
         nbVm.platform = nbPlatform.id
       }
 
+      const nbVmTags = []
+      for (const tag of xoVm.tags) {
+        const slug = slugify(tag)
+        let nbTag = find(nbTags, { slug })
+        if (nbTag === undefined) {
+          // TODO: Should we also delete/update tags in Netbox?
+          nbTag = await this.#request('/extras/tags/', 'POST', {
+            name: tag,
+            slug,
+            color: '2598d9',
+            description: 'XO tag',
+          })
+          nbTags[nbTag.id] = nbTag
+        }
+
+        // Edge case: tags "foo" and "Foo" would have the same slug. It's
+        // allowed in XO but not in Netbox so in that case, we only add it once
+        // to Netbox.
+        if (find(nbVmTags, { id: nbTag.id }) === undefined) {
+          nbVmTags.push({ id: nbTag.id })
+        }
+      }
+
+      // Sort them so that they can be compared by diff()
+      nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
+
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
       if (
         this.#netboxApiVersion !== undefined &&
@@ -360,9 +387,12 @@ class Netbox {
       cluster: nbVm.cluster?.id ?? null,
       status: nbVm.status?.value ?? null,
       platform: nbVm.platform?.id ?? null,
+      // Sort them so that they can be compared by diff()
+      tags: nbVm.tags.map(nbTag => ({ id: nbTag.id })).sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1)),
     })
 
     const nbPlatforms = keyBy(await this.#request('/dcim/platforms/'), 'id')
+    const nbTags = keyBy(await this.#request('/extras/tags/'), 'id')
 
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
@@ -401,7 +431,7 @@ class Netbox {
         const nbVm = allNbVms[xoVm.uuid]
         delete xoPoolNbVms[xoVm.uuid]
 
-        const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms })
+        const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags })
 
         if (nbVm !== undefined) {
           // VM found in Netbox: update VM (I.1)
@@ -427,7 +457,7 @@ class Netbox {
         const nbCluster = allNbClusters[xoPool?.uuid]
         if (nbCluster !== undefined) {
           // If the VM is found in XO: update it if necessary (II.1)
-          const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms })
+          const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags })
           const patch = diff(updatedVm, flattenNested(nbVm))
 
           if (patch === undefined) {
