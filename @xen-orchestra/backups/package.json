@@ -23,7 +23,7 @@
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.0.0",
     "@vates/disposable": "^0.1.4",
-    "@vates/fuse-vhd": "^1.0.0",
+    "@vates/fuse-vhd": "^2.0.0",
     "@vates/nbd-client": "^1.2.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
