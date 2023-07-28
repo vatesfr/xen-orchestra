@@ -2,6 +2,8 @@
 
 ## **next**
 
+## **0.1.2** (2023-07-28)
+
 - Ability to export selected VMs as CSV file (PR [#6915](https://github.com/vatesfr/xen-orchestra/pull/6915))
 - [Pool/VMs] Ability to export selected VMs as JSON file (PR [#6911](https://github.com/vatesfr/xen-orchestra/pull/6911))
 - Add Tasks to Pool Dashboard (PR [#6713](https://github.com/vatesfr/xen-orchestra/pull/6713))
