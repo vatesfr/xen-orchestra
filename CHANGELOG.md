@@ -1,5 +1,53 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backup/Restore] Button to open the raw log in the REST API (PR [#6936](https://github.com/vatesfr/xen-orchestra/pull/6936))
+- [Import/From VMWare] Support ESXi 6.5+ with snapshot (PR [#6909](https://github.com/vatesfr/xen-orchestra/pull/6909))
+- [Netbox] New major version. BREAKING: in order for this new version to work, you need to assign the type `virtualization > vminterface` to the custom field `UUID` in your Netbox instance. [See documentation](https://xen-orchestra.com/docs/advanced.html#netbox). [#6038](https://github.com/vatesfr/xen-orchestra/issues/6038) [#6135](https://github.com/vatesfr/xen-orchestra/issues/6135) [#6024](https://github.com/vatesfr/xen-orchestra/issues/6024) [#6036](https://github.com/vatesfr/xen-orchestra/issues/6036) [Forum#6070](https://xcp-ng.org/forum/topic/6070) [Forum#6149](https://xcp-ng.org/forum/topic/6149) [Forum#6332](https://xcp-ng.org/forum/topic/6332) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6950](https://github.com/vatesfr/xen-orchestra/pull/6950))
+  - Synchronize VM description
+  - Synchronize VM platform
+  - Fix duplicated VMs in Netbox after disconnecting one pool
+  - Migrating a VM from one pool to another keeps VM data added manually
+  - Fix largest IP prefix being picked instead of smallest
+  - Fix synchronization not working if some pools are unavailable
+  - Better error messages
+- [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
+- [Backup/File restore] Faster and more robust ZIP export
+- [Backup/File restore] Add faster tar+gzip (`.tgz`) export
+
+### Bug fixes
+
+- [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+- [REST API] Fix VDI export when NBD is enabled
+- [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))
+- [Pool] Fix IPv6 handling when adding hosts
+- [New SR] Send provided NFS version to XAPI when probing a share
+- [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
+- [Backup] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
+
+### Released packages
+
+- @vates/read-chunk 1.2.0
+- @vates/fuse-vhd 2.0.0
+- xen-api 1.3.4
+- @vates/nbd-client 2.0.0
+- @vates/node-vsphere-soap 2.0.0
+- @xen-orchestra/xapi 3.0.0
+- @xen-orchestra/backups 0.40.0
+- @xen-orchestra/backups-cli 1.0.10
+- complex-matcher 0.7.1
+- @xen-orchestra/mixins 0.11.0
+- @xen-orchestra/proxy 0.26.30
+- @xen-orchestra/vmware-explorer 0.3.0
+- xo-server 5.119.0
+- xo-server-audit 0.10.4
+- xo-server-netbox 1.0.0
+- xo-server-transport-xmpp 0.1.2
+- xo-web 5.122.0
+
 ## **5.84.0** (2023-06-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
