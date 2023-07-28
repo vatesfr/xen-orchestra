@@ -16,6 +16,16 @@ export default function diff(newer, older) {
     return newer === older ? undefined : newer
   }
 
+  // For arrays, they must be exactly the same or we pass the new one entirely
+  if (Array.isArray(newer)) {
+    if (newer.length !== older.length || newer.some((value, index) => diff(value, older[index]) !== undefined)) {
+      return newer
+    }
+
+    return
+  }
+
+  // For objects, we only need to pass the properties that are different
   newer = { ...newer }
   Object.keys(newer).forEach(key => {
     if ((key === 'name' && compareNames(newer[key], older[key])) || diff(newer[key], older?.[key]) === undefined) {
