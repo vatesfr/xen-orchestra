@@ -20,7 +20,7 @@
   "main": "./index.mjs",
   "dependencies": {
     "@vates/async-each": "^1.0.0",
-    "@vates/read-chunk": "^1.1.1",
+    "@vates/read-chunk": "^1.2.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "promise-toolbox": "^0.21.0",
