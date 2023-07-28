@@ -1,7 +1,9 @@
 <template>
   <ObjectNotFoundWrapper :is-ready="isReady" :uuid-checker="hasUuid">
-    <VmHeader />
-    <VmTabBar :uuid="vm!.uuid" />
+    <template v-if="uiStore.hasUi">
+      <VmHeader />
+      <VmTabBar :uuid="vm!.uuid" />
+    </template>
     <RouterView />
   </ObjectNotFoundWrapper>
 </template>

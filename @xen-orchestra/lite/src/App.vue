@@ -4,10 +4,10 @@
     <AppLogin />
   </div>
   <div v-else>
-    <AppHeader />
+    <AppHeader v-if="uiStore.hasUi" />
     <div style="display: flex">
-      <AppNavigation />
-      <main class="main">
+      <AppNavigation v-if="uiStore.hasUi" />
+      <main class="main" :class="{ 'no-ui': !uiStore.hasUi }">
         <RouterView />
       </main>
     </div>
@@ -90,5 +90,9 @@ whenever(
   flex: 1;
   height: calc(100vh - 8rem);
   background-color: var(--background-color-secondary);
+
+  &.no-ui {
+    height: 100vh;
+  }
 }
 </style>
