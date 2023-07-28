@@ -549,9 +549,12 @@ export default class NewVm extends BaseComponent {
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
+        device: vif.device,
         network: pool || isInResourceSet(vif.$network) ? vif.$network : defaultNetworkIds[0],
       })
     })
+    // sort the array so it corresponds to the order chosen by the user when creating the VM
+    VIFs.sort((a, b) => Number(a.device) - Number(b.device))
     if (VIFs.length === 0) {
       VIFs = defaultNetworkIds.map(id => ({ network: id }))
     }
