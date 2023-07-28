@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "complex-matcher",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "ISC",
   "description": "Advanced search syntax used in XO",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/complex-matcher",

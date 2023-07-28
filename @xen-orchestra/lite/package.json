@@ -22,7 +22,7 @@
     "@types/marked": "^4.0.8",
     "@vueuse/core": "^10.1.2",
     "@vueuse/math": "^10.1.2",
-    "complex-matcher": "^0.7.0",
+    "complex-matcher": "^0.7.1",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
     "echarts": "^5.3.3",
