@@ -27,6 +27,7 @@
 - [New SR] Send provided NFS version to XAPI when probing a share
 - [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
 - [Backup] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
+- Users can no longer sign in using their XO password if they are using other authentication providers (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
 
 ### Released packages
 
@@ -42,11 +43,11 @@
 - @xen-orchestra/mixins 0.11.0
 - @xen-orchestra/proxy 0.26.30
 - @xen-orchestra/vmware-explorer 0.3.0
-- xo-server 5.119.0
 - xo-server-audit 0.10.4
 - xo-server-netbox 1.0.0
 - xo-server-transport-xmpp 0.1.2
 - xo-web 5.122.0
+- xo-server 5.120.0
 
 ## **5.84.0** (2023-06-30)
 

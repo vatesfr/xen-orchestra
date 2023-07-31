@@ -15,7 +15,6 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [New VM] Order interfaces by device as done on a VM Network tab (PR [#6944](https://github.com/vatesfr/xen-orchestra/pull/6944))
-- Users can no longer sign in using their XO password if they are using other authentication providers (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
 
 ### Packages to release
 
@@ -33,7 +32,6 @@
 
 <!--packages-start-->
 
-- xo-server minor
 - xo-server-auth-github minor
 - xo-server-auth-google minor
 - xo-web patch
