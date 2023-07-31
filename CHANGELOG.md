@@ -49,10 +49,10 @@
 - xo-server-audit 0.10.4
 - xo-server-netbox 1.0.0
 - xo-server-transport-xmpp 0.1.2
-- xo-server 5.120.1
 - xo-server-auth-github 0.3.0
 - xo-server-auth-google 0.3.0
 - xo-web 5.122.2
+- xo-server 5.120.2
 
 ## **5.84.0** (2023-06-30)
 

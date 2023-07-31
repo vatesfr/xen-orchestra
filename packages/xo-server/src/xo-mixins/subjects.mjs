@@ -176,7 +176,7 @@ export default class {
           }
         })
       }
-      user.authProviders = newAuthProviders.length === 0 ? undefined : newAuthProviders
+      user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
     }
 
     // if updating either authProviders or password, check consistency
