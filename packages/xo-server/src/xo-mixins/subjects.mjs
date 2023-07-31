@@ -188,7 +188,7 @@ export default class {
       throw new Error('user cannot have both password and auth providers')
     }
 
-    if (user.pw_hash === undefined && isEmpty(user.authProviders) && id === this.apiContext?.user.id) {
+    if (user.pw_hash === undefined && isEmpty(user.authProviders) && id === this._app.apiContext?.user.id) {
       throw new Error('current user cannot be without password and auth providers')
     }
 
