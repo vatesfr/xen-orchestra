@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-server-auth-github minor
 - xo-web patch
 
 <!--packages-end-->
