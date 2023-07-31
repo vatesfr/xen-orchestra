@@ -150,8 +150,8 @@ export default class {
     if (permission) {
       user.permission = permission
     }
-    if (password) {
-      user.pw_hash = await hash(password)
+    if (password !== undefined) {
+      user.pw_hash = password === null ? undefined : await hash(password)
     }
 
     const newPreferences = { ...user.preferences }
@@ -177,6 +177,10 @@ export default class {
         })
       }
       user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
+    }
+
+    if (user.pw_hash === undefined && isEmpty(user.authProviders) && id === this.apiContext?.user.id) {
+      throw new Error('current user cannot be without password and auth providers')
     }
 
     // TODO: remove
