@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Settings/Users] Show users authentication methods (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
