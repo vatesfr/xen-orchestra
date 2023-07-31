@@ -546,15 +546,16 @@ export default class NewVm extends BaseComponent {
 
     let VIFs = []
     const defaultNetworkIds = this._getDefaultNetworkIds(template)
-    forEach(template.VIFs, vifId => {
-      const vif = getObject(storeState, vifId, resourceSet)
-      VIFs.push({
-        device: vif.device,
-        network: pool || isInResourceSet(vif.$network) ? vif.$network : defaultNetworkIds[0],
-      })
-    })
-    // sort the array so it corresponds to the order chosen by the user when creating the VM
-    VIFs.sort((a, b) => Number(a.device) - Number(b.device))
+    forEach(
+      // iterate template VIFs in device order
+      template.VIFs.map(id => getObject(storeState, id, resourceSet)).sort((a, b) => a.device - b.device),
+
+      vif => {
+        VIFs.push({
+          network: pool || isInResourceSet(vif.$network) ? vif.$network : defaultNetworkIds[0],
+        })
+      }
+    )
     if (VIFs.length === 0) {
       VIFs = defaultNetworkIds.map(id => ({ network: id }))
     }
