@@ -398,12 +398,10 @@ class Netbox {
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
     const allNbVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(
-      nbVm => Object.values(allNbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
+      nbVm => find(allNbClusters, { id: nbVm.cluster.id }) !== undefined
     )
     // Then get only the ones from the pools we're synchronizing
-    const nbVmsList = allNbVmsList.filter(
-      nbVm => Object.values(nbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
-    )
+    const nbVmsList = allNbVmsList.filter(nbVm => find(nbClusters, { id: nbVm.cluster.id }) !== undefined)
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
@@ -615,7 +613,7 @@ class Netbox {
       }
 
       // Find the Netbox interface associated with the vif
-      const nbVmIfs = Object.values(nbIfs).filter(nbIf => nbIf.virtual_machine.id === nbVm.id)
+      const nbVmIfs = filter(nbIfs, nbIf => nbIf.virtual_machine?.id === nbVm.id)
       for (const nbIf of nbVmIfs) {
         // Store old IPs and remove them one by one. At the end, delete the remaining ones.
         const nbIpsToCheck = pickBy(nbIps, nbIp => nbIp.assigned_object_id === nbIf.id)
@@ -701,7 +699,7 @@ class Netbox {
       }
       const patch = { id: nbVm.id }
 
-      const nbVmIps = Object.values(nbIps).filter(nbIp => nbIp.assigned_object?.virtual_machine.id === nbVm.id)
+      const nbVmIps = filter(nbIps, nbIp => nbIp.assigned_object?.virtual_machine?.id === nbVm.id)
 
       const ipv4 = xoVm.addresses['0/ipv4/0']
       if (ipv4 === undefined && nbVm.primary_ip4 !== null) {
