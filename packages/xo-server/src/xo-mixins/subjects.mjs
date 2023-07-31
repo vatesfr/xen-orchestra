@@ -308,8 +308,8 @@ export default class {
   }
 
   async checkUserPassword(userId, password, updateIfNecessary = true) {
-    const { pw_hash: hash } = await this.getUser(userId)
-    if (!(hash && (await verify(password, hash)))) {
+    const { authProviders, pw_hash: hash } = await this.getUser(userId)
+    if (!(hash !== undefined && isEmpty(authProviders) && (await verify(password, hash)))) {
       return false
     }
 
