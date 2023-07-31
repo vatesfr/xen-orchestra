@@ -221,26 +221,8 @@ export default class {
     throw noSuchObject(username, 'user')
   }
 
-  // Deprecated: use registerUser2 instead
-  // Get or create a user associated with an auth provider.
-  async registerUser(provider, name) {
-    const user = await this.getUserByName(name, true)
-    if (user) {
-      if (user._provider !== provider) {
-        throw new Error(`the name ${name} is already taken`)
-      }
-
-      return user
-    }
-
-    if (!this._app.config.get('createUserOnFirstSignin')) {
-      throw new Error(`registering ${name} user is forbidden`)
-    }
-
-    return /* await */ this.createUser({
-      name,
-      _provider: provider,
-    })
+  async registerUser() {
+    throw new Error('use registerUser2 instead')
   }
 
   // New implementation of registerUser that:
