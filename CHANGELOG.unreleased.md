@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - xo-server-auth-github minor
+- xo-server-auth-google minor
 - xo-web patch
 
 <!--packages-end-->

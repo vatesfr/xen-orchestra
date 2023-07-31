@@ -52,7 +52,10 @@ class AuthGoogleXoPlugin {
         try {
           done(
             null,
-            await xo.registerUser('google', conf.scope === 'email' ? profile.emails[0].value : profile.displayName)
+            await xo.registerUser2('google', {
+              id: profile.id,
+              name: conf.scope === 'email' ? profile.emails[0].value : profile.displayName,
+            })
           )
         } catch (error) {
           done(error.message)
