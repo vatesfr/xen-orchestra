@@ -17,7 +17,16 @@ import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
-import { createUser, deleteUser, deleteUsers, editUser, removeOtp, subscribeGroups, subscribeUsers } from 'xo'
+import {
+  createUser,
+  deleteUser,
+  deleteUsers,
+  editUser,
+  removeOtp,
+  removeUserAuthProvider,
+  subscribeGroups,
+  subscribeUsers,
+} from 'xo'
 
 const permissions = {
   none: {
@@ -92,6 +101,15 @@ const USER_COLUMNS = [
               return (
                 <li key={id} className='list-group-item'>
                   <Link to={`/settings/plugins/?s=${encodeURIComponent(`name=^${plugin}$`)}`}>{shortId}</Link>
+                  <ActionButton
+                    className='pull-right'
+                    btnStyle='warning'
+                    size='small'
+                    icon='remove'
+                    handler={removeUserAuthProvider}
+                    data-userId={user.id}
+                    data-authProviderId={id}
+                  />
                 </li>
               )
             })}
