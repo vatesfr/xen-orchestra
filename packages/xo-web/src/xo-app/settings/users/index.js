@@ -6,6 +6,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
+import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
@@ -76,9 +77,27 @@ const USER_COLUMNS = [
     sortCriteria: user => user.permission,
   },
   {
-    name: _('userPasswordColumn'),
-    itemRenderer: user =>
-      isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+    name: _('userAuthColumn'),
+    itemRenderer: user => {
+      const { authProviders } = user
+      return isEmpty(authProviders) ? (
+        <Editable.Password onChange={password => editUser(user, { password })} value='' />
+      ) : (
+        <ul className='list-group'>
+          {Object.keys(authProviders)
+            .sort()
+            .map(id => {
+              const shortId = id.split(':')[0]
+              const plugin = 'auth-' + shortId
+              return (
+                <li key={id} className='list-group-item'>
+                  <Link to={`/settings/plugins/?s=${encodeURIComponent(`name=^${plugin}$`)}`}>{shortId}</Link>
+                </li>
+              )
+            })}
+        </ul>
+      )
+    },
   },
   {
     name: 'OTP',

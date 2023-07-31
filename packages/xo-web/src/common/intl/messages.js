@@ -733,7 +733,7 @@ const messages = {
   userGroupsColumn: 'Member of',
   userCountGroups: '{nGroups, number} group{nGroups, plural, one {} other {s}}',
   userPermissionColumn: 'Permissions',
-  userPasswordColumn: 'Password',
+  userAuthColumn: 'Password / Authentication methods',
   userName: 'Username',
   userPassword: 'Password',
   createUserButton: 'Create',
