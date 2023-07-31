@@ -164,15 +164,20 @@ export default class {
     })
     user.preferences = isEmpty(newPreferences) ? undefined : newPreferences
 
-    const newAuthProviders = { ...user.authProviders }
-    forEach(authProviders, (value, name) => {
-      if (value == null) {
-        delete newAuthProviders[name]
-      } else {
-        newAuthProviders[name] = value
+    if (authProviders !== undefined) {
+      let newAuthProviders
+      if (authProviders !== null) {
+        newAuthProviders = { ...user.authProviders }
+        forEach(authProviders, (value, name) => {
+          if (value == null) {
+            delete newAuthProviders[name]
+          } else {
+            newAuthProviders[name] = value
+          }
+        })
       }
-    })
-    user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
+      user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
+    }
 
     // TODO: remove
     user.email = user.name
