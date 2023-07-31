@@ -1,11 +1,13 @@
 import ipaddr from 'ipaddr.js'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
+import filter from 'lodash/filter'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import pick from 'lodash/pick'
 import pickBy from 'lodash/pickBy'
+import some from 'lodash/some'
 import trimEnd from 'lodash/trimEnd'
 
 import diff from './diff'
@@ -362,7 +364,7 @@ class Netbox {
         // Edge case: tags "foo" and "Foo" would have the same slug. It's
         // allowed in XO but not in Netbox so in that case, we only add it once
         // to Netbox.
-        if (find(nbVmTags, { id: nbTag.id }) === undefined) {
+        if (!some(nbVmTags, { id: nbTag.id })) {
           nbVmTags.push({ id: nbTag.id })
         }
       }
@@ -397,13 +399,11 @@ class Netbox {
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
-    const allNbVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(
-      nbVm => Object.values(allNbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
+    const allNbVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(nbVm =>
+      some(allNbClusters, { id: nbVm.cluster.id })
     )
     // Then get only the ones from the pools we're synchronizing
-    const nbVmsList = allNbVmsList.filter(
-      nbVm => Object.values(nbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
-    )
+    const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster.id }))
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
@@ -615,7 +615,7 @@ class Netbox {
       }
 
       // Find the Netbox interface associated with the vif
-      const nbVmIfs = Object.values(nbIfs).filter(nbIf => nbIf.virtual_machine.id === nbVm.id)
+      const nbVmIfs = filter(nbIfs, { virtual_machine: { id: nbVm.id } })
       for (const nbIf of nbVmIfs) {
         // Store old IPs and remove them one by one. At the end, delete the remaining ones.
         const nbIpsToCheck = pickBy(nbIps, nbIp => nbIp.assigned_object_id === nbIf.id)
@@ -701,7 +701,7 @@ class Netbox {
       }
       const patch = { id: nbVm.id }
 
-      const nbVmIps = Object.values(nbIps).filter(nbIp => nbIp.assigned_object?.virtual_machine.id === nbVm.id)
+      const nbVmIps = filter(nbIps, { assigned_object: { virtual_machine: { id: nbVm.id } } })
 
       const ipv4 = xoVm.addresses['0/ipv4/0']
       if (ipv4 === undefined && nbVm.primary_ip4 !== null) {
