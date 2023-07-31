@@ -297,6 +297,7 @@ export default class {
             data: data !== undefined ? data : user.authProviders?.[providerId]?.data,
           },
         },
+        password: null,
       })
     }
 
