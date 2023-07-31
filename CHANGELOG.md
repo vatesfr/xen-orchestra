@@ -17,6 +17,8 @@
 - [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
 - [Backup/File restore] Faster and more robust ZIP export
 - [Backup/File restore] Add faster tar+gzip (`.tgz`) export
+- [Settings/Users] Show users authentication methods (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
+- [Settings/Users] User external authentication methods can be manually removed (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
 
 ### Bug fixes
 
@@ -27,6 +29,7 @@
 - [New SR] Send provided NFS version to XAPI when probing a share
 - [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
 - [Backup] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
+- [New VM] Order interfaces by device as done on a VM Network tab (PR [#6944](https://github.com/vatesfr/xen-orchestra/pull/6944))
 - Users can no longer sign in using their XO password if they are using other authentication providers (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
 
 ### Released packages
@@ -46,10 +49,10 @@
 - xo-server-audit 0.10.4
 - xo-server-netbox 1.0.0
 - xo-server-transport-xmpp 0.1.2
-- xo-web 5.122.0
 - xo-server 5.120.0
 - xo-server-auth-github 0.3.0
 - xo-server-auth-google 0.3.0
+- xo-web 5.122.1
 
 ## **5.84.0** (2023-06-30)
 
