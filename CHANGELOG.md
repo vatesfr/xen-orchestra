@@ -52,7 +52,7 @@
 - xo-server 5.120.1
 - xo-server-auth-github 0.3.0
 - xo-server-auth-google 0.3.0
-- xo-web 5.122.1
+- xo-web 5.122.2
 
 ## **5.84.0** (2023-06-30)
 
