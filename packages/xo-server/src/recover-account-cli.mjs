@@ -46,6 +46,7 @@ xo-server-recover-account <user name or email>
   const user = await xo.getUserByName(name, true)
   if (user !== null) {
     await xo.updateUser(user.id, {
+      authProviders: null,
       password,
       permission: 'admin',
       preferences: { otp: null },
