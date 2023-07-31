@@ -32,7 +32,7 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-server minor
 - xo-server-auth-github minor
 - xo-server-auth-google minor
 - xo-web patch
