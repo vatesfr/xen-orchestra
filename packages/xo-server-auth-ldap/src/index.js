@@ -11,11 +11,6 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 
 // ===================================================================
 
-const DEFAULTS = {
-  checkCertificate: true,
-  filter: '(uid={{name}})',
-}
-
 const { escape } = Filter.prototype
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
@@ -55,7 +50,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: DEFAULTS.checkCertificate,
+      default: true,
     },
     startTls: {
       title: 'Use StartTLS',
@@ -110,7 +105,7 @@ Or something like this if you also want to filter by group:
 - \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: DEFAULTS.filter,
+      default: '(uid={{name}})',
     },
     userIdAttribute: {
       title: 'ID attribute',
@@ -198,7 +193,7 @@ class AuthLdap {
     })
 
     {
-      const { checkCertificate = DEFAULTS.checkCertificate, certificateAuthorities } = conf
+      const { checkCertificate, certificateAuthorities } = conf
 
       const tlsOptions = (this._tlsOptions = {})
 
@@ -212,15 +207,7 @@ class AuthLdap {
       }
     }
 
-    const {
-      bind: credentials,
-      base: searchBase,
-      filter: searchFilter = DEFAULTS.filter,
-      startTls = false,
-      groups,
-      uri,
-      userIdAttribute,
-    } = conf
+    const { bind: credentials, base: searchBase, filter: searchFilter, startTls, groups, uri, userIdAttribute } = conf
 
     this._credentials = credentials
     this._serverUri = uri
