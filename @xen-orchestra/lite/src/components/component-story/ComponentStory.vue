@@ -33,7 +33,7 @@
     </AppMenu>
   </UiTabBar>
 
-  <div class="tabs">
+  <div :class="{ 'full-width': fullWidthComponent }" class="tabs">
     <UiCard v-if="selectedTab === TAB.NONE" class="tab-content">
       <i>No configuration defined</i>
     </UiCard>
@@ -102,11 +102,11 @@ import StorySettingParams from "@/components/component-story/StorySettingParams.
 import StorySlotParams from "@/components/component-story/StorySlotParams.vue";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiTab from "@/components/ui/UiTab.vue";
 import UiTabBar from "@/components/ui/UiTabBar.vue";
 import {
@@ -140,6 +140,7 @@ const props = defineProps<{
       settings?: Record<string, any>;
     }
   >;
+  fullWidthComponent?: boolean;
 }>();
 
 enum TAB {
@@ -328,6 +329,10 @@ const applyPreset = (preset: {
   display: flex;
   padding: 1rem;
   gap: 1rem;
+
+  &.full-width {
+    flex-direction: column;
+  }
 
   .tab-content {
     flex: 1;
