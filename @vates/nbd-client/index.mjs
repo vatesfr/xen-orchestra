@@ -232,19 +232,20 @@ export default class NbdClient {
     }
     try {
       this.#waitingForResponse = true
-      const magic = await this.#readInt32()
+      const buffer = await this.#read(16)
+      const magic = buffer.readInt32BE(0)
 
       if (magic !== NBD_REPLY_MAGIC) {
         throw new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`)
       }
 
-      const error = await this.#readInt32()
+      const error = buffer.readInt32BE(4)
       if (error !== 0) {
         // @todo use error code from constants.mjs
         throw new Error(`GOT ERROR CODE  : ${error}`)
       }
 
-      const blockQueryId = await this.#readInt64()
+      const blockQueryId = buffer.readBigUInt64BE(8)
       const query = this.#commandQueryBacklog.get(blockQueryId)
       if (!query) {
         throw new Error(` no query associated with id ${blockQueryId}`)
