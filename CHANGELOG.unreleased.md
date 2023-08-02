@@ -32,6 +32,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
 - xo-server-netbox minor
