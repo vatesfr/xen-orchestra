@@ -21,6 +21,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+import { Readable } from 'node:stream'
 
 const { warn } = createLogger('vates:nbd-client')
 
@@ -355,5 +356,16 @@ export default class NbdClient {
     while (readAhead.length > 0) {
       yield readAhead.shift()
     }
+  }
+
+  stream(chunk_size) {
+    async function* iterator() {
+      for await (const chunk of this.readBlocks(chunk_size)) {
+        yield chunk
+      }
+    }
+    // create a readable stream instead of returning the iterator
+    // since iterators don't like unshift and partial reading
+    return Readable.from(iterator())
   }
 }
