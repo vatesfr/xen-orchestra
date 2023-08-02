@@ -281,7 +281,13 @@ export default class NbdClient {
     buffer.writeInt16BE(NBD_CMD_READ, 6) // we want to read a data block
     buffer.writeBigUInt64BE(queryId, 8)
     // byte offset in the raw disk
-    buffer.writeBigUInt64BE(BigInt(index) * BigInt(size), 16)
+    const offset = BigInt(index) * BigInt(size)
+    const remaining = this.#exportSize - offset
+    if (remaining < BigInt(size)) {
+      size = Number(remaining)
+    }
+
+    buffer.writeBigUInt64BE(offset, 16)
     buffer.writeInt32BE(size, 24)
 
     return new Promise((resolve, reject) => {
