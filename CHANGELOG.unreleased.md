@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backups] Add setting `backups.mergeWorkerConcurrency` in xo-server's configuration file to allow concurrent merging in merge worker (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -29,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - xo-server patch
 - xo-server-auth-ldap patch
 - xo-web patch

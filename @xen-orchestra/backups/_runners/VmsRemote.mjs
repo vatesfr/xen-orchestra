@@ -20,6 +20,7 @@ const DEFAULT_REMOTE_VM_SETTINGS = {
   healthCheckVmsWithTags: [],
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
+  mergeWorkerConcurrency: 1,
   timeout: 0,
   validateVhdStreams: false,
   vmTimeout: 0,
