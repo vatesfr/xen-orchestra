@@ -159,7 +159,7 @@ Or something like this if you also want to filter by group:
       required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping'],
     },
   },
-  required: ['uri', 'base'],
+  required: ['uri', 'base', 'userIdAttribute'],
 }
 
 export const testSchema = {
@@ -290,23 +290,17 @@ class AuthLdap {
             return
           }
 
-          let user
-          if (this._userIdAttribute === undefined) {
-            // Support legacy config
-            user = await this._xo.registerUser(undefined, username)
-          } else {
-            const ldapId = entry[this._userIdAttribute]
-            user = await this._xo.registerUser2('ldap', {
-              user: { id: ldapId, name: username },
-            })
+          const ldapId = entry[this._userIdAttribute]
+          const user = await this._xo.registerUser2('ldap', {
+            user: { id: ldapId, name: username },
+          })
 
-            const groupsConfig = this._groupsConfig
-            if (groupsConfig !== undefined) {
-              try {
-                await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
-              } catch (error) {
-                logger.error(`failed to synchronize groups: ${error.message}`)
-              }
+          const groupsConfig = this._groupsConfig
+          if (groupsConfig !== undefined) {
+            try {
+              await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
+            } catch (error) {
+              logger.error(`failed to synchronize groups: ${error.message}`)
             }
           }
 
