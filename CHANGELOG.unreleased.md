@@ -10,6 +10,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+> [Backups] fix Continuous Replication job fails "TypeError: Cannot read properties of undefined (reading 'uuid')" at #isAlreadyOnHealthCheckSr (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
 
 - [LDAP] Mark the _Id attribute_ setting as required
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-server patch
 - xo-server-auth-ldap patch
 - xo-web patch

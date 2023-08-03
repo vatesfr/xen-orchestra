@@ -18,7 +18,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
       const vdiRefs = await xapi.VM_getDisks(baseVm.$ref)
       for (const vdiRef of vdiRefs) {
         const vdi = xapi.getObject(vdiRef)
-        if (vdi.$SR.uuid !== this._heathCheckSr.uuid) {
+        if (vdi.$SR.uuid !== this._healthCheckSr.uuid) {
           return false
         }
       }
