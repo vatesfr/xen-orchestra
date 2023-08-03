@@ -14,7 +14,7 @@ type Extensions = [PoolExtension];
 export const usePoolStore = defineStore("pool", () => {
   const poolCollection = useXapiCollectionStore().get("pool");
 
-  const subscribe = createSubscribe<XenApiPool, Extensions>((options) => {
+  const subscribe = createSubscribe<"pool", Extensions>((options) => {
     const originalSubscription = poolCollection.subscribe(options);
 
     const extendedSubscription = {

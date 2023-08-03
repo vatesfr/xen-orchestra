@@ -27,7 +27,7 @@ type GetStatsExtension = [
   {
     getStats: GetStats;
   },
-  { hostSubscription: Subscription<XenApiHost, object> }
+  { hostSubscription: Subscription<"host", object> }
 ];
 
 type Extensions = [DefaultExtension, GetStatsExtension];
@@ -41,7 +41,7 @@ export const useVmStore = defineStore("vm", () => {
 
   vmCollection.setSort(sortRecordsByNameLabel);
 
-  const subscribe = createSubscribe<XenApiVm, Extensions>((options) => {
+  const subscribe = createSubscribe<"VM", Extensions>((options) => {
     const originalSubscription = vmCollection.subscribe(options);
 
     const extendedSubscription = {

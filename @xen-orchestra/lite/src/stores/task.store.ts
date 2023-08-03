@@ -22,7 +22,7 @@ type Extensions = [PendingTasksExtension, FinishedTasksExtension];
 export const useTaskStore = defineStore("task", () => {
   const tasksCollection = useXapiCollectionStore().get("task");
 
-  const subscribe = createSubscribe<XenApiTask, Extensions>(() => {
+  const subscribe = createSubscribe<"task", Extensions>(() => {
     const subscription = tasksCollection.subscribe();
 
     const { compareFn } = useCollectionSorter<XenApiTask>({
