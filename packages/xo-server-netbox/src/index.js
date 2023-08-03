@@ -123,9 +123,16 @@ class Netbox {
   }
 
   async #request(path, method = 'GET', data) {
+    if (data?.length === 0) {
+      // Allows to call #request() without checking if data is empty and still
+      // avoid empty requests
+      return []
+    }
+
     const dataDebug =
       Array.isArray(data) && data.length > 2 ? [...data.slice(0, 2), `and ${data.length - 2} others`] : data
     log.debug(`${method} ${path}`, dataDebug)
+
     let url = this.#endpoint + '/api' + path
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
@@ -254,9 +261,8 @@ class Netbox {
     )
     const nbClusters = pick(allNbClusters, xoPools)
 
-    if (!isEmpty(allNbClusters[undefined])) {
-      // FIXME: Should we delete clusters from this cluster type that don't have
-      //        a UUID?
+    if (allNbClusters[undefined] !== undefined) {
+      // Show a warning but never delete clusters automatically
       log.warn('Found some clusters with missing UUID custom field', allNbClusters[undefined])
     }
 
@@ -286,21 +292,26 @@ class Netbox {
       }
     }
 
-    // FIXME: Should we deduplicate cluster names even though it also fails
-    //        when a cluster within another cluster type has the same name?
     const newClusters = []
-    if (clustersToUpdate.length > 0) {
-      log.info(`Updating ${clustersToUpdate.length} clusters`)
-      newClusters.push(...(await this.#request('/virtualization/clusters/', 'PATCH', clustersToUpdate)))
-    }
-    if (clustersToCreate.length > 0) {
-      log.info(`Creating ${clustersToCreate.length} clusters`)
-      newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
-    }
+    newClusters.push(...(await this.#request('/virtualization/clusters/', 'PATCH', clustersToUpdate)))
+    newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
+
     Object.assign(nbClusters, keyBy(newClusters, 'custom_fields.uuid'))
     Object.assign(allNbClusters, nbClusters)
+
+    if (isEmpty(nbClusters)) {
+      // Stop the synchronization if no pools could be found. Most likely, the
+      // objects are not fetched or the pools have been disconnected.
+      log.warn('Pools not found in XO', { pools: xoPools })
+      return
+    }
+
     // Only keep pools that were found in XO and up to date in Netbox
     xoPools = Object.keys(nbClusters)
+
+    const allClusterFilter = Object.values(allNbClusters)
+      .map(cluster => `cluster_id=${cluster.id}`)
+      .join('&')
 
     const clusterFilter = Object.values(nbClusters)
       .map(nbCluster => `cluster_id=${nbCluster.id}`)
@@ -399,9 +410,7 @@ class Netbox {
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
-    const allNbVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(nbVm =>
-      some(allNbClusters, { id: nbVm.cluster.id })
-    )
+    const allNbVmsList = await this.#request('/virtualization/virtual-machines/?' + allClusterFilter)
     // Then get only the ones from the pools we're synchronizing
     const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster.id }))
     // Then make them objects to map the Netbox VMs to their XO VMs
@@ -490,18 +499,11 @@ class Netbox {
     // Perform calls to Netbox. "Delete → Update → Create" one at a time to
     // avoid name conflicts with outdated VMs
     const newVms = []
-    if (vmsToDelete.length > 0) {
-      log.info(`Deleting ${vmsToDelete.length} VMs`)
-      await this.#request('/virtualization/virtual-machines/', 'DELETE', vmsToDelete)
-    }
-    if (vmsToUpdate.length > 0) {
-      log.info(`Updating ${vmsToUpdate.length} VMs`)
-      newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)))
-    }
-    if (vmsToCreate.length > 0) {
-      log.info(`Creating ${vmsToCreate.length} VMs`)
-      newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'POST', vmsToCreate)))
-    }
+
+    await this.#request('/virtualization/virtual-machines/', 'DELETE', vmsToDelete)
+    newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)))
+    newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'POST', vmsToCreate)))
+
     Object.assign(nbVms, keyBy(newVms, 'custom_fields.uuid'))
     Object.assign(allNbVms, nbVms)
 
@@ -566,18 +568,10 @@ class Netbox {
 
     // Perform calls to Netbox
     const newIfs = []
-    if (ifsToDelete.length > 0) {
-      log.info(`Deleting ${ifsToDelete.length} interfaces`)
-      await this.#request('/virtualization/interfaces/', 'DELETE', ifsToDelete)
-    }
-    if (ifsToUpdate.length > 0) {
-      log.info(`Updating ${ifsToUpdate.length} interfaces`)
-      newIfs.push(...(await this.#request('/virtualization/interfaces/', 'PATCH', ifsToUpdate)))
-    }
-    if (ifsToCreate.length > 0) {
-      log.info(`Creating ${ifsToCreate.length} interfaces`)
-      newIfs.push(...(await this.#request('/virtualization/interfaces/', 'POST', ifsToCreate)))
-    }
+    await this.#request('/virtualization/interfaces/', 'DELETE', ifsToDelete)
+    newIfs.push(...(await this.#request('/virtualization/interfaces/', 'PATCH', ifsToUpdate)))
+    newIfs.push(...(await this.#request('/virtualization/interfaces/', 'POST', ifsToCreate)))
+
     Object.assign(nbIfs, keyBy(newIfs, 'custom_fields.uuid'))
 
     // IPs ---------------------------------------------------------------------
@@ -676,14 +670,8 @@ class Netbox {
     }
 
     // Perform calls to Netbox
-    if (ipsToDelete.length > 0) {
-      log.info(`Deleting ${ipsToDelete.length} IPs`)
-      await this.#request('/ipam/ip-addresses/', 'DELETE', ipsToDelete)
-    }
-    if (ipsToCreate.length > 0) {
-      log.info(`Creating ${ipsToCreate.length} IPs`)
-      Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
-    }
+    await this.#request('/ipam/ip-addresses/', 'DELETE', ipsToDelete)
+    Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
 
     // Primary IPs -------------------------------------------------------------
 
@@ -734,10 +722,7 @@ class Netbox {
       }
     }
 
-    if (vmsToUpdate2.length > 0) {
-      log.info(`Updating primary IPs of ${vmsToUpdate2.length} VMs`)
-      Object.assign(nbVms, keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2)))
-    }
+    Object.assign(nbVms, keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2)))
 
     log.info(`Done synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })
   }
