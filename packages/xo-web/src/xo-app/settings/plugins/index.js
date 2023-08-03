@@ -11,6 +11,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import map from 'lodash/map'
+import merge from 'lodash/merge'
 import orderBy from 'lodash/orderBy'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
@@ -105,7 +106,7 @@ class Plugin extends Component {
   _applyPredefinedConfiguration = () => {
     const configName = this.refs.selectPredefinedConfiguration.value
     this.setState({
-      editedConfig: this.props.configurationPresets[configName],
+      editedConfig: merge(undefined, this.state.editedConfig, this.props.configurationPresets[configName]),
     })
   }
 
