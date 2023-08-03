@@ -43,34 +43,25 @@ const REPLICATION_OPTIONS = [
   { value: 3, label: '3' },
 ]
 
-const RENDERER_DISK_SELECT = disk => (
+const alreadyHaveAXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
+const formatDiskName = name => '/dev/' + name
+const isDiskHaveChildren = disk => Array.isArray(disk.children) && disk.children.length > 0
+const isDiskGoodType = disk => disk.type === 'disk' || /^raid/.test(disk.type)
+const isDiskNotMounted = disk => disk.mountpoint === ''
+const isDiskNotRo = disk => disk.ro === '0'
+const isGoodNumberOfHosts = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
+const isXcpngPool = host => host?.productBrand === 'XCP-ng'
+const rendererDiskSelect = disk => (
   <span>
-    <Icon icon='disk' /> {FORMAT_DISK_NAME(disk.name)} {formatSize(Number(disk.size))}
+    <Icon icon='disk' /> {formatDiskName(disk.name)} {formatSize(Number(disk.size))}
   </span>
 )
-
-const FORMAT_DISK_NAME = name => '/dev/' + name
-
-const IS_DISK_GOOD_TYPE = disk => disk.type === 'disk' || /^raid/.test(disk.type)
-
-const IS_DISK_NOT_RO = disk => disk.ro === '0'
-
-const IS_DISK_NOT_MOUNTED = disk => disk.mountpoint === ''
-
-const DISK_HAVE_CHILDREN = disk => Array.isArray(disk.children) && disk.children.length > 0
-
-const IS_GOOD_NUMBER_OF_HOSTS = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
-
-const IS_XCP_POOL = host => host?.productBrand === 'XCP-ng'
-
-const ALREADY_HAVE_A_XOSTOR = srs => some(srs, sr => sr.SR_type === 'linstor')
-
-const XOSTOR_DISK_PREDICATE = disk =>
-  IS_DISK_GOOD_TYPE(disk) && IS_DISK_NOT_RO(disk) && IS_DISK_NOT_MOUNTED(disk) && !DISK_HAVE_CHILDREN(disk)
+const xostorDiskPredicate = disk =>
+  isDiskGoodType(disk) && isDiskNotRo(disk) && isDiskNotMounted(disk) && !isDiskHaveChildren(disk)
 
 // ===================================================================
 
-const Storage = decorate([
+const StorageCard = decorate([
   injectState,
   ({ effects, state }) => (
     <Card>
@@ -96,7 +87,12 @@ const Storage = decorate([
   ),
 ])
 
-const Settings = decorate([
+const SettingsCard = decorate([
+  provideState({
+    computed: {
+      showWarningReplication: state => state.replication?.value === 1,
+    },
+  }),
   injectState,
   ({ effects, state }) => (
     <Card>
@@ -107,7 +103,7 @@ const Settings = decorate([
             <strong>{_('replication')}</strong>
           </label>
           <Select options={REPLICATION_OPTIONS} onChange={effects.onReplicationChange} value={state.replication} />
-          {state.replication?.value === 1 && (
+          {state.showWarningReplication && (
             <p className='text-warning'>
               <Icon icon='alarm' /> {_('xostorReplicationWarning')}
             </p>
@@ -124,7 +120,7 @@ const Settings = decorate([
   ),
 ])
 
-const Pool = decorate([
+const PoolCard = decorate([
   connectStore({
     srs: createGetObjectsOfType('SR').groupBy('$pool'),
   }),
@@ -140,13 +136,11 @@ const Pool = decorate([
         }
         const hostsPool = props.hostsByPoolId?.[pool.id]
         return (
-          IS_GOOD_NUMBER_OF_HOSTS(hostsPool) &&
-          IS_XCP_POOL(first(hostsPool)) &&
-          !ALREADY_HAVE_A_XOSTOR(props.srs[pool.id])
+          isGoodNumberOfHosts(hostsPool) && isXcpngPool(first(hostsPool)) && !alreadyHaveAXostor(props.srs[pool.id])
         )
       },
-      isPoolGoodNumberOfHosts: state => IS_GOOD_NUMBER_OF_HOSTS(state.hostsPool),
-      isPoolAlreadyHaveXostor: (state, props) => ALREADY_HAVE_A_XOSTOR(props.srs[state.poolId]),
+      isPoolGoodNumberOfHosts: state => isGoodNumberOfHosts(state.hostsPool),
+      isPoolAlreadyHaveXostor: (state, props) => alreadyHaveAXostor(props.srs[state.poolId]),
       isPoolCompatibleXostor: state =>
         state.isXcpngPool && state.isPoolGoodNumberOfHosts && !state.isPoolAlreadyHaveXostor,
     },
@@ -193,7 +187,7 @@ const Pool = decorate([
   ),
 ])
 
-const Network = decorate([
+const NetworkCard = decorate([
   provideState({
     initialState: () => ({ onlyShowXostorNetworks: true }),
     effects: {
@@ -234,7 +228,7 @@ const Network = decorate([
   ),
 ])
 
-const Disks = decorate([
+const DisksCard = decorate([
   provideState({
     initialState: () => ({
       hostId: undefined,
@@ -253,7 +247,7 @@ const Disks = decorate([
       _blockdevices: async state =>
         state.isHostSelected && state.isXcpngPool ? (await getBlockdevices(state.hostId)).blockdevices : undefined,
       _disks: state =>
-        state.onlyShowXostorDisks ? state._blockdevices?.filter(XOSTOR_DISK_PREDICATE) : state._blockdevices,
+        state.onlyShowXostorDisks ? state._blockdevices?.filter(xostorDiskPredicate) : state._blockdevices,
       predicate: state => host => host.$pool === state.poolId,
       isHostSelected: state => state.hostId !== undefined,
       selectableDisks: state =>
@@ -297,7 +291,7 @@ const Disks = decorate([
                   <Select
                     disabled={!state.isHostSelected || !state.isPoolSelected || !state.isXcpngPool}
                     onChange={effects._onDiskChange}
-                    optionRenderer={RENDERER_DISK_SELECT}
+                    optionRenderer={rendererDiskSelect}
                     options={state.isHostSelected ? state.selectableDisks : []}
                     placeholder={_('selectDisks')}
                     value={null}
@@ -359,15 +353,15 @@ const ListSelectedDisks = decorate([
 ])
 
 const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
-  const diskGoodType = IS_DISK_GOOD_TYPE(disk)
-  const diskNotRo = IS_DISK_NOT_RO(disk)
-  const diskNotMounted = IS_DISK_NOT_MOUNTED(disk)
-  const diskHaveChildren = DISK_HAVE_CHILDREN(disk)
+  const diskGoodType = isDiskGoodType(disk)
+  const diskNotRo = isDiskNotRo(disk)
+  const diskNotMounted = isDiskNotMounted(disk)
+  const diskHaveChildren = isDiskHaveChildren(disk)
   const isDiskValid = diskGoodType && diskNotRo && diskNotMounted && !diskHaveChildren
 
   return (
     <li className='list-group-item'>
-      <Icon icon='disk' /> {FORMAT_DISK_NAME(disk.name)} {formatSize(Number(disk.size))}
+      <Icon icon='disk' /> {formatDiskName(disk.name)} {formatSize(Number(disk.size))}
       <ActionButton
         btnStyle='danger'
         className='pull-right'
@@ -391,7 +385,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   )
 }
 
-const Resume = decorate([
+const ResumeCard = decorate([
   provideState({
     computed: {
       areHostsDisksConsistent: state =>
@@ -518,7 +512,7 @@ const Xostor = decorate([
       isDisksMissing: state => state.numberOfHostsWithDisks === 0,
       isFormInvalid: state =>
         state.isReplicationMissing || state.isProvisioningMissing || state.isNameIsMissing || state.isDisksMissing,
-      isXcpngPool: state => IS_XCP_POOL(first(state.hostsPool)),
+      isXcpngPool: state => isXcpngPool(first(state.hostsPool)),
       // State ============
       networkId: state => state._networkId ?? state._defaultNetworkId,
     },
@@ -529,25 +523,25 @@ const Xostor = decorate([
       <Container>
         <Row>
           <Col size={6}>
-            <Storage />
+            <StorageCard />
           </Col>
           <Col size={6}>
-            <Settings />
+            <SettingsCard />
           </Col>
         </Row>
         <Row>
           <Col size={6}>
-            <Pool hostsByPoolId={hostsByPoolId} />
+            <PoolCard hostsByPoolId={hostsByPoolId} />
           </Col>
           <Col size={6}>
-            <Network networks={networks} pifs={pifs} />
+            <NetworkCard networks={networks} pifs={pifs} />
           </Col>
         </Row>
         <Row>
-          <Disks />
+          <DisksCard />
         </Row>
         <Row>
-          <Resume />
+          <ResumeCard />
         </Row>
         <Row>
           <ActionButton btnStyle='primary' disabled={state.isFormInvalid} icon='add'>
