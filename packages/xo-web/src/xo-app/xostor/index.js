@@ -9,7 +9,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { find, first, map, remove, size } from 'lodash'
+import { find, first, map, remove, size, some } from 'lodash'
 import { getBlockdevices } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
@@ -57,11 +57,16 @@ const IS_DISK_NOT_RO = disk => disk.ro === '0'
 
 const IS_DISK_NOT_MOUNTED = disk => disk.mountpoint === ''
 
+const DISK_HAVE_CHILDREN = disk => Array.isArray(disk.children) && disk.children.length > 0
+
 const IS_GOOD_NUMBER_OF_HOSTS = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 
 const IS_XCP_POOL = host => host?.productBrand === 'XCP-ng'
 
-const XOSTOR_DISK_PREDICATE = disk => IS_DISK_GOOD_TYPE(disk) && IS_DISK_NOT_RO(disk) && IS_DISK_NOT_MOUNTED(disk)
+const ALREADY_HAVE_A_XOSTOR = srs => some(srs, sr => sr.SR_type === 'linstor')
+
+const XOSTOR_DISK_PREDICATE = disk =>
+  IS_DISK_GOOD_TYPE(disk) && IS_DISK_NOT_RO(disk) && IS_DISK_NOT_MOUNTED(disk) && !DISK_HAVE_CHILDREN(disk)
 
 // ===================================================================
 
@@ -120,6 +125,9 @@ const Settings = decorate([
 ])
 
 const Pool = decorate([
+  connectStore({
+    srs: createGetObjectsOfType('SR').groupBy('$pool'),
+  }),
   provideState({
     initialState: () => ({ onlyShowXostorPools: true }),
     effects: {
@@ -131,10 +139,16 @@ const Pool = decorate([
           return true
         }
         const hostsPool = props.hostsByPoolId?.[pool.id]
-        return IS_GOOD_NUMBER_OF_HOSTS(hostsPool) && IS_XCP_POOL(first(hostsPool))
+        return (
+          IS_GOOD_NUMBER_OF_HOSTS(hostsPool) &&
+          IS_XCP_POOL(first(hostsPool)) &&
+          !ALREADY_HAVE_A_XOSTOR(props.srs[pool.id])
+        )
       },
       isPoolGoodNumberOfHosts: state => IS_GOOD_NUMBER_OF_HOSTS(state.hostsPool),
-      isPoolCompatibleXostor: state => state.isXcpngPool && state.isPoolGoodNumberOfHosts,
+      isPoolAlreadyHaveXostor: (state, props) => ALREADY_HAVE_A_XOSTOR(props.srs[state.poolId]),
+      isPoolCompatibleXostor: state =>
+        state.isXcpngPool && state.isPoolGoodNumberOfHosts && !state.isPoolAlreadyHaveXostor,
     },
   }),
   injectState,
@@ -162,6 +176,7 @@ const Pool = decorate([
               <ul>
                 {!state.isXcpngPool && <li>{_('notXcpPool')}</li>}
                 {!state.isPoolGoodNumberOfHosts && <li>{_('wrongNumberOfHosts')}</li>}
+                {state.isPoolAlreadyHaveXostor && <li>{_('poolAlreadyHaveXostor')}</li>}
               </ul>
             </div>
           )}
@@ -347,7 +362,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const diskGoodType = IS_DISK_GOOD_TYPE(disk)
   const diskNotRo = IS_DISK_NOT_RO(disk)
   const diskNotMounted = IS_DISK_NOT_MOUNTED(disk)
-  const isDiskValid = diskGoodType && diskNotRo && diskNotMounted
+  const diskHaveChildren = DISK_HAVE_CHILDREN(disk)
+  const isDiskValid = diskGoodType && diskNotRo && diskNotMounted && !diskHaveChildren
 
   return (
     <li className='list-group-item'>
@@ -367,6 +383,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {!diskGoodType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
             {!diskNotRo && <li>{_('diskIsReadOnly')}</li>}
             {!diskNotMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
+            {diskHaveChildren && <li>{_('diskHaveChildren')}</li>}
           </ul>
         </div>
       )}
