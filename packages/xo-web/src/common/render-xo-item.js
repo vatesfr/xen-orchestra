@@ -533,8 +533,7 @@ const xoItemToRender = {
     <span>
       <Icon icon='xo-cloud-config' /> <ShortDate timestamp={createdAt} />
     </span>
-  )
-  ,
+  ),
   // XO objects.
   pool: props => <Pool {...props} />,
 
