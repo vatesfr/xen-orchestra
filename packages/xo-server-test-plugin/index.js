@@ -13,6 +13,12 @@ exports.configurationSchema = {
   type: 'object',
   properties: {
     foo: {
+      // name of the setting to display in the UI instead of the raw name of property (here `foo`).
+      title: 'Foo',
+
+      // Markdown description for this setting
+      description: 'Value to use when doing foo',
+
       type: 'string',
     },
   },
