@@ -113,8 +113,6 @@ export default class {
         //   - `userId`
         //   - optionally `expiration` to indicate when the session is no longer
         //     valid
-        // - an object with a property `username` containing the name
-        //   of the authenticated user
         const result = await provider(credentials, userData)
 
         // No match.
@@ -122,10 +120,10 @@ export default class {
           continue
         }
 
-        const { userId, username, expiration } = result
+        const { userId, expiration } = result
 
         return {
-          user: await (userId !== undefined ? this._app.getUser(userId) : this._app.registerUser(undefined, username)),
+          user: await this._app.getUser(userId),
           expiration,
         }
       } catch (error) {
