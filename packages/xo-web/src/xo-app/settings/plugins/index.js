@@ -167,7 +167,7 @@ class Plugin extends Component {
                   <p>{_('pluginConfigurationChoosePreset')}</p>
                 </span>
                 <div className='input-group'>
-                  <select className='form-control' disabled={!editedConfig} ref='selectPredefinedConfiguration'>
+                  <select className='form-control' ref='selectPredefinedConfiguration'>
                     {map(configurationPresets, (_, name) => (
                       <option key={name} value={name}>
                         {name}
@@ -175,7 +175,7 @@ class Plugin extends Component {
                     ))}
                   </select>
                   <span className='input-group-btn'>
-                    <Button btnStyle='primary' disabled={!editedConfig} onClick={this._applyPredefinedConfiguration}>
+                    <Button btnStyle='primary' onClick={this._applyPredefinedConfiguration}>
                       {_('applyPluginPreset')}
                     </Button>
                   </span>

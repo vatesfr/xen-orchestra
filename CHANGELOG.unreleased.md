@@ -30,5 +30,6 @@
 <!--packages-start-->
 
 - xo-server-auth-ldap patch
+- xo-web patch
 
 <!--packages-end-->
