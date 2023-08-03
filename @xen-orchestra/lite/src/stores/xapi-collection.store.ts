@@ -1,10 +1,11 @@
-import type { RawObjectType } from "@/libs/xen-api";
+import type { RawObjectType, RawTypeToRecord } from "@/libs/xen-api";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import type {
-  RawTypeToRecord,
-  SubscribeOptions,
+  DeferExtension,
+  Options,
   Subscription,
-} from "@/types/xapi-collection";
+  XenApiRecordExtension,
+} from "@/types/subscription";
 import { tryOnUnmounted, whenever } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, readonly, ref } from "vue";
@@ -14,7 +15,7 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
 
   function get<T extends RawObjectType>(
     type: T
-  ): ReturnType<typeof createXapiCollection<T, RawTypeToRecord<T>>> {
+  ): ReturnType<typeof createXapiCollection<T>> {
     if (!collections.value.has(type)) {
       collections.value.set(type, createXapiCollection(type));
     }
@@ -27,7 +28,7 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
 
 const createXapiCollection = <
   T extends RawObjectType,
-  R extends RawTypeToRecord<T>
+  R extends RawTypeToRecord<T> = RawTypeToRecord<T>
 >(
   type: T
 ) => {
@@ -106,9 +107,11 @@ const createXapiCollection = <
     () => fetchAll()
   );
 
-  function subscribe<O extends SubscribeOptions<any>>(
+  type Extensions = [XenApiRecordExtension<R>, DeferExtension];
+
+  function subscribe<O extends Options<Extensions>>(
     options?: O
-  ): Subscription<T, O> {
+  ): Subscription<Extensions, O> {
     const id = Symbol();
 
     tryOnUnmounted(() => {
@@ -131,14 +134,14 @@ const createXapiCollection = <
 
     if (options?.immediate !== false) {
       start();
-      return subscription as unknown as Subscription<T, O>;
+      return subscription as Subscription<Extensions, O>;
     }
 
     return {
       ...subscription,
       start,
       isStarted: computed(() => subscriptions.value.has(id)),
-    } as unknown as Subscription<T, O>;
+    } as Subscription<Extensions, O>;
   }
 
   const unsubscribe = (id: symbol) => subscriptions.value.delete(id);

@@ -1,5 +1,4 @@
 import { buildXoObject, parseDateTime } from "@/libs/utils";
-import type { RawTypeToRecord } from "@/types/xapi-collection";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
 
@@ -174,6 +173,45 @@ export interface XenApiMessage<T extends RawObjectType = RawObjectType>
   priority: number;
   timestamp: string;
 }
+
+export type XenApiAlarmType =
+  | "cpu_usage"
+  | "disk_usage"
+  | "fs_usage"
+  | "log_fs_usage"
+  | "mem_usage"
+  | "memory_free_kib"
+  | "network_usage"
+  | "physical_utilisation"
+  | "sr_io_throughput_total_per_host";
+
+export interface XenApiAlarm extends XenApiMessage {
+  level: number;
+  triggerLevel: number;
+  type: XenApiAlarmType;
+}
+
+export type RawTypeToRecord<T extends RawObjectType> = T extends "SR"
+  ? XenApiSr
+  : T extends "VM"
+  ? XenApiVm
+  : T extends "VM_guest_metrics"
+  ? XenApiVmGuestMetrics
+  : T extends "VM_metrics"
+  ? XenApiVmMetrics
+  : T extends "console"
+  ? XenApiConsole
+  : T extends "host"
+  ? XenApiHost
+  : T extends "host_metrics"
+  ? XenApiHostMetrics
+  : T extends "message"
+  ? XenApiMessage
+  : T extends "pool"
+  ? XenApiPool
+  : T extends "task"
+  ? XenApiTask
+  : never;
 
 type WatchCallbackResult = {
   id: string;

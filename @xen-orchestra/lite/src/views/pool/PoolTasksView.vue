@@ -19,7 +19,9 @@ import { useTaskStore } from "@/stores/task.store";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useI18n } from "vue-i18n";
 
-const { pendingTasks, finishedTasks, isReady, hasError } = useTaskStore().subscribe();
+const { pendingTasks, finishedTasks, isReady, hasError } =
+  useTaskStore().subscribe();
+
 const { t } = useI18n();
 
 const titleStore = usePageTitleStore();
