@@ -10,9 +10,9 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-> [Backups] fix Continuous Replication job fails "TypeError: Cannot read properties of undefined (reading 'uuid')" at #isAlreadyOnHealthCheckSr (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
 
 - [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
 
 ### Packages to release
 
