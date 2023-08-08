@@ -362,7 +362,7 @@ class Netbox {
       platform: nbVm.platform?.id ?? null,
     })
 
-    const nbPlatforms = keyBy(await this.#request('/dcim/platforms'), 'id')
+    const nbPlatforms = keyBy(await this.#request('/dcim/platforms/'), 'id')
 
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
