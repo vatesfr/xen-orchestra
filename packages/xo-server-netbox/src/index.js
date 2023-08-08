@@ -109,15 +109,15 @@ class Netbox {
       description:
         "This type has been created by Xen Orchestra's Netbox plugin test. If it hasn't been properly deleted, you may delete it manually.",
     })
-    const clusterTypes = await this.#request(`/virtualization/cluster-types/?name=${encodeURIComponent(name)}`)
+    const nbClusterTypes = await this.#request(`/virtualization/cluster-types/?name=${encodeURIComponent(name)}`)
 
     await this.#checkCustomFields()
 
-    if (clusterTypes.length !== 1) {
+    if (nbClusterTypes.length !== 1) {
       throw new Error('Could not properly write and read Netbox')
     }
 
-    await this.#request('/virtualization/cluster-types/', 'DELETE', [{ id: clusterTypes[0].id }])
+    await this.#request('/virtualization/cluster-types/', 'DELETE', [{ id: nbClusterTypes[0].id }])
   }
 
   async #request(path, method = 'GET', data) {
@@ -215,20 +215,22 @@ class Netbox {
     // that have been created from XO
 
     // Check if a cluster type called XCP-ng already exists otherwise create it
-    const clusterTypes = await this.#request(`/virtualization/cluster-types/?name=${encodeURIComponent(CLUSTER_TYPE)}`)
-    if (clusterTypes.length > 1) {
+    const nbClusterTypes = await this.#request(
+      `/virtualization/cluster-types/?name=${encodeURIComponent(CLUSTER_TYPE)}`
+    )
+    if (nbClusterTypes.length > 1) {
       throw new Error('Found more than 1 "XCP-ng Pool" cluster type')
     }
-    let clusterType
-    if (clusterTypes.length === 0) {
+    let nbClusterType
+    if (nbClusterTypes.length === 0) {
       log.info('Creating cluster type')
-      clusterType = await this.#request('/virtualization/cluster-types/', 'POST', {
+      nbClusterType = await this.#request('/virtualization/cluster-types/', 'POST', {
         name: CLUSTER_TYPE,
         slug: slugify(CLUSTER_TYPE),
         description: 'Created by Xen Orchestra',
       })
     } else {
-      clusterType = clusterTypes[0]
+      nbClusterType = nbClusterTypes[0]
     }
 
     // Clusters ----------------------------------------------------------------
@@ -237,23 +239,23 @@ class Netbox {
 
     log.info('Synchronizing clusters')
 
-    const createCluster = (pool, clusterType) => ({
+    const createNbCluster = (pool, nbClusterType) => ({
       custom_fields: { uuid: pool.uuid },
       name: pool.name_label.slice(0, NAME_MAX_LENGTH),
-      type: clusterType.id,
+      type: nbClusterType.id,
     })
 
     // { Pool UUID → cluster }
-    const allClusters = keyBy(
-      await this.#request(`/virtualization/clusters/?type_id=${clusterType.id}`),
+    const allNbClusters = keyBy(
+      await this.#request(`/virtualization/clusters/?type_id=${nbClusterType.id}`),
       'custom_fields.uuid'
     )
-    const clusters = pick(allClusters, pools)
+    const nbClusters = pick(allNbClusters, pools)
 
-    if (!isEmpty(allClusters[undefined])) {
+    if (!isEmpty(allNbClusters[undefined])) {
       // FIXME: Should we delete clusters from this cluster type that don't have
       //        a UUID?
-      log.warn('Found some clusters with missing UUID custom field', allClusters[undefined])
+      log.warn('Found some clusters with missing UUID custom field', allNbClusters[undefined])
     }
 
     const clustersToCreate = []
@@ -263,19 +265,19 @@ class Netbox {
       if (pool === undefined) {
         // If we can't find the pool, don't synchronize anything within that pool
         log.warn('Synchronizing pools: cannot find pool', { pool: poolId })
-        delete allClusters[poolId]
-        delete clusters[poolId]
+        delete allNbClusters[poolId]
+        delete nbClusters[poolId]
         continue
       }
-      const cluster = clusters[pool.uuid]
+      const nbCluster = nbClusters[pool.uuid]
 
-      const updatedCluster = createCluster(pool, clusterType)
+      const updatedCluster = createNbCluster(pool, nbClusterType)
 
-      if (cluster === undefined) {
+      if (nbCluster === undefined) {
         clustersToCreate.push(updatedCluster)
       } else {
         // `type` needs to be flattened so we can compare the 2 objects
-        const patch = diff(updatedCluster, { ...cluster, type: cluster.type.id })
+        const patch = diff(updatedCluster, { ...nbCluster, type: nbCluster.type.id })
         if (patch !== undefined) {
           clustersToUpdate.push(patch)
         }
@@ -293,21 +295,21 @@ class Netbox {
       log.info(`Creating ${clustersToCreate.length} clusters`)
       newClusters.push(...(await this.#request('/virtualization/clusters/', 'POST', clustersToCreate)))
     }
-    Object.assign(clusters, keyBy(newClusters, 'custom_fields.uuid'))
-    Object.assign(allClusters, clusters)
+    Object.assign(nbClusters, keyBy(newClusters, 'custom_fields.uuid'))
+    Object.assign(allNbClusters, nbClusters)
     // Only keep pools that were found in XO and up to date in Netbox
-    pools = Object.keys(clusters)
+    pools = Object.keys(nbClusters)
 
-    const clusterFilter = Object.values(clusters)
-      .map(cluster => `cluster_id=${cluster.id}`)
+    const clusterFilter = Object.values(nbClusters)
+      .map(nbCluster => `cluster_id=${nbCluster.id}`)
       .join('&')
 
     // VMs ---------------------------------------------------------------------
 
     log.info('Synchronizing VMs')
 
-    const createNetboxVm = async (vm, { cluster, platforms }) => {
-      const netboxVm = {
+    const createNbVm = async (vm, { nbCluster, nbPlatforms }) => {
+      const nbVm = {
         custom_fields: { uuid: vm.uuid },
         name: vm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
         comments: vm.name_description.slice(0, DESCRIPTION_MAX_LENGTH).trim(),
@@ -320,7 +322,7 @@ class Netbox {
             .reduce((total, vdi) => total + vdi.size, 0) / G
         ),
         memory: Math.floor(vm.memory.dynamic[1] / M),
-        cluster: cluster.id,
+        cluster: nbCluster.id,
         status: vm.power_state === 'Running' ? 'active' : 'offline',
         platform: null,
       }
@@ -328,17 +330,17 @@ class Netbox {
       const distro = vm.os_version?.distro
       if (distro != null) {
         const slug = slugify(distro)
-        let platform = find(platforms, { slug })
-        if (platform === undefined) {
+        let nbPlatform = find(nbPlatforms, { slug })
+        if (nbPlatform === undefined) {
           // TODO: Should we also delete/update platforms in Netbox?
-          platform = await this.#request('/dcim/platforms/', 'POST', {
+          nbPlatform = await this.#request('/dcim/platforms/', 'POST', {
             name: distro,
             slug,
           })
-          platforms[platform.id] = platform
+          nbPlatforms[nbPlatform.id] = nbPlatform
         }
 
-        netboxVm.platform = platform.id
+        nbVm.platform = nbPlatform.id
       }
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
@@ -346,71 +348,69 @@ class Netbox {
         this.#netboxApiVersion !== undefined &&
         !semver.satisfies(semver.coerce(this.#netboxApiVersion).version, '>=2.7.0')
       ) {
-        netboxVm.status = vm.power_state === 'Running' ? 1 : 0
+        nbVm.status = vm.power_state === 'Running' ? 1 : 0
       }
 
-      return netboxVm
+      return nbVm
     }
 
     // Some props need to be flattened to satisfy the POST request schema
-    const flattenNested = vm => ({
-      ...vm,
-      cluster: vm.cluster?.id ?? null,
-      status: vm.status?.value ?? null,
-      platform: vm.platform?.id ?? null,
+    const flattenNested = nbVm => ({
+      ...nbVm,
+      cluster: nbVm.cluster?.id ?? null,
+      status: nbVm.status?.value ?? null,
+      platform: nbVm.platform?.id ?? null,
     })
 
-    const platforms = keyBy(await this.#request('/dcim/platforms'), 'id')
+    const nbPlatforms = keyBy(await this.#request('/dcim/platforms'), 'id')
 
     // Get all the VMs in the cluster type "XCP-ng Pool" even from clusters
     // we're not synchronizing right now, so we can "migrate" them back if
     // necessary
-    const allNetboxVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(
-      netboxVm => Object.values(allClusters).find(cluster => cluster.id === netboxVm.cluster.id) !== undefined
+    const allNbVmsList = (await this.#request('/virtualization/virtual-machines/')).filter(
+      nbVm => Object.values(allNbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
     )
     // Then get only the ones from the pools we're synchronizing
-    const netboxVmsList = allNetboxVmsList.filter(
-      netboxVm => Object.values(clusters).find(cluster => cluster.id === netboxVm.cluster.id) !== undefined
+    const nbVmsList = allNbVmsList.filter(
+      nbVm => Object.values(nbClusters).find(cluster => cluster.id === nbVm.cluster.id) !== undefined
     )
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
-    const allNetboxVms = keyBy(allNetboxVmsList, 'custom_fields.uuid')
-    const netboxVms = keyBy(netboxVmsList, 'custom_fields.uuid')
+    const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
+    const nbVms = keyBy(nbVmsList, 'custom_fields.uuid')
 
     const usedNames = [] // Used for name deduplication
     // Build the 3 collections of VMs and perform all the API calls at the end
-    const vmsToDelete = netboxVmsList
-      .filter(netboxVm => netboxVm.custom_fields.uuid == null)
-      .map(netboxVm => ({ id: netboxVm.id }))
+    const vmsToDelete = nbVmsList.filter(nbVm => nbVm.custom_fields.uuid == null).map(nbVm => ({ id: nbVm.id }))
     const vmsToUpdate = []
     const vmsToCreate = []
     for (const poolId of pools) {
       // Get XO VMs that are on this pool
       const poolVms = this.getObjects({ filter: { type: 'VM', $pool: poolId } })
 
-      const cluster = clusters[poolId]
+      const nbCluster = nbClusters[poolId]
 
       // Get Netbox VMs that are supposed to be in this pool
-      const poolNetboxVms = pickBy(netboxVms, netboxVm => netboxVm.cluster.id === cluster.id)
+      const poolNbVms = pickBy(nbVms, nbVm => nbVm.cluster.id === nbCluster.id)
 
       // For each XO VM of this pool (I)
       for (const vm of Object.values(poolVms)) {
         // Grab the Netbox VM from the list of all VMs so that if the VM is on
         // another cluster, we update the existing object instead of creating a
         // new one
-        const netboxVm = allNetboxVms[vm.uuid]
-        delete poolNetboxVms[vm.uuid]
+        const nbVm = allNbVms[vm.uuid]
+        delete poolNbVms[vm.uuid]
 
-        const updatedVm = await createNetboxVm(vm, { cluster, platforms })
+        const updatedVm = await createNbVm(vm, { nbCluster, nbPlatforms })
 
-        if (netboxVm !== undefined) {
+        if (nbVm !== undefined) {
           // VM found in Netbox: update VM (I.1)
-          const patch = diff(updatedVm, flattenNested(netboxVm))
+          const patch = diff(updatedVm, flattenNested(nbVm))
           if (patch !== undefined) {
             vmsToUpdate.push(patch)
           } else {
             // The VM is up to date, just store its name as being used
-            usedNames.push(netboxVm.name)
+            usedNames.push(nbVm.name)
           }
         } else {
           // VM not found in Netbox: create VM (I.2)
@@ -419,28 +419,28 @@ class Netbox {
       }
 
       // For each REMAINING Netbox VM of this pool (II)
-      for (const netboxVm of Object.values(poolNetboxVms)) {
-        const vmUuid = netboxVm.custom_fields?.uuid
+      for (const nbVm of Object.values(poolNbVms)) {
+        const vmUuid = nbVm.custom_fields?.uuid
         const vm = this.getObject(vmUuid)
         // We check if the VM was moved to another pool in XO
         const pool = this.getObject(vm?.$pool)
-        const cluster = allClusters[pool?.uuid]
-        if (cluster !== undefined) {
+        const nbCluster = allNbClusters[pool?.uuid]
+        if (nbCluster !== undefined) {
           // If the VM is found in XO: update it if necessary (II.1)
-          const updatedVm = await createNetboxVm(vm, { cluster, platforms })
-          const patch = diff(updatedVm, flattenNested(netboxVm))
+          const updatedVm = await createNbVm(vm, { nbCluster, nbPlatforms })
+          const patch = diff(updatedVm, flattenNested(nbVm))
 
           if (patch === undefined) {
             // Should never happen since at least the cluster should be different
-            log.warn('Found a VM that should be on another cluster', { vm: netboxVm })
+            log.warn('Found a VM that should be on another cluster', { vm: nbVm })
             continue
           }
 
           vmsToUpdate.push(patch)
         } else {
           // Otherwise, delete it from Netbox (II.2)
-          vmsToDelete.push({ id: netboxVm.id })
-          delete netboxVms[vmUuid]
+          vmsToDelete.push({ id: nbVm.id })
+          delete nbVms[vmUuid]
         }
       }
     }
@@ -449,12 +449,12 @@ class Netbox {
     // Deduplicate vmsToUpdate first to avoid back and forth changes
     // Deduplicate even between pools to simplify and avoid back and forth
     //   changes if the VM is migrated
-    for (const netboxVm of [...vmsToUpdate, ...vmsToCreate]) {
-      if (netboxVm.name === undefined) {
+    for (const nbVm of [...vmsToUpdate, ...vmsToCreate]) {
+      if (nbVm.name === undefined) {
         continue
       }
-      netboxVm.name = deduplicateName(netboxVm.name, usedNames)
-      usedNames.push(netboxVm.name)
+      nbVm.name = deduplicateName(nbVm.name, usedNames)
+      usedNames.push(nbVm.name)
     }
 
     // Perform calls to Netbox. "Delete → Update → Create" one at a time to
@@ -472,63 +472,61 @@ class Netbox {
       log.info(`Creating ${vmsToCreate.length} VMs`)
       newVms.push(...(await this.#request('/virtualization/virtual-machines/', 'POST', vmsToCreate)))
     }
-    Object.assign(netboxVms, keyBy(newVms, 'custom_fields.uuid'))
-    Object.assign(allNetboxVms, netboxVms)
+    Object.assign(nbVms, keyBy(newVms, 'custom_fields.uuid'))
+    Object.assign(allNbVms, nbVms)
 
     // VIFs --------------------------------------------------------------------
 
     log.info('Synchronizing VIFs')
 
-    const createIf = (vif, vm) => {
+    const createNbIf = (vif, vm) => {
       const name = `eth${vif.device}`
-      const netboxVm = netboxVms[vm.uuid]
+      const nbVm = nbVms[vm.uuid]
 
-      const netboxIf = {
+      const nbIf = {
         custom_fields: { uuid: vif.uuid },
         name,
         mac_address: vif.MAC.toUpperCase(),
       }
 
-      if (netboxVm !== undefined) {
-        netboxIf.virtual_machine = netboxVm.id
+      if (nbVm !== undefined) {
+        nbIf.virtual_machine = nbVm.id
       }
 
-      return netboxIf
+      return nbIf
     }
 
-    const netboxIfsList = await this.#request(`/virtualization/interfaces/?${clusterFilter}`)
+    const nbIfsList = await this.#request(`/virtualization/interfaces/?${clusterFilter}`)
     // { ID → Interface }
-    const netboxIfs = keyBy(netboxIfsList, 'custom_fields.uuid')
+    const nbIfs = keyBy(nbIfsList, 'custom_fields.uuid')
 
-    const ifsToDelete = netboxIfsList
-      .filter(netboxIf => netboxIf.custom_fields.uuid == null)
-      .map(netboxIf => ({ id: netboxIf.id }))
+    const ifsToDelete = nbIfsList.filter(nbIf => nbIf.custom_fields.uuid == null).map(nbIf => ({ id: nbIf.id }))
     const ifsToUpdate = []
     const ifsToCreate = []
-    for (const netboxVm of Object.values(netboxVms)) {
-      const vm = this.getObject(netboxVm.custom_fields.uuid)
+    for (const nbVm of Object.values(nbVms)) {
+      const vm = this.getObject(nbVm.custom_fields.uuid)
       if (vm === undefined) {
-        log.warn('Synchronizing VIFs: cannot find VM from UUID custom field', { vm: netboxVm.custom_fields.uuid })
+        log.warn('Synchronizing VIFs: cannot find VM from UUID custom field', { vm: nbVm.custom_fields.uuid })
         continue
       }
       // Start by deleting old interfaces attached to this Netbox VM
-      Object.entries(netboxIfs).forEach(([id, netboxIf]) => {
-        if (netboxIf.virtual_machine.id === netboxVm.id && !vm.VIFs.includes(netboxIf.custom_fields.uuid)) {
-          ifsToDelete.push({ id: netboxIf.id })
-          delete netboxIfs[id]
+      Object.entries(nbIfs).forEach(([id, nbIf]) => {
+        if (nbIf.virtual_machine.id === nbVm.id && !vm.VIFs.includes(nbIf.custom_fields.uuid)) {
+          ifsToDelete.push({ id: nbIf.id })
+          delete nbIfs[id]
         }
       })
 
       // For each XO VIF, create or update the Netbox interface
       for (const vifId of vm.VIFs) {
         const vif = this.getObject(vifId)
-        const netboxIf = netboxIfs[vif.uuid]
-        const updatedIf = createIf(vif, vm)
-        if (netboxIf === undefined) {
+        const nbIf = nbIfs[vif.uuid]
+        const updatedIf = createNbIf(vif, vm)
+        if (nbIf === undefined) {
           ifsToCreate.push(updatedIf)
         } else {
           // `virtual_machine` needs to be flattened so we can compare the 2 objects
-          const patch = diff(updatedIf, { ...netboxIf, virtual_machine: netboxIf.virtual_machine.id })
+          const patch = diff(updatedIf, { ...nbIf, virtual_machine: nbIf.virtual_machine.id })
           if (patch !== undefined) {
             ifsToUpdate.push(patch)
           }
@@ -550,52 +548,52 @@ class Netbox {
       log.info(`Creating ${ifsToCreate.length} interfaces`)
       newIfs.push(...(await this.#request('/virtualization/interfaces/', 'POST', ifsToCreate)))
     }
-    Object.assign(netboxIfs, keyBy(newIfs, 'custom_fields.uuid'))
+    Object.assign(nbIfs, keyBy(newIfs, 'custom_fields.uuid'))
 
     // IPs ---------------------------------------------------------------------
 
     log.info('Synchronizing IP addresses')
 
-    const createIp = (ip, prefix, netboxIf) => {
+    const createNbIp = (ip, prefix, nbIf) => {
       return {
         address: `${ip}/${prefix.split('/')[1]}`,
         assigned_object_type: 'virtualization.vminterface',
-        assigned_object_id: netboxIf,
+        assigned_object_id: nbIf,
       }
     }
 
     // In Netbox, a device interface and a VM interface can have the same ID and
     // an IP address can be assigned to both types of interface, so we need to
     // make sure that we only get IPs that are assigned to a VM interface
-    const netboxIps = keyBy(
+    const nbIps = keyBy(
       (await this.#request('/ipam/ip-addresses/')).filter(
         address => address.assigned_object_type === 'virtualization.vminterface'
       ),
       'id'
     )
-    const netboxPrefixes = await this.#request('/ipam/prefixes/')
+    const nbPrefixes = await this.#request('/ipam/prefixes/')
 
     const ipsToDelete = []
     const ipsToCreate = []
     const ignoredIps = [] // IPs for which a valid prefix could not be found in Netbox
     // For each VM, for each interface, for each IP: create IP in Netbox
-    for (const netboxVm of Object.values(netboxVms)) {
-      const vm = this.getObject(netboxVm.custom_fields.uuid)
+    for (const nbVm of Object.values(nbVms)) {
+      const vm = this.getObject(nbVm.custom_fields.uuid)
       if (vm === undefined) {
-        log.warn('Synchronizing IPs: cannot find VM from UUID custom field', { vm: netboxVm.custom_fields.uuid })
+        log.warn('Synchronizing IPs: cannot find VM from UUID custom field', { vm: nbVm.custom_fields.uuid })
         continue
       }
 
       // Find the Netbox interface associated with the vif
-      const netboxVmIfs = Object.values(netboxIfs).filter(netboxIf => netboxIf.virtual_machine.id === netboxVm.id)
-      for (const netboxIf of netboxVmIfs) {
+      const nbVmIfs = Object.values(nbIfs).filter(nbIf => nbIf.virtual_machine.id === nbVm.id)
+      for (const nbIf of nbVmIfs) {
         // Store old IPs and remove them one by one. At the end, delete the remaining ones.
-        const netboxIpsToCheck = pickBy(netboxIps, netboxIp => netboxIp.assigned_object_id === netboxIf.id)
+        const nbIpsToCheck = pickBy(nbIps, nbIp => nbIp.assigned_object_id === nbIf.id)
 
-        const vif = this.getObject(netboxIf.custom_fields.uuid)
+        const vif = this.getObject(nbIf.custom_fields.uuid)
         if (vif === undefined) {
           // Cannot create IPs if interface was not found
-          log.warn('Could not find VIF', { vm: vm.uuid, vif: netboxIf.custom_fields.uuid })
+          log.warn('Could not find VIF', { vm: vm.uuid, vif: nbIf.custom_fields.uuid })
           continue
         }
         const ips = Object.values(pickBy(vm.addresses, (_, key) => key.startsWith(vif.device + '/')))
@@ -607,7 +605,7 @@ class Netbox {
           // Users must create prefixes themselves
           let smallestPrefix
           let highestBits = 0
-          netboxPrefixes.forEach(({ prefix }) => {
+          nbPrefixes.forEach(({ prefix }) => {
             const [range, bits] = prefix.split('/')
             const parsedRange = ipaddr.parse(range)
             if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
@@ -623,21 +621,21 @@ class Netbox {
           }
 
           const compactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
-          const netboxIp = find(netboxIpsToCheck, netboxIp => {
-            const [ip, bits] = netboxIp.address.split('/')
+          const nbIp = find(nbIpsToCheck, nbIp => {
+            const [ip, bits] = nbIp.address.split('/')
             return ipaddr.parse(ip).toString() === compactIp && bits === highestBits
           })
-          if (netboxIp !== undefined) {
+          if (nbIp !== undefined) {
             // IP is up to date, don't do anything with it
-            delete netboxIpsToCheck[netboxIp.id]
+            delete nbIpsToCheck[nbIp.id]
           } else {
             // IP wasn't found in Netbox, create it
-            ipsToCreate.push(createIp(ip, smallestPrefix, netboxIf.id))
+            ipsToCreate.push(createNbIp(ip, smallestPrefix, nbIf.id))
           }
         }
 
         // Delete the remaining IPs found in Netbox for this VM
-        ipsToDelete.push(...Object.values(netboxIpsToCheck).map(netboxIp => ({ id: netboxIp.id })))
+        ipsToDelete.push(...Object.values(nbIpsToCheck).map(nbIp => ({ id: nbIp.id })))
       }
     }
 
@@ -654,7 +652,7 @@ class Netbox {
     }
     if (ipsToCreate.length > 0) {
       log.info(`Creating ${ipsToCreate.length} IPs`)
-      Object.assign(netboxIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
+      Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
     }
 
     // Primary IPs -------------------------------------------------------------
@@ -665,41 +663,39 @@ class Netbox {
     log.info("Setting VMs' primary IPs")
 
     const vmsToUpdate2 = []
-    for (const netboxVm of Object.values(netboxVms)) {
-      const vm = this.getObject(netboxVm.custom_fields.uuid)
+    for (const nbVm of Object.values(nbVms)) {
+      const vm = this.getObject(nbVm.custom_fields.uuid)
       if (vm === undefined) {
-        log.warn('Updating primary IPs: cannot find VM from UUID custom field', { vm: netboxVm.custom_fields.uuid })
+        log.warn('Updating primary IPs: cannot find VM from UUID custom field', { vm: nbVm.custom_fields.uuid })
         continue
       }
-      const patch = { id: netboxVm.id }
+      const patch = { id: nbVm.id }
 
-      const netboxVmIps = Object.values(netboxIps).filter(
-        netboxIp => netboxIp.assigned_object?.virtual_machine.id === netboxVm.id
-      )
+      const nbVmIps = Object.values(nbIps).filter(nbIp => nbIp.assigned_object?.virtual_machine.id === nbVm.id)
 
       const ipv4 = vm.addresses['0/ipv4/0']
-      if (ipv4 === undefined && netboxVm.primary_ip4 !== null) {
+      if (ipv4 === undefined && nbVm.primary_ip4 !== null) {
         patch.primary_ip4 = null
       } else if (ipv4 !== undefined) {
-        const netboxIp = netboxVmIps.find(netboxIp => netboxIp.address.split('/')[0] === ipv4)
-        if (netboxIp === undefined && netboxVm.primary_ip4 !== null) {
+        const nbIp = nbVmIps.find(nbIp => nbIp.address.split('/')[0] === ipv4)
+        if (nbIp === undefined && nbVm.primary_ip4 !== null) {
           patch.primary_ip4 = null
-        } else if (netboxIp !== undefined && netboxIp.id !== netboxVm.primary_ip4?.id) {
-          patch.primary_ip4 = netboxIp.id
+        } else if (nbIp !== undefined && nbIp.id !== nbVm.primary_ip4?.id) {
+          patch.primary_ip4 = nbIp.id
         }
       }
 
       const _ipv6 = vm.addresses['0/ipv6/0']
       // For IPv6, compare with the compact notation
       const ipv6 = _ipv6 && ipaddr.parse(_ipv6).toString()
-      if (ipv6 === undefined && netboxVm.primary_ip6 !== null) {
+      if (ipv6 === undefined && nbVm.primary_ip6 !== null) {
         patch.primary_ip6 = null
       } else if (ipv6 !== undefined) {
-        const netboxIp = netboxVmIps.find(netboxIp => netboxIp.address.split('/')[0] === ipv6)
-        if (netboxIp === undefined && netboxVm.primary_ip6 !== null) {
+        const nbIp = nbVmIps.find(nbIp => nbIp.address.split('/')[0] === ipv6)
+        if (nbIp === undefined && nbVm.primary_ip6 !== null) {
           patch.primary_ip6 = null
-        } else if (netboxIp !== undefined && netboxIp.id !== netboxVm.primary_ip6?.id) {
-          patch.primary_ip6 = netboxIp.id
+        } else if (nbIp !== undefined && nbIp.id !== nbVm.primary_ip6?.id) {
+          patch.primary_ip6 = nbIp.id
         }
       }
 
@@ -710,7 +706,7 @@ class Netbox {
 
     if (vmsToUpdate2.length > 0) {
       log.info(`Updating primary IPs of ${vmsToUpdate2.length} VMs`)
-      Object.assign(netboxVms, keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2)))
+      Object.assign(nbVms, keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2)))
     }
 
     log.info(`Done synchronizing ${pools.length} pools with Netbox`, { pools })
