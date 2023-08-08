@@ -18,21 +18,11 @@ function pluginCall(xapi, host, plugin, fnName, args) {
 }
 
 async function destroyVolumeGroup(xapi, host, force) {
-  const isVgAlreadyExist =
-    Object.keys(
-      JSON.parse(
-        await pluginCall(xapi, host, 'lvm.py', 'list_volume_groups', {
-          vg_name: VG_NAME,
-        })
-      )
-    ).length > 0
-  if (isVgAlreadyExist) {
-    log.info(`Trying to delete the ${VG_NAME} volume group.`, { hostId: host.id })
-    return pluginCall(xapi, host, 'lvm.py', 'destroy_volume_group', {
-      vg_name: VG_NAME,
-      force: String(force),
-    })
-  }
+  log.info(`Trying to delete the ${VG_NAME} volume group.`, { hostId: host.id })
+  return pluginCall(xapi, host, 'lvm.py', 'destroy_volume_group', {
+    vg_name: VG_NAME,
+    force: String(force),
+  })
 }
 
 async function installOrUpdateDependencies(host, method = 'install') {
@@ -43,7 +33,7 @@ async function installOrUpdateDependencies(host, method = 'install') {
   const xapi = this.getXapi(host)
   log.info(`Trying to ${method} XOSTOR dependencies (${XOSTOR_DEPENDENCIES})`, { hostId: host.id })
   for (const _package of _XOSTOR_DEPENDENCIES) {
-    await xapi.call('host.call_plugin', host._xapiRef, 'updater.py', method, {
+    await pluginCall(xapi, host, 'updater.py', method, {
       packages: _package,
     })
   }
@@ -119,12 +109,12 @@ export async function create({ description, disksByHosts, force, ignoreFileSyste
   const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
 
   if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
+    // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
     throw new Error('All hosts must be in the same pool')
   }
 
   const boundInstallDependencies = installDependencies.bind(this)
   await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
-
   const boundFormatDisks = formatDisks.bind(this)
   await asyncEach(
     hosts,
@@ -134,17 +124,16 @@ export async function create({ description, disksByHosts, force, ignoreFileSyste
     }
   )
 
-  const pool = this.getObject(hosts[0].$pool, 'pool')
-  const master = hosts.find(host => host.id === pool.master)
+  const host = hosts[0]
 
   log.info(`Create XOSTOR (${name}) with provisioning: ${provisioning}`)
-  return this.getXapi(master).SR_create({
+  return this.getXapi(host).SR_create({
     device_config: {
       'group-name': 'linstor_group/' + LV_NAME,
       redundancy: String(replication),
       provisioning,
     },
-    host: master.id,
+    host: host.id,
     name_description: description,
     name_label: name,
     shared: true,
@@ -166,7 +155,7 @@ create.params = {
 // Also called by sr.destroy if sr.SR_type === 'linstor'
 export async function destroy({ sr }) {
   if (sr.SR_type !== 'linstor') {
-    throw new Error('SR is not of linstor type')
+    throw new Error('Not a XOSTOR storage')
   }
   const xapi = this.getXapi(sr)
   const hosts = Object.values(xapi.objects.indexes.type.host).map(host => this.getObject(host.uuid, 'host'))
