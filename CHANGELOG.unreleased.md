@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xen-api patch
 - xo-server patch
 - xo-server-auth-ldap patch
