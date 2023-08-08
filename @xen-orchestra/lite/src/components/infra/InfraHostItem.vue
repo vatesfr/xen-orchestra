@@ -28,10 +28,10 @@
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiHost } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faAngleDown,
@@ -46,11 +46,10 @@ const props = defineProps<{
   hostOpaqueRef: XenApiHost["$ref"];
 }>();
 
-const { getByOpaqueRef } = useHostStore().subscribe();
+const { getByOpaqueRef } = useHostCollection();
 const host = computed(() => getByOpaqueRef(props.hostOpaqueRef));
 
-const { pool } = usePoolStore().subscribe();
-
+const { pool } = usePoolCollection();
 const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef);
 
 const uiStore = useUiStore();

@@ -1,12 +1,13 @@
 <template>Chargement en cours...</template>
 
 <script lang="ts" setup>
-import { usePoolStore } from "@/stores/pool.store";
+import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
 import { whenever } from "@vueuse/core";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const { pool } = usePoolStore().subscribe();
+
+const { pool } = usePoolCollection();
 
 whenever(
   () => pool.value?.uuid,

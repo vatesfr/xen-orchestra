@@ -157,6 +157,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { computed } from "vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
@@ -166,8 +168,6 @@ import { useUiStore } from "@/stores/ui.store";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
 import { locales } from "@/i18n";
 import {
   faEarthAmericas,
@@ -186,8 +186,9 @@ const { t, locale } = useI18n();
 
 usePageTitleStore().setTitle(() => t("settings"));
 
-const { pool } = usePoolStore().subscribe();
-const { getByOpaqueRef: getHost } = useHostStore().subscribe();
+const { pool } = usePoolCollection();
+
+const { getByOpaqueRef: getHost } = useHostCollection();
 
 const poolMaster = computed(() =>
   pool.value ? getHost(pool.value.master) : undefined

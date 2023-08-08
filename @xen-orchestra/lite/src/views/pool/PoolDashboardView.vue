@@ -42,13 +42,13 @@ import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
 import { usePageTitleStore } from "@/stores/page-title.store";
-import { useVmStore } from "@/stores/vm.store";
 import {
   IK_HOST_LAST_WEEK_STATS,
   IK_HOST_STATS,
@@ -60,15 +60,8 @@ import { useI18n } from "vue-i18n";
 
 usePageTitleStore().setTitle(useI18n().t("dashboard"));
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
-
-const hostSubscription = useHostStore().subscribe({ hostMetricsSubscription });
-
-const { runningHosts, getStats: getHostStats } = hostSubscription;
-
-const { runningVms, getStats: getVmStats } = useVmStore().subscribe({
-  hostSubscription,
-});
+const { getStats: getHostStats, runningHosts } = useHostCollection();
+const { getStats: getVmStats, runningVms } = useVmCollection();
 
 const {
   register: hostRegister,

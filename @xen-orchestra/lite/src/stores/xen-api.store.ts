@@ -1,7 +1,7 @@
+import { useXenApiCollectionManager } from "@/composables/xen-api-collection.composable";
 import { buildXoObject } from "@/libs/utils";
 import XapiStats from "@/libs/xapi-stats";
 import XenApi, { getRawObjectType } from "@/libs/xen-api";
-import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
@@ -31,11 +31,11 @@ export const useXenApiStore = defineStore("xen-api", () => {
 
   xenApi.registerWatchCallBack((results) => {
     results.forEach((result) => {
-      const collection = useXapiCollectionStore().get(
+      const collectionManager = useXenApiCollectionManager(
         getRawObjectType(result.class)
       );
 
-      if (!collection.hasSubscriptions) {
+      if (!collectionManager.hasSubscriptions.value) {
         return;
       }
 
@@ -44,11 +44,11 @@ export const useXenApiStore = defineStore("xen-api", () => {
 
       switch (result.operation) {
         case "add":
-          return collection.add(buildObject());
+          return collectionManager.add(buildObject());
         case "mod":
-          return collection.update(buildObject());
+          return collectionManager.update(buildObject());
         case "del":
-          return collection.remove(result.ref as any);
+          return collectionManager.remove(result.ref as any);
       }
     });
   });

@@ -35,11 +35,11 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
-import { useVmStore } from "@/stores/vm.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
@@ -51,7 +51,7 @@ const props = defineProps<{
 }>();
 
 const xenApi = useXenApiStore().getXapi();
-const { getByOpaqueRef: getVm } = useVmStore().subscribe();
+const { getByOpaqueRef: getVm } = useVmCollection();
 const {
   open: openDeleteModal,
   close: closeDeleteModal,
