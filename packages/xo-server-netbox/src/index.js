@@ -671,6 +671,7 @@ class Netbox {
 
     // Perform calls to Netbox
     await this.#request('/ipam/ip-addresses/', 'DELETE', ipsToDelete)
+    ipsToDelete.forEach(({ id }) => delete nbIps[id])
     Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
 
     // Primary IPs -------------------------------------------------------------
