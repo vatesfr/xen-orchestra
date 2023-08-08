@@ -74,7 +74,7 @@ export default class NbdClient {
       this.#serverSocket = connect({
         socket: this.#serverSocket,
         rejectUnauthorized: false,
-        cert: this.#serverCert,
+        cert: this.#serverCert
       })
       this.#serverSocket.once('error', reject)
       this.#serverSocket.once('secureConnect', () => {
@@ -88,7 +88,11 @@ export default class NbdClient {
   async #unsecureConnect() {
     this.#serverSocket = new Socket()
     return new Promise((resolve, reject) => {
-      this.#serverSocket.connect(this.#serverPort, this.#serverAddress)
+      this.#serverSocket.connect({
+        port:this.#serverPort, 
+        host: this.#serverAddress,
+        // @todo should test the onRead to limit buffer copy
+      })
       this.#serverSocket.once('error', reject)
       this.#serverSocket.once('connect', () => {
         this.#serverSocket.removeListener('error', reject)
@@ -232,19 +236,20 @@ export default class NbdClient {
     }
     try {
       this.#waitingForResponse = true
-      const magic = await this.#readInt32()
+      const buffer = await this.#read(4+4+8)
+      const magic = buffer.readUInt32BE()
 
       if (magic !== NBD_REPLY_MAGIC) {
         throw new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`)
       }
 
-      const error = await this.#readInt32()
+      const error = buffer.readUInt32BE(4)
       if (error !== 0) {
         // @todo use error code from constants.mjs
         throw new Error(`GOT ERROR CODE  : ${error}`)
       }
 
-      const blockQueryId = await this.#readInt64()
+      const blockQueryId = buffer.readBigUInt64BE(8)
       const query = this.#commandQueryBacklog.get(blockQueryId)
       if (!query) {
         throw new Error(` no query associated with id ${blockQueryId}`)
@@ -307,11 +312,11 @@ export default class NbdClient {
     })
   }
 
-  async *readBlocks(indexGenerator) {
+  async *readBlocks(indexGenerator = 2*1024*1024) {
     // default : read all blocks
-    if (indexGenerator === undefined) {
+    if (typeof indexGenerator === 'number') {
       const exportSize = this.#exportSize
-      const chunkSize = 2 * 1024 * 1024
+      const chunkSize =  indexGenerator
       indexGenerator = function* () {
         const nbBlocks = Math.ceil(Number(exportSize / BigInt(chunkSize)))
         for (let index = 0; BigInt(index) < nbBlocks; index++) {
@@ -319,12 +324,14 @@ export default class NbdClient {
         }
       }
     }
+
     const readAhead = []
     const readAheadMaxLength = this.#readAhead
     const makeReadBlockPromise = (index, size) => {
       const promise = pRetry(() => this.readBlock(index, size), {
         tries: this.#readBlockRetries,
         onRetry: async err => {
+          console.error(err)
           warn('will retry reading block ', index, err)
           await this.reconnect()
         },
@@ -336,6 +343,7 @@ export default class NbdClient {
 
     // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
     for (const { index, size } of indexGenerator()) {
+
       // stack readAheadMaxLength promises before starting to handle the results
       if (readAhead.length === readAheadMaxLength) {
         // any error will stop reading blocks

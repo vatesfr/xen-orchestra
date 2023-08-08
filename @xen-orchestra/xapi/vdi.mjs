@@ -6,7 +6,7 @@ import { decorateClass } from '@vates/decorate-with'
 import { strict as assert } from 'node:assert'
 
 import extractOpaqueRef from './_extractOpaqueRef.mjs'
-import NbdClient from '@vates/nbd-client'
+import NbdClient from '@vates/nbd-client/client.mjs'
 import { createNbdRawStream, createNbdVhdStream } from 'vhd-lib/createStreamNbd.js'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 

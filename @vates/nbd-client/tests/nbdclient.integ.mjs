@@ -1,4 +1,4 @@
-import NbdClient from '../index.mjs'
+import NbdClient from '../client.mjs'
 import { spawn, exec } from 'node:child_process'
 import fs from 'node:fs/promises'
 import { test } from 'tap'
