@@ -31,6 +31,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- xen-api patch
 - xo-server patch
 - xo-server-auth-ldap patch
 - xo-web patch

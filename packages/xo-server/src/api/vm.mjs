@@ -4,12 +4,12 @@ import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
-import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
+import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
@@ -1224,7 +1224,7 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
                   if (!(part.filename in tables)) {
                     tables[part.filename] = {}
                   }
-                  const buffer = await getStream.buffer(part)
+                  const buffer = await getStreamAsBuffer(part)
                   tables[part.filename][part.name] = new Uint32Array(
                     buffer.buffer,
                     buffer.byteOffset,
