@@ -23,7 +23,7 @@ const { fatal, info, warn } = createLogger('xo:backups:mergeWorker')
 // -------------------------------------------------------------------
 
 const main = Disposable.wrap(async function* main(args) {
-  const concurrency = args[1]
+  const concurrency = args[0]
   const handler = yield getSyncedHandler({ url: 'file://' + process.cwd() })
 
   yield handler.lock(CLEAN_VM_QUEUE)
