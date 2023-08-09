@@ -56,8 +56,12 @@ export default class Tasks extends EventEmitter {
     },
   })
 
+  #app
+
   constructor(app) {
     super()
+
+    this.#app = app
 
     app.hooks
       .on('clean', () => this.#gc(app.config.getOptional('tasks.gc.keep') ?? 1e3))
@@ -131,10 +135,10 @@ export default class Tasks extends EventEmitter {
    *
    * @returns {Task}
    */
-  create({ name, objectId, type }) {
+  create({ name, objectId, userId = this.#app.apiContext?.user.id, type }) {
     const tasks = this.#tasks
 
-    const task = new Task({ properties: { name, objectId, type }, onProgress: this.#onProgress })
+    const task = new Task({ properties: { name, objectId, userId, type }, onProgress: this.#onProgress })
 
     // Use a compact, sortable, string representation of the creation date
     //
