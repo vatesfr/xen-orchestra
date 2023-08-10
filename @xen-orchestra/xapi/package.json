@@ -33,6 +33,7 @@
     "http-request-plus": "^1.0.0",
     "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
+    "node-ssh": "^13.1.0",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.5.0",
     "xo-common": "^0.8.0"

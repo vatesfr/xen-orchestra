@@ -1,6 +1,9 @@
 import CancelToken from 'promise-toolbox/CancelToken'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
+import {NodeSSH} from 'node-ssh'
+import net from 'node:net'
+
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { strict as assert } from 'node:assert'
@@ -13,7 +16,48 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
+async function getTcpStream(host, srUuid, vhdUuid){
 
+  const ssh = new NodeSSH()
+  const HOST_LOGIN = 'root'
+  const HOST_PWD = ''
+  const XO_ADDRESS = '10.200.200.32'
+  await ssh.connect({
+    host: host.address,
+    username: HOST_LOGIN,
+    password: HOST_PWD
+  })
+  console.log('ssh connected')
+  await ssh.putFile('./uploadVhd.py', '/tmp/uploadVhd.py')
+  console.log('python file sent')
+  // create tcp server 
+  const server = net.createServer()
+  await new Promise(resolve =>{
+    server.listen(0, ()=>{
+      resolve()
+    })
+  })
+  
+  console.log('tcp server up')
+  
+  const result = await ssh.execCommand(`python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port}  key > /tmp/log.flo & `)
+
+  console.log('python script launched')
+  return new Promise((resolve, reject) =>{
+    server.on('connection', clientSocket=>{
+      console.log('client connecetd')
+      resolve(clientSocket)
+    });
+    server.on('end', () => {
+      console.log('client disconnected', result);
+      ssh.disconnect()
+    });
+    server.on('error', err=>{
+      console.log('client error')
+      reject(err)
+    })
+  })
+}
 class Vdi {
   async clone(vdiRef) {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
@@ -64,6 +108,8 @@ class Vdi {
     })
   }
 
+
+
   async _getNbdClient(ref) {
     const nbdInfos = await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
@@ -94,6 +140,13 @@ class Vdi {
 
       query.base = baseRef
     }
+    const vdi = this.getObject(ref)
+    console.log('GOT VDI ')
+    const sr = this.getObject(vdi.SR)
+    const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
+    const hosts = pbds.map(pbd => this.getObject(pbd.host))
+    console.log({vdi,sr, pbds, hosts})
+    return getTcpStream(hosts[0], sr.uuid, vdi.uuid)
     let nbdClient, stream
     try {
       if (preferNbd) {
