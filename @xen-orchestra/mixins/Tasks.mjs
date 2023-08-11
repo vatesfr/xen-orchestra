@@ -135,7 +135,7 @@ export default class Tasks extends EventEmitter {
    *
    * @returns {Task}
    */
-  create({ name, objectId, userId = this.#app.apiContext?.user.id, type }) {
+  create({ name, objectId, userId = this.#app.apiContext?.user?.id, type }) {
     const tasks = this.#tasks
 
     const task = new Task({ properties: { name, objectId, userId, type }, onProgress: this.#onProgress })
