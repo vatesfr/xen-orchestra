@@ -231,7 +231,7 @@ class Vhd:
 
         # write BAT aligned with 512bytes sector
 
-        offset = 1024 + 512  + len(bat) * 4
+        offset = 1024 + 512  + len(bat) * 4 + 5120
         offsetSector = offset/512
         bat = ""
         for blockIndex in range(0, len(self.bat), 1):

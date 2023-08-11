@@ -39,7 +39,6 @@ module.exports = async function check(rawArgs) {
     }
     if(blocks){
       for await(const _ of vhd.blocks()){
-
       }
       console.log('Blocks check done')
     }

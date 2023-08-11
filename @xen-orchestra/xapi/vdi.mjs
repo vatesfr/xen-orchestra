@@ -55,17 +55,17 @@ async function getTcpStream(host, srUuid, vhdUuid){
   console.log('python script launched')
   return new Promise((resolve, reject) =>{
     server.on('connection', clientSocket=>{
-      console.log('client connected')
-      resolve(clientSocket)
+      console.log('client connected') 
+     // clientSocket.pipe(stream)
+      resolve(clientSocket)  
+      clientSocket.on('end', () => {
+        console.log('client disconnected'); 
+
+      });
+      clientSocket.on('error', err=>{
+        console.log('client error') 
+      })
     });
-    server.on('end', () => {
-      console.log('client disconnected');
-      ssh.disconnect()
-    });
-    server.on('error', err=>{
-      console.log('client error')
-      reject(err)
-    })
   })
 }
 class Vdi {
@@ -152,10 +152,11 @@ class Vdi {
     }
     const vdi = this.getObject(ref)
     console.log('GOT VDI ')
+    this._preferNbd = false
     const sr = this.getObject(vdi.SR)
     const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
     const hosts = pbds.map(pbd => this.getObject(pbd.host))
-    console.log({vdi,sr, pbds, hosts})
+    // console.log({vdi,sr, pbds, hosts})
     return getTcpStream(hosts[0], sr.uuid, vdi.uuid)
     let nbdClient, stream
     try {
