@@ -38,18 +38,28 @@ async function getTcpStream(host, srUuid, vhdUuid){
     })
   })
   
-  console.log('tcp server up')
-  
-  const result = await ssh.execCommand(`python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port}  key > /tmp/log.flo & `)
+  console.log('tcp server up',server.address().port)
+  console.log( `python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port} ` )
+  ssh.execCommand(`python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port}   `)
+    .then(result=>{
+      console.log('command done', result)
+      if(result.code  !== 0){
+        throw new Error(result.stderr)
+      }
+    })
+    .catch(err => {
+      console.error('command errored', err)
+      throw err
+    })
 
   console.log('python script launched')
   return new Promise((resolve, reject) =>{
     server.on('connection', clientSocket=>{
-      console.log('client connecetd')
+      console.log('client connected')
       resolve(clientSocket)
     });
     server.on('end', () => {
-      console.log('client disconnected', result);
+      console.log('client disconnected');
       ssh.disconnect()
     });
     server.on('error', err=>{
