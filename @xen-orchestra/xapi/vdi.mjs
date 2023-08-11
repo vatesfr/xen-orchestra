@@ -134,22 +134,23 @@ class Vdi {
     if (stream.length === undefined) {
       throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }
+
+    const vdi = await this.getRecord('VDI', ref)
+    const sr = await this.getRecord('SR', vdi.SR)
+
     try {
       await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,
         },
-        task: await this.task_create(`Importing content into VDI ${await this.getField('VDI', ref, 'name_label')}`),
+        task: await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`),
       })
     } catch (error) {
       // augment the error with as much relevant info as possible
-      const [poolMaster, vdi] = await Promise.all([
-        this.getRecord('host', this.pool.master),
-        this.getRecord('VDI', ref),
-      ])
+      const poolMaster = await this.getRecord('host', this.pool.master)
       error.pool_master = poolMaster
-      error.SR = await this.getRecord('SR', vdi.SR)
+      error.SR = sr
       error.VDI = vdi
       throw error
     }
