@@ -45,10 +45,10 @@ export function installDependencies({ host }) {
 installDependencies.description = 'Install XOSTOR dependencies'
 installDependencies.permission = 'admin'
 installDependencies.params = {
-  hostId: { type: 'string' },
+  host: { type: 'string' },
 }
 installDependencies.resolve = {
-  host: ['hostId', 'host', 'administrate'],
+  host: ['host', 'host', 'administrate'],
 }
 
 export function updateDependencies({ host }) {
@@ -57,10 +57,10 @@ export function updateDependencies({ host }) {
 updateDependencies.description = 'Update XOSTOR dependencies'
 updateDependencies.permission = 'admin'
 updateDependencies.params = {
-  hostId: { type: 'string' },
+  host: { type: 'string' },
 }
 updateDependencies.resolve = {
-  host: ['hostId', 'host', 'administrate'],
+  host: ['host', 'host', 'administrate'],
 }
 
 export async function formatDisks({ disks, force, host, ignoreFileSystems, provisioning }) {
@@ -96,12 +96,12 @@ formatDisks.permission = 'admin'
 formatDisks.params = {
   disks: { type: 'array', items: { type: 'string' } },
   force: { type: 'boolean', optional: true, default: false },
-  hostId: { type: 'string' },
+  host: { type: 'string' },
   ignoreFileSystems: { type: 'boolean', optional: true, default: false },
   provisioning: { enum: PROVISIONING },
 }
 formatDisks.resolve = {
-  host: ['hostId', 'host', 'administrate'],
+  host: ['host', 'host', 'administrate'],
 }
 
 export async function create({ description, disksByHosts, force, ignoreFileSystems, name, provisioning, replication }) {
@@ -121,7 +121,7 @@ export async function create({ description, disksByHosts, force, ignoreFileSyste
     host => boundFormatDisks({ disks: disksByHosts[host.id], host, force, ignoreFileSystems, provisioning }),
     {
       stopOnError: false,
-    }
+    },
   )
 
   const host = hosts[0]
@@ -166,8 +166,8 @@ export async function destroy({ sr }) {
 destroy.description = 'Destroy a XOSTOR storage'
 destroy.permission = 'admin'
 destroy.params = {
-  srId: { type: 'string' },
+  sr: { type: 'string' },
 }
 destroy.resolve = {
-  sr: ['srId', 'SR', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
 }
