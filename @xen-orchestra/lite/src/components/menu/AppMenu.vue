@@ -14,9 +14,10 @@
 </template>
 
 <script lang="ts" setup>
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import {
   IK_CLOSE_MENU,
-  IK_MENU_DISABLED,
   IK_MENU_HORIZONTAL,
   IK_MENU_TELEPORTED,
 } from "@/types/injection-keys";
@@ -24,12 +25,15 @@ import placementJs, { type Options } from "placement.js";
 import { computed, inject, nextTick, provide, ref, useSlots } from "vue";
 import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 
-const props = defineProps<{
-  horizontal?: boolean;
-  shadow?: boolean;
-  disabled?: boolean;
-  placement?: Options["placement"];
-}>();
+const props = withDefaults(
+  defineProps<{
+    horizontal?: boolean;
+    shadow?: boolean;
+    disabled?: boolean;
+    placement?: Options["placement"];
+  }>(),
+  { disabled: undefined }
+);
 
 defineOptions({
   inheritAttrs: false,
@@ -46,10 +50,9 @@ provide(
   IK_MENU_HORIZONTAL,
   computed(() => props.horizontal ?? false)
 );
-provide(
-  IK_MENU_DISABLED,
-  computed(() => props.disabled ?? false)
-);
+
+useContext(DisabledContext, () => props.disabled);
+
 let clearClickOutsideEvent: (() => void) | undefined;
 
 const hasTrigger = useSlots().trigger !== undefined;

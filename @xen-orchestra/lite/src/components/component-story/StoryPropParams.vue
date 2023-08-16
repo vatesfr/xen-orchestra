@@ -36,6 +36,15 @@
           >
             <UiIcon :icon="faRepeat" />
           </sup>
+          <sup
+            v-if="param.isUsingContext()"
+            v-tooltip="
+              `If this prop is not provided, value will be read from context. Otherwise, context will be updated with this prop value.`
+            "
+            class="context-indicator"
+          >
+            Ctx
+          </sup>
         </th>
         <td>
           <CodeHighlight :code="param.getTypeLabel()" />
@@ -182,7 +191,8 @@ const {
   }
 }
 
-.v-model-indicator {
+.v-model-indicator,
+.context-indicator {
   color: var(--color-green-infra-base);
 }
 </style>

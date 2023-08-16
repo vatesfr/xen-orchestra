@@ -1,11 +1,11 @@
 <template>
   <button
     :class="className"
-    :disabled="isBusy || isDisabled"
+    :disabled="busy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <UiSpinner v-if="isBusy" />
+    <UiSpinner v-if="busy" />
     <template v-else>
       <UiIcon :icon="icon" class="icon" />
       <slot />
@@ -15,10 +15,9 @@
 
 <script lang="ts" setup>
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_COLOR,
-  IK_BUTTON_GROUP_DISABLED,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
 } from "@/types/injection-keys";
@@ -39,45 +38,31 @@ const props = withDefaults(
     active?: boolean;
   }>(),
   {
-    busy: undefined,
     disabled: undefined,
     outlined: undefined,
     transparent: undefined,
   }
 );
 
-const isGroupBusy = inject(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => false)
-);
-const isBusy = computed(() => props.busy ?? isGroupBusy.value);
-
-const isGroupDisabled = inject(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => false)
-);
-const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 
 const isGroupOutlined = inject(
   IK_BUTTON_GROUP_OUTLINED,
   computed(() => false)
 );
+
 const isGroupTransparent = inject(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => false)
 );
 
-const buttonGroupColor = inject(
-  IK_BUTTON_GROUP_COLOR,
-  computed(() => "info")
-);
-const buttonColor = computed(() => props.color ?? buttonGroupColor.value);
+const contextColor = useContext(ColorContext, () => props.color);
 
 const className = computed(() => {
   return [
-    `color-${buttonColor.value}`,
+    `color-${contextColor.value}`,
     {
-      busy: isBusy.value,
+      busy: props.busy,
       active: props.active,
       disabled: isDisabled.value,
       outlined: props.outlined ?? isGroupOutlined.value,

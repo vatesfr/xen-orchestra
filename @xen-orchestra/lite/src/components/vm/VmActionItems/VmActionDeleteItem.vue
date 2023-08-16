@@ -14,7 +14,7 @@
   >
     <template #title>
       <i18n-t keypath="confirm-delete" scope="global" tag="div">
-        <span class="accent">
+        <span :class="textClass">
           {{ $t("n-vms", { n: vmRefs.length }) }}
         </span>
       </i18n-t>
@@ -35,6 +35,7 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
+import { useColorContext } from "@/composables/color-context.composable";
 import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
@@ -70,4 +71,6 @@ const deleteVms = async () => {
   await xenApi.vm.delete(props.vmRefs);
   closeDeleteModal();
 };
+
+const { textClass } = useColorContext();
 </script>

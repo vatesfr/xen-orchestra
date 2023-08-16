@@ -1,28 +1,25 @@
 <template>
   <button
     :class="{
-      busy: isBusy,
+      busy: busy,
       disabled: isDisabled,
       active,
       'has-icon': icon !== undefined,
     }"
-    :disabled="isBusy || isDisabled"
-    type="button"
+    :disabled="busy || isDisabled"
     class="ui-action-button"
+    type="button"
   >
-    <UiIcon :busy="isBusy" :icon="icon" />
+    <UiIcon :busy="busy" :icon="icon" />
     <slot />
   </button>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_DISABLED,
-} from "@/types/injection-keys";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { computed, inject } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -31,20 +28,10 @@ const props = withDefaults(
     icon?: IconDefinition;
     active?: boolean;
   }>(),
-  { busy: undefined, disabled: undefined }
+  { disabled: undefined }
 );
 
-const isGroupBusy = inject(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => false)
-);
-const isBusy = computed(() => props.busy ?? isGroupBusy.value);
-
-const isGroupDisabled = inject(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => false)
-);
-const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

@@ -9,22 +9,19 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
-import { computed, inject } from "vue";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     disabled?: boolean;
     active?: boolean;
     tag?: string;
   }>(),
-  { tag: "span" }
+  { tag: "span", disabled: undefined }
 );
 
-const isTabBarDisabled = inject(
-  IK_TAB_BAR_DISABLED,
-  computed(() => false)
-);
+const isTabBarDisabled = useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

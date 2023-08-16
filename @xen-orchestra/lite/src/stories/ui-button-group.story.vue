@@ -2,8 +2,8 @@
   <ComponentStory
     :params="[
       prop('busy').type('boolean').widget(),
-      prop('disabled').type('boolean').widget(),
-      colorProp(),
+      prop('disabled').type('boolean').widget().ctx(),
+      colorProp().ctx(),
       prop('outlined').type('boolean').widget(),
       prop('transparent').type('boolean').widget(),
       prop('merge').type('boolean').widget(),
