@@ -1,45 +1,21 @@
 <template>
   <ComponentStory
     :params="[
-      colorProp(),
-      iconProp(),
-      event('close').preset(close),
-      slot('default'),
-      slot('title'),
-      slot('subtitle'),
-      slot('icon'),
-      slot('buttons').help('Meant to receive UiButton components'),
-      setting('title').preset('Modal Title').widget(),
-      setting('subtitle').preset('Modal Subtitle').widget(),
+      model()
+        .required()
+        .type('boolean')
+        .help('Whether the modal is opened or not'),
+      prop('closable')
+        .bool()
+        .default(true)
+        .widget()
+        .help('If true, the modal can be closed by clicking on the overlay'),
+      slot().help('Place your ModalContainer here'),
     ]"
-    v-slot="{ properties, settings }"
-  >
-    <UiButton type="button" @click="open">Open Modal</UiButton>
-
-    <UiModal v-bind="properties" v-if="isOpen">
-      <template #title>{{ settings.title }}</template>
-      <template #subtitle>{{ settings.subtitle }}</template>
-      <template #buttons>
-        <UiButton @click="close">Discard</UiButton>
-      </template>
-    </UiModal>
-  </ComponentStory>
+  />
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiModal from "@/components/ui/UiModal.vue";
-import useModal from "@/composables/modal.composable";
-import {
-  colorProp,
-  event,
-  iconProp,
-  setting,
-  slot,
-} from "@/libs/story/story-param";
-
-const { open, close, isOpen } = useModal();
+import { model, prop, slot } from "@/libs/story/story-param";
 </script>
-
-<style lang="postcss" scoped></style>

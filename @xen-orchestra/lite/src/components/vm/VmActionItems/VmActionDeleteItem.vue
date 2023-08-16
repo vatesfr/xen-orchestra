@@ -1,43 +1,45 @@
 <template>
   <MenuItem
-    :disabled="areSomeVmsInExecution"
+    :disabled="isDisabled"
     :icon="faTrashCan"
     v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
     @click="openDeleteModal"
   >
     {{ $t("delete") }}
   </MenuItem>
-  <UiModal
-    v-if="isDeleteModalOpen"
-    :icon="faSatellite"
-    @close="closeDeleteModal"
-  >
-    <template #title>
-      <i18n-t keypath="confirm-delete" scope="global" tag="div">
-        <span class="accent">
-          {{ $t("n-vms", { n: vmRefs.length }) }}
-        </span>
-      </i18n-t>
-    </template>
-    <template #subtitle>
-      {{ $t("please-confirm") }}
-    </template>
-    <template #buttons>
-      <UiButton outlined @click="closeDeleteModal">
-        {{ $t("go-back") }}
-      </UiButton>
-      <UiButton @click="deleteVms">
-        {{ $t("delete-vms", { n: vmRefs.length }) }}
-      </UiButton>
-    </template>
+  <UiModal v-model="isDeleteModalOpen">
+    <PrimaryModalContainer :icon="faSatellite">
+      <template #title>
+        <i18n-t keypath="confirm-delete" scope="global" tag="div">
+          <UiAccent>
+            {{ $t("n-vms", { n: vmRefs.length }) }}
+          </UiAccent>
+        </i18n-t>
+      </template>
+
+      <template #subtitle>
+        {{ $t("please-confirm") }}
+      </template>
+
+      <template #buttons>
+        <UiButton outlined @click="closeDeleteModal">
+          {{ $t("go-back") }}
+        </UiButton>
+        <UiButton @click="deleteVms">
+          {{ $t("delete-vms", { n: vmRefs.length }) }}
+        </UiButton>
+      </template>
+    </PrimaryModalContainer>
   </UiModal>
 </template>
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
+import PrimaryModalContainer from "@/components/ui/modals/ConfirmModalLayout.vue";
+import UiModal from "@/components/ui/modals/UiModal.vue";
+import UiAccent from "@/components/ui/UiAccent.vue";
 import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import { useVmStore } from "@/stores/vm.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
@@ -64,6 +66,10 @@ const vms = computed<XenApiVm[]>(() =>
 
 const areSomeVmsInExecution = computed(() =>
   vms.value.some((vm) => vm.power_state !== POWER_STATE.HALTED)
+);
+
+const isDisabled = computed(
+  () => vms.value.length === 0 || areSomeVmsInExecution.value
 );
 
 const deleteVms = async () => {

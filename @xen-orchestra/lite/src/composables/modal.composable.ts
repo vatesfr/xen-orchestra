@@ -1,22 +1,41 @@
+import { whenever } from "@vueuse/core";
 import { ref } from "vue";
 
-export default function useModal<T>() {
-  const $payload = ref<T>();
-  const $isOpen = ref(false);
+type ModalOptions = {
+  onBeforeClose?: () => boolean;
+  onClose?: () => void;
+};
 
-  const open = (payload?: T) => {
-    $isOpen.value = true;
-    $payload.value = payload;
+export default function useModal<T>(options: ModalOptions = {}) {
+  const payload = ref<T>();
+  const isOpen = ref(false);
+
+  const open = (currentPayload?: T) => {
+    isOpen.value = true;
+    payload.value = currentPayload;
   };
 
   const close = () => {
-    $isOpen.value = false;
-    $payload.value = undefined;
+    isOpen.value = false;
   };
 
+  whenever(
+    () => !isOpen.value,
+    () => {
+      if (options.onBeforeClose?.() === false) {
+        isOpen.value = true;
+        return;
+      }
+
+      options.onClose?.();
+      payload.value = undefined;
+    },
+    { flush: "pre" }
+  );
+
   return {
-    payload: $payload,
-    isOpen: $isOpen,
+    payload,
+    isOpen,
     open,
     close,
   };
