@@ -212,15 +212,15 @@ class Vhd:
         
         footer = bytearray(self.footer[:])
         header = bytearray(self.header[:])
-        bat = self.bat[:]
         # write child  footer but with root diskType
         
         struct.pack_into(">I", footer, 60, struct.unpack_from(">I",root.footer, 60)[0])
         # todo : checksum 
         struct.pack_into(">I", footer, 64, 0 )
         struct.pack_into('>I', footer, 64, (vhd_checksum(footer)))
+        sent = 0
         socket.send(footer)
-
+        sent += len(footer)
 
         # write child header but with root parentTimestamp,parentUnicodeName,parentUuid
         header = header[0:40] +  root.header[40: 558] + header[558:]
@@ -228,11 +228,12 @@ class Vhd:
         struct.pack_into(">I", header, 36, 0 ) 
         struct.pack_into('>I', header, 36, (vhd_checksum(header)))
         socket.send(header)
+        sent += len(header)
 
         # write BAT aligned with 512bytes sector
 
-        offset = 1024 + 512  + len(bat) * 4 + 5120
-        offsetSector = offset/512
+        offset = 1024 + 512  + len(self.bat) * 4 
+        offsetSector = math.ceil(offset/512)
         bat = ""
         for blockIndex in range(0, len(self.bat), 1):
             if self.containsBlocks(blockIndex) :
@@ -246,6 +247,8 @@ class Vhd:
         while len(bat) % 512 !=0:
             bat += struct.pack(">I", ( 0 ) )
         socket.send(bat)
+        print('bat len', len(bat))
+        sent += len(bat)
         
         # todo : parent locator 
 
@@ -256,10 +259,12 @@ class Vhd:
             if data:
                 # print(' got data for block ', blockIndex) 
                 socket.send(data)
+                sent += len(data)
 
         # write footer again 
         socket.send(footer)
-        print('done')
+        sent += len(footer)
+        print('done', sent)
 
 
 

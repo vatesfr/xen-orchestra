@@ -63,7 +63,7 @@ async function getTcpStream(host, srUuid, vhdUuid){
 
       });
       clientSocket.on('error', err=>{
-        console.log('client error') 
+        console.log('client error', err) 
       })
     });
   })
