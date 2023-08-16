@@ -14,66 +14,64 @@
     </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal
-    v-if="isOpen"
-    :icon="faFilter"
-    @submit.prevent="handleSubmit"
-    @close="handleCancel"
-  >
-    <div class="rows">
-      <CollectionFilterRow
-        v-for="(newFilter, index) in newFilters"
-        :key="newFilter.id"
-        v-model="newFilters[index]"
-        :available-filters="availableFilters"
-        @remove="removeNewFilter"
-      />
-    </div>
-
-    <div
-      v-if="newFilters.some((filter) => filter.isAdvanced)"
-      class="available-properties"
-    >
-      {{ $t("available-properties-for-advanced-filter") }}
-      <div class="properties">
-        <UiBadge
-          v-for="(filter, property) in availableFilters"
-          :key="property"
-          :icon="getFilterIcon(filter)"
-        >
-          {{ property }}
-        </UiBadge>
+  <UiModal v-model="isOpen">
+    <BasicModalLayout @submit.prevent="handleSubmit" :icon="faFilter">
+      <div class="rows">
+        <CollectionFilterRow
+          v-for="(newFilter, index) in newFilters"
+          :key="newFilter.id"
+          v-model="newFilters[index]"
+          :available-filters="availableFilters"
+          @remove="removeNewFilter"
+        />
       </div>
-    </div>
 
-    <template #buttons>
-      <UiButton transparent @click="addNewFilter">
-        {{ $t("add-or") }}
-      </UiButton>
-      <UiButton :disabled="!isFilterValid" type="submit">
-        {{ $t(editedFilter ? "update" : "add") }}
-      </UiButton>
-      <UiButton outlined @click="handleCancel">
-        {{ $t("cancel") }}
-      </UiButton>
-    </template>
+      <div
+        v-if="newFilters.some((filter) => filter.isAdvanced)"
+        class="available-properties"
+      >
+        {{ $t("available-properties-for-advanced-filter") }}
+        <div class="properties">
+          <UiBadge
+            v-for="(filter, property) in availableFilters"
+            :key="property"
+            :icon="getFilterIcon(filter)"
+          >
+            {{ property }}
+          </UiBadge>
+        </div>
+      </div>
+
+      <template #buttons>
+        <UiButton transparent @click="addNewFilter">
+          {{ $t("add-or") }}
+        </UiButton>
+        <UiButton :disabled="!isFilterValid" type="submit">
+          {{ $t(editedFilter ? "update" : "add") }}
+        </UiButton>
+        <UiButton outlined @click="close">
+          {{ $t("cancel") }}
+        </UiButton>
+      </template>
+    </BasicModalLayout>
   </UiModal>
 </template>
 
 <script lang="ts" setup>
-import { Or, parse } from "complex-matcher";
-import { computed, ref } from "vue";
-import type { Filters, NewFilter } from "@/types/filter";
-import { faFilter, faPlus } from "@fortawesome/free-solid-svg-icons";
 import CollectionFilterRow from "@/components/CollectionFilterRow.vue";
+import BasicModalLayout from "@/components/ui/modals/layouts/BasicModalLayout.vue";
+import UiModal from "@/components/ui/modals/UiModal.vue";
 import UiActionButton from "@/components/ui/UiActionButton.vue";
 import UiBadge from "@/components/ui/UiBadge.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
-import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import { getFilterIcon } from "@/libs/utils";
+import type { Filters, NewFilter } from "@/types/filter";
+import { faFilter, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { Or, parse } from "complex-matcher";
+import { computed, ref } from "vue";
 
 defineProps<{
   activeFilters: string[];
@@ -85,7 +83,7 @@ const emit = defineEmits<{
   (event: "removeFilter", filter: string): void;
 }>();
 
-const { isOpen, open, close } = useModal();
+const { isOpen, open, close } = useModal({ onClose: () => reset() });
 const newFilters = ref<NewFilter[]>([]);
 let newFilterId = 0;
 
@@ -156,11 +154,6 @@ const handleSubmit = () => {
   reset();
   close();
 };
-
-const handleCancel = () => {
-  reset();
-  close();
-};
 </script>
 
 <style lang="postcss" scoped>
@@ -189,5 +182,11 @@ const handleCancel = () => {
   display: flex;
   margin-top: 0.6rem;
   gap: 0.5rem;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 </style>

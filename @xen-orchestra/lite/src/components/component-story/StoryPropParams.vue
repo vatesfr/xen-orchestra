@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-if="isRawValueModalOpen" @close="closeRawValueModal">
+  <UiModal v-model="isRawValueModalOpen">
     <CodeHighlight :code="rawValueModalPayload" />
   </UiModal>
   <StoryParamsTable>
@@ -99,7 +99,7 @@ import CodeHighlight from "@/components/CodeHighlight.vue";
 import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
 import StoryWidget from "@/components/component-story/StoryWidget.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import UiModal from "@/components/ui/UiModal.vue";
+import UiModal from "@/components/ui/modals/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
@@ -130,7 +130,6 @@ const model = useVModel(props, "modelValue", emit);
 
 const {
   open: openRawValueModal,
-  close: closeRawValueModal,
   isOpen: isRawValueModalOpen,
   payload: rawValueModalPayload,
 } = useModal<string>();

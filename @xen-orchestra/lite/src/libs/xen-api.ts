@@ -375,6 +375,12 @@ export default class XenApi {
             this._call("VM.start_on", [vmRef, hostRef, false, false])
           )
         ),
+      migrate: (vmRefs: VmRefs, hostRef: XenApiHost["$ref"]) =>
+        Promise.all(
+          castArray(vmRefs).map((vmRef) =>
+            this._call("VM.pool_migrate", [vmRef, hostRef, {}])
+          )
+        ),
       pause: (vmRefs: VmRefs) =>
         Promise.all(
           castArray(vmRefs).map((vmRef) => this._call("VM.pause", [vmRef]))

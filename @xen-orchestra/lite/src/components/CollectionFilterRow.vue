@@ -219,7 +219,6 @@ const valueInputAfter = computed(() =>
 .collection-filter-row {
   display: flex;
   align-items: center;
-  padding: 1rem 0;
   border-bottom: 1px solid var(--background-color-secondary);
   gap: 1rem;
 
@@ -241,5 +240,9 @@ const valueInputAfter = computed(() =>
 
 .form-widget-advanced {
   flex: 1;
+}
+
+.ui-action-button:first-of-type {
+  margin-left: auto;
 }
 </style>
