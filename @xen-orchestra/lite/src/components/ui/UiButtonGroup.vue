@@ -5,35 +5,25 @@
 </template>
 
 <script lang="ts" setup>
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
 import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_COLOR,
-  IK_BUTTON_GROUP_DISABLED,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
 } from "@/types/injection-keys";
 import { computed, provide } from "vue";
 
-const props = defineProps<{
-  busy?: boolean;
-  disabled?: boolean;
-  color?: Color;
-  outlined?: boolean;
-  transparent?: boolean;
-  merge?: boolean;
-}>();
-provide(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => props.busy ?? false)
-);
-provide(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => props.disabled ?? false)
-);
-provide(
-  IK_BUTTON_GROUP_COLOR,
-  computed(() => props.color ?? "info")
+const props = withDefaults(
+  defineProps<{
+    busy?: boolean;
+    disabled?: boolean;
+    color?: Color;
+    outlined?: boolean;
+    transparent?: boolean;
+    merge?: boolean;
+  }>(),
+  { disabled: undefined }
 );
 provide(
   IK_BUTTON_GROUP_OUTLINED,
@@ -43,13 +33,16 @@ provide(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => props.transparent ?? false)
 );
+
+useContext(ColorContext, () => props.color);
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>
 .ui-button-group {
   display: flex;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   gap: 1rem;
 
   &.merge {

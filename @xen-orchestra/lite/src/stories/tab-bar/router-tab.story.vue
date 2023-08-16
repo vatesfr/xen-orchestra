@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('to').required().type('RouteLocationRaw').preset({ name: 'home' }),
-      prop('disabled').bool().widget(),
+      prop('disabled').bool().widget().ctx(),
       slot(),
       setting('label').widget(text()).preset('Foobar'),
     ]"

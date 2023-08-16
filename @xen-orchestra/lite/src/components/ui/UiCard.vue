@@ -1,24 +1,40 @@
 <template>
-  <div class="ui-card" :class="{ error: color === 'error' }">
+  <div :class="classProp" class="ui-card">
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-defineProps<{
-  color?: "error";
+import { useColorContext } from "@/composables/color-context.composable";
+import type { Color } from "@/types";
+import { computed } from "vue";
+
+const props = defineProps<{
+  color?: Color;
 }>();
+
+const { name: contextColor, backgroundClass } = useColorContext(
+  () => props.color
+);
+
+// We don't want to inherit "info" color
+const classProp = computed(() => {
+  if (props.color === undefined && contextColor.value === "info") {
+    return "bg-primary";
+  }
+
+  return backgroundClass.value;
+});
 </script>
 
 <style lang="postcss" scoped>
 .ui-card {
   padding: 2.1rem;
   border-radius: 0.8rem;
-  background-color: var(--background-color-primary);
   box-shadow: var(--shadow-200);
 }
 
-.error {
-  background-color: var(--background-color-red-vates);
+.bg-primary {
+  background-color: var(--background-color-primary);
 }
 </style>

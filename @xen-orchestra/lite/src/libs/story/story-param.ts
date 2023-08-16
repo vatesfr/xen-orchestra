@@ -216,6 +216,17 @@ export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
     this.#isObject = true;
     return this.type(type);
   }
+
+  #isUsingContext = false;
+
+  ctx() {
+    this.#isUsingContext = true;
+    return this;
+  }
+
+  isUsingContext() {
+    return this.#isUsingContext;
+  }
 }
 
 export class EventParam extends mixin(BaseParam, WithType) {
