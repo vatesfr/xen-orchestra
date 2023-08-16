@@ -1,12 +1,12 @@
 <template>
   <ComponentStory
     :params="[
-      colorProp(),
+      colorProp().help('Propagated*'),
       iconProp('before').type('IconDefinition | string'),
       iconProp('after').type('IconDefinition | string'),
       model().type('string').required(),
       prop('right').bool().widget(),
-      prop('disabled').bool().widget(),
+      prop('disabled').bool().widget().help('Propagated*'),
       prop('wrapper-attrs')
         .obj('HTMLAttributes')
         .widget()

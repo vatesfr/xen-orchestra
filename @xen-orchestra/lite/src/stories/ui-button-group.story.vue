@@ -1,9 +1,9 @@
 <template>
   <ComponentStory
     :params="[
-      prop('busy').type('boolean').widget(),
-      prop('disabled').type('boolean').widget(),
-      colorProp(),
+      prop('busy').type('boolean').widget().help('Propagated*'),
+      prop('disabled').type('boolean').widget().help('Propagated*'),
+      colorProp().help('Propagated*'),
       prop('outlined').type('boolean').widget(),
       prop('transparent').type('boolean').widget(),
       prop('merge').type('boolean').widget(),

@@ -36,32 +36,33 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import {
   IK_CLOSE_MENU,
-  IK_MENU_DISABLED,
+  IK_PROPAGATED_DISABLED,
   IK_MENU_HORIZONTAL,
 } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
 import { computed, inject, ref } from "vue";
 
-const props = defineProps<{
-  icon?: IconDefinition;
-  onClick?: () => any;
-  disabled?: boolean;
-  busy?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    icon?: IconDefinition;
+    onClick?: () => any;
+    disabled?: boolean;
+    busy?: boolean;
+  }>(),
+  { disabled: undefined }
+);
 
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
 );
-const isMenuDisabled = inject(
-  IK_MENU_DISABLED,
-  computed(() => false)
-);
-const isDisabled = computed(
-  () => props.disabled === true || isMenuDisabled.value
+const isDisabled = usePropagatedProp(
+  IK_PROPAGATED_DISABLED,
+  () => props.disabled
 );
 
 const submenuIcon = computed(() =>

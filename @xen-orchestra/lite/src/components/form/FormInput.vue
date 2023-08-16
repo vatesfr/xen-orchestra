@@ -6,7 +6,7 @@
         ref="inputElement"
         v-model="value"
         :class="inputClass"
-        :disabled="disabled || isLabelDisabled"
+        :disabled="isDisabled"
         :required="required"
         class="select"
         v-bind="$attrs"
@@ -23,7 +23,7 @@
       ref="textarea"
       v-model="value"
       :class="inputClass"
-      :disabled="disabled || isLabelDisabled"
+      :disabled="isDisabled"
       :required="required"
       class="textarea"
       v-bind="$attrs"
@@ -34,7 +34,7 @@
       ref="inputElement"
       v-model="value"
       :class="inputClass"
-      :disabled="disabled || isLabelDisabled"
+      :disabled="isDisabled"
       :required="required"
       class="input"
       v-bind="$attrs"
@@ -52,10 +52,11 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { usePropagatedColor } from "@/composables/propagated-color.composable";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import type { Color } from "@/types";
 import {
-  IK_FORM_INPUT_COLOR,
-  IK_FORM_LABEL_DISABLED,
+  IK_PROPAGATED_DISABLED,
   IK_INPUT_ID,
   IK_INPUT_TYPE,
 } from "@/types/injection-keys";
@@ -87,8 +88,10 @@ const props = withDefaults(
     right?: boolean;
     wrapperAttrs?: HTMLAttributes;
   }>(),
-  { color: "info" }
+  { disabled: undefined }
 );
+
+const { name: propagatedColor } = usePropagatedColor(() => props.color);
 
 const inputElement = ref();
 
@@ -101,25 +104,22 @@ const isEmpty = computed(
   () => props.modelValue == null || String(props.modelValue).trim() === ""
 );
 const inputType = inject(IK_INPUT_TYPE, "input");
-const isLabelDisabled = inject(
-  IK_FORM_LABEL_DISABLED,
-  computed(() => false)
-);
-const parentColor = inject(
-  IK_FORM_INPUT_COLOR,
-  computed(() => undefined)
+
+const isDisabled = usePropagatedProp(
+  IK_PROPAGATED_DISABLED,
+  () => props.disabled
 );
 
 const wrapperClass = computed(() => [
   `form-${inputType}`,
   {
-    disabled: props.disabled === true || isLabelDisabled.value,
+    disabled: isDisabled.value,
     empty: isEmpty.value,
   },
 ]);
 
 const inputClass = computed(() => [
-  parentColor.value ?? props.color,
+  propagatedColor.value,
   {
     right: props.right,
     "has-before": props.before !== undefined,

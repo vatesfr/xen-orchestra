@@ -15,12 +15,13 @@
 
 <script lang="ts" setup>
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import { usePropagatedColor } from "@/composables/propagated-color.composable";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_COLOR,
-  IK_BUTTON_GROUP_DISABLED,
+  IK_PROPAGATED_BUSY,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
+  IK_PROPAGATED_DISABLED,
 } from "@/types/injection-keys";
 import { computed, inject } from "vue";
 import type { Color } from "@/types";
@@ -46,36 +47,28 @@ const props = withDefaults(
   }
 );
 
-const isGroupBusy = inject(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => false)
-);
-const isBusy = computed(() => props.busy ?? isGroupBusy.value);
+const isBusy = usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
 
-const isGroupDisabled = inject(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => false)
+const isDisabled = usePropagatedProp(
+  IK_PROPAGATED_DISABLED,
+  () => props.disabled
 );
-const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
 
 const isGroupOutlined = inject(
   IK_BUTTON_GROUP_OUTLINED,
   computed(() => false)
 );
+
 const isGroupTransparent = inject(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => false)
 );
 
-const buttonGroupColor = inject(
-  IK_BUTTON_GROUP_COLOR,
-  computed(() => "info")
-);
-const buttonColor = computed(() => props.color ?? buttonGroupColor.value);
+const { name: propagatedColor } = usePropagatedColor(() => props.color);
 
 const className = computed(() => {
   return [
-    `color-${buttonColor.value}`,
+    `color-${propagatedColor.value}`,
     {
       busy: isBusy.value,
       active: props.active,

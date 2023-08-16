@@ -5,17 +5,17 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
-import { computed, provide } from "vue";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { IK_PROPAGATED_DISABLED } from "@/types/injection-keys";
 
-const props = defineProps<{
-  disabled?: boolean;
-}>();
-
-provide(
-  IK_TAB_BAR_DISABLED,
-  computed(() => props.disabled ?? false)
+const props = withDefaults(
+  defineProps<{
+    disabled?: boolean;
+  }>(),
+  { disabled: undefined }
 );
+
+usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>
