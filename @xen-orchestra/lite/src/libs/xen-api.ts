@@ -137,8 +137,6 @@ export interface XenApiVm extends XenApiRecord<"VM"> {
   is_a_snapshot: boolean;
   is_a_template: boolean;
   VCPUs_at_startup: number;
-  // Additional props
-  isOperationPending: (operations: VM_OPERATION[] | VM_OPERATION) => boolean;
 }
 
 export interface XenApiConsole extends XenApiRecord<"console"> {

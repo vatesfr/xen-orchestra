@@ -23,7 +23,7 @@ const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
 }>();
 
-const { getByOpaqueRef } = useVmCollection();
+const { getByOpaqueRef, isOperationPending } = useVmCollection();
 
 const selectedVms = computed(() =>
   props.selectedRefs
@@ -38,7 +38,7 @@ const areAllSelectedVmsHalted = computed(() =>
 );
 
 const areSomeSelectedVmsCloning = computed(() =>
-  selectedVms.value.some((vm) => vm.isOperationPending(VM_OPERATION.CLONE))
+  selectedVms.value.some((vm) => isOperationPending(vm, VM_OPERATION.CLONE))
 );
 
 const handleCopy = async () => {

@@ -24,20 +24,20 @@ export const useVmCollection = () => {
         (vm) => !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain
       )
       .sort(sortRecordsByNameLabel)
-      .map((vm) => ({
-        ...vm,
-        isOperationPending: (operations: VM_OPERATION[] | VM_OPERATION) => {
-          const currentOperations = Object.values(vm.current_operations);
-          return castArray(operations).some((operation) =>
-            currentOperations.includes(operation)
-          );
-        },
-      }))
   );
 
   return {
     ...collection,
     records,
+    isOperationPending: (
+      vm: XenApiVm,
+      operations: VM_OPERATION[] | VM_OPERATION
+    ) => {
+      const currentOperations = Object.values(vm.current_operations);
+      return castArray(operations).some((operation) =>
+        currentOperations.includes(operation)
+      );
+    },
     runningVms: computed(() =>
       records.value.filter((vm) => vm.power_state === POWER_STATE.RUNNING)
     ),

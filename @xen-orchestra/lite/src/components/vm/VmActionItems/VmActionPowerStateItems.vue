@@ -120,7 +120,7 @@ const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
 }>();
 
-const { getByOpaqueRef: getVm } = useVmCollection();
+const { getByOpaqueRef: getVm, isOperationPending } = useVmCollection();
 const { records: hosts } = useHostCollection();
 const { pool } = usePoolCollection();
 const { isHostRunning } = useHostMetricsCollection();
@@ -149,7 +149,7 @@ const areVmsPaused = computed(() =>
 );
 
 const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
-  vms.value.some((vm) => vm.isOperationPending(operation));
+  vms.value.some((vm) => isOperationPending(vm, operation));
 
 const areVmsBusyToStart = computed(() =>
   areOperationsPending(VM_OPERATION.START)

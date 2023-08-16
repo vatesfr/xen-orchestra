@@ -60,6 +60,7 @@ const {
   isReady: isVmReady,
   getByUuid: getVmByUuid,
   hasError: hasVmError,
+  isOperationPending,
 } = useVmCollection();
 
 const {
@@ -88,8 +89,8 @@ const vmConsole = computed(() => {
   return getConsoleByOpaqueRef(consoleOpaqueRef);
 });
 
-const isConsoleAvailable = computed(
-  () => vm.value?.isOperationPending(STOP_OPERATIONS) === false
+const isConsoleAvailable = computed(() =>
+  vm.value !== undefined ? isOperationPending(vm.value, STOP_OPERATIONS) : false
 );
 </script>
 
