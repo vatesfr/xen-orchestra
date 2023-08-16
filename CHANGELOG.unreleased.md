@@ -17,6 +17,7 @@
 - [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
 - [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
 - [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
+- [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
 
 ### Packages to release
 
