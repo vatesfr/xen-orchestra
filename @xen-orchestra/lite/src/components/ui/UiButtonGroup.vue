@@ -5,35 +5,27 @@
 </template>
 
 <script lang="ts" setup>
+import { usePropagatedColor } from "@/composables/propagated-color.composable";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import type { Color } from "@/types";
 import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_COLOR,
-  IK_BUTTON_GROUP_DISABLED,
+  IK_PROPAGATED_BUSY,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
+  IK_PROPAGATED_DISABLED,
 } from "@/types/injection-keys";
 import { computed, provide } from "vue";
 
-const props = defineProps<{
-  busy?: boolean;
-  disabled?: boolean;
-  color?: Color;
-  outlined?: boolean;
-  transparent?: boolean;
-  merge?: boolean;
-}>();
-provide(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => props.busy ?? false)
-);
-provide(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => props.disabled ?? false)
-);
-provide(
-  IK_BUTTON_GROUP_COLOR,
-  computed(() => props.color ?? "info")
+const props = withDefaults(
+  defineProps<{
+    busy?: boolean;
+    disabled?: boolean;
+    color?: Color;
+    outlined?: boolean;
+    transparent?: boolean;
+    merge?: boolean;
+  }>(),
+  { disabled: undefined, busy: undefined }
 );
 provide(
   IK_BUTTON_GROUP_OUTLINED,
@@ -43,13 +35,17 @@ provide(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => props.transparent ?? false)
 );
+
+usePropagatedColor(() => props.color);
+usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
+usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>
 .ui-button-group {
   display: flex;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   gap: 1rem;
 
   &.merge {

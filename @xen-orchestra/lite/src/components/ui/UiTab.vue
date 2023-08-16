@@ -9,21 +9,21 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
-import { computed, inject } from "vue";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { IK_PROPAGATED_DISABLED } from "@/types/injection-keys";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     disabled?: boolean;
     active?: boolean;
     tag?: string;
   }>(),
-  { tag: "span" }
+  { tag: "span", disabled: undefined }
 );
 
-const isTabBarDisabled = inject(
-  IK_TAB_BAR_DISABLED,
-  computed(() => false)
+const isTabBarDisabled = usePropagatedProp(
+  IK_PROPAGATED_DISABLED,
+  () => props.disabled
 );
 </script>
 

@@ -17,12 +17,12 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import {
-  IK_BUTTON_GROUP_BUSY,
-  IK_BUTTON_GROUP_DISABLED,
+  IK_PROPAGATED_BUSY,
+  IK_PROPAGATED_DISABLED,
 } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { computed, inject } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -34,17 +34,12 @@ const props = withDefaults(
   { busy: undefined, disabled: undefined }
 );
 
-const isGroupBusy = inject(
-  IK_BUTTON_GROUP_BUSY,
-  computed(() => false)
-);
-const isBusy = computed(() => props.busy ?? isGroupBusy.value);
+const isBusy = usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
 
-const isGroupDisabled = inject(
-  IK_BUTTON_GROUP_DISABLED,
-  computed(() => false)
+const isDisabled = usePropagatedProp(
+  IK_PROPAGATED_DISABLED,
+  () => props.disabled
 );
-const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
 </script>
 
 <style lang="postcss" scoped>
