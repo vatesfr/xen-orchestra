@@ -1,7 +1,9 @@
 <template>
-  <div v-if="isOpen" class="ui-modal" @click.self="handleBackdropClick">
-    <slot />
-  </div>
+  <Teleport to="body">
+    <div v-if="isOpen" class="ui-modal" @click.self="handleBackdropClick">
+      <slot />
+    </div>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
