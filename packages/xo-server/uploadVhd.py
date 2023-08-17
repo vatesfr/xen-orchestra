@@ -146,32 +146,36 @@ class Vhd:
         print ('new VHD', path)
         self.path = path
         print(path, self.path)
-        self.file = open(self.path, 'rb')
-        self.footer = self.file.read(512)
-        self.parsedFooter = struct.unpack(">8sIIQI4sIIQQHBBII16sB427s", self.footer)
-        self.file.seek(self.parsedFooter[3])
-        self.header  = self.file.read(1024)
-        self.parsedHeader = struct.unpack(">8sQQIIII16sII512s192s256s", self.header)
+        self.fileDescriptor = open(self.path, 'rb')
+        self.footerBuffer = self.fileDescriptor.read(512)
+        self.footerParsed = struct.unpack(">8sIIQI4sIIQQHBBII16sB427s", self.footerBuffer)
+        self.fileDescriptor.seek(self.footerParsed[3]) # ignore potential space between footer and header
+        self.headerBuffer  = self.fileDescriptor.read(1024)
+        self.headerParsed = struct.unpack(">8sQQIIII16sII512s192s256s", self.headerBuffer)
 
-        batOffset = self.parsedHeader[2]
+        batOffset = self.headerParsed[2]
         print('batOffset',batOffset)
-        self.parentLocator = self.file.read(batOffset - self.parsedFooter[3] - 1024)
-        print('parentLocator', len(self.parentLocator))
-        batLength = self.parsedHeader[4] * 4
-        print('batlnght',batLength)
 
-        bat = self.file.read(batLength*4)
-        self.bat= []
+        # assume parent locator are between the header and BAT
+        # TODO : handle batmap that may live here too, and will be copied in result 
+        self.parentLocatorBuffer = self.fileDescriptor.read(batOffset - self.footerParsed[3] - 1024)
+        print('parentLocator', len(self.parentLocatorBuffer))
 
-        for blockIndex in range(0,batLength/4) :
-            offset = struct.unpack_from('>I', bat, blockIndex * 4)[0]
-            self.bat.append(offset)
+        batBufferLength = self.headerParsed[4] * 4 # 32 bit int => 4 bytes per block entry
+        print('batlnght',batBufferLength)
+
+        batBuffer = self.fileDescriptor.read(batBufferLength*4)
+        self.batArray= []
+
+        for blockIndex in range(0,batBufferLength/4) :
+            offset = struct.unpack_from('>I', batBuffer, blockIndex * 4)[0]
+            self.batArray.append(offset)
 
 
         #result = subprocess.Popen(['vhd-tool', 'get', path,'parent-unicode-name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         #stdout, stderr = result.communicate()
         #parentUnicodeName = stdout.strip()    
-        parentUnicodeName = self.parsedHeader[10].decode("utf-16-be").rstrip('\x00').encode('utf-8')
+        parentUnicodeName = self.headerParsed[10].decode("utf-16-be").rstrip('\x00').encode('utf-8')
         print('parentUnicodeName',parentUnicodeName)
         if parentUnicodeName:
             parentPath = os.path.join(os.path.dirname(path), parentUnicodeName)
@@ -183,10 +187,10 @@ class Vhd:
             self.parent = None
     
     def containsBlocks(self, index):
-        return self.bat[index] != 0xffffffff or ( self.parent and self.parent.containsBlocks(index) )
+        return self.batArray[index] != 0xffffffff or ( self.parent and self.parent.containsBlocks(index) )
 
     def getBlockData(self, index):
-        offset = self.bat[index]
+        offset = self.batArray[index]
         if offset == 0xffffffff:
             #print('empty in this vhd')
             if self.parent:
@@ -197,8 +201,8 @@ class Vhd:
                 return None
         else:
             #print('found in', os.path.basename(self.path), index, "at", offset*512)
-            self.file.seek(offset*512)
-            return self.file.read(2*1024 *1024 + 512)
+            self.fileDescriptor.seek(offset*512)
+            return self.fileDescriptor.read(2*1024 *1024 + 512)
 
     def getRoot(self):
         if self.parent:
@@ -210,64 +214,61 @@ class Vhd:
         root = self.getRoot()
         print('writeTo', root)   
         
-        footer = bytearray(self.footer[:])
-        header = bytearray(self.header[:])
+        footerBuffer = bytearray(self.footerBuffer[:])
+        footerHeader = bytearray(self.headerBuffer[:])
         # write child  footer but with root diskType
         
-        struct.pack_into(">I", footer, 60, struct.unpack_from(">I",root.footer, 60)[0])
-        # todo : checksum 
-        struct.pack_into(">I", footer, 64, 0 )
-        struct.pack_into('>I', footer, 64, (vhd_checksum(footer)))
+        struct.pack_into(">I", footerBuffer, 60, struct.unpack_from(">I",root.footerBuffer, 60)[0])
+        # clear the current checksum value, and then update it with a new computed one
+        struct.pack_into(">I", footerBuffer, 64, 0 )
+        struct.pack_into('>I', footerBuffer, 64, (vhd_checksum(footerBuffer)))
         sent = 0
-        socket.send(footer)
-        sent += len(footer)
+        socket.send(footerBuffer)
+        sent += len(footerBuffer)
 
         # write child header but with root parentTimestamp,parentUnicodeName,parentUuid, parentLocators
-        header = header[0:40] +  root.header[40:]
-        # todo checksum 
-        struct.pack_into(">I", header, 36, 0 ) 
-        struct.pack_into('>I', header, 36, (vhd_checksum(header)))
-        socket.send(header)
-        sent += len(header)
+        footerHeader = footerHeader[0:40] +  root.headerBuffer[40:]
+        # clear the current checksum value, and then update it with a new computed one
+        struct.pack_into(">I", footerHeader, 36, 0 ) 
+        struct.pack_into('>I', footerHeader, 36, (vhd_checksum(footerHeader)))
+        socket.send(footerHeader)
+        sent += len(footerHeader)
 
-        print('will send PL', len(root.parentLocator), sent)
-        socket.send(root.parentLocator)
-        sent += len(root.parentLocator)
+        print('will send parent locator', len(root.parentLocatorBuffer), sent)
+        socket.send(root.parentLocatorBuffer)
+        sent += len(root.parentLocatorBuffer)
 
         # write BAT aligned with 512bytes sector
 
-        offset = 1024 + 512  + len(self.bat) * 4 
+        offset = 1024 + 512  + len(self.batArray) * 4 
         offsetSector = int(math.ceil(float(offset)/512.0))
-        bat = ""
-        for blockIndex in range(0, len(self.bat), 1):
+        batBuffer = ""
+        for blockIndex in range(0, len(self.batArray), 1):
             if self.containsBlocks(blockIndex) :
-                bat += struct.pack(">I", ( offsetSector ) )
-                offsetSector += 4*1024 + 1
+                batBuffer += struct.pack(">I", ( offsetSector ) )
+                offsetSector += 4*1024 + 1 # 1 sector of block bitmap + 4096 data sector 
             else:
-                bat += struct.pack(">I", 0xffffffff )
+                batBuffer += struct.pack(">I", 0xffffffff )
 
 #        add padding to align to 512 bytes
-        while len(bat) % 512 !=0:
-            bat += struct.pack(">I", ( 0 ) )
-        socket.send(bat)
-        print('bat len', len(bat))
-        sent += len(bat)
-        
-        # todo : parent locator 
+        while len(batBuffer) % 512 !=0:
+            batBuffer += struct.pack(">I", ( 0 ) )
+        socket.send(batBuffer)
+        print('bat len', len(batBuffer))
+        sent += len(batBuffer)
 
         # write blocks
-        for blockIndex in range(0, len(self.bat), 1):
+        for blockIndex in range(0, len(self.batArray), 1):
             data = self.getBlockData(blockIndex)
-            # print('will send ', len(data), blockIndex, len(self.bat))
             if data:
-                # print(' got data for block ', blockIndex) 
                 socket.send(data)
                 sent += len(data)
 
         # write footer again 
-        socket.send(footer)
-        sent += len(footer)
+        socket.send(footerBuffer)
+        sent += len(footerBuffer)
         print('done', sent)
+        socket.close()
 
 
 
@@ -311,13 +312,13 @@ def main():
 #    parser.add_argument("key", help="authent key")
     args = parser.parse_args()
 
-    root_path = execute_command(args.file_path)
    
     vhd = Vhd(args.file_path)
 
     client_socket = socket.socket()
     client_socket.connect((args.host, int(args.port)))
     vhd.writeTo(client_socket)
+#    root_path = execute_command(args.file_path)
 #    send(args.host, args.port, "key", root_path)
 
 if __name__ == "__main__":
