@@ -12,13 +12,13 @@
 import NoDataError from "@/components/NoDataError.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
-import { useHostStore } from "@/stores/host.store";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed, type ComputedRef, inject } from "vue";
 
-const { hasError } = useHostStore().subscribe();
+const { hasError } = useHostCollection();
 
 const stats = inject(
   IK_HOST_STATS,

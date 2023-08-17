@@ -1,5 +1,5 @@
 import { buildXoObject, parseDateTime } from "@/libs/utils";
-import type { RawTypeToRecord } from "@/types/xapi-collection";
+import type { RawTypeToRecord } from "@/types/xen-api-collection";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
 
@@ -295,7 +295,7 @@ export default class XenApi {
 
   async loadRecords<
     T extends RawObjectType,
-    R extends RawTypeToRecord<T> = RawTypeToRecord<T>
+    R extends RawTypeToRecord<T> = RawTypeToRecord<T>,
   >(type: T): Promise<R[]> {
     const result = await this.#call<{ [key: string]: R }>(
       `${type}.get_all_records`,

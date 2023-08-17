@@ -20,8 +20,8 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import { useVmStore } from "@/stores/vm.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import type { XenApiVm } from "@/libs/xen-api";
 import {
   faAngleDown,
@@ -31,7 +31,7 @@ import {
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
-const { getByUuid: getVmByUuid } = useVmStore().subscribe();
+const { getByUuid: getVmByUuid } = useVmCollection();
 const { currentRoute } = useRouter();
 
 const vm = computed(() =>

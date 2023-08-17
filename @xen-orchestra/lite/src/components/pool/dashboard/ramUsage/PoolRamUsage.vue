@@ -17,10 +17,10 @@
 
 <script lang="ts" setup>
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
-import { formatSize, getHostMemory } from "@/libs/utils";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostMetricsCollection } from "@/composables/xen-api-collection/host-metrics-collection.composable";
+import { formatSize } from "@/libs/utils";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
 import { sumBy } from "lodash-es";
@@ -31,27 +31,22 @@ const LinearChart = defineAsyncComponent(
   () => import("@/components/charts/LinearChart.vue")
 );
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
-
-const hostStore = useHostStore();
-const { runningHosts } = hostStore.subscribe({ hostMetricsSubscription });
+const { runningHosts } = useHostCollection();
+const { getHostMemory } = useHostMetricsCollection();
 
 const { t } = useI18n();
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
 
 const customMaxValue = computed(() =>
-  sumBy(
-    runningHosts.value,
-    (host) => getHostMemory(host, hostMetricsSubscription)?.size ?? 0
-  )
+  sumBy(runningHosts.value, (host) => getHostMemory(host)?.size ?? 0)
 );
 
 const currentData = computed(() => {
   let size = 0,
     usage = 0;
   runningHosts.value.forEach((host) => {
-    const hostMemory = getHostMemory(host, hostMetricsSubscription);
+    const hostMemory = getHostMemory(host);
     size += hostMemory?.size ?? 0;
     usage += hostMemory?.usage ?? 0;
   });

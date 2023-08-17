@@ -1,18 +1,14 @@
 import type {
   RawXenApiRecord,
-  XenApiHost,
   XenApiRecord,
-  XenApiVm,
-  VM_OPERATION,
   RawObjectType,
 } from "@/libs/xen-api";
 import type { Filter } from "@/types/filter";
-import type { Subscription } from "@/types/xapi-collection";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { castArray, find, forEach, round, size, sum } from "lodash-es";
+import { find, forEach, round, size, sum } from "lodash-es";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -21,14 +17,7 @@ export function sortRecordsByNameLabel(
   const label1 = record1.name_label.toLocaleLowerCase();
   const label2 = record2.name_label.toLocaleLowerCase();
 
-  switch (true) {
-    case label1 < label2:
-      return -1;
-    case label1 > label2:
-      return 1;
-    default:
-      return 0;
-  }
+  return label1.localeCompare(label2);
 }
 
 export function escapeRegExp(string: string) {
@@ -114,28 +103,6 @@ export function getStatsLength(stats?: object | any[]) {
   return size(find(stats, (stat) => stat != null));
 }
 
-export function isHostRunning(
-  host: XenApiHost,
-  hostMetricsSubscription: Subscription<"host_metrics", object>
-) {
-  return hostMetricsSubscription.getByOpaqueRef(host.metrics)?.live === true;
-}
-
-export function getHostMemory(
-  host: XenApiHost,
-  hostMetricsSubscription: Subscription<"host_metrics", object>
-) {
-  const hostMetrics = hostMetricsSubscription.getByOpaqueRef(host.metrics);
-
-  if (hostMetrics !== undefined) {
-    const total = +hostMetrics.memory_total;
-    return {
-      usage: total - +hostMetrics.memory_free,
-      size: total,
-    };
-  }
-}
-
 export const buildXoObject = <T extends XenApiRecord<RawObjectType>>(
   record: RawXenApiRecord<T>,
   params: { opaqueRef: T["$ref"] }
@@ -182,13 +149,3 @@ export function parseRamUsage(
 
 export const getFirst = <T>(value: T | T[]): T | undefined =>
   Array.isArray(value) ? value[0] : value;
-
-export const isOperationsPending = (
-  obj: XenApiVm,
-  operations: VM_OPERATION[] | VM_OPERATION
-) => {
-  const currentOperations = Object.values(obj.current_operations);
-  return castArray(operations).some((operation) =>
-    currentOperations.includes(operation)
-  );
-};

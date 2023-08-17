@@ -10,15 +10,15 @@
 
 <script lang="ts" setup>
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
-import { useHostStore } from "@/stores/host.store";
 
-const { hasError } = useHostStore().subscribe();
+const { hasError } = useHostCollection();
 
 const stats = inject(
   IK_HOST_STATS,
