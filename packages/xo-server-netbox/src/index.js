@@ -699,6 +699,25 @@ class Netbox {
     // Use the first IPs found in vm.addresses as the VMs' primary IPs in
     // Netbox, both for IPv4 and IPv6
 
+    const getPrimaryIps = addresses => {
+      const primaryIps = {}
+      const keys = Object.keys(addresses)
+      let i = 0
+      while ((primaryIps.ipv4 === undefined || primaryIps.ipv6 === undefined) && i < keys.length) {
+        const key = keys[i++]
+        const ip = addresses[key]
+
+        if (key.includes('ipv4') && primaryIps.ipv4 === undefined) {
+          primaryIps.ipv4 = ip
+        }
+        if (key.includes('ipv6') && primaryIps.ipv6 === undefined) {
+          primaryIps.ipv6 = ip
+        }
+      }
+
+      return primaryIps
+    }
+
     log.info("Setting VMs' primary IPs")
 
     const vmsToUpdate2 = []
@@ -712,7 +731,8 @@ class Netbox {
 
       const nbVmIps = filter(nbIps, { assigned_object: { virtual_machine: { id: nbVm.id } } })
 
-      const ipv4 = xoVm.addresses['0/ipv4/0']
+      const { ipv4, ipv6 } = getPrimaryIps(xoVm.addresses)
+
       if (ipv4 === undefined && nbVm.primary_ip4 !== null) {
         patch.primary_ip4 = null
       } else if (ipv4 !== undefined) {
@@ -729,18 +749,17 @@ class Netbox {
         }
       }
 
-      const _ipv6 = xoVm.addresses['0/ipv6/0']
-      let ipv6
+      let compactIpv6
       try {
         // For IPv6, compare with the compact notation
-        ipv6 = _ipv6 && ipaddr.parse(_ipv6).toString()
+        compactIpv6 = ipv6 && ipaddr.parse(ipv6).toString()
       } catch (error) {
-        log.error('Cannot parse IP address', { error, ip: _ipv6 })
+        log.error('Cannot parse IP address', { error, ip: ipv6 })
       }
-      if (ipv6 === undefined && nbVm.primary_ip6 !== null) {
+      if (compactIpv6 === undefined && nbVm.primary_ip6 !== null) {
         patch.primary_ip6 = null
-      } else if (ipv6 !== undefined) {
-        const nbIp = nbVmIps.find(nbIp => nbIp.address.split('/')[0] === ipv6)
+      } else if (compactIpv6 !== undefined) {
+        const nbIp = nbVmIps.find(nbIp => nbIp.address.split('/')[0] === compactIpv6)
         if (nbIp === undefined && nbVm.primary_ip6 !== null) {
           patch.primary_ip6 = null
         } else if (nbIp !== undefined && nbIp.id !== nbVm.primary_ip6?.id) {
