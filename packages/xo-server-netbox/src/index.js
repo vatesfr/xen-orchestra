@@ -622,7 +622,14 @@ class Netbox {
         }
         const ips = Object.values(pickBy(xoVm.addresses, (_, key) => key.startsWith(xoVif.device + '/')))
         for (const ip of ips) {
-          const parsedIp = ipaddr.parse(ip)
+          let parsedIp
+          try {
+            parsedIp = ipaddr.parse(ip)
+          } catch (error) {
+            log.error('Cannot parse IP address', { error, ip })
+            ignoredIps.push({ vm: xoVm.uuid, ip, reason: 'Cannot parse IP address' })
+            continue
+          }
           const ipKind = parsedIp.kind()
 
           // Find the smallest prefix within Netbox's existing prefixes
@@ -631,7 +638,13 @@ class Netbox {
           let highestBits = 0
           nbPrefixes.forEach(({ prefix }) => {
             const [range, bits] = prefix.split('/')
-            const parsedRange = ipaddr.parse(range)
+            let parsedRange
+            try {
+              parsedRange = ipaddr.parse(range)
+            } catch (error) {
+              log.error('Cannot parse range', { error, range })
+              return
+            }
             if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
               smallestPrefix = prefix
               highestBits = bits
@@ -640,14 +653,21 @@ class Netbox {
 
           if (smallestPrefix === undefined) {
             // A valid prefix is required to create an IP in Netbox. If none matches, ignore the IP.
-            ignoredIps.push({ vm: xoVm.uuid, ip })
+            ignoredIps.push({ vm: xoVm.uuid, ip, reason: 'No prefix found for this IP' })
             continue
           }
 
-          const compactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
+          const xoCompactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
           const nbIp = find(nbIpsToCheck, nbIp => {
             const [ip, bits] = nbIp.address.split('/')
-            return ipaddr.parse(ip).toString() === compactIp && bits === highestBits
+            let nbCompactIp
+            try {
+              nbCompactIp = ipaddr.parse(ip).toString()
+            } catch (error) {
+              log.error('Cannot parse IP address', { error, ip })
+              return false
+            }
+            return nbCompactIp === xoCompactIp && bits === highestBits
           })
           if (nbIp !== undefined) {
             // IP is up to date, don't do anything with it
@@ -666,7 +686,7 @@ class Netbox {
     if (ignoredIps.length > 0) {
       // Only show the first ignored IP in order to not flood logs if there are
       // many and it should be enough to fix the issues one by one
-      log.warn(`Could not find matching prefix in Netbox for ${ignoredIps.length} IP addresses`, ignoredIps[0])
+      log.warn(`Could not synchronize ${ignoredIps.length} IP addresses`, ignoredIps[0])
     }
 
     // Perform calls to Netbox
@@ -696,17 +716,27 @@ class Netbox {
       if (ipv4 === undefined && nbVm.primary_ip4 !== null) {
         patch.primary_ip4 = null
       } else if (ipv4 !== undefined) {
+        // Find an IP in Netbox that matches the XO IP
         const nbIp = nbVmIps.find(nbIp => nbIp.address.split('/')[0] === ipv4)
         if (nbIp === undefined && nbVm.primary_ip4 !== null) {
+          // If the IP couldn't be found in Netbox but the VM is still assigned a
+          // primary IP, it means it's the wrong IP so delete it
           patch.primary_ip4 = null
         } else if (nbIp !== undefined && nbIp.id !== nbVm.primary_ip4?.id) {
+          // If an IP was found in Netbox, make sure it's the one assigned as
+          // primary IP otherwise update the VM
           patch.primary_ip4 = nbIp.id
         }
       }
 
       const _ipv6 = xoVm.addresses['0/ipv6/0']
-      // For IPv6, compare with the compact notation
-      const ipv6 = _ipv6 && ipaddr.parse(_ipv6).toString()
+      let ipv6
+      try {
+        // For IPv6, compare with the compact notation
+        ipv6 = _ipv6 && ipaddr.parse(_ipv6).toString()
+      } catch (error) {
+        log.error('Cannot parse IP address', { error, ip: _ipv6 })
+      }
       if (ipv6 === undefined && nbVm.primary_ip6 !== null) {
         patch.primary_ip6 = null
       } else if (ipv6 !== undefined) {
