@@ -27,6 +27,7 @@ const messages = {
   stopOnError: 'Stop on error',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
+  new: 'New',
   notDefined: 'Not defined',
   status: 'Status',
   statusConnecting: 'Connecting',
