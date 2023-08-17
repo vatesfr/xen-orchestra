@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Netbox] Synchronize VM tags [#5899](https://github.com/vatesfr/xen-orchestra/issues/5899) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6957](https://github.com/vatesfr/xen-orchestra/pull/6957))
+- [REST API] Add support for `filter` and `limit` parameters to `backups/logs` and `restore/logs` collections [Forum#64789](https://xcp-ng.org/forum/post/64789)
 
 ### Bug fixes
 
@@ -38,7 +39,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins minor
 - xen-api patch
-- xo-server patch
+- xo-server minor
 - xo-server-auth-ldap patch
 - xo-server-netbox minor
 - xo-web patch
