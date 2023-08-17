@@ -19,6 +19,7 @@
 - [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
 - [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
 - [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
+- [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins minor
+- @xen-orchestra/xapi patch
 - xen-api patch
 - xo-server minor
 - xo-server-auth-ldap patch
