@@ -37,6 +37,7 @@ class Host {
       await this.callAsync('host.disable', ref)
       $defer(async () => {
         await this.callAsync('host.enable', ref)
+        // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
         return asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false))
       })
     }
