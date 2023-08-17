@@ -8,19 +8,6 @@ import math
 
 # inspired from https://github.com/imcleod/pyvhd/blob/master/pyvhd.py
 
-class FakeSocket:
-
-    def __init__(self):
-        self.sent = 0
-    
-    def connect(self, host):
-        #nothin to do 
-        print('connected')
-
-    def send(self, data):
-        # nothing to be done
-        self.sent += len(data)
-
 
 def divro(num, den):
     # Divide always rounding up and returning an integer
@@ -174,8 +161,6 @@ class Vhd:
         print('batlnght',batLength)
 
         bat = self.file.read(batLength*4)
-        # realign to 512 bytes sectors
-        self.file.seek(math.ceil((batLength + batOffset)/512)*512)
         self.bat= []
 
         for blockIndex in range(0,batLength/4) :
@@ -196,7 +181,6 @@ class Vhd:
         else:
             print('found root')
             self.parent = None
-
     
     def containsBlocks(self, index):
         return self.bat[index] != 0xffffffff or ( self.parent and self.parent.containsBlocks(index) )
@@ -235,44 +219,40 @@ class Vhd:
         struct.pack_into(">I", footer, 64, 0 )
         struct.pack_into('>I', footer, 64, (vhd_checksum(footer)))
         sent = 0
-        print('will send footer', len(footer), sent)
         socket.send(footer)
         sent += len(footer)
 
-        # write child header but with root parentTimestamp,parentUnicodeName,parentUuid
-        header = header[0:40] +  root.header[40:] 
+        # write child header but with root parentTimestamp,parentUnicodeName,parentUuid, parentLocators
+        header = header[0:40] +  root.header[40:]
         # todo checksum 
         struct.pack_into(">I", header, 36, 0 ) 
         struct.pack_into('>I', header, 36, (vhd_checksum(header)))
-        print('will send header', len(header), sent)
         socket.send(header)
         sent += len(header)
 
-        # parent locator : ignore for now 
         print('will send PL', len(root.parentLocator), sent)
         socket.send(root.parentLocator)
         sent += len(root.parentLocator)
 
         # write BAT aligned with 512bytes sector
 
-        offset = sent  + len(self.bat)*4
-        offsetSector = int(math.ceil(offset/512))
+        offset = 1024 + 512  + len(self.bat) * 4 
+        offsetSector = int(math.ceil(float(offset)/512.0))
         bat = ""
-        print("start", offsetSector, sent, len(self.bat))*4
         for blockIndex in range(0, len(self.bat), 1):
             if self.containsBlocks(blockIndex) :
-                bat += struct.pack("I", ( offsetSector ) )
+                bat += struct.pack(">I", ( offsetSector ) )
                 offsetSector += 4*1024 + 1
             else:
                 bat += struct.pack(">I", 0xffffffff )
 
 #        add padding to align to 512 bytes
         while len(bat) % 512 !=0:
-            print("pad", len(bat))
             bat += struct.pack(">I", ( 0 ) )
-        print('will send BAT', len(bat), sent)
         socket.send(bat)
+        print('bat len', len(bat))
         sent += len(bat)
+        
         # todo : parent locator 
 
         # write blocks
@@ -280,6 +260,7 @@ class Vhd:
             data = self.getBlockData(blockIndex)
             # print('will send ', len(data), blockIndex, len(self.bat))
             if data:
+                # print(' got data for block ', blockIndex) 
                 socket.send(data)
                 sent += len(data)
 
@@ -330,15 +311,14 @@ def main():
 #    parser.add_argument("key", help="authent key")
     args = parser.parse_args()
 
-#    root_path = execute_command(args.file_path)
+    root_path = execute_command(args.file_path)
    
     vhd = Vhd(args.file_path)
 
     client_socket = socket.socket()
-#    client_socket = FakeSocket()
     client_socket.connect((args.host, int(args.port)))
     vhd.writeTo(client_socket)
-#    send(args.host, args.port, args.key, root_path)
+#    send(args.host, args.port, "key", root_path)
 
 if __name__ == "__main__":
     main()
