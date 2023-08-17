@@ -509,7 +509,8 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
-      allocationStrategy: ALLOCATION_BY_TYPE[srType],
+      allocationStrategy:
+        srType === 'linstor' ? obj.$PBDs[0]?.device_config.provisioning ?? 'unknown' : ALLOCATION_BY_TYPE[srType],
       current_operations: obj.current_operations,
       inMaintenanceMode: obj.other_config['xo:maintenanceState'] !== undefined,
       name_description: obj.name_description,

@@ -1,15 +1,14 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
 import React from 'react'
+import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+import { deleteSr } from 'xo'
 import { find, map, isEmpty } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { Pool } from 'render-xo-item'
-import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
-
-import { deleteSr } from 'xo'
 
 const COLUMNS = [
   {
@@ -56,42 +55,40 @@ const INDIVIDUAL_ACTIONS = [
     handler: deleteSr,
     icon: 'delete',
     label: 'delete',
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
-
 
 const XostorList = decorate([
   connectStore(() => ({
-      xostorSrs: createSelector(
-        createGetObjectsOfType('SR').filter([sr => sr.SR_type === 'linstor']),
-        createGetObjectsOfType('pool'),
-        (srs, pools) =>
-          map(srs, sr => ({
-            ...sr,
-            pool: find(pools, { id: sr.$pool }),
-          })),
-      ),
-    })
-  ),
+    xostorSrs: createSelector(
+      createGetObjectsOfType('SR').filter([sr => sr.SR_type === 'linstor']),
+      createGetObjectsOfType('pool'),
+      (srs, pools) =>
+        map(srs, sr => ({
+          ...sr,
+          pool: find(pools, { id: sr.$pool }),
+        }))
+    ),
+  })),
   provideState({
     initialState: () => ({ showNewXostorForm: false }),
   }),
   injectState,
-  ({ effects, state, xostorSrs }) =>  (
-      <div>
-        {isEmpty(xostorSrs) ? (
-          _('noXostorFound')
-        ) : (
-          <SortedTable
-            collection={xostorSrs}
-            columns={COLUMNS}
-            individualActions={INDIVIDUAL_ACTIONS}
-            stateUrlParam='s'
-          />
-        )}
-      </div>
-    )
+  ({ effects, state, xostorSrs }) => (
+    <div>
+      {isEmpty(xostorSrs) ? (
+        _('noXostorFound')
+      ) : (
+        <SortedTable
+          collection={xostorSrs}
+          columns={COLUMNS}
+          individualActions={INDIVIDUAL_ACTIONS}
+          stateUrlParam='s'
+        />
+      )}
+    </div>
+  ),
 ])
 
 export default XostorList
