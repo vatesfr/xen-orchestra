@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backups] Ability to set the NBD mode per backup job in the UI instead of globally in the config file (PR [#6995](https://github.com/vatesfr/xen-orchestra/pull/6995))
+- [Netbox] Better handle cases where the IP addresses reported by XAPI are malformed (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
 
 ### Bug fixes
 
@@ -34,6 +35,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi minor
 - xo-server patch
+- xo-server-netbox minor
 - xo-web minor
 
 <!--packages-end-->
