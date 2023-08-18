@@ -95,13 +95,12 @@
 import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { isHostRunning, isOperationsPending } from "@/libs/utils";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostMetricsCollection } from "@/composables/xen-api-collection/host-metrics-collection.composable";
+import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
-import { useVmStore } from "@/stores/vm.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faCirclePlay,
@@ -121,12 +120,12 @@ const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
 }>();
 
-const { getByOpaqueRef: getVm } = useVmStore().subscribe();
-const { records: hosts } = useHostStore().subscribe();
-const { pool } = usePoolStore().subscribe();
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
+const { getByOpaqueRef: getVm, isOperationPending } = useVmCollection();
+const { records: hosts } = useHostCollection();
+const { pool } = usePoolCollection();
+const { isHostRunning } = useHostMetricsCollection();
 
-const vms = computed<XenApiVm[]>(() =>
+const vms = computed(() =>
   props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
 );
 
@@ -150,7 +149,7 @@ const areVmsPaused = computed(() =>
 );
 
 const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
-  vms.value.some((vm) => isOperationsPending(vm, operation));
+  vms.value.some((vm) => isOperationPending(vm, operation));
 
 const areVmsBusyToStart = computed(() =>
   areOperationsPending(VM_OPERATION.START)
@@ -180,9 +179,7 @@ const areVmsBusyToForceShutdown = computed(() =>
   areOperationsPending(VM_OPERATION.HARD_SHUTDOWN)
 );
 const getHostState = (host: XenApiHost) =>
-  isHostRunning(host, hostMetricsSubscription)
-    ? POWER_STATE.RUNNING
-    : POWER_STATE.HALTED;
+  isHostRunning(host) ? POWER_STATE.RUNNING : POWER_STATE.HALTED;
 </script>
 
 <style lang="postcss" scoped>

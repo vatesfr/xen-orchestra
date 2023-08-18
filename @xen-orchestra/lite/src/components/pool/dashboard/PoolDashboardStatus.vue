@@ -26,21 +26,21 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiSeparator from "@/components/ui/UiSeparator.vue";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useVmStore } from "@/stores/vm.store";
+import { useHostMetricsCollection } from "@/composables/xen-api-collection/host-metrics-collection.composable";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import { computed } from "vue";
 
 const {
   isReady: isVmReady,
   records: vms,
   hasError: hasVmError,
-} = useVmStore().subscribe();
+} = useVmCollection();
 
 const {
   isReady: isHostMetricsReady,
   records: hostMetrics,
   hasError: hasHostMetricsError,
-} = useHostMetricsStore().subscribe();
+} = useHostMetricsCollection();
 
 const hasError = computed(() => hasVmError.value || hasHostMetricsError.value);
 

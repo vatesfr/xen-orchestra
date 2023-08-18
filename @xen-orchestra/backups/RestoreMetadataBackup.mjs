@@ -21,7 +21,12 @@ export class RestoreMetadataBackup {
       })
     } else {
       const metadata = JSON.parse(await handler.readFile(join(backupId, 'metadata.json')))
-      return String(await handler.readFile(resolve(backupId, metadata.data ?? 'data.json')))
+      const dataFileName = resolve(backupId, metadata.data ?? 'data.json')
+      const data = await handler.readFile(dataFileName)
+
+      // if data is JSON, sent it as a plain string, otherwise, consider the data as binary and encode it
+      const isJson = dataFileName.endsWith('.json')
+      return isJson ? data.toString() : { encoding: 'base64', data: data.toString('base64') }
     }
   }
 }

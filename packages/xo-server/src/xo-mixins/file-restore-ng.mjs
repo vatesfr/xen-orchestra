@@ -52,7 +52,12 @@ export default class BackupNgFileRestore {
             // don't send the legacy default format to keep compatibility with old proxies
             format: format === 'zip' ? undefined : format,
           },
-          { assertType: 'stream' }
+          {
+            assertType: 'stream',
+
+            // File restore can be slow to start, allow up to 10 mins to be safe.
+            timeout: 600e3,
+          }
         )
       : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
           adapter.fetchPartitionFiles(diskId, partitionId, paths, format)

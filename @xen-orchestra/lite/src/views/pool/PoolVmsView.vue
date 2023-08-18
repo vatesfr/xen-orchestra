@@ -37,10 +37,10 @@ import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import VmsActionsBar from "@/components/vm/VmsActionsBar.vue";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import { POWER_STATE } from "@/libs/xen-api";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
-import { useVmStore } from "@/stores/vm.store";
 import type { Filters } from "@/types/filter";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
@@ -52,7 +52,7 @@ const { t } = useI18n();
 const titleStore = usePageTitleStore();
 titleStore.setTitle(t("vms"));
 
-const { records: vms } = useVmStore().subscribe();
+const { records: vms } = useVmCollection();
 const { isMobile, isDesktop } = storeToRefs(useUiStore());
 
 const filters: Filters = {

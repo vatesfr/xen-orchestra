@@ -417,7 +417,12 @@ export default class Proxy {
   }
 
   // enum assertType {iterator, scalar, stream}
-  async callProxyMethod(id, method, params, { assertType = 'scalar' } = {}) {
+  async callProxyMethod(
+    id,
+    method,
+    params,
+    { assertType = 'scalar', timeout = this._app.config.getDuration('xo-proxy.callTimeout') } = {}
+  ) {
     const proxy = await this._getProxy(id)
 
     const url = new URL('https://localhost/api/v1')
@@ -430,7 +435,7 @@ export default class Proxy {
       },
       method: 'POST',
       rejectUnauthorized: false,
-      timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
+      timeout,
     }
 
     if (proxy.address !== undefined) {

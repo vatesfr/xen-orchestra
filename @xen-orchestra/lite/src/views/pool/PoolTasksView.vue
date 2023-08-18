@@ -15,12 +15,12 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
-import { useTaskStore } from "@/stores/task.store";
+import { useTaskCollection } from "@/composables/xen-api-collection/task-collection.composable";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useI18n } from "vue-i18n";
 
-const { pendingTasks, finishedTasks, isReady, hasError } =
-  useTaskStore().subscribe();
+const { pendingTasks, finishedTasks, isReady, hasError } = useTaskCollection();
+
 const { t } = useI18n();
 
 const titleStore = usePageTitleStore();

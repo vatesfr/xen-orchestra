@@ -23,11 +23,11 @@ import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
-import { useSrStore } from "@/stores/storage.store";
+import { useSrCollection } from "@/composables/xen-api-collection/sr-collection.composable";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed } from "vue";
 
-const { records: srs, isReady, hasError } = useSrStore().subscribe();
+const { records: srs, isReady, hasError } = useSrCollection();
 
 const data = computed<{
   result: { id: string; label: string; value: number }[];

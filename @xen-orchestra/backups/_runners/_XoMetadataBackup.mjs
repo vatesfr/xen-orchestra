@@ -22,7 +22,13 @@ export class XoMetadataBackup {
     const dir = `${scheduleDir}/${formatFilenameDate(timestamp)}`
 
     const data = job.xoMetadata
-    const dataBaseName = './data.json'
+    let dataBaseName = './data'
+
+    // JSON data is sent as plain string, binary data is sent as an object with `data` and `encoding properties
+    const isJson = typeof data === 'string'
+    if (isJson) {
+      dataBaseName += '.json'
+    }
 
     const metadata = JSON.stringify(
       {
@@ -54,7 +60,7 @@ export class XoMetadataBackup {
           async () => {
             const handler = adapter.handler
             const dirMode = this._config.dirMode
-            await handler.outputFile(dataFileName, data, { dirMode })
+            await handler.outputFile(dataFileName, isJson ? data : Buffer.from(data.data, data.encoding), { dirMode })
             await handler.outputFile(metaDataFileName, metadata, {
               dirMode,
             })

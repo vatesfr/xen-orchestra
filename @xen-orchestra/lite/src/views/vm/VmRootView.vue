@@ -12,16 +12,16 @@
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 import VmHeader from "@/components/vm/VmHeader.vue";
 import VmTabBar from "@/components/vm/VmTabBar.vue";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import type { XenApiVm } from "@/libs/xen-api";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
-import { useVmStore } from "@/stores/vm.store";
 import { whenever } from "@vueuse/core";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const { getByUuid, hasUuid, isReady } = useVmStore().subscribe();
+const { getByUuid, hasUuid, isReady } = useVmCollection();
 const uiStore = useUiStore();
 const vm = computed(() => getByUuid(route.params.uuid as XenApiVm["uuid"]));
 whenever(vm, (vm) => (uiStore.currentHostOpaqueRef = vm.resident_on));

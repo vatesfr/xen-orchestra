@@ -12,9 +12,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
 import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
 import { sumBy } from "lodash-es";
@@ -29,7 +29,7 @@ const { t } = useI18n();
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
 
-const { records: hosts } = useHostStore().subscribe();
+const { records: hosts } = useHostCollection();
 
 const customMaxValue = computed(
   () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)

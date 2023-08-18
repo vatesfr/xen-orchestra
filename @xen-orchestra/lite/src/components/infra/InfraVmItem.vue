@@ -19,8 +19,8 @@
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
 import type { XenApiVm } from "@/libs/xen-api";
-import { useVmStore } from "@/stores/vm.store";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
 import { computed, ref } from "vue";
@@ -29,7 +29,7 @@ const props = defineProps<{
   vmOpaqueRef: XenApiVm["$ref"];
 }>();
 
-const { getByOpaqueRef } = useVmStore().subscribe();
+const { getByOpaqueRef } = useVmCollection();
 const vm = computed(() => getByOpaqueRef(props.vmOpaqueRef));
 const rootElement = ref();
 const isVisible = ref(false);

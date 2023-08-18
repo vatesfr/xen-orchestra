@@ -37,12 +37,11 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
+import { useVmMetricsCollection } from "@/composables/xen-api-collection/vm-metrics-collection.composable";
 import { percent } from "@/libs/utils";
 import { POWER_STATE } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
-import { useVmMetricsStore } from "@/stores/vm-metrics.store";
-import { useVmStore } from "@/stores/vm.store";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
 
@@ -52,18 +51,16 @@ const {
   hasError: hostStoreHasError,
   isReady: isHostStoreReady,
   runningHosts,
-} = useHostStore().subscribe({
-  hostMetricsSubscription: useHostMetricsStore().subscribe(),
-});
+} = useHostCollection();
 
 const {
   hasError: vmStoreHasError,
   isReady: isVmStoreReady,
   records: vms,
-} = useVmStore().subscribe();
+} = useVmCollection();
 
 const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } =
-  useVmMetricsStore().subscribe();
+  useVmMetricsCollection();
 
 const nPCpu = computed(() =>
   runningHosts.value.reduce(
