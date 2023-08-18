@@ -873,6 +873,7 @@ const messages = {
   srsTabName: 'SRs',
   // ----- Pool advanced tab -----
   backupNetwork: 'Backup network',
+  crashDumpSr: 'Crash dump SR',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',

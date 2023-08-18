@@ -5,7 +5,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import renderXoItem, { Network } from 'render-xo-item'
+import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
@@ -25,6 +25,7 @@ import {
 import {
   editPool,
   installSupplementalPackOnAllHosts,
+  isSrWritable,
   setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -244,16 +245,27 @@ export default class TabAdvanced extends Component {
 
   _removeMigrationNetwork = () => editPool(this.props.pool, { migrationNetwork: null })
 
+  _onChangeCrashDumpSr = sr => editPool(this.props.pool, { crashDumpSr: sr.id })
+
+  _onRemoveCrashDumpSr = () => editPool(this.props.pool, { crashDumpSr: null })
+
   _setRemoteSyslogHosts = () =>
     setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(() =>
       this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
+
+  _getCrashDumpSrPredicate = createSelector(
+    () => this.props.pool,
+    pool => sr => isSrWritable(sr) && sr.$pool === pool.id
+  )
 
   render() {
     const { backupNetwork, hosts, isAdmin, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
+    const { crashDumpSr } = pool
+    const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
     return (
       <div>
         <Container>
@@ -341,6 +353,24 @@ export default class TabAdvanced extends Component {
                     <th>{_('suspendSr')}</th>
                     <td>
                       <SelectSuspendSr pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('crashDumpSr')}</th>
+                    <td>
+                      <XoSelect
+                        onChange={this._onChangeCrashDumpSr}
+                        predicate={crashDumpSrPredicate}
+                        value={crashDumpSr}
+                        xoType='SR'
+                      >
+                        {crashDumpSr !== undefined ? <Sr id={crashDumpSr} /> : _('noValue')}
+                      </XoSelect>{' '}
+                      {crashDumpSr !== undefined && (
+                        <a onClick={this._onRemoveCrashDumpSr} role='button'>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
                     </td>
                   </tr>
                 </tbody>
