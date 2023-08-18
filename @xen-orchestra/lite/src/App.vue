@@ -22,16 +22,10 @@ import AppLogin from "@/components/AppLogin.vue";
 import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import UnreachableHostsModal from "@/components/UnreachableHostsModal.vue";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
-import {
-  IK_PROPAGATED_COLOR,
-  IK_PROPAGATED_BUSY,
-  IK_PROPAGATED_DISABLED,
-} from "@/types/injection-keys";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
@@ -84,10 +78,6 @@ whenever(
     await xenApi.startWatch();
   }
 );
-
-usePropagatedProp(IK_PROPAGATED_COLOR, "info");
-usePropagatedProp(IK_PROPAGATED_BUSY, false);
-usePropagatedProp(IK_PROPAGATED_DISABLED, false);
 </script>
 
 <style lang="postcss">

@@ -20,12 +20,9 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
-import {
-  IK_CHECKBOX_TYPE,
-  IK_PROPAGATED_DISABLED,
-  IK_FORM_HAS_LABEL,
-} from "@/types/injection-keys";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
+import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from "@/types/injection-keys";
 import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import { computed, type HTMLAttributes, inject } from "vue";
@@ -51,10 +48,7 @@ const hasLabel = inject(
   IK_FORM_HAS_LABEL,
   computed(() => false)
 );
-const isDisabled = usePropagatedProp(
-  IK_PROPAGATED_DISABLED,
-  () => props.disabled
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 const icon = computed(() => {
   if (type !== "checkbox") {
     return faCircle;

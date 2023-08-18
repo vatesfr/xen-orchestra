@@ -37,14 +37,10 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
-import {
-  IK_PROPAGATED_DISABLED,
-  IK_FORM_HAS_LABEL,
-  IK_INPUT_ID,
-} from "@/types/injection-keys";
+import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { uniqueId } from "lodash-es";
@@ -81,14 +77,13 @@ const color = computed<Color | undefined>(() => {
   return undefined;
 });
 
-usePropagatedColor(color);
-
 provide(
   IK_FORM_HAS_LABEL,
   computed(() => slots.label !== undefined)
 );
 
-usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
+useContext(ColorContext, color);
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

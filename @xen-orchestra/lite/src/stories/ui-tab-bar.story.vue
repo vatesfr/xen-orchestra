@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('disabled').bool().widget().help('Propagated*'),
+      prop('disabled').bool().widget().ctx(),
       slot().help('Contains <RouterTab> or <UiTab>'),
     ]"
   >

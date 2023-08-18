@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
+import { useColorContext } from "@/composables/color-context.composable";
 import type { Color } from "@/types";
 import { computed } from "vue";
 
@@ -13,13 +13,11 @@ const props = defineProps<{
   color?: Color;
 }>();
 
-const { name: propagatedColor, bgClass } = usePropagatedColor(
-  () => props.color
-);
+const { name: contextColor, bgClass } = useColorContext(() => props.color);
 
 // We don't want to inherit "info" color
 const classProp = computed(() => {
-  if (props.color === undefined && propagatedColor.value === "info") {
+  if (props.color === undefined && contextColor.value === "info") {
     return "bg-primary";
   }
 

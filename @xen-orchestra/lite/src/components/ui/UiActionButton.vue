@@ -1,27 +1,24 @@
 <template>
   <button
     :class="{
-      busy: isBusy,
+      busy: busy,
       disabled: isDisabled,
       active,
       'has-icon': icon !== undefined,
     }"
-    :disabled="isBusy || isDisabled"
-    type="button"
+    :disabled="busy || isDisabled"
     class="ui-action-button"
+    type="button"
   >
-    <UiIcon :busy="isBusy" :icon="icon" />
+    <UiIcon :busy="busy" :icon="icon" />
     <slot />
   </button>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
-import {
-  IK_PROPAGATED_BUSY,
-  IK_PROPAGATED_DISABLED,
-} from "@/types/injection-keys";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 const props = withDefaults(
@@ -31,15 +28,10 @@ const props = withDefaults(
     icon?: IconDefinition;
     active?: boolean;
   }>(),
-  { busy: undefined, disabled: undefined }
+  { disabled: undefined }
 );
 
-const isBusy = usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
-
-const isDisabled = usePropagatedProp(
-  IK_PROPAGATED_DISABLED,
-  () => props.disabled
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

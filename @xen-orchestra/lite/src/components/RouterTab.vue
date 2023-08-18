@@ -7,8 +7,8 @@
 </template>
 
 <script lang="ts" setup>
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
-import { IK_PROPAGATED_DISABLED } from "@/types/injection-keys";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import type { RouteLocationRaw } from "vue-router";
 import UiTab from "@/components/ui/UiTab.vue";
 
@@ -20,10 +20,7 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-const isDisabled = usePropagatedProp(
-  IK_PROPAGATED_DISABLED,
-  () => props.disabled
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped></style>

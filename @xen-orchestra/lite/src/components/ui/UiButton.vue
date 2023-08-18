@@ -1,11 +1,11 @@
 <template>
   <button
     :class="className"
-    :disabled="isBusy || isDisabled"
+    :disabled="busy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <UiSpinner v-if="isBusy" />
+    <UiSpinner v-if="busy" />
     <template v-else>
       <UiIcon :icon="icon" class="icon" />
       <slot />
@@ -15,13 +15,12 @@
 
 <script lang="ts" setup>
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { useColorContext } from "@/composables/color-context.composable";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import {
-  IK_PROPAGATED_BUSY,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
-  IK_PROPAGATED_DISABLED,
 } from "@/types/injection-keys";
 import { computed, inject } from "vue";
 import type { Color } from "@/types";
@@ -40,19 +39,13 @@ const props = withDefaults(
     active?: boolean;
   }>(),
   {
-    busy: undefined,
     disabled: undefined,
     outlined: undefined,
     transparent: undefined,
   }
 );
 
-const isBusy = usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
-
-const isDisabled = usePropagatedProp(
-  IK_PROPAGATED_DISABLED,
-  () => props.disabled
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 
 const isGroupOutlined = inject(
   IK_BUTTON_GROUP_OUTLINED,
@@ -64,13 +57,13 @@ const isGroupTransparent = inject(
   computed(() => false)
 );
 
-const { name: propagatedColor } = usePropagatedColor(() => props.color);
+const { name: contextColor } = useColorContext(() => props.color);
 
 const className = computed(() => {
   return [
-    `color-${propagatedColor.value}`,
+    `color-${contextColor.value}`,
     {
-      busy: isBusy.value,
+      busy: props.busy,
       active: props.active,
       disabled: isDisabled.value,
       outlined: props.outlined ?? isGroupOutlined.value,

@@ -5,14 +5,12 @@
 </template>
 
 <script lang="ts" setup>
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
 import {
-  IK_PROPAGATED_BUSY,
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
-  IK_PROPAGATED_DISABLED,
 } from "@/types/injection-keys";
 import { computed, provide } from "vue";
 
@@ -36,9 +34,8 @@ provide(
   computed(() => props.transparent ?? false)
 );
 
-usePropagatedColor(() => props.color);
-usePropagatedProp(IK_PROPAGATED_BUSY, () => props.busy);
-usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
+useContext(ColorContext, () => props.color);
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

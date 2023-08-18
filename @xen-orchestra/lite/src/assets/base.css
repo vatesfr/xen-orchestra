@@ -47,34 +47,34 @@ code * {
   text-decoration: underline;
 }
 
-.propagated-color-success {
+.context-color-success {
   color: var(--color-green-infra-base);
 }
 
-.propagated-color-error {
+.context-color-error {
   color: var(--color-red-vates-base);
 }
 
-.propagated-color-warning {
+.context-color-warning {
   color: var(--color-orange-world-base);
 }
 
-.propagated-color-info {
+.context-color-info {
   color: var(--color-extra-blue-base);
 }
 
-.propagated-background-color-success {
+.context-background-color-success {
   background-color: var(--background-color-green-infra);
 }
 
-.propagated-background-color-error {
+.context-background-color-error {
   background-color: var(--background-color-red-vates);
 }
 
-.propagated-background-color-warning {
+.context-background-color-warning {
   background-color: var(--background-color-orange-world);
 }
 
-.propagated-background-color-info {
+.context-background-color-info {
   background-color: var(--background-color-extra-blue);
 }
