@@ -1,21 +1,21 @@
 import type { RouteRecordRaw } from "vue-router";
 
-const componentLoaders = import.meta.glob("@/stories/*.story.vue");
-const docLoaders = import.meta.glob("@/stories/*.story.md", { as: "raw" });
+const componentLoaders = import.meta.glob("@/stories/**/*.story.vue");
+const docLoaders = import.meta.glob("@/stories/**/*.story.md", { as: "raw" });
 
 const children: RouteRecordRaw[] = Object.entries(componentLoaders).map(
   ([path, componentLoader]) => {
-    const basename = path.replace(/^\/src\/stories\/(.*)\.story.vue$/, "$1");
+    const basePath = path.replace(/^\/src\/stories\/(.*)\.story.vue$/, "$1");
     const docPath = path.replace(/\.vue$/, ".md");
-    const routeName = `story-${basename}`;
+    const routeName = `story-${basePath}`;
 
     return {
       name: routeName,
-      path: basename,
+      path: basePath,
       component: componentLoader,
       meta: {
         isStory: true,
-        storyTitle: basenameToStoryTitle(basename),
+        storyTitle: basePathToStoryTitle(basePath),
         storyMdLoader: docLoaders[docPath],
       },
     };
@@ -46,8 +46,10 @@ export default {
  *  Basename: `my-component`
  *  Page title: `My Component`
  */
-function basenameToStoryTitle(basename: string) {
-  return basename
+function basePathToStoryTitle(basePath: string) {
+  return basePath
+    .split("/")
+    .pop()!
     .split("-")
     .map((s) => `${s.charAt(0).toUpperCase()}${s.substring(1)}`)
     .join(" ");
