@@ -7,13 +7,9 @@ function getOrCreate(map, key, Klass) {
   return value
 }
 
-function addMaybeMultiple(set, value) {
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      set.add(item)
-    }
-  } else {
-    set.add(value)
+function addMultiple(set, values) {
+  for (const item of values) {
+    set.add(item)
   }
 }
 
@@ -25,7 +21,7 @@ export default function normalizeVmNetworks(networks) {
   const byDevice = new Map()
 
   for (const key of Object.keys(networks).sort()) {
-    let address = networks[key].trim()
+    const address = networks[key].trim()
 
     // Some fields may be emtpy
     // See https://xcp-ng.org/forum/topic/4810/netbox-plugin-error-ipaddr-the-address-has-neither-ipv6-nor-ipv4-format/27?_=1658735770330
@@ -39,6 +35,9 @@ export default function normalizeVmNetworks(networks) {
     }
 
     let [, device, protocol] = matches
+    if (protocol === undefined) {
+      protocol = 'ipv4'
+    }
 
     // Old protocol: when there's more than 1 IP on an interface, the IPs
     // are space or newline delimited in the same `x/ip` field
@@ -50,12 +49,10 @@ export default function normalizeVmNetworks(networks) {
     //   '1/ip': '<IP1> <IP2>',
     // }
     // See https://xcp-ng.org/forum/topic/4810
-    if (protocol === undefined) {
-      protocol = 'ipv4'
-      address = address.split(/\s+/)
-    }
-
-    addMaybeMultiple(getOrCreate(getOrCreate(byDevice, device, Map), protocol, Set), address)
+    //
+    // There may also be multiple IPs in a `x/ipvx/x` field
+    // See https://xcp-ng.org/forum/topic/7625
+    addMultiple(getOrCreate(getOrCreate(byDevice, device, Map), protocol, Set), address.split(/\s+/))
   }
 
   const addressesMap = {}
