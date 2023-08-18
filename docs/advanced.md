@@ -346,6 +346,8 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
       - Extras > custom field
       - IPAM > prefix
     - All permissions on:
+      - DCIM > platform
+      - Extras > tag
       - IPAM > IP address
       - Virtualization > cluster
       - Virtualization > cluster type
