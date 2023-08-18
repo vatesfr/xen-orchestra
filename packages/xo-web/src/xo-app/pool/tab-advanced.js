@@ -365,7 +365,7 @@ export default class TabAdvanced extends Component {
                         xoType='SR'
                       >
                         {crashDumpSr !== undefined ? <Sr id={crashDumpSr} /> : _('noValue')}
-                      </XoSelect>
+                      </XoSelect>{' '}
                       {crashDumpSr !== undefined && (
                         <a onClick={this._onRemoveCrashDumpSr} role='button'>
                           <Icon icon='remove' />
