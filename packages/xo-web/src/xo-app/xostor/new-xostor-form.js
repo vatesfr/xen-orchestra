@@ -23,8 +23,8 @@ const N_HOSTS_MIN = 3
 const N_HOSTS_MAX = 7
 
 const PROVISIONING_OPTIONS = [
-  { value: 'thin', label: 'Thin' },
-  { value: 'thick', label: 'Thick' },
+  { value: 'thin', label: _('thin') },
+  { value: 'thick', label: _('thick') },
 ]
 
 const REPLICATION_OPTIONS = [
@@ -33,21 +33,21 @@ const REPLICATION_OPTIONS = [
   { value: 3, label: '3' },
 ]
 
-const alreadyHaveAXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
+const hasAXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
 const formatDiskName = name => '/dev/' + name
-const isDiskHaveChildren = disk => Array.isArray(disk.children) && disk.children.length > 0
-const isDiskGoodType = disk => disk.type === 'disk' || /^raid/.test(disk.type)
-const isDiskNotMounted = disk => disk.mountpoint === ''
-const isDiskNotRo = disk => disk.ro === '0'
-const isGoodNumberOfHosts = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
-const isXcpngPool = host => host?.productBrand === 'XCP-ng'
-const rendererDiskSelect = disk => (
+const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.length > 0
+const isDiskGoodType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
+const isDiskMounted = disk => disk.mountpoint !== ''
+const isDiskRo = disk => disk.ro === '1'
+const hasGoodNumberOfHosts = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
+const isXcpngHost = host => host?.productBrand === 'XCP-ng'
+const diskSelectRenderer = disk => (
   <span>
     <Icon icon='disk' /> {formatDiskName(disk.name)} {formatSize(Number(disk.size))}
   </span>
 )
 const xostorDiskPredicate = disk =>
-  isDiskGoodType(disk) && isDiskNotRo(disk) && isDiskNotMounted(disk) && !isDiskHaveChildren(disk)
+  isDiskGoodType(disk) && !isDiskRo(disk) && !isDiskMounted(disk) && !diskHasChildren(disk)
 
 // ===================================================================
 
@@ -58,11 +58,13 @@ const StorageCard = decorate([
       <CardHeader>{_('storage')}</CardHeader>
       <CardBlock>
         <Row>
-          <Col size={6}>
+          <Col>
             {_('name')}
             <DebounceInput className='form-control' name='srName' onChange={effects.linkState} value={state.srName} />
           </Col>
-          <Col size={6}>
+        </Row>
+        <Row className='mt-1'>
+          <Col>
             {_('description')}
             <DebounceInput
               className='form-control'
@@ -88,23 +90,23 @@ const SettingsCard = decorate([
     <Card>
       <CardHeader>{_('settings')}</CardHeader>
       <CardBlock>
-        <div>
-          <label>
-            <strong>{_('replication')}</strong>
-          </label>
-          <Select options={REPLICATION_OPTIONS} onChange={effects.onReplicationChange} value={state.replication} />
-          {state.showWarningReplication && (
-            <p className='text-warning'>
-              <Icon icon='alarm' /> {_('xostorReplicationWarning')}
-            </p>
-          )}
-        </div>
-        <div className='form-group'>
-          <label>
-            <strong>{_('provisioning')}</strong>
-          </label>
-          <Select onChange={effects.onProvisioningChange} options={PROVISIONING_OPTIONS} value={state.provisioning} />
-        </div>
+        <Row>
+          <Col>
+            {_('replication')}
+            <Select options={REPLICATION_OPTIONS} onChange={effects.onReplicationChange} value={state.replication} />
+            {state.showWarningReplication && (
+              <p className='text-warning'>
+                <Icon icon='alarm' /> {_('xostorReplicationWarning')}
+              </p>
+            )}
+          </Col>
+        </Row>
+        <Row className='form-group mt-1'>
+          <Col>
+            {_('provisioning')}
+            <Select onChange={effects.onProvisioningChange} options={PROVISIONING_OPTIONS} value={state.provisioning} />
+          </Col>
+        </Row>
       </CardBlock>
     </Card>
   ),
@@ -120,19 +122,18 @@ const PoolCard = decorate([
       toggleState,
     },
     computed: {
-      poolPredicate: (state, props) => pool => {
+      poolPredicate: (state, props) => {
         if (!state.onlyShowXostorPools) {
-          return true
+          return undefined
         }
-        const hostsPool = props.hostsByPoolId?.[pool.id]
-        return (
-          isGoodNumberOfHosts(hostsPool) && isXcpngPool(first(hostsPool)) && !alreadyHaveAXostor(props.srs[pool.id])
-        )
+        return pool => {
+          const poolHosts = props.hostsByPoolId?.[pool.id]
+          return hasGoodNumberOfHosts(poolHosts) && isXcpngHost(first(poolHosts)) && !hasAXostor(props.srs[pool.id])
+        }
       },
-      isPoolGoodNumberOfHosts: state => isGoodNumberOfHosts(state.hostsPool),
-      isPoolAlreadyHaveXostor: (state, props) => alreadyHaveAXostor(props.srs[state.poolId]),
-      isPoolCompatibleXostor: state =>
-        state.isXcpngPool && state.isPoolGoodNumberOfHosts && !state.isPoolAlreadyHaveXostor,
+      poolHasGoodNumberOfHosts: state => hasGoodNumberOfHosts(state.poolHosts),
+      poolHasAXostor: (state, props) => hasAXostor(props.srs[state.poolId]),
+      isPoolXostorCompatible: state => state.isXcpngHost && state.poolHasGoodNumberOfHosts && !state.poolHasAXostor,
     },
   }),
   injectState,
@@ -151,24 +152,20 @@ const PoolCard = decorate([
             {_('onlyShowXostorRequirements', { type: _('pools') })}
           </label>
           <SelectPool onChange={effects.onPoolChange} predicate={state.poolPredicate} value={state.poolId} />
-          {state.hostsPool !== undefined && !state.isPoolCompatibleXostor && (
+          {state.poolHosts !== undefined && !state.isPoolXostorCompatible && (
             <div className='text-danger'>
               {/* FIXME: add link of the documentation when ready */}
               <a href='#' rel='noreferrer' target='_blank'>
                 {_('objectDoesNotMeetXostorRequirements', { object: <PoolRenderItem id={state.poolId} /> })}
               </a>
               <ul>
-                {!state.isXcpngPool && <li>{_('notXcpPool')}</li>}
-                {!state.isPoolGoodNumberOfHosts && <li>{_('wrongNumberOfHosts')}</li>}
-                {state.isPoolAlreadyHaveXostor && <li>{_('poolAlreadyHaveXostor')}</li>}
+                {!state.isXcpngHost && <li>{_('notXcpPool')}</li>}
+                {!state.poolHasGoodNumberOfHosts && <li>{_('wrongNumberOfHosts')}</li>}
+                {state.poolHasAXostor && <li>{_('poolAlreadyHasXostor')}</li>}
               </ul>
             </div>
           )}
           <em>
-            {/*
-              FIXME: If packages are already installed display: '"xcp-ng-release-linstor" and "xcp-ng-linstor" are already installed.'
-              Need to be done when backend is done.
-            */}
             <Icon icon='info' /> {_('xostorPackagesWillBeInstalled')}
           </em>
         </div>
@@ -185,11 +182,11 @@ const NetworkCard = decorate([
     },
     computed: {
       networksPredicate: (state, props) => network => {
-        const filterByPoolId = network.$pool === state.poolId
+        const isOnPool = network.$pool === state.poolId
         const pifs = network.PIFs
         return state.onlyShowXostorNetworks
-          ? filterByPoolId && pifs.length > 0 && pifs.every(pifId => props.pifs[pifId].ip !== '')
-          : filterByPoolId
+          ? isOnPool && pifs.length > 0 && pifs.every(pifId => props.pifs[pifId].ip !== '')
+          : isOnPool
       },
     },
   }),
@@ -235,7 +232,7 @@ const DisksCard = decorate([
     },
     computed: {
       _blockdevices: async state =>
-        state.isHostSelected && state.isXcpngPool ? (await getBlockdevices(state.hostId)).blockdevices : undefined,
+        state.isHostSelected && state.isXcpngHost ? (await getBlockdevices(state.hostId)).blockdevices : undefined,
       _disks: state =>
         state.onlyShowXostorDisks ? state._blockdevices?.filter(xostorDiskPredicate) : state._blockdevices,
       predicate: state => host => host.$pool === state.poolId,
@@ -253,50 +250,48 @@ const DisksCard = decorate([
       <CardBlock>
         <Row>
           <Col size={8}>
-            <Row>
-              <div className={styles.disksSelectors}>
-                <Col size={6}>
-                  <SelectHost
-                    disabled={!state.isPoolSelected}
-                    onChange={effects.onHostChange}
-                    predicate={state.predicate}
-                    value={state.hostId}
-                  />
-                </Col>
-                <Col size={6}>
-                  <label>
-                    <input
-                      checked={state.onlyShowXostorDisks}
-                      onChange={effects.toggleState}
-                      name='onlyShowXostorDisks'
-                      type='checkbox'
-                    />{' '}
-                    {_('onlyShowXostorRequirements', { type: _('disks') })}
-                  </label>
-                  {state.isPoolSelected && !state.isXcpngPool && (
-                    <p className='text-danger mb-0'>
-                      <Icon icon='alarm' /> {_('cantFetchDisksFromNonXcpngHost')}
-                    </p>
-                  )}
-                  <Select
-                    disabled={!state.isHostSelected || !state.isPoolSelected || !state.isXcpngPool}
-                    onChange={effects._onDiskChange}
-                    optionRenderer={rendererDiskSelect}
-                    options={state.isHostSelected ? state.selectableDisks : []}
-                    placeholder={_('selectDisks')}
-                    value={null}
-                  />
-                </Col>
-              </div>
+            <Row className={styles.disksSelectors}>
+              <Col size={6}>
+                <SelectHost
+                  disabled={!state.isPoolSelected}
+                  onChange={effects.onHostChange}
+                  predicate={state.predicate}
+                  value={state.hostId}
+                />
+              </Col>
+              <Col size={6}>
+                <label>
+                  <input
+                    checked={state.onlyShowXostorDisks}
+                    onChange={effects.toggleState}
+                    name='onlyShowXostorDisks'
+                    type='checkbox'
+                  />{' '}
+                  {_('onlyShowXostorRequirements', { type: _('disks') })}
+                </label>
+                {state.isPoolSelected && !state.isXcpngHost && (
+                  <p className='text-danger mb-0'>
+                    <Icon icon='alarm' /> {_('cantFetchDisksFromNonXcpngHost')}
+                  </p>
+                )}
+                <Select
+                  disabled={!state.isHostSelected || !state.isPoolSelected || !state.isXcpngHost}
+                  onChange={effects._onDiskChange}
+                  optionRenderer={diskSelectRenderer}
+                  options={state.isHostSelected ? state.selectableDisks : []}
+                  placeholder={_('selectDisks')}
+                  value={null}
+                />
+              </Col>
             </Row>
-            <Row>
+            <Row className='mt-1'>
               <Col>
-                <ListSelectedDisks hostId={state.hostId} />
+                <SelectedDisks hostId={state.hostId} />
               </Col>
             </Row>
           </Col>
           <Col size={4}>
-            {map(state.hostsPool, host => (
+            {map(state.poolHosts, host => (
               <Collapse
                 buttonText={_('xostorDisksDropdownLabel', {
                   nDisks: state.disksByHost[host.id]?.length ?? 0,
@@ -306,7 +301,7 @@ const DisksCard = decorate([
                 key={host.id}
                 size='small'
               >
-                <ListSelectedDisks hostId={host.id} fromDropdown />
+                <SelectedDisks hostId={host.id} fromDropdown />
               </Collapse>
             ))}
           </Col>
@@ -316,7 +311,7 @@ const DisksCard = decorate([
   ),
 ])
 
-const ListSelectedDisks = decorate([
+const SelectedDisks = decorate([
   provideState({
     effects: {
       _onDiskRemove(_, disk) {
@@ -343,11 +338,11 @@ const ListSelectedDisks = decorate([
 ])
 
 const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
-  const diskGoodType = isDiskGoodType(disk)
-  const diskNotRo = isDiskNotRo(disk)
-  const diskNotMounted = isDiskNotMounted(disk)
-  const diskHaveChildren = isDiskHaveChildren(disk)
-  const isDiskValid = diskGoodType && diskNotRo && diskNotMounted && !diskHaveChildren
+  const _isDiskGoodType = isDiskGoodType(disk)
+  const _isDiskRo = isDiskRo(disk)
+  const _isDiskMounted = isDiskMounted(disk)
+  const _diskHasChildren = diskHasChildren(disk)
+  const isDiskValid = _isDiskGoodType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren
 
   return (
     <li className='list-group-item'>
@@ -364,10 +359,10 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
         <div className='text-danger'>
           <Icon icon='error' /> {_('diskIncompatibleXostor')}
           <ul>
-            {!diskGoodType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
-            {!diskNotRo && <li>{_('diskIsReadOnly')}</li>}
-            {!diskNotMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
-            {diskHaveChildren && <li>{_('diskHaveChildren')}</li>}
+            {!_isDiskGoodType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
+            {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
+            {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
+            {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
           </ul>
         </div>
       )}
@@ -375,7 +370,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   )
 }
 
-const ResumeCard = decorate([
+const SummaryCard = decorate([
   provideState({
     computed: {
       areHostsDisksConsistent: state =>
@@ -393,7 +388,7 @@ const ResumeCard = decorate([
   injectState,
   ({ state }) => (
     <Card>
-      <CardHeader>{_('resume')}</CardHeader>
+      <CardHeader>{_('summary')}</CardHeader>
       <CardBlock>
         {state.isFormInvalid ? (
           <div className='text-danger'>
@@ -401,7 +396,7 @@ const ResumeCard = decorate([
             <ul>
               {state.isReplicationMissing && <li>{_('fieldRequired', { field: _('replication') })}</li>}
               {state.isProvisioningMissing && <li>{_('fieldRequired', { field: _('provisioning') })}</li>}
-              {state.isNameIsMissing && <li>{_('fieldRequired', { field: _('name') })}</li>}
+              {state.isNameMissing && <li>{_('fieldRequired', { field: _('name') })}</li>}
               {state.isDisksMissing && <li>{_('xostorDiskRequired')}</li>}
             </ul>
           </div>
@@ -427,9 +422,9 @@ const ResumeCard = decorate([
               </Col>
             </Row>
             <Row>
-              <Col size={6}>{_('keyValue', { key: _('hostsNumber'), value: state.numberOfHostsWithDisks })}</Col>
+              <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
               <Col size={6}>
-                {_('keyValue', { key: _('approximativeFinalSize'), value: formatSize(state.finalSize) })}
+                {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
               </Col>
             </Row>
           </div>
@@ -493,16 +488,16 @@ const NewXostorForm = decorate([
       _defaultNetworkId: (state, props) => props.networks?.[state._pifManagement?.$network]?.id,
       _pifManagement: (state, props) => find(props.pifs, pif => pif.$pool === state.poolId && pif.management),
       // Utils ============
-      hostsPool: (state, props) => props.hostsByPoolId?.[state.poolId],
+      poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
       numberOfHostsWithDisks: state => state._disksByHostValues.length,
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
-      isNameIsMissing: state => state.srName.trim() === '',
+      isNameMissing: state => state.srName.trim() === '',
       isDisksMissing: state => state.numberOfHostsWithDisks === 0,
       isFormInvalid: state =>
-        state.isReplicationMissing || state.isProvisioningMissing || state.isNameIsMissing || state.isDisksMissing,
-      isXcpngPool: state => isXcpngPool(first(state.hostsPool)),
+        state.isReplicationMissing || state.isProvisioningMissing || state.isNameMissing || state.isDisksMissing,
+      isXcpngHost: state => isXcpngHost(first(state.poolHosts)),
       // State ============
       networkId: state => state._networkId ?? state._defaultNetworkId,
     },
@@ -530,7 +525,7 @@ const NewXostorForm = decorate([
         <DisksCard />
       </Row>
       <Row>
-        <ResumeCard />
+        <SummaryCard />
       </Row>
       <Row>
         <ActionButton btnStyle='primary' disabled={state.isFormInvalid} icon='add'>
