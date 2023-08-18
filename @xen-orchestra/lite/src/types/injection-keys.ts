@@ -2,18 +2,7 @@ import type { FetchedStats, Stat } from "@/composables/fetch-stats.composable";
 import type { HostStats, VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost } from "@/libs/xen-api";
 import type { ValueFormatter } from "@/types/chart";
-import type { Color } from "@/types/index";
 import type { ComputedRef, InjectionKey } from "vue";
-
-export const IK_PROPAGATED_COLOR = Symbol() as InjectionKey<ComputedRef<Color>>;
-
-export const IK_PROPAGATED_BUSY = Symbol() as InjectionKey<
-  ComputedRef<boolean>
->;
-
-export const IK_PROPAGATED_DISABLED = Symbol() as InjectionKey<
-  ComputedRef<boolean>
->;
 
 export const IK_MENU_TELEPORTED = Symbol() as InjectionKey<boolean>;
 

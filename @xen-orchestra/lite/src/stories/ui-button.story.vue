@@ -3,10 +3,10 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('type').enum('submit', 'button', 'reset').default('button'),
-      prop('busy').bool().widget().help('Propagated*'),
-      prop('disabled').bool().widget().help('Propagated*'),
+      prop('busy').bool().widget(),
+      prop('disabled').bool().widget().ctx(),
       iconProp(),
-      colorProp().help('Propagated*'),
+      colorProp().ctx(),
       prop('outlined').bool().widget(),
       prop('transparent').bool().widget(),
       prop('active').bool().widget(),

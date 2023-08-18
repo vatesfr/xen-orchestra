@@ -91,12 +91,6 @@
   <UiCard v-if="documentation !== undefined" class="documentation">
     <AppMarkdown :content="documentation" />
   </UiCard>
-
-  <UiCard class="footnotes">
-    * If a prop is marked as "propagated", it means that it will take its
-    default value from the parent chain, and this value can be overridden for
-    itself and its descendants.
-  </UiCard>
 </template>
 
 <script lang="ts" setup>
@@ -352,9 +346,5 @@ const applyPreset = (preset: {
   .ui-title {
     margin-bottom: 1rem;
   }
-}
-
-.footnotes {
-  margin: 1rem;
 }
 </style>

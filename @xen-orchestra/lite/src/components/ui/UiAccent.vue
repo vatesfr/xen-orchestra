@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
+import { useColorContext } from "@/composables/color-context.composable";
 import type { Color } from "@/types";
 
 const props = withDefaults(
@@ -16,7 +16,7 @@ const props = withDefaults(
   { tag: "span" }
 );
 
-const { textClass } = usePropagatedColor(() => props.color);
+const { textClass } = useColorContext(() => props.color);
 </script>
 
 <style scoped lang="postcss"></style>

@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('tag').str().default('span').widget(),
-      colorProp().help('Propagated*'),
+      colorProp().ctx(),
       slot(),
       setting('defaultSlotContent')
         .preset('Example content for default slot')

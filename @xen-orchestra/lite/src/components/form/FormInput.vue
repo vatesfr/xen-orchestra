@@ -52,14 +52,10 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { usePropagatedColor } from "@/composables/propagated-color.composable";
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
-import {
-  IK_PROPAGATED_DISABLED,
-  IK_INPUT_ID,
-  IK_INPUT_TYPE,
-} from "@/types/injection-keys";
+import { IK_INPUT_ID, IK_INPUT_TYPE } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { useTextareaAutosize, useVModel } from "@vueuse/core";
@@ -91,7 +87,7 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-const { name: propagatedColor } = usePropagatedColor(() => props.color);
+const contextColor = useContext(ColorContext, () => props.color);
 
 const inputElement = ref();
 
@@ -105,10 +101,7 @@ const isEmpty = computed(
 );
 const inputType = inject(IK_INPUT_TYPE, "input");
 
-const isDisabled = usePropagatedProp(
-  IK_PROPAGATED_DISABLED,
-  () => props.disabled
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 
 const wrapperClass = computed(() => [
   `form-${inputType}`,
@@ -119,7 +112,7 @@ const wrapperClass = computed(() => [
 ]);
 
 const inputClass = computed(() => [
-  propagatedColor.value,
+  contextColor.value,
   {
     right: props.right,
     "has-before": props.before !== undefined,

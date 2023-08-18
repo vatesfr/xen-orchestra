@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
-import { IK_PROPAGATED_DISABLED } from "@/types/injection-keys";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 
 const props = withDefaults(
   defineProps<{
@@ -15,7 +15,7 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

@@ -14,10 +14,10 @@
 </template>
 
 <script lang="ts" setup>
-import { usePropagatedProp } from "@/composables/propagated-prop.composable";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 import {
   IK_CLOSE_MENU,
-  IK_PROPAGATED_DISABLED,
   IK_MENU_HORIZONTAL,
   IK_MENU_TELEPORTED,
 } from "@/types/injection-keys";
@@ -51,7 +51,7 @@ provide(
   computed(() => props.horizontal ?? false)
 );
 
-usePropagatedProp(IK_PROPAGATED_DISABLED, () => props.disabled);
+useContext(DisabledContext, () => props.disabled);
 
 let clearClickOutsideEvent: (() => void) | undefined;
 

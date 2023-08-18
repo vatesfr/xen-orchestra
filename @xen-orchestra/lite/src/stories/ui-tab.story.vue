@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('disabled').bool().widget().help('Propagated*'),
+      prop('disabled').bool().widget().ctx(),
       prop('active').bool().widget(),
       prop('tag').str().default('span'),
       slot(),
