@@ -4,7 +4,7 @@
       v-if="label !== undefined || learnMoreUrl !== undefined"
       class="label-container"
     >
-      <label :for="id" class="label">
+      <label :class="{ light }" :for="id" class="label">
         <UiIcon :icon="icon" />
         {{ label }}
       </label>
@@ -58,6 +58,7 @@ const props = withDefaults(
     error?: string;
     help?: string;
     disabled?: boolean;
+    light?: boolean;
   }>(),
   { disabled: undefined }
 );
@@ -95,14 +96,24 @@ useContext(DisabledContext, () => props.disabled);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .label {
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--color-blue-scale-100);
-  font-size: 1.4rem;
   padding: 1rem 0;
+
+  &.light {
+    font-size: 1.6rem;
+    color: var(--color-blue-scale-300);
+    font-weight: 400;
+  }
+
+  &:not(.light) {
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-blue-scale-100);
+  }
 }
 
 .messages-container {
