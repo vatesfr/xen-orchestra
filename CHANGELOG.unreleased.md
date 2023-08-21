@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backups] Ability to set the NBD mode per backup job in the UI instead of globally in the config file (PR [#6995](https://github.com/vatesfr/xen-orchestra/pull/6995))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -29,6 +31,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
+- @xen-orchestra/xapi minor
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->
