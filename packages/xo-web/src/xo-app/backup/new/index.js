@@ -1022,9 +1022,13 @@ const New = decorate([
                             value={fullInterval}
                           />
                           <label htmlFor={state.inputPreferNbd}>
-                            <strong>Use NBD if available</strong>
+                            <strong>{_('preferNbd')}</strong>{' '}
+                            <Tooltip content={_('preferNbdInformation')}>
+                              <Icon icon='info' />
+                            </Tooltip>
                           </label>
                           <Toggle
+                            className='pull-right'
                             id={state.inputPreferNbd}
                             name='preferNbd'
                             value={preferNbd}

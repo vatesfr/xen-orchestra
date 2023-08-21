@@ -565,6 +565,8 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
+  preferNbd: 'Use NBD protocol to transfer disk if available',
+  preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
