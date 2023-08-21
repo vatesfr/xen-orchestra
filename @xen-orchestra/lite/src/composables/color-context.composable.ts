@@ -8,18 +8,18 @@ export const useColorContext = (
 ) => {
   const name = useContext(ColorContext, newColor);
 
-  const textColor = computed(() => `context-color-${name.value}`);
+  const textClass = computed(() => `context-color-${name.value}`);
 
-  const backgroundColor = computed(
+  const backgroundClass = computed(
     () => `context-background-color-${name.value}`
   );
 
-  const borderColor = computed(() => `context-border-color-${name.value}`);
+  const borderClass = computed(() => `context-border-color-${name.value}`);
 
   return {
     name,
-    textColor,
-    backgroundColor,
-    borderColor,
+    textClass,
+    backgroundClass,
+    borderClass,
   };
 };

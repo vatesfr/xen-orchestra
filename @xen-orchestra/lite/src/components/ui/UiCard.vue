@@ -13,7 +13,7 @@ const props = defineProps<{
   color?: Color;
 }>();
 
-const { name: contextColor, backgroundColor } = useColorContext(
+const { name: contextColor, backgroundClass } = useColorContext(
   () => props.color
 );
 
@@ -23,7 +23,7 @@ const classProp = computed(() => {
     return "bg-primary";
   }
 
-  return backgroundColor.value;
+  return backgroundClass.value;
 });
 </script>
 

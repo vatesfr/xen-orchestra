@@ -14,7 +14,7 @@
   >
     <template #title>
       <i18n-t keypath="confirm-delete" scope="global" tag="div">
-        <span :class="textColor">
+        <span :class="textClass">
           {{ $t("n-vms", { n: vmRefs.length }) }}
         </span>
       </i18n-t>
@@ -72,5 +72,5 @@ const deleteVms = async () => {
   closeDeleteModal();
 };
 
-const { textColor } = useColorContext();
+const { textClass } = useColorContext();
 </script>
