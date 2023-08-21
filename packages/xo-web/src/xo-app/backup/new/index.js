@@ -21,7 +21,7 @@ import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
-import { Number } from 'form'
+import { Number, Toggle } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
@@ -148,6 +148,7 @@ const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
+          preferNbd: undefined,
         }
       : setting
   )
@@ -187,6 +188,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     deltaMode: false,
     drMode: false,
     name: '',
+    preferNbd: false,
     remotes: [],
     schedules: {},
     settings: undefined,
@@ -213,12 +215,11 @@ export const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
 )
 
 const New = decorate([
-  New => props =>
-    (
-      <Upgrade place='newBackup' required={2}>
-        <New {...props} />
-      </Upgrade>
-    ),
+  New => props => (
+    <Upgrade place='newBackup' required={2}>
+      <New {...props} />
+    </Upgrade>
+  ),
   connectStore(() => ({
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
@@ -621,6 +622,13 @@ const New = decorate([
             offlineBackup,
           })
         },
+      setPreferNbd:
+        ({ setGlobalSettings }, preferNbd) =>
+        () => {
+          setGlobalSettings({
+            preferNbd,
+          })
+        },
     },
     computed: {
       compressionId: generateId,
@@ -628,6 +636,7 @@ const New = decorate([
       inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
       inputMaxExportRate: generateId,
+      inputPreferNbd: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -741,6 +750,7 @@ const New = decorate([
       maxExportRate,
       offlineBackup,
       offlineSnapshot,
+      preferNbd,
       reportRecipients,
       reportWhen = 'failure',
       timeout,
@@ -1010,6 +1020,15 @@ const New = decorate([
                             id={state.inputFullIntervalId}
                             onChange={effects.setFullInterval}
                             value={fullInterval}
+                          />
+                          <label htmlFor={state.inputPreferNbd}>
+                            <strong>Use NBD if available</strong>
+                          </label>
+                          <Toggle
+                            id={state.inputPreferNbd}
+                            name='preferNbd'
+                            value={preferNbd}
+                            onChange={effects.setPreferNbd}
                           />
                         </FormGroup>
                       )}

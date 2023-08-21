@@ -41,6 +41,7 @@ export async function exportIncrementalVm(
     fullVdisRequired = new Set(),
 
     disableBaseTags = false,
+    preferNbd,
   } = {}
 ) {
   // refs of VM's VDIs → base's VDIs.
@@ -88,6 +89,7 @@ export async function exportIncrementalVm(
       baseRef: baseVdi?.$ref,
       cancelToken,
       format: 'vhd',
+      preferNbd,
     })
   })
 

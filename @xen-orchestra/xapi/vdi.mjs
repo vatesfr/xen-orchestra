@@ -83,7 +83,7 @@ class Vdi {
     }
   }
 
-  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format }) {
+  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format, preferNbd = this._preferNbd }) {
     const query = {
       format,
       vdi: ref,
@@ -96,7 +96,7 @@ class Vdi {
     }
     let nbdClient, stream
     try {
-      if (this._preferNbd) {
+      if (preferNbd === true) {
         nbdClient = await this._getNbdClient(ref)
       }
       // the raw nbd export does not need to peek ath the vhd source
