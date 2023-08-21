@@ -78,3 +78,19 @@ code * {
 .context-background-color-info {
   background-color: var(--background-color-extra-blue);
 }
+
+.context-border-color-success {
+  border-color: var(--color-green-infra-base);
+}
+
+.context-border-color-error {
+  border-color: var(--color-red-vates-base);
+}
+
+.context-border-color-warning {
+  border-color: var(--color-orange-world-base);
+}
+
+.context-border-color-info {
+  border-color: var(--color-extra-blue-base);
+}

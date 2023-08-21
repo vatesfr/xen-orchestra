@@ -23,7 +23,7 @@ const props = withDefaults(
     transparent?: boolean;
     merge?: boolean;
   }>(),
-  { disabled: undefined, busy: undefined }
+  { disabled: undefined }
 );
 provide(
   IK_BUTTON_GROUP_OUTLINED,

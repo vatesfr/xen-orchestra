@@ -13,7 +13,9 @@ const props = defineProps<{
   color?: Color;
 }>();
 
-const { name: contextColor, bgClass } = useColorContext(() => props.color);
+const { name: contextColor, backgroundColor } = useColorContext(
+  () => props.color
+);
 
 // We don't want to inherit "info" color
 const classProp = computed(() => {
@@ -21,7 +23,7 @@ const classProp = computed(() => {
     return "bg-primary";
   }
 
-  return bgClass.value;
+  return backgroundColor.value;
 });
 </script>
 
