@@ -73,6 +73,10 @@ const isDisabled = computed(
   () => vms.value.length === 0 || areSomeVmsInExecution.value
 );
 
+const isDisabled = computed(
+  () => vms.value.length === 0 || areSomeVmsInExecution.value
+);
+
 const deleteVms = async () => {
   await xenApi.vm.delete(props.vmRefs);
   closeDeleteModal();
