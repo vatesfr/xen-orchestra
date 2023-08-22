@@ -24,7 +24,7 @@ import type { LinearChartData } from "@/types/chart";
 import { map } from "lodash-es";
 import NoDataError from "@/components/NoDataError.vue";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
+import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";

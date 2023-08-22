@@ -20,7 +20,7 @@ import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
+import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import { useHostStore } from "@/stores/host.store";
 
 const { hasError } = useHostCollection();

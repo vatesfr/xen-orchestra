@@ -29,7 +29,7 @@ import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import NoDataError from "@/components/NoDataError.vue";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import { sumBy } from "lodash-es";
-import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
+import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
@@ -112,3 +112,4 @@ const isLoading = computed(() => isFetching.value || !isStatFetched.value);
 
 const customValueFormatter: ValueFormatter = (value) => `${value}%`;
 </script>
+@/types/enums

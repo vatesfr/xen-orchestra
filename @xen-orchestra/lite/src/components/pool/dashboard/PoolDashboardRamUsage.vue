@@ -6,7 +6,6 @@
         <UiSpinner v-tooltip="$t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
-    <UiCardTitle>{{ $t("ram-usage") }}</UiCardTitle>
     <HostsRamUsage />
     <VmsRamUsage />
   </UiCard>

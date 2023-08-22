@@ -1,52 +1,20 @@
 <template>
-  <div
-    :class="[
-      'ui-section-title',
-      level === UI_CARD_TITLE_LEVEL.SUBTITLE ? 'subtitle' : '',
-      level === UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE
-        ? 'subtitle-with-underline'
-        : '',
-    ]"
-  >
-    <component
-      :is="
-        level === UI_CARD_TITLE_LEVEL.TITLE
-          ? 'h4'
-          : UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE
-          ? 'h5'
-          : 'h6'
-      "
-      v-if="$slots.default || left"
-      class="left"
-    >
+  <div :class="['ui-section-title', tags.left]">
+    <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
       <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
     </component>
-    <component
-      :is="level === UI_CARD_TITLE_LEVEL.TITLE ? 'h5' : 'h6'"
-      v-if="$slots.right || right"
-      class="right"
-    >
+    <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
     </component>
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiCounter from "@/components/ui/UiCounter.vue";
-import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
+import { computed } from "vue";
+import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 
-
-withDefaults(
-  defineProps<{
-    subtitle?: boolean;
-    left?: string;
-    right?: string;
-    count?: number;
-  }>(),
-  { count: 0 }
-
-withDefaults(
+const props = withDefaults(
   defineProps<{
     level?: UI_CARD_TITLE_LEVEL;
     left?: string;
@@ -54,6 +22,17 @@ withDefaults(
   }>(),
   { level: UI_CARD_TITLE_LEVEL.TITLE }
 );
+
+const tags = computed(() => {
+  switch (props.level) {
+    case UI_CARD_TITLE_LEVEL.SUBTITLE:
+      return { left: "h6", right: "h6" };
+    case UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE:
+      return { left: "h5", right: "h6" };
+    default:
+      return { left: "h4", right: "h5" };
+  }
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -69,14 +48,14 @@ withDefaults(
   --section-title-right-color: var(--color-extra-blue-base);
   --section-title-right-weight: 700;
 
-  &.subtitle {
+  &.h6 {
     margin-bottom: 1rem;
     --section-title-left-size: 1.5rem;
     --section-title-left-color: var(--color-blue-scale-300);
     --section-title-left-weight: 400;
   }
 
-  &.subtitle-with-underline {
+  &.h5 {
     margin-top: 2rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--color-extra-blue-base);

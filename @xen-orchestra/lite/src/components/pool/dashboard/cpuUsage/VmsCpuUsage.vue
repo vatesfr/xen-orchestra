@@ -9,17 +9,11 @@
 </template>
 
 <script lang="ts" setup>
-<<<<<<< HEAD
 import NoDataError from "@/components/NoDataError.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { getAvgCpuUsage } from "@/libs/utils";
-=======
-import { computed, inject, type ComputedRef } from "vue";
-import { getAvgCpuUsage } from "@/libs/utils";
-import { HEADING_LEVEL } from "@/components/enums";
->>>>>>> 9684aa20e (fixes)
 import { IK_VM_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
