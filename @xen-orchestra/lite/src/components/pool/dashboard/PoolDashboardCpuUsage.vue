@@ -15,6 +15,7 @@ import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 import HostsCpuUsage from "@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue";
+import VmsCpuUsage from "@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { computed, inject, type ComputedRef } from "vue";

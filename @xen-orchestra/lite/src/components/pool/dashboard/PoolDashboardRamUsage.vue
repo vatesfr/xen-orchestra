@@ -12,18 +12,18 @@
 </template>
 
 <script lang="ts" setup>
+import { vTooltip } from "@/directives/tooltip.directive";
+import HostsRamUsage from "@/components/pool/dashboard/ramUsage/HostsRamUsage.vue";
+import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { computed, inject } from "vue";
 import type { ComputedRef } from "vue";
 import type { HostStats, VmStats } from "@/libs/xapi-stats";
-import HostsRamUsage from "@/components/pool/dashboard/ramUsage/HostsRamUsage.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";
-import UiCard from "@/components/ui/UiCard.vue";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
-import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";
-import { vTooltip } from "@/directives/tooltip.directive";
 
 const { hasError: hasVmError } = useVmCollection();
 const { hasError: hasHostError } = useHostCollection();
