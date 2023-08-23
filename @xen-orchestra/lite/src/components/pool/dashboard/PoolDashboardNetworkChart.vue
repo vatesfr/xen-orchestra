@@ -28,8 +28,8 @@ import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
 import { useI18n } from "vue-i18n";
-import { useHostStore } from "@/stores/host.store";
 
 const { t } = useI18n();
 
@@ -38,7 +38,7 @@ const LinearChart = defineAsyncComponent(
 );
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
-const { hasError, isFetching } = useHostStore().subscribe();
+const { hasError, isFetching } = useHostCollection();
 
 const data = computed<LinearChartData>(() => {
   const stats = hostLastWeekStats?.stats?.value;

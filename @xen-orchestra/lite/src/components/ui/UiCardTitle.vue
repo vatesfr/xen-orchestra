@@ -16,11 +16,12 @@ import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 
 const props = withDefaults(
   defineProps<{
+    count?: number;
     level?: UI_CARD_TITLE_LEVEL;
     left?: string;
     right?: string;
   }>(),
-  { level: UI_CARD_TITLE_LEVEL.TITLE }
+  { count: 0, level: UI_CARD_TITLE_LEVEL.TITLE }
 );
 
 const tags = computed(() => {

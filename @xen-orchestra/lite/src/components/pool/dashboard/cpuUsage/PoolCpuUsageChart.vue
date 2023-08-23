@@ -16,12 +16,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import type { HostStats } from "@/libs/xapi-stats";
-import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { LinearChartData, ValueFormatter } from "@/types/chart";
-import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
-import { sumBy } from "lodash-es";
 import { computed, defineAsyncComponent, inject } from "vue";
 import type { HostStats } from "@/libs/xapi-stats";
 import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
@@ -29,12 +23,12 @@ import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import NoDataError from "@/components/NoDataError.vue";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import { sumBy } from "lodash-es";
-import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCard from "@/components/ui/UiCard.vue";
+import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
-import { useI18n } from "vue-i18n";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useI18n } from "vue-i18n";
 
 const LinearChart = defineAsyncComponent(
   () => import("@/components/charts/LinearChart.vue")
@@ -112,4 +106,3 @@ const isLoading = computed(() => isFetching.value || !isStatFetched.value);
 
 const customValueFormatter: ValueFormatter = (value) => `${value}%`;
 </script>
-@/types/enums
