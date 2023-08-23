@@ -16,7 +16,7 @@
 
 <script lang="ts" setup>
 import InfraHostItem from "@/components/infra/InfraHostItem.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 
 const { records: hosts, isReady, hasError } = useHostCollection();
 </script>

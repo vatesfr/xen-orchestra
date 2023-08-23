@@ -28,10 +28,10 @@
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiHost } from "@/libs/xen-api";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faAngleDown,

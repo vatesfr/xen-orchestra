@@ -7,12 +7,12 @@
 </template>
 
 <script
-  generic="T extends XenApiRecord<RawObjectType>, I extends T['uuid']"
+  generic="T extends XenApiRecord<ObjectType>, I extends T['uuid']"
   lang="ts"
   setup
 >
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import type { RawObjectType, XenApiRecord } from "@/libs/xen-api";
+import type { ObjectType, XenApiRecord } from "@/libs/xen-api/xen-api.types";
 import ObjectNotFoundView from "@/views/ObjectNotFoundView.vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";

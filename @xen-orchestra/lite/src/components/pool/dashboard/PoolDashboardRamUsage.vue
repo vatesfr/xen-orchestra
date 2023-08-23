@@ -12,8 +12,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 import HostsRamUsage from "@/components/pool/dashboard/ramUsage/HostsRamUsage.vue";
 import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";

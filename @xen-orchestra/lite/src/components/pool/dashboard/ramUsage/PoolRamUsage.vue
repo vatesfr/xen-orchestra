@@ -17,8 +17,8 @@
 
 <script lang="ts" setup>
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { useHostMetricsCollection } from "@/composables/xen-api-collection/host-metrics-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
 import { formatSize } from "@/libs/utils";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";

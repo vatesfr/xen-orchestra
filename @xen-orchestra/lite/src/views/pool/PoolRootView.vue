@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import PoolHeader from "@/components/pool/PoolHeader.vue";
 import PoolTabBar from "@/components/pool/PoolTabBar.vue";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { usePageTitleStore } from "@/stores/page-title.store";
 
 const { pool } = usePoolCollection();

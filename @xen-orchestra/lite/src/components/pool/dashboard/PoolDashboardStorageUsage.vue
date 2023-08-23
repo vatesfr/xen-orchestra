@@ -23,7 +23,7 @@ import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
-import { useSrCollection } from "@/composables/xen-api-collection/sr-collection.composable";
+import { useSrCollection } from "@/stores/xen-api/sr.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed } from "vue";
 

@@ -1,6 +1,6 @@
 import type { FetchedStats, Stat } from "@/composables/fetch-stats.composable";
 import type { HostStats, VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost } from "@/libs/xen-api";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import type { ValueFormatter } from "@/types/chart";
 import type { ComputedRef, InjectionKey } from "vue";
 

@@ -1,7 +1,7 @@
 <template>Chargement en cours...</template>
 
 <script lang="ts" setup>
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { whenever } from "@vueuse/core";
 import { useRouter } from "vue-router";
 

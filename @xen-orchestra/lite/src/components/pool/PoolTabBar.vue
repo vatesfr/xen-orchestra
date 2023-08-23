@@ -33,7 +33,7 @@
 <script lang="ts" setup>
 import RouterTab from "@/components/RouterTab.vue";
 import UiTabBar from "@/components/ui/UiTabBar.vue";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 
 const { pool, isReady } = usePoolCollection();
 </script>

@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { computed } from "vue";
 import { exportVmsAsCsvFile, exportVmsAsJsonFile } from "@/libs/vm";
 import MenuItem from "@/components/menu/MenuItem.vue";
@@ -38,7 +38,7 @@ import {
   faFileExport,
 } from "@fortawesome/free-solid-svg-icons";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiVm } from "@/libs/xen-api";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 
 const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
