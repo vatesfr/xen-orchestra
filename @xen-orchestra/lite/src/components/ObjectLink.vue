@@ -17,26 +17,33 @@ import { useHostStore } from "@/stores/xen-api/host.store";
 import { usePoolStore } from "@/stores/xen-api/pool.store";
 import { useSrStore } from "@/stores/xen-api/sr.store";
 import { useVmStore } from "@/stores/xen-api/vm.store";
+import type { StoreDefinition } from "pinia";
 import { computed, onUnmounted, watch } from "vue";
+import type { RouteRecordName } from "vue-router";
 
 type HandledTypes = "host" | "vm" | "sr" | "pool";
 type XRecord = ObjectTypeToRecord<T>;
+type Config = Record<
+  HandledTypes,
+  {
+    useStore: StoreDefinition;
+    routeName: RouteRecordName | undefined;
+  }
+>;
 
 const props = defineProps<{
   type: T;
   uuid: XRecord["uuid"];
 }>();
 
-const stores = {
-  host: useHostStore,
-  vm: useVmStore,
-  sr: useSrStore,
-  pool: usePoolStore,
-} satisfies Record<HandledTypes, any>;
+const config: Config = {
+  host: { useStore: useHostStore, routeName: "host.dashboard" },
+  vm: { useStore: useVmStore, routeName: "vm.console" },
+  sr: { useStore: useSrStore, routeName: undefined },
+  pool: { useStore: usePoolStore, routeName: "pool.dashboard" },
+};
 
-const store = computed(() => {
-  return stores[props.type as HandledTypes]?.();
-});
+const store = computed(() => config[props.type as HandledTypes]?.useStore());
 
 const subscriptionId = Symbol();
 
@@ -57,19 +64,15 @@ const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(
   () => store.value?.getByUuid(props.uuid as any)
 );
 
-const routes: Partial<Record<ObjectType, string | undefined>> = {
-  host: "host.dashboard",
-  vm: "vm.console",
-  pool: "pool.dashboard",
-  sr: undefined,
-} satisfies Record<HandledTypes, string | undefined>;
-
 const objectRoute = computed(() => {
-  if (routes[props.type] === undefined) {
+  if (config[props.type as HandledTypes]?.routeName === undefined) {
     return;
   }
 
-  return { name: routes[props.type], params: { uuid: props.uuid } };
+  return {
+    name: config[props.type as HandledTypes].routeName,
+    params: { uuid: props.uuid },
+  };
 });
 </script>
 
