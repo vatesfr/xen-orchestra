@@ -1,22 +1,22 @@
 import type { GetStats } from "@/composables/fetch-stats.composable";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
 import { sortRecordsByNameLabel } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import type { VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
 import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { useHostStore } from "@/stores/xen-api/host.store";
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
 import { castArray } from "lodash-es";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const useVmStore = defineStore("xen-api-vm", () => {
-  const baseStore = createXenApiStore("vm");
+  const context = useXenApiStoreSubscribableContext("vm");
 
   const records = computed(() =>
-    baseStore.records.value
+    context.records.value
       .filter(
         (vm) => !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain
       )
@@ -63,7 +63,7 @@ export const useVmStore = defineStore("xen-api-vm", () => {
       return undefined;
     }
 
-    const vm = baseStore.getByUuid(id);
+    const vm = context.getByUuid(id);
 
     if (vm === undefined) {
       throw new Error(`VM ${id} could not be found.`);
@@ -87,7 +87,7 @@ export const useVmStore = defineStore("xen-api-vm", () => {
   }) as GetStats<XenApiVm>;
 
   return {
-    ...baseStore,
+    ...context,
     records,
     isOperationPending,
     runningVms,
@@ -96,4 +96,4 @@ export const useVmStore = defineStore("xen-api-vm", () => {
   };
 });
 
-export const useVmCollection = createSubscriber(useVmStore);
+export const useVmCollection = createUseCollection(useVmStore);

@@ -1,13 +1,13 @@
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
 import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";
 
 export const useHostMetricsStore = defineStore("xen-api-host-metrics", () => {
-  const baseStore = createXenApiStore("host_metrics");
+  const context = useXenApiStoreSubscribableContext("host_metrics");
 
   const getHostMemory = (host: XenApiHost) => {
-    const hostMetrics = baseStore.getByOpaqueRef(host.metrics);
+    const hostMetrics = context.getByOpaqueRef(host.metrics);
 
     if (hostMetrics !== undefined) {
       const total = +hostMetrics.memory_total;
@@ -19,14 +19,15 @@ export const useHostMetricsStore = defineStore("xen-api-host-metrics", () => {
   };
 
   const isHostRunning = (host: XenApiHost) => {
-    return baseStore.getByOpaqueRef(host.metrics)?.live === true;
+    return context.getByOpaqueRef(host.metrics)?.live === true;
   };
 
   return {
-    ...baseStore,
+    ...context,
     getHostMemory,
     isHostRunning,
   };
 });
 
-export const useHostMetricsCollection = createSubscriber(useHostMetricsStore);
+export const useHostMetricsCollection =
+  createUseCollection(useHostMetricsStore);

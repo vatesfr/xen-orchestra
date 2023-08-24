@@ -3,13 +3,13 @@ import useCollectionFilter from "@/composables/collection-filter.composable";
 import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
 import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";
 
 export const useTaskStore = defineStore("xen-api-task", () => {
-  const baseStore = createXenApiStore("task");
+  const context = useXenApiStoreSubscribableContext("task");
 
   const { compareFn } = useCollectionSorter<XenApiTask>({
     initialSorts: ["-created"],
@@ -22,7 +22,7 @@ export const useTaskStore = defineStore("xen-api-task", () => {
     ],
   });
 
-  const sortedTasks = useSortedCollection(baseStore.records, compareFn);
+  const sortedTasks = useSortedCollection(context.records, compareFn);
 
   const pendingTasks = useFilteredCollection<XenApiTask>(
     sortedTasks,
@@ -43,10 +43,10 @@ export const useTaskStore = defineStore("xen-api-task", () => {
   );
 
   return {
-    ...baseStore,
+    ...context,
     pendingTasks,
     finishedTasks: useSortedCollection(finishedTasks, compareFn),
   };
 });
 
-export const useTaskCollection = createSubscriber(useTaskStore);
+export const useTaskCollection = createUseCollection(useTaskStore);

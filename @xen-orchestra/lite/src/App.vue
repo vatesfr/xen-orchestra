@@ -72,9 +72,12 @@ if (import.meta.env.DEV) {
   );
 }
 
-whenever(pool, async (pool) => {
-  void xenApiStore.getXapi().startWatching(pool);
-});
+whenever(
+  () => pool.value?.$ref,
+  (poolRef) => {
+    xenApiStore.getXapi().startWatching(poolRef);
+  }
+);
 </script>
 
 <style lang="postcss">

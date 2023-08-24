@@ -1,20 +1,18 @@
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
 import type { XenApiPool } from "@/libs/xen-api/xen-api.types";
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const usePoolStore = defineStore("xen-api-pool", () => {
-  const baseStore = createXenApiStore("pool");
+  const context = useXenApiStoreSubscribableContext("pool");
 
-  const pool = computed<XenApiPool | undefined>(
-    () => baseStore.records.value[0]
-  );
+  const pool = computed<XenApiPool | undefined>(() => context.records.value[0]);
 
   return {
-    ...baseStore,
+    ...context,
     pool,
   };
 });
 
-export const usePoolCollection = createSubscriber(usePoolStore);
+export const usePoolCollection = createUseCollection(usePoolStore);

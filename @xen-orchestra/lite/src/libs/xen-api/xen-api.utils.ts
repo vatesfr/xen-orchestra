@@ -1,7 +1,9 @@
 import type {
   ObjectType,
   RawObjectType,
+  RawTypeToType,
   RawXenApiRecord,
+  TypeToRawType,
   XenApiRecord,
 } from "@/libs/xen-api/xen-api.types";
 
@@ -62,11 +64,13 @@ export const XEN_API_OBJECT_TYPES = {
   tunnel: "tunnel",
 } as const;
 
-export const getRawObjectType = <Type extends ObjectType>(
+export const rawTypeToType = <RawType extends RawObjectType>(
+  rawType: RawType
+): RawTypeToType<RawType> => rawType.toLowerCase() as Lowercase<RawType>;
+
+export const typeToRawType = <Type extends ObjectType>(
   type: Type
-): RawObjectType<Type> => {
-  return XEN_API_OBJECT_TYPES[type];
-};
+): TypeToRawType<Type> => XEN_API_OBJECT_TYPES[type];
 
 export enum POWER_STATE {
   RUNNING = "Running",

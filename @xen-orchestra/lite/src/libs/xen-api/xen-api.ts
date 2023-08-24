@@ -6,19 +6,24 @@ import type {
   XenApiHost,
   XenApiPool,
   XenApiRecordAddEvent,
+  XenApiRecordAfterLoadEvent,
+  XenApiRecordBeforeLoadEvent,
   XenApiRecordDelEvent,
   XenApiRecordEvent,
   XenApiRecordModEvent,
   XenApiVm,
 } from "@/libs/xen-api/xen-api.types";
-import { buildXoObject, getRawObjectType } from "@/libs/xen-api/xen-api.utils";
+import { buildXoObject, typeToRawType } from "@/libs/xen-api/xen-api.utils";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
 
 export default class XenApi {
   private client: JSONRPCClient;
   private sessionId: string | undefined;
-  private events = new Map<XenApiRecordEvent, Set<(record: any) => void>>();
+  private events = new Map<
+    XenApiRecordEvent<any>,
+    Set<(...args: any[]) => void>
+  >();
   private fromToken: string | undefined;
 
   constructor(hostUrl: string) {
@@ -103,16 +108,35 @@ export default class XenApi {
     Type extends ObjectType,
     XRecord extends ObjectTypeToRecord<Type>,
   >(type: Type): Promise<XRecord[]> {
+    this.emitEvent(`${type}.beforeLoad`);
+
     const result = await this.call<
       Record<XRecord["$ref"], RawXenApiRecord<XRecord>>
-    >(`${getRawObjectType(type)}.get_all_records`);
+    >(`${typeToRawType(type)}.get_all_records`);
 
-    return Object.entries(result).map(([opaqueRef, record]) =>
+    const records = Object.entries(result).map(([opaqueRef, record]) =>
       buildXoObject(record as RawXenApiRecord<XRecord>, {
         opaqueRef: opaqueRef as XRecord["$ref"],
       })
     );
+
+    this.emitEvent(`${type}.afterLoad`, records);
+
+    return records;
   }
+
+  addEventListener<
+    Type extends ObjectType,
+    XRecord extends ObjectTypeToRecord<Type>,
+  >(
+    event: XenApiRecordAfterLoadEvent<Type>,
+    callback: (records: XRecord[]) => void
+  ): void;
+
+  addEventListener<Type extends ObjectType>(
+    event: XenApiRecordBeforeLoadEvent<Type>,
+    callback: () => void
+  ): void;
 
   addEventListener<
     Type extends ObjectType,
@@ -130,13 +154,29 @@ export default class XenApi {
     callback: (opaqueRef: XRecord["$ref"]) => void
   ): void;
 
-  addEventListener(event: XenApiRecordEvent, callback: (value: any) => void) {
+  addEventListener<Type extends ObjectType>(
+    event: XenApiRecordEvent<Type>,
+    callback: (...args: any[]) => void
+  ) {
     if (!this.events.has(event)) {
       this.events.set(event, new Set());
     }
 
     this.events.get(event)!.add(callback);
   }
+
+  removeEventListener<Type extends ObjectType>(
+    event: XenApiRecordBeforeLoadEvent<Type>,
+    callback: () => void
+  ): void;
+
+  removeEventListener<
+    Type extends ObjectType,
+    XRecord extends ObjectTypeToRecord<Type>,
+  >(
+    event: XenApiRecordAfterLoadEvent<Type>,
+    callback: (records: XRecord[]) => void
+  ): void;
 
   removeEventListener<
     Type extends ObjectType,
@@ -150,12 +190,12 @@ export default class XenApi {
     Type extends ObjectType,
     XRecord extends ObjectTypeToRecord<Type>,
   >(
-    event: XenApiRecordDelEvent<any>,
+    event: XenApiRecordDelEvent<Type>,
     callback: (opaqueRef: XRecord["$ref"]) => void
   ): void;
 
-  removeEventListener(
-    event: XenApiRecordEvent,
+  removeEventListener<Type extends ObjectType>(
+    event: XenApiRecordEvent<Type>,
     callback: (value: any) => void
   ) {
     this.events.get(event)?.delete(callback);
@@ -171,34 +211,50 @@ export default class XenApi {
     return Array.from(keys);
   }
 
-  private handleEvents(events: XenApiEvent[]) {
-    events.forEach((event) => {
-      const callbacks = this.events.get(
-        `${event.class}.${event.operation}` as XenApiRecordEvent
-      );
+  private emitEvent<Type extends ObjectType>(
+    event: XenApiRecordEvent<Type>,
+    ...args: any[]
+  ) {
+    const callbacks = this.events.get(event);
 
-      if (callbacks !== undefined) {
-        callbacks.forEach((callback) => {
-          callback(event.snapshot);
-        });
+    if (callbacks !== undefined) {
+      callbacks.forEach((callback) => {
+        callback(...args);
+      });
+    }
+  }
+
+  private handleEvents(events: XenApiEvent[]) {
+    events.forEach(({ class: cls, operation, ref, snapshot }) => {
+      const eventName = `${cls}.${operation}` as XenApiRecordEvent<any>;
+
+      if (operation === "add" || operation === "mod") {
+        this.emitEvent(eventName, buildXoObject(snapshot, { opaqueRef: ref }));
+        return;
+      }
+
+      if (operation === "del") {
+        this.emitEvent(eventName, ref);
+        return;
       }
     });
   }
 
-  async startWatching(pool: XenApiPool) {
-    this.fromToken = await this.call("event.inject", ["pool", pool.$ref]);
+  async startWatching(poolRef: XenApiPool["$ref"]) {
+    this.fromToken = await this.call("event.inject", ["pool", poolRef]);
     return this.watch();
   }
 
-  private async watch(): Promise<void> {
+  private async watch() {
     if (this.fromToken === undefined || this.sessionId === undefined) {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     if (this.listenedTypes.length === 0) {
-      return this.watch();
+      void this.watch();
+      return;
     }
 
     const result: { token: string; events: XenApiEvent[] } = await this.call(
@@ -210,7 +266,7 @@ export default class XenApi {
 
     this.handleEvents(result.events);
 
-    return this.watch();
+    void this.watch();
   }
 
   get vm() {

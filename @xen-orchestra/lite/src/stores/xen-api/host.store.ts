@@ -1,20 +1,18 @@
 import type { GetStats } from "@/composables/fetch-stats.composable";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
 import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { useHostMetricsStore } from "@/stores/xen-api/host-metrics.store";
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const useHostStore = defineStore("xen-api-host", () => {
-  const baseStore = createXenApiStore("host");
+  const context = useXenApiStoreSubscribableContext("host");
   const hostMetricsStore = useHostMetricsStore();
 
   const runningHosts = computed(() =>
-    baseStore.records.value.filter((host) =>
-      hostMetricsStore.isHostRunning(host)
-    )
+    context.records.value.filter((host) => hostMetricsStore.isHostRunning(host))
   );
 
   const getStats = ((
@@ -24,7 +22,7 @@ export const useHostStore = defineStore("xen-api-host", () => {
     { abortSignal }
   ) => {
     const xenApiStore = useXenApiStore();
-    const host = baseStore.getByUuid(hostUuid);
+    const host = context.getByUuid(hostUuid);
 
     if (host === undefined) {
       throw new Error(`Host ${hostUuid} could not be found.`);
@@ -44,10 +42,10 @@ export const useHostStore = defineStore("xen-api-host", () => {
   }) as GetStats<XenApiHost>;
 
   return {
-    ...baseStore,
+    ...context,
     runningHosts,
     getStats,
   };
 });
 
-export const useHostCollection = createSubscriber(useHostStore);
+export const useHostCollection = createUseCollection(useHostStore);

@@ -1,4 +1,7 @@
-import type { XenApiMessage } from "@/libs/xen-api/xen-api.types";
+import type {
+  RawObjectType,
+  XenApiMessage,
+} from "@/libs/xen-api/xen-api.types";
 
 export type XenApiAlarmType =
   | "cpu_usage"
@@ -12,7 +15,8 @@ export type XenApiAlarmType =
   | "memory_free_kib"
   | "unknown";
 
-export interface XenApiAlarm extends XenApiMessage {
+export interface XenApiAlarm<RelationType extends RawObjectType>
+  extends XenApiMessage<RelationType> {
   level: number;
   triggerLevel: number;
   type: XenApiAlarmType;

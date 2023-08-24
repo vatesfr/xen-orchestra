@@ -1,9 +1,9 @@
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";
 
 export const useVmMetricsStore = defineStore("xen-api-vm-metrics", () => {
-  return createXenApiStore("vm_metrics");
+  return useXenApiStoreSubscribableContext("vm_metrics");
 });
 
-export const useVmMetricsCollection = createSubscriber(useVmMetricsStore);
+export const useVmMetricsCollection = createUseCollection(useVmMetricsStore);

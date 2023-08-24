@@ -1,28 +1,70 @@
+import { useSubscriber } from "@/composables/subscriber.composable";
+import { useXenApiStoreBaseContext } from "@/composables/xen-api-store-base-context.composable";
 import { messagesToAlarms, messageToAlarm } from "@/libs/alarm";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import type { XenApiMessage } from "@/libs/xen-api/xen-api.types";
+import { useXenApiStore } from "@/stores/xen-api.store";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { useMessageStore } from "@/stores/xen-api/message.store";
 import type { XenApiAlarm } from "@/types/xen-api";
-import { defineStore, storeToRefs } from "pinia";
-import { computed } from "vue";
+import { defineStore } from "pinia";
 
 export const useAlarmStore = defineStore("xen-api-alarm", () => {
+  const context = useXenApiStoreBaseContext<XenApiAlarm<any>>();
+  const xenApiStore = useXenApiStore();
+  const xenApi = xenApiStore.getXapi();
   const messageStore = useMessageStore();
 
-  const records = computed(() => messagesToAlarms(messageStore.records));
+  const onBeforeLoad = () => (context.isFetching.value = true);
 
-  const getByOpaqueRef = (opaqueRef: XenApiAlarm["$ref"]) =>
-    messageToAlarm(messageStore.getByOpaqueRef(opaqueRef));
+  const onAfterLoad = (records: XenApiMessage<any>[]) => {
+    const alarms = messagesToAlarms(records);
+    alarms.forEach((alarm) => context.add(alarm));
+    context.isFetching.value = false;
+    context.isReady.value = true;
+  };
 
-  const getByUuid = (uuid: XenApiAlarm["uuid"]) =>
-    messageToAlarm(messageStore.getByUuid(uuid));
+  const onAdd = (record: XenApiMessage<any>) => {
+    const alarm = messageToAlarm(record);
+
+    if (alarm !== undefined) {
+      context.add(alarm);
+    }
+  };
+
+  const onRemove = (opaqueRef: XenApiMessage<any>["$ref"]) => {
+    const record = context.getByOpaqueRef(opaqueRef);
+
+    if (record !== undefined) {
+      context.remove(record.$ref);
+    }
+  };
+
+  const subscriptionId = Symbol();
+
+  const subscriber = useSubscriber({
+    enabled: () => xenApiStore.isConnected,
+    onSubscriptionStart: () => {
+      xenApi.addEventListener("message.beforeLoad", onBeforeLoad);
+      xenApi.addEventListener("message.afterLoad", onAfterLoad);
+      xenApi.addEventListener("message.add", onAdd);
+      xenApi.addEventListener("message.mod", onAdd);
+      xenApi.addEventListener("message.del", onRemove);
+      messageStore.subscribe(subscriptionId);
+    },
+    onSubscriptionEnd: () => {
+      xenApi.removeEventListener("message.beforeLoad", onBeforeLoad);
+      xenApi.removeEventListener("message.afterLoad", onAfterLoad);
+      xenApi.removeEventListener("message.add", onAdd);
+      xenApi.removeEventListener("message.mod", onAdd);
+      xenApi.removeEventListener("message.del", onRemove);
+      messageStore.unsubscribe(subscriptionId);
+    },
+  });
 
   return {
-    ...messageStore,
-    ...storeToRefs(messageStore),
-    records,
-    getByOpaqueRef,
-    getByUuid,
+    ...context,
+    ...subscriber,
   };
 });
 
-export const useAlarmSubscription = createSubscriber(useAlarmStore);
+export const useAlarmCollection = createUseCollection(useAlarmStore);

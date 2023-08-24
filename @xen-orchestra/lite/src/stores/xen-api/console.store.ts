@@ -1,9 +1,9 @@
-import { createXenApiStore } from "@/stores/xen-api/create-store";
-import { createSubscriber } from "@/stores/xen-api/create-subscriber";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";
 
 export const useConsoleStore = defineStore("xen-api-console", () => {
-  return createXenApiStore("console");
+  return useXenApiStoreSubscribableContext("console");
 });
 
-export const useConsoleCollection = createSubscriber(useConsoleStore);
+export const useConsoleCollection = createUseCollection(useConsoleStore);

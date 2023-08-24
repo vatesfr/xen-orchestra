@@ -1,9 +1,12 @@
-import type { XenApiMessage } from "@/libs/xen-api/xen-api.types";
+import type {
+  RawObjectType,
+  XenApiMessage,
+} from "@/libs/xen-api/xen-api.types";
 import type { XenApiAlarm, XenApiAlarmType } from "@/types/xen-api";
 
-export const messageToAlarm = (
-  message: XenApiMessage | undefined
-): XenApiAlarm | undefined => {
+export const messageToAlarm = <RelationType extends RawObjectType>(
+  message: XenApiMessage<RelationType> | undefined
+): XenApiAlarm<RelationType> | undefined => {
   if (message === undefined || message.name !== "ALARM") {
     return;
   }
@@ -14,7 +17,7 @@ export const messageToAlarm = (
   };
 };
 
-export const messagesToAlarms = (messages: XenApiMessage[]) => {
+export const messagesToAlarms = (messages: XenApiMessage<any>[]) => {
   return messages.reduce((acc, message) => {
     const alarm = messageToAlarm(message);
 
@@ -23,7 +26,7 @@ export const messagesToAlarms = (messages: XenApiMessage[]) => {
     }
 
     return acc;
-  }, [] as XenApiAlarm[]);
+  }, [] as XenApiAlarm<any>[]);
 };
 
 const parseXml = (xml: string) => {
