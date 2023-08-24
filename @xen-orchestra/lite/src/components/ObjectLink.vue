@@ -19,7 +19,7 @@ import { useSrStore } from "@/stores/xen-api/sr.store";
 import { useVmStore } from "@/stores/xen-api/vm.store";
 import { computed, onUnmounted, watch } from "vue";
 
-type AcceptedTypes = "host" | "vm" | "sr" | "pool";
+type HandledTypes = "host" | "vm" | "sr" | "pool";
 type XRecord = ObjectTypeToRecord<T>;
 
 const props = defineProps<{
@@ -32,10 +32,10 @@ const stores = {
   vm: useVmStore,
   sr: useSrStore,
   pool: usePoolStore,
-} satisfies Record<AcceptedTypes, any>;
+} satisfies Record<HandledTypes, any>;
 
 const store = computed(() => {
-  return stores[props.type as AcceptedTypes]?.();
+  return stores[props.type as HandledTypes]?.();
 });
 
 const subscriptionId = Symbol();
@@ -53,7 +53,7 @@ onUnmounted(() => {
   store.value?.unsubscribe(subscriptionId);
 });
 
-const record = computed<ObjectTypeToRecord<AcceptedTypes> | undefined>(
+const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(
   () => store.value?.getByUuid(props.uuid as any)
 );
 
@@ -62,7 +62,7 @@ const routes: Partial<Record<ObjectType, string | undefined>> = {
   vm: "vm.console",
   pool: "pool.dashboard",
   sr: undefined,
-} satisfies Record<AcceptedTypes, string | undefined>;
+} satisfies Record<HandledTypes, string | undefined>;
 
 const objectRoute = computed(() => {
   if (routes[props.type] === undefined) {
