@@ -6,6 +6,7 @@ import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createLogger } from '@xen-orchestra/log'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import { join } from 'node:path'
+import { load as loadConfig } from 'app-conf'
 import Disposable from 'promise-toolbox/Disposable'
 
 import { getVmBackupDir } from '../_getVmBackupDir.mjs'
@@ -14,6 +15,8 @@ import { RemoteAdapter } from '../RemoteAdapter.mjs'
 import { CLEAN_VM_QUEUE } from './index.mjs'
 import { asyncEach } from '@vates/async-each'
 
+const APP_NAME = 'xo-merge-worker'
+const APP_DIR = new URL('.', import.meta.url).pathname
 // -------------------------------------------------------------------
 
 catchGlobalErrors(createLogger('xo:backups:mergeWorker'))
@@ -23,7 +26,6 @@ const { fatal, info, warn } = createLogger('xo:backups:mergeWorker')
 // -------------------------------------------------------------------
 
 const main = Disposable.wrap(async function* main(args) {
-  const concurrency = args[0]
   const handler = yield getSyncedHandler({ url: 'file://' + process.cwd() })
 
   yield handler.lock(CLEAN_VM_QUEUE)
@@ -44,6 +46,10 @@ const main = Disposable.wrap(async function* main(args) {
 
   let taskFiles
   while ((taskFiles = await listRetry()) !== undefined) {
+    const { concurrency } = await loadConfig(APP_NAME, {
+      appDir: APP_DIR,
+      ignoreUnknownFormats: true,
+    })
     await asyncEach(
       taskFiles,
       async taskFileBasename => {

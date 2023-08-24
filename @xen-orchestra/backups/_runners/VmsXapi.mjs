@@ -24,7 +24,6 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   healthCheckVmsWithTags: [],
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
-  mergeWorkerConcurrency: 1,
   offlineBackup: false,
   offlineSnapshot: false,
   snapshotRetention: 0,

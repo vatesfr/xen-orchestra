@@ -6,7 +6,7 @@ export const CLEAN_VM_QUEUE = '/xo-vm-backups/.queue/clean-vm/'
 
 const CLI_PATH = new URL('cli.mjs', import.meta.url).pathname
 
-export const run = async function runMergeWorker(remotePath, concurrency = 1) {
+export const run = async function runMergeWorker(remotePath) {
   try {
     // TODO: find a way to pass the acquire the lock and then pass it down the worker
     if (await check(join(remotePath, CLEAN_VM_QUEUE))) {
@@ -14,7 +14,7 @@ export const run = async function runMergeWorker(remotePath, concurrency = 1) {
       return
     }
 
-    spawn(CLI_PATH, [concurrency], {
+    spawn(CLI_PATH, {
       cwd: remotePath,
       detached: true,
       stdio: 'inherit',

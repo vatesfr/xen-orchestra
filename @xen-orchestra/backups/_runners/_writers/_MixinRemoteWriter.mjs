@@ -53,7 +53,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
     }
 
     async afterBackup() {
-      const { disableMergeWorker, mergeWorkerConcurrency } = this._config
+      const { disableMergeWorker } = this._config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
       const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'
@@ -70,7 +70,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
 
         await handler.outputFile(taskFile, this._vmUuid)
         const remotePath = handler.getRealPath()
-        await MergeWorker.run(remotePath, mergeWorkerConcurrency)
+        await MergeWorker.run(remotePath)
       }
     }
 
