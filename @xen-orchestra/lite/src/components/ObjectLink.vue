@@ -1,5 +1,6 @@
 <template>
-  <template v-if="record !== undefined">
+  <UiSpinner v-if="!isReady" />
+  <template v-else-if="record !== undefined">
     <RouterLink v-if="objectRoute" :to="objectRoute">
       {{ record.name_label }}
     </RouterLink>
@@ -9,6 +10,7 @@
 </template>
 
 <script generic="T extends ObjectType" lang="ts" setup>
+import UiSpinner from "@/components/ui/UiSpinner.vue";
 import type {
   ObjectType,
   ObjectTypeToRecord,
@@ -23,12 +25,14 @@ import type { RouteRecordName } from "vue-router";
 
 type HandledTypes = "host" | "vm" | "sr" | "pool";
 type XRecord = ObjectTypeToRecord<T>;
-type Config = Record<
-  HandledTypes,
-  {
-    useStore: StoreDefinition;
-    routeName: RouteRecordName | undefined;
-  }
+type Config = Partial<
+  Record<
+    ObjectType,
+    {
+      useStore: StoreDefinition;
+      routeName: RouteRecordName | undefined;
+    }
+  >
 >;
 
 const props = defineProps<{
@@ -41,9 +45,9 @@ const config: Config = {
   vm: { useStore: useVmStore, routeName: "vm.console" },
   sr: { useStore: useSrStore, routeName: undefined },
   pool: { useStore: usePoolStore, routeName: "pool.dashboard" },
-};
+} satisfies Record<HandledTypes, any>;
 
-const store = computed(() => config[props.type as HandledTypes]?.useStore());
+const store = computed(() => config[props.type]?.useStore());
 
 const subscriptionId = Symbol();
 
@@ -64,13 +68,19 @@ const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(
   () => store.value?.getByUuid(props.uuid as any)
 );
 
+const isReady = computed(() => {
+  return store.value?.isReady ?? true;
+});
+
 const objectRoute = computed(() => {
-  if (config[props.type as HandledTypes]?.routeName === undefined) {
+  const { routeName } = config[props.type] ?? {};
+
+  if (routeName === undefined) {
     return;
   }
 
   return {
-    name: config[props.type as HandledTypes].routeName,
+    name: routeName,
     params: { uuid: props.uuid },
   };
 });
