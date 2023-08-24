@@ -1021,6 +1021,10 @@ const New = decorate([
                             onChange={effects.setFullInterval}
                             value={fullInterval}
                           />
+                        </FormGroup>
+                      )}
+                      {state.isDelta && (
+                        <FormGroup>
                           <label htmlFor={state.inputPreferNbd}>
                             <strong>{_('preferNbd')}</strong>{' '}
                             <Tooltip content={_('preferNbdInformation')}>
