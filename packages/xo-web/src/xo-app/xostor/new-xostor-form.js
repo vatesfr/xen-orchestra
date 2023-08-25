@@ -33,13 +33,13 @@ const REPLICATION_OPTIONS = [
   { value: 3, label: '3' },
 ]
 
-const hasAXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
+const hasXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
 const formatDiskName = name => '/dev/' + name
 const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.length > 0
-const isDiskGoodType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
+const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
-const hasGoodNumberOfHosts = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
+const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
 const diskSelectRenderer = disk => (
   <span>
@@ -47,7 +47,7 @@ const diskSelectRenderer = disk => (
   </span>
 )
 const xostorDiskPredicate = disk =>
-  isDiskGoodType(disk) && !isDiskRo(disk) && !isDiskMounted(disk) && !diskHasChildren(disk)
+  isDiskRecommendedType(disk) && !isDiskRo(disk) && !isDiskMounted(disk) && !diskHasChildren(disk)
 
 // ===================================================================
 
@@ -128,12 +128,15 @@ const PoolCard = decorate([
         }
         return pool => {
           const poolHosts = props.hostsByPoolId?.[pool.id]
-          return hasGoodNumberOfHosts(poolHosts) && isXcpngHost(first(poolHosts)) && !hasAXostor(props.srs[pool.id])
+          return (
+            isWithinRecommendedHostRange(poolHosts) && isXcpngHost(first(poolHosts)) && !hasXostor(props.srs[pool.id])
+          )
         }
       },
-      poolHasGoodNumberOfHosts: state => hasGoodNumberOfHosts(state.poolHosts),
-      poolHasAXostor: (state, props) => hasAXostor(props.srs[state.poolId]),
-      isPoolXostorCompatible: state => state.isXcpngHost && state.poolHasGoodNumberOfHosts && !state.poolHasAXostor,
+      poolIsWithinRecommendedHostRange: state => isWithinRecommendedHostRange(state.poolHosts),
+      poolHasXostor: (state, props) => hasXostor(props.srs[state.poolId]),
+      isPoolXostorCompatible: state =>
+        state.isXcpngHost && state.poolIsWithinRecommendedHostRange && !state.poolHasXostor,
     },
   }),
   injectState,
@@ -160,8 +163,8 @@ const PoolCard = decorate([
               </a>
               <ul>
                 {!state.isXcpngHost && <li>{_('notXcpPool')}</li>}
-                {!state.poolHasGoodNumberOfHosts && <li>{_('wrongNumberOfHosts')}</li>}
-                {state.poolHasAXostor && <li>{_('poolAlreadyHasXostor')}</li>}
+                {!state.poolIsWithinRecommendedHostRange && <li>{_('wrongNumberOfHosts')}</li>}
+                {state.poolHasXostor && <li>{_('poolAlreadyHasXostor')}</li>}
               </ul>
             </div>
           )}
@@ -338,11 +341,11 @@ const SelectedDisks = decorate([
 ])
 
 const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
-  const _isDiskGoodType = isDiskGoodType(disk)
+  const _isDiskRecommendedType = isDiskRecommendedType(disk)
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const isDiskValid = _isDiskGoodType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren
 
   return (
     <li className='list-group-item'>
@@ -359,7 +362,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
         <div className='text-danger'>
           <Icon icon='error' /> {_('diskIncompatibleXostor')}
           <ul>
-            {!_isDiskGoodType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
+            {!_isDiskRecommendedType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
             {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
@@ -386,52 +389,60 @@ const SummaryCard = decorate([
     },
   }),
   injectState,
-  ({ state }) => (
-    <Card>
-      <CardHeader>{_('summary')}</CardHeader>
-      <CardBlock>
-        {state.isFormInvalid ? (
-          <div className='text-danger'>
-            <p>{_('fieldsMissing')}</p>
-            <ul>
-              {state.isReplicationMissing && <li>{_('fieldRequired', { field: _('replication') })}</li>}
-              {state.isProvisioningMissing && <li>{_('fieldRequired', { field: _('provisioning') })}</li>}
-              {state.isNameMissing && <li>{_('fieldRequired', { field: _('name') })}</li>}
-              {state.isDisksMissing && <li>{_('xostorDiskRequired')}</li>}
-            </ul>
-          </div>
-        ) : (
-          <div>
-            {!state.areHostsDisksConsistent && (
-              <p className='text-warning'>
-                <Icon icon='alarm' /> {_('hostsNotSameNumberOfDisks')}
-              </p>
-            )}
-            <Row>
-              <Col size={6}>{_('keyValue', { key: _('name'), value: state.srName })}</Col>
-              <Col size={6}>{_('keyValue', { key: _('description'), value: state.srDescription })}</Col>
-            </Row>
-            <Row>
-              <Col size={6}>{_('keyValue', { key: _('replication'), value: state.replication.label })}</Col>
-              <Col size={6}>{_('keyValue', { key: _('provisioning'), value: state.provisioning.label })}</Col>
-            </Row>
-            <Row>
-              <Col size={6}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
-              <Col size={6}>
-                {_('keyValue', { key: _('network'), value: <NetworkRenderItem id={state.networkId} /> })}
-              </Col>
-            </Row>
-            <Row>
-              <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
-              <Col size={6}>
-                {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
-              </Col>
-            </Row>
-          </div>
-        )}
-      </CardBlock>
-    </Card>
-  ),
+  ({ state }) => {
+    const srDescription = state.srDescription.trim()
+    return (
+      <Card>
+        <CardHeader>{_('summary')}</CardHeader>
+        <CardBlock>
+          {state.isFormInvalid ? (
+            <div className='text-danger'>
+              <p>{_('fieldsMissing')}</p>
+              <ul>
+                {state.isReplicationMissing && <li>{_('fieldRequired', { field: _('replication') })}</li>}
+                {state.isProvisioningMissing && <li>{_('fieldRequired', { field: _('provisioning') })}</li>}
+                {state.isNameMissing && <li>{_('fieldRequired', { field: _('name') })}</li>}
+                {state.isDisksMissing && <li>{_('xostorDiskRequired')}</li>}
+              </ul>
+            </div>
+          ) : (
+            <div>
+              {!state.areHostsDisksConsistent && (
+                <p className='text-warning'>
+                  <Icon icon='alarm' /> {_('hostsNotSameNumberOfDisks')}
+                </p>
+              )}
+              <Row>
+                <Col size={6}>{_('keyValue', { key: _('name'), value: state.srName })}</Col>
+                <Col size={6}>
+                  {_('keyValue', {
+                    key: _('description'),
+                    value: srDescription === '' ? _('noValue') : srDescription,
+                  })}
+                </Col>
+              </Row>
+              <Row>
+                <Col size={6}>{_('keyValue', { key: _('replication'), value: state.replication.label })}</Col>
+                <Col size={6}>{_('keyValue', { key: _('provisioning'), value: state.provisioning.label })}</Col>
+              </Row>
+              <Row>
+                <Col size={6}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
+                <Col size={6}>
+                  {_('keyValue', { key: _('network'), value: <NetworkRenderItem id={state.networkId} /> })}
+                </Col>
+              </Row>
+              <Row>
+                <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
+                <Col size={6}>
+                  {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
+                </Col>
+              </Row>
+            </div>
+          )}
+        </CardBlock>
+      </Card>
+    )
+  },
 ])
 
 const NewXostorForm = decorate([

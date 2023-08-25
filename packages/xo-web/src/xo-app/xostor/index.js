@@ -6,8 +6,8 @@ import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { Container, Col, Row } from 'grid'
 
-import Page from '../page'
 import NewXostorForm from './new-xostor-form'
+import Page from '../page'
 
 const HEADER = (
   <Container>
