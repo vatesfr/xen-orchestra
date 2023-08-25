@@ -23,6 +23,7 @@ import {
   getRemotes,
   listVmBackups,
   subscribeBackupNgJobs,
+  subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -147,8 +148,12 @@ const Health = decorate([
       subscribeSchedules(schedules => {
         cb(keyBy(schedules, 'id'))
       }),
-    jobs: cb =>
+    backupJobs: cb =>
       subscribeBackupNgJobs(jobs => {
+        cb(keyBy(jobs, 'id'))
+      }),
+    mirrorJobs: cb =>
+      subscribeMirrorBackupJobs(jobs => {
         cb(keyBy(jobs, 'id'))
       }),
   }),
@@ -177,7 +182,10 @@ const Health = decorate([
       },
     },
     computed: {
-      detachedBackups: ({ backupsByRemote }, { jobs, vms, schedules }) => {
+      jobs: (_, { backupJobs, mirrorJobs }) => {
+        return { ...backupJobs, ...mirrorJobs }
+      },
+      detachedBackups: ({ backupsByRemote, jobs }, { vms, schedules }) => {
         if (jobs === undefined || schedules === undefined) {
           return []
         }
@@ -194,7 +202,7 @@ const Health = decorate([
     },
   }),
   injectState,
-  ({ effects: { fetchBackupList }, jobs, legacySnapshots, loneSnapshots, state: { detachedBackups }, vms }) => (
+  ({ effects: { fetchBackupList }, legacySnapshots, loneSnapshots, state: { detachedBackups, jobs }, vms }) => (
     <Container>
       <Row className='detached-backups'>
         <Col>
