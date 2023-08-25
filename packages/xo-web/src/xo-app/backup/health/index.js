@@ -23,6 +23,7 @@ import {
   getRemotes,
   listVmBackups,
   subscribeBackupNgJobs,
+  subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -151,6 +152,7 @@ const Health = decorate([
       subscribeBackupNgJobs(jobs => {
         cb(keyBy(jobs, 'id'))
       }),
+    mirrorJobs: cb => subscribeMirrorBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   connectStore({
     loneSnapshots: getLoneSnapshots,
@@ -177,8 +179,11 @@ const Health = decorate([
       },
     },
     computed: {
-      detachedBackups: ({ backupsByRemote }, { jobs, vms, schedules }) => {
-        if (jobs === undefined || schedules === undefined) {
+      computedJobs: (_, { jobs, mirrorJobs }) => {
+        return { ...jobs, ...mirrorJobs }
+      },
+      detachedBackups: ({ backupsByRemote, computedJobs }, { vms, schedules }) => {
+        if (computedJobs === undefined || schedules === undefined) {
           return []
         }
 
@@ -188,13 +193,13 @@ const Health = decorate([
             backupsByVm => map(backupsByVm, (vmBackups, vmId) => vmBackups.map(backup => ({ ...backup, vmId }))),
             2
           ),
-          { jobs, schedules, vms }
+          { jobs: computedJobs, schedules, vms }
         )
       },
     },
   }),
   injectState,
-  ({ effects: { fetchBackupList }, jobs, legacySnapshots, loneSnapshots, state: { detachedBackups }, vms }) => (
+  ({ effects: { fetchBackupList }, legacySnapshots, loneSnapshots, state: { detachedBackups, computedJobs }, vms }) => (
     <Container>
       <Row className='detached-backups'>
         <Col>
@@ -214,7 +219,7 @@ const Health = decorate([
                 columns={DETACHED_BACKUP_COLUMNS}
                 component={SortedTable}
                 data-fetchBackupList={fetchBackupList}
-                data-jobs={jobs}
+                data-jobs={computedJobs}
                 data-vms={vms}
                 emptyMessage={_('noDetachedBackups')}
                 shortcutsTarget='.detached-backups'
