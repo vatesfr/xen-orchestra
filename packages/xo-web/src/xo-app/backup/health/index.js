@@ -148,7 +148,7 @@ const Health = decorate([
       subscribeSchedules(schedules => {
         cb(keyBy(schedules, 'id'))
       }),
-    jobs: async cb => {
+    jobs: cb => {
       let backupJobs, mirrorJobs
       subscribeBackupNgJobs(jobs => {
         backupJobs = jobs
