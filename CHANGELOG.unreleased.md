@@ -23,7 +23,7 @@
 - [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
 - [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
 - [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
-- [Netbox] Fix `the address has neither IPv6 nor IPv4 format` error [Forum#7625](https://xcp-ng.org/forum/topic/7625)
+- [Netbox] Fix `the address has neither IPv6 nor IPv4 format` error [Forum#7625](https://xcp-ng.org/forum/topic/7625) (PR [#6990](https://github.com/vatesfr/xen-orchestra/pull/6990))
 
 ### Packages to release
 
