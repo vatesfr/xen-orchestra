@@ -614,14 +614,14 @@ This section shows the disks, their size and used space. A progress bar helps yo
 
 ### Local default SRs
 
-Declaring a default storage for each pool is good practice to avoid unexpected behaviours.
+Declaring a default storage repository for each pool is good practice to avoid unexpected behaviours.
 
 ### Pools with no default SR
 
 To select a default SR, go to the Home tab and click on 'Pools'. Select the pool you are working with and click on the storage icon:
 ![](./assets/storageicon.png)
 
-Hover over the storage you want to select and click on the disk icon to set as the default SR:
+Hover over the storage you want to select and click on the disk icon to set it as the default SR:
 ![](./assets/diskicon.png)
 
 ### Unhealthy VDIs
@@ -630,23 +630,23 @@ If your infrastructure works properly, this view should be empty. If not, the ca
 
 ### Orphan VDIs
 
-Orphan VDIs are not a bad sign, you can easily detach them using the trash icon.
+Orphan VDIs are are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
 
 ### VDIs attached to Control Domain
 
-Having VDIs attached to the domain controler during a backup job is normal, but not when it's finished. You can detached them by cliking on the Forget button, this will remove the virtual cable between the host and the disk without removing the disk. If the problem occurs on a regular basis, we recommend you [open a support ticket](https://help.vates.tech/kb/en-us/8-technical-support/15-open-a-support-ticket).
+Having VDIs attached to the control domain during a backup job is normal, but not when it's finished. You can detach them by clicking on the Forget button, this will remove the virtual cable between the host and the disk without removing the disk. If the problem occurs on a regular basis, we recommend you [open a support ticket](https://help.vates.tech/kb/en-us/8-technical-support/15-open-a-support-ticket).
 
-### Orphaned VMs snapshot
+### Orphaned VM snapshot
 
-VMs of the VMs snapshot type that do not have parents are usually automatically deleted. If not, they can be removed using the trash icon and should but considered abnormal in a production environement.
+VMs snapshots that do not have parents are usually automatically deleted. If not, they can be removed using the trash icon and should be considered abnormal in a production environment.
 
 ### Too many snapshots
 
-List of the VMs with more than the recommended amount of snapshots (3). As the chain becomes long, this can lead to poorer performances during the process of reading the VM's children.
+List of the VMs with more than the recommended amount of snapshots (3). There is no hard limit, but as the chain becomes longer, this can lead to poorer performances during the process of reading the VMs snapshots.
 
 ### Duplicated MAC addresses
 
-Machines with the same MAC addresses on a network will result in none of them working if they run simultaneously. 
+Machines with the same MAC addresses on a network will result in unexpected behavior if they run simultaneously. 
 
 ### Guest Tools status
 
