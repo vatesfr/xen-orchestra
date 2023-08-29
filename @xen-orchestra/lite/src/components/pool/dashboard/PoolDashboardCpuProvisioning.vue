@@ -37,11 +37,11 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import { useVmMetricsCollection } from "@/composables/xen-api-collection/vm-metrics-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { useVmMetricsCollection } from "@/stores/xen-api/vm-metrics.store";
 import { percent } from "@/libs/utils";
-import { POWER_STATE } from "@/libs/xen-api";
+import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
 

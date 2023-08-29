@@ -21,8 +21,8 @@ import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import type { XenApiVm } from "@/libs/xen-api";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import {
   faAngleDown,
   faDisplay,

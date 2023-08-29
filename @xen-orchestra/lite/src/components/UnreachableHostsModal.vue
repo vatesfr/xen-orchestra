@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { faServer } from "@fortawesome/free-solid-svg-icons";
 import UiModal from "@/components/ui/UiModal.vue";
 import UiButton from "@/components/ui/UiButton.vue";

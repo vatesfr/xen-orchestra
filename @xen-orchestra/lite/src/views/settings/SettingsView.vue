@@ -157,8 +157,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { computed } from "vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";

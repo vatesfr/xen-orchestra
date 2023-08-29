@@ -39,7 +39,7 @@ import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem
 import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiVm } from "@/libs/xen-api";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,

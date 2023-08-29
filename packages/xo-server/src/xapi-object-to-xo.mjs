@@ -98,6 +98,7 @@ const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
+      crashDumpSr: link(obj, 'crash_dump_SR'),
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),

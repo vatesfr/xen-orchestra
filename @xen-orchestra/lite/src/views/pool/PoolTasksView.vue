@@ -15,7 +15,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
-import { useTaskCollection } from "@/composables/xen-api-collection/task-collection.composable";
+import { useTaskCollection } from "@/stores/xen-api/task.store";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useI18n } from "vue-i18n";
 

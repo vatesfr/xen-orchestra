@@ -338,25 +338,37 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 XO will try to find the right prefix for each IP address. If it can't find a prefix that fits, the IP address won't be synchronized.
 :::
 
-- Generate a token:
+- Create a Netbox user:
+  - Go to Admin > Authentication and Authorization > Users > Add
+  - Enter a name and a password and click on "Save and continue editing"
+  - Scroll down to Permissions and add the following permissions:
+    - View permissions on:
+      - Extras > custom field
+      - IPAM > prefix
+    - All permissions on:
+      - DCIM > platform
+      - Extras > tag
+      - IPAM > IP address
+      - Virtualization > cluster
+      - Virtualization > cluster type
+      - Virtualization > virtual machine
+      - Virtualization > interface
+- From that user's account, generate an API token:
   - Go to Profile > API Tokens > Add a token
   - Create a token with "Write enabled"
-  - The owner of the token must have at least the following permissions:
-    - View permissions on:
-      - extras > custom-fields
-      - ipam > prefixes
-    - All permissions on:
-      - ipam > ip-addresses
-      - virtualization > cluster-types
-      - virtualization > clusters
-      - virtualization > interfaces
-      - virtualization > virtual-machines
 - Add a UUID custom field:
-  - Go to Other > Custom fields > Add
+  - Go to Other > Customization > Custom fields > Add
   - Create a custom field called "uuid" (lower case!)
-  - Assign it to object types `virtualization > cluster`, `virtualization > virtual machine` and `virtualization > vminterface`
+  - Assign it to object types:
+    - Virtualization > cluster
+    - Virtualization > virtual machine
+    - Virtualization > interface`
 
 ![](./assets/customfield.png)
+
+:::warning
+You can generate an API token from a Netbox superuser account for testing purposes, but once in production, it is highly recommended to create a dedicated user with only the required permissions.
+:::
 
 :::tip
 In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields > Add custom field.

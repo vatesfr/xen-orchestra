@@ -40,8 +40,8 @@
 import TaskRow from "@/components/tasks/TaskRow.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTable from "@/components/ui/UiTable.vue";
-import { useTaskCollection } from "@/composables/xen-api-collection/task-collection.composable";
-import type { XenApiTask } from "@/libs/xen-api";
+import { useTaskCollection } from "@/stores/xen-api/task.store";
+import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
 import { computed } from "vue";
 
 const props = defineProps<{

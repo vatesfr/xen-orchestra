@@ -28,7 +28,7 @@ import InfraHostList from "@/components/infra/InfraHostList.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 
 const { isReady, hasError, pool } = usePoolCollection();
