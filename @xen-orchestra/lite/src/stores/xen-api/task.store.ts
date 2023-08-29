@@ -3,7 +3,7 @@ import useCollectionFilter from "@/composables/collection-filter.composable";
 import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
-import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context.composable";
 import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
 import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";

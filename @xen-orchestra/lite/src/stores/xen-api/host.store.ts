@@ -1,5 +1,5 @@
 import type { GetStats } from "@/composables/fetch-stats.composable";
-import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context.composable";
 import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { createUseCollection } from "@/stores/xen-api/create-use-collection";
@@ -8,8 +8,9 @@ import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const useHostStore = defineStore("xen-api-host", () => {
-  const context = useXenApiStoreSubscribableContext("host");
   const hostMetricsStore = useHostMetricsStore();
+
+  const context = useXenApiStoreSubscribableContext("host", [hostMetricsStore]);
 
   const runningHosts = computed(() =>
     context.records.value.filter((host) => hostMetricsStore.isHostRunning(host))

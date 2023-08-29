@@ -38,7 +38,7 @@ export const createUseCollection = <UseStore extends SubscribableStore>(
   }): Output<UseStore, Defer> => {
     const store = useStore();
 
-    const id = Symbol();
+    const id = Symbol(store.$id);
     onUnmounted(() => store.unsubscribe(id));
     const start = () => store.subscribe(id);
 

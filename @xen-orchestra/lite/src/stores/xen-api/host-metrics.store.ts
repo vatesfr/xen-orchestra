@@ -1,4 +1,4 @@
-import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context.composable";
 import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { defineStore } from "pinia";

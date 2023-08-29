@@ -1,4 +1,7 @@
-import { useSubscriber } from "@/composables/subscriber.composable";
+import {
+  type SubscriberDependencies,
+  useSubscriber,
+} from "@/composables/subscriber.composable";
 import type { XenApiStoreBaseContext } from "@/composables/xen-api-store-base-context.composable";
 import type {
   ObjectType,
@@ -11,7 +14,8 @@ export const useXenApiStoreSubscriber = <
   XRecord extends ObjectTypeToRecord<Type>,
 >(
   type: Type,
-  context: XenApiStoreBaseContext<XRecord>
+  context: XenApiStoreBaseContext<XRecord>,
+  dependencies?: SubscriberDependencies
 ) => {
   const xenApiStore = useXenApiStore();
   const xenApi = xenApiStore.getXapi();
@@ -55,5 +59,6 @@ export const useXenApiStoreSubscriber = <
       xenApi.removeEventListener<Type, XRecord>(`${type}.mod`, onAdd);
       xenApi.removeEventListener<Type, XRecord>(`${type}.del`, onRemove);
     },
+    dependencies,
   });
 };

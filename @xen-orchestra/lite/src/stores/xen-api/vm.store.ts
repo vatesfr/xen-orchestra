@@ -1,5 +1,5 @@
 import type { GetStats } from "@/composables/fetch-stats.composable";
-import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context";
+import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context.composable";
 import { sortRecordsByNameLabel } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
