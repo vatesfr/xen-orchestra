@@ -56,7 +56,6 @@ const {
   isStarted,
   isReady,
   hasError,
-  lastError,
 } = useAlarmCollection({ defer: true });
 </script>
 

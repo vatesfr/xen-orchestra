@@ -14,7 +14,7 @@
     "network_usage": "Network usage exceeds {n}%",
     "physical_utilisation": "Physical utilisation exceeds {n}%",
     "sr_io_throughput_total_per_host": "SR IO throughput total per host exceeds {n}%",
-    "unknown": "Unknown error"
+    "unknown": "Unknown alarm type"
   },
   "alarms": "Alarms",
   "all-good": "All good!",

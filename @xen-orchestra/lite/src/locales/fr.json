@@ -14,7 +14,7 @@
     "network_usage": "L'utilisation du réseau dépasse {n}%",
     "physical_utilisation": "L'utilisation physique dépasse {n}%",
     "sr_io_throughput_total_per_host": "Le débit total de l'IO SR par hôte dépasse {n}%",
-    "unknown": "Erreur inconnue"
+    "unknown": "Type d'alarme inconnu"
   },
   "alarms": "Alarmes",
   "all-good": "Tout va bien !",
