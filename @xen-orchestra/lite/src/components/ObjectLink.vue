@@ -1,12 +1,14 @@
 <template>
-  <UiSpinner v-if="!isReady" />
-  <template v-else-if="record !== undefined">
-    <RouterLink v-if="objectRoute" :to="objectRoute">
-      {{ record.name_label }}
-    </RouterLink>
-    <span v-else>{{ record.name_label }}</span>
-  </template>
-  <span v-else class="unknown">{{ $t("unknown") }}</span>
+  <div class="object-link">
+    <UiSpinner v-if="!isReady" />
+    <template v-else-if="record !== undefined">
+      <RouterLink v-if="objectRoute" :to="objectRoute">
+        {{ record.name_label }}
+      </RouterLink>
+      <span v-else>{{ record.name_label }}</span>
+    </template>
+    <span v-else class="unknown">{{ uuid }}</span>
+  </div>
 </template>
 
 <script generic="T extends ObjectType" lang="ts" setup>

@@ -57,7 +57,7 @@ const hasTooltip = computed(() => hasEllipsis(descriptionElement.value));
 .on {
   white-space: nowrap;
 }
-.object {
-  min-width: 10rem;
+.object-link {
+  white-space: nowrap;
 }
 </style>

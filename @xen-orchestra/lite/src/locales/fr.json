@@ -6,14 +6,15 @@
   "add-sort": "Ajouter un tri",
   "alarm-type": {
     "cpu_usage": "L'utilisation du CPU dépasse {n}%",
-    "network_usage": "L'utilisation du réseau dépasse {n}%",
     "disk_usage": "L'utilisation du disque dépasse {n}%",
     "fs_usage": "L'utilisation de FS dépasse {n}%",
     "log_fs_usage": "L'utilisation de Log FS dépasse {n}%",
     "mem_usage": "L'utilisation de la mémoire dépasse {n}%",
+    "memory_free_kib": "La mémoire libre est inférieure à {n}%",
+    "network_usage": "L'utilisation du réseau dépasse {n}%",
     "physical_utilisation": "L'utilisation physique dépasse {n}%",
     "sr_io_throughput_total_per_host": "Le débit total de l'IO SR par hôte dépasse {n}%",
-    "memory_free_kib": "La mémoire libre est inférieure à {n}%"
+    "unknown": "Erreur inconnue"
   },
   "alarms": "Alarmes",
   "all-good": "Tout va bien !",
@@ -158,7 +159,6 @@
   "total-cpus": "Total CPUs",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
-  "unknown": "Inconnu",
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "vcpus": "vCPUs",

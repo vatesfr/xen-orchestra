@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="pool-dashboard-alarms">
     <UiCardTitle>
       {{ $t("alarms") }}
       <template v-if="isReady && alarms.length > 0" #right>
@@ -17,6 +17,7 @@
         <img alt="" src="@/assets/server-status.svg" />
       </div>
     </div>
+    <NoDataError v-else-if="hasError" />
     <div v-else-if="!isReady">
       <UiCardSpinner />
     </div>
@@ -39,6 +40,7 @@
 </template>
 
 <script lang="ts" setup>
+import NoDataError from "@/components/NoDataError.vue";
 import AlarmRow from "@/components/pool/dashboard/alarm/AlarmRow.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiCard from "@/components/ui/UiCard.vue";
@@ -53,10 +55,16 @@ const {
   start,
   isStarted,
   isReady,
+  hasError,
+  lastError,
 } = useAlarmCollection({ defer: true });
 </script>
 
 <style lang="postcss" scoped>
+.pool-dashboard-alarms {
+  min-width: 0;
+}
+
 .pre-start,
 .no-alarm {
   display: flex;

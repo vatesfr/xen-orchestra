@@ -6,14 +6,15 @@
   "add-sort": "Add sort",
   "alarm-type": {
     "cpu_usage": "CPU usage exceeds {n}%",
-    "network_usage": "Network usage exceeds {n}%",
     "disk_usage": "Disk usage exceeds {n}%",
     "fs_usage": "FS usage exceeds {n}%",
     "log_fs_usage": "Log FS usage exceeds {n}%",
     "mem_usage": "Memory usage exceeds {n}%",
+    "memory_free_kib": "Free memory falls below {n}%",
+    "network_usage": "Network usage exceeds {n}%",
     "physical_utilisation": "Physical utilisation exceeds {n}%",
     "sr_io_throughput_total_per_host": "SR IO throughput total per host exceeds {n}%",
-    "memory_free_kib": "Free memory falls below {n}%"
+    "unknown": "Unknown error"
   },
   "alarms": "Alarms",
   "all-good": "All good!",
@@ -158,7 +159,6 @@
   "total-cpus": "Total CPUs",
   "total-free": "Total free",
   "total-used": "Total used",
-  "unknown": "Unknown",
   "unreachable-hosts": "Unreachable hosts",
   "unreachable-hosts-reload-page": "Done, reload the page",
   "vcpus": "vCPUs",
