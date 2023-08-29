@@ -87,7 +87,7 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-const contextColor = useContext(ColorContext, () => props.color);
+const { name: contextColor } = useContext(ColorContext, () => props.color);
 
 const inputElement = ref();
 

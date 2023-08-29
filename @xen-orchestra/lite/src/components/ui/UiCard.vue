@@ -5,7 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useColorContext } from "@/composables/color-context.composable";
+import { ColorContext } from "@/context";
+import { useContext } from "@/composables/context.composable";
 import type { Color } from "@/types";
 import { computed } from "vue";
 
@@ -13,7 +14,8 @@ const props = defineProps<{
   color?: Color;
 }>();
 
-const { name: contextColor, backgroundClass } = useColorContext(
+const { name: contextColor, backgroundClass } = useContext(
+  ColorContext,
   () => props.color
 );
 

@@ -37,8 +37,9 @@
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
-import { useColorContext } from "@/composables/color-context.composable";
+import { useContext } from "@/composables/context.composable";
 import useModal from "@/composables/modal.composable";
+import { ColorContext } from "@/context";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
@@ -72,5 +73,5 @@ const deleteVms = async () => {
   closeDeleteModal();
 };
 
-const { textClass } = useColorContext();
+const { textClass } = useContext(ColorContext);
 </script>

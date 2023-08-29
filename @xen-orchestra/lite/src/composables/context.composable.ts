@@ -1,36 +1,43 @@
-import {
-  computed,
-  type ComputedRef,
-  inject,
-  type InjectionKey,
-  type MaybeRefOrGetter,
-  provide,
-  toValue,
-} from "vue";
+import type { ComputedRef, InjectionKey, MaybeRefOrGetter } from "vue";
+import { computed, inject, provide, toValue } from "vue";
 
-type Context<T> = {
-  key: InjectionKey<ComputedRef<T>>;
-  defaultValue: T;
-};
+type Context<T = any, Output = any> = ReturnType<
+  typeof createContext<T, Output>
+>;
 
-export const createContext = <T>(defaultValue: T): Context<T> => {
+type ContextOutput<Ctx extends Context> = Ctx extends Context<any, infer Output>
+  ? Output
+  : never;
+
+type ContextValue<Ctx extends Context> = Ctx extends Context<infer T>
+  ? T
+  : never;
+
+export const createContext = <T, Output = ComputedRef<T>>(
+  initialValue: MaybeRefOrGetter<T>,
+  customBuilder?: (value: ComputedRef<T>) => Output
+) => {
   return {
-    key: Symbol() as InjectionKey<ComputedRef<T>>,
-    defaultValue,
+    id: Symbol() as InjectionKey<MaybeRefOrGetter<T>>,
+    initialValue,
+    builder: customBuilder ?? ((value) => value as Output),
   };
 };
 
-export const useContext = <T>(
-  context: Context<T>,
+export const useContext = <Ctx extends Context, T extends ContextValue<Ctx>>(
+  context: Ctx,
   newValue?: MaybeRefOrGetter<T | undefined>
-) => {
-  const parentValue = inject<T>(context.key, context.defaultValue);
+): ContextOutput<Ctx> => {
+  const currentValue = inject(context.id, context.initialValue);
 
-  const currentValue = computed(
-    () => toValue(newValue) ?? toValue(parentValue)
-  );
+  const build = (value: MaybeRefOrGetter<T>) =>
+    context.builder(computed(() => toValue(value)));
 
-  provide(context.key, currentValue);
+  if (newValue !== undefined) {
+    const updatedValue = () => toValue(newValue) ?? toValue(currentValue);
+    provide(context.id, updatedValue);
+    return build(updatedValue);
+  }
 
-  return currentValue;
+  return build(currentValue);
 };

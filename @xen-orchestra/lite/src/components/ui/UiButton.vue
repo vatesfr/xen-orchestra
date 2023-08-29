@@ -56,7 +56,7 @@ const isGroupTransparent = inject(
   computed(() => false)
 );
 
-const contextColor = useContext(ColorContext, () => props.color);
+const { name: contextColor } = useContext(ColorContext, () => props.color);
 
 const className = computed(() => {
   return [

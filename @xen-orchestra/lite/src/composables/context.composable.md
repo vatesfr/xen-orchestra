@@ -1,42 +1,51 @@
 <!-- TOC -->
 
-- [Context Composable](#context-composable)
-  - [Usage](#usage)
+- [Overview](#overview)
+  - [Simple Context](#simple-context)
     - [1. Create the context](#1-create-the-context)
-    - [2. Access the context](#2-access-the-context)
-    - [3. Update the context](#3-update-the-context)
-  - [Context Color](#context-color)
+    - [2. Use the context](#2-use-the-context)
+      - [2.1. Read](#21-read)
+      - [2.2. Update](#22-update)
+  - [Advanced Context](#advanced-context)
+    - [1. Create the context](#1-create-the-context-1)
+    - [2. Use the context](#2-use-the-context-1)
+      - [2.1. Read](#21-read-1)
+      - [2.2. Update](#22-update-1)
   - [Caveats (boolean props)](#caveats-boolean-props)
   <!-- TOC -->
 
-# Context Composable
+# Overview
 
-This composable allows to access and update a context which will be accessible from a component and all of its children,
-regardless of their nesting depth.
+`createContext` lets you create a context that is both readable and writable, and is accessible by a component and all
+its descendants at any depth.
 
-## Usage
+Each descendant has the ability to change the context value, affecting itself and all of its descendants at any level.
+
+## Simple Context
 
 ### 1. Create the context
+
+`createContext` takes the initial context value as first argument.
 
 ```ts
 // context.ts
 
-const FoobarContext = createContext("default value");
+const CounterContext = createContext(0);
 ```
 
-### 2. Access the context
+### 2. Use the context
 
-You can access the value in any component at any depth:
+#### 2.1. Read
+
+You can get the current Context value by using `useContext(CounterContext)`.
 
 ```ts
-// Component.vue
+const counter = useContext(CounterContext);
 
-const foobar = useContext(FoobarContext);
-
-console.log(foobar.value); // 'default value'
+console.log(counter.value); // 0
 ```
 
-### 3. Update the context
+#### 2.2. Update
 
 You can pass a `MaybeRefOrGetter` as second argument to update the context value.
 
@@ -44,33 +53,68 @@ You can pass a `MaybeRefOrGetter` as second argument to update the context value
 // MyComponent.vue
 
 const props = defineProps<{
-  foobar?: string;
+  counter?: number;
 }>();
 
-const foobar = useContext(FooBarContext, () => props.foobar);
+const counter = useContext(CounterContext, () => props.counter);
 
-// With <MyComponent />
-console.log(foobar.value); // 'default value'
+// When calling <MyComponent />
+console.log(counter.value); // 0
 
-// With <MyComponent foobar="new value" />
-console.log(foobar.value); // 'new value'
+// When calling <MyComponent :counter="20" />
+console.log(counter.value); // 20
 ```
+
+## Advanced Context
+
+To customize the context output, you can pass a custom context builder as the second argument of `createContext`.
+
+### 1. Create the context
 
 ```ts
-// AnyDepthChild.vue
+// context.ts
 
-const foobar = useContext(FoobarContext);
+// Example 1. Return a object
+const CounterContext = createContext(10, (counter) => ({
+  counter,
+  isEven: computed(() => counter.value % 2 === 0),
+}));
 
-// With  <MyComponent />
-console.log(foobar.value); // 'default value'
-
-// With <MyComponent foobar="new value" />
-console.log(foobar.value); // 'new value'
+// Example 2. Return a computed value
+const DoubleContext = createContext(10, (num) => computed(() => num.value * 2));
 ```
 
-## Context Color
+### 2. Use the context
 
-For the specific case of the color context, you can use the `useColorContext` composable (see doc).
+#### 2.1. Read
+
+When using the context, it will return your custom value.
+
+```ts
+const { counter, isEven } = useContext(CounterContext);
+const double = useContext(DoubleContext);
+
+console.log(counter.value); // 10
+console.log(isEven.value); // true
+console.log(double.value); // 20
+```
+
+#### 2.2. Update
+
+Same as with a simple context, you can pass a `MaybeRefOrGetter` as second argument.
+
+```ts
+// Parent.vue
+useContext(CounterContext, 99);
+useContext(DoubleContext, 99);
+
+// Child.vue
+const { isEven } = useContext(CounterContext);
+const double = useContext(DoubleContext);
+
+console.log(isEven.value); // false
+console.log(double.value); // 198
+```
 
 ## Caveats (boolean props)
 
@@ -85,7 +129,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 
-useContext(MyBooleanContext, () => props.disabled);
+useContext(MyBooleanContext, () => props.disabled); // Update to `false` if `undefined`
 ```
 
 In that case, Vue will automatically set the default value for `disabled` prop to `false`.
@@ -104,5 +148,5 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-useContext(MyBooleanContext, () => props.disabled);
+useContext(MyBoolean, () => props.disabled); // Keep parent value if `undefined`
 ```
