@@ -148,5 +148,5 @@ const props = withDefaults(
   { disabled: undefined }
 );
 
-useContext(MyBooleanContext, () => props.disabled);
+useContext(MyBoolean, () => props.disabled); // Keep parent value if `undefined`
 ```
