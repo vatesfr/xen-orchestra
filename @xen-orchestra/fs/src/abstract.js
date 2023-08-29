@@ -227,11 +227,19 @@ export default class RemoteHandlerAbstract {
 
   // when using encryption, the file size is aligned with the encryption block size ( 16 bytes )
   // that means that the size will be 1 to 16 bytes more than the content size + the initialized vector length (16 bytes)
-  async getSize(file) {
-    assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
+  async getSize(file, { exact = true } = {}) {
+    exact && assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
 
     const size = await timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
-    return size - this.#encryptor.ivLength
+    return size
+  }
+
+  getSizeApproximationMargin() {
+    if (this.isEncrypted) {
+      // on block for initialization vector + at most 1 bloc - 1 byte for aligment padding
+      return this.#encryptor.ivLength * 2 - 1
+    }
+    return 0
   }
 
   async __list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {

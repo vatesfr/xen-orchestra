@@ -686,8 +686,13 @@ export class RemoteAdapter {
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
-      async validator() {
+      async validator(tmpPath) {
         await input.task
+        // size on file system can be bigger when encrypted ( IV + alignmet padding)
+        const size = await this._handler.getSize(tmpPath, { exact: false })
+        if (Math.abs(size - container.size) > this._handler.getSizeApproximationMargin()) {
+          return false
+        }
         return validator.apply(this, arguments)
       },
     })
