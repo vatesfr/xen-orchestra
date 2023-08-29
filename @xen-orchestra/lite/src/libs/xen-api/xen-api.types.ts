@@ -32,12 +32,15 @@ export type XenApiRecordBeforeLoadEvent<Type extends ObjectType> =
   `${Type}.beforeLoad`;
 export type XenApiRecordAfterLoadEvent<Type extends ObjectType> =
   `${Type}.afterLoad`;
+export type XenApiRecordLoadErrorEvent<Type extends ObjectType> =
+  `${Type}.loadError`;
 export type XenApiRecordAddEvent<Type extends ObjectType> = `${Type}.add`;
 export type XenApiRecordModEvent<Type extends ObjectType> = `${Type}.mod`;
 export type XenApiRecordDelEvent<Type extends ObjectType> = `${Type}.del`;
 export type XenApiRecordEvent<Type extends ObjectType> =
   | XenApiRecordBeforeLoadEvent<Type>
   | XenApiRecordAfterLoadEvent<Type>
+  | XenApiRecordLoadErrorEvent<Type>
   | XenApiRecordAddEvent<Type>
   | XenApiRecordModEvent<Type>
   | XenApiRecordDelEvent<Type>;

@@ -11,6 +11,7 @@ import type {
   XenApiRecordBeforeLoadEvent,
   XenApiRecordDelEvent,
   XenApiRecordEvent,
+  XenApiRecordLoadErrorEvent,
   XenApiRecordModEvent,
   XenApiVm,
 } from "@/libs/xen-api/xen-api.types";
@@ -111,19 +112,24 @@ export default class XenApi {
   >(type: Type): Promise<XRecord[]> {
     this.emitEvent(`${type}.beforeLoad`);
 
-    const result = await this.call<
-      Record<XRecord["$ref"], RawXenApiRecord<XRecord>>
-    >(`${typeToRawType(type)}.get_all_records`);
+    try {
+      const result = await this.call<
+        Record<XRecord["$ref"], RawXenApiRecord<XRecord>>
+      >(`${typeToRawType(type)}.get_all_records`);
 
-    const records = Object.entries(result).map(([opaqueRef, record]) =>
-      buildXoObject(record as RawXenApiRecord<XRecord>, {
-        opaqueRef: opaqueRef as XRecord["$ref"],
-      })
-    );
+      const records = Object.entries(result).map(([opaqueRef, record]) =>
+        buildXoObject(record as RawXenApiRecord<XRecord>, {
+          opaqueRef: opaqueRef as XRecord["$ref"],
+        })
+      );
 
-    this.emitEvent(`${type}.afterLoad`, records);
+      this.emitEvent(`${type}.afterLoad`, records);
 
-    return records;
+      return records;
+    } catch (e) {
+      this.emitEvent(`${type}.loadError`);
+      return [];
+    }
   }
 
   addEventListener<
@@ -137,6 +143,11 @@ export default class XenApi {
   addEventListener<Type extends ObjectType>(
     event: XenApiRecordBeforeLoadEvent<Type>,
     callback: () => void
+  ): void;
+
+  addEventListener<Type extends ObjectType>(
+    event: XenApiRecordLoadErrorEvent<Type>,
+    callback: (error: Error) => void
   ): void;
 
   addEventListener<
@@ -169,6 +180,11 @@ export default class XenApi {
   removeEventListener<Type extends ObjectType>(
     event: XenApiRecordBeforeLoadEvent<Type>,
     callback: () => void
+  ): void;
+
+  removeEventListener<Type extends ObjectType>(
+    event: XenApiRecordLoadErrorEvent<Type>,
+    callback: (error: Error) => void
   ): void;
 
   removeEventListener<
