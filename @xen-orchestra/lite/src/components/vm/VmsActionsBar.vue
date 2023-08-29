@@ -10,7 +10,7 @@
       <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
-      {{ $t("change-power-state") }}
+      {{ $t("change-state") }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
@@ -25,30 +25,8 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
+    <VmActionExportItem :vm-refs="selectedRefs" />
     <VmActionDeleteItem :vm-refs="selectedRefs" />
-    <MenuItem :icon="faFileExport">
-      {{ $t("export") }}
-      <template #submenu>
-        <MenuItem
-          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
-          :icon="faDisplay"
-        >
-          {{ $t("export-vms") }}
-        </MenuItem>
-        <MenuItem
-          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
-          :icon="faCode"
-        >
-          {{ $t("export-table-to", { type: ".json" }) }}
-        </MenuItem>
-        <MenuItem
-          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
-          :icon="faFileCsv"
-        >
-          {{ $t("export-table-to", { type: ".csv" }) }}
-        </MenuItem>
-      </template>
-    </MenuItem>
   </AppMenu>
 </template>
 
@@ -57,19 +35,16 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
+import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
 import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiVm } from "@/libs/xen-api";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,
-  faCode,
-  faDisplay,
   faEdit,
   faEllipsis,
-  faFileCsv,
-  faFileExport,
   faPowerOff,
   faRoute,
 } from "@fortawesome/free-solid-svg-icons";

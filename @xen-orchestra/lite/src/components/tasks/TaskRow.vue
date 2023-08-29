@@ -34,9 +34,9 @@
 <script lang="ts" setup>
 import RelativeTime from "@/components/RelativeTime.vue";
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { parseDateTime } from "@/libs/utils";
-import type { XenApiTask } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
+import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
 import { computed } from "vue";
 
 const props = defineProps<{
@@ -44,7 +44,7 @@ const props = defineProps<{
   task: XenApiTask;
 }>();
 
-const { getByOpaqueRef: getHost } = useHostStore().subscribe();
+const { getByOpaqueRef: getHost } = useHostCollection();
 
 const createdAt = computed(() => parseDateTime(props.task.created));
 

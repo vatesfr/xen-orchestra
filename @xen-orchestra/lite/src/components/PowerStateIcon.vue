@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { POWER_STATE } from "@/libs/xen-api";
+import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
 import {
   faMoon,
   faPause,

@@ -7,23 +7,21 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
-- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
-- [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
-- [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
-- [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
-- [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
+- [Netbox] Synchronize VM tags [#5899](https://github.com/vatesfr/xen-orchestra/issues/5899) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6957](https://github.com/vatesfr/xen-orchestra/pull/6957))
+- [REST API] Add support for `filter` and `limit` parameters to `backups/logs` and `restore/logs` collections [Forum#64789](https://xcp-ng.org/forum/post/64789)
+- [Pool/Advanced] Ability to set a crash dump SR [#5060](https://github.com/vatesfr/xen-orchestra/issues/5060) (PR [#6973](https://github.com/vatesfr/xen-orchestra/pull/6973))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
-- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
-- [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
-- [Remote] Fix `remote is disabled` error when editing a disabled remote
-- [Settings/Servers] Fix connectiong using an explicit IPv6 address
-- [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
+- [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
+- [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
+- [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
+- [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
+- [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
+- [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
 
 ### Packages to release
 
@@ -41,18 +39,13 @@
 
 <!--packages-start-->
 
-- @vates/nbd-client patch
-- @vates/task minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/fs patch
-- @xen-orchestra/mixins patch
-- @vates/node-vsphere-soap major
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/backups patch
+- @xen-orchestra/mixins minor
+- @xen-orchestra/xapi patch
 - xen-api patch
-- xo-cli minor
 - xo-server minor
-- xo-server-auth-oidc minor
-- xo-server-perf-alert patch
+- xo-server-auth-ldap patch
+- xo-server-netbox minor
 - xo-web minor
 
 <!--packages-end-->

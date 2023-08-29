@@ -10,7 +10,7 @@ Xen Orchestra should be fully functional with any version of these two virtualiz
 
 - ✅ Full support
 - 🚀 All extra features (eg: RAM enabled backup)
-- ❗ Virtualization platform without security updates anymore (upgrade your hosts!)
+- ☠️ Virtualization platform without security updates anymore (upgrade your hosts!)
 - ❎ Not all XO features supported
 
 ## XCP-ng
@@ -22,29 +22,30 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 - XCP-ng 8.2 LTS ✅ 🚀
 - XCP-ng 8.1 ✅ 🚀
 - XCP-ng 8.0 ✅
-- XCP-ng 7.6 ✅ ❗
-- XCP-ng 7.5 ✅ ❗
-- XCP-ng 7.4 ✅ ❗
+- XCP-ng 7.6 ✅ ☠️
+- XCP-ng 7.5 ✅ ☠️
+- XCP-ng 7.4 ✅ ☠️
 
-## Citrix Hypervisor (formerly XenServer)
+## XenServer (formerly Citrix Hypervisor)
 
 - Citrix Hypervisor 8.2 LTS ✅
 - Citrix Hypervisor 8.1 ✅
 - Citrix Hypervisor 8.0 ✅
-- XenServer 7.6 ✅ ❗
-- XenServer 7.5 ✅ ❗
+- XenServer 7.6 ✅ ☠️
+- XenServer 7.5 ✅ ☠️
   - [VDI I/O error](https://bugs.xenserver.org/browse/XSO-873), waiting for Citrix to release our fix
-- XenServer 7.4 ✅ ❗
-- XenServer 7.3 ✅ ❗
-- XenServer 7.2 ✅ ❗
+- XenServer 7.4 ✅ ☠️
+- XenServer 7.3 ✅ ☠️
+- XenServer 7.2 ❎ ☠️
+  - Issues with JSON-RPC which may leads to `INTERNAL_ERROR((Failure "Expected float, got 'I(1)'"))` during _Incremental Replication_ and _Incremental Backup_ restorations
 - XenServer 7.1 LTS ✅
-- XenServer 7.0 ✅ ❗
-- XenServer 6.5 ✅ ❗
+- XenServer 7.0 ✅ ☠️
+- XenServer 6.5 ✅ ☠️
   - Random Delta backup issues
-- XenServer 6.1 and 6.2 ❎ ❗
+- XenServer 6.1 and 6.2 ❎ ☠️
   - **No official support** due to missing JSON-RPC (only XML, too CPU intensive)
   - Not compatible with Delta backup and CR
-- XenServer 5.x ❎ ❗
+- XenServer 5.x ❎ ☠️
   - Basic administration features only, **no official support**
 
 :::warning

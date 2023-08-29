@@ -108,7 +108,7 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', reload)
+  xo.on('authenticationFailure', signOut)
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
@@ -590,6 +590,15 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   // Sort dates by start time
   return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
 })
+
+export const subscribeCloudXoConfigBackups = createSubscription(
+  () => fetch('./rest/v0/cloud/xo-config/backups?fields=xoaId,createdAt,id,content_href').then(resp => resp.json()),
+  { polling: 6e4 }
+)
+
+export const subscribeCloudXoConfig = createSubscription(() =>
+  fetch('./rest/v0/cloud/xo-config').then(resp => resp.json())
+)
 
 // System ============================================================
 
@@ -1809,7 +1818,7 @@ export const importVms = (vms, sr) =>
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
 
-const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+const importDisk = async ({ description, file, name, type, vmdkData, url = undefined }, sr) => {
   // eslint-disable-next-line no-undef
   const formData = new FormData()
   if (vmdkData !== undefined) {
@@ -1827,7 +1836,14 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     sr: resolveId(sr),
     type,
     vmdkData,
+    url,
   })
+
+  if (url !== undefined) {
+    success(_('vdiImportSuccess'), name)
+    return res
+  }
+
   formData.append('file', file)
   const result = await post(res.$sendTo, formData)
   const text = await result.text()
@@ -1893,6 +1909,11 @@ export const exportVdi = async vdi => {
   })
 
   info(_('startVdiExport'), vdi.id)
+
+  if (format === 'raw') {
+    return window.open(`./rest/v0/vdis/${resolveId(vdi)}.raw`)
+  }
+
   return _call('disk.exportContent', { id: resolveId(vdi), format }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
@@ -2665,16 +2686,17 @@ export const listPartitions = (remote, disk) => _call('backupNg.listPartitions',
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFiles = (remote, disk, partition, paths) =>
-  _call('backupNg.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(({ $getFrom: url }) => {
+export const fetchFiles = (remote, disk, partition, paths, format) =>
+  _call('backupNg.fetchFiles', resolveIds({ remote, disk, format, partition, paths })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 
 // -------------------------------------------------------------------
 
-export const probeSrNfs = (host, server) => _call('sr.probeNfs', { host, server })
+export const probeSrNfs = (host, server, nfsVersion) => _call('sr.probeNfs', { host, nfsVersion, server })
 
-export const probeSrNfsExists = (host, server, serverPath) => _call('sr.probeNfsExists', { host, server, serverPath })
+export const probeSrNfsExists = (host, server, serverPath, nfsVersion) =>
+  _call('sr.probeNfsExists', { host, nfsVersion, server, serverPath })
 
 export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
   const params = { host, target }
@@ -2941,6 +2963,14 @@ export const deleteUsers = users =>
 
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
+
+export const removeUserAuthProvider = ({ userId, authProviderId }) => {
+  _call('user.removeAuthProvider', { id: userId, authProvider: authProviderId })
+    ::tap(subscribeUsers.forceRefresh)
+    .catch(e => {
+      error('user.removeAuthProvider', e.message)
+    })
+}
 
 const _signOutFromEverywhereElse = () =>
   _call('token.delete', {
@@ -3398,6 +3428,8 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() => _call('xoa.supportTunnel.getState'))
 
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
+
+export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
 // Proxy --------------------------------------------------------------------
 

@@ -18,19 +18,29 @@ export default class MiniStats extends Component {
     fetchStats: PropTypes.func.isRequired,
   }
 
+  state = {
+    statsIsPending: false,
+  }
+
   _fetch = () => {
+    if (this.state.statsIsPending) {
+      return
+    }
+    this.setState({
+      statsIsPending: true,
+    })
     this.props.fetch().then(stats => {
-      this.setState({ stats })
-      this._timeout = setTimeout(this._fetch, 5e3)
+      this.setState({ stats, statsIsPending: false })
     })
   }
 
   componentWillMount() {
     this._fetch()
+    this._interval = setInterval(this._fetch, 5e3)
   }
 
   componentWillUnmount() {
-    clearTimeout(this._timeout)
+    clearInterval(this._interval)
   }
 
   render() {

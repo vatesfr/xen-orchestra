@@ -6,6 +6,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
+import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
@@ -16,7 +17,16 @@ import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
-import { createUser, deleteUser, deleteUsers, editUser, removeOtp, subscribeGroups, subscribeUsers } from 'xo'
+import {
+  createUser,
+  deleteUser,
+  deleteUsers,
+  editUser,
+  removeOtp,
+  removeUserAuthProvider,
+  subscribeGroups,
+  subscribeUsers,
+} from 'xo'
 
 const permissions = {
   none: {
@@ -76,9 +86,36 @@ const USER_COLUMNS = [
     sortCriteria: user => user.permission,
   },
   {
-    name: _('userPasswordColumn'),
-    itemRenderer: user =>
-      isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+    name: _('userAuthColumn'),
+    itemRenderer: user => {
+      const { authProviders } = user
+      return isEmpty(authProviders) ? (
+        <Editable.Password onChange={password => editUser(user, { password })} value='' />
+      ) : (
+        <ul className='list-group'>
+          {Object.keys(authProviders)
+            .sort()
+            .map(id => {
+              const shortId = id.split(':')[0]
+              const plugin = 'auth-' + shortId
+              return (
+                <li key={id} className='list-group-item'>
+                  <Link to={`/settings/plugins/?s=${encodeURIComponent(`name=^${plugin}$`)}`}>{shortId}</Link>
+                  <ActionButton
+                    className='pull-right'
+                    btnStyle='warning'
+                    size='small'
+                    icon='remove'
+                    handler={removeUserAuthProvider}
+                    data-userId={user.id}
+                    data-authProviderId={id}
+                  />
+                </li>
+              )
+            })}
+        </ul>
+      )
+    },
   },
   {
     name: 'OTP',

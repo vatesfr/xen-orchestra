@@ -112,3 +112,16 @@ changePassword.params = {
   oldPassword: { type: 'string' },
   newPassword: { type: 'string' },
 }
+
+// -------------------------------------------------------------------
+
+export async function removeAuthProvider({ id, authProvider }) {
+  await this.updateUser(id, { authProviders: { [authProvider]: null } })
+}
+
+removeAuthProvider.permission = 'admin'
+
+removeAuthProvider.params = {
+  authProvider: { type: 'string' },
+  id: { type: 'string' },
+}

@@ -8,9 +8,9 @@
     </UiCardTitle>
     <div class="table-container">
       <HostPatches
-        :has-multiple-hosts="hosts.length > 1"
         :are-all-loaded="areAllLoaded"
         :are-some-loaded="areSomeLoaded"
+        :has-multiple-hosts="hosts.length > 1"
         :patches="patches"
       />
     </div>
@@ -22,9 +22,9 @@ import HostPatches from "@/components/HostPatchesTable.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { useHostPatches } from "@/composables/host-patches.composable";
-import { useHostStore } from "@/stores/host.store";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 
-const { records: hosts } = useHostStore().subscribe();
+const { records: hosts } = useHostCollection();
 
 const { count, patches, areSomeLoaded, areAllLoaded } = useHostPatches(hosts);
 </script>

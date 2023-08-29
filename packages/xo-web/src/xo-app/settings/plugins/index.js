@@ -11,6 +11,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import map from 'lodash/map'
+import merge from 'lodash/merge'
 import orderBy from 'lodash/orderBy'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
@@ -105,7 +106,7 @@ class Plugin extends Component {
   _applyPredefinedConfiguration = () => {
     const configName = this.refs.selectPredefinedConfiguration.value
     this.setState({
-      editedConfig: this.props.configurationPresets[configName],
+      editedConfig: merge(undefined, this.state.editedConfig, this.props.configurationPresets[configName]),
     })
   }
 
@@ -167,7 +168,7 @@ class Plugin extends Component {
                   <p>{_('pluginConfigurationChoosePreset')}</p>
                 </span>
                 <div className='input-group'>
-                  <select className='form-control' disabled={!editedConfig} ref='selectPredefinedConfiguration'>
+                  <select className='form-control' ref='selectPredefinedConfiguration'>
                     {map(configurationPresets, (_, name) => (
                       <option key={name} value={name}>
                         {name}
@@ -175,7 +176,7 @@ class Plugin extends Component {
                     ))}
                   </select>
                   <span className='input-group-btn'>
-                    <Button btnStyle='primary' disabled={!editedConfig} onClick={this._applyPredefinedConfiguration}>
+                    <Button btnStyle='primary' onClick={this._applyPredefinedConfiguration}>
                       {_('applyPluginPreset')}
                     </Button>
                   </span>

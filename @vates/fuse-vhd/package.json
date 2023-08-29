@@ -1,6 +1,6 @@
 {
   "name": "@vates/fuse-vhd",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "ISC",
   "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fuse-vhd",
@@ -15,8 +15,9 @@
     "url": "https://vates.fr"
   },
   "engines": {
-    "node": ">=10.0"
+    "node": ">=14"
   },
+  "main": "./index.mjs",
   "dependencies": {
     "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",

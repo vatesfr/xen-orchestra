@@ -1,5 +1,6 @@
 <template>
   <!-- TODO: add a loader when data is not fully loaded or undefined -->
+  <!-- TODO: add small loader with tooltips when stats can be expired -->
   <!-- TODO: display the NoDataError component in case of a data recovery error -->
   <LinearChart
     :data="data"
@@ -15,42 +16,37 @@
 </template>
 
 <script lang="ts" setup>
-import LinearChart from "@/components/charts/LinearChart.vue";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
-import type { FetchedStats } from "@/composables/fetch-stats.composable";
-import { formatSize, getHostMemory } from "@/libs/utils";
-import type { HostStats } from "@/libs/xapi-stats";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
+import { formatSize } from "@/libs/utils";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { XenApiHost } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
-import type { LinearChartData } from "@/types/chart";
+import type { LinearChartData, ValueFormatter } from "@/types/chart";
+import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
 import { sumBy } from "lodash-es";
-import { computed, inject } from "vue";
+import { computed, defineAsyncComponent, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
+const LinearChart = defineAsyncComponent(
+  () => import("@/components/charts/LinearChart.vue")
+);
 
-const hostStore = useHostStore();
-const { runningHosts } = hostStore.subscribe({ hostMetricsSubscription });
+const { runningHosts } = useHostCollection();
+const { getHostMemory } = useHostMetricsCollection();
 
 const { t } = useI18n();
 
-const hostLastWeekStats =
-  inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
+const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
 
 const customMaxValue = computed(() =>
-  sumBy(
-    runningHosts.value,
-    (host) => getHostMemory(host, hostMetricsSubscription)?.size ?? 0
-  )
+  sumBy(runningHosts.value, (host) => getHostMemory(host)?.size ?? 0)
 );
 
 const currentData = computed(() => {
   let size = 0,
     usage = 0;
   runningHosts.value.forEach((host) => {
-    const hostMemory = getHostMemory(host, hostMetricsSubscription);
+    const hostMemory = getHostMemory(host);
     size += hostMemory?.size ?? 0;
     usage += hostMemory?.usage ?? 0;
   });
@@ -96,5 +92,6 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
-const customValueFormatter = (value: number) => String(formatSize(value));
+const customValueFormatter: ValueFormatter = (value) =>
+  String(formatSize(value));
 </script>

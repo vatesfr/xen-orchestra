@@ -37,18 +37,23 @@ import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import VmsActionsBar from "@/components/vm/VmsActionsBar.vue";
-import { POWER_STATE } from "@/libs/xen-api";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
-import { useVmStore } from "@/stores/vm.store";
 import type { Filters } from "@/types/filter";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { records: vms } = useVmStore().subscribe();
-const { isMobile, isDesktop } = storeToRefs(useUiStore());
 const { t } = useI18n();
+
+const titleStore = usePageTitleStore();
+titleStore.setTitle(t("vms"));
+
+const { records: vms } = useVmCollection();
+const { isMobile, isDesktop } = storeToRefs(useUiStore());
 
 const filters: Filters = {
   name_label: { label: t("name"), type: "string" },
@@ -62,6 +67,8 @@ const filters: Filters = {
 };
 
 const selectedVmsRefs = ref([]);
+
+titleStore.setCount(() => selectedVmsRefs.value.length);
 </script>
 
 <style lang="postcss" scoped>

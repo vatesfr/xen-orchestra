@@ -17,6 +17,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
+import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
 
 import mixins from './xo-mixins/index.mjs'
@@ -143,7 +144,7 @@ export default class Xo extends EventEmitter {
           if (typeof result === 'string' || Buffer.isBuffer(result)) {
             res.end(result)
           } else if (typeof result.pipe === 'function') {
-            result.pipe(res)
+            pipeline(result, res, noop)
           } else {
             res.end(JSON.stringify(result))
           }

@@ -9,20 +9,19 @@
 </template>
 
 <script lang="ts" setup>
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { type ComputedRef, computed, inject } from "vue";
-import UsageBar from "@/components/UsageBar.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
-import { getAvgCpuUsage } from "@/libs/utils";
-import type { VmStats } from "@/libs/xapi-stats";
-import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
-import { useVmStore } from "@/stores/vm.store";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UsageBar from "@/components/UsageBar.vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { getAvgCpuUsage } from "@/libs/utils";
+import { IK_VM_STATS } from "@/types/injection-keys";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { computed, type ComputedRef, inject } from "vue";
 
-const { hasError } = useVmStore().subscribe();
+const { hasError } = useVmCollection();
 
-const stats = inject<ComputedRef<Stat<VmStats>[]>>(
-  "vmStats",
+const stats = inject(
+  IK_VM_STATS,
   computed(() => [])
 );
 

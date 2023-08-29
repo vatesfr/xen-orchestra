@@ -1,6 +1,14 @@
 # ChangeLog
 
-## **0.2.0**
+## **next**
+
+## **0.1.2** (2023-07-28)
+
+- Ability to export selected VMs as CSV file (PR [#6915](https://github.com/vatesfr/xen-orchestra/pull/6915))
+- [Pool/VMs] Ability to export selected VMs as JSON file (PR [#6911](https://github.com/vatesfr/xen-orchestra/pull/6911))
+- Add Tasks to Pool Dashboard (PR [#6713](https://github.com/vatesfr/xen-orchestra/pull/6713))
+
+## **0.1.1** (2023-07-03)
 
 - Invalidate sessionId token after logout (PR [#6480](https://github.com/vatesfr/xen-orchestra/pull/6480))
 - Settings page (PR [#6418](https://github.com/vatesfr/xen-orchestra/pull/6418))

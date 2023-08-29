@@ -1,8 +1,11 @@
+'use strict'
+
 module.exports = {
   arrowParens: 'avoid',
   jsxSingleQuote: true,
   semi: false,
   singleQuote: true,
+  trailingComma: 'es5',
 
   // 2020-11-24: Requested by nraynaud and approved by the rest of the team
   //

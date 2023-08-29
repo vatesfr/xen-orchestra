@@ -2,10 +2,10 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log'
-import { createRunner } from '@xen-orchestra/backups/Backup.js'
-import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.js'
-import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.js'
-import { Task } from '@xen-orchestra/backups/Task.js'
+import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
+import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
+import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
+import { Task } from '@xen-orchestra/backups/Task.mjs'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { handleBackupLog } from '../_handleBackupLog.mjs'
@@ -51,7 +51,11 @@ export default class metadataBackup {
     }
 
     const app = this._app
-    job.xoMetadata = job.xoMetadata ? await app.exportConfig() : undefined
+
+    if (job.xoMetadata) {
+      const config = await app.exportConfig()
+      job.xoMetadata = typeof config === 'string' ? config : { encoding: 'base64', data: config.toString('base64') }
+    }
 
     const remoteIds = unboxIdsFromPattern(job.remotes)
     const proxyId = job.proxy
@@ -325,7 +329,8 @@ export default class metadataBackup {
     const onLog = async log => {
       if (type === 'xoConfig' && localTaskIds[log.taskId] === rootTaskId && log.status === 'success') {
         try {
-          await app.importConfig(log.result)
+          const { result } = log
+          await app.importConfig(typeof result === 'string' ? result : Buffer.from(result.data, result.encoding))
 
           // don't log the XO config
           log.result = undefined

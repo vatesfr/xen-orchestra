@@ -21,7 +21,7 @@
       </UiCardGroup>
     </UiCardGroup>
     <UiCardGroup>
-      <UiCardComingSoon class="tasks" title="Tasks" />
+      <PoolDashboardTasks class="tasks" />
     </UiCardGroup>
   </div>
 </template>
@@ -39,48 +39,49 @@ import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
+import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
 import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
-import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
-import { useVmStore } from "@/stores/vm.store";
+import { GRANULARITY } from "@/libs/xapi-stats";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { usePageTitleStore } from "@/stores/page-title.store";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import {
+  IK_HOST_LAST_WEEK_STATS,
+  IK_HOST_STATS,
+  IK_VM_STATS,
+} from "@/types/injection-keys";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
+usePageTitleStore().setTitle(useI18n().t("dashboard"));
 
-const hostSubscription = useHostStore().subscribe({ hostMetricsSubscription });
-
-const { runningHosts, getStats: getHostStats } = hostSubscription;
-
-const { runningVms, getStats: getVmStats } = useVmStore().subscribe({
-  hostSubscription,
-});
+const { getStats: getHostStats, runningHosts } = useHostCollection();
+const { getStats: getVmStats, runningVms } = useVmCollection();
 
 const {
   register: hostRegister,
   unregister: hostUnregister,
   stats: hostStats,
-} = useFetchStats<XenApiHost, HostStats>(getHostStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiHost>(getHostStats, GRANULARITY.Seconds);
 
 const {
   register: vmRegister,
   unregister: vmUnregister,
   stats: vmStats,
-} = useFetchStats<XenApiVm, VmStats>(getVmStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiVm>(getVmStats, GRANULARITY.Seconds);
 
-const hostLastWeekStats = useFetchStats<XenApiHost, HostStats>(
+const hostLastWeekStats = useFetchStats<XenApiHost>(
   getHostStats,
   GRANULARITY.Hours
 );
 
-provide("hostStats", hostStats);
-provide("vmStats", vmStats);
-provide("hostLastWeekStats", hostLastWeekStats);
+provide(IK_HOST_STATS, hostStats);
+provide(IK_VM_STATS, vmStats);
+provide(IK_HOST_LAST_WEEK_STATS, hostLastWeekStats);
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On
@@ -118,6 +119,18 @@ runningVms.value.forEach((vm) => vmRegister(vm));
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .pool-dashboard-view {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1500px) {
+  .pool-dashboard-view {
+    column-count: 3;
+  }
 }
 
 .alarms,

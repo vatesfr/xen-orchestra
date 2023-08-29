@@ -7,7 +7,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.js'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
 import { noSuchObject } from 'xo-common/api-errors.js'
@@ -589,7 +589,7 @@ export default class XenServers {
     const sourceXapi = this.getXapi(sourcePoolId)
     const {
       _auth: { user, password },
-      _url: { hostname },
+      _url: { hostnameRaw },
     } = this.getXapi(targetPoolId)
 
     // We don't want the events of the source XAPI to interfere with
@@ -597,7 +597,7 @@ export default class XenServers {
     sourceXapi.xo.uninstall()
 
     try {
-      await sourceXapi.joinPool(hostname, user, password, force)
+      await sourceXapi.joinPool(hostnameRaw, user, password, force)
     } catch (e) {
       sourceXapi.xo.install()
 

@@ -9,20 +9,19 @@
 </template>
 
 <script lang="ts" setup>
+import NoDataError from "@/components/NoDataError.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { getAvgCpuUsage } from "@/libs/utils";
-import type { HostStats } from "@/libs/xapi-stats";
-import { useHostStore } from "@/stores/host.store";
+import { IK_HOST_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed, type ComputedRef, inject } from "vue";
-import NoDataError from "@/components/NoDataError.vue";
 
-const { hasError } = useHostStore().subscribe();
+const { hasError } = useHostCollection();
 
-const stats = inject<ComputedRef<Stat<HostStats>[]>>(
-  "hostStats",
+const stats = inject(
+  IK_HOST_STATS,
   computed(() => [])
 );
 

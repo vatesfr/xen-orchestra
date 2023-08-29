@@ -9,6 +9,9 @@ const messages = {
   creation: 'Creation',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
+  disable: 'Disable',
+  download: 'Download',
+  enable: 'Enable',
   expiration: 'Expiration',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
@@ -192,7 +195,6 @@ const messages = {
   settingsLogsPage: 'Logs',
   settingsCloudConfigsPage: 'Cloud configs',
   settingsIpsPage: 'IPs',
-  settingsConfigPage: 'Config',
   aboutPage: 'About',
   aboutXoaPlan: 'About XO {xoaPlan}',
   newMenu: 'New',
@@ -452,7 +454,6 @@ const messages = {
   taskSkipped: 'Skipped',
   taskStarted: 'Started',
   taskInterrupted: 'Interrupted',
-  taskEnded: 'Ended',
   taskAborted: 'Aborted',
   taskTransferredDataSize: 'Transfer size',
   taskTransferredDataSpeed: 'Transfer speed',
@@ -732,7 +733,7 @@ const messages = {
   userGroupsColumn: 'Member of',
   userCountGroups: '{nGroups, number} group{nGroups, plural, one {} other {s}}',
   userPermissionColumn: 'Permissions',
-  userPasswordColumn: 'Password',
+  userAuthColumn: 'Password / Authentication methods',
   userName: 'Username',
   userPassword: 'Password',
   createUserButton: 'Create',
@@ -872,6 +873,7 @@ const messages = {
   srsTabName: 'SRs',
   // ----- Pool advanced tab -----
   backupNetwork: 'Backup network',
+  crashDumpSr: 'Crash dump SR',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
@@ -1241,6 +1243,7 @@ const messages = {
   removeVdiFromVm: 'Remove VDI from this VM',
   vhd: 'VHD',
   vmdk: 'VMDK',
+  raw: 'RAW',
 
   // ----- VM network tab -----
 
@@ -1651,6 +1654,7 @@ const messages = {
   fileType: 'File type:',
   firmware: 'Firmware',
   fromUrl: 'From URL',
+  UrlImportSrsCompatible: 'URL import is only compatible with ISO SRs',
   fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
@@ -1685,8 +1689,9 @@ const messages = {
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
   diskImportSuccess: 'Disk import success',
-  dropDisksFiles: 'Drop ISO, VMDK or VHD files here to import disks.',
+  dropDisksFiles: 'Drop {types} files here to import disks.',
   importToSr: 'To SR',
+  isoImportRequirement: 'To import ISO files, an ISO repository is required',
 
   // ---- Tasks ---
   poolTasks: 'Pool tasks',
@@ -1778,6 +1783,7 @@ const messages = {
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',
   restoreFilesError: 'Invalid options',
+  restoreFilesExportFormat: 'Export format:',
   restoreFilesFromBackup: 'Restore file from {name}',
   restoreFilesSelectBackup: 'Select a backup…',
   restoreFilesSelectDisk: 'Select a disk…',
@@ -1788,7 +1794,9 @@ const messages = {
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",
   restoreFilesSelectFolder: 'Select this folder',
+  restoreFilesTgz: 'tar+gzip (.tgz)',
   restoreFilesUnselectAll: 'Unselect all files',
+  restoreFilesZip: 'ZIP (slow)',
 
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
@@ -2328,6 +2336,16 @@ const messages = {
   migrateVdiMessage:
     'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
 
+  // ----- XO cloud config -----
+  backedUpXoConfigs: 'Backed up XO Configs',
+  manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
+  selectXoConfig: 'Select XO config',
+  xoConfigCloudBackup: 'XO Config Cloud Backup',
+  xoConfigCloudBackupTips:
+    'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigEnterPassphrase: 'Passphrase is required to encrypt backups',
+  xoCloudConfigRestoreEnterPassphrase: 'Enter the passphrase:',
+
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
   xosanSuggestions: 'Suggestions',
@@ -2499,7 +2517,7 @@ const messages = {
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
   notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
-  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go the pool's Advanced tab.",
+  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go to the pool's Advanced tab.",
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:

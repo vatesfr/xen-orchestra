@@ -5,6 +5,7 @@ import mapValues from 'lodash/mapValues.js'
 import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -505,6 +506,13 @@ export default {
 
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
+    const hasMissingPatchesByHost = {}
+    await asyncEach(hosts, async host => {
+      const hostUuid = host.uuid
+      const missingPatches = await this.listMissingPatches(hostUuid)
+      hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+    })
+
     // On XS/CH, start by installing patches on all hosts
     if (!isXcp) {
       log.debug('Install patches')
@@ -542,6 +550,10 @@ export default {
     // Restart all the hosts one by one
     for (const host of hosts) {
       const hostId = host.uuid
+      if (!hasMissingPatchesByHost[hostId]) {
+        continue
+      }
+
       // This is an old metrics reference from before the pool master restart.
       // The references don't seem to change but it's not guaranteed.
       const metricsRef = host.metrics
@@ -582,7 +594,9 @@ export default {
       log.debug(`Host ${hostId} is up`)
     }
 
-    log.debug('Migrate VMs back to where they were')
+    if (some(hasMissingPatchesByHost)) {
+      log.debug('Migrate VMs back to where they were')
+    }
 
     // Start with the last host since it's the emptiest one after the rolling
     // update
@@ -591,6 +605,10 @@ export default {
     let error
     for (const host of hosts) {
       const hostId = host.uuid
+      if (!hasMissingPatchesByHost[hostId]) {
+        continue
+      }
+
       const vmIds = vmsByHost[hostId]
 
       if (vmIds === undefined) {

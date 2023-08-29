@@ -11,11 +11,6 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 
 // ===================================================================
 
-const DEFAULTS = {
-  checkCertificate: true,
-  filter: '(uid={{name}})',
-}
-
 const { escape } = Filter.prototype
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
@@ -55,7 +50,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: DEFAULTS.checkCertificate,
+      default: true,
     },
     startTls: {
       title: 'Use StartTLS',
@@ -110,7 +105,7 @@ Or something like this if you also want to filter by group:
 - \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: DEFAULTS.filter,
+      default: '(uid={{name}})',
     },
     userIdAttribute: {
       title: 'ID attribute',
@@ -164,7 +159,7 @@ Or something like this if you also want to filter by group:
       required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping'],
     },
   },
-  required: ['uri', 'base'],
+  required: ['uri', 'base', 'userIdAttribute'],
 }
 
 export const testSchema = {
@@ -198,7 +193,7 @@ class AuthLdap {
     })
 
     {
-      const { checkCertificate = DEFAULTS.checkCertificate, certificateAuthorities } = conf
+      const { checkCertificate, certificateAuthorities } = conf
 
       const tlsOptions = (this._tlsOptions = {})
 
@@ -212,15 +207,7 @@ class AuthLdap {
       }
     }
 
-    const {
-      bind: credentials,
-      base: searchBase,
-      filter: searchFilter = DEFAULTS.filter,
-      startTls = false,
-      groups,
-      uri,
-      userIdAttribute,
-    } = conf
+    const { bind: credentials, base: searchBase, filter: searchFilter, startTls, groups, uri, userIdAttribute } = conf
 
     this._credentials = credentials
     this._serverUri = uri
@@ -303,23 +290,17 @@ class AuthLdap {
             return
           }
 
-          let user
-          if (this._userIdAttribute === undefined) {
-            // Support legacy config
-            user = await this._xo.registerUser(undefined, username)
-          } else {
-            const ldapId = entry[this._userIdAttribute]
-            user = await this._xo.registerUser2('ldap', {
-              user: { id: ldapId, name: username },
-            })
+          const ldapId = entry[this._userIdAttribute]
+          const user = await this._xo.registerUser2('ldap', {
+            user: { id: ldapId, name: username },
+          })
 
-            const groupsConfig = this._groupsConfig
-            if (groupsConfig !== undefined) {
-              try {
-                await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
-              } catch (error) {
-                logger.error(`failed to synchronize groups: ${error.message}`)
-              }
+          const groupsConfig = this._groupsConfig
+          if (groupsConfig !== undefined) {
+            try {
+              await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
+            } catch (error) {
+              logger.error(`failed to synchronize groups: ${error.message}`)
             }
           }
 

@@ -13,7 +13,7 @@
   - [Start an action](#start-an-action)
 - [The future](#the-future)
 
-> This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
+> This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is in beta, some minor changes may occur in the future.
 
 ## Authentication
 

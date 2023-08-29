@@ -5,6 +5,7 @@
 </template>
 
 <script lang="ts" setup>
+import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
 import { computed, provide } from "vue";
 
 const props = defineProps<{
@@ -12,8 +13,8 @@ const props = defineProps<{
 }>();
 
 provide(
-  "isTabBarDisabled",
-  computed(() => props.disabled)
+  IK_TAB_BAR_DISABLED,
+  computed(() => props.disabled ?? false)
 );
 </script>
 

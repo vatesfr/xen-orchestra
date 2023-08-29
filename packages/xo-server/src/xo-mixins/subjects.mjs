@@ -150,8 +150,8 @@ export default class {
     if (permission) {
       user.permission = permission
     }
-    if (password) {
-      user.pw_hash = await hash(password)
+    if (password !== undefined) {
+      user.pw_hash = password === null ? undefined : await hash(password)
     }
 
     const newPreferences = { ...user.preferences }
@@ -164,15 +164,33 @@ export default class {
     })
     user.preferences = isEmpty(newPreferences) ? undefined : newPreferences
 
-    const newAuthProviders = { ...user.authProviders }
-    forEach(authProviders, (value, name) => {
-      if (value == null) {
-        delete newAuthProviders[name]
-      } else {
-        newAuthProviders[name] = value
+    if (authProviders !== undefined) {
+      let newAuthProviders
+      if (authProviders !== null) {
+        newAuthProviders = { ...user.authProviders }
+        forEach(authProviders, (value, name) => {
+          if (value == null) {
+            delete newAuthProviders[name]
+          } else {
+            newAuthProviders[name] = value
+          }
+        })
       }
-    })
-    user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
+      user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
+    }
+
+    // if updating either authProviders or password, check consistency
+    if (
+      (authProviders !== undefined || password !== undefined) &&
+      user.pw_hash !== undefined &&
+      !isEmpty(user.authProviders)
+    ) {
+      throw new Error('user cannot have both password and auth providers')
+    }
+
+    if (user.pw_hash === undefined && isEmpty(user.authProviders) && id === this._app.apiContext?.user.id) {
+      throw new Error('current user cannot be without password and auth providers')
+    }
 
     // TODO: remove
     user.email = user.name
@@ -221,26 +239,8 @@ export default class {
     throw noSuchObject(username, 'user')
   }
 
-  // Deprecated: use registerUser2 instead
-  // Get or create a user associated with an auth provider.
-  async registerUser(provider, name) {
-    const user = await this.getUserByName(name, true)
-    if (user) {
-      if (user._provider !== provider) {
-        throw new Error(`the name ${name} is already taken`)
-      }
-
-      return user
-    }
-
-    if (!this._app.config.get('createUserOnFirstSignin')) {
-      throw new Error(`registering ${name} user is forbidden`)
-    }
-
-    return /* await */ this.createUser({
-      name,
-      _provider: provider,
-    })
+  async registerUser() {
+    throw new Error('use registerUser2 instead')
   }
 
   // New implementation of registerUser that:
@@ -306,6 +306,7 @@ export default class {
             data: data !== undefined ? data : user.authProviders?.[providerId]?.data,
           },
         },
+        password: null,
       })
     }
 
@@ -321,8 +322,8 @@ export default class {
   }
 
   async checkUserPassword(userId, password, updateIfNecessary = true) {
-    const { pw_hash: hash } = await this.getUser(userId)
-    if (!(hash && (await verify(password, hash)))) {
+    const { authProviders, pw_hash: hash } = await this.getUser(userId)
+    if (!(hash !== undefined && isEmpty(authProviders) && (await verify(password, hash)))) {
       return false
     }
 

@@ -1,8 +1,8 @@
 <template>
   <MenuItem
+    v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
     :disabled="areSomeVmsInExecution"
     :icon="faTrashCan"
-    v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
     @click="openDeleteModal"
   >
     {{ $t("delete") }}
@@ -35,23 +35,23 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
-import { POWER_STATE } from "@/libs/xen-api";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
-import { useVmStore } from "@/stores/vm.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiVm } from "@/libs/xen-api";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 
 const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
 }>();
 
 const xenApi = useXenApiStore().getXapi();
-const { getByOpaqueRef: getVm } = useVmStore().subscribe();
+const { getByOpaqueRef: getVm } = useVmCollection();
 const {
   open: openDeleteModal,
   close: closeDeleteModal,

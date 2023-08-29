@@ -1,5 +1,5 @@
 import { asyncMap } from '@xen-orchestra/async-map'
-import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.js'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import getopts from 'getopts'
 import { basename, dirname } from 'path'

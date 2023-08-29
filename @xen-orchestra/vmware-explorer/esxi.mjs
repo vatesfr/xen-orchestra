@@ -1,4 +1,5 @@
 import { Client } from '@vates/node-vsphere-soap'
+import { createLogger } from '@xen-orchestra/log'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
@@ -8,6 +9,8 @@ import https from 'https'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+
+const { warn } = createLogger('xo:vmware-explorer:esxi')
 
 export default class Esxi extends EventEmitter {
   #client
@@ -64,7 +67,7 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async download(dataStore, path, range) {
+  async #download(dataStore, path, range) {
     strictEqual(this.#ready, true)
     notStrictEqual(this.#dcPath, undefined)
     const url = new URL('https://localhost')
@@ -100,6 +103,24 @@ export default class Esxi extends EventEmitter {
         .join('; ')
     }
     return res
+  }
+
+  async download(dataStore, path, range) {
+    let tries = 5
+    let lastError
+    while (tries > 0) {
+      try {
+        const res = await this.#download(dataStore, path, range)
+        return res
+      } catch (error) {
+        warn('got error , will retry in 2 seconds', { error })
+        lastError = error
+      }
+      await new Promise(resolve => setTimeout(() => resolve(), 2000))
+      tries--
+    }
+
+    throw lastError
   }
 
   // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95

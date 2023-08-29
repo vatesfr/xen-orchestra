@@ -1,4 +1,3 @@
-import defaults from 'lodash/defaults.js'
 import findKey from 'lodash/findKey.js'
 import forEach from 'lodash/forEach.js'
 import identity from 'lodash/identity.js'
@@ -10,9 +9,7 @@ import sum from 'lodash/sum.js'
 import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
-import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDateTime } from '@xen-orchestra/xapi'
-import { synchronized } from 'decorator-synchronized'
 
 export class FaultyGranularity extends BaseError {}
 
@@ -64,8 +61,6 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
   map(dataRow, ({ values }) => transformValue(convertNanToNull(values[legendIndex])))
 
 const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
-
-const createGetProperty = (obj, property, defaultValue) => defaults(obj, { [property]: defaultValue })[property]
 
 const testMetric = (test, type) =>
   typeof test === 'string' ? test === type : typeof test === 'function' ? test(type) : test.exec(type)
@@ -226,31 +221,20 @@ const STATS = {
 //   data: Item[columns] // Item = { t: Number, values: Number[rows] }
 // }
 
-// Local cache
-// _statsByObject : {
-//   [uuid]: {
-//     [step]: {
-//       endTimestamp: Number, // the timestamp of the last statistic point
-//       interval: Number, // step
-//       stats: {
-//         [metric1]: Number[],
-//         [metric2]: {
-//           [subMetric]: Number[],
-//         }
-//       }
-//     }
-//   }
-// }
 export default class XapiStats {
+  // hostCache => host uid => granularity =>  {
+  //  timestamp
+  //  value : promise or value
+  // }
+  #hostCache = {}
   constructor() {
     this._statsByObject = {}
   }
 
-  // Execute one http request on a XenServer for get stats
-  // Return stats (Json format) or throws got exception
-  @limitConcurrency(3)
-  _getJson(xapi, host, timestamp, step) {
-    return xapi
+  _updateJsonCache(xapi, host, step, timestamp) {
+    const hostUuid = host.uuid
+    this.#hostCache[hostUuid] = this.#hostCache[hostUuid] ?? {}
+    const promise = xapi
       .getResource('/rrd_updates', {
         host,
         query: {
@@ -262,27 +246,40 @@ export default class XapiStats {
         },
       })
       .then(response => response.text().then(JSON5.parse))
+      .catch(err => {
+        delete this.#hostCache[hostUuid][step]
+        throw err
+      })
+
+    // clear cache when too old
+    setTimeout(() => {
+      // only if it has not been updated
+      if (this.#hostCache[hostUuid]?.[step]?.timestamp === timestamp) {
+        delete this.#hostCache[hostUuid][step]
+      }
+    }, (step + 1) * 1000)
+
+    this.#hostCache[hostUuid][step] = {
+      timestamp,
+      value: promise,
+    }
   }
 
-  // To avoid multiple requests, we keep a cash for the stats and
-  // only return it if we not exceed a step
-  _getCachedStats(uuid, step, currentTimeStamp) {
-    const statsByObject = this._statsByObject
-
-    const stats = statsByObject[uuid]?.[step]
-    if (stats === undefined) {
-      return
-    }
-
-    if (stats.endTimestamp + step < currentTimeStamp) {
-      delete statsByObject[uuid][step]
-      return
-    }
-
-    return stats
+  _isCacheStale(hostUuid, step, timestamp) {
+    const byHost = this.#hostCache[hostUuid]?.[step]
+    // cache is empty or too old
+    return byHost === undefined || byHost.timestamp + step < timestamp
   }
 
-  @synchronized.withKey((_, { host }) => host.uuid)
+  // Execute one http request on a XenServer for get stats
+  // Return stats (Json format) or throws got exception
+  _getJson(xapi, host, timestamp, step) {
+    if (this._isCacheStale(host.uuid, step, timestamp)) {
+      this._updateJsonCache(xapi, host, step, timestamp)
+    }
+    return this.#hostCache[host.uuid][step].value
+  }
+
   async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
     const step = granularity === undefined ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
 
@@ -294,27 +291,30 @@ export default class XapiStats {
 
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
 
-    const stats = this._getCachedStats(uuid, step, currentTimeStamp)
-    if (stats !== undefined) {
-      return stats
-    }
-
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
 
     // To avoid crossing over the boundary, we ask for one less step
     const optimumTimestamp = currentTimeStamp - maxDuration + step
     const json = await this._getJson(xapi, host, optimumTimestamp, step)
-
     const actualStep = json.meta.step
+
+    if (actualStep !== step) {
+      throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
+    }
+    let stepStats
     if (json.data.length > 0) {
       // fetched data is organized from the newest to the oldest
       // but this implementation requires it in the other direction
-      json.data.reverse()
+      const data = [...json.data]
+      data.reverse()
       json.meta.legend.forEach((legend, index) => {
-        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
+        const [, type, uuidInStat, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
 
         const metrics = STATS[type]
         if (metrics === undefined) {
+          return
+        }
+        if (uuidInStat !== uuid) {
           return
         }
 
@@ -323,36 +323,29 @@ export default class XapiStats {
           return
         }
 
-        const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
-        let stepStats = xoObjectStats[actualStep]
         if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
-          stepStats = xoObjectStats[actualStep] = {
+          stepStats = {
             endTimestamp: json.meta.end,
             interval: actualStep,
+            stats: {},
           }
         }
 
         const path = metric.getPath !== undefined ? metric.getPath(testResult) : [findKey(metrics, metric)]
 
         const lastKey = path.length - 1
-        let metricStats = createGetProperty(stepStats, 'stats', {})
+        let metricStats = stepStats.stats
         path.forEach((property, key) => {
           if (key === lastKey) {
-            metricStats[property] = computeValues(json.data, index, metric.transformValue)
+            metricStats[property] = computeValues(data, index, metric.transformValue)
             return
           }
-
-          metricStats = createGetProperty(metricStats, property, {})
+          metricStats = metricStats[property] = metricStats[property] ?? {}
         })
       })
     }
-
-    if (actualStep !== step) {
-      throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
-    }
-
     return (
-      this._statsByObject[uuid]?.[step] ?? {
+      stepStats ?? {
         endTimestamp: currentTimeStamp,
         interval: step,
         stats: {},

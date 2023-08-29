@@ -20,6 +20,7 @@ export async function set({
   backupNetwork,
   migrationNetwork,
   suspendSr,
+  crashDumpSr,
 }) {
   pool = this.getXapiObject(pool)
 
@@ -29,6 +30,8 @@ export async function set({
     migrationNetwork !== undefined && pool.update_other_config('xo:migrationNetwork', migrationNetwork),
     backupNetwork !== undefined && pool.update_other_config('xo:backupNetwork', backupNetwork),
     suspendSr !== undefined && pool.$call('set_suspend_image_SR', suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef),
+    crashDumpSr !== undefined &&
+      pool.$call('set_crash_dump_SR', crashDumpSr === null ? Ref.EMPTY : crashDumpSr._xapiRef),
   ])
 }
 
@@ -57,11 +60,16 @@ set.params = {
     type: ['string', 'null'],
     optional: true,
   },
+  crashDumpSr: {
+    type: ['string', 'null'],
+    optional: true,
+  },
 }
 
 set.resolve = {
   pool: ['id', 'pool', 'administrate'],
   suspendSr: ['suspendSr', 'SR', 'administrate'],
+  crashDumpSr: ['crashDumpSr', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------

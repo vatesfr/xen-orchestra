@@ -10,10 +10,13 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
 import UiButton from "@/components/ui/UiButton.vue";
+import { usePageTitleStore } from "@/stores/page-title.store";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
+usePageTitleStore().setTitle(useI18n().t("not-found"));
 </script>
 
 <style lang="postcss" scoped>

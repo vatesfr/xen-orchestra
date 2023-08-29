@@ -6,6 +6,7 @@
 </template>
 
 <script lang="ts" setup>
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { faBook } from "@fortawesome/free-solid-svg-icons";
@@ -20,6 +21,8 @@ const title = computed(() => {
 
   return `${currentRoute.value.meta.storyTitle} Story`;
 });
+
+usePageTitleStore().setTitle(title);
 </script>
 
 <style lang="postcss" scoped></style>

@@ -1,5 +1,5 @@
 import { createPredicate } from 'value-matcher'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.js'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 export default async function backupGuard(poolId) {

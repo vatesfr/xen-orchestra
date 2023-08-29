@@ -1,8 +1,114 @@
 # ChangeLog
 
-## **5.83.3** (2023-06-23)
+## **5.85.0** (2023-07-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Import/From VMWare] Support ESXi 6.5+ with snapshot (PR [#6909](https://github.com/vatesfr/xen-orchestra/pull/6909))
+- [Netbox] New major version. BREAKING: in order for this new version to work, you need to assign the type `virtualization > vminterface` to the custom field `UUID` in your Netbox instance. [See documentation](https://xen-orchestra.com/docs/advanced.html#netbox). [#6038](https://github.com/vatesfr/xen-orchestra/issues/6038) [#6135](https://github.com/vatesfr/xen-orchestra/issues/6135) [#6024](https://github.com/vatesfr/xen-orchestra/issues/6024) [#6036](https://github.com/vatesfr/xen-orchestra/issues/6036) [Forum#6070](https://xcp-ng.org/forum/topic/6070) [Forum#6149](https://xcp-ng.org/forum/topic/6149) [Forum#6332](https://xcp-ng.org/forum/topic/6332) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6950](https://github.com/vatesfr/xen-orchestra/pull/6950))
+  - Synchronize VM description
+  - Synchronize VM platform
+  - Fix duplicated VMs in Netbox after disconnecting one pool
+  - Migrating a VM from one pool to another keeps VM data added manually
+  - Fix largest IP prefix being picked instead of smallest
+  - Fix synchronization not working if some pools are unavailable
+  - Better error messages
+- [Backup/File restore] Faster and more robust ZIP export
+- [Backup/File restore] Add faster tar+gzip (`.tgz`) export
+
+### Enhancements
+
+- [Backup/Restore] Button to open the raw log in the REST API (PR [#6936](https://github.com/vatesfr/xen-orchestra/pull/6936))
+- [RPU] Avoid migration of VMs on hosts without missing patches (PR [#6943](https://github.com/vatesfr/xen-orchestra/pull/6943))
+- [Settings/Users] Show users authentication methods (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
+- [Settings/Users] User external authentication methods can be manually removed (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
+
+### Bug fixes
+
+- [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+- [REST API] Fix VDI export when NBD is enabled
+- [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))
+- [Pool] Fix IPv6 handling when adding hosts
+- [New SR] Send provided NFS version to XAPI when probing a share
+- [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
+- [Backup] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
+- [New VM] Order interfaces by device as done on a VM Network tab (PR [#6944](https://github.com/vatesfr/xen-orchestra/pull/6944))
+- Users can no longer sign in using their XO password if they are using other authentication providers (PR [#6962](https://github.com/vatesfr/xen-orchestra/pull/6962))
+
+### Released packages
+
+- @vates/read-chunk 1.2.0
+- @vates/fuse-vhd 2.0.0
+- xen-api 1.3.4
+- @vates/nbd-client 2.0.0
+- @vates/node-vsphere-soap 2.0.0
+- @xen-orchestra/xapi 3.0.0
+- @xen-orchestra/backups 0.40.0
+- @xen-orchestra/backups-cli 1.0.10
+- complex-matcher 0.7.1
+- @xen-orchestra/mixins 0.11.0
+- @xen-orchestra/proxy 0.26.30
+- @xen-orchestra/vmware-explorer 0.3.0
+- xo-server-audit 0.10.4
+- xo-server-netbox 1.0.0
+- xo-server-transport-xmpp 0.1.2
+- xo-server-auth-github 0.3.0
+- xo-server-auth-google 0.3.0
+- xo-web 5.122.2
+- xo-server 5.120.2
+
+## **5.84.0** (2023-06-30)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Highlights
+
+- [Settings/Config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
+- [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
+- [Import/export VDI] Ability to export/import disks in RAW format (PR [#6925](https://github.com/vatesfr/xen-orchestra/pull/6925))
+- [RRD stats] Improve RRD stats performance (PR [#6903](https://github.com/vatesfr/xen-orchestra/pull/6903))
+
+### Enhancements
+
+- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
+- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
+- [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
+- [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
+- [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
+- [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
+- [Backups] Add setting `backups.metadata.defaultSettings.diskPerVmConcurrency` in xo-server's configuration file to limit the number of disks transferred in parallel per VM, this is useful to avoid transfer overloading remote and Sr (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+- [Import/Disk] Enhance clarity for importing ISO files [Forum#61480](https://xcp-ng.org/forum/post/61480) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
+
+### Bug fixes
+
+- [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
+- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
+- [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
+- [Remote] Fix `remote is disabled` error when editing a disabled remote
+- [Settings/Servers] Fix connectiong using an explicit IPv6 address
+- [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
+
+### Released packages
+
+- @xen-orchestra/fs 4.0.1
+- xen-api 1.3.3
+- @vates/nbd-client 1.2.1
+- @vates/node-vsphere-soap 1.0.0
+- @vates/task 0.2.0
+- @xen-orchestra/backups 0.39.0
+- @xen-orchestra/backups-cli 1.0.9
+- @xen-orchestra/mixins 0.10.2
+- @xen-orchestra/proxy 0.26.29
+- @xen-orchestra/vmware-explorer 0.2.3
+- xo-cli 0.20.0
+- xo-server-auth-oidc 0.3.0
+- xo-server-perf-alert 0.3.6
+- xo-server 5.118.0
+- xo-web 5.121.0
+
+## **5.83.3** (2023-06-23)
 
 ### Bug fixes
 
@@ -84,8 +190,6 @@
 - xo-web 5.119.1
 
 ## **5.82.2** (2023-05-17)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

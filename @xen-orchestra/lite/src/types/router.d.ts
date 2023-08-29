@@ -3,7 +3,7 @@ declare module "vue-router" {
     hasStoryNav?: boolean;
     isStory?: boolean;
     storyTitle?: string;
-    storyMdPath?: string;
+    storyMdLoader?: () => Promise<string>;
   }
 }
 export {};

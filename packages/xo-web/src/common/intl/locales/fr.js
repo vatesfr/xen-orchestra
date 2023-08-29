@@ -140,9 +140,6 @@ export default {
   // Original text: "IPs"
   settingsIpsPage: 'IPs',
 
-  // Original text: "Config"
-  settingsConfigPage: 'Configuration',
-
   // Original text: "About"
   aboutPage: 'À propos',
 

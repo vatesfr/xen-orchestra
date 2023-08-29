@@ -12,6 +12,13 @@ export const DEFAULT_GRANULARITY = {
   value: 'lastTenMinutes',
 }
 
+export const INTERVAL_BY_GRANULARITY = {
+  seconds: 5,
+  minutes: 60,
+  hours: 3600,
+  days: 86400,
+}
+
 const OPTIONS = [
   DEFAULT_GRANULARITY,
   {

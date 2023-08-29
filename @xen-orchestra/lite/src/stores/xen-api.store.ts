@@ -1,7 +1,5 @@
-import { buildXoObject } from "@/libs/utils";
 import XapiStats from "@/libs/xapi-stats";
-import XenApi, { getRawObjectType } from "@/libs/xen-api";
-import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
+import XenApi from "@/libs/xen-api/xen-api";
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
@@ -28,30 +26,6 @@ export const useXenApiStore = defineStore("xen-api", () => {
   const isConnecting = computed(() => status.value === STATUS.CONNECTING);
   const getXapi = () => xenApi;
   const getXapiStats = () => xapiStats;
-
-  xenApi.registerWatchCallBack((results) => {
-    results.forEach((result) => {
-      const collection = useXapiCollectionStore().get(
-        getRawObjectType(result.class)
-      );
-
-      if (!collection.hasSubscriptions) {
-        return;
-      }
-
-      const buildObject = () =>
-        buildXoObject(result.snapshot, { opaqueRef: result.ref }) as any;
-
-      switch (result.operation) {
-        case "add":
-          return collection.add(buildObject());
-        case "mod":
-          return collection.update(buildObject());
-        case "del":
-          return collection.remove(result.ref as any);
-      }
-    });
-  });
 
   const connect = async (username: string, password: string) => {
     status.value = STATUS.CONNECTING;

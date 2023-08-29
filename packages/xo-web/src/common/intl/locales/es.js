@@ -137,9 +137,6 @@ export default {
   // Original text: 'IPs'
   settingsIpsPage: undefined,
 
-  // Original text: 'Config'
-  settingsConfigPage: undefined,
-
   // Original text: "About"
   aboutPage: 'Acerca de',
 

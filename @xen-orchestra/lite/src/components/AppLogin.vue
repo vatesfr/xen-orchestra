@@ -24,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -33,6 +34,7 @@ import UiButton from "@/components/ui/UiButton.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
 const { t } = useI18n();
+usePageTitleStore().setTitle(t("login"));
 const xenApiStore = useXenApiStore();
 const { isConnecting } = storeToRefs(xenApiStore);
 const login = ref("root");
@@ -62,7 +64,7 @@ async function handleSubmit() {
       isInvalidPassword.value = true;
       error.value = t("password-invalid");
     } else {
-      error.value = t("error-occured");
+      error.value = t("error-occurred");
       console.error(err);
     }
   }

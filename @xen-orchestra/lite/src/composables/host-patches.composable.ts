@@ -1,5 +1,6 @@
-import type { XenApiHost, XenApiPatch } from "@/libs/xen-api";
-import { useXenApiStore } from "@/stores/xen-api.store";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
+import { useHostStore } from "@/stores/xen-api/host.store";
+import type { XenApiPatch } from "@/types/xen-api";
 import { type Pausable, useTimeoutPoll, watchArray } from "@vueuse/core";
 import { computed, type MaybeRefOrGetter, reactive, toValue } from "vue";
 
@@ -12,22 +13,22 @@ type HostConfig = {
 };
 
 export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
-  const xapiStore = useXenApiStore();
+  const hostStore = useHostStore();
 
   const configByHost = reactive(new Map<string, HostConfig>());
 
-  const fetchHostPatches = async (hostRef: string) => {
+  const fetchHostPatches = async (hostRef: XenApiHost["$ref"]) => {
     if (!configByHost.has(hostRef)) {
       return;
     }
 
     const config = configByHost.get(hostRef)!;
 
-    config.patches = await xapiStore.getXapi().getMissingPatches(hostRef);
+    config.patches = await hostStore.fetchMissingPatches(hostRef);
     config.isLoaded = true;
   };
 
-  const registerHost = (hostRef: string) => {
+  const registerHost = (hostRef: XenApiHost["$ref"]) => {
     if (configByHost.has(hostRef)) {
       return;
     }
@@ -50,7 +51,7 @@ export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
 
   watchArray(
     () => toValue(hosts).map((host) => host.$ref),
-    (n, p, addedRefs, removedRefs) => {
+    (_n, _p, addedRefs, removedRefs) => {
       addedRefs.forEach((ref) => registerHost(ref));
       removedRefs?.forEach((ref) => unregisterHost(ref));
     },

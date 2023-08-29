@@ -48,7 +48,7 @@ async function sendObjects(iterable, req, res, path = req.path) {
   const { query } = req
 
   const basePath = join(req.baseUrl, path)
-  const makeUrl = object => join(basePath, object.id)
+  const makeUrl = ({ id }) => join(basePath, typeof id === 'number' ? String(id) : id)
 
   let makeResult
   let { fields } = query
@@ -101,6 +101,8 @@ function wrap(middleware, handleNoSuchObject = false) {
 }
 
 export default class RestApi {
+  #api
+
   constructor(app, { express }) {
     // don't setup the API if express is not present
     //
@@ -110,6 +112,7 @@ export default class RestApi {
     }
 
     const api = subRouter(express, '/rest/v0')
+    this.#api = api
 
     api.use(({ cookies }, res, next) => {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
@@ -258,8 +261,10 @@ export default class RestApi {
       .get(
         '/backups/logs',
         wrap(async (req, res) => {
+          const { filter, limit } = req.query
           const logs = await app.getBackupNgLogsSorted({
-            filter: ({ message: m }) => m === 'backup' || m === 'metadata',
+            filter: every(({ message: m }) => m === 'backup' || m === 'metadata', handleOptionalUserFilter(filter)),
+            limit: ifDef(limit, Number),
           })
           await sendObjects(logs, req, res)
         })
@@ -271,7 +276,11 @@ export default class RestApi {
       .get(
         '/restore/logs',
         wrap(async (req, res) => {
-          const logs = await app.getBackupNgLogsSorted({ filter: _ => _.message === 'restore' })
+          const { filter, limit } = req.query
+          const logs = await app.getBackupNgLogsSorted({
+            filter: every(_ => _.message === 'restore', handleOptionalUserFilter(filter)),
+            limit: ifDef(limit, Number),
+          })
           await sendObjects(logs, req, res)
         })
       )
@@ -368,9 +377,18 @@ export default class RestApi {
       wrap(async (req, res) => {
         const stream = await req.xapiObject.$exportContent({ format: req.params.format })
 
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+        // stream can be an HTTP response, in this case, extract interesting data
+        const { headers = {}, length, statusCode = 200, statusMessage = 'OK' } = stream
 
+        // Set the correct disposition
+        headers['content-disposition'] = 'attachment'
+
+        // expose the stream length if known
+        if (headers['content-length'] === undefined && length !== undefined) {
+          headers['content-length'] = length
+        }
+
+        res.writeHead(statusCode, statusMessage, headers)
         await pipeline(stream, res)
       })
     )
@@ -493,5 +511,34 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+  }
+
+  registerRestApi(spec, base = '/') {
+    for (const path of Object.keys(spec)) {
+      if (path[0] === '_') {
+        const handler = spec[path]
+        this.#api[path.slice(1)](base, json(), async (req, res, next) => {
+          try {
+            const result = await handler(req, res, next)
+            if (result !== undefined) {
+              const isIterable =
+                result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+              if (isIterable) {
+                await sendObjects(result, req, res)
+              } else {
+                res.json(result)
+              }
+            }
+          } catch (error) {
+            next(error)
+          }
+        })
+      } else {
+        this.registerRestApi(spec[path], join(base, path))
+      }
+    }
+    return () => {
+      throw new Error('not implemented')
+    }
   }
 }

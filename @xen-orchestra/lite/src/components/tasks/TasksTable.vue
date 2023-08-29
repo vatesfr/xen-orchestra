@@ -1,5 +1,5 @@
 <template>
-  <UiTable class="tasks-table" :color="hasError ? 'error' : undefined">
+  <UiTable :color="hasError ? 'error' : undefined" class="tasks-table">
     <thead>
       <tr>
         <th>{{ $t("name") }}</th>
@@ -20,6 +20,9 @@
           <UiSpinner class="loader" />
         </td>
       </tr>
+      <tr v-else-if="!hasTasks">
+        <td class="no-tasks" colspan="5">{{ $t("no-tasks") }}</td>
+      </tr>
       <template v-else>
         <TaskRow
           v-for="task in pendingTasks"
@@ -35,20 +38,35 @@
 
 <script lang="ts" setup>
 import TaskRow from "@/components/tasks/TaskRow.vue";
-import UiTable from "@/components/ui/UiTable.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useTaskStore } from "@/stores/task.store";
-import type { XenApiTask } from "@/libs/xen-api";
+import UiTable from "@/components/ui/UiTable.vue";
+import { useTaskCollection } from "@/stores/xen-api/task.store";
+import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
+import { computed } from "vue";
 
-defineProps<{
+const props = defineProps<{
   pendingTasks: XenApiTask[];
-  finishedTasks: XenApiTask[];
+  finishedTasks?: XenApiTask[];
 }>();
 
-const { hasError, isFetching } = useTaskStore().subscribe();
+const { hasError, isFetching } = useTaskCollection();
+
+const hasTasks = computed(
+  () => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0
+);
 </script>
 
 <style lang="postcss" scoped>
+.tasks-table {
+  width: 100%;
+}
+
+.no-tasks {
+  text-align: center;
+  color: var(--color-blue-scale-300);
+  font-style: italic;
+}
+
 td[colspan="5"] {
   text-align: center;
 }

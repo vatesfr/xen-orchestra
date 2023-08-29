@@ -24,7 +24,6 @@ import { execa } from 'execa'
 export default class BackupNgFileRestore {
   constructor(app) {
     this._app = app
-    this._mounts = { __proto__: null }
 
     // clean any LVM volumes that might have not been properly
     // unmounted
@@ -34,7 +33,7 @@ export default class BackupNgFileRestore {
     })
   }
 
-  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths) {
+  async fetchBackupNgPartitionFiles(remoteId, diskId, partitionId, paths, format) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
     return remote.proxy !== undefined
@@ -49,11 +48,19 @@ export default class BackupNgFileRestore {
             },
             partition: partitionId,
             paths,
+
+            // don't send the legacy default format to keep compatibility with old proxies
+            format: format === 'zip' ? undefined : format,
           },
-          { assertType: 'stream' }
+          {
+            assertType: 'stream',
+
+            // File restore can be slow to start, allow up to 10 mins to be safe.
+            timeout: 600e3,
+          }
         )
       : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
-          adapter.fetchPartitionFiles(diskId, partitionId, paths)
+          adapter.fetchPartitionFiles(diskId, partitionId, paths, format)
         )
   }
 

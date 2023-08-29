@@ -1,9 +1,9 @@
 import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
 
 import * as sensitiveValues from './sensitive-values.mjs'
+import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
-import xoData from '@xen-orchestra/xapi/xoData.js'
 import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
@@ -98,6 +98,7 @@ const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
+      crashDumpSr: link(obj, 'crash_dump_SR'),
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),

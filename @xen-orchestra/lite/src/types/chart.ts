@@ -5,3 +5,5 @@ export type LinearChartData = {
     value: number;
   }[];
 }[];
+
+export type ValueFormatter = (value: number) => string;

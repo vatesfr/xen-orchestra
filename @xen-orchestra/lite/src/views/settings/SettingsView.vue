@@ -148,8 +148,8 @@
                   {{ locales[locale].name ?? locale }}
                 </option>
               </select>
-            </FormWidget></template
-          >
+            </FormWidget>
+          </template>
         </UiKeyValueRow>
       </UiKeyValueList>
     </UiCard>
@@ -157,6 +157,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { computed } from "vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
@@ -165,8 +168,6 @@ import { useUiStore } from "@/stores/ui.store";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
 import { locales } from "@/i18n";
 import {
   faEarthAmericas,
@@ -181,10 +182,13 @@ import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
 
 const xoLiteVersion = XO_LITE_VERSION;
 const xoLiteGitHead = XO_LITE_GIT_HEAD;
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 
-const { pool } = usePoolStore().subscribe();
-const { getByOpaqueRef: getHost } = useHostStore().subscribe();
+usePageTitleStore().setTitle(() => t("settings"));
+
+const { pool } = usePoolCollection();
+
+const { getByOpaqueRef: getHost } = useHostCollection();
 
 const poolMaster = computed(() =>
   pool.value ? getHost(pool.value.master) : undefined

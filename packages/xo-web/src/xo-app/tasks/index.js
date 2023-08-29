@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _, { FormattedDuration, messages } from 'intl'
 import Collapse from 'collapse'
 import Component from 'base-component'
 import Icon from 'icon'
@@ -186,15 +186,18 @@ const XO_TASKS_COLUMNS = [
   },
   {
     default: true,
-    itemRenderer: task => (task.start === undefined ? null : <FormattedRelative value={task.start} />),
+    itemRenderer: task =>
+      task.start === undefined ? null : (
+        <FormattedDate year='numeric' month='short' day='2-digit' hour='numeric' minute='numeric' value={task.start} />
+      ),
     name: _('taskStarted'),
     sortCriteria: 'start',
     sortOrder: 'desc',
   },
   {
-    itemRenderer: task => (task.end === undefined ? null : <FormattedRelative value={task.end} />),
-    name: _('taskEnded'),
-    sortCriteria: 'end',
+    itemRenderer: task => (task.end === undefined ? null : <FormattedDuration duration={task.end - task.start} />),
+    name: _('taskDuration'),
+    sortCriteria: task => task.end - task.start,
     sortOrder: 'desc',
   },
   {

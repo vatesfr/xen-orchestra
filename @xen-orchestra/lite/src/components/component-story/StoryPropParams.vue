@@ -29,6 +29,13 @@
       >
         <th class="name">
           {{ param.getFullName() }}
+          <sup
+            v-if="param.isVModel()"
+            v-tooltip="`[Model] Can be used with ${param.getVModelDirective()}`"
+            class="v-model-indicator"
+          >
+            <UiIcon :icon="faRepeat" />
+          </sup>
         </th>
         <td>
           <CodeHighlight :code="param.getTypeLabel()" />
@@ -86,8 +93,9 @@ import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
+import { vTooltip } from "@/directives/tooltip.directive";
 import type { PropParam } from "@/libs/story/story-param";
-import { faClose } from "@fortawesome/free-solid-svg-icons";
+import { faClose, faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import { toRef } from "vue";
 
@@ -172,5 +180,9 @@ const {
     opacity: 1;
     color: var(--color-green-infra-base);
   }
+}
+
+.v-model-indicator {
+  color: var(--color-green-infra-base);
 }
 </style>
