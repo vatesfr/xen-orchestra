@@ -21,6 +21,7 @@
 - [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
 - [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
 - [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
+- [XenApi/stats] Fix `Cannot read properties of undefined (reading 'statusCode')` (PR [#7004](https://github.com/vatesfr/xen-orchestra/pull/7004))
 
 ### Packages to release
 
