@@ -127,7 +127,7 @@ export default class XenApi {
 
       return records;
     } catch (e) {
-      this.emitEvent(`${type}.loadError`);
+      this.emitEvent(`${type}.loadError`, e);
       return [];
     }
   }

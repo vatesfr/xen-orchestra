@@ -34,10 +34,7 @@ export const useXenApiStoreSubscriber = <
     context.isFetching.value = false;
     context.isReady.value = false;
     context.lastError.value = i18n.t("error-no-data");
-
-    if (import.meta.env.DEV) {
-      console.error(error);
-    }
+    console.error(error);
   };
 
   const onAdd = (record: XRecord) => {
