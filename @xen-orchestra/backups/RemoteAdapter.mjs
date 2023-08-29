@@ -683,14 +683,15 @@ export class RemoteAdapter {
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {
     const container = watchStreamSize(input)
-    await this._handler.outputStream(path, input, {
+    const handler = this._handler
+    await handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
       async validator(tmpPath) {
         await input.task
         // size on file system can be bigger when encrypted ( IV + alignmet padding)
-        const size = await this._handler.getSize(tmpPath, { exact: false })
-        if (Math.abs(size - container.size) > this._handler.getSizeApproximationMargin()) {
+        const size = await handler.getSize(tmpPath, { exact: false })
+        if (Math.abs(size - container.size) > handler.getSizeApproximationMargin()) {
           return false
         }
         return validator.apply(this, arguments)
