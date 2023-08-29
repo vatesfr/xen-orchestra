@@ -128,10 +128,13 @@ export interface XenApiMessage<RelationType extends RawObjectType>
   timestamp: string;
 }
 
-export type XenApiEvent = {
+export type XenApiEvent<
+  RelationType extends ObjectType,
+  XRecord extends ObjectTypeToRecord<RelationType>,
+> = {
   id: string;
-  class: ObjectType;
+  class: RelationType;
   operation: "add" | "mod" | "del";
-  ref: string;
-  snapshot: any;
+  ref: XRecord["$ref"];
+  snapshot: RawXenApiRecord<XRecord>;
 };

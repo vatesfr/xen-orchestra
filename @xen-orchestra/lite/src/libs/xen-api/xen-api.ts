@@ -5,6 +5,7 @@ import type {
   XenApiEvent,
   XenApiHost,
   XenApiPool,
+  XenApiRecord,
   XenApiRecordAddEvent,
   XenApiRecordAfterLoadEvent,
   XenApiRecordBeforeLoadEvent,
@@ -224,7 +225,7 @@ export default class XenApi {
     }
   }
 
-  private handleEvents(events: XenApiEvent[]) {
+  private handleEvents(events: XenApiEvent<ObjectType, XenApiRecord<any>>[]) {
     events.forEach(({ class: cls, operation, ref, snapshot }) => {
       const eventName = `${cls}.${operation}` as XenApiRecordEvent<any>;
 
@@ -257,10 +258,14 @@ export default class XenApi {
       return;
     }
 
-    const result: { token: string; events: XenApiEvent[] } = await this.call(
-      "event.from",
-      [this.listenedTypes, this.fromToken, 5.001]
-    );
+    const result: {
+      token: string;
+      events: XenApiEvent<ObjectType, XenApiRecord<any>>[];
+    } = await this.call("event.from", [
+      this.listenedTypes,
+      this.fromToken,
+      5.001,
+    ]);
 
     this.fromToken = result.token;
 
