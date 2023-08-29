@@ -12,8 +12,8 @@
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 import VmHeader from "@/components/vm/VmHeader.vue";
 import VmTabBar from "@/components/vm/VmTabBar.vue";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import type { XenApiVm } from "@/libs/xen-api";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
 import { whenever } from "@vueuse/core";

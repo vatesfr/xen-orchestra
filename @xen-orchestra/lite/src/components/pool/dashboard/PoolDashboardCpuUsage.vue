@@ -11,8 +11,8 @@
   </UiCard>
 </template>
 <script lang="ts" setup>
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 import HostsCpuUsage from "@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue";
 import VmsCpuUsage from "@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue";

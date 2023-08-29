@@ -9,7 +9,7 @@
 import TasksTable from "@/components/tasks/TasksTable.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { useTaskCollection } from "@/composables/xen-api-collection/task-collection.composable";
+import { useTaskCollection } from "@/stores/xen-api/task.store";
 
 const { pendingTasks } = useTaskCollection();
 </script>

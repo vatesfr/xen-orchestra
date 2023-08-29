@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";

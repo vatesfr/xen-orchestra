@@ -95,12 +95,12 @@
 import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
-import { useHostMetricsCollection } from "@/composables/xen-api-collection/host-metrics-collection.composable";
-import { usePoolCollection } from "@/composables/xen-api-collection/pool-collection.composable";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faCirclePlay,

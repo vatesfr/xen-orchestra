@@ -12,7 +12,7 @@
 import NoDataError from "@/components/NoDataError.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { getAvgCpuUsage } from "@/libs/utils";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";

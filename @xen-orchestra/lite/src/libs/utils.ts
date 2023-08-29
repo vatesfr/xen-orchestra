@@ -1,8 +1,3 @@
-import type {
-  RawXenApiRecord,
-  XenApiRecord,
-  RawObjectType,
-} from "@/libs/xen-api";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
@@ -102,16 +97,6 @@ export function getStatsLength(stats?: object | any[]) {
   }
   return size(find(stats, (stat) => stat != null));
 }
-
-export const buildXoObject = <T extends XenApiRecord<RawObjectType>>(
-  record: RawXenApiRecord<T>,
-  params: { opaqueRef: T["$ref"] }
-) => {
-  return {
-    ...record,
-    $ref: params.opaqueRef,
-  } as T;
-};
 
 export function parseRamUsage(
   {

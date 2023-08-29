@@ -31,9 +31,10 @@
 import RemoteConsole from "@/components/RemoteConsole.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useConsoleCollection } from "@/composables/xen-api-collection/console-collection.composable";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
+import { useConsoleCollection } from "@/stores/xen-api/console.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
@@ -90,7 +91,9 @@ const vmConsole = computed(() => {
 });
 
 const isConsoleAvailable = computed(() =>
-  vm.value !== undefined ? isOperationPending(vm.value, STOP_OPERATIONS) : false
+  vm.value !== undefined
+    ? !isOperationPending(vm.value, STOP_OPERATIONS)
+    : false
 );
 </script>
 

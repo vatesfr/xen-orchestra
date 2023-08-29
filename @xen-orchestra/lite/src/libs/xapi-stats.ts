@@ -3,8 +3,8 @@ import JSON5 from "json5";
 import { limitConcurrency } from "limit-concurrency-decorator";
 import { defaults, findKey, forEach, identity, map } from "lodash-es";
 import { BaseError } from "make-error";
-import type XenApi from "@/libs/xen-api";
-import type { XenApiHost } from "@/libs/xen-api";
+import type XenApi from "@/libs/xen-api/xen-api";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 
 class FaultyGranularity extends BaseError {}
 

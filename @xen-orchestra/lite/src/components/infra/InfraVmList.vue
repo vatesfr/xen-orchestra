@@ -11,8 +11,8 @@
 <script lang="ts" setup>
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmItem from "@/components/infra/InfraVmItem.vue";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
-import type { XenApiHost } from "@/libs/xen-api";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 

@@ -12,9 +12,10 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
-import { useVmCollection } from "@/composables/xen-api-collection/vm-collection.composable";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
-import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
+import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faCopy } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";

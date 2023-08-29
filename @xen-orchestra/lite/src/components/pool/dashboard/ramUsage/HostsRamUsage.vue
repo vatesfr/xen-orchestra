@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
