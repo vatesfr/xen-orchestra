@@ -13,10 +13,10 @@
               v-tooltip="{
                 placement: 'left',
                 content: $t('n-hosts-awaiting-patch', {
-                  n: patch.$hostRefs.length,
+                  n: patch.$hostRefs.size,
                 }),
               }"
-              :value="patch.$hostRefs.length"
+              :value="patch.$hostRefs.size"
               class="counter"
               color="error"
             />
