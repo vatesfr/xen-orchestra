@@ -32,11 +32,7 @@ export const useAlarmStore = defineStore("xen-api-alarm", () => {
   };
 
   const onRemove = (opaqueRef: XenApiMessage<any>["$ref"]) => {
-    const record = context.getByOpaqueRef(opaqueRef);
-
-    if (record !== undefined) {
-      context.remove(record.$ref);
-    }
+    context.remove(opaqueRef);
   };
 
   const subscriptionId = Symbol();
