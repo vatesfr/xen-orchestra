@@ -17,7 +17,7 @@
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import { prop } from "@/libs/story/story-param";
-import { POWER_STATE } from "@/libs/xen-api";
+import { POWER_STATE } from "@/libs/xen-api/xen-api";
 </script>
 
 <style lang="postcss" scoped></style>

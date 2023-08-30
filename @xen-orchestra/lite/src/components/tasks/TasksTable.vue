@@ -40,8 +40,8 @@
 import TaskRow from "@/components/tasks/TaskRow.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTable from "@/components/ui/UiTable.vue";
-import type { XenApiTask } from "@/libs/xen-api";
-import { useTaskStore } from "@/stores/task.store";
+import { useTaskCollection } from "@/stores/xen-api/task.store";
+import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
 import { computed } from "vue";
 
 const props = defineProps<{
@@ -49,7 +49,7 @@ const props = defineProps<{
   finishedTasks?: XenApiTask[];
 }>();
 
-const { hasError, isFetching } = useTaskStore().subscribe();
+const { hasError, isFetching } = useTaskCollection();
 
 const hasTasks = computed(
   () => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0

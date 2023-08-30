@@ -6,14 +6,14 @@
 
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
-import type { XenApiHost } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
 import { computed, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
-const { hasUuid, isReady, getByUuid } = useHostStore().subscribe();
+const { hasUuid, isReady, getByUuid } = useHostCollection();
 const route = useRoute();
 const uiStore = useUiStore();
 

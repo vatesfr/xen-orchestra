@@ -68,6 +68,15 @@ export const configurationSchema = {
           ],
           description: 'whether the connection should use TLS',
         },
+        name: {
+          type: 'string',
+          title: 'local hostname',
+          description: `
+hostname of the local machine, used for identifying to the server
+
+This is an advanced setting which should only be used if you encounter issues.
+`.trim(),
+        },
         ignoreUnauthorized: {
           type: 'boolean',
           description: 'ignore certificates error (e.g. self-signed certificate)',

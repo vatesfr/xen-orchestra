@@ -11,8 +11,8 @@
 <script lang="ts" setup>
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmItem from "@/components/infra/InfraVmItem.vue";
-import type { XenApiHost } from "@/libs/xen-api";
-import { useVmStore } from "@/stores/vm.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 
@@ -20,7 +20,7 @@ const props = defineProps<{
   hostOpaqueRef?: XenApiHost["$ref"];
 }>();
 
-const { isReady, recordsByHostRef, hasError } = useVmStore().subscribe();
+const { isReady, recordsByHostRef, hasError } = useVmCollection();
 
 const vms = computed(() =>
   recordsByHostRef.value.get(

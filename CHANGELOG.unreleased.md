@@ -7,6 +7,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Netbox] Synchronize VM tags [#5899](https://github.com/vatesfr/xen-orchestra/issues/5899) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6957](https://github.com/vatesfr/xen-orchestra/pull/6957))
+- [REST API] Add support for `filter` and `limit` parameters to `backups/logs` and `restore/logs` collections [Forum#64789](https://xcp-ng.org/forum/post/64789)
+- [Pool/Advanced] Ability to set a crash dump SR [#5060](https://github.com/vatesfr/xen-orchestra/issues/5060) (PR [#6973](https://github.com/vatesfr/xen-orchestra/pull/6973))
+- [Plugin/transport-email] Local hostname can now be configured [Forum#7579](https://xcp-ng.org/forum/topic/7579)
 - [Backups] Add setting `concurrency` in a new configuration file `xo-merge-worker` (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
 
 ### Bug fixes
@@ -14,6 +18,12 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
+- [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
+- [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
+- [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
+- [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
+- [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
 
 ### Packages to release
 
@@ -32,8 +42,13 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups minor
-- xo-server patch
+- @xen-orchestra/mixins minor
+- @xen-orchestra/xapi patch
+- xen-api patch
+- xo-server minor
 - xo-server-auth-ldap patch
-- xo-web patch
+- xo-server-transport-email minor
+- xo-server-netbox minor
+- xo-web minor
 
 <!--packages-end-->

@@ -18,7 +18,7 @@
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import UiTab from "@/components/ui/UiTab.vue";
 import UiTabBar from "@/components/ui/UiTabBar.vue";
-import { prop, slot } from "@/libs/story/story-param.js";
+import { prop, slot } from "@/libs/story/story-param";
 </script>
 
 <style lang="postcss" scoped></style>

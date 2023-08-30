@@ -1,6 +1,6 @@
 import * as CM from 'complex-matcher'
-import getStream from 'get-stream'
 import { fromCallback } from 'promise-toolbox'
+import { getStreamAsBuffer } from 'get-stream'
 import { pipeline } from 'readable-stream'
 
 import createNdJsonStream from '../_createNdJsonStream.mjs'
@@ -81,7 +81,7 @@ getAllObjects.params = {
 export async function importConfig({ passphrase }) {
   return {
     $sendTo: await this.registerHttpRequest(async (req, res) => {
-      await this.importConfig(await getStream.buffer(req), { passphrase })
+      await this.importConfig(await getStreamAsBuffer(req), { passphrase })
 
       res.end('config successfully imported')
     }),

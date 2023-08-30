@@ -42,13 +42,12 @@ import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import useFetchStats from "@/composables/fetch-stats.composable";
-import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
+import { GRANULARITY } from "@/libs/xapi-stats";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
-import { useVmStore } from "@/stores/vm.store";
 import {
   IK_HOST_LAST_WEEK_STATS,
   IK_HOST_STATS,
@@ -60,29 +59,22 @@ import { useI18n } from "vue-i18n";
 
 usePageTitleStore().setTitle(useI18n().t("dashboard"));
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
-
-const hostSubscription = useHostStore().subscribe({ hostMetricsSubscription });
-
-const { runningHosts, getStats: getHostStats } = hostSubscription;
-
-const { runningVms, getStats: getVmStats } = useVmStore().subscribe({
-  hostSubscription,
-});
+const { getStats: getHostStats, runningHosts } = useHostCollection();
+const { getStats: getVmStats, runningVms } = useVmCollection();
 
 const {
   register: hostRegister,
   unregister: hostUnregister,
   stats: hostStats,
-} = useFetchStats<XenApiHost, HostStats>(getHostStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiHost>(getHostStats, GRANULARITY.Seconds);
 
 const {
   register: vmRegister,
   unregister: vmUnregister,
   stats: vmStats,
-} = useFetchStats<XenApiVm, VmStats>(getVmStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiVm>(getVmStats, GRANULARITY.Seconds);
 
-const hostLastWeekStats = useFetchStats<XenApiHost, HostStats>(
+const hostLastWeekStats = useFetchStats<XenApiHost>(
   getHostStats,
   GRANULARITY.Hours
 );

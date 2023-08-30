@@ -1,5 +1,5 @@
 import { saveAs } from "file-saver";
-import type { XenApiVm } from "@/libs/xen-api";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 
 function stringifyCsvValue(value: any) {
   let res = "";

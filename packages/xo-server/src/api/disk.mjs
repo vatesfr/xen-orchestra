@@ -1,10 +1,10 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
-import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
+import { getStreamAsBuffer } from 'get-stream'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
 import { peekFooterFromVhdStream } from 'vhd-lib'
@@ -187,7 +187,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
         if (part.name !== 'file') {
           promises.push(
             (async () => {
-              const buffer = await getStream.buffer(part)
+              const buffer = await getStreamAsBuffer(part)
               vmdkData[part.name] = new Uint32Array(
                 buffer.buffer,
                 buffer.byteOffset,

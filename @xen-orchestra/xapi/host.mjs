@@ -32,9 +32,14 @@ class Host {
    * @param {string} ref - Opaque reference of the host
    */
   async smartReboot($defer, ref) {
+    const suspendedVms = []
     if (await this.getField('host', ref, 'enabled')) {
       await this.callAsync('host.disable', ref)
-      $defer(() => this.callAsync('host.enable', ref))
+      $defer(async () => {
+        await this.callAsync('host.enable', ref)
+        // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
+        return asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false))
+      })
     }
 
     let currentVmRef
@@ -51,7 +56,7 @@ class Host {
 
         try {
           await this.callAsync('VM.suspend', vmRef)
-          $defer(() => this.callAsync('VM.resume', vmRef, false, false))
+          suspendedVms.push(vmRef)
         } catch (error) {
           const { code } = error
 

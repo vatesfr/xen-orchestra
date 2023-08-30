@@ -23,6 +23,7 @@ import {
   getRemotes,
   listVmBackups,
   subscribeBackupNgJobs,
+  subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -147,10 +148,23 @@ const Health = decorate([
       subscribeSchedules(schedules => {
         cb(keyBy(schedules, 'id'))
       }),
-    jobs: cb =>
+    jobs: cb => {
+      let backupJobs, mirrorJobs
       subscribeBackupNgJobs(jobs => {
-        cb(keyBy(jobs, 'id'))
-      }),
+        backupJobs = jobs
+        if (mirrorJobs !== undefined) {
+          // both are loaded
+          cb(keyBy([...backupJobs, ...mirrorJobs], 'id'))
+        }
+      })
+      subscribeMirrorBackupJobs(jobs => {
+        mirrorJobs = jobs
+        if (backupJobs !== undefined) {
+          // both are loaded
+          cb(keyBy([...backupJobs, ...mirrorJobs], 'id'))
+        }
+      })
+    },
   }),
   connectStore({
     loneSnapshots: getLoneSnapshots,

@@ -5,7 +5,7 @@ import {
   type VmStats,
   type XapiStatsResponse,
 } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
 import { computed, type ComputedRef, onUnmounted, ref } from "vue";
 
@@ -17,9 +17,9 @@ export type Stat<T> = {
   pausable: Pausable;
 };
 
-type GetStats<
+export type GetStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats
+  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
 > = (
   uuid: T["uuid"],
   granularity: GRANULARITY,
@@ -29,7 +29,7 @@ type GetStats<
 
 export type FetchedStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats
+  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
 > = {
   register: (object: T) => void;
   unregister: (object: T) => void;
@@ -40,7 +40,7 @@ export type FetchedStats<
 
 export default function useFetchStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats
+  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
 >(getStats: GetStats<T, S>, granularity: GRANULARITY): FetchedStats<T, S> {
   const stats = ref<Map<string, Stat<S>>>(new Map());
   const timestamp = ref<number[]>([0, 0]);
@@ -108,7 +108,7 @@ export default function useFetchStats<
   return {
     register,
     unregister,
-    stats: computed<Stat<S>[]>(() => Array.from(stats.value.values())),
+    stats: computed(() => Array.from(stats.value.values()) as Stat<S>[]),
     timestampStart: computed(() => timestamp.value[0]),
     timestampEnd: computed(() => timestamp.value[1]),
   };

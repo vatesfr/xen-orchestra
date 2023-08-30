@@ -23,8 +23,8 @@ import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import UnreachableHostsModal from "@/components/UnreachableHostsModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
-import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
+import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
@@ -42,7 +42,9 @@ if (link == null) {
 link.href = favicon;
 
 const xenApiStore = useXenApiStore();
-const { pool } = usePoolStore().subscribe();
+
+const { pool } = usePoolCollection();
+
 useChartTheme();
 const uiStore = useUiStore();
 
@@ -72,10 +74,8 @@ if (import.meta.env.DEV) {
 
 whenever(
   () => pool.value?.$ref,
-  async (poolRef) => {
-    const xenApi = xenApiStore.getXapi();
-    await xenApi.injectWatchEvent(poolRef);
-    await xenApi.startWatch();
+  (poolRef) => {
+    xenApiStore.getXapi().startWatching(poolRef);
   }
 );
 </script>

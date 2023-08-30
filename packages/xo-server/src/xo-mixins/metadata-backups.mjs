@@ -51,7 +51,11 @@ export default class metadataBackup {
     }
 
     const app = this._app
-    job.xoMetadata = job.xoMetadata ? await app.exportConfig() : undefined
+
+    if (job.xoMetadata) {
+      const config = await app.exportConfig()
+      job.xoMetadata = typeof config === 'string' ? config : { encoding: 'base64', data: config.toString('base64') }
+    }
 
     const remoteIds = unboxIdsFromPattern(job.remotes)
     const proxyId = job.proxy
@@ -325,7 +329,8 @@ export default class metadataBackup {
     const onLog = async log => {
       if (type === 'xoConfig' && localTaskIds[log.taskId] === rootTaskId && log.status === 'success') {
         try {
-          await app.importConfig(log.result)
+          const { result } = log
+          await app.importConfig(typeof result === 'string' ? result : Buffer.from(result.data, result.encoding))
 
           // don't log the XO config
           log.result = undefined

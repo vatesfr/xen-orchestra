@@ -261,8 +261,10 @@ export default class RestApi {
       .get(
         '/backups/logs',
         wrap(async (req, res) => {
+          const { filter, limit } = req.query
           const logs = await app.getBackupNgLogsSorted({
-            filter: ({ message: m }) => m === 'backup' || m === 'metadata',
+            filter: every(({ message: m }) => m === 'backup' || m === 'metadata', handleOptionalUserFilter(filter)),
+            limit: ifDef(limit, Number),
           })
           await sendObjects(logs, req, res)
         })
@@ -274,7 +276,11 @@ export default class RestApi {
       .get(
         '/restore/logs',
         wrap(async (req, res) => {
-          const logs = await app.getBackupNgLogsSorted({ filter: _ => _.message === 'restore' })
+          const { filter, limit } = req.query
+          const logs = await app.getBackupNgLogsSorted({
+            filter: every(_ => _.message === 'restore', handleOptionalUserFilter(filter)),
+            limit: ifDef(limit, Number),
+          })
           await sendObjects(logs, req, res)
         })
       )

@@ -12,10 +12,10 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
-import { isOperationsPending } from "@/libs/utils";
-import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
-import { useVmStore } from "@/stores/vm.store";
+import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
+import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faCopy } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
@@ -24,7 +24,7 @@ const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
 }>();
 
-const { getByOpaqueRef } = useVmStore().subscribe();
+const { getByOpaqueRef, isOperationPending } = useVmCollection();
 
 const selectedVms = computed(() =>
   props.selectedRefs
@@ -39,7 +39,7 @@ const areAllSelectedVmsHalted = computed(() =>
 );
 
 const areSomeSelectedVmsCloning = computed(() =>
-  selectedVms.value.some((vm) => isOperationsPending(vm, VM_OPERATION.CLONE))
+  selectedVms.value.some((vm) => isOperationPending(vm, VM_OPERATION.CLONE))
 );
 
 const handleCopy = async () => {

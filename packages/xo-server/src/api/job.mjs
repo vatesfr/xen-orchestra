@@ -90,6 +90,7 @@ set.params = {
         },
         optional: true,
       },
+      userId: { type: 'string', optional: true },
     },
   },
 }
