@@ -1,5 +1,40 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Netbox] Synchronize VM tags [#5899](https://github.com/vatesfr/xen-orchestra/issues/5899) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6957](https://github.com/vatesfr/xen-orchestra/pull/6957))
+- [REST API] Add support for `filter` and `limit` parameters to `backups/logs` and `restore/logs` collections [Forum#64789](https://xcp-ng.org/forum/post/64789)
+- [Pool/Advanced] Ability to set a crash dump SR [#5060](https://github.com/vatesfr/xen-orchestra/issues/5060) (PR [#6973](https://github.com/vatesfr/xen-orchestra/pull/6973))
+- [Plugin/transport-email] Local hostname can now be configured [Forum#7579](https://xcp-ng.org/forum/topic/7579)
+- [Backups] Add setting `concurrency` in a new configuration file `xo-merge-worker` (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+
+### Bug fixes
+
+- [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
+- [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
+- [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
+- [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
+- [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
+- [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
+- [Netbox] Fix `the address has neither IPv6 nor IPv4 format` error [Forum#7625](https://xcp-ng.org/forum/topic/7625) (PR [#6990](https://github.com/vatesfr/xen-orchestra/pull/6990))
+
+### Released packages
+
+- xen-api 1.3.5
+- @xen-orchestra/xapi 3.0.1
+- @xen-orchestra/backups 0.41.0
+- @xen-orchestra/backups-cli 1.0.11
+- @xen-orchestra/mixins 0.12.0
+- @xen-orchestra/proxy 0.26.31
+- xo-server 5.121.0
+- xo-server-auth-ldap 0.10.8
+- xo-server-netbox 1.1.0
+- xo-server-transport-email 0.7.0
+- xo-web 5.123.0
+
 ## **5.85.0** (2023-07-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
