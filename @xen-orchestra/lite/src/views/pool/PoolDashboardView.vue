@@ -2,7 +2,7 @@
   <div class="pool-dashboard-view">
     <UiCardGroup>
       <PoolDashboardStatus />
-      <UiCardComingSoon class="alarms" title="Alarms" />
+      <PoolDashboardAlarms class="alarms" />
       <UiCardComingSoon title="Patches" />
     </UiCardGroup>
     <UiCardGroup>
@@ -31,6 +31,7 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import PoolDashboardAlarms from "@/components/pool/dashboard/PoolDashboardAlarms.vue";
 import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";

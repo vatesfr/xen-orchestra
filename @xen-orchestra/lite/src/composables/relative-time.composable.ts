@@ -40,23 +40,26 @@ export default function useRelativeTime(
     }
 
     if (months > 0) {
-      parts.push(t("relative-time.month", { n: months }));
+      const n = days >= 15 ? months + 1 : months;
+      parts.push(t("relative-time.month", { n }));
     }
 
-    if (days > 0) {
-      parts.push(t("relative-time.day", { n: days }));
-    }
+    if (years === 0 && months === 0) {
+      if (days > 0) {
+        parts.push(t("relative-time.day", { n: days }));
+      }
 
-    if (years === 0 && months === 0 && days <= 1 && hours > 0) {
-      parts.push(t("relative-time.hour", { n: hours }));
-    }
+      if (days <= 1 && hours > 0) {
+        parts.push(t("relative-time.hour", { n: hours }));
+      }
 
-    if (years === 0 && months === 0 && days === 0 && minutes > 0) {
-      parts.push(t("relative-time.minute", { n: minutes }));
-    }
+      if (days === 0 && minutes > 0) {
+        parts.push(t("relative-time.minute", { n: minutes }));
+      }
 
-    if (years === 0 && months === 0 && days === 0 && seconds > 0) {
-      parts.push(t("relative-time.second", { n: seconds }));
+      if (days === 0 && seconds > 0) {
+        parts.push(t("relative-time.second", { n: seconds }));
+      }
     }
 
     return t(isPast.value ? "relative-time.past" : "relative-time.future", {

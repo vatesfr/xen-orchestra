@@ -44,7 +44,15 @@ export function getFilterIcon(filter: Filter | undefined) {
   return iconsByType[filter.type];
 }
 
-export function parseDateTime(dateTime: string) {
+export function parseDateTime(dateTime: Date | string | number): number {
+  if (typeof dateTime === "number") {
+    return dateTime;
+  }
+
+  if (dateTime instanceof Date) {
+    return dateTime.getTime();
+  }
+
   dateTime = dateTime.replace(/(-|\.\d{3})/g, ""); // Allow toISOString() date-time format
   const date = utcParse("%Y%m%dT%H:%M:%SZ")(dateTime);
   if (date === null) {
