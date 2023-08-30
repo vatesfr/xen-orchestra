@@ -17,6 +17,7 @@
     "test-integration": "node--test *.integ.mjs"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "@kldzj/stream-throttle": "^1.1.1",
     "@vates/async-each": "^1.0.0",
     "@vates/cached-dns.lookup": "^1.0.0",
@@ -30,6 +31,7 @@
     "@xen-orchestra/fs": "^4.0.1",
     "@xen-orchestra/log": "^0.6.0",
     "@xen-orchestra/template": "^0.1.0",
+    "app-conf": "^2.3.0",
     "compare-versions": "^6.0.0",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
