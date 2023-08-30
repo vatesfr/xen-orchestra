@@ -2,6 +2,7 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable n/shebang */
 
+import { asyncEach } from '@vates/async-each'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createLogger } from '@xen-orchestra/log'
 import { getSyncedHandler } from '@xen-orchestra/fs'
@@ -13,7 +14,6 @@ import { getVmBackupDir } from '../_getVmBackupDir.mjs'
 import { RemoteAdapter } from '../RemoteAdapter.mjs'
 
 import { CLEAN_VM_QUEUE } from './index.mjs'
-import { asyncEach } from '@vates/async-each'
 
 const APP_NAME = 'xo-merge-worker'
 const APP_DIR = new URL('.', import.meta.url).pathname
