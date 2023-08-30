@@ -29,4 +29,6 @@
 
 <!--packages-start-->
 
+- xo-server patch
+
 <!--packages-end-->
