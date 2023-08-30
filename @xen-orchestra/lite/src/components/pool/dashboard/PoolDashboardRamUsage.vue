@@ -12,6 +12,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 import HostsRamUsage from "@/components/pool/dashboard/ramUsage/HostsRamUsage.vue";
 import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";
@@ -22,8 +24,6 @@ import type { ComputedRef } from "vue";
 import type { HostStats, VmStats } from "@/libs/xapi-stats";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
 
 const { hasError: hasVmError } = useVmCollection();
 const { hasError: hasHostError } = useHostCollection();
