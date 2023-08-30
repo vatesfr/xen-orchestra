@@ -2,12 +2,7 @@
 
 ```vue
 <template>
-  <LinearChart
-    title="Chart title"
-    subtitle="Chart subtitle"
-    :data="data"
-    :value-formatter="customValueFormatter"
-  />
+  <LinearChart :data="data" :value-formatter="customValueFormatter" />
 </template>
 
 <script lang="ts" setup>

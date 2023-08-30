@@ -11,7 +11,6 @@ import { LineChart } from "echarts/charts";
 import {
   GridComponent,
   LegendComponent,
-  TitleComponent,
   TooltipComponent,
 } from "echarts/components";
 import { use } from "echarts/core";
@@ -22,8 +21,6 @@ import VueCharts from "vue-echarts";
 const Y_AXIS_MAX_VALUE = 200;
 
 const props = defineProps<{
-  title?: string;
-  subtitle?: string;
   data: LinearChartData;
   valueFormatter?: ValueFormatter;
   maxValue?: number;
@@ -48,15 +45,10 @@ use([
   LineChart,
   GridComponent,
   TooltipComponent,
-  TitleComponent,
   LegendComponent,
 ]);
 
 const option = computed<EChartsOption>(() => ({
-  title: {
-    text: props.title,
-    subtext: props.subtitle,
-  },
   legend: {
     data: props.data.map((series) => series.label),
   },

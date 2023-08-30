@@ -1,7 +1,7 @@
 <template>
   <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ $t("network-throughput") }}</UiCardTitle>
-    <UiCardTitle :level="UI_CARD_TITLE_LEVEL.SUBTITLE">
+    <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ $t("last-week") }}
     </UiCardTitle>
     <NoDataError v-if="hasError" />
@@ -24,11 +24,11 @@ import type { LinearChartData } from "@/types/chart";
 import { map } from "lodash-es";
 import NoDataError from "@/components/NoDataError.vue";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
-import { useHostCollection } from "@/composables/xen-api-collection/host-collection.composable";
+import { UiCardTitleLevel } from "@/types/enums";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    :level="UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE"
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
@@ -14,8 +14,8 @@ import { getAvgCpuUsage } from "@/libs/utils";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
-import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { UiCardTitleLevel } from "@/types/enums";
 import UsageBar from "@/components/UsageBar.vue";
 import { useHostCollection } from "@/stores/xen-api/host.store";
 

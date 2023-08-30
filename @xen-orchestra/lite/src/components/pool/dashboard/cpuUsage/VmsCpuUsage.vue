@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    :level="UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE"
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('vms')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
@@ -17,7 +17,7 @@ import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { getAvgCpuUsage } from "@/libs/utils";
 import { IK_VM_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
-import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
+import { UiCardTitleLevel } from "@/types/enums";
 
 const { hasError } = useVmCollection();
 

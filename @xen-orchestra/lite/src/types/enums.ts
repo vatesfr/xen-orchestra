@@ -1,5 +1,5 @@
-export enum UI_CARD_TITLE_LEVEL {
-  TITLE,
-  SUBTITLE,
-  SUBTITLE_WITH_UNDERLINE,
+export enum UiCardTitleLevel {
+  Title,
+  Subtitle,
+  SubtitleWithUnderline,
 }

@@ -12,23 +12,23 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { UI_CARD_TITLE_LEVEL } from "@/types/enums";
+import { UiCardTitleLevel } from "@/types/enums";
 
 const props = withDefaults(
   defineProps<{
     count?: number;
-    level?: UI_CARD_TITLE_LEVEL;
+    level?: UiCardTitleLevel;
     left?: string;
     right?: string;
   }>(),
-  { count: 0, level: UI_CARD_TITLE_LEVEL.TITLE }
+  { count: 0, level: UiCardTitleLevel.Title }
 );
 
 const tags = computed(() => {
   switch (props.level) {
-    case UI_CARD_TITLE_LEVEL.SUBTITLE:
+    case UiCardTitleLevel.Subtitle:
       return { left: "h6", right: "h6" };
-    case UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE:
+    case UiCardTitleLevel.SubtitleWithUnderline:
       return { left: "h5", right: "h6" };
     default:
       return { left: "h4", right: "h5" };
