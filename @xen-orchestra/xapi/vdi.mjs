@@ -96,7 +96,7 @@ class Vdi {
     }
     let nbdClient, stream
     try {
-      if (preferNbd === true) {
+      if (preferNbd) {
         nbdClient = await this._getNbdClient(ref)
       }
       // the raw nbd export does not need to peek ath the vhd source
