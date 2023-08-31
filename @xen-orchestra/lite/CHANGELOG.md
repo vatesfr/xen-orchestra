@@ -2,6 +2,10 @@
 
 ## **next**
 
+## **0.1.3** (2023-09-01)
+
+- Add Alarms to Pool Dashboard (PR [#6976](https://github.com/vatesfr/xen-orchestra/pull/6976))
+
 ## **0.1.2** (2023-07-28)
 
 - Ability to export selected VMs as CSV file (PR [#6915](https://github.com/vatesfr/xen-orchestra/pull/6915))
