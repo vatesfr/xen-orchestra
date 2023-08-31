@@ -221,14 +221,10 @@ const NetworkCard = decorate([
 const DisksCard = decorate([
   provideState({
     initialState: () => ({
-      hostId: undefined,
       onlyShowXostorDisks: true,
     }),
     effects: {
       toggleState,
-      onHostChange(_, host) {
-        this.state.hostId = host?.id
-      },
       _onDiskChange(_, disk) {
         this.effects.onDiskChange(disk, this.state.hostId)
       },
@@ -457,12 +453,16 @@ const NewXostorForm = decorate([
       disksByHost: {},
       provisioning: PROVISIONING_OPTIONS[0], // default value 'thin'
       poolId: undefined,
+      hostId: undefined,
       replication: REPLICATION_OPTIONS[1], // default value 2
       srDescription: '',
       srName: '',
     }),
     effects: {
       linkState,
+      onHostChange(_, host) {
+        this.state.hostId = host?.id
+      },
       onPoolChange(_, pool) {
         this.state.disksByHost = {}
         this.state.poolId = pool?.id
@@ -474,7 +474,7 @@ const NewXostorForm = decorate([
         this.state.provisioning = provisioning
       },
       onNetworkChange(_, network) {
-        this.state._networkId = network?.id
+        this.state._networkId = network?.id ?? null
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
@@ -510,7 +510,7 @@ const NewXostorForm = decorate([
         state.isReplicationMissing || state.isProvisioningMissing || state.isNameMissing || state.isDisksMissing,
       isXcpngHost: state => isXcpngHost(first(state.poolHosts)),
       // State ============
-      networkId: state => state._networkId ?? state._defaultNetworkId,
+      networkId: state => (state._networkId === undefined ? state._defaultNetworkId : state._networkId),
     },
   }),
   injectState,
