@@ -6,33 +6,32 @@ import Tooltip from 'tooltip'
 import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { deleteSr } from 'xo'
-import { find, map, isEmpty } from 'lodash'
-import { injectState, provideState } from 'reaclette'
+import { find, map } from 'lodash'
 import { Pool } from 'render-xo-item'
 
 const COLUMNS = [
   {
     name: _('srPool'),
     itemRenderer: sr => <Pool id={sr.pool.id} link />,
-    sortCriteria: sr => sr.pool.name_label,
+    sortCriteria: 'pool.name_label',
   },
   {
     name: _('name'),
     itemRenderer: sr => sr.name_label,
-    sortCriteria: sr => sr.name_label,
+    sortCriteria: 'name_label',
   },
   {
-    name: 'Provisioning',
+    name: _('provisioning'),
     itemRenderer: sr => sr.allocationStrategy,
-    sortCriteria: sr => sr.allocationStrategy,
+    sortCriteria: 'allocationStrategy',
   },
   {
-    name: 'Size',
+    name: _('size'),
     itemRenderer: sr => formatSize(sr.size),
-    sortCriteria: sr => sr.size,
+    sortCriteria: 'size',
   },
   {
-    name: 'Used space',
+    name: _('usedSpace'),
     itemRenderer: sr => {
       const used = (sr.physical_usage * 100) / sr.size
       return (
@@ -54,7 +53,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteSr,
     icon: 'delete',
-    label: 'delete',
+    label: _('delete'),
     level: 'danger',
   },
 ]
@@ -71,23 +70,8 @@ const XostorList = decorate([
         }))
     ),
   })),
-  provideState({
-    initialState: () => ({ showNewXostorForm: false }),
-  }),
-  injectState,
-  ({ effects, state, xostorSrs }) => (
-    <div>
-      {isEmpty(xostorSrs) ? (
-        _('noXostorFound')
-      ) : (
-        <SortedTable
-          collection={xostorSrs}
-          columns={COLUMNS}
-          individualActions={INDIVIDUAL_ACTIONS}
-          stateUrlParam='s'
-        />
-      )}
-    </div>
+  ({ xostorSrs }) => (
+    <SortedTable collection={xostorSrs} columns={COLUMNS} individualActions={INDIVIDUAL_ACTIONS} stateUrlParam='s' />
   ),
 ])
 
