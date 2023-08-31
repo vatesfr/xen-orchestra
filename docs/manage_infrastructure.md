@@ -450,7 +450,7 @@ Note that maintenance mode will be **automatically exited after a host reboot**.
 
 ### Modify Dom0 memory
 
-You can easily adjust the control domain memory under the Advanced tab. Enable the maintenance mode on the host and click on the pen icon to edit the value:
+You can easily adjust the control domain memory under the Advanced tab of a host. Enable the maintenance mode on the host and click on the pen icon to edit the value:
 
 ![](./assets/dom0memory.png)
 
