@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] `limit` parameter now applies at the end of the `backups/logs` and `restore/logs` collections, i.e. it selects the last entries [Forum#64880](https://xcp-ng.org/forum/post/64880)
+- [Audit] Ignore more side-effects free API methods
 
 ### Packages to release
 
@@ -37,6 +38,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi minor
 - xo-server patch
+- xo-server-audit patch
 - xo-server-netbox minor
 - xo-web minor
 
