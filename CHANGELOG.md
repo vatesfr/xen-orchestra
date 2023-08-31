@@ -9,6 +9,11 @@
 - [Pool/Advanced] Ability to set a crash dump SR [#5060](https://github.com/vatesfr/xen-orchestra/issues/5060) (PR [#6973](https://github.com/vatesfr/xen-orchestra/pull/6973))
 - [Plugin/transport-email] Local hostname can now be configured [Forum#7579](https://xcp-ng.org/forum/topic/7579)
 - [Backups] Add setting `concurrency` in a new configuration file `xo-merge-worker` (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+- [Backups] Ability to set the NBD mode per backup job in the UI instead of globally in the config file (PR [#6995](https://github.com/vatesfr/xen-orchestra/pull/6995))
+- [Netbox] Better handle cases where the IP addresses reported by XAPI are malformed (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
+- [Netbox] Fallback to other VIF's IPs when first VIF doesn't have an IP [#6978](https://github.com/vatesfr/xen-orchestra/issues/6978) (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
+- [Jobs] Jobs are ordered by their name in the _Scheduling_ form [Forum#64825](https://xcp-ng.org/forum/post/64825)
+- [fs/s3] retry all methods on S3 failure to better support alternative providers (PR [#6966](https://github.com/vatesfr/xen-orchestra/pull/6966))
 
 ### Bug fixes
 
@@ -20,20 +25,24 @@
 - [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
 - [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
 - [Netbox] Fix `the address has neither IPv6 nor IPv4 format` error [Forum#7625](https://xcp-ng.org/forum/topic/7625) (PR [#6990](https://github.com/vatesfr/xen-orchestra/pull/6990))
+- [REST API] `limit` parameter now applies at the end of the `backups/logs` and `restore/logs` collections, i.e. it selects the last entries [Forum#64880](https://xcp-ng.org/forum/post/64880)
+- [Audit] Ignore more side-effects free API methods
 
 ### Released packages
 
 - xen-api 1.3.5
-- @xen-orchestra/xapi 3.0.1
-- @xen-orchestra/backups 0.41.0
-- @xen-orchestra/backups-cli 1.0.11
 - @xen-orchestra/mixins 0.12.0
-- @xen-orchestra/proxy 0.26.31
-- xo-server 5.121.0
 - xo-server-auth-ldap 0.10.8
-- xo-server-netbox 1.1.0
 - xo-server-transport-email 0.7.0
-- xo-web 5.123.0
+- @xen-orchestra/fs 4.1.0
+- @xen-orchestra/xapi 3.1.0
+- @xen-orchestra/backups 0.42.0
+- @xen-orchestra/backups-cli 1.0.12
+- @xen-orchestra/proxy 0.26.32
+- xo-server 5.121.1
+- xo-server-audit 0.10.5
+- xo-server-netbox 1.2.0
+- xo-web 5.124.0
 
 ## **5.85.0** (2023-07-31)
 
