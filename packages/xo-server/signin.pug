@@ -7,6 +7,14 @@ html
     title Xen Orchestra
     meta(name = 'author' content = 'Vates SAS')
     link(rel = 'stylesheet' href = 'index.css')
+    script.
+      function add_hash(id, attr, uri) {
+        var elt = document.getElementById(id);
+        if (elt) {
+          elt.setAttribute(attr, uri + document.location.hash);
+        }
+        return true;
+      }
   body(style = 'display: flex; height: 100vh;')
     div(style = 'margin: auto; width: 20em;')
       div.mb-2(style = 'display: flex;')
@@ -35,8 +43,17 @@ html
       else
         div.mb-2
         each label, id in strategies
-          div: a(href = 'signin/' + id).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
-        form(action = 'signin/local' method = 'post')
+          div: a(
+            id = 'signin_btn_' + id
+            href = 'signin/' + id
+            onclick = 'return add_hash("signin_btn_' + id + '", "href", "signin/' + id + '")'
+          ).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
+        form(
+          id = 'signin_frm_local'
+          action = 'signin/local'
+          method = 'post'
+          onsubmit = 'return add_hash("signin_frm_local", "action", "signin/local")'
+        )
           fieldset
             .input-group.mb-1
               span.input-group-addon
