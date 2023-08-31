@@ -689,7 +689,7 @@ export class RemoteAdapter {
       dirMode: this._dirMode,
       async validator(tmpPath) {
         await input.task
-        // size on file system can be bigger when encrypted ( IV + alignmet padding)
+        // size on file system can be bigger when encrypted ( IV + alignment padding)
         const size = await handler.getSize(tmpPath, { exact: false })
         if (Math.abs(size - container.size) > handler.getSizeApproximationMargin()) {
           return false
