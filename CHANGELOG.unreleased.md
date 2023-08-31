@@ -11,6 +11,7 @@
 - [Netbox] Better handle cases where the IP addresses reported by XAPI are malformed (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
 - [Netbox] Fallback to other VIF's IPs when first VIF doesn't have an IP [#6978](https://github.com/vatesfr/xen-orchestra/issues/6978) (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
 - [Jobs] Jobs are ordered by their name in the _Scheduling_ form [Forum#64825](https://xcp-ng.org/forum/post/64825)
+- [fs/s3] retry all methods on S3 failure to better support alternative providers (PR [#6966](https://github.com/vatesfr/xen-orchestra/pull/6966))
 
 ### Bug fixes
 
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
 - xo-server patch
 - xo-server-audit patch
