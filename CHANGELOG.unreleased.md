@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [User] _Forget all connection tokens_ button should not delete other users' tokens, even when current user is an administrator (PR [#7014](https://github.com/vatesfr/xen-orchestra/pull/7014))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,5 +30,6 @@
 <!--packages-start-->
 
 - xo-server minor
+- xo-web patch
 
 <!--packages-end-->

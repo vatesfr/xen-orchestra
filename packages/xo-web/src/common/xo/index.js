@@ -2973,7 +2973,7 @@ export const removeUserAuthProvider = ({ userId, authProviderId }) => {
 }
 
 const _signOutFromEverywhereElse = () =>
-  _call('token.delete', {
+  _call('token.deleteOwn', {
     pattern: {
       id: {
         __not: cookies.get('token'),
@@ -3111,7 +3111,7 @@ export const deleteAuthToken = async ({ id }) => {
     icon: 'user',
     title: _('deleteAuthTokenConfirm'),
   })
-  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.deleteOwn', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const deleteAuthTokens = async tokens => {
@@ -3122,7 +3122,7 @@ export const deleteAuthTokens = async tokens => {
     icon: 'user',
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
-  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.deleteOwn', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const editAuthToken = ({ description, id }) =>
