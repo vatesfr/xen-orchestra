@@ -1,6 +1,10 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
+<<<<<<< HEAD
 import { operationFailed } from 'xo-common/api-errors.js'
+=======
+import { defer } from 'golike-defer'
+>>>>>>> 705d1f024... feat(xo-server/xostor): associate a XOSTOR with a license at the XOSTOR creation
 
 const ENUM_PROVISIONING = {
   Thin: 'thin',
@@ -105,10 +109,45 @@ formatDisks.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function create({ description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }) {
-  const hostIds = Object.keys(disksByHost)
-  const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
+export const create = defer(async function (
+  $defer,
+  { description, disksByHosts, force, ignoreFileSystems, name, provisioning, replication }
+) {
+  const hostIds = Object.keys(disksByHosts)
 
+  const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
+
+  const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
+
+  const unboundLicenses = xostorLicenses.filter(license => license.boundObjectId === undefined)
+  let license = unboundLicenses.find(license => license.productId === 'xostor')
+
+  if (license === undefined) {
+    license = unboundLicenses.find(license => license.productId === 'xostor.trial')
+  }
+
+  if (license === undefined) {
+    license = this.createBoundXostorTrialLicense({
+      boundObjectId: tmpBoundObjectId,
+    })
+  } else {
+    if (license.expires < Date.now()) {
+      throw new Error('License expired')
+    }
+    this.bindLicense({
+      licenseId: license.id,
+      boundObjectId: tmpBoundObjectId,
+    })
+  }
+  $defer.onFailure(() =>
+    this.unbindLicense({
+      licenseId: license.id,
+      productId: license.productId,
+      boundObjectId: tmpBoundObjectId,
+    })
+  )
+
+  const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
   if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
     // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
     throw new Error('All hosts must be in the same pool')
@@ -140,7 +179,7 @@ export async function create({ description, disksByHost, force, ignoreFileSystem
   const xapi = this.getXapi(host)
 
   log.info(`Create XOSTOR (${name}) with provisioning: ${provisioning}`)
-  const srRef = await this.getXapi(host).SR_create({
+  const srRef = await xapi.SR_create({
     device_config: {
       'group-name': 'linstor_group/' + LV_NAME,
       redundancy: String(replication),
@@ -152,9 +191,17 @@ export async function create({ description, disksByHost, force, ignoreFileSystem
     shared: true,
     type: 'linstor',
   })
+  const srUuid = xapi.getObject(srRef).uuid
 
-  return xapi.getObject(srRef).uuid
-}
+  await this.rebindLicense({
+    licenseId: license.id,
+    oldBoundObjectId: tmpBoundObjectId,
+    newBoundObjectId: srUuid,
+  })
+
+  return srUuid
+})
+
 create.description = 'Create a XOSTOR storage'
 create.permission = 'admin'
 create.params = {
