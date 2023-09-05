@@ -30,8 +30,11 @@
 
 <!--packages-start-->
 
+<<<<<<< HEAD
 - xen-api patch
 - xo-server minor
+=======
+>>>>>>> 1d6153027 (changelog)
 - xo-web patch
 
 <!--packages-end-->
