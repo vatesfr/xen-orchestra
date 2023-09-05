@@ -3,8 +3,10 @@ import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-s
 import { sortRecordsByNameLabel } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
-import type { VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import {
+  type VM_OPERATION,
+  VM_POWER_STATE,
+} from "@/libs/xen-api/xen-api.enums";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { useHostStore } from "@/stores/xen-api/host.store";
@@ -35,7 +37,7 @@ export const useVmStore = defineStore("xen-api-vm", () => {
   };
 
   const runningVms = computed(() =>
-    records.value.filter((vm) => vm.power_state === POWER_STATE.RUNNING)
+    records.value.filter((vm) => vm.power_state === VM_POWER_STATE.RUNNING)
   );
 
   const recordsByHostRef = computed(() => {

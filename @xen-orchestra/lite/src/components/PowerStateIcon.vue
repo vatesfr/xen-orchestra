@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import {
   faMoon,
   faPause,
@@ -15,14 +15,14 @@ import {
 import { computed } from "vue";
 
 const props = defineProps<{
-  state: POWER_STATE;
+  state: VM_POWER_STATE;
 }>();
 
 const icons = {
-  [POWER_STATE.RUNNING]: faPlay,
-  [POWER_STATE.PAUSED]: faPause,
-  [POWER_STATE.SUSPENDED]: faMoon,
-  [POWER_STATE.HALTED]: faStop,
+  [VM_POWER_STATE.RUNNING]: faPlay,
+  [VM_POWER_STATE.PAUSED]: faPause,
+  [VM_POWER_STATE.SUSPENDED]: faMoon,
+  [VM_POWER_STATE.HALTED]: faStop,
 };
 
 const icon = computed(() => icons[props.state] ?? faQuestion);

@@ -38,7 +38,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import VmsActionsBar from "@/components/vm/VmsActionsBar.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
 import type { Filters } from "@/types/filter";
@@ -62,7 +62,7 @@ const filters: Filters = {
     label: t("power-state"),
     icon: faPowerOff,
     type: "enum",
-    choices: Object.values(POWER_STATE),
+    choices: Object.values(VM_POWER_STATE),
   },
 };
 
