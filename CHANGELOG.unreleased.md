@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [User] _Forget all connection tokens_ button should not delete other users' tokens, even when current user is an administrator (PR [#7014](https://github.com/vatesfr/xen-orchestra/pull/7014))
+- [Settings/Servers] Fix connection to old XenServer hosts using XML-RPC protocol (broken in XO 5.85.0)
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- xen-api patch
 - xo-server minor
 - xo-web patch
 
