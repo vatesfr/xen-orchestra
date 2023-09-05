@@ -14,7 +14,7 @@
   >
     <template #title>
       <i18n-t keypath="confirm-delete" scope="global" tag="div">
-        <span class="accent">
+        <span :class="textClass">
           {{ $t("n-vms", { n: vmRefs.length }) }}
         </span>
       </i18n-t>
@@ -35,16 +35,18 @@
 
 <script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
+import { useContext } from "@/composables/context.composable";
 import useModal from "@/composables/modal.composable";
-import { useXenApiStore } from "@/stores/xen-api.store";
-import { faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
-import { computed } from "vue";
+import { ColorContext } from "@/context";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { useXenApiStore } from "@/stores/xen-api.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
 
 const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
@@ -70,4 +72,6 @@ const deleteVms = async () => {
   await xenApi.vm.delete(props.vmRefs);
   closeDeleteModal();
 };
+
+const { textClass } = useContext(ColorContext);
 </script>

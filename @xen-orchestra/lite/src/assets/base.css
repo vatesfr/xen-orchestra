@@ -46,3 +46,51 @@ code * {
 .link.router-link-active {
   text-decoration: underline;
 }
+
+.context-color-success {
+  color: var(--color-green-infra-base);
+}
+
+.context-color-error {
+  color: var(--color-red-vates-base);
+}
+
+.context-color-warning {
+  color: var(--color-orange-world-base);
+}
+
+.context-color-info {
+  color: var(--color-extra-blue-base);
+}
+
+.context-background-color-success {
+  background-color: var(--background-color-green-infra);
+}
+
+.context-background-color-error {
+  background-color: var(--background-color-red-vates);
+}
+
+.context-background-color-warning {
+  background-color: var(--background-color-orange-world);
+}
+
+.context-background-color-info {
+  background-color: var(--background-color-extra-blue);
+}
+
+.context-border-color-success {
+  border-color: var(--color-green-infra-base);
+}
+
+.context-border-color-error {
+  border-color: var(--color-red-vates-base);
+}
+
+.context-border-color-warning {
+  border-color: var(--color-orange-world-base);
+}
+
+.context-border-color-info {
+  border-color: var(--color-extra-blue-base);
+}

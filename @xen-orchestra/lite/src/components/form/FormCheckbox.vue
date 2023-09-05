@@ -7,7 +7,7 @@
     <input
       v-model="value"
       :class="{ indeterminate: type === 'checkbox' && value === undefined }"
-      :disabled="isLabelDisabled || disabled"
+      :disabled="isDisabled"
       :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
       v-bind="$attrs"
@@ -19,23 +19,24 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  IK_FORM_HAS_LABEL,
-  IK_FORM_LABEL_DISABLED,
-  IK_CHECKBOX_TYPE,
-} from "@/types/injection-keys";
-import { type HTMLAttributes, computed, inject } from "vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
+import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from "@/types/injection-keys";
 import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { computed, type HTMLAttributes, inject } from "vue";
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{
-  modelValue?: unknown;
-  disabled?: boolean;
-  wrapperAttrs?: HTMLAttributes;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue?: unknown;
+    disabled?: boolean;
+    wrapperAttrs?: HTMLAttributes;
+  }>(),
+  { disabled: undefined }
+);
 
 const emit = defineEmits<{
   (event: "update:modelValue", value: boolean): void;
@@ -47,10 +48,7 @@ const hasLabel = inject(
   IK_FORM_HAS_LABEL,
   computed(() => false)
 );
-const isLabelDisabled = inject(
-  IK_FORM_LABEL_DISABLED,
-  computed(() => false)
-);
+const isDisabled = useContext(DisabledContext, () => props.disabled);
 const icon = computed(() => {
   if (type !== "checkbox") {
     return faCircle;
@@ -153,7 +151,8 @@ const icon = computed(() => {
   align-items: center;
   justify-content: center;
   height: 1.25em;
-  transition: background-color 0.125s ease-in-out,
+  transition:
+    background-color 0.125s ease-in-out,
     border-color 0.125s ease-in-out;
   border: var(--checkbox-border-width) solid var(--border-color);
   border-radius: var(--checkbox-border-radius);
