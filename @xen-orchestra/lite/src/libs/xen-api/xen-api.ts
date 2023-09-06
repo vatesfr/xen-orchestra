@@ -108,7 +108,7 @@ export default class XenApi {
 
   async loadRecords<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(type: Type): Promise<XRecord[]> {
     this.emitEvent(`${type}.beforeLoad`);
 
@@ -134,7 +134,7 @@ export default class XenApi {
 
   addEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordAfterLoadEvent<Type>,
     callback: (records: XRecord[]) => void
@@ -152,7 +152,7 @@ export default class XenApi {
 
   addEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordAddEvent<Type> | XenApiRecordModEvent<Type>,
     callback: (record: XRecord) => void
@@ -160,7 +160,7 @@ export default class XenApi {
 
   addEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordDelEvent<Type>,
     callback: (opaqueRef: XRecord["$ref"]) => void
@@ -189,7 +189,7 @@ export default class XenApi {
 
   removeEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordAfterLoadEvent<Type>,
     callback: (records: XRecord[]) => void
@@ -197,7 +197,7 @@ export default class XenApi {
 
   removeEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordAddEvent<any> | XenApiRecordModEvent<any>,
     callback: (record: XRecord) => void
@@ -205,7 +205,7 @@ export default class XenApi {
 
   removeEventListener<
     Type extends ObjectType,
-    XRecord extends ObjectTypeToRecord<Type>
+    XRecord extends ObjectTypeToRecord<Type>,
   >(
     event: XenApiRecordDelEvent<Type>,
     callback: (opaqueRef: XRecord["$ref"]) => void
@@ -296,7 +296,7 @@ export default class XenApi {
       XenApiVm["$ref"],
       XenApiVm["power_state"]
     >;
-    type VmRefsToClone = Record<XenApiVm["$ref"], /* Cloned VM name */ string>;
+    type VmRefsWithNameLabel = Record<XenApiVm["$ref"], string>;
 
     return {
       delete: (vmRefs: VmRefs) =>
@@ -351,7 +351,7 @@ export default class XenApi {
           )
         );
       },
-      clone: (vmRefsToClone: VmRefsToClone) => {
+      clone: (vmRefsToClone: VmRefsWithNameLabel) => {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm["$ref"][];
 
         return Promise.all(
@@ -368,6 +368,15 @@ export default class XenApi {
               destinationHostRef,
               { force: "false" },
             ])
+          )
+        );
+      },
+      snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {
+        const vmRefs = Object.keys(vmRefsToSnapshot) as XenApiVm["$ref"][];
+
+        return Promise.all(
+          vmRefs.map((vmRef) =>
+            this.call("VM.snapshot", [vmRef, vmRefsToSnapshot[vmRef]])
           )
         );
       },
