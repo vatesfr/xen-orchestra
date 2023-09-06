@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Settings/Servers] Fix connection to old XenServer hosts using XML-RPC protocol (broken in XO 5.85.0)
+
+### Released packages
+
+- xen-api 1.3.6
+
 ## **5.86.0** (2023-08-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
