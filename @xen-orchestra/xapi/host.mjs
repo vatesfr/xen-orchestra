@@ -1,6 +1,8 @@
 import { asyncEach } from '@vates/async-each'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
@@ -31,7 +33,38 @@ class Host {
    *
    * @param {string} ref - Opaque reference of the host
    */
-  async smartReboot($defer, ref) {
+  async smartReboot($defer, ref, bypassBlockedSuspend = false, bypassCurrentVmCheck = false) {
+    let currentVmRef
+    try {
+      currentVmRef = await this.call('VM.get_by_uuid', await getCurrentVmUuid())
+    } catch (error) {}
+
+    const residentVmRefs = await this.getField('host', ref, 'resident_VMs')
+    const vmsWithSuspendBlocked = await asyncMap(residentVmRefs, ref => this.getRecord('VM', ref)).filter(
+      vm =>
+        vm.$ref !== currentVmRef &&
+        !vm.is_control_domain &&
+        vm.power_state !== 'Halted' &&
+        vm.power_state !== 'Suspended' &&
+        vm.blocked_operations.suspend !== undefined
+    )
+
+    if (!bypassBlockedSuspend && vmsWithSuspendBlocked.length > 0) {
+      throw incorrectState({ actual: vmsWithSuspendBlocked.map(vm => vm.uuid), expected: [], object: 'suspendBlocked' })
+    }
+
+    if (!bypassCurrentVmCheck && residentVmRefs.includes(currentVmRef)) {
+      throw operationFailed({
+        objectId: await this.getField('VM', currentVmRef, 'uuid'),
+        code: 'xoaOnHost',
+      })
+    }
+
+    await asyncEach(vmsWithSuspendBlocked, vm => {
+      $defer(() => vm.update_blocked_operations('suspend', vm.blocked_operations.suspend ?? null))
+      return vm.update_blocked_operations('suspend', null)
+    })
+
     const suspendedVms = []
     if (await this.getField('host', ref, 'enabled')) {
       await this.callAsync('host.disable', ref)
@@ -42,13 +75,8 @@ class Host {
       })
     }
 
-    let currentVmRef
-    try {
-      currentVmRef = await this.call('VM.get_by_uuid', await getCurrentVmUuid())
-    } catch (error) {}
-
     await asyncEach(
-      await this.getField('host', ref, 'resident_VMs'),
+      residentVmRefs,
       async vmRef => {
         if (vmRef === currentVmRef) {
           return
