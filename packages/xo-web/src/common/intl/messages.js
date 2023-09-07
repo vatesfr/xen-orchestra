@@ -963,9 +963,13 @@ const messages = {
   enableHostLabel: 'Enable',
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
+  smartRebootBypassCurrentVmCheck:
+    'As the XOA is hosted on the host that is scheduled for a reboot, it will also be restarted. Consequently, XO won\'t be able to resume VMs, and VMs with the "Protect from accidental shutdown" option enabled will not have this option reactivated automatically.',
   smartRebootHostLabel: 'Smart reboot',
   smartRebootHostTooltip: 'Suspend resident VMs, reboot host and resume VMs automatically',
   forceRebootHostLabel: 'Force reboot',
+  forceSmartRebootHost:
+    'Smart Reboot failed because {nVms, number} VM{nVms, plural, one {} other {s}} ha{nVms, plural, one {s} other {ve}} {nVms, plural, one {its} other {their}} Suspend operation blocked. Would you like to force?',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:

@@ -16,6 +16,7 @@ import {
   incorrectState,
   noHostsAvailable,
   operationBlocked,
+  operationFailed,
   vmLacksFeature,
 } from 'xo-common/api-errors'
 
@@ -821,42 +822,89 @@ export const setRemoteSyslogHost = (host, syslogDestination) =>
 export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
   Promise.all(map(hosts, host => setRemoteSyslogHost(host, syslogDestination)))
 
-export const restartHost = (host, force = false, suspendResidentVms = false) =>
-  confirm({
+export const restartHost = async (
+  host,
+  force = false,
+  suspendResidentVms = false,
+  bypassBlockedSuspend = false,
+  bypassCurrentVmCheck = false
+) => {
+  await confirm({
     title: _('restartHostModalTitle'),
     body: _('restartHostModalMessage'),
-  }).then(
-    () =>
-      _call('host.restart', { id: resolveId(host), force, suspendResidentVms })
-        .catch(async error => {
-          if (
-            forbiddenOperation.is(error, {
-              reason: `A backup may run on the pool: ${host.$poolId}`,
-            }) ||
-            forbiddenOperation.is(error, {
-              reason: `A backup is running on the pool: ${host.$poolId}`,
-            })
-          ) {
-            await confirm({
-              body: (
-                <p className='text-warning'>
-                  <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
-                </p>
-              ),
-              title: _('restartHostModalTitle'),
-            })
-            return _call('host.restart', { id: resolveId(host), force, suspendResidentVms, bypassBackupCheck: true })
-          }
-          throw error
-        })
-        .catch(error => {
-          if (noHostsAvailable.is(error)) {
-            alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
-          }
-          throw error
-        }),
-    noop
-  )
+  })
+  return _restartHost({ host, force, suspendResidentVms, bypassBlockedSuspend, bypassCurrentVmCheck })
+}
+
+const _restartHost = async ({ host, ...opts }) => {
+  opts = { ...opts, id: resolveId(host) }
+
+  try {
+    await _call('host.restart', opts)
+  } catch (error) {
+    if (cantSuspend(error)) {
+      await confirm({
+        body: (
+          <p>
+            <Icon icon='alarm' /> {_('forceSmartRebootHost', { nVms: error.data.actual.length })}
+          </p>
+        ),
+        title: _('restartHostModalTitle'),
+      })
+      return _restartHost({ ...opts, host, bypassBlockedSuspend: true })
+    }
+
+    if (xoaOnHost(error)) {
+      await confirm({
+        body: (
+          <p>
+            <Icon icon='alarm' /> {_('smartRebootBypassCurrentVmCheck')}
+          </p>
+        ),
+        title: _('restartHostModalTitle'),
+      })
+      return _restartHost({ ...opts, host, bypassCurrentVmCheck: true })
+    }
+
+    if (backupIsRunning(error, host.$poolId)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
+          </p>
+        ),
+        title: _('restartHostModalTitle'),
+      })
+      return _restartHost({ ...opts, host, bypassBackupCheck: true })
+    }
+
+    if (noHostsAvailableErrCheck(error)) {
+      alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
+    }
+    throw error
+  }
+}
+
+// ---- Restart Host errors
+const cantSuspend = err =>
+  err !== undefined &&
+  incorrectState.is(err, {
+    object: 'suspendBlocked',
+  })
+const xoaOnHost = err =>
+  err !== undefined &&
+  operationFailed.is(err, {
+    code: 'xoaOnHost',
+  })
+const backupIsRunning = (err, poolId) =>
+  err !== undefined &&
+  (forbiddenOperation.is(err, {
+    reason: `A backup may run on the pool: ${poolId}`,
+  }) ||
+    forbiddenOperation.is(err, {
+      reason: `A backup is running on the pool: ${poolId}`,
+    }))
+const noHostsAvailableErrCheck = err => err !== undefined && noHostsAvailable.is(err)
 
 export const restartHosts = (hosts, force = false) => {
   const nHosts = size(hosts)

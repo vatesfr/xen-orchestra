@@ -76,7 +76,7 @@ const downloadLogs = async uuid => {
 const forceReboot = host => restartHost(host, true)
 
 const smartReboot = ALLOW_SMART_REBOOT
-  ? host => restartHost(host, false, true) // don't force, suspend resident VMs
+  ? host => restartHost(host, false, true, false, false) // don't force, suspend resident VMs, don't bypass blocked suspend, don't bypass current VM check
   : () => {}
 
 const formatPack = ({ name, author, description, version }, key) => (
