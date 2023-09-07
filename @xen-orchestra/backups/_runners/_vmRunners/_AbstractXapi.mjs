@@ -256,7 +256,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
 
       if (this._writers.size !== 0) {
-        await this._copy()
+        const { pool_migrate = null, migrate_send = null } = this._exportedVm.blocked_operations
+
+        const reason = 'VM migration is blocked during backup'
+        await this._exportedVm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
+        try {
+          await this._copy()
+        } finally {
+          await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
+        }
       }
     } finally {
       if (startAfter) {

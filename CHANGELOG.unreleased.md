@@ -9,6 +9,7 @@
 
 - [Host/Advanced] Display system disks health based on the _smartctl_ plugin. [#4458](https://github.com/vatesfr/xen-orchestra/issues/4458) (PR [#7060](https://github.com/vatesfr/xen-orchestra/pull/7060))
 - [Authentication] Failed attempts are now logged as XO tasks (PR [#7061](https://github.com/vatesfr/xen-orchestra/pull/7061))
+- [Backup] Prevent VMs from being migrated while they are backed up (PR [#7024](https://github.com/vatesfr/xen-orchestra/pull/7024))
 
 ### Bug fixes
 
@@ -34,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - vhd-lib patch
