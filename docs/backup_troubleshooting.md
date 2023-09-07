@@ -14,7 +14,7 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 _Incremental Backup_ and _Incremental Replication_ usually produce delta exports after the initial seed.
 
-Nevertheless, there may be some reasons for XO to trigger a key export instead:
+Nevertheless, there may be some reasons for XO to trigger a key (full) export instead:
 
 - the configured [_Full backup interval_](https://xen-orchestra.com/docs/incremental_backups.html#key-backup-interval) advanced setting has been reached for this VM
 - the _Force full backup_ is enabled for the current schedule
