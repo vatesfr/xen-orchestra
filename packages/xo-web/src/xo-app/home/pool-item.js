@@ -128,6 +128,7 @@ export default class PoolItem extends Component {
     const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
     const { icon, supportLevel } = this._getPoolLicenseInfo()
+    const master = poolHosts[pool.master]
 
     return (
       <div className={styles.item}>
@@ -257,7 +258,8 @@ export default class PoolItem extends Component {
               <span>
                 {hostMetrics.count}x <Icon icon='host' /> {nVms}x <Icon icon='vm' /> {nSrs}x <Icon icon='sr' />{' '}
                 {hostMetrics.cpus}
-                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />
+                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />{' '}
+                {master.productBrand} v{master.version.slice(0, 3)}
               </span>
             </Col>
             <Col mediumSize={4} className={styles.itemExpanded}>
