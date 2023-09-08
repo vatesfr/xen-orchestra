@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Netbox] Don't delete VMs that have been created manually in XO-synced cluster (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
+- [Netbox] Don't delete VMs that have been created manually in XO-synced cluster [Forum#7639](https://xcp-ng.org/forum/topic/7639) (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
 
 ### Bug fixes
 
