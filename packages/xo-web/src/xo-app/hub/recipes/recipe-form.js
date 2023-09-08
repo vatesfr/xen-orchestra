@@ -313,7 +313,6 @@ export default decorate([
               name='search'
               onChange={effects.onChangeSearch}
               placeholder={formatMessage(messages.recipeSearchesExample)}
-              required
               type='text'
               value={value.search}
             />
