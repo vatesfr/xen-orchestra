@@ -1,8 +1,22 @@
 # ChangeLog
 
-## **5.86.0** (2023-08-31)
+## **5.86.1** (2023-09-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [User] _Forget all connection tokens_ button should not delete other users' tokens, even when current user is an administrator (PR [#7014](https://github.com/vatesfr/xen-orchestra/pull/7014))
+- [Settings/Servers] Fix connection to old XenServer hosts using XML-RPC protocol (broken in XO 5.85.0)
+
+### Released packages
+
+- xen-api 1.3.6
+- @xen-orchestra/proxy 0.26.33
+- xo-server 5.122.0
+- xo-web 5.124.1
+
+## **5.86.0** (2023-08-31)
 
 ### Highlights
 

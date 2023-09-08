@@ -7,13 +7,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Netbox] Don't delete VMs that have been created manually in XO-synced cluster [Forum#7639](https://xcp-ng.org/forum/topic/7639) (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [User] _Forget all connection tokens_ button should not delete other users' tokens, even when current user is an administrator (PR [#7014](https://github.com/vatesfr/xen-orchestra/pull/7014))
-- [Settings/Servers] Fix connection to old XenServer hosts using XML-RPC protocol (broken in XO 5.85.0)
-- [PIF] Remove empty parenthesis "()" when there's no extra info to show next to the PIF's name (PR [#7022](https://github.com/vatesfr/xen-orchestra/pull/7022))
 
 ### Packages to release
 
@@ -31,8 +29,6 @@
 
 <!--packages-start-->
 
-- xen-api patch
-- xo-server minor
-- xo-web patch
+- xo-server-netbox minor
 
 <!--packages-end-->

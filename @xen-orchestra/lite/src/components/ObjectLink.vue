@@ -31,7 +31,7 @@ type Config = Partial<
   Record<
     ObjectType,
     {
-      useStore: StoreDefinition;
+      useStore: StoreDefinition<any, any, any, any>;
       routeName: RouteRecordName | undefined;
     }
   >
@@ -66,8 +66,8 @@ onUnmounted(() => {
   store.value?.unsubscribe(subscriptionId);
 });
 
-const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(
-  () => store.value?.getByUuid(props.uuid as any)
+const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(() =>
+  store.value?.getByUuid(props.uuid as any)
 );
 
 const isReady = computed(() => {
