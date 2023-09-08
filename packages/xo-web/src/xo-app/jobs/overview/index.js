@@ -110,6 +110,7 @@ export default class Overview extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      jobs: {},
       schedules: [],
     }
   }
@@ -129,7 +130,7 @@ export default class Overview extends Component {
     const unsubscribeSchedules = subscribeSchedules(schedules => {
       // Get only backup jobs.
       schedules = filter(schedules, schedule => {
-        const job = this._getScheduleJob(schedule)
+        const job = this.state.jobs[schedule.jobId]
         return job && jobKeyToLabel[job.key]
       })
 
@@ -144,19 +145,15 @@ export default class Overview extends Component {
     }
   }
 
-  _getScheduleJob(schedule) {
-    const { jobs } = this.state || {}
-    return jobs[schedule.jobId]
-  }
-
   _getIsScheduleUserMissing = createSelector(
     () => this.state.schedules,
     () => this.props.users,
-    (schedules, users) => {
+    () => this.state.jobs,
+    (schedules, users, jobs) => {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !find(users, user => user.id === this._getScheduleJob(schedule).userId)
+        isScheduleUserMissing[schedule.id] = !find(users, user => user.id === jobs[schedule.jobId].userId)
       })
 
       return isScheduleUserMissing
@@ -197,7 +194,7 @@ export default class Overview extends Component {
               collection={schedules}
               columns={SCHEDULES_COLUMNS}
               data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
-              data-jobs={this.state.jobs || {}}
+              data-jobs={this.state.jobs}
               individualActions={this._individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
