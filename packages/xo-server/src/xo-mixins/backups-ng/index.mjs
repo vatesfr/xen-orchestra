@@ -496,6 +496,7 @@ export default class BackupNg {
                 this._runningRestores.add(id)
                 rootTaskId = id
               },
+              rootTaskId,
             })
           }
         } catch (error) {
