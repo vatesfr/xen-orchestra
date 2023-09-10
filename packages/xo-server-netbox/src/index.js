@@ -261,11 +261,6 @@ class Netbox {
     )
     const nbClusters = pick(allNbClusters, xoPools)
 
-    if (allNbClusters[undefined] !== undefined) {
-      // Show a warning but never delete clusters automatically
-      log.warn('Found some clusters with missing UUID custom field', allNbClusters[undefined])
-    }
-
     const clustersToCreate = []
     const clustersToUpdate = []
     for (const xoPoolId of xoPools) {
@@ -418,9 +413,12 @@ class Netbox {
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
     const nbVms = keyBy(nbVmsList, 'custom_fields.uuid')
 
-    const usedNames = [] // Used for name deduplication
+    // Used for name deduplication
+    // Start by storing the names of the VMs that have been created manually in
+    // Netbox as we'll need to avoid name conflicts with those too
+    const usedNames = nbVmsList.filter(nbVm => nbVm.custom_fields.uuid == null).map(nbVm => nbVm.name)
     // Build the 3 collections of VMs and perform all the API calls at the end
-    const vmsToDelete = nbVmsList.filter(nbVm => nbVm.custom_fields.uuid == null).map(nbVm => ({ id: nbVm.id }))
+    const vmsToDelete = []
     const vmsToUpdate = []
     const vmsToCreate = []
     for (const xoPoolId of xoPools) {
@@ -532,7 +530,7 @@ class Netbox {
     // { ID → Interface }
     const nbIfs = keyBy(nbIfsList, 'custom_fields.uuid')
 
-    const ifsToDelete = nbIfsList.filter(nbIf => nbIf.custom_fields.uuid == null).map(nbIf => ({ id: nbIf.id }))
+    const ifsToDelete = []
     const ifsToUpdate = []
     const ifsToCreate = []
     for (const nbVm of Object.values(nbVms)) {
