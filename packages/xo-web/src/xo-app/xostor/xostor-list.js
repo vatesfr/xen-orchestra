@@ -6,7 +6,7 @@ import Tooltip from 'tooltip'
 import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { deleteSr } from 'xo'
-import { find, map } from 'lodash'
+import { map } from 'lodash'
 import { Pool } from 'render-xo-item'
 
 const COLUMNS = [
@@ -62,12 +62,13 @@ const XostorList = decorate([
   connectStore(() => ({
     xostorSrs: createSelector(
       createGetObjectsOfType('SR').filter([sr => sr.SR_type === 'linstor']),
-      createGetObjectsOfType('pool'),
-      (srs, pools) =>
-        map(srs, sr => ({
+      createGetObjectsOfType('pool').groupBy('id'),
+      (srs, poolByIds) => {
+        return map(srs, sr => ({
           ...sr,
-          pool: find(pools, { id: sr.$pool }),
+          pool: poolByIds[sr.$pool][0],
         }))
+      }
     ),
   })),
   ({ xostorSrs }) => (
