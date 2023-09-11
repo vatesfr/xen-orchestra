@@ -326,13 +326,13 @@ export default class HostItem extends Component {
         </BlockLink>
         {(this.state.expanded || expandAll) && (
           <Row>
-            <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
+            <Col mediumSize={3} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
               <span>
-                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
-                {host.productBrand} v{host.version.slice(0, 3)}
+                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />
+                <Icon icon='host' className='ml-1' /> {host.productBrand} {host.version}
               </span>
             </Col>
-            <Col mediumSize={4}>
+            <Col mediumSize={3}>
               <span style={{ fontSize: '1.4em' }}>
                 <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
