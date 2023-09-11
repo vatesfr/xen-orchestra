@@ -328,8 +328,8 @@ export default class HostItem extends Component {
           <Row>
             <Col mediumSize={3} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
               <span>
-                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />
-                <Icon icon='host' className='ml-1' /> {host.productBrand} {host.version}
+                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
+                &nbsp; {host.productBrand} {host.version} <Icon icon='host' />
               </span>
             </Col>
             <Col mediumSize={3}>
