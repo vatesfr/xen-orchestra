@@ -16,10 +16,10 @@
           required
         />
       </FormInputWrapper>
-      <label class="remeber-me-label">
+      <label class="remember-me-label">
         <FormCheckbox
-          @update:model-value="onChangeRemeberMe"
-          :model-value="remeberMe"
+          @update:model-value="onChangeRememberMe"
+          :model-value="rememberMe"
         />
         <p>{{ $t("keep-me-logged") }}</p>
       </label>
@@ -52,13 +52,13 @@ const password = ref("");
 const error = ref<string>();
 const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
-const remeberMe = useLocalStorage("remeberMe", false);
+const rememberMe = useLocalStorage("rememberMe", false);
 
 const focusPasswordInput = () => passwordRef.value?.focus();
-const onChangeRemeberMe = (value: boolean) => (remeberMe.value = value);
+const onChangeRememberMe = (value: boolean) => (rememberMe.value = value);
 
 onMounted(() => {
-  if (remeberMe.value) {
+  if (rememberMe.value) {
     xenApiStore.reconnect();
   } else {
     focusPasswordInput();
@@ -87,7 +87,7 @@ async function handleSubmit() {
 </script>
 
 <style lang="postcss" scoped>
-.remeber-me-label {
+.remember-me-label {
   cursor: pointer;
   width: fit-content;
   & .form-checkbox {
