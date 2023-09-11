@@ -258,7 +258,7 @@ export default class PoolItem extends Component {
               <span>
                 {hostMetrics.count}x <Icon icon='host' /> {nVms}x <Icon icon='vm' /> {nSrs}x <Icon icon='sr' />{' '}
                 {hostMetrics.cpus}
-                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />{' '}
+                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />
               </span>
             </Col>
             <Col mediumSize={4} className={styles.itemExpanded}>
