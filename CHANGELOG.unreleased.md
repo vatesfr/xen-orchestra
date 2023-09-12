@@ -14,7 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] Fix `Cannot read properties of undefined (reading 'id')` error when restoring via an XO Proxy (PR [#7026](https://github.com/vatesfr/xen-orchestra/pull/7026))
-- [Google Auth] Fix `Internal Server Error` (xo-server: `Cannot read properties of undefined (reading 'id')`) when logging in with Google [Forum#7729](https://xcp-ng.org/forum/topic/7729) (PR [#7031](https://github.com/vatesfr/xen-orchestra/pull/7031))
+- [Google/GitHub Auth] Fix `Internal Server Error` (xo-server: `Cannot read properties of undefined (reading 'id')`) when logging in with Google or GitHub [Forum#7729](https://xcp-ng.org/forum/topic/7729) (PR [#7031](https://github.com/vatesfr/xen-orchestra/pull/7031))
 
 ### Packages to release
 
@@ -33,6 +33,7 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-server-auth-github patch
 - xo-server-auth-google patch
 - xo-server-netbox minor
 
