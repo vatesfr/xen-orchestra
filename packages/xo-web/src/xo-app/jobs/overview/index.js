@@ -12,7 +12,7 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach, keyBy } from 'lodash'
+import { filter, forEach, keyBy } from 'lodash'
 import {
   deleteSchedule,
   deleteSchedules,
@@ -102,7 +102,7 @@ const ACTIONS = [
 @addSubscriptions({
   jobs: [cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))), {}],
   schedules: [subscribeSchedules, []],
-  users: [subscribeUsers, []],
+  userIds: [cb => subscribeUsers(users => cb(new Set(users.map(_ => _.id)))), new Set()],
 })
 export default class Overview extends Component {
   static contextTypes = {
@@ -123,13 +123,13 @@ export default class Overview extends Component {
 
   _getIsScheduleUserMissing = createSelector(
     this._getGenericSchedules,
-    () => this.props.users,
+    () => this.props.userIds,
     () => this.props.jobs,
-    (schedules, users, jobs) => {
+    (schedules, userIds, jobs) => {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !find(users, user => user.id === jobs[schedule.jobId].userId)
+        isScheduleUserMissing[schedule.id] = !userIds.has(jobs[schedule.jobId].userId)
       })
 
       return isScheduleUserMissing
