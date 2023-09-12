@@ -128,12 +128,6 @@ export default class Overview extends Component {
     })
 
     const unsubscribeSchedules = subscribeSchedules(schedules => {
-      // Get only generic jobs
-      schedules = filter(schedules, schedule => {
-        const job = this.state.jobs[schedule.jobId]
-        return job !== undefined && job.key in jobKeyToLabel
-      })
-
       this.setState({ schedules })
     })
 
@@ -143,8 +137,20 @@ export default class Overview extends Component {
     }
   }
 
-  _getIsScheduleUserMissing = createSelector(
+  _getGenericSchedules = createSelector(
     () => this.state.schedules,
+    () => this.state.jobs,
+
+    // Get only generic jobs
+    (schedules, jobs) =>
+      filter(schedules, schedule => {
+        const job = jobs[schedule.jobId]
+        return job !== undefined && job.key in jobKeyToLabel
+      })
+  )
+
+  _getIsScheduleUserMissing = createSelector(
+    this._getGenericSchedules,
     () => this.props.users,
     () => this.state.jobs,
     (schedules, users, jobs) => {
@@ -178,8 +184,6 @@ export default class Overview extends Component {
   ]
 
   render() {
-    const { schedules } = this.state
-
     return process.env.XOA_PLAN > 3 ? (
       <Container>
         <Card>
@@ -189,7 +193,7 @@ export default class Overview extends Component {
           <CardBlock>
             <SortedTable
               actions={ACTIONS}
-              collection={schedules}
+              collection={this._getGenericSchedules()}
               columns={SCHEDULES_COLUMNS}
               data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
               data-jobs={this.state.jobs}
