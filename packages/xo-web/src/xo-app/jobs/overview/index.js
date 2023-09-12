@@ -128,7 +128,7 @@ export default class Overview extends Component {
     })
 
     const unsubscribeSchedules = subscribeSchedules(schedules => {
-      // Get only backup jobs.
+      // Get only generic jobs
       schedules = filter(schedules, schedule => {
         const job = this.state.jobs[schedule.jobId]
         return job && jobKeyToLabel[job.key]
