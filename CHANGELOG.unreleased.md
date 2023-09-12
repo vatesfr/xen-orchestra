@@ -36,5 +36,6 @@
 - xo-server-auth-github patch
 - xo-server-auth-google patch
 - xo-server-netbox minor
+- xo-web patch
 
 <!--packages-end-->
