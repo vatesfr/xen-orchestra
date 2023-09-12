@@ -2467,7 +2467,7 @@ const messages = {
   poolAlreadyHasXostor: 'Pool already has a XOSTOR',
   replication: 'Replication',
   selectDisks: 'Select disk(s)…',
-  selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}',
+  selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   storage: 'Storage',
   summary: 'Summary',
   wrongNumberOfHosts: 'Wrong number of hosts',
