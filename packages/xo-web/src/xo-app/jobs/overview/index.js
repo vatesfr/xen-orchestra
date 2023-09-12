@@ -131,7 +131,7 @@ export default class Overview extends Component {
       // Get only generic jobs
       schedules = filter(schedules, schedule => {
         const job = this.state.jobs[schedule.jobId]
-        return job && jobKeyToLabel[job.key]
+        return job !== undefined && job.key in jobKeyToLabel
       })
 
       this.setState({
