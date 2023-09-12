@@ -16,6 +16,7 @@ import {
   incorrectState,
   noHostsAvailable,
   operationBlocked,
+  operationFailed,
   vmLacksFeature,
 } from 'xo-common/api-errors'
 
@@ -3369,6 +3370,25 @@ export const updateXosanPacks = pool =>
 
     return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
   })
+
+// XOSTOR   --------------------------------------------------------------------
+
+export const createXostorSr = (xostorParams, opts = {}) => {
+  const params = { ...xostorParams, ...opts }
+  return _call('xostor.create', params).catch(async error => {
+    if (operationFailed.is(error, { code: 'VG_GROUP_ALREADY_EXIST' })) {
+      await confirm({
+        title: _('xostor'),
+        body: _('xostorFailedVgAlreadyExist'),
+        icon: 'error',
+      })
+
+      params.force = true
+      return _call('xostor.create', params)
+    }
+    throw error
+  })
+}
 
 // Licenses --------------------------------------------------------------------
 
