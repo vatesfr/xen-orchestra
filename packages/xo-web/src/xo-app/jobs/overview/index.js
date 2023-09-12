@@ -12,7 +12,7 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach } from 'lodash'
+import { filter, find, forEach, keyBy } from 'lodash'
 import {
   deleteSchedule,
   deleteSchedules,
@@ -100,46 +100,18 @@ const ACTIONS = [
 // ===================================================================
 
 @addSubscriptions({
-  users: subscribeUsers,
+  jobs: [cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))), {}],
+  schedules: [subscribeSchedules, []],
+  users: [subscribeUsers, []],
 })
 export default class Overview extends Component {
   static contextTypes = {
     router: PropTypes.object,
   }
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      jobs: {},
-      schedules: [],
-    }
-  }
-
-  componentWillMount() {
-    const unsubscribeJobs = subscribeJobs(jobs => {
-      const obj = {}
-      forEach(jobs, job => {
-        obj[job.id] = job
-      })
-
-      this.setState({
-        jobs: obj,
-      })
-    })
-
-    const unsubscribeSchedules = subscribeSchedules(schedules => {
-      this.setState({ schedules })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeJobs()
-      unsubscribeSchedules()
-    }
-  }
-
   _getGenericSchedules = createSelector(
-    () => this.state.schedules,
-    () => this.state.jobs,
+    () => this.props.schedules,
+    () => this.props.jobs,
 
     // Get only generic jobs
     (schedules, jobs) =>
@@ -152,7 +124,7 @@ export default class Overview extends Component {
   _getIsScheduleUserMissing = createSelector(
     this._getGenericSchedules,
     () => this.props.users,
-    () => this.state.jobs,
+    () => this.props.jobs,
     (schedules, users, jobs) => {
       const isScheduleUserMissing = {}
 
@@ -196,7 +168,7 @@ export default class Overview extends Component {
               collection={this._getGenericSchedules()}
               columns={SCHEDULES_COLUMNS}
               data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
-              data-jobs={this.state.jobs}
+              data-jobs={this.props.jobs}
               individualActions={this._individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
