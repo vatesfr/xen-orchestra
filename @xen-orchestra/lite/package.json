@@ -5,8 +5,10 @@
     "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
-    "build-only": "GIT_HEAD=$(git rev-parse HEAD) vite build",
-    "deploy": "./scripts/deploy.sh",
+    "release": "zx ./scripts/release.mjs",
+    "build-only": "yarn release --build",
+    "deploy": "yarn release --build --deploy",
+    "gh-release": "yarn release --build --tarball --gh-release",
     "test": "yarn run type-check",
     "type-check": "vue-tsc --noEmit"
   },
@@ -59,7 +61,8 @@
     "postcss-nested": "^6.0.0",
     "typescript": "^4.9.3",
     "vite": "^4.3.8",
-    "vue-tsc": "^1.6.5"
+    "vue-tsc": "^1.6.5",
+    "zx": "^7.2.3"
   },
   "private": true,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/lite",

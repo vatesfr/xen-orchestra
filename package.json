@@ -79,7 +79,7 @@
       "prettier --ignore-unknown --write"
     ],
     "*.{{{,c,m}j,t}s{,x},vue}": [
-      "eslint --ignore-pattern '!*'",
+      "eslint",
       "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
     ],
     "./CHANGELOG.unreleased.md": "sh -c scripts/gen-deps-list.js --"
