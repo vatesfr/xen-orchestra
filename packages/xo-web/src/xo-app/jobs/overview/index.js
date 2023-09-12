@@ -12,7 +12,7 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach, orderBy } from 'lodash'
+import { filter, find, forEach } from 'lodash'
 import {
   deleteSchedule,
   deleteSchedules,
@@ -134,9 +134,7 @@ export default class Overview extends Component {
         return job !== undefined && job.key in jobKeyToLabel
       })
 
-      this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], ['desc']),
-      })
+      this.setState({ schedules })
     })
 
     this.componentWillUnmount = () => {
