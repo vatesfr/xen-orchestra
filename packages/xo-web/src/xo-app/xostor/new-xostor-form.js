@@ -496,13 +496,14 @@ const NewXostorForm = decorate([
       async createXostorSr() {
         const { disksByHost, srDescription, srName, provisioning, replication } = this.state
 
+        const _disksByHost = { ...disksByHost }
         for (const [hostId, disks] of Object.entries(disksByHost)) {
-          disksByHost[hostId] = disks.map(disk => formatDiskName(disk.name))
+          _disksByHost[hostId] = disks.map(disk => formatDiskName(disk.name))
         }
 
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
-          disksByHost,
+          disksByHost: _disksByHost,
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
@@ -560,7 +561,7 @@ const NewXostorForm = decorate([
         <Row>
           <ActionButton
             btnStyle='primary'
-            disabled={false}
+            disabled={state.isFormInvalid}
             handler={effects.createXostorSr}
             icon='add'
             redirectOnSuccess={getSrPath}
