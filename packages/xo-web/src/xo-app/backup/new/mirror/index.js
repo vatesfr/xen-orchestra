@@ -433,7 +433,7 @@ const NewMirrorBackup = decorate([
                     icon='save'
                     size='large'
                   >
-                    {_('formEdit')}
+                    {_('formSave')}
                   </ActionButton>
                 ) : (
                   <ActionButton
