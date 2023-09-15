@@ -15,7 +15,7 @@ export type SubscriberOptions = {
 export const useSubscriber = ({
   onSubscriptionStart,
   onSubscriptionEnd,
-  enabled,
+  enabled = true,
   dependencies,
 }: SubscriberOptions = {}) => {
   const subscribers = ref(new Set<symbol>());
