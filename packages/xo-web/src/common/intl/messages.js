@@ -2489,6 +2489,7 @@ const messages = {
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
   networks: 'Networks',
   notXcpPool: 'Not an XCP-ng pool',
+  noXostorFound: 'No XOSTOR found',
   numberOfHosts: 'Number of hosts',
   objectDoesNotMeetXostorRequirements: '{object} does not meet XOSTOR requirements. Refer to the documentation.',
   onlyShowXostorRequirements: 'Only show {type} that meet XOSTOR requirements',
