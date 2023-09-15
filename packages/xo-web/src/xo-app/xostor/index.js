@@ -7,6 +7,8 @@ import { injectState, provideState } from 'reaclette'
 import { Container, Col, Row } from 'grid'
 
 import NewXostorForm from './new-xostor-form'
+import XostorList from './xostor-list'
+
 import Page from '../page'
 
 const HEADER = (
@@ -29,6 +31,7 @@ const Xostor = decorate([
   injectState,
   ({ effects, state }) => (
     <Page header={HEADER}>
+      <XostorList />
       <Row className='mb-1'>
         <Col>
           <ActionButton
