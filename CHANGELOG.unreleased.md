@@ -9,6 +9,7 @@
 
 - [Netbox] Don't delete VMs that have been created manually in XO-synced cluster [Forum#7639](https://xcp-ng.org/forum/topic/7639) (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
 - [Kubernetes] *Search domains* field is now optional [#7028](https://github.com/vatesfr/xen-orchestra/pull/7028)
+- [Patches] Support new XenServer Updates system. See https://xen-orchestra.com/docs/updater.html#xenserver-updates. (PR [#7044](https://github.com/vatesfr/xen-orchestra/pull/7044))
 
 ### Bug fixes
 
@@ -39,10 +40,10 @@
 
 - @xen-orchestra/backups patch
 - vhd-lib minor
-- xo-server patch
+- xo-server minor
 - xo-server-auth-github patch
 - xo-server-auth-google patch
 - xo-server-netbox minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

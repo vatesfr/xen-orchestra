@@ -37,6 +37,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  configured: 'Configured',
   notConfigured: 'Not configured',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
@@ -132,6 +133,7 @@ const messages = {
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
   xcpNg: 'XCP-ng',
+  noFileSelected: 'No file selected',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -248,6 +250,14 @@ const messages = {
 
   // ----- User Profile -----
   editUserProfile: 'Edit my settings {username}',
+  xsClientId: 'XenServer Client ID',
+  uploadClientId: 'Upload Client ID file',
+  forgetClientId: 'Forget Client ID',
+  forgetXsCredentialsConfirm: 'Are you sure you want to forget your XenServer Client ID?',
+  forgetXsCredentialsError: 'Could not forget Client ID',
+  forgetXsCredentialsSuccess: 'Client ID forgotten',
+  setXsCredentialsError: 'Could not upload Client ID',
+  setXsCredentialsSuccess: 'Client ID uploaded',
 
   // ----- Home view ------
   allVms: 'All VMs',
@@ -1101,6 +1111,9 @@ const messages = {
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
   highAvailabilityNotDisabledTooltip: 'High Availability must be disabled',
+  xsCredentialsMissing:
+    'In order to install XenServer updates, you first need to configure your XenServer Client ID. See {link}.',
+  xsCredentialsMissingShort: 'Missing XenServer Client ID',
 
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
