@@ -5,6 +5,14 @@ import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 
+const unboxIdsFromPattern = pattern => {
+  if (pattern === undefined) {
+    return []
+  }
+  const { id } = pattern
+  return typeof id === 'string' ? [id] : id.__or
+}
+
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   constructor({
     config,
@@ -34,7 +42,8 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._writers = writers
 
     const RemoteWriter = this._getRemoteWriter()
-    Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
+    unboxIdsFromPattern(job.remotes).forEach(remoteId => {
+      const adapter = remoteAdapters[remoteId]
       const targetSettings = {
         ...settings,
         ...allSettings[remoteId],

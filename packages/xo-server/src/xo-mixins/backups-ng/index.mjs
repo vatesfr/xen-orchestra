@@ -249,23 +249,29 @@ export default class BackupNg {
             }),
           ])
 
-          // Fails the job if all remotes are disabled
+          // update remotes list with only the enabled remotes
+          // only keep the destination remote in case of a mirror backup
+          job.remotes = {
+            id: {
+              __or: Object.keys(remotes).filter(remoteId => remoteId !== job.sourceRemote),
+            },
+          }
+
+          // Fails the job if all the target remotes are disabled
           //
           // TODO: integrate each failure in its own tasks and still proceed
           // with other tasks like rolling snapshot and replication.
-          if (remoteIds.length > 0 && Object.keys(remotes).length === 0) {
+          if (remoteIds.length > 0 && Object.keys(job.remotes).length === 0) {
             const error = new Error(`couldn't instantiate any remote`)
             error.errors = remoteErrors
             throw error
           }
 
-          // update remotes list with only the enabled remotes
-          job.remotes = {
-            id: {
-              __or: Object.keys(remotes),
-            },
+          if (job.sourceRemote !== undefined && remotes[job.sourceRemote] === undefined) {
+            const error = new Error(`couldn't instantiate source remote`)
+            error.errors = remoteErrors
+            throw error
           }
-
           const params = {
             job,
             recordToXapi,
