@@ -6,6 +6,9 @@ const { VhdFile } = require('./Vhd/VhdFile.js')
 
 exports.openVhd = async function openVhd(handler, path, opts) {
   const resolved = await resolveVhdAlias(handler, path)
+  if (handler.isEncrypted) {
+    return await VhdDirectory.open(handler, resolved, opts)
+  }
   try {
     return await VhdFile.open(handler, resolved, opts)
   } catch (e) {
