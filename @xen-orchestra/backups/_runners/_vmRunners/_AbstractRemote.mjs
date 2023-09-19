@@ -4,14 +4,7 @@ import { Disposable } from 'promise-toolbox'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
-
-const unboxIdsFromPattern = pattern => {
-  if (pattern === undefined) {
-    return []
-  }
-  const { id } = pattern
-  return typeof id === 'string' ? [id] : id.__or
-}
+import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   constructor({
@@ -42,7 +35,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._writers = writers
 
     const RemoteWriter = this._getRemoteWriter()
-    unboxIdsFromPattern(job.remotes).forEach(remoteId => {
+    extractIdsFromSimplePattern(job.remotes).forEach(remoteId => {
       const adapter = remoteAdapters[remoteId]
       const targetSettings = {
         ...settings,
