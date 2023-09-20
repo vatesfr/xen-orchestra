@@ -22,7 +22,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDuration } from '@vates/parse-duration'
-import { PassThrough } from 'stream'
+import { PassThrough, pipeline } from 'stream'
 import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
 import { extractOpaqueRef, parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
@@ -743,9 +743,11 @@ export default class Xapi extends XapiBase {
           stream.resume()
           return
         }
+        const nodeStream = new PassThrough()
+        pipeline(stream, nodeStream, () => {})
         const table = tables[entry.name]
         const vhdStream = await vmdkToVhd(
-          stream,
+          nodeStream, // tar-stream stream are not node stream
           table.grainLogicalAddressList,
           table.grainFileOffsetList,
           compression[entry.name] === 'gzip',
