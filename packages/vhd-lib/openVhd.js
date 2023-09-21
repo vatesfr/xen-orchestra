@@ -6,15 +6,15 @@ const { VhdFile } = require('./Vhd/VhdFile.js')
 
 exports.openVhd = async function openVhd(handler, path, opts) {
   const resolved = await resolveVhdAlias(handler, path)
-  if (handler.isEncrypted) {
-    return await VhdDirectory.open(handler, resolved, opts)
-  }
-  try {
-    return await VhdFile.open(handler, resolved, opts)
-  } catch (e) {
-    if (e.code !== 'EISDIR') {
-      throw e
+  if (!handler.isEncrypted) {
+    try {
+      return await VhdFile.open(handler, resolved, opts)
+    } catch (e) {
+      if (e.code !== 'EISDIR') {
+        throw e
+      }
     }
-    return await VhdDirectory.open(handler, resolved, opts)
   }
+  // vhd file can't be encrypted, since we can't modify part of a file during merge
+  return await VhdDirectory.open(handler, resolved, opts)
 }
