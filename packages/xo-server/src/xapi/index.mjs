@@ -1328,7 +1328,10 @@ export default class Xapi extends XapiBase {
         )
       ),
     ])
-    buffer = addMbr(buffer)
+    // only add the MBR for windows VM
+    if (vm.platform?.virdian === true) {
+      buffer = addMbr(buffer)
+    }
     const vdi = await this._getOrWaitObject(
       await this.VDI_create({
         name_label: 'XO CloudConfigDrive',
