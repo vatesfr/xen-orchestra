@@ -148,10 +148,7 @@ export default class BackupNg {
 
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
-        const remoteIds = unboxIdsFromPattern(job.remotes)
-        if (job.sourceRemote !== undefined) {
-          remoteIds.push(job.sourceRemote)
-        }
+        const targetRemoteIds = unboxIdsFromPattern(job.remotes)
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
@@ -207,7 +204,11 @@ export default class BackupNg {
           const xapis = {}
           const remoteErrors = {}
           await waitAll([
-            asyncMapSettled(remoteIds, async id => {
+            asyncMapSettled([...targetRemoteIds, job.sourceRemote], async id => {
+              if (id === undefined) {
+                // job.sourceRemote is only defined in mirror backups
+                return
+              }
               let remote
               try {
                 remote = await app.getRemoteWithCredentials(id)
@@ -249,20 +250,29 @@ export default class BackupNg {
             }),
           ])
 
-          // Fails the job if all remotes are disabled
+          // update remotes list with only the enabled remotes
+          // only keep the destination remote in case of a mirror backup
+          const enabledTargetRemotes = Object.keys(remotes).filter(remoteId => remoteId !== job.sourceRemote)
+
+          // Fails the job if all the target remotes are disabled
           //
           // TODO: integrate each failure in its own tasks and still proceed
           // with other tasks like rolling snapshot and replication.
-          if (remoteIds.length > 0 && Object.keys(remotes).length === 0) {
+          if (targetRemoteIds.length > 0 && enabledTargetRemotes.length === 0) {
             const error = new Error(`couldn't instantiate any remote`)
             error.errors = remoteErrors
             throw error
           }
 
-          // update remotes list with only the enabled remotes
+          if (job.sourceRemote !== undefined && remotes[job.sourceRemote] === undefined) {
+            const error = new Error(`couldn't instantiate source remote`)
+            error.errors = remoteErrors
+            throw error
+          }
+
           job.remotes = {
             id: {
-              __or: Object.keys(remotes),
+              __or: enabledTargetRemotes,
             },
           }
 
@@ -332,7 +342,7 @@ export default class BackupNg {
             )
           }
         } finally {
-          remoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
+          targetRemoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
         }
       }
       app.registerJobExecutor('backup', executor)
