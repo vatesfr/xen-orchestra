@@ -19,6 +19,7 @@
 - [OVA Export] Fix support of disks with more than 8.2GiB of content (PR [#7047](https://github.com/vatesfr/xen-orchestra/pull/7047))
 - [Backup] Fix `VHDFile implementation is not compatible with encrypted remote` when using VHD directory with encryption (PR [#7045](https://github.com/vatesfr/xen-orchestra/pull/7045))
 - [Backup/Mirror] Fix `xo:fs:local WARN lock compromised` when mirroring a Backup Repository to a local/NFS/SMB repository ([#7043](https://github.com/vatesfr/xen-orchestra/pull/7043))
+- [Ova import] Fix importing VM with collision in disk position (PR [#7051](https://github.com/vatesfr/xen-orchestra/pull/7051)) (issue [7046](https://github.com/vatesfr/xen-orchestra/issues/7046))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 
 - @xen-orchestra/backups patch
 - vhd-lib minor
+- xo-vmdk-to-vhd patch
 - xo-server patch
 - xo-server-auth-github patch
 - xo-server-auth-google patch
