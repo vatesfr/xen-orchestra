@@ -83,9 +83,6 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   }
 
   static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
-    if (handler.isEncrypted) {
-      throw new Error(`VHDFile implementation is not compatible with encrypted remote`)
-    }
     const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
@@ -93,7 +90,13 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed file immediatly
-    await vhd.readHeaderAndFooter(checkSecondFooter)
+    try {
+      // can throw if handler is encrypted or remote is broken
+      await vhd.readHeaderAndFooter(checkSecondFooter)
+    } catch (err) {
+      await handler.closeFile(fd)
+      throw err
+    }
     return {
       dispose: () => handler.closeFile(fd),
       value: vhd,
