@@ -62,6 +62,10 @@ const SCHED_GRAN_TYPE_OPTIONS = [
   },
 ]
 
+const downloadLogs = uuid => {
+  window.open(`./rest/v0/hosts/${uuid}/logs.tar`)
+}
+
 const forceReboot = host => restartHost(host, true)
 
 const smartReboot = ALLOW_SMART_REBOOT
@@ -259,6 +263,13 @@ export default class extends Component {
             ) : (
               telemetryButton
             )}
+            <TabButton
+              btnStyle='warning'
+              handler={downloadLogs}
+              handlerParam={host.uuid}
+              icon='logs'
+              labelId='hostDownloadLogs'
+            />
             {host.power_state === 'Running' && [
               <TabButton
                 key='smart-reboot'

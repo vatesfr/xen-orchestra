@@ -987,6 +987,7 @@ const messages = {
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
   hyperThreadingNotAvailable: 'HT detection is only available on XCP-ng 7.6 and higher',
+  hostDownloadLogs: 'Download system logs',
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
