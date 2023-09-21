@@ -249,7 +249,7 @@ class BackupReportsXoPlugin {
       }),
     ])
 
-    if (job.type === 'backup') {
+    if (job.type === 'backup' || job.type === 'mirrorBackup') {
       return this._ngVmHandler(log, job, schedule, force)
     } else if (job.type === 'metadataBackup') {
       return this._metadataHandler(log, job, schedule, force)
