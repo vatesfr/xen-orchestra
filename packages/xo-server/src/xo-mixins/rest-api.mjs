@@ -1,4 +1,5 @@
 import { asyncEach } from '@vates/async-each'
+import { createGzip } from 'node:zlib'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
@@ -11,6 +12,25 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 const { join } = path.posix
 const noop = Function.prototype
+
+function compressMaybe(req, res) {
+  let transform
+
+  const acceptEncoding = req.headers['accept-encoding']
+  if (
+    acceptEncoding !== undefined &&
+    acceptEncoding.split(',').some(_ => _.split(';')[0].trim().toLocaleLowerCase() === 'gzip')
+  ) {
+    res.setHeader('content-encoding', 'gzip')
+    transform = createGzip()
+  }
+
+  if (transform !== undefined) {
+    pipeline(transform, res).catch(noop)
+    return transform
+  }
+  return res
+}
 
 async function* makeObjectsStream(iterable, makeResult, json) {
   // use Object.values() on non-iterable objects
@@ -159,6 +179,20 @@ export default class RestApi {
 
     collections.hosts.routes = {
       __proto__: null,
+
+      async 'audit.txt'(req, res) {
+        const host = req.xapiObject
+
+        res.setHeader('content-type', 'text/plain')
+        await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
+      },
+
+      async 'logs.tar'(req, res) {
+        const host = req.xapiObject
+
+        res.setHeader('content-type', 'application/x-tar')
+        await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
+      },
 
       async missing_patches(req, res) {
         await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
@@ -412,7 +446,7 @@ export default class RestApi {
       if (routes !== undefined) {
         result = { ...result }
         for (const route of Object.keys(routes)) {
-          result[route + '_href'] = join(req.baseUrl, req.path, route)
+          result[route.split('.')[0] + '_href'] = join(req.baseUrl, req.path, route)
         }
       }
 
