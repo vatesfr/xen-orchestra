@@ -132,7 +132,7 @@ const allocationUnitsToFactor = unit => {
 }
 
 const cleanDisks = disks => {
-  const usedPositions = []
+  const usedPositions = new Set()
   let nextPosition = Object.keys(disks).length
   for (const diskId in disks) {
     let position = disks[diskId].position
@@ -141,14 +141,14 @@ const cleanDisks = disks => {
       console.error(`No position specified for '${diskId}'.`)
       delete disks[diskId]
     } else {
-      if (usedPositions.includes(position)) {
+      if (usedPositions.has(position)) {
         console.warn(
           `There is at least two disks with position ${position}, we're changing the second one to ${nextPosition}`
         )
         disks[diskId].position = position = nextPosition
         nextPosition++
       }
-      usedPositions.push(position)
+      usedPositions.add(position)
     }
   }
 }
