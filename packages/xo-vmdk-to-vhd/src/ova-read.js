@@ -131,12 +131,24 @@ const allocationUnitsToFactor = unit => {
   return intValue != null ? Math.pow(2, intValue[1]) : MEMORY_UNIT_TO_FACTOR[unit.charAt(0).toLowerCase()]
 }
 
-const filterDisks = disks => {
+const cleanDisks = disks => {
+  const usedPositions = new Set()
+  let nextPosition = Object.keys(disks).length
   for (const diskId in disks) {
-    if (disks[diskId].position == null) {
+    let position = disks[diskId].position
+    if (position == null) {
       // TODO: Log error in U.I.
       console.error(`No position specified for '${diskId}'.`)
       delete disks[diskId]
+    } else {
+      if (usedPositions.has(position)) {
+        console.warn(
+          `There is at least two disks with position ${position}, we're changing the second one to ${nextPosition}`
+        )
+        disks[diskId].position = position = nextPosition
+        nextPosition++
+      }
+      usedPositions.add(position)
     }
   }
 }
@@ -202,7 +214,7 @@ export async function parseOVF(fileFragment, stringDeserializer) {
         forEach(ensureArray(hardware.EthernetPortItem), handleItem)
         // Remove disks which not have a position.
         // (i.e. no info in hardware.Item section.)
-        filterDisks(data.disks)
+        cleanDisks(data.disks)
         resolve(data)
       }
     )
