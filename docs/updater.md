@@ -128,7 +128,7 @@ If you can't fetch updates, perform a few checks from your XOA:
 
 ## XenServer Updates
 
-Starting September 2023 (XO ≥ 5.87), XenServer Updates require authentication:
+Starting September 2023, XenServer Updates require authentication:
 
 1. Make sure your XenServer hosts have [the proper licenses](https://docs.xenserver.com/en-us/citrix-hypervisor/overview-licensing.html)
 
