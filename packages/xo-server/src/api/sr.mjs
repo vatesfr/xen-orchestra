@@ -952,3 +952,15 @@ disableMaintenanceMode.permission = 'admin'
 disableMaintenanceMode.resolve = {
   sr: ['id', 'SR', 'operate'],
 }
+
+// -------------------------------------------------------------------
+
+export async function reclaimSpace({ sr }) {
+  await this.getXapiObject(sr).$reclaimSpace()
+}
+
+reclaimSpace.description = 'reclaim freed space on SR'
+
+reclaimSpace.resolve = {
+  sr: ['id', 'SR', 'operate'],
+}

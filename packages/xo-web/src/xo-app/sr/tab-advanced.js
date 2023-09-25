@@ -9,7 +9,7 @@ import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
-import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr, toggleSrMaintenanceMode } from 'xo'
+import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr, reclaimSrSpace, toggleSrMaintenanceMode } from 'xo'
 import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 // ===================================================================
@@ -58,7 +58,13 @@ export default ({ sr }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
+        <TabButton
+          btnStyle='primary'
+          handler={reclaimSrSpace}
+          handlerParam={sr}
+          icon='sr-reclaim-space'
+          labelId='srReclaimSpace'
+        />
         {sr.inMaintenanceMode ? (
           <TabButton
             btnStyle='warning'
@@ -76,6 +82,7 @@ export default ({ sr }) => (
             labelId='enableMaintenanceMode'
           />
         )}
+        <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
       </Col>
     </Row>
     <Row>

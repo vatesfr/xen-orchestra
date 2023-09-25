@@ -146,6 +146,20 @@ class Sr {
     }
   }
 
+  async reclaimSpace(srRef) {
+    const sr = await this.getRecord('SR', srRef)
+    const result = await this.call('host.call_plugin', this.pool.master, 'trim', 'do_trim', { sr_uuid: sr.uuid })
+
+    // Error example:
+    // <?xml version="1.0" ?><trim_response><key_value_pair><key>errcode</key><value>TrimException</value></key_value_pair><key_value_pair><key>errmsg</key><value>blkdiscard: /dev/VG_XenStorage-f5775872-b5e7-98e5-488a-7194efdaf8f6/f5775872-b5e7-98e5-488a-7194efdaf8f6_trim_lv: BLKDISCARD ioctl failed: Operation not supported</value></key_value_pair></trim_response>
+    const errMatch = result?.match(/<key>errcode<\/key><value>(.*?)<\/value>.*<key>errmsg<\/key><value>(.*?)<\/value>/)
+    if (errMatch) {
+      const error = new Error(errMatch[2])
+      error.code = errMatch[1]
+      throw error
+    }
+  }
+
   async importVdi(
     $defer,
     ref,
