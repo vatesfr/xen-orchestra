@@ -130,7 +130,7 @@ export async function create({ description, disksByHost, force, ignoreFileSystem
     const isForceRequired = error.errors.every(error => error.code === 'LVM_ERROR(5)')
 
     if (isForceRequired) {
-      throw operationFailed({ objectId: hostIds, code: 'VG_GROUP_ALREADY_EXIST' })
+      throw operationFailed({ objectId: hostIds, code: 'VG_GROUP_ALREADY_EXISTS' })
     }
 
     throw error

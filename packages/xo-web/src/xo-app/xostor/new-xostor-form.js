@@ -423,6 +423,7 @@ const SummaryCard = decorate([
               </Row>
               <Row>
                 <Col size={12}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
+                {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
                 {/* <Col size={6}>
                   {_('keyValue', { key: _('network'), value: <NetworkRenderItem id={state.networkId} /> })}
                 </Col> */}
@@ -526,14 +527,13 @@ const NewXostorForm = decorate([
       isFormInvalid: state =>
         state.isReplicationMissing || state.isProvisioningMissing || state.isNameMissing || state.isDisksMissing,
       isXcpngHost: state => isXcpngHost(first(state.poolHosts)),
+      getSrPath: state => () => `/srs/${state._createdSrUuid}`,
       // State ============
       networkId: state => (state._networkId === undefined ? state._defaultNetworkId : state._networkId),
     },
   }),
   injectState,
   ({ effects, resetState, state, hostsByPoolId, networks, pifs }) => {
-    const getSrPath = () => `/srs/${state._createdSrUuid}`
-
     return (
       <Container>
         <Row>
@@ -564,7 +564,7 @@ const NewXostorForm = decorate([
             disabled={state.isFormInvalid}
             handler={effects.createXostorSr}
             icon='add'
-            redirectOnSuccess={getSrPath}
+            redirectOnSuccess={state.getSrPath}
           >
             {_('create')}
           </ActionButton>
