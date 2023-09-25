@@ -262,7 +262,7 @@ export default class PoolItem extends Component {
               </span>
             </Col>
             <Col mediumSize={1} className={styles.itemExpanded}>
-              {master.productBrand} {master.version} <Icon icon='pool' />
+              {master.productBrand} {master.version}
             </Col>
             <Col mediumSize={5}>
               <span style={{ fontSize: '1.4em' }}>

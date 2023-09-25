@@ -332,7 +332,7 @@ export default class HostItem extends Component {
               </span>
             </Col>
             <Col mediumSize={1} className={styles.itemExpanded}>
-              {host.productBrand} {host.version} <Icon icon='host' />
+              {host.productBrand} {host.version}
             </Col>
             <Col mediumSize={3} className={styles.itemExpanded}>
               <span style={{ fontSize: '1.4em' }}>
