@@ -261,16 +261,18 @@ export default class PoolItem extends Component {
                 x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />
               </span>
             </Col>
-            <Col mediumSize={4} className={styles.itemExpanded}>
-              <span>
-                {_('homePoolMaster')}{' '}
-                <Link to={`/hosts/${pool.master}`}>{poolHosts && poolHosts[pool.master].name_label}</Link>{' '}
-                {master.productBrand} {master.version}
-              </span>
+            <Col mediumSize={1} className={styles.itemExpanded}>
+              {master.productBrand} {master.version} <Icon icon='pool' />
             </Col>
             <Col mediumSize={5}>
               <span style={{ fontSize: '1.4em' }}>
                 <HomeTags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              </span>
+            </Col>
+            <Col mediumSize={3} className={styles.itemExpanded}>
+              <span>
+                {_('homePoolMaster')}{' '}
+                <Link to={`/hosts/${pool.master}`}>{poolHosts && poolHosts[pool.master].name_label}</Link>
               </span>
             </Col>
           </SingleLineRow>
