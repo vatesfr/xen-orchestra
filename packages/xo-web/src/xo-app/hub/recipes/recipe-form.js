@@ -113,12 +113,11 @@ export default decorate([
         })
       },
       onChangeSearch(__, ev) {
-        const { value } = ev.target
+        const input = ev.target.value.trim()
         const { onChange, value: prevValue } = this.props
-        const searches = value.split(',').map(search => search.trim())
         onChange({
           ...prevValue,
-          searches,
+          searches: input.length === 0 ? undefined : input.split(',').map(search => search.trim()),
         })
       },
       toggleStaticIpAddress(__, ev) {
