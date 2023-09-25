@@ -8,8 +8,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Netbox] Don't delete VMs that have been created manually in XO-synced cluster [Forum#7639](https://xcp-ng.org/forum/topic/7639) (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
-- [Kubernetes] *Search domains* field is now optional [#7028](https://github.com/vatesfr/xen-orchestra/pull/7028)
-- [SR] Ability to reclaim space [#1204](https://github.com/vatesfr/xen-orchestra/issues/1204)
+- [Kubernetes] _Search domains_ field is now optional [#7028](https://github.com/vatesfr/xen-orchestra/pull/7028)
+- [SR] Ability to reclaim space [#1204](https://github.com/vatesfr/xen-orchestra/issues/1204) (PR [#7054](https://github.com/vatesfr/xen-orchestra/pull/7054))
 
 ### Bug fixes
 
