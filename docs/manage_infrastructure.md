@@ -654,7 +654,7 @@ List of the VMs with more than the recommended amount of snapshots (3). There is
 
 ### Duplicated MAC addresses
 
-Machines with the same MAC addresses on a network will result in unexpected behavior if they run simultaneously. 
+Machines with the same MAC addresses on a network will result in unexpected behavior if they run simultaneously.
 
 ### Guest Tools status
 

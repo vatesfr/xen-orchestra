@@ -6,7 +6,7 @@ import React from 'react'
 import omit from 'lodash/omit.js'
 
 const STYLE = {
-  marginBottom: 0
+  marginBottom: 0,
 }
 
 export default class SelectFiles extends Component {

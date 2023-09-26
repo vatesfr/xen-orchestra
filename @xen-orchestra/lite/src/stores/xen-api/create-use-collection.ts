@@ -38,7 +38,7 @@ type StoreToRefs<SS extends Store<any, any, any, any>> = ToRefs<
 
 type Output<
   S extends StoreDefinition<any, any, any, any>,
-  Defer extends boolean
+  Defer extends boolean,
 > = Omit<S, keyof StoreToRefs<S> | IgnoredProperties> &
   StoreToRefs<S> &
   (Defer extends true
@@ -54,7 +54,7 @@ export const createUseCollection = <
     infer A
   >
     ? Store<Id, S, G, A>
-    : never
+    : never,
 >(
   useStore: SD
 ) => {

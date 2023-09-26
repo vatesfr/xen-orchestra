@@ -6,7 +6,6 @@ ISC License may be found here: https://www.isc.org/licenses/
 The texts of the two licenses are inserted at the root of this repo.
 Below is the list of the various components and their corresponding licenses, AGPL or ISC.
 
-
 - @xen-orchestra/audit-core - AGPL-3.0-or-later
 - @xen-orchestra/babel-config - AGPL-3.0-or-later
 - @xen-orchestra/backups - AGPL-3.0-or-later
@@ -50,7 +49,6 @@ Below is the list of the various components and their corresponding licenses, AG
 - xo-server-web-hooks - AGPL-3.0-or-later
 - xo-vmdk-to-vhd - AGPL-3.0-or-later
 - xo-web - AGPL-3.0-or-later
-
 
 - @vates/async-each - ISC
 - @vates/cached-dns.lookup - ISC

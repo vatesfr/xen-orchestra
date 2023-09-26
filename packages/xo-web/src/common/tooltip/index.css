@@ -11,7 +11,10 @@
   padding: 8px 21px;
   pointer-events: none;
   position: fixed;
-  transition: opacity 0.3s ease-out, margin-top 0.3s ease-out, margin-left 0.3s ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    margin-top 0.3s ease-out,
+    margin-left 0.3s ease-out;
   z-index: 9999;
 }
 

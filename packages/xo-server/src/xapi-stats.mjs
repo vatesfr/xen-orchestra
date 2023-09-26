@@ -252,12 +252,15 @@ export default class XapiStats {
       })
 
     // clear cache when too old
-    setTimeout(() => {
-      // only if it has not been updated
-      if (this.#hostCache[hostUuid]?.[step]?.timestamp === timestamp) {
-        delete this.#hostCache[hostUuid][step]
-      }
-    }, (step + 1) * 1000)
+    setTimeout(
+      () => {
+        // only if it has not been updated
+        if (this.#hostCache[hostUuid]?.[step]?.timestamp === timestamp) {
+          delete this.#hostCache[hostUuid][step]
+        }
+      },
+      (step + 1) * 1000
+    )
 
     this.#hostCache[hostUuid][step] = {
       timestamp,

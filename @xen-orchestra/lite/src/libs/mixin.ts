@@ -12,12 +12,12 @@ export type MixinAbstractConstructor<T = unknown> = abstract new (
 
 export type MixinFunction<
   T extends MixinConstructor | MixinAbstractConstructor = MixinConstructor,
-  R extends T = T & MixinConstructor
+  R extends T = T & MixinConstructor,
 > = (Base: T) => R;
 
 export type MixinReturnValue<
   T extends MixinConstructor | MixinAbstractConstructor,
-  M extends MixinFunction<T, any>[]
+  M extends MixinFunction<T, any>[],
 > = UnionToIntersection<
   | T
   | {
@@ -27,7 +27,7 @@ export type MixinReturnValue<
 
 export default function mixin<
   T extends MixinConstructor | MixinAbstractConstructor,
-  M extends MixinFunction<T, any>[]
+  M extends MixinFunction<T, any>[],
 >(Base: T, ...mixins: M): MixinReturnValue<T, M> {
   return mixins.reduce(
     (mix, applyMixin) => applyMixin(mix),

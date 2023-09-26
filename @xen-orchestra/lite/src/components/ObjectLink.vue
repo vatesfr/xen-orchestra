@@ -66,8 +66,8 @@ onUnmounted(() => {
   store.value?.unsubscribe(subscriptionId);
 });
 
-const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(() =>
-  store.value?.getByUuid(props.uuid as any)
+const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(
+  () => store.value?.getByUuid(props.uuid as any)
 );
 
 const isReady = computed(() => {

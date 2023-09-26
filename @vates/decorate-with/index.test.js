@@ -13,12 +13,15 @@ describe('decorateWith', () => {
     const expectedFn = Function.prototype
     const newFn = () => {}
 
-    const decorator = decorateWith(function wrapper(fn, ...args) {
-      assert.deepStrictEqual(fn, expectedFn)
-      assert.deepStrictEqual(args, expectedArgs)
+    const decorator = decorateWith(
+      function wrapper(fn, ...args) {
+        assert.deepStrictEqual(fn, expectedFn)
+        assert.deepStrictEqual(args, expectedArgs)
 
-      return newFn
-    }, ...expectedArgs)
+        return newFn
+      },
+      ...expectedArgs
+    )
 
     const descriptor = {
       configurable: true,
