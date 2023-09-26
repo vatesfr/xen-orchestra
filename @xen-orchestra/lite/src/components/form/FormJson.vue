@@ -5,8 +5,6 @@
     closable
   >
     <FormModalLayout @submit.prevent="saveJson" :icon="faCode">
-      <template #title>Edit code</template>
-
       <template #default>
         <FormTextarea class="modal-textarea" v-model="editedJson" />
       </template>
