@@ -630,6 +630,10 @@
       @extend .fa;
       @extend .fa-share;
     }
+    &-reclaim-space {
+      @extend .fa;
+      @extend .fa-gavel;
+    }
   }
   // Host
   &-host {
