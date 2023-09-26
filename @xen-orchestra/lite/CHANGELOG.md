@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Ability to migrate selected VMs to another host (PR [#7040](https://github.com/vatesfr/xen-orchestra/pull/7040))
+
 ## **0.1.3** (2023-09-01)
 
 - Add Alarms to Pool Dashboard (PR [#6976](https://github.com/vatesfr/xen-orchestra/pull/6976))
