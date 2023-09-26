@@ -859,6 +859,9 @@ const messages = {
   srsForget: 'Forget SRs',
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
+  srReclaimSpace: 'Reclaim freed space',
+  srReclaimSpaceConfirm: 'Are you sure you want to reclaim freed space on this SR?',
+  srReclaimSpaceNotSupported: 'Space reclaim not supported. Only supported on block based/LVM based SRs.',
 
   // ----- SR disks tab -----
   multipleActiveVdis: '{firstVdi} and {nVdis} more',

@@ -2250,6 +2250,24 @@ export const toggleSrMaintenanceMode = sr => {
   })
 }
 
+export const reclaimSrSpace = async sr => {
+  await confirm({
+    icon: 'sr-reclaim-space',
+    title: _('srReclaimSpace'),
+    body: _('srReclaimSpaceConfirm'),
+  })
+
+  try {
+    await _call('sr.reclaimSpace', { id: resolveId(sr) })
+    success(_('srReclaimSpace'))
+  } catch (err) {
+    if (err?.data?.message?.includes('Operation not supported')) {
+      throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
+    }
+    throw err
+  }
+}
+
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => _call('pbd.connect', { id: resolveId(pbd) })
