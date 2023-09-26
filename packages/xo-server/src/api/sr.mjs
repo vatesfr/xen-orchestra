@@ -961,7 +961,7 @@ export async function reclaimSpace({ sr }) {
 
 reclaimSpace.description = 'reclaim freed space on SR'
 
-reclaimSpace.params = {
+reclaimSpace.params = {
   id: { type: 'string' },
 }
 
