@@ -15,9 +15,7 @@
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
     </MenuItem>
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faRoute">
-      {{ $t("migrate") }}
-    </MenuItem>
+    <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
       {{ $t("edit-config") }}
@@ -35,8 +33,9 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
-import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
 import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
+import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
+import VmActionMigrateItem from "@/components/vm/VmActionItems/VmActionMigrateItem.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
@@ -46,7 +45,6 @@ import {
   faEdit,
   faEllipsis,
   faPowerOff,
-  faRoute,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 
