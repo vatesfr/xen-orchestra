@@ -12,6 +12,7 @@
 - [Patches] Support new XenServer Updates system. See [our documentation](https://xen-orchestra.com/docs/updater.html#xenserver-updates). (PR [#7044](https://github.com/vatesfr/xen-orchestra/pull/7044))
 - [REST API] Hosts' audit and system logs can be downloaded [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
 - [Host/Advanced] New button to download system logs [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
+- [Home/Hosts, Pools] Display host brand and version (PR [#7027](https://github.com/vatesfr/xen-orchestra/pull/7027))
 
 ### Bug fixes
 

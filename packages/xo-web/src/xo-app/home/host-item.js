@@ -9,7 +9,7 @@ import semver from 'semver'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
-import { Row, Col } from 'grid'
+import { Col } from 'grid'
 import { Text } from 'editable'
 import {
   addTag,
@@ -325,14 +325,16 @@ export default class HostItem extends Component {
           </SingleLineRow>
         </BlockLink>
         {(this.state.expanded || expandAll) && (
-          <Row>
-            <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
+          <SingleLineRow>
+            <Col mediumSize={2} className={styles.itemExpanded}>
               <span>
-                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
-                &nbsp; v{host.version.slice(0, 3)}
+                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />
               </span>
             </Col>
-            <Col mediumSize={4}>
+            <Col mediumSize={1} className={styles.itemExpanded}>
+              {host.productBrand} {host.version}
+            </Col>
+            <Col mediumSize={3} className={styles.itemExpanded}>
               <span style={{ fontSize: '1.4em' }}>
                 <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
@@ -340,7 +342,7 @@ export default class HostItem extends Component {
             <Col mediumSize={6} className={styles.itemExpanded}>
               <MiniStats fetch={this._fetchStats} />
             </Col>
-          </Row>
+          </SingleLineRow>
         )}
       </div>
     )
