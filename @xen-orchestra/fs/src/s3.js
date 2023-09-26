@@ -16,9 +16,7 @@ import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
 import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-checksum'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
-import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
-import { decorateWith } from '@vates/decorate-with'
 import { PassThrough, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
@@ -26,6 +24,7 @@ import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './path'
 import { asyncEach } from '@vates/async-each'
+import { pRetry } from 'promise-toolbox'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -78,6 +77,44 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const parts = split(path)
     this.#bucket = parts.shift()
     this.#dir = join(...parts)
+    const WITH_RETRY = [
+      '_closeFile',
+      '_copy',
+      '_getInfo',
+      '_getSize',
+      '_list',
+      '_mkdir',
+      '_openFile',
+      '_outputFile',
+      '_read',
+      '_readFile',
+      '_rename',
+      '_rmdir',
+      '_truncate',
+      '_unlink',
+      '_write',
+      '_writeFile',
+    ]
+    WITH_RETRY.forEach(functionName => {
+      if (this[functionName] !== undefined) {
+        // adding the retry on the top level mtehod won't
+        // cover when _functionName are called internally
+        this[functionName] = pRetry.wrap(this[functionName], {
+          delays: [100, 200, 500, 1000, 2000],
+          // these errors should not change on retry
+          when: err => !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'EISDIR'].includes(err?.code),
+          onRetry(error) {
+            warn('retrying method on fs ', {
+              method: functionName,
+              attemptNumber: this.attemptNumber,
+              delay: this.delay,
+              error,
+              file: this.arguments?.[0],
+            })
+          },
+        })
+      }
+    })
   }
 
   get type() {
@@ -212,21 +249,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  // some objectstorage provider like backblaze, can answer a 500/503 routinely
-  // in this case we should retry,  and let their load balancing do its magic
-  // https://www.backblaze.com/b2/docs/calling.html#error_handling
-  @decorateWith(pRetry.wrap, {
-    delays: [100, 200, 500, 1000, 2000],
-    when: e => e.$metadata?.httpStatusCode === 500,
-    onRetry(error) {
-      warn('retrying writing file', {
-        attemptNumber: this.attemptNumber,
-        delay: this.delay,
-        error,
-        file: this.arguments[0],
-      })
-    },
-  })
   async _writeFile(file, data, options) {
     return this.#s3.send(
       new PutObjectCommand({

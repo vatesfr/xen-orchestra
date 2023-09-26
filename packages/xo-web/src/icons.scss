@@ -630,6 +630,10 @@
       @extend .fa;
       @extend .fa-share;
     }
+    &-reclaim-space {
+      @extend .fa;
+      @extend .fa-gavel;
+    }
   }
   // Host
   &-host {
@@ -1234,6 +1238,10 @@
   &-xo-cloud-config {
     @extend .fa;
     @extend .fa-cloud-upload;
+  }
+  &-restart {
+    @extend .fa;
+    @extend .fa-refresh;
   }
 
   // XOSAN related

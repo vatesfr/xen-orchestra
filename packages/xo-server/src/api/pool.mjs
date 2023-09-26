@@ -129,7 +129,7 @@ listMissingPatches.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatches({ pool, patches, hosts }) {
-  const opts = { patches }
+  const opts = { patches, xsCredentials: this.apiContext.user.preferences.xsCredentials }
   let xapi
   if (pool !== undefined) {
     pool = this.getXapiObject(pool, 'pool')

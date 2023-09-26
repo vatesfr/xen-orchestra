@@ -5,6 +5,10 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import omit from 'lodash/omit.js'
 
+const STYLE = {
+  marginBottom: 0,
+}
+
 export default class SelectFiles extends Component {
   static propTypes = {
     multi: PropTypes.bool,
@@ -21,7 +25,7 @@ export default class SelectFiles extends Component {
 
   render() {
     return (
-      <label className='btn btn-secondary btn-file hidden'>
+      <label className='btn btn-secondary btn-file hidden' style={STYLE}>
         <Icon icon='file' /> {this.props.label || _('browseFiles')}
         <input
           {...omit(this.props, ['hidden', 'label', 'onChange', 'multi'])}

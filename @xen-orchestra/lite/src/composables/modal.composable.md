@@ -1,16 +1,57 @@
 # useModal composable
 
+### Usage
+
+#### API
+
+`useModal<T>(options: ModalOptions)`
+
+Type parameter:
+
+- `T`: The type for the modal's payload.
+
+Parameters:
+
+- `options`: An optional object of type `ModalOptions`.
+
+Returns an object with:
+
+- `payload: ReadOnly<Ref<T | undefined>>`: The payload data of the modal. Mainly used if a single modal is used for
+  multiple items (typically with `v-for`)
+- `isOpen: WritableComputedRef<boolean>`: A writable computed indicating if the modal is open or not.
+- `open(currentPayload?: T)`: A function to open the modal and optionally set its payload.
+- `close(force = false)`: A function to close the modal. If force is set to `true`, the modal will be closed without
+  calling the `confirmClose` callback.
+
+#### Types
+
+`ModalOptions`
+
+An object type that accepts:
+
+- `confirmClose?: () => boolean`: An optional callback that is called before the modal is closed. If this function
+  returns `false`, the modal will not be closed.
+- `onClose?: () => void`: An optional callback that is called after the modal is closed.
+
+### Example
+
 ```vue
 <template>
   <div v-for="item in items">
-    {{ item.name }} <button @click="openRemoveModal(item)">Delete</button>
+    {{ item.name }}
+    <button @click="openRemoveModal(item)">Delete</button>
   </div>
 
-  <UiModal v-if="isRemoveModalOpen">
-    Are you sure you want to delete {{ removeModalPayload.name }}
-
-    <button @click="handleRemove">Yes</button>
-    <button @click="closeRemoveModal">No</button>
+  <UiModal v-model="isRemoveModalOpen">
+    <ModalContainer>
+      <template #header>
+        Are you sure you want to delete {{ removeModalPayload.name }}?
+      </template>
+      <template #footer>
+        <button @click="handleRemove">Yes</button>
+        <button @click="closeRemoveModal">No</button>
+      </template>
+    </ModalContainer>
   </UiModal>
 </template>
 
@@ -22,7 +63,11 @@ const {
   isOpen: isRemoveModalOpen,
   open: openRemoveModal,
   close: closeRemoveModal,
-} = useModal();
+} = useModal({
+  confirmClose: () =>
+    window.confirm("Are you sure you want to close this modal?"),
+  onClose: () => console.log("Modal closed"),
+});
 
 async function handleRemove() {
   await removeItem(removeModalPayload.id);

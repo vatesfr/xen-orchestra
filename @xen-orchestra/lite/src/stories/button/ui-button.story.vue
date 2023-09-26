@@ -4,9 +4,9 @@
     :params="[
       prop('type').enum('submit', 'button', 'reset').default('button'),
       prop('busy').bool().widget(),
-      prop('disabled').bool().widget(),
+      prop('disabled').bool().widget().ctx(),
       iconProp(),
-      colorProp(),
+      colorProp().ctx(),
       prop('outlined').bool().widget(),
       prop('transparent').bool().widget(),
       prop('active').bool().widget(),

@@ -296,7 +296,7 @@ export default class XenApi {
       XenApiVm["$ref"],
       XenApiVm["power_state"]
     >;
-    type VmRefsToClone = Record<XenApiVm["$ref"], /* Cloned VM name */ string>;
+    type VmRefsWithNameLabel = Record<XenApiVm["$ref"], string>;
 
     return {
       delete: (vmRefs: VmRefs) =>
@@ -351,12 +351,32 @@ export default class XenApi {
           )
         );
       },
-      clone: (vmRefsToClone: VmRefsToClone) => {
+      clone: (vmRefsToClone: VmRefsWithNameLabel) => {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm["$ref"][];
 
         return Promise.all(
           vmRefs.map((vmRef) =>
             this.call("VM.clone", [vmRef, vmRefsToClone[vmRef]])
+          )
+        );
+      },
+      migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost["$ref"]) => {
+        return Promise.all(
+          castArray(vmRefs).map((vmRef) =>
+            this.call("VM.pool_migrate", [
+              vmRef,
+              destinationHostRef,
+              { force: "false" },
+            ])
+          )
+        );
+      },
+      snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {
+        const vmRefs = Object.keys(vmRefsToSnapshot) as XenApiVm["$ref"][];
+
+        return Promise.all(
+          vmRefs.map((vmRef) =>
+            this.call("VM.snapshot", [vmRef, vmRefsToSnapshot[vmRef]])
           )
         );
       },

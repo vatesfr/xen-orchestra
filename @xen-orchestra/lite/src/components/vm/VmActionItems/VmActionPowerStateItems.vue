@@ -100,7 +100,7 @@ import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
 import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faCirclePlay,
@@ -136,16 +136,16 @@ const vmRefsWithPowerState = computed(() =>
 const xenApi = useXenApiStore().getXapi();
 
 const areVmsRunning = computed(() =>
-  vms.value.every((vm) => vm.power_state === POWER_STATE.RUNNING)
+  vms.value.every((vm) => vm.power_state === VM_POWER_STATE.RUNNING)
 );
 const areVmsHalted = computed(() =>
-  vms.value.every((vm) => vm.power_state === POWER_STATE.HALTED)
+  vms.value.every((vm) => vm.power_state === VM_POWER_STATE.HALTED)
 );
 const areVmsSuspended = computed(() =>
-  vms.value.every((vm) => vm.power_state === POWER_STATE.SUSPENDED)
+  vms.value.every((vm) => vm.power_state === VM_POWER_STATE.SUSPENDED)
 );
 const areVmsPaused = computed(() =>
-  vms.value.every((vm) => vm.power_state === POWER_STATE.PAUSED)
+  vms.value.every((vm) => vm.power_state === VM_POWER_STATE.PAUSED)
 );
 
 const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
@@ -179,7 +179,7 @@ const areVmsBusyToForceShutdown = computed(() =>
   areOperationsPending(VM_OPERATION.HARD_SHUTDOWN)
 );
 const getHostState = (host: XenApiHost) =>
-  isHostRunning(host) ? POWER_STATE.RUNNING : POWER_STATE.HALTED;
+  isHostRunning(host) ? VM_POWER_STATE.RUNNING : VM_POWER_STATE.HALTED;
 </script>
 
 <style lang="postcss" scoped>

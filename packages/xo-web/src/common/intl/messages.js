@@ -37,6 +37,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  configured: 'Configured',
   notConfigured: 'Not configured',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
@@ -132,6 +133,7 @@ const messages = {
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
   xcpNg: 'XCP-ng',
+  noFileSelected: 'No file selected',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -238,6 +240,8 @@ const messages = {
   xoaCheck: 'XOA check',
   closeTunnel: 'Close tunnel',
   createSupportTicket: 'Create a support ticket',
+  restartXoServer: 'Restart XO Server',
+  restartXoServerConfirm: 'Restarting XO Server will interrupt any backup job or XO task that is currently running. Xen Orchestra will also be unavailable for a few seconds. Are you sure you want to restart XO Server?',
   openTunnel: 'Open tunnel',
   supportCommunity: 'The XOA check and the support tunnel are available in XOA.',
   supportTunnel: 'Support tunnel',
@@ -248,6 +252,14 @@ const messages = {
 
   // ----- User Profile -----
   editUserProfile: 'Edit my settings {username}',
+  xsClientId: 'XenServer Client ID',
+  uploadClientId: 'Upload Client ID file',
+  forgetClientId: 'Forget Client ID',
+  forgetXsCredentialsConfirm: 'Are you sure you want to forget your XenServer Client ID?',
+  forgetXsCredentialsError: 'Could not forget Client ID',
+  forgetXsCredentialsSuccess: 'Client ID forgotten',
+  setXsCredentialsError: 'Could not upload Client ID',
+  setXsCredentialsSuccess: 'Client ID uploaded',
 
   // ----- Home view ------
   allVms: 'All VMs',
@@ -565,6 +577,8 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
+  preferNbd: 'Use NBD protocol to transfer disk if available',
+  preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -845,6 +859,9 @@ const messages = {
   srsForget: 'Forget SRs',
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
+  srReclaimSpace: 'Reclaim freed space',
+  srReclaimSpaceConfirm: 'Are you sure you want to reclaim freed space on this SR?',
+  srReclaimSpaceNotSupported: 'Space reclaim not supported. Only supported on block based/LVM based SRs.',
 
   // ----- SR disks tab -----
   multipleActiveVdis: '{firstVdi} and {nVdis} more',
@@ -975,6 +992,9 @@ const messages = {
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
   hyperThreadingNotAvailable: 'HT detection is only available on XCP-ng 7.6 and higher',
+  hostDownloadLogs: 'Download system logs',
+  hostDownloadLogsContainEntireHostLogs:
+    "The logs you are about to download contain the entire host's logs, potentially hundreds of megabytes. Please note that these logs can be technical and complex to analyze, requiring some expertise.",
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
@@ -1099,6 +1119,9 @@ const messages = {
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
   highAvailabilityNotDisabledTooltip: 'High Availability must be disabled',
+  xsCredentialsMissing:
+    'In order to install XenServer updates, you first need to configure your XenServer Client ID. See {link}.',
+  xsCredentialsMissingShort: 'Missing XenServer Client ID',
 
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',

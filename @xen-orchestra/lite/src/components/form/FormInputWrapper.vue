@@ -4,7 +4,7 @@
       v-if="label !== undefined || learnMoreUrl !== undefined"
       class="label-container"
     >
-      <label :for="id" class="label">
+      <label :class="{ light }" :for="id" class="label">
         <UiIcon :icon="icon" />
         {{ label }}
       </label>
@@ -37,13 +37,10 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { useContext } from "@/composables/context.composable";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
-import {
-  IK_FORM_HAS_LABEL,
-  IK_FORM_INPUT_COLOR,
-  IK_FORM_LABEL_DISABLED,
-  IK_INPUT_ID,
-} from "@/types/injection-keys";
+import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { uniqueId } from "lodash-es";
@@ -51,16 +48,20 @@ import { computed, provide, useSlots } from "vue";
 
 const slots = useSlots();
 
-const props = defineProps<{
-  label?: string;
-  id?: string;
-  icon?: IconDefinition;
-  learnMoreUrl?: string;
-  warning?: string;
-  error?: string;
-  help?: string;
-  disabled?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    label?: string;
+    id?: string;
+    icon?: IconDefinition;
+    learnMoreUrl?: string;
+    warning?: string;
+    error?: string;
+    help?: string;
+    disabled?: boolean;
+    light?: boolean;
+  }>(),
+  { disabled: undefined }
+);
 
 const id = computed(() => props.id ?? uniqueId("form-input-"));
 provide(IK_INPUT_ID, id);
@@ -77,17 +78,13 @@ const color = computed<Color | undefined>(() => {
   return undefined;
 });
 
-provide(IK_FORM_INPUT_COLOR, color);
-
 provide(
   IK_FORM_HAS_LABEL,
   computed(() => slots.label !== undefined)
 );
 
-provide(
-  IK_FORM_LABEL_DISABLED,
-  computed(() => props.disabled ?? false)
-);
+useContext(ColorContext, color);
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>
@@ -99,14 +96,24 @@ provide(
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .label {
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--color-blue-scale-100);
-  font-size: 1.4rem;
   padding: 1rem 0;
+
+  &.light {
+    font-size: 1.6rem;
+    color: var(--color-blue-scale-300);
+    font-weight: 400;
+  }
+
+  &:not(.light) {
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-blue-scale-100);
+  }
 }
 
 .messages-container {

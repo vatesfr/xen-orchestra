@@ -659,8 +659,8 @@ export const editServer = (server, props) =>
 
 export const enableServer = server =>
   _call('server.enable', { id: resolveId(server) })
-    ::tapCatch(error => {
-      if (error.message === 'Invalid XML-RPC message') {
+    ::tapCatch(err => {
+      if (err.message === 'Invalid XML-RPC message') {
         error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
       }
     })
@@ -2250,6 +2250,24 @@ export const toggleSrMaintenanceMode = sr => {
   })
 }
 
+export const reclaimSrSpace = async sr => {
+  await confirm({
+    icon: 'sr-reclaim-space',
+    title: _('srReclaimSpace'),
+    body: _('srReclaimSpaceConfirm'),
+  })
+
+  try {
+    await _call('sr.reclaimSpace', { id: resolveId(sr) })
+    success(_('srReclaimSpace'))
+  } catch (err) {
+    if (err?.data?.message?.includes('Operation not supported')) {
+      throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
+    }
+    throw err
+  }
+}
+
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => _call('pbd.connect', { id: resolveId(pbd) })
@@ -2973,7 +2991,7 @@ export const removeUserAuthProvider = ({ userId, authProviderId }) => {
 }
 
 const _signOutFromEverywhereElse = () =>
-  _call('token.delete', {
+  _call('token.deleteOwn', {
     pattern: {
       id: {
         __not: cookies.get('token'),
@@ -3111,7 +3129,7 @@ export const deleteAuthToken = async ({ id }) => {
     icon: 'user',
     title: _('deleteAuthTokenConfirm'),
   })
-  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.deleteOwn', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const deleteAuthTokens = async tokens => {
@@ -3122,7 +3140,7 @@ export const deleteAuthTokens = async tokens => {
     icon: 'user',
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
-  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.deleteOwn', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const editAuthToken = ({ description, id }) =>
@@ -3130,6 +3148,11 @@ export const editAuthToken = ({ description, id }) =>
     description,
     id,
   })::tap(subscribeUserAuthTokens.forceRefresh)
+
+export const editXsCredentials = xsCredentials =>
+  _setUserPreferences({
+    xsCredentials,
+  })
 
 // User filters --------------------------------------------------
 
@@ -3430,6 +3453,19 @@ export const subscribeTunnelState = createSubscription(() => _call('xoa.supportT
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
+
+export const restartXoServer = async () => {
+  await confirm({
+    icon: 'restart',
+    title: _('restartXoServer'),
+    body: _('restartXoServerConfirm'),
+    strongConfirm: {
+      messageId: 'restartXoServer',
+    },
+  })
+
+  await _call('xoa.restartXoServer')
+}
 
 // Proxy --------------------------------------------------------------------
 

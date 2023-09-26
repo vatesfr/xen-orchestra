@@ -1,6 +1,8 @@
 <template>
-  <UiModal v-if="isRawValueModalOpen" @close="closeRawValueModal">
-    <CodeHighlight :code="rawValueModalPayload" />
+  <UiModal v-model="isRawValueModalOpen">
+    <BasicModalLayout>
+      <CodeHighlight :code="rawValueModalPayload" />
+    </BasicModalLayout>
   </UiModal>
   <StoryParamsTable>
     <thead>
@@ -35,6 +37,15 @@
             class="v-model-indicator"
           >
             <UiIcon :icon="faRepeat" />
+          </sup>
+          <sup
+            v-if="param.isUsingContext()"
+            v-tooltip="
+              `If this prop is not provided, value will be read from context. Otherwise, context will be updated with this prop value.`
+            "
+            class="context-indicator"
+          >
+            Ctx
           </sup>
         </th>
         <td>
@@ -90,7 +101,8 @@ import CodeHighlight from "@/components/CodeHighlight.vue";
 import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
 import StoryWidget from "@/components/component-story/StoryWidget.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import UiModal from "@/components/ui/UiModal.vue";
+import BasicModalLayout from "@/components/ui/modals/layouts/BasicModalLayout.vue";
+import UiModal from "@/components/ui/modals/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
@@ -121,7 +133,6 @@ const model = useVModel(props, "modelValue", emit);
 
 const {
   open: openRawValueModal,
-  close: closeRawValueModal,
   isOpen: isRawValueModalOpen,
   payload: rawValueModalPayload,
 } = useModal<string>();
@@ -182,7 +193,8 @@ const {
   }
 }
 
-.v-model-indicator {
+.v-model-indicator,
+.context-indicator {
   color: var(--color-green-infra-base);
 }
 </style>

@@ -209,7 +209,7 @@ export default {
             },
             'start'
           )
-    let j =
+    const j =
       before === undefined
         ? logs.length
         : sortedIndexBy(
@@ -220,11 +220,7 @@ export default {
             'start'
           )
 
-    limit += i
-    if (limit < j) {
-      j = limit
-    }
-    logs = logs.slice(i, j)
+    logs = logs.slice(Math.max(i, j - limit), j)
 
     return logs
   },

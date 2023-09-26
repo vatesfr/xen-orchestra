@@ -9,7 +9,7 @@ import peekFooterFromStream from 'vhd-lib/peekFooterFromVhdStream.js'
 
 import AggregateError from './_AggregateError.mjs'
 
-const { warn } = createLogger('xo:xapi:sr')
+const { error, warn } = createLogger('xo:xapi:sr')
 
 const OC_MAINTENANCE = 'xo:maintenanceState'
 
@@ -143,6 +143,22 @@ class Sr {
 
     if (errors.length !== 0) {
       throw new AggregateError(errors)
+    }
+  }
+
+  async reclaimSpace(srRef) {
+    const result = await this.call('host.call_plugin', this.pool.master, 'trim', 'do_trim', {
+      sr_uuid: await this.getField('SR', srRef, 'uuid'),
+    })
+
+    // Error example:
+    // <?xml version="1.0" ?><trim_response><key_value_pair><key>errcode</key><value>TrimException</value></key_value_pair><key_value_pair><key>errmsg</key><value>blkdiscard: /dev/VG_XenStorage-f5775872-b5e7-98e5-488a-7194efdaf8f6/f5775872-b5e7-98e5-488a-7194efdaf8f6_trim_lv: BLKDISCARD ioctl failed: Operation not supported</value></key_value_pair></trim_response>
+    const errMatch = result?.match(/<key>errcode<\/key><value>(.*?)<\/value>.*<key>errmsg<\/key><value>(.*?)<\/value>/)
+    if (errMatch) {
+      error(result)
+      const err = new Error(errMatch[2])
+      err.code = errMatch[1]
+      throw err
     }
   }
 

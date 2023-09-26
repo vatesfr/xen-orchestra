@@ -72,12 +72,11 @@ const getInitialState = () => ({
 })
 
 export default decorate([
-  New => props =>
-    (
-      <Upgrade place='newMetadataBackup' required={3}>
-        <New {...props} />
-      </Upgrade>
-    ),
+  New => props => (
+    <Upgrade place='newMetadataBackup' required={3}>
+      <New {...props} />
+    </Upgrade>
+  ),
   addSubscriptions({
     remotes: subscribeRemotes,
   }),

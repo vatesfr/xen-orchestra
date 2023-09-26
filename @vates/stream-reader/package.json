@@ -27,7 +27,7 @@
   "license": "ISC",
   "version": "0.1.0",
   "engines": {
-    "node": ">=10"
+    "node": ">=12.3"
   },
   "scripts": {
     "postversion": "npm publish --access public",

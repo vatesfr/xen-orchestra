@@ -38,7 +38,7 @@ class AuthGitHubXoPlugin {
     this._unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(this._conf, async (accessToken, refreshToken, profile, done) => {
         try {
-          done(null, await xo.registerUser2('github', { id: profile.id, name: profile.username }))
+          done(null, await xo.registerUser2('github', { user: { id: profile.id, name: profile.username } }))
         } catch (error) {
           done(error.message)
         }

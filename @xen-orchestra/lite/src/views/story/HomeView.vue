@@ -110,19 +110,19 @@ const template = computed(() => {
     ]"
   >
     <${componentName} v-bind="properties"${
-    slotsNames.length > 0
-      ? `>\n      ${slotsNames
-          .map((name) =>
-            name === "default"
-              ? `{{ settings.${camel(name)}SlotContent }}`
-              : `<template #${name}>{{ settings.${camel(
-                  name
-                )}SlotContent }}</template>`
-          )
-          .join("\n      ")}
+      slotsNames.length > 0
+        ? `>\n      ${slotsNames
+            .map((name) =>
+              name === "default"
+                ? `{{ settings.${camel(name)}SlotContent }}`
+                : `<template #${name}>{{ settings.${camel(
+                    name
+                  )}SlotContent }}</template>`
+            )
+            .join("\n      ")}
     </${componentName}>`
-      : ` />`
-  }
+        : ` />`
+    }
   </ComponentStory>
 </template>
 

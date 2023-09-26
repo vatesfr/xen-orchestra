@@ -285,7 +285,7 @@ export default class NewVm extends BaseComponent {
     () => this.props.resourceSets,
     createSelector(
       () => this.props.location.query.resourceSet,
-      resourceSetId => resourceSet => resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined
+      resourceSetId => resourceSet => (resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined)
     )
   )
 

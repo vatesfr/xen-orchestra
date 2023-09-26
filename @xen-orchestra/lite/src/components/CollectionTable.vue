@@ -28,13 +28,9 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in filteredAndSortedCollection" :key="item[idProperty]">
+      <tr v-for="item in filteredAndSortedCollection" :key="item.$ref">
         <td v-if="isSelectable">
-          <input
-            v-model="selected"
-            :value="item[props.idProperty]"
-            type="checkbox"
-          />
+          <input v-model="selected" :value="item.$ref" type="checkbox" />
         </td>
         <slot :item="item" name="body-row" />
       </tr>
@@ -42,10 +38,7 @@
   </UiTable>
 </template>
 
-<script lang="ts" setup>
-import { computed, toRef, watch } from "vue";
-import type { Filters } from "@/types/filter";
-import type { Sorts } from "@/types/sort";
+<script generic="T extends XenApiRecord<any>" lang="ts" setup>
 import CollectionFilter from "@/components/CollectionFilter.vue";
 import CollectionSorter from "@/components/CollectionSorter.vue";
 import UiTable from "@/components/ui/UiTable.vue";
@@ -54,17 +47,20 @@ import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useMultiSelect from "@/composables/multi-select.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
+import type { XenApiRecord } from "@/libs/xen-api/xen-api.types";
+import type { Filters } from "@/types/filter";
+import type { Sorts } from "@/types/sort";
+import { computed, toRef, watch } from "vue";
 
 const props = defineProps<{
-  modelValue?: string[];
+  modelValue?: T["$ref"][];
   availableFilters?: Filters;
   availableSorts?: Sorts;
-  collection: Record<string, any>[];
-  idProperty: string;
+  collection: T[];
 }>();
 
 const emit = defineEmits<{
-  (event: "update:modelValue", selectedRefs: string[]): void;
+  (event: "update:modelValue", selectedRefs: T["$ref"][]): void;
 }>();
 
 const isSelectable = computed(() => props.modelValue !== undefined);
@@ -85,12 +81,10 @@ const filteredAndSortedCollection = useSortedCollection(
   compareFn
 );
 
-const usableRefs = computed(() =>
-  props.collection.map((item) => item[props.idProperty])
-);
+const usableRefs = computed(() => props.collection.map((item) => item["$ref"]));
 
 const selectableRefs = computed(() =>
-  filteredAndSortedCollection.value.map((item) => item[props.idProperty])
+  filteredAndSortedCollection.value.map((item) => item["$ref"])
 );
 
 const { selected, areAllSelected } = useMultiSelect(usableRefs, selectableRefs);

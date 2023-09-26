@@ -8,7 +8,8 @@
       prop('warning').type('string').widget(),
       prop('error').type('string').widget(),
       prop('help').type('string').widget().preset('256 by default'),
-      prop('disabled').type('boolean').widget(),
+      prop('disabled').type('boolean').widget().ctx(),
+      prop('light').bool().widget(),
       slot().help('Contains the input'),
     ]"
   >

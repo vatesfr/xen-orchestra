@@ -945,6 +945,9 @@ export class Xapi extends EventEmitter {
   }
 
   _setUrl(url) {
+    const { hostname } = url
+    url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
+
     this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
     this._transport = this._createTransport({
       secureOptions: {
@@ -954,8 +957,6 @@ export class Xapi extends EventEmitter {
       url,
       agent: this.httpAgent,
     })
-    const { hostname } = url
-    url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
     this._url = url
   }
 

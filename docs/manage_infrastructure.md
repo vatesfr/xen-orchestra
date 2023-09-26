@@ -448,6 +448,14 @@ It's perfect if you want to shutdown the host for hardware replacement, or if yo
 
 Note that maintenance mode will be **automatically exited after a host reboot**.
 
+### Modify Dom0 memory
+
+You can easily adjust the control domain memory under the Advanced tab of a host. Enable the maintenance mode on the host and click on the pen icon to edit the value:
+
+![](./assets/dom0memory.png)
+
+There is more information about Dom0 memory management in the [XCP-ng Documentation](https://docs.xcp-ng.org/guides/dom0-memory/)
+
 ## Pool and host updates
 
 Xen Orchestra is here to help you to manage all your pools and hosts updates. Note there's a difference on updates between XCP-ng and Citrix Hypervisor, since they are not using the same mechanism. However, the view on available updates and updating is very similar.
@@ -608,9 +616,53 @@ A Parallel Coordinates visualization helps to detect proportions in a hierarchic
 
 This view will help you find any bottlenecks and compare the metrics of your infrastructure.
 
-:::tip
-:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
-:::
+### Storage state
+
+This section shows the disks, their size and used space. A progress bar helps you to quickly identify when a disk becomes full as it turns orange (80%) and then red (91%).
+
+### Local default SRs
+
+Declaring a default storage repository for each pool is good practice to avoid unexpected behaviours.
+
+### Pools with no default SR
+
+To select a default SR, go to the Home tab and click on 'Pools'. Select the pool you are working with and click on the storage icon:
+![](./assets/storageicon.png)
+
+Hover over the storage you want to select and click on the disk icon to set it as the default SR:
+![](./assets/diskicon.png)
+
+### Unhealthy VDIs
+
+If your infrastructure works properly, this view should be empty. If not, the causes of unhealthy VDIs can be numerous and we recommend you [open a support ticket](https://help.vates.tech/kb/en-us/8-technical-support/15-open-a-support-ticket).
+
+### Orphan VDIs
+
+Orphan VDIs are are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
+
+### VDIs attached to Control Domain
+
+Having VDIs attached to the control domain during a backup job is normal, but not when it's finished. You can detach them by clicking on the Forget button, this will remove the virtual cable between the host and the disk without removing the disk. If the problem occurs on a regular basis, we recommend you [open a support ticket](https://help.vates.tech/kb/en-us/8-technical-support/15-open-a-support-ticket).
+
+### Orphaned VM snapshot
+
+VMs snapshots that do not have parents are usually automatically deleted. If not, they can be removed using the trash icon and should be considered abnormal in a production environment.
+
+### Too many snapshots
+
+List of the VMs with more than the recommended amount of snapshots (3). There is no hard limit, but as the chain becomes longer, this can lead to poorer performances during the process of reading the VMs snapshots.
+
+### Duplicated MAC addresses
+
+Machines with the same MAC addresses on a network will result in unexpected behavior if they run simultaneously.
+
+### Guest Tools status
+
+List of VMs with missing or outdated guest tools. It's best practice to [install the guest tools](https://xcp-ng.org/docs/guests.html#guest-tools) for every VM.
+
+### Alarms
+
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](https://xen-orchestra.com/docs/alerts.html#alerts).
 
 ### Heatmap
 

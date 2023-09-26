@@ -12,7 +12,7 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach, orderBy } from 'lodash'
+import { filter, forEach, keyBy } from 'lodash'
 import {
   deleteSchedule,
   deleteSchedules,
@@ -100,63 +100,36 @@ const ACTIONS = [
 // ===================================================================
 
 @addSubscriptions({
-  users: subscribeUsers,
+  jobs: [cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))), {}],
+  schedules: [subscribeSchedules, []],
+  userIds: [cb => subscribeUsers(users => cb(new Set(users.map(_ => _.id)))), new Set()],
 })
 export default class Overview extends Component {
   static contextTypes = {
     router: PropTypes.object,
   }
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      schedules: [],
-    }
-  }
+  _getGenericSchedules = createSelector(
+    () => this.props.schedules,
+    () => this.props.jobs,
 
-  componentWillMount() {
-    const unsubscribeJobs = subscribeJobs(jobs => {
-      const obj = {}
-      forEach(jobs, job => {
-        obj[job.id] = job
+    // Get only generic jobs
+    (schedules, jobs) =>
+      filter(schedules, schedule => {
+        const job = jobs[schedule.jobId]
+        return job !== undefined && job.key in jobKeyToLabel
       })
-
-      this.setState({
-        jobs: obj,
-      })
-    })
-
-    const unsubscribeSchedules = subscribeSchedules(schedules => {
-      // Get only backup jobs.
-      schedules = filter(schedules, schedule => {
-        const job = this._getScheduleJob(schedule)
-        return job && jobKeyToLabel[job.key]
-      })
-
-      this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], ['desc']),
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeJobs()
-      unsubscribeSchedules()
-    }
-  }
-
-  _getScheduleJob(schedule) {
-    const { jobs } = this.state || {}
-    return jobs[schedule.jobId]
-  }
+  )
 
   _getIsScheduleUserMissing = createSelector(
-    () => this.state.schedules,
-    () => this.props.users,
-    (schedules, users) => {
+    this._getGenericSchedules,
+    () => this.props.userIds,
+    () => this.props.jobs,
+    (schedules, userIds, jobs) => {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !find(users, user => user.id === this._getScheduleJob(schedule).userId)
+        isScheduleUserMissing[schedule.id] = !userIds.has(jobs[schedule.jobId].userId)
       })
 
       return isScheduleUserMissing
@@ -183,8 +156,6 @@ export default class Overview extends Component {
   ]
 
   render() {
-    const { schedules } = this.state
-
     return process.env.XOA_PLAN > 3 ? (
       <Container>
         <Card>
@@ -194,10 +165,10 @@ export default class Overview extends Component {
           <CardBlock>
             <SortedTable
               actions={ACTIONS}
-              collection={schedules}
+              collection={this._getGenericSchedules()}
               columns={SCHEDULES_COLUMNS}
               data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
-              data-jobs={this.state.jobs || {}}
+              data-jobs={this.props.jobs}
               individualActions={this._individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'

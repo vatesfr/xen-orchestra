@@ -7,11 +7,13 @@ import homeFilters from 'home-filters'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+import SelectFiles from 'select-files'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
-import { alert } from 'modal'
+import { alert, confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { error, success } from 'notification'
 import { getLang } from 'selectors'
 import { isEmpty, map } from 'lodash'
 import { injectIntl } from 'react-intl'
@@ -27,6 +29,7 @@ import {
   deleteSshKey,
   deleteSshKeys,
   editAuthToken,
+  editXsCredentials,
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
@@ -73,6 +76,81 @@ const getDefaultFilter = (defaultFilters, type) => {
 }
 
 const getUserPreferences = user => user.preferences || {}
+
+// ===================================================================
+
+@addSubscriptions({
+  user: subscribeCurrentUser,
+})
+class XsClientId extends Component {
+  async editXsCredentials(file) {
+    if (file === undefined) {
+      error(_('noFileSelected'))
+      return
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        const fr = new window.FileReader()
+        fr.onload = event => {
+          try {
+            const { username, apikey } = JSON.parse(event.target.result)
+            if (username === undefined || apikey === undefined) {
+              reject(new Error('Could not find username and apikey in file'))
+            }
+
+            editXsCredentials({ username, apikey }).then(resolve, reject)
+          } catch (err) {
+            reject(err)
+          }
+        }
+        fr.readAsText(file)
+      })
+      success(_('setXsCredentialsSuccess'))
+    } catch (err) {
+      error(_('setXsCredentialsError'), err.message)
+    }
+  }
+
+  async deleteXsCredentials() {
+    await confirm({
+      icon: 'delete',
+      title: _('forgetClientId'),
+      body: _('forgetXsCredentialsConfirm'),
+    })
+    try {
+      await editXsCredentials(null)
+      success(_('forgetXsCredentialsSuccess'))
+    } catch (err) {
+      error('forgetXsCredentialsError', err.message)
+    }
+  }
+
+  render() {
+    const isConfigured = this.props.user?.preferences?.xsCredentials !== undefined
+    return (
+      <Container>
+        <Row>
+          <Col smallSize={2}>
+            <strong>{_('xsClientId')}</strong>{' '}
+            <a href='https://xen-orchestra.com/docs/updater.html#xenserver-updates' target='_blank' rel='noreferrer'>
+              <Icon icon='info' />
+            </a>
+          </Col>
+          <Col smallSize={10}>
+            <span className='mr-1'>{isConfigured ? _('configured') : _('notConfigured')}</span>
+            <SelectFiles onChange={this.editXsCredentials} label={_('uploadClientId')} />{' '}
+            {isConfigured && (
+              <ActionButton btnStyle='danger' handler={this.deleteXsCredentials} icon='delete'>
+                {_('forgetClientId')}
+              </ActionButton>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    )
+  }
+}
 
 // ===================================================================
 
@@ -494,6 +572,8 @@ export default class User extends Component {
           <Otp user={user} key='otp' />,
           <hr key='hr' />,
         ]}
+        <XsClientId user={user} />
+        <hr />
         <SshKeys />
         <hr />
         <UserAuthTokens />

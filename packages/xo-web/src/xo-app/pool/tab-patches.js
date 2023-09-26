@@ -9,7 +9,13 @@ import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
-import { installAllPatchesOnPool, installPatches, rollingPoolUpdate, subscribeHostMissingPatches } from 'xo'
+import {
+  installAllPatchesOnPool,
+  installPatches,
+  rollingPoolUpdate,
+  subscribeCurrentUser,
+  subscribeHostMissingPatches,
+} from 'xo'
 import isEmpty from 'lodash/isEmpty.js'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
@@ -48,7 +54,7 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
-    disabled: (_, { pool }) => pool.HA_enabled,
+    disabled: (_, { pool, needsCredentials }) => pool.HA_enabled || needsCredentials,
     handler: (patches, { pool }) => installPatches(patches, pool),
     icon: 'host-patch-update',
     label: _('install'),
@@ -156,6 +162,7 @@ const INSTALLED_PATCH_COLUMNS = [
 
 @addSubscriptions(({ master }) => ({
   missingPatches: cb => subscribeHostMissingPatches(master, cb),
+  userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
 }))
 @connectStore({
   hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
@@ -164,10 +171,13 @@ export default class TabPatches extends Component {
   render() {
     const {
       hostPatches,
+      master: { productBrand },
       missingPatches = [],
       pool,
-      master: { productBrand },
+      userPreferences,
     } = this.props
+
+    const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
 
     return (
       <Upgrade place='poolPatches' required={2}>
@@ -187,11 +197,17 @@ export default class TabPatches extends Component {
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}
-                disabled={isEmpty(missingPatches) || pool.HA_enabled}
+                disabled={isEmpty(missingPatches) || pool.HA_enabled || needsCredentials}
                 handler={installAllPatchesOnPool}
                 icon='host-patch-update'
                 labelId='installPoolPatches'
-                tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
+                tooltip={
+                  pool.HA_enabled
+                    ? _('highAvailabilityNotDisabledTooltip')
+                    : needsCredentials
+                    ? _('xsCredentialsMissingShort')
+                    : undefined
+                }
               />
             </Col>
           </Row>
@@ -212,11 +228,27 @@ export default class TabPatches extends Component {
               <Row>
                 <Col>
                   <h3>{_('hostMissingPatches')}</h3>
+                  {needsCredentials && (
+                    <div className='alert alert-danger'>
+                      {_('xsCredentialsMissing', {
+                        link: (
+                          <a
+                            href='https://xen-orchestra.com/docs/updater.html#xenserver-updates'
+                            target='_blank'
+                            rel='noreferrer'
+                          >
+                            https://xen-orchestra.com/docs/updater.html
+                          </a>
+                        ),
+                      })}
+                    </div>
+                  )}
                   <SortedTable
                     actions={ACTIONS}
                     collection={missingPatches}
                     columns={MISSING_PATCH_COLUMNS}
                     data-pool={pool}
+                    data-needsCredentials={needsCredentials}
                     stateUrlParam='s_missing'
                   />
                 </Col>

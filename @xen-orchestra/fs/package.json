@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
@@ -53,7 +53,7 @@
     "cross-env": "^7.0.2",
     "dotenv": "^16.0.0",
     "rimraf": "^5.0.1",
-    "sinon": "^15.0.4",
+    "sinon": "^16.0.0",
     "test": "^3.3.0",
     "tmp": "^0.2.1"
   },

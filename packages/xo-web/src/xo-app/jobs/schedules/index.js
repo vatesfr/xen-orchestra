@@ -4,7 +4,6 @@ import Button from 'button'
 import Component from 'base-component'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import moment from 'moment-timezone'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
@@ -74,6 +73,7 @@ export default class Schedules extends Component {
       enabled: true,
       job: undefined,
       jobs: undefined,
+      jobsList: [],
       timezone: DEFAULT_TIMEZONE,
     }
     this.loaded = new Promise((resolve, reject) => {
@@ -97,7 +97,7 @@ export default class Schedules extends Component {
           j[job.id] = _job
         }
       }
-      this.setState({ jobs: j })
+      this.setState({ jobs: j, jobsList: Object.values(jobs).sort(({ label: a }, { label: b }) => (a < b ? 1 : -1)) })
     })
 
     const unsubscribeSchedules = subscribeSchedules(schedules => {
@@ -199,7 +199,7 @@ export default class Schedules extends Component {
   ]
 
   render() {
-    const { cronPattern, enabled, jobs, schedule, schedules, timezone } = this.state
+    const { cronPattern, enabled, jobs, jobsList, schedule, schedules, timezone } = this.state
     const userData = { jobs }
     return (
       <div>
@@ -218,7 +218,7 @@ export default class Schedules extends Component {
             <Select
               labelKey='name'
               ref='job'
-              options={map(jobs)}
+              options={jobsList}
               valueKey='id'
               placeholder={this.props.intl.formatMessage(messages.jobScheduleJobPlaceHolder)}
             />

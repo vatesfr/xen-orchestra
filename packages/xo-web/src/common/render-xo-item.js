@@ -563,14 +563,20 @@ const xoItemToRender = {
   // PIF.
   PIF: ({ carrier, device, deviceName, vlan }) => (
     <span>
-      <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device} ({deviceName}
-      {deviceName !== '' && vlan !== -1 && ' - '}
-      {vlan !== -1 &&
-        _('keyValue', {
-          key: _('pifVlanLabel'),
-          value: vlan,
-        })}
-      )
+      <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device}
+      {(deviceName !== '' || vlan !== -1) && (
+        <span>
+          {' '}
+          ({deviceName}
+          {deviceName !== '' && vlan !== -1 && ' - '}
+          {vlan !== -1 &&
+            _('keyValue', {
+              key: _('pifVlanLabel'),
+              value: vlan,
+            })}
+          )
+        </span>
+      )}
     </span>
   ),
   // Tags.

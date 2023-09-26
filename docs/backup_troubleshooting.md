@@ -10,6 +10,18 @@ While a backup job is running, you should see activity in the "Tasks" view (Menu
 
 Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
 
+## Unexpected key (full) export
+
+_Incremental Backup_ and _Incremental Replication_ usually produce delta exports after the initial seed.
+
+Nevertheless, there may be some reasons for XO to trigger a key (full) export instead:
+
+- the configured [_Full backup interval_](https://xen-orchestra.com/docs/incremental_backups.html#key-backup-interval) advanced setting has been reached for this VM
+- the _Force full backup_ is enabled for the current schedule
+- a new disk has been added to the VM (only this disk is completely exported)
+- the reference snapshot for this backup job on the source VM is missing
+- the previous exported backup/replication is either missing or corrupted
+
 ## VDI chain protection
 
 Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain.

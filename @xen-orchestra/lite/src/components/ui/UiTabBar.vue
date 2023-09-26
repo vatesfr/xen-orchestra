@@ -5,17 +5,17 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
-import { computed, provide } from "vue";
+import { useContext } from "@/composables/context.composable";
+import { DisabledContext } from "@/context";
 
-const props = defineProps<{
-  disabled?: boolean;
-}>();
-
-provide(
-  IK_TAB_BAR_DISABLED,
-  computed(() => props.disabled ?? false)
+const props = withDefaults(
+  defineProps<{
+    disabled?: boolean;
+  }>(),
+  { disabled: undefined }
 );
+
+useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

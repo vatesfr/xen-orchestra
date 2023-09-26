@@ -1,8 +1,71 @@
 # ChangeLog
 
-## **5.85.0** (2023-07-31)
+## **5.86.1** (2023-09-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [User] _Forget all connection tokens_ button should not delete other users' tokens, even when current user is an administrator (PR [#7014](https://github.com/vatesfr/xen-orchestra/pull/7014))
+- [Settings/Servers] Fix connection to old XenServer hosts using XML-RPC protocol (broken in XO 5.85.0)
+
+### Released packages
+
+- xen-api 1.3.6
+- @xen-orchestra/proxy 0.26.33
+- xo-server 5.122.0
+- xo-web 5.124.1
+
+## **5.86.0** (2023-08-31)
+
+### Highlights
+
+- [Netbox] Synchronize VM tags [#5899](https://github.com/vatesfr/xen-orchestra/issues/5899) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6957](https://github.com/vatesfr/xen-orchestra/pull/6957))
+- [Pool/Advanced] Ability to set a crash dump SR [#5060](https://github.com/vatesfr/xen-orchestra/issues/5060) (PR [#6973](https://github.com/vatesfr/xen-orchestra/pull/6973))
+- [Backups] Ability to set the NBD mode per backup job in the UI instead of globally in the config file (PR [#6995](https://github.com/vatesfr/xen-orchestra/pull/6995))
+- [Backups] Add setting `concurrency` in a new configuration file `xo-merge-worker` (PR [#6995](https://github.com/vatesfr/xen-orchestra/pull/6995))
+- [fs/s3] retry all methods on S3 failure to better support alternative providers (PR [#6966](https://github.com/vatesfr/xen-orchestra/pull/6966))
+
+### Enhancements
+
+- [REST API] Add support for `filter` and `limit` parameters to `backups/logs` and `restore/logs` collections [Forum#64789](https://xcp-ng.org/forum/post/64789)
+- [Plugin/transport-email] Local hostname can now be configured [Forum#7579](https://xcp-ng.org/forum/topic/7579)
+- [Netbox] Better handle cases where the IP addresses reported by XAPI are malformed (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
+- [Netbox] Fallback to other VIF's IPs when first VIF doesn't have an IP [#6978](https://github.com/vatesfr/xen-orchestra/issues/6978) (PR [#6989](https://github.com/vatesfr/xen-orchestra/pull/6989))
+- [Jobs] Jobs are ordered by their name in the _Scheduling_ form [Forum#64825](https://xcp-ng.org/forum/post/64825)
+
+### Bug fixes
+
+- [LDAP] Mark the _Id attribute_ setting as required
+- [Incremental Replication] Fix `TypeError: Cannot read properties of undefined (reading 'uuid') at #isAlreadyOnHealthCheckSr` [Forum#7492](https://xcp-ng.org/forum/topic/7492) (PR [#6969](https://github.com/vatesfr/xen-orchestra/pull/6969))
+- [File Restore] Increase timeout from one to ten minutes when restoring through XO Proxy
+- [Home/VMs] Filtering with a UUID will no longer show other VMs on the same host/pool
+- [Jobs] Fixes `invalid parameters` when editing [Forum#64668](https://xcp-ng.org/forum/post/64668)
+- [Smart reboot] Fix cases where VMs remained in a suspended state (PR [#6980](https://github.com/vatesfr/xen-orchestra/pull/6980))
+- [Backup/Health dashboard] Don't show mirrored VMs as detached backups (PR [#7000](https://github.com/vatesfr/xen-orchestra/pull/7000))
+- [Netbox] Fix `the address has neither IPv6 nor IPv4 format` error [Forum#7625](https://xcp-ng.org/forum/topic/7625) (PR [#6990](https://github.com/vatesfr/xen-orchestra/pull/6990))
+- [REST API] `limit` parameter now applies at the end of the `backups/logs` and `restore/logs` collections, i.e. it selects the last entries [Forum#64880](https://xcp-ng.org/forum/post/64880)
+- [Audit] Ignore more side-effects free API methods
+
+### Released packages
+
+- xen-api 1.3.5
+- @xen-orchestra/mixins 0.12.0
+- xo-server-auth-ldap 0.10.8
+- xo-server-transport-email 0.7.0
+- @xen-orchestra/fs 4.1.0
+- @xen-orchestra/xapi 3.1.0
+- @xen-orchestra/backups 0.42.0
+- @xen-orchestra/backups-cli 1.0.12
+- @xen-orchestra/proxy 0.26.32
+- xo-server 5.121.1
+- xo-server-audit 0.10.5
+- xo-server-netbox 1.2.0
+- xo-web 5.124.0
+
+## **5.85.0** (2023-07-31)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -60,8 +123,6 @@
 - xo-server 5.120.2
 
 ## **5.84.0** (2023-06-30)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

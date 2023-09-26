@@ -31,9 +31,33 @@ async function delete_({ pattern, tokens }) {
 
 export { delete_ as delete }
 
-delete_.description = 'delete an existing authentication token'
+delete_.description = 'delete matching authentication tokens for all users'
 
 delete_.params = {
+  tokens: { type: 'array', optional: true, items: { type: 'string' } },
+  pattern: { type: 'object', optional: true },
+}
+
+delete_.permission = 'admin'
+
+// -------------------------------------------------------------------
+
+export async function deleteOwn({ pattern, tokens }) {
+  await this.deleteAuthenticationTokens({
+    filter: {
+      __and: [
+        {
+          user_id: this.apiContext.user.id,
+        },
+        pattern ?? { id: { __or: tokens } },
+      ],
+    },
+  })
+}
+
+deleteOwn.description = 'delete matching authentication tokens for the current user'
+
+deleteOwn.params = {
   tokens: { type: 'array', optional: true, items: { type: 'string' } },
   pattern: { type: 'object', optional: true },
 }

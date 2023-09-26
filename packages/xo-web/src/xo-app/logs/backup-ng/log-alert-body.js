@@ -533,12 +533,11 @@ export default decorate([
       },
       optionRenderer:
         ({ countByStatus }) =>
-        ({ label, value }) =>
-          (
-            <span>
-              {_(label)} ({countByStatus[value] || 0})
-            </span>
-          ),
+        ({ label, value }) => (
+          <span>
+            {_(label)} ({countByStatus[value] || 0})
+          </span>
+        ),
       countByStatus: ({ preFilteredTasksLogs }) => ({
         all: get(() => preFilteredTasksLogs.length),
         ...countBy(preFilteredTasksLogs, 'status'),

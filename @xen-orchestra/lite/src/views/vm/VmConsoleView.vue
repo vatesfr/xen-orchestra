@@ -34,7 +34,7 @@ import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { useConsoleCollection } from "@/stores/xen-api/console.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
@@ -77,7 +77,7 @@ const hasError = computed(() => hasVmError.value || hasConsoleError.value);
 const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm["uuid"]));
 
 const isVmRunning = computed(
-  () => vm.value?.power_state === POWER_STATE.RUNNING
+  () => vm.value?.power_state === VM_POWER_STATE.RUNNING
 );
 
 const vmConsole = computed(() => {
