@@ -125,3 +125,21 @@ If you can't fetch updates, perform a few checks from your XOA:
 - if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
 - use `ifconfig` to check your network configuration
 - check your firewall(s) and allow XOA to reach xen-orchestra.com (port 443)
+
+## XenServer Updates
+
+Starting September 2023, XenServer Updates require authentication:
+
+1. Make sure your XenServer hosts have [the proper licenses](https://docs.xenserver.com/en-us/citrix-hypervisor/overview-licensing.html)
+
+2. Go to any XenServer Update URL like [this one](https://support.citrix.com/article/CTX277443/hotfix-xs81e006-for-citrix-hypervisor-81) and log in to check that your account has permissions to download updates. You should see a "Download" button.
+
+3. Go to this URL: [https://support.citrix.com/xencenterclientiddownload](https://support.citrix.com/xencenterclientiddownload) and click "Download Client ID"
+
+![Download XenServer Client ID](./assets/xs-client-id-download.png)
+
+4. In Xen Orchestra, go to your User Settings page (bottom left-hand corner) and upload the file `xencenter_client_id.json` you just downloaded from the "XenServer Client ID" section
+
+![Upload XenServer Client ID](./assets/xs-client-id-upload.png)
+
+5. Go to a pool's "Patches" page. You can now install XenServer Updates. If you get a `LICENCE_RESTRICTION` error, it means that [you're missing XenServer licenses on your hosts](https://docs.xenserver.com/en-us/citrix-hypervisor/overview-licensing.html).

@@ -8,11 +8,23 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Netbox] Don't delete VMs that have been created manually in XO-synced cluster [Forum#7639](https://xcp-ng.org/forum/topic/7639) (PR [#7008](https://github.com/vatesfr/xen-orchestra/pull/7008))
+- [Kubernetes] *Search domains* field is now optional [#7028](https://github.com/vatesfr/xen-orchestra/pull/7028)
+- [Patches] Support new XenServer Updates system. See [our documentation](https://xen-orchestra.com/docs/updater.html#xenserver-updates). (PR [#7044](https://github.com/vatesfr/xen-orchestra/pull/7044))
+- [REST API] Hosts' audit and system logs can be downloaded [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
+- [Host/Advanced] New button to download system logs [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
 - [Home/Hosts, Pools] Display host brand and version (PR [#7027](https://github.com/vatesfr/xen-orchestra/pull/7027))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backup/Restore] Fix `Cannot read properties of undefined (reading 'id')` error when restoring via an XO Proxy (PR [#7026](https://github.com/vatesfr/xen-orchestra/pull/7026))
+- [Google/GitHub Auth] Fix `Internal Server Error` (xo-server: `Cannot read properties of undefined (reading 'id')`) when logging in with Google or GitHub [Forum#7729](https://xcp-ng.org/forum/topic/7729) (PRs [#7031](https://github.com/vatesfr/xen-orchestra/pull/7031) [#7032](https://github.com/vatesfr/xen-orchestra/pull/7032))
+- [Jobs] Fix schedules not being displayed on first load [#6968](https://github.com/vatesfr/xen-orchestra/issues/6968) (PR [#7034](https://github.com/vatesfr/xen-orchestra/pull/7034))
+- [OVA Export] Fix support of disks with more than 8.2GiB of content (PR [#7047](https://github.com/vatesfr/xen-orchestra/pull/7047))
+- [Backup] Fix `VHDFile implementation is not compatible with encrypted remote` when using VHD directory with encryption (PR [#7045](https://github.com/vatesfr/xen-orchestra/pull/7045))
+- [Backup/Mirror] Fix `xo:fs:local WARN lock compromised` when mirroring a Backup Repository to a local/NFS/SMB repository ([#7043](https://github.com/vatesfr/xen-orchestra/pull/7043))
+- [Ova import] Fix importing VM with collision in disk position (PR [#7051](https://github.com/vatesfr/xen-orchestra/pull/7051)) (issue [7046](https://github.com/vatesfr/xen-orchestra/issues/7046))
 
 ### Packages to release
 
@@ -30,6 +42,12 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
+- vhd-lib minor
+- xo-vmdk-to-vhd patch
+- xo-server minor
+- xo-server-auth-github patch
+- xo-server-auth-google patch
 - xo-server-netbox minor
 - xo-web minor
 
