@@ -31,6 +31,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       throw new Error('cannot backup a VM created by this very job')
     }
 
+    const currentOperations = Object.values(vm.current_operations)
+    if (currentOperations.some(_ => _ === 'migrate_send' || _ === 'pool_migrate')) {
+      throw new Error('cannot backup a VM currently being migrated')
+    }
+
     this.config = config
     this.job = job
     this.remoteAdapters = remoteAdapters
