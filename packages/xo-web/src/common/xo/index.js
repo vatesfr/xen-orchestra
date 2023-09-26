@@ -3454,6 +3454,19 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
+export const restartXoServer = async () => {
+  await confirm({
+    icon: 'restart',
+    title: _('restartXoServer'),
+    body: _('restartXoServerConfirm'),
+    strongConfirm: {
+      messageId: 'restartXoServer',
+    },
+  })
+
+  await _call('xoa.restartXoServer')
+}
+
 // Proxy --------------------------------------------------------------------
 
 export const getAllProxies = () => _call('proxy.getAll')
