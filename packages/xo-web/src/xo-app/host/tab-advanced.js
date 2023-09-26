@@ -62,7 +62,11 @@ const SCHED_GRAN_TYPE_OPTIONS = [
   },
 ]
 
-const downloadLogs = uuid => {
+const downloadLogs = async uuid => {
+  await confirm({
+    title: _('hostDownloadLogs'),
+    body: _('hostDownloadLogsContainEntireHostLogs'),
+  })
   window.open(`./rest/v0/hosts/${uuid}/logs.tar`)
 }
 
