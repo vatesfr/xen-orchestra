@@ -41,11 +41,11 @@ import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { useVmMetricsCollection } from "@/stores/xen-api/vm-metrics.store";
 import { percent } from "@/libs/utils";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
 
-const ACTIVE_STATES = new Set([POWER_STATE.RUNNING, POWER_STATE.PAUSED]);
+const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED]);
 
 const {
   hasError: hostStoreHasError,

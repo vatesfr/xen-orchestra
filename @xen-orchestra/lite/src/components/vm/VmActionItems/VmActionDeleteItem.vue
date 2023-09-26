@@ -42,7 +42,7 @@ import useModal from "@/composables/modal.composable";
 import { ColorContext } from "@/context";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { POWER_STATE } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
@@ -65,7 +65,7 @@ const vms = computed<XenApiVm[]>(() =>
 );
 
 const areSomeVmsInExecution = computed(() =>
-  vms.value.some((vm) => vm.power_state !== POWER_STATE.HALTED)
+  vms.value.some((vm) => vm.power_state !== VM_POWER_STATE.HALTED)
 );
 
 const deleteVms = async () => {

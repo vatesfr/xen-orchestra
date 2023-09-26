@@ -40,6 +40,7 @@ export const XEN_API_OBJECT_TYPES = {
   vm: "VM",
   vmpp: "VMPP",
   vmss: "VMSS",
+  vm_appliance: "VM_appliance",
   vm_guest_metrics: "VM_guest_metrics",
   vm_metrics: "VM_metrics",
   vusb: "VUSB",
@@ -62,6 +63,7 @@ export const XEN_API_OBJECT_TYPES = {
   subject: "subject",
   task: "task",
   tunnel: "tunnel",
+  vtpm: "VTPM",
 } as const;
 
 export const rawTypeToType = <RawType extends RawObjectType>(
@@ -71,28 +73,6 @@ export const rawTypeToType = <RawType extends RawObjectType>(
 export const typeToRawType = <Type extends ObjectType>(
   type: Type
 ): TypeToRawType<Type> => XEN_API_OBJECT_TYPES[type];
-
-export enum POWER_STATE {
-  RUNNING = "Running",
-  PAUSED = "Paused",
-  HALTED = "Halted",
-  SUSPENDED = "Suspended",
-}
-
-export enum VM_OPERATION {
-  START = "start",
-  START_ON = "start_on",
-  RESUME = "resume",
-  UNPAUSE = "unpause",
-  CLONE = "clone",
-  SHUTDOWN = "shutdown",
-  CLEAN_SHUTDOWN = "clean_shutdown",
-  HARD_SHUTDOWN = "hard_shutdown",
-  CLEAN_REBOOT = "clean_reboot",
-  HARD_REBOOT = "hard_reboot",
-  PAUSE = "pause",
-  SUSPEND = "suspend",
-}
 
 export const buildXoObject = <T extends XenApiRecord<ObjectType>>(
   record: RawXenApiRecord<T>,

@@ -14,7 +14,7 @@
 import MenuItem from "@/components/menu/MenuItem.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
-import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.utils";
+import { VM_POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faCopy } from "@fortawesome/free-solid-svg-icons";
@@ -36,7 +36,7 @@ const areAllSelectedVmsHalted = computed(
   () =>
     selectedVms.value.length > 0 &&
     selectedVms.value.every(
-      (selectedVm) => selectedVm.power_state === POWER_STATE.HALTED
+      (selectedVm) => selectedVm.power_state === VM_POWER_STATE.HALTED
     )
 );
 
