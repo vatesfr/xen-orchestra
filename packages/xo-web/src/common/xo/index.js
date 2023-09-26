@@ -3149,6 +3149,11 @@ export const editAuthToken = ({ description, id }) =>
     id,
   })::tap(subscribeUserAuthTokens.forceRefresh)
 
+export const editXsCredentials = xsCredentials =>
+  _setUserPreferences({
+    xsCredentials,
+  })
+
 // User filters --------------------------------------------------
 
 import AddUserFilterModalBody from './add-user-filter-modal' // eslint-disable-line import/first
