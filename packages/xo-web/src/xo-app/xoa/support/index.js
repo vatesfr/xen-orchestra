@@ -7,7 +7,7 @@ import { addSubscriptions, adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { closeTunnel, openTunnel, subscribeTunnelState } from 'xo'
+import { closeTunnel, openTunnel, restartXoServer, subscribeTunnelState } from 'xo'
 import { reportOnSupportPanel } from 'report-bug-button'
 
 const ansiUp = new AnsiUp()
@@ -42,6 +42,9 @@ const Support = decorate([
         <Col>
           <ActionButton btnStyle='primary' disabled={COMMUNITY} handler={reportOnSupportPanel} icon='ticket'>
             {_('createSupportTicket')}
+          </ActionButton>
+          <ActionButton btnStyle='danger' disabled={COMMUNITY} handler={restartXoServer} icon='restart' className='ml-1'>
+            {_('restartXoServer')}
           </ActionButton>
         </Col>
       </Row>
