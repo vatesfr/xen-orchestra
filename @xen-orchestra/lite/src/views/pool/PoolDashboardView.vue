@@ -32,6 +32,7 @@ export const N_ITEMS = 5;
 
 <script lang="ts" setup>
 import PoolDashboardAlarms from "@/components/pool/dashboard/PoolDashboardAlarms.vue";
+import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
@@ -40,14 +41,14 @@ import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
+import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { GRANULARITY } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
 import {
   IK_HOST_LAST_WEEK_STATS,
   IK_HOST_STATS,

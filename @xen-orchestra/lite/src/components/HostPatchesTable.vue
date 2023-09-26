@@ -1,6 +1,6 @@
 <template>
   <UiCardSpinner v-if="!areSomeLoaded" />
-  <UiTable v-else class="hosts-patches-table">
+  <UiTable v-else class="hosts-patches-table" :class="{ desktop: isDesktop }">
     <tr v-for="patch in sortedPatches" :key="patch.$id">
       <th>{{ patch.name }}</th>
       <td>
@@ -34,6 +34,7 @@ import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTable from "@/components/ui/UiTable.vue";
 import type { XenApiPatchWithHostRefs } from "@/composables/host-patches.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
+import { useUiStore } from "@/stores/ui.store";
 import { computed } from "vue";
 
 const props = defineProps<{
@@ -48,9 +49,15 @@ const sortedPatches = computed(() =>
     (patch1, patch2) => patch1.changelog.date - patch2.changelog.date
   )
 );
+
+const { isDesktop } = useUiStore();
 </script>
 
 <style lang="postcss" scoped>
+.hosts-patches-table.desktop {
+  max-width: 45rem;
+}
+
 .version {
   display: flex;
   gap: 1rem;
