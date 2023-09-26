@@ -988,6 +988,8 @@ const messages = {
   hyperThreading: 'Hyper-threading (SMT)',
   hyperThreadingNotAvailable: 'HT detection is only available on XCP-ng 7.6 and higher',
   hostDownloadLogs: 'Download system logs',
+  hostDownloadLogsContainEntireHostLogs:
+    "The logs you are about to download contain the entire host's logs, potentially hundreds of megabytes. Please note that these logs can be technical and complex to analyze, requiring some expertise.",
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
