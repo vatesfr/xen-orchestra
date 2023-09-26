@@ -47,3 +47,7 @@ export const IK_BUTTON_GROUP_TRANSPARENT = Symbol() as InjectionKey<
 export const IK_CARD_GROUP_VERTICAL = Symbol() as InjectionKey<boolean>;
 
 export const IK_INPUT_ID = Symbol() as InjectionKey<ComputedRef<string>>;
+
+export const IK_MODAL_CLOSE = Symbol() as InjectionKey<() => void>;
+
+export const IK_MODAL_NESTED = Symbol() as InjectionKey<boolean>;

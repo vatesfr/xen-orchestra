@@ -58,7 +58,7 @@ const getDefaultOpenedDirectories = (): Set<string> => {
   }
 
   const openedDirectories = new Set<string>();
-  const parts = currentRoute.path.split("/");
+  const parts = currentRoute.path.split("/").slice(2);
   let currentPath = "";
 
   for (const part of parts) {

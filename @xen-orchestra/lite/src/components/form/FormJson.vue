@@ -1,20 +1,28 @@
 <template>
   <UiModal
-    @submit.prevent="saveJson"
+    v-model="isCodeModalOpen"
     :color="isJsonValid ? 'success' : 'error'"
-    v-if="isCodeModalOpen"
-    :icon="faCode"
-    @close="closeCodeModal"
+    closable
   >
-    <FormTextarea class="modal-textarea" v-model="editedJson" />
-    <template #buttons>
-      <UiButton transparent @click="formatJson">{{ $t("reformat") }}</UiButton>
-      <UiButton outlined @click="closeCodeModal">{{ $t("cancel") }}</UiButton>
-      <UiButton :disabled="!isJsonValid" type="submit"
-        >{{ $t("save") }}
-      </UiButton>
-    </template>
+    <FormModalLayout @submit.prevent="saveJson" :icon="faCode">
+      <template #default>
+        <FormTextarea class="modal-textarea" v-model="editedJson" />
+      </template>
+
+      <template #buttons>
+        <UiButton transparent @click="formatJson">
+          {{ $t("reformat") }}
+        </UiButton>
+        <UiButton outlined @click="closeCodeModal">
+          {{ $t("cancel") }}
+        </UiButton>
+        <UiButton :disabled="!isJsonValid" type="submit">
+          {{ $t("save") }}
+        </UiButton>
+      </template>
+    </FormModalLayout>
   </UiModal>
+
   <FormInput
     @click="openCodeModal"
     :model-value="jsonValue"
@@ -26,8 +34,9 @@
 <script lang="ts" setup>
 import FormInput from "@/components/form/FormInput.vue";
 import FormTextarea from "@/components/form/FormTextarea.vue";
+import FormModalLayout from "@/components/ui/modals/layouts/FormModalLayout.vue";
+import UiModal from "@/components/ui/modals/UiModal.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import { faCode } from "@fortawesome/free-solid-svg-icons";
 import { useVModel, whenever } from "@vueuse/core";

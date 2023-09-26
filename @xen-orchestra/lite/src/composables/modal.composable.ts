@@ -1,6 +1,11 @@
-import { ref } from "vue";
+import { computed, readonly, ref } from "vue";
 
-export default function useModal<T>() {
+type ModalOptions = {
+  confirmClose?: () => boolean;
+  onClose?: () => void;
+};
+
+export default function useModal<T>(options: ModalOptions = {}) {
   const $payload = ref<T>();
   const $isOpen = ref(false);
 
@@ -8,15 +13,35 @@ export default function useModal<T>() {
     $isOpen.value = true;
     $payload.value = payload;
   };
+  const close = (force = false) => {
+    if (!force && options.confirmClose?.() === false) {
+      return;
+    }
 
-  const close = () => {
+    if (options.onClose) {
+      options.onClose();
+    }
+
     $isOpen.value = false;
     $payload.value = undefined;
   };
 
+  const isOpen = computed({
+    get() {
+      return $isOpen.value;
+    },
+    set(value) {
+      if (value) {
+        open();
+      } else {
+        close();
+      }
+    },
+  });
+
   return {
-    payload: $payload,
-    isOpen: $isOpen,
+    payload: readonly($payload),
+    isOpen,
     open,
     close,
   };
