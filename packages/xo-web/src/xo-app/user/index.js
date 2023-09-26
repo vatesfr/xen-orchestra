@@ -99,7 +99,7 @@ class XsClientId extends Component {
               reject(new Error('Could not find username and apikey in file'))
             }
 
-            editXsCredentials({ username, password: apikey }).then(resolve, reject)
+            editXsCredentials({ username, apikey }).then(resolve, reject)
           } catch (err) {
             reject(err)
           }

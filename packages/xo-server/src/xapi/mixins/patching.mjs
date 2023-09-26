@@ -342,8 +342,8 @@ export default {
       throw new Error('no such patch ' + uuid)
     }
 
-    const { username, password } = xsCredentials
-    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${password}` })
+    const { username, apikey } = xsCredentials
+    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
     stream = await new Promise((resolve, reject) => {
       const PATCH_RE = /\.xsupdate$/
       stream
@@ -376,8 +376,8 @@ export default {
       throw new Error('no such patch ' + uuid)
     }
 
-    const { username, password } = xsCredentials
-    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${password}` })
+    const { username, apikey } = xsCredentials
+    let stream = await this.xo.httpRequest(patchInfo.url, { auth: `${username}:${apikey}` })
     stream = await new Promise((resolve, reject) => {
       stream
         .pipe(unzip.Parse())
@@ -421,7 +421,7 @@ export default {
     // ----------
 
     // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
-    if (xsCredentials?.username === undefined || xsCredentials?.password === undefined) {
+    if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
       throw new Error('XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates')
     }
 
