@@ -13,7 +13,7 @@
 - [REST API] Hosts' audit and system logs can be downloaded [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
 - [Host/Advanced] New button to download system logs [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
 - [Home/Hosts, Pools] Display host brand and version (PR [#7027](https://github.com/vatesfr/xen-orchestra/pull/7027))
-- [XOA] New button to restart XO Server directly from the UI
+- [XOA] New button to restart XO Server directly from the UI (PR [#7056](https://github.com/vatesfr/xen-orchestra/pull/7056))
 
 ### Bug fixes
 
