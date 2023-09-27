@@ -336,8 +336,13 @@ class Netbox {
         tags: [],
       }
 
-      const distro = xoVm.os_version?.distro
-      if (distro != null) {
+      let distro = xoVm.os_version?.distro
+      if (distro !== undefined) {
+        const versionMajor = xoVm.os_version.major
+        if (versionMajor !== undefined) {
+          distro += ` ${versionMajor}`
+        }
+
         const slug = slugify(distro)
         let nbPlatform = find(nbPlatforms, { slug })
         if (nbPlatform === undefined) {
