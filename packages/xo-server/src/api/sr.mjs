@@ -884,6 +884,8 @@ export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnh
   return unhealthyVdiChainsLengthBySr
 }, 60e3)
 
+getAllUnhealthyVdiChainsLength.permission = 'admin'
+
 // -------------------------------------------------------------------
 
 export function getVdiChainsInfo({ sr }) {
