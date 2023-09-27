@@ -119,7 +119,7 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export async function restart({ bypassBackupCheck = false, host, force = true, suspendResidentVms }) {
+export async function restart({ bypassBackupCheck = false, host, force = false, suspendResidentVms }) {
   if (bypassBackupCheck) {
     log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
