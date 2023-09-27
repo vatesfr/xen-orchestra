@@ -1329,7 +1329,7 @@ export default class Xapi extends XapiBase {
       ),
     ])
     // only add the MBR for windows VM
-    if (vm.platform?.virdian === true) {
+    if (vm.platform.viridian === 'true') {
       buffer = addMbr(buffer)
     }
     const vdi = await this._getOrWaitObject(
