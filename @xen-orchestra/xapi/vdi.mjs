@@ -16,12 +16,30 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
-async function getTcpStream(host, srUuid, vhdUuid){
-
-  const ssh = new NodeSSH()
+async function getTcpStream(host, xapi, vhdUuid){
+// Host.call_plugin avec plugin=vdi-tool fn=expoty_vdi et argument uuid=<vdi-uuid> hostname=<hostname or ip> port=<port>
   const HOST_LOGIN = 'root'
   const HOST_PWD = ''
   const XO_ADDRESS = '10.200.200.32'
+
+  // create tcp server 
+  const server = net.createServer()
+  await new Promise(resolve =>{
+    server.listen(0, ()=>{
+      resolve()
+    })
+  })
+console.log(host.$ref,  {uuid: vhdUuid, host: XO_ADDRESS, port:server.address().port })
+try{
+
+  const result = await xapi.call('host.call_plugin', host.$ref, 'vdi-tool', 'expoty_vdi', {uuid: vhdUuid, host: XO_ADDRESS, port:''+server.address().port })
+  return JSON.parse(result)
+}catch(error){
+  console.error(error)
+  console.log(error.call.params)
+}
+  const ssh = new NodeSSH()
+
   await ssh.connect({
     host: host.address,
     username: HOST_LOGIN,
@@ -31,12 +49,6 @@ async function getTcpStream(host, srUuid, vhdUuid){
   await ssh.putFile('./uploadVhd.py', '/tmp/uploadVhd.py')
   console.log('python file sent')
   // create tcp server 
-  const server = net.createServer()
-  await new Promise(resolve =>{
-    server.listen(0, ()=>{
-      resolve()
-    })
-  })
   
   console.log('tcp server up',server.address().port)
   console.log( `python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port} ` )
@@ -157,7 +169,7 @@ class Vdi {
     const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
     const hosts = pbds.map(pbd => this.getObject(pbd.host))
     // console.log({vdi,sr, pbds, hosts})
-    return getTcpStream(hosts[0], sr.uuid, vdi.uuid)
+    return getTcpStream(hosts[0], this, vdi.$ref)
     let nbdClient, stream
     try {
       if (preferNbd) {
