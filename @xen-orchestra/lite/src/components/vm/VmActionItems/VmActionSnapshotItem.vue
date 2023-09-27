@@ -34,7 +34,9 @@ const areSomeVmsSnapshoting = computed(() =>
   vms.value.some((vm) => isOperationPending(vm, VM_OPERATION.SNAPSHOT))
 );
 
-const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsSnapshoting.value);
+const isDisabled = computed(
+  () => vms.value.length === 0 || areSomeVmsSnapshoting.value
+);
 
 const handleSnapshot = () => {
   const vmRefsToSnapshot = Object.fromEntries(

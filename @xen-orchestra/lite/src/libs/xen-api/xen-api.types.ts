@@ -621,7 +621,7 @@ export interface XenApiBond extends XenApiRecord<"bond"> {
 
 export type XenApiEvent<
   RelationType extends ObjectType,
-  XRecord extends ObjectTypeToRecord<RelationType>
+  XRecord extends ObjectTypeToRecord<RelationType>,
 > = {
   id: string;
   class: RelationType;

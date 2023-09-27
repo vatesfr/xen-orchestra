@@ -3,7 +3,7 @@
     <UiCardGroup>
       <PoolDashboardStatus />
       <PoolDashboardAlarms class="alarms" />
-      <UiCardComingSoon title="Patches" />
+      <PoolDashboardHostsPatches />
     </UiCardGroup>
     <UiCardGroup>
       <UiCardGroup>
@@ -36,12 +36,12 @@ import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.v
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import PoolDashboardHostsPatches from "@/components/pool/dashboard/PoolDashboardHostsPatches.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
 import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
-import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";

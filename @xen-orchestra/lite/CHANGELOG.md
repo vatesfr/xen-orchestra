@@ -4,6 +4,7 @@
 
 - Ability to migrate selected VMs to another host (PR [#7040](https://github.com/vatesfr/xen-orchestra/pull/7040))
 - Ability to snapshot selected VMs (PR [#7021](https://github.com/vatesfr/xen-orchestra/pull/7021))
+- Add Patches to Pool Dashboard (PR [#6709](https://github.com/vatesfr/xen-orchestra/pull/6709))
 
 ## **0.1.3** (2023-09-01)
 
