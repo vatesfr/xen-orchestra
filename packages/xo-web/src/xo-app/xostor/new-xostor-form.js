@@ -9,8 +9,8 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { find, first, map, remove, size, some } from 'lodash'
-import { getBlockdevices } from 'xo'
+import { find, first, map, mapValues, remove, size, some } from 'lodash'
+import { createXostorSr, getBlockdevices } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
 import { Pool as PoolRenderItem, Network as NetworkRenderItem } from 'render-xo-item'
@@ -422,10 +422,11 @@ const SummaryCard = decorate([
                 <Col size={6}>{_('keyValue', { key: _('provisioning'), value: state.provisioning.label })}</Col>
               </Row>
               <Row>
-                <Col size={6}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
-                <Col size={6}>
+                <Col size={12}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
+                {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
+                {/* <Col size={6}>
                   {_('keyValue', { key: _('network'), value: <NetworkRenderItem id={state.networkId} /> })}
-                </Col>
+                </Col> */}
               </Row>
               <Row>
                 <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
@@ -450,6 +451,7 @@ const NewXostorForm = decorate([
   provideState({
     initialState: () => ({
       _networkId: undefined,
+      _createdSrUuid: undefined, // used for redirection when the storage has been created
       disksByHost: {},
       provisioning: PROVISIONING_OPTIONS[0], // default value 'thin'
       poolId: undefined,
@@ -492,6 +494,17 @@ const NewXostorForm = decorate([
           [hostId]: disks,
         }
       },
+      async createXostorSr() {
+        const { disksByHost, srDescription, srName, provisioning, replication } = this.state
+
+        this.state._createdSrUuid = await createXostorSr({
+          description: srDescription.trim() === '' ? undefined : srDescription.trim(),
+          disksByHost: mapValues(disksByHost, disks => disks.map(disk => formatDiskName(disk.name))),
+          name: srName.trim() === '' ? undefined : srName.trim(),
+          provisioning: provisioning.value,
+          replication: replication.value,
+        })
+      },
     },
     computed: {
       // Private ==========
@@ -509,12 +522,13 @@ const NewXostorForm = decorate([
       isFormInvalid: state =>
         state.isReplicationMissing || state.isProvisioningMissing || state.isNameMissing || state.isDisksMissing,
       isXcpngHost: state => isXcpngHost(first(state.poolHosts)),
+      getSrPath: state => () => `/srs/${state._createdSrUuid}`,
       // State ============
       networkId: state => (state._networkId === undefined ? state._defaultNetworkId : state._networkId),
     },
   }),
   injectState,
-  ({ resetState, state, hostsByPoolId, networks, pifs }) => (
+  ({ effects, resetState, state, hostsByPoolId, networks, pifs }) => (
     <Container>
       <Row>
         <Col size={6}>
@@ -525,12 +539,13 @@ const NewXostorForm = decorate([
         </Col>
       </Row>
       <Row>
-        <Col size={6}>
+        <Col size={12}>
           <PoolCard hostsByPoolId={hostsByPoolId} />
         </Col>
-        <Col size={6}>
-          <NetworkCard networks={networks} pifs={pifs} />
-        </Col>
+        {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
+        {/* <Col size={6}>
+            <NetworkCard networks={networks} pifs={pifs} />
+          </Col> */}
       </Row>
       <Row>
         <DisksCard />
@@ -539,7 +554,13 @@ const NewXostorForm = decorate([
         <SummaryCard />
       </Row>
       <Row>
-        <ActionButton btnStyle='primary' disabled={state.isFormInvalid} icon='add'>
+        <ActionButton
+          btnStyle='primary'
+          disabled={state.isFormInvalid}
+          handler={effects.createXostorSr}
+          icon='add'
+          redirectOnSuccess={state.getSrPath}
+        >
           {_('create')}
         </ActionButton>
         <ActionButton className='ml-1' handler={resetState} icon='reset'>

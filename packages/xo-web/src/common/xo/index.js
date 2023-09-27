@@ -3446,6 +3446,26 @@ export const updateXosanPacks = pool =>
     return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
   })
 
+// XOSTOR   --------------------------------------------------------------------
+
+export const createXostorSr = async params => {
+  try {
+    return await _call('xostor.create', params)
+  } catch (error) {
+    if (operationFailed.is(error, { code: 'VG_GROUP_ALREADY_EXISTS' })) {
+      await confirm({
+        title: _('xostor'),
+        body: _('xostorFailedVgAlreadyExists'),
+        icon: 'error',
+      })
+
+      params.force = true
+      return _call('xostor.create', params)
+    }
+    throw error
+  }
+}
+
 // Licenses --------------------------------------------------------------------
 
 export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })

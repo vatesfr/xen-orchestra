@@ -1,5 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
+import { operationFailed } from 'xo-common/api-errors.js'
 
 const ENUM_PROVISIONING = {
   Thin: 'thin',
@@ -104,8 +105,8 @@ formatDisks.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function create({ description, disksByHosts, force, ignoreFileSystems, name, provisioning, replication }) {
-  const hostIds = Object.keys(disksByHosts)
+export async function create({ description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }) {
+  const hostIds = Object.keys(disksByHost)
   const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
 
   if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
@@ -116,18 +117,30 @@ export async function create({ description, disksByHosts, force, ignoreFileSyste
   const boundInstallDependencies = installDependencies.bind(this)
   await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
   const boundFormatDisks = formatDisks.bind(this)
-  await asyncEach(
-    hosts,
-    host => boundFormatDisks({ disks: disksByHosts[host.id], host, force, ignoreFileSystems, provisioning }),
-    {
-      stopOnError: false,
-    },
-  )
+  try {
+    await asyncEach(
+      hosts,
+      host => boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning }),
+      {
+        stopOnError: false,
+      }
+    )
+  } catch (error) {
+    log.error(error.errors[0])
+    const isForceRequired = error.errors.every(error => error.code === 'LVM_ERROR(5)')
+
+    if (isForceRequired) {
+      throw operationFailed({ objectId: hostIds, code: 'VG_GROUP_ALREADY_EXISTS' })
+    }
+
+    throw error
+  }
 
   const host = hosts[0]
+  const xapi = this.getXapi(host)
 
   log.info(`Create XOSTOR (${name}) with provisioning: ${provisioning}`)
-  return this.getXapi(host).SR_create({
+  const srRef = await this.getXapi(host).SR_create({
     device_config: {
       'group-name': 'linstor_group/' + LV_NAME,
       redundancy: String(replication),
@@ -139,12 +152,14 @@ export async function create({ description, disksByHosts, force, ignoreFileSyste
     shared: true,
     type: 'linstor',
   })
+
+  return xapi.getObject(srRef).uuid
 }
 create.description = 'Create a XOSTOR storage'
 create.permission = 'admin'
 create.params = {
   description: { type: 'string', optional: true, default: 'From XO-server' },
-  disksByHosts: { type: 'object' },
+  disksByHost: { type: 'object' },
   force: { type: 'boolean', optional: true, default: false },
   ignoreFileSystems: { type: 'boolean', optional: true, default: false },
   name: { type: 'string' },
