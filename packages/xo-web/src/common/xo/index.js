@@ -3373,8 +3373,10 @@ export const updateXosanPacks = pool =>
 
 // XOSTOR   --------------------------------------------------------------------
 
-export const createXostorSr = params => {
-  return _call('xostor.create', params).catch(async error => {
+export const createXostorSr = async params => {
+  try {
+    return await _call('xostor.create', params)
+  } catch (error) {
     if (operationFailed.is(error, { code: 'VG_GROUP_ALREADY_EXISTS' })) {
       await confirm({
         title: _('xostor'),
@@ -3386,7 +3388,7 @@ export const createXostorSr = params => {
       return _call('xostor.create', params)
     }
     throw error
-  })
+  }
 }
 
 // Licenses --------------------------------------------------------------------

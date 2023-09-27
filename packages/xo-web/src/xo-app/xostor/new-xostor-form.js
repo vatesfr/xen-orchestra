@@ -9,7 +9,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { find, first, map, remove, size, some } from 'lodash'
+import { find, first, map, mapValues, remove, size, some } from 'lodash'
 import { createXostorSr, getBlockdevices } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
@@ -497,14 +497,9 @@ const NewXostorForm = decorate([
       async createXostorSr() {
         const { disksByHost, srDescription, srName, provisioning, replication } = this.state
 
-        const _disksByHost = { ...disksByHost }
-        for (const [hostId, disks] of Object.entries(disksByHost)) {
-          _disksByHost[hostId] = disks.map(disk => formatDiskName(disk.name))
-        }
-
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
-          disksByHost: _disksByHost,
+          disksByHost: mapValues(disksByHost, disks => disks.map(disk => formatDiskName(disk.name))),
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
@@ -533,48 +528,47 @@ const NewXostorForm = decorate([
     },
   }),
   injectState,
-  ({ effects, resetState, state, hostsByPoolId, networks, pifs }) => {
-    return (
-      <Container>
-        <Row>
-          <Col size={6}>
-            <StorageCard />
-          </Col>
-          <Col size={6}>
-            <SettingsCard />
-          </Col>
-        </Row>
-        <Row>
-          <Col size={12}>
-            <PoolCard hostsByPoolId={hostsByPoolId} />
-          </Col>
-          {/* <Col size={6}>
+  ({ effects, resetState, state, hostsByPoolId, networks, pifs }) => (
+    <Container>
+      <Row>
+        <Col size={6}>
+          <StorageCard />
+        </Col>
+        <Col size={6}>
+          <SettingsCard />
+        </Col>
+      </Row>
+      <Row>
+        <Col size={12}>
+          <PoolCard hostsByPoolId={hostsByPoolId} />
+        </Col>
+        {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
+        {/* <Col size={6}>
             <NetworkCard networks={networks} pifs={pifs} />
           </Col> */}
-        </Row>
-        <Row>
-          <DisksCard />
-        </Row>
-        <Row>
-          <SummaryCard />
-        </Row>
-        <Row>
-          <ActionButton
-            btnStyle='primary'
-            disabled={state.isFormInvalid}
-            handler={effects.createXostorSr}
-            icon='add'
-            redirectOnSuccess={state.getSrPath}
-          >
-            {_('create')}
-          </ActionButton>
-          <ActionButton className='ml-1' handler={resetState} icon='reset'>
-            {_('formReset')}
-          </ActionButton>
-        </Row>
-      </Container>
-    )
-  },
+      </Row>
+      <Row>
+        <DisksCard />
+      </Row>
+      <Row>
+        <SummaryCard />
+      </Row>
+      <Row>
+        <ActionButton
+          btnStyle='primary'
+          disabled={state.isFormInvalid}
+          handler={effects.createXostorSr}
+          icon='add'
+          redirectOnSuccess={state.getSrPath}
+        >
+          {_('create')}
+        </ActionButton>
+        <ActionButton className='ml-1' handler={resetState} icon='reset'>
+          {_('formReset')}
+        </ActionButton>
+      </Row>
+    </Container>
+  ),
 ])
 
 export default NewXostorForm
