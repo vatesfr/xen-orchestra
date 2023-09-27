@@ -1,10 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-<<<<<<< HEAD
-import { operationFailed } from 'xo-common/api-errors.js'
-=======
 import { defer } from 'golike-defer'
->>>>>>> 705d1f024... feat(xo-server/xostor): associate a XOSTOR with a license at the XOSTOR creation
+import { operationFailed } from 'xo-common/api-errors.js'
 
 const ENUM_PROVISIONING = {
   Thin: 'thin',
@@ -111,9 +108,9 @@ formatDisks.resolve = {
 
 export const create = defer(async function (
   $defer,
-  { description, disksByHosts, force, ignoreFileSystems, name, provisioning, replication }
+  { description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }
 ) {
-  const hostIds = Object.keys(disksByHosts)
+  const hostIds = Object.keys(disksByHost)
 
   const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
 
