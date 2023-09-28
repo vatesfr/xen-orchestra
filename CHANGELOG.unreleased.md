@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Mirror] Fix backup report not being sent (PR [#7049](https://github.com/vatesfr/xen-orchestra/pull/7049))
+- [New VM] Only add MBR to cloud-init drive on Windows VMs to avoid booting issues (e.g. with Talos) (PR [#7050](https://github.com/vatesfr/xen-orchestra/pull/7050))
 
 ### Packages to release
 
@@ -30,5 +31,6 @@
 <!--packages-start-->
 
 - xo-server-backup-reports patch
+- xo-server patch
 
 <!--packages-end-->
