@@ -14,6 +14,10 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup/Mirror] Fix backup report not being sent (PR [#7049](https://github.com/vatesfr/xen-orchestra/pull/7049))
+- [New VM] Only add MBR to cloud-init drive on Windows VMs to avoid booting issues (e.g. with Talos) (PR [#7050](https://github.com/vatesfr/xen-orchestra/pull/7050))
+- [VDI Import] Add the SR name to the corresponding XAPI task (PR [#6979](https://github.com/vatesfr/xen-orchestra/pull/6979))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.

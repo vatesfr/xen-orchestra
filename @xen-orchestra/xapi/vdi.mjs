@@ -123,7 +123,7 @@ class Vdi {
       error.SR = await this.getRecord('SR', vdi.SR)
       error.VDI = vdi
       error.nbdClient = nbdClient
-      nbdClient?.disconnect()
+      await nbdClient?.disconnect()
       throw error
     }
   }

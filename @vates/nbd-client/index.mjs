@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import { Socket } from 'node:net'
 import { connect } from 'node:tls'
-import { fromCallback, pRetry, pDelay, pTimeout } from 'promise-toolbox'
+import { fromCallback, pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -112,18 +112,22 @@ export default class NbdClient {
   }
 
   async disconnect() {
+    warn('will try to disconnect', { serverAddress: this.#serverAddress })
     if (!this.#connected) {
+      warn('was already disconnected', { serverAddress: this.#serverAddress })
       return
     }
+    warn('will really disconnect', { serverAddress: this.#serverAddress })
 
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
     buffer.writeInt16BE(0, 4) // no command flags for a disconnect
     buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
-    await this.#write(buffer)
-    await this.#serverSocket.destroy()
+    warn('will send end buffer', { serverAddress: this.#serverAddress })
+    this.#connected = false // optimistically mark as disconnected to ensure we don' send another disconnection while handling this one
+    await pFromCallback(cb => this.#serverSocket.end(buffer, cb))
+    warn('end buffer sent', { serverAddress: this.#serverAddress })
     this.#serverSocket = undefined
-    this.#connected = false
   }
 
   #clearReconnectPromise = () => {
