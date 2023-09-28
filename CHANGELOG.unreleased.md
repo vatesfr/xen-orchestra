@@ -32,5 +32,6 @@
 
 - xo-server-backup-reports patch
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
