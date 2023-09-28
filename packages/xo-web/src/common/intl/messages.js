@@ -241,7 +241,8 @@ const messages = {
   closeTunnel: 'Close tunnel',
   createSupportTicket: 'Create a support ticket',
   restartXoServer: 'Restart XO Server',
-  restartXoServerConfirm: 'Restarting XO Server will interrupt any backup job or XO task that is currently running. Xen Orchestra will also be unavailable for a few seconds. Are you sure you want to restart XO Server?',
+  restartXoServerConfirm:
+    'Restarting XO Server will interrupt any backup job or XO task that is currently running. Xen Orchestra will also be unavailable for a few seconds. Are you sure you want to restart XO Server?',
   openTunnel: 'Open tunnel',
   supportCommunity: 'The XOA check and the support tunnel are available in XOA.',
   supportTunnel: 'Support tunnel',
