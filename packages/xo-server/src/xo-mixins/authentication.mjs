@@ -7,6 +7,7 @@ import { parseDuration } from '@vates/parse-duration'
 import patch from '../patch.mjs'
 import { Tokens } from '../models/token.mjs'
 import { forEach, generateToken } from '../utils.mjs'
+import { replace } from '../sensitive-values.mjs'
 
 // ===================================================================
 
@@ -136,35 +137,50 @@ export default class {
   }
 
   async authenticateUser(credentials, userData) {
-    // don't even attempt to authenticate with empty password
-    const { password } = credentials
-    if (password === '') {
-      throw new Error('empty password')
-    }
+    const { tasks } = this._app
+    const task = await tasks.create({
+      type: 'xo:authentication:authenticateUser',
+      name: 'XO user authentication',
+      credentials: replace(credentials),
+      userData,
+    })
 
-    // TODO: remove when email has been replaced by username.
-    if (credentials.email) {
-      credentials.username = credentials.email
-    } else if (credentials.username) {
-      credentials.email = credentials.username
-    }
+    const result = await task.run(async () => {
+      // don't even attempt to authenticate with empty password
+      const { password } = credentials
+      if (password === '') {
+        throw new Error('empty password')
+      }
 
-    const failures = this._failures
+      // TODO: remove when email has been replaced by username.
+      if (credentials.email) {
+        credentials.username = credentials.email
+      } else if (credentials.username) {
+        credentials.email = credentials.username
+      }
 
-    const { username } = credentials
-    const now = Date.now()
-    let lastFailure
-    if (username && (lastFailure = failures[username]) && lastFailure + this._throttlingDelay > now) {
-      throw new Error('too fast authentication tries')
-    }
+      const failures = this._failures
 
-    const result = await this._authenticateUser(credentials, userData)
-    if (result === undefined) {
-      failures[username] = now
-      throw invalidCredentials()
-    }
+      const { username } = credentials
+      const now = Date.now()
+      let lastFailure
+      if (username && (lastFailure = failures[username]) && lastFailure + this._throttlingDelay > now) {
+        throw new Error('too fast authentication tries')
+      }
 
-    delete failures[username]
+      const result = await this._authenticateUser(credentials, userData)
+      if (result === undefined) {
+        failures[username] = now
+        throw invalidCredentials()
+      }
+
+      delete failures[username]
+      return result
+    })
+
+    // only keep trace of failed attempts
+    await tasks.deleteLog(task.id)
+
     return result
   }
 
