@@ -2199,8 +2199,7 @@ const messages = {
   pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
   forgetTokens: 'Forget all authentication tokens',
-  forgetTokensExplained:
-    'This will prevent other clients from authenticating with existing tokens but will not kill active sessions',
+  forgetTokensExplained: 'This prevents authenticating with existing tokens but the one used by the current session',
   forgetTokensSuccess: 'Successfully forgot authentication tokens',
   forgetTokensError: 'Error while forgetting authentication tokens',
   sshKeys: 'SSH keys',
