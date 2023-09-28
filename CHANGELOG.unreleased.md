@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host/Advanced] Display system disks health based on the _smartctl_ plugin. [#4458](https://github.com/vatesfr/xen-orchestra/issues/4458) (PR [#7060](https://github.com/vatesfr/xen-orchestra/pull/7060))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,6 +37,6 @@
 - vhd-lib patch
 - xo-server-backup-reports patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
