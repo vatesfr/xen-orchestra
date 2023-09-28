@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server-backup-reports patch

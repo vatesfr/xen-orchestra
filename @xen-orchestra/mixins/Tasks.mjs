@@ -135,10 +135,10 @@ export default class Tasks extends EventEmitter {
    *
    * @returns {Task}
    */
-  create({ name, objectId, userId = this.#app.apiContext?.user?.id, type }) {
+  create({ name, objectId, userId = this.#app.apiContext?.user?.id, type, ...props }) {
     const tasks = this.#tasks
 
-    const task = new Task({ properties: { name, objectId, userId, type }, onProgress: this.#onProgress })
+    const task = new Task({ properties: { ...props, name, objectId, userId, type }, onProgress: this.#onProgress })
 
     // Use a compact, sortable, string representation of the creation date
     //
