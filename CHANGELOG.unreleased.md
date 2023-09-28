@@ -34,7 +34,7 @@
 - @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server-backup-reports patch
-- xo-server patch
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
