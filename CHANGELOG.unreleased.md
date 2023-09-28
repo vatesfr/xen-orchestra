@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Advanced] Display system disks health based on the _smartctl_ plugin. [#4458](https://github.com/vatesfr/xen-orchestra/issues/4458) (PR [#7060](https://github.com/vatesfr/xen-orchestra/pull/7060))
+- [Authentication] Failed attempts are now logged as XO tasks (PR [#7061](https://github.com/vatesfr/xen-orchestra/pull/7061))
 
 ### Bug fixes
 
