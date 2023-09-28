@@ -456,3 +456,52 @@ setControlDomainMemory.params = {
 setControlDomainMemory.resolve = {
   host: ['id', 'host', 'administrate'],
 }
+
+// -------------------------------------------------------------------
+/**
+ *
+ * @param {{host:HOST}} params
+ * @returns null if plugin is not installed or don't have the method
+ *          an object device: status on success
+ */
+export function getSmartctlHealth({ host }) {
+  return this.getXapi(host).getSmartctlHealth(host._xapiId)
+}
+
+getSmartctlHealth.description = 'get smartctl health status'
+
+getSmartctlHealth.params = {
+  id: { type: 'string' },
+}
+
+getSmartctlHealth.resolve = {
+  host: ['id', 'host', 'view'],
+}
+
+/**
+ *
+ * @param {{host:HOST}} params
+ * @returns null if plugin is not installed or don't have the method
+ *          an object device: full device information on success
+ */
+export function getSmartctlInformation({ host, deviceNames }) {
+  return this.getXapi(host).getSmartctlInformation(host._xapiId, deviceNames)
+}
+
+getSmartctlInformation.description = 'get smartctl information'
+
+getSmartctlInformation.params = {
+  id: { type: 'string' },
+
+  deviceNames: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+    optional: true,
+  },
+}
+
+getSmartctlInformation.resolve = {
+  host: ['id', 'host', 'view'],
+}

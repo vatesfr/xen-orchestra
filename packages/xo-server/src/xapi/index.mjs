@@ -12,6 +12,7 @@ import mixin from '@xen-orchestra/mixin/legacy.js'
 import ms from 'ms'
 import noop from 'lodash/noop.js'
 import once from 'lodash/once.js'
+import pick from 'lodash/pick.js'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
@@ -1420,6 +1421,36 @@ export default class Xapi extends XapiBase {
           {}
         )) !== 'false'
       )
+    } catch (error) {
+      if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+        return null
+      } else {
+        throw error
+      }
+    }
+  }
+
+  async getSmartctlHealth(hostId) {
+    try {
+      return JSON.parse(await this.call('host.call_plugin', this.getObject(hostId).$ref, 'smartctl.py', 'health', {}))
+    } catch (error) {
+      if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+        return null
+      } else {
+        throw error
+      }
+    }
+  }
+
+  async getSmartctlInformation(hostId, deviceNames) {
+    try {
+      const informations = JSON.parse(
+        await this.call('host.call_plugin', this.getObject(hostId).$ref, 'smartctl.py', 'information', {})
+      )
+      if (deviceNames === undefined) {
+        return informations
+      }
+      return pick(informations, deviceNames)
     } catch (error) {
       if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
         return null
