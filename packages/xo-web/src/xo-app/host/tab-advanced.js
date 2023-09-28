@@ -171,7 +171,7 @@ export default class extends Component {
     }
 
     this.setState({
-      isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
+      isHtEnabled: await isHyperThreadingEnabledHost(this.props.host).catch(() => null),
     })
   }
 
