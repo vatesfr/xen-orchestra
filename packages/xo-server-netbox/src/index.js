@@ -338,11 +338,16 @@ class Netbox {
 
       let distro = xoVm.os_version?.distro
       if (distro !== undefined) {
-        // In rare cases, the version isn't properly parsed by XAPI and
+        // In some cases, the version isn't properly parsed by XAPI and
         // os_version.major returns X.Y.Z instead of X
-        const majorVersionMatch = xoVm.os_version.major?.match(/(\d+)(?:\.\d+){0,2}/)
+        const majorVersionMatch = xoVm.os_version.major?.match(/^(\d+)(?:\.\d+){0,2}$/)
         if (majorVersionMatch != null) {
           distro += ` ${majorVersionMatch[1]}`
+        } else {
+          const unameMatch = xoVm.os_version.uname?.match(/^(\d)+/)
+          if (unameMatch != null) {
+            distro += ` ${unameMatch[1]}`
+          }
         }
 
         const slug = slugify(distro)
