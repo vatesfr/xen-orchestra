@@ -13,6 +13,7 @@
 
 - [Backup/Mirror] Fix backup report not being sent (PR [#7049](https://github.com/vatesfr/xen-orchestra/pull/7049))
 - [New VM] Only add MBR to cloud-init drive on Windows VMs to avoid booting issues (e.g. with Talos) (PR [#7050](https://github.com/vatesfr/xen-orchestra/pull/7050))
+- [VDI Import] Add the SR name to the corresponding XAPI task (PR [#6979](https://github.com/vatesfr/xen-orchestra/pull/6979))
 
 ### Packages to release
 
@@ -30,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi minor
 - xo-server-backup-reports patch
 - xo-server patch
 - xo-web patch
