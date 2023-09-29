@@ -12,6 +12,10 @@
 - [Home/Hosts, Pools] Display host brand and version (PR [#7027](https://github.com/vatesfr/xen-orchestra/pull/7027))
 - [SR] Ability to reclaim space [#1204](https://github.com/vatesfr/xen-orchestra/issues/1204) (PR [#7054](https://github.com/vatesfr/xen-orchestra/pull/7054))
 - [XOA] New button to restart XO Server directly from the UI (PR [#7056](https://github.com/vatesfr/xen-orchestra/pull/7056))
+- [Host/Advanced] Display system disks health based on the _smartctl_ plugin. [#4458](https://github.com/vatesfr/xen-orchestra/issues/4458) (PR [#7060](https://github.com/vatesfr/xen-orchestra/pull/7060))
+- [Authentication] Failed attempts are now logged as XO tasks (PR [#7061](https://github.com/vatesfr/xen-orchestra/pull/7061))
+- [Backup] Prevent VMs from being migrated while they are backed up (PR [#7024](https://github.com/vatesfr/xen-orchestra/pull/7024))
+- [Backup] Prevent VMs from being backed up while they are migrated (PR [#7024](https://github.com/vatesfr/xen-orchestra/pull/7024))
 
 ### Bug fixes
 
@@ -22,18 +26,25 @@
 - [Backup] Fix `VHDFile implementation is not compatible with encrypted remote` when using VHD directory with encryption (PR [#7045](https://github.com/vatesfr/xen-orchestra/pull/7045))
 - [Backup/Mirror] Fix `xo:fs:local WARN lock compromised` when mirroring a Backup Repository to a local/NFS/SMB repository ([#7043](https://github.com/vatesfr/xen-orchestra/pull/7043))
 - [Ova import] Fix importing VM with collision in disk position (PR [#7051](https://github.com/vatesfr/xen-orchestra/pull/7051)) (issue [7046](https://github.com/vatesfr/xen-orchestra/issues/7046))
+- [Backup/Mirror] Fix backup report not being sent (PR [#7049](https://github.com/vatesfr/xen-orchestra/pull/7049))
+- [New VM] Only add MBR to cloud-init drive on Windows VMs to avoid booting issues (e.g. with Talos) (PR [#7050](https://github.com/vatesfr/xen-orchestra/pull/7050))
+- [VDI Import] Add the SR name to the corresponding XAPI task (PR [#6979](https://github.com/vatesfr/xen-orchestra/pull/6979))
 
 ### Released packages
 
-- vhd-lib 4.6.0
-- @xen-orchestra/backups 0.42.1
-- @xen-orchestra/proxy 0.26.34
 - xo-vmdk-to-vhd 2.5.6
-- xo-server 5.123.0
 - xo-server-auth-github 0.3.1
 - xo-server-auth-google 0.3.1
 - xo-server-netbox 1.3.0
-- xo-web 5.125.0
+- vhd-lib 4.6.1
+- @xen-orchestra/xapi 3.2.0
+- @xen-orchestra/backups 0.43.0
+- @xen-orchestra/backups-cli 1.0.13
+- @xen-orchestra/mixins 0.13.0
+- @xen-orchestra/proxy 0.26.35
+- xo-server 5.124.0
+- xo-server-backup-reports 0.17.4
+- xo-web 5.126.0
 
 ## **5.86.1** (2023-09-07)
 
