@@ -17,10 +17,12 @@ enum STATUS {
 export const useXenApiStore = defineStore("xen-api", () => {
   const xenApi = new XenApi(HOST_URL);
   const xapiStats = new XapiStats(xenApi);
-  const currentSessionId = useLocalStorage<string | undefined>(
+  const currentSessionIdLocalStorage = useLocalStorage<string | undefined>(
     "sessionId",
     undefined
   );
+  const currentSessionId = ref(currentSessionIdLocalStorage.value);
+  const rememberMe = useLocalStorage("rememberMe", false);
   const status = ref(STATUS.DISCONNECTED);
   const isConnected = computed(() => status.value === STATUS.CONNECTED);
   const isConnecting = computed(() => status.value === STATUS.CONNECTING);
@@ -36,6 +38,9 @@ export const useXenApiStore = defineStore("xen-api", () => {
         password
       );
       const success = currentSessionId.value !== undefined;
+      if (rememberMe.value) {
+        currentSessionIdLocalStorage.value = currentSessionId.value;
+      }
       status.value = success ? STATUS.CONNECTED : STATUS.DISCONNECTED;
       return success;
     } catch (error) {
@@ -63,7 +68,8 @@ export const useXenApiStore = defineStore("xen-api", () => {
 
   async function disconnect() {
     await xenApi.disconnect();
-    currentSessionId.value = null;
+    currentSessionIdLocalStorage.value = null;
+    currentSessionId.value = undefined;
     status.value = STATUS.DISCONNECTED;
   }
 
