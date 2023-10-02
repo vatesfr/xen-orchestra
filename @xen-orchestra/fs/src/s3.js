@@ -17,7 +17,7 @@ import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-ch
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 import { createLogger } from '@xen-orchestra/log'
-import { PassThrough, pipeline } from 'stream'
+import { PassThrough, Transform, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
@@ -224,10 +224,29 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { validator }) {
+    // S3 storage is limited to 10K part, each part is limited to 5GB. And the total upload must be smaller than 5TB
+    // a bigger partSize increase the memory consumption of aws/lib-storage exponentially
+    const MAX_PART = 10000
+    const PART_SIZE = 5 * 1024 * 1024
+    const MAX_SIZE = MAX_PART * PART_SIZE
+
+    // ensure we don't try to upload a stream to big for this partSize
+    let readCounter = 0
+    const streamCutter = new Transform({
+      transform(chunk, encoding, callback) {
+        readCounter += chunk.length
+        if (readCounter > MAX_SIZE) {
+          callback(new Error(`read ${readCounter} bytes, maximum size allowed  is ${MAX_SIZE} `))
+        } else {
+          callback(null, chunk)
+        }
+      },
+    })
+
     // Workaround for "ReferenceError: ReadableStream is not defined"
     // https://github.com/aws/aws-sdk-js-v3/issues/2522
     const Body = new PassThrough()
-    pipeline(input, Body, () => {})
+    pipeline(input, streamCutter, Body, () => {})
 
     const upload = new Upload({
       client: this.#s3,
@@ -235,6 +254,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this.#createParams(path),
         Body,
       },
+      partSize: PART_SIZE,
+      leavePartsOnError: false,
     })
 
     await upload.done()
