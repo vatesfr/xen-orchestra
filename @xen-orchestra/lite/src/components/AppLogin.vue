@@ -17,10 +17,7 @@
         />
       </FormInputWrapper>
       <label class="remember-me-label">
-        <FormCheckbox
-          @update:model-value="onChangeRememberMe"
-          :model-value="rememberMe"
-        />
+        <FormCheckbox v-model="rememberMe" />
         <p>{{ $t("keep-me-logged") }}</p>
       </label>
       <UiButton type="submit" :busy="isConnecting">
@@ -55,7 +52,6 @@ const isInvalidPassword = ref(false);
 const rememberMe = useLocalStorage("rememberMe", false);
 
 const focusPasswordInput = () => passwordRef.value?.focus();
-const onChangeRememberMe = (value: boolean) => (rememberMe.value = value);
 
 onMounted(() => {
   if (rememberMe.value) {
