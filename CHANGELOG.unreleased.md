@@ -40,6 +40,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - xo-server minor
