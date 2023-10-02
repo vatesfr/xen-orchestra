@@ -12,6 +12,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import UiCounter from "@/components/ui/UiCounter.vue";
 import { UiCardTitleLevel } from "@/types/enums";
 
 const props = withDefaults(
