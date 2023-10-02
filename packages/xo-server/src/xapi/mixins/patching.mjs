@@ -629,7 +629,13 @@ export default {
         continue
       }
 
+      const residentVms = host.$resident_VMs.map(vm => vm.uuid)
+
       for (const vmId of vmIds) {
+        if (residentVms.includes(vmId)) {
+          continue
+        }
+
         try {
           await this.migrateVm(vmId, this, hostId)
         } catch (err) {
