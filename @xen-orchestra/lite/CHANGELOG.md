@@ -2,14 +2,16 @@
 
 ## **next**
 
+## **0.1.4** (2023-10-03)
+
 - Ability to migrate selected VMs to another host (PR [#7040](https://github.com/vatesfr/xen-orchestra/pull/7040))
 - Ability to snapshot selected VMs (PR [#7021](https://github.com/vatesfr/xen-orchestra/pull/7021))
 - Add Patches to Pool Dashboard (PR [#6709](https://github.com/vatesfr/xen-orchestra/pull/6709))
+- Add remember me checkbox on the login page (PR [#7030](https://github.com/vatesfr/xen-orchestra/pull/7030))
 
 ## **0.1.3** (2023-09-01)
 
 - Add Alarms to Pool Dashboard (PR [#6976](https://github.com/vatesfr/xen-orchestra/pull/6976))
-- Add remember me checkbox on the login page (PR [#7030](https://github.com/vatesfr/xen-orchestra/pull/7030))
 
 ## **0.1.2** (2023-07-28)
 
