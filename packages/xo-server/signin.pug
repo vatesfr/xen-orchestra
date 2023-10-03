@@ -69,3 +69,14 @@ html
               button.btn.btn-block.btn-info
                 i.fa.fa-sign-in
                 |  Sign in
+    script.
+      (function () {
+        var d = document
+        var h = d.location.hash
+        d.querySelectorAll('a').forEach(a => {
+            a.href += h
+        })
+        d.querySelectorAll('form').forEach(form => {
+            form.action += h
+        })
+      })()
