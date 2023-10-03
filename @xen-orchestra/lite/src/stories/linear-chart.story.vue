@@ -1,8 +1,6 @@
 <template>
   <ComponentStory
     :params="[
-      prop('title').preset('Chart title').widget(),
-      prop('subtitle').preset('Here is a subtitle').widget(),
       prop('data')
         .preset(data)
         .required()
@@ -58,8 +56,6 @@ const data: LinearChartData = [
 const presets = {
   "Network bandwidth": {
     props: {
-      title: "Network bandwidth",
-      subtitle: "Last week",
       "value-formatter": byteFormatter,
       "max-value": 500000000,
       data: [

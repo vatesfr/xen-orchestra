@@ -16,8 +16,6 @@ type LinearChartData = {
 
 ```vue-template
 <LinearChart
-  title="Chart title"
-  subtitle="Chart subtitle"
   :data="data"
 />
 ```

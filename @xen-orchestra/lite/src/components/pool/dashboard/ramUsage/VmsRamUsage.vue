@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    subtitle
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('vms')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
@@ -9,14 +9,15 @@
 </template>
 
 <script lang="ts" setup>
-import NoDataError from "@/components/NoDataError.vue";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UsageBar from "@/components/UsageBar.vue";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { computed, inject, type ComputedRef } from "vue";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import { IK_VM_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
-import { computed, type ComputedRef, inject } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { UiCardTitleLevel } from "@/types/enums";
+import UsageBar from "@/components/UsageBar.vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 
 const { hasError } = useVmCollection();
 

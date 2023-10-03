@@ -1,12 +1,8 @@
 <template>
-  <UiCard class="linear-chart">
-    <VueCharts :option="option" autoresize class="chart" />
-    <slot name="summary" />
-  </UiCard>
+  <VueCharts :option="option" autoresize class="chart" />
 </template>
 
 <script lang="ts" setup>
-import UiCard from "@/components/ui/UiCard.vue";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
 import { utcFormat } from "d3-time-format";
@@ -15,7 +11,6 @@ import { LineChart } from "echarts/charts";
 import {
   GridComponent,
   LegendComponent,
-  TitleComponent,
   TooltipComponent,
 } from "echarts/components";
 import { use } from "echarts/core";
@@ -26,8 +21,6 @@ import VueCharts from "vue-echarts";
 const Y_AXIS_MAX_VALUE = 200;
 
 const props = defineProps<{
-  title?: string;
-  subtitle?: string;
   data: LinearChartData;
   valueFormatter?: ValueFormatter;
   maxValue?: number;
@@ -52,15 +45,10 @@ use([
   LineChart,
   GridComponent,
   TooltipComponent,
-  TitleComponent,
   LegendComponent,
 ]);
 
 const option = computed<EChartsOption>(() => ({
-  title: {
-    text: props.title,
-    subtext: props.subtitle,
-  },
   legend: {
     data: props.data.map((series) => series.label),
   },

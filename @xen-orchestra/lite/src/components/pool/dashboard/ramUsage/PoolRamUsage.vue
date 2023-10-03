@@ -1,37 +1,43 @@
 <template>
-  <!-- TODO: add a loader when data is not fully loaded or undefined -->
-  <!-- TODO: add small loader with tooltips when stats can be expired -->
-  <!-- TODO: display the NoDataError component in case of a data recovery error -->
-  <LinearChart
-    :data="data"
-    :max-value="customMaxValue"
-    :subtitle="$t('last-week')"
-    :title="$t('pool-ram-usage')"
-    :value-formatter="customValueFormatter"
-  >
-    <template #summary>
-      <SizeStatsSummary :size="currentData.size" :usage="currentData.usage" />
-    </template>
-  </LinearChart>
+  <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
+    <UiCardTitle>{{ $t("pool-ram-usage") }}</UiCardTitle>
+    <UiCardTitle :level="UiCardTitleLevel.Subtitle">
+      {{ $t("last-week") }}
+    </UiCardTitle>
+    <NoDataError v-if="hasError" />
+    <UiCardSpinner v-else-if="isLoading" />
+    <LinearChart
+      v-else
+      :data="data"
+      :max-value="customMaxValue"
+      :value-formatter="customValueFormatter"
+    />
+    <SizeStatsSummary :size="currentData.size" :usage="currentData.usage" />
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
+import { computed, defineAsyncComponent, inject } from "vue";
+import { formatSize } from "@/libs/utils";
+import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
+import type { LinearChartData } from "@/types/chart";
+import NoDataError from "@/components/NoDataError.vue";
+import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
+import { sumBy } from "lodash-es";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import { UiCardTitleLevel } from "@/types/enums";
 import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
-import { formatSize } from "@/libs/utils";
-import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { LinearChartData, ValueFormatter } from "@/types/chart";
-import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
-import { sumBy } from "lodash-es";
-import { computed, defineAsyncComponent, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
 const LinearChart = defineAsyncComponent(
   () => import("@/components/charts/LinearChart.vue")
 );
 
-const { runningHosts } = useHostCollection();
+const { runningHosts, isFetching, hasError } = useHostCollection();
 const { getHostMemory } = useHostMetricsCollection();
 
 const { t } = useI18n();
@@ -92,6 +98,23 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
-const customValueFormatter: ValueFormatter = (value) =>
-  String(formatSize(value));
+const isStatFetched = computed(() => {
+  const stats = hostLastWeekStats?.stats?.value;
+  if (stats === undefined) {
+    return false;
+  }
+
+  return stats.every((host) => {
+    const hostStats = host.stats;
+    return (
+      hostStats != null && hostStats.memory.length === data.value[0].data.length
+    );
+  });
+});
+
+const isLoading = computed(
+  () => (isFetching.value && !hasError.value) || !isStatFetched.value
+);
+
+const customValueFormatter = (value: number) => String(formatSize(value));
 </script>

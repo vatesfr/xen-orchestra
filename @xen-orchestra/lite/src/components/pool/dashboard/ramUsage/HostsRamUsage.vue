@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    subtitle
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
@@ -13,6 +13,7 @@ import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { useHostCollection } from "@/stores/xen-api/host.store";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { type ComputedRef, computed, inject } from "vue";
+import { UiCardTitleLevel } from "@/types/enums";
 import UsageBar from "@/components/UsageBar.vue";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";

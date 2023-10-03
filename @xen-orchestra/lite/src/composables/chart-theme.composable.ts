@@ -10,8 +10,7 @@ export const useChartTheme = () => {
 
   const getColors = () => ({
     background: style.getPropertyValue("--background-color-primary"),
-    title: style.getPropertyValue("--color-blue-scale-100"),
-    subtitle: style.getPropertyValue("--color-blue-scale-300"),
+    text: style.getPropertyValue("--color-blue-scale-300"),
     splitLine: style.getPropertyValue("--color-blue-scale-400"),
     primary: style.getPropertyValue("--color-extra-blue-base"),
     secondary: style.getPropertyValue("--color-orange-world-base"),
@@ -28,23 +27,9 @@ export const useChartTheme = () => {
       backgroundColor: colors.value.background,
       textStyle: {},
       grid: {
-        top: 80,
+        top: 40,
         left: 80,
         right: 20,
-      },
-      title: {
-        textStyle: {
-          color: colors.value.title,
-          fontFamily: "Poppins, sans-serif",
-          fontWeight: 500,
-          fontSize: 20,
-        },
-        subtextStyle: {
-          color: colors.value.subtitle,
-          fontFamily: "Poppins, sans-serif",
-          fontWeight: 400,
-          fontSize: 14,
-        },
       },
       line: {
         itemStyle: {
@@ -235,7 +220,7 @@ export const useChartTheme = () => {
         },
         axisLabel: {
           show: true,
-          color: colors.value.subtitle,
+          color: colors.value.text,
         },
         splitLine: {
           show: true,
@@ -295,7 +280,7 @@ export const useChartTheme = () => {
         },
         axisLabel: {
           show: true,
-          color: colors.value.subtitle,
+          color: colors.value.text,
         },
         splitLine: {
           show: true,
@@ -325,7 +310,7 @@ export const useChartTheme = () => {
         left: "right",
         top: "bottom",
         textStyle: {
-          color: colors.value.subtitle,
+          color: colors.value.text,
         },
       },
       tooltip: {

@@ -1,35 +1,40 @@
 <template>
-  <div :class="{ subtitle }" class="ui-section-title">
-    <component
-      :is="subtitle ? 'h5' : 'h4'"
-      v-if="$slots.default || left"
-      class="left"
-    >
+  <div :class="['ui-section-title', tags.left]">
+    <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
       <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
     </component>
-    <component
-      :is="subtitle ? 'h6' : 'h5'"
-      v-if="$slots.right || right"
-      class="right"
-    >
+    <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
     </component>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
+import { UiCardTitleLevel } from "@/types/enums";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
-    subtitle?: boolean;
+    count?: number;
+    level?: UiCardTitleLevel;
     left?: string;
     right?: string;
-    count?: number;
   }>(),
-  { count: 0 }
+  { count: 0, level: UiCardTitleLevel.Title }
 );
+
+const tags = computed(() => {
+  switch (props.level) {
+    case UiCardTitleLevel.Subtitle:
+      return { left: "h6", right: "h6" };
+    case UiCardTitleLevel.SubtitleWithUnderline:
+      return { left: "h5", right: "h6" };
+    default:
+      return { left: "h4", right: "h5" };
+  }
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -37,7 +42,6 @@ withDefaults(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
 
   --section-title-left-size: 2rem;
   --section-title-left-color: var(--color-blue-scale-100);
@@ -46,9 +50,17 @@ withDefaults(
   --section-title-right-color: var(--color-extra-blue-base);
   --section-title-right-weight: 700;
 
-  &.subtitle {
-    border-bottom: 1px solid var(--color-extra-blue-base);
+  &.h6 {
+    margin-bottom: 1rem;
+    --section-title-left-size: 1.5rem;
+    --section-title-left-color: var(--color-blue-scale-300);
+    --section-title-left-weight: 400;
+  }
 
+  &.h5 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-extra-blue-base);
     --section-title-left-size: 1.6rem;
     --section-title-left-color: var(--color-extra-blue-base);
     --section-title-left-weight: 700;

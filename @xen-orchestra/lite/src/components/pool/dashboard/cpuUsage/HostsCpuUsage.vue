@@ -1,22 +1,23 @@
 <template>
   <UiCardTitle
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
-    subtitle
   />
   <NoDataError v-if="hasError" />
   <UsageBar v-else :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
-import NoDataError from "@/components/NoDataError.vue";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UsageBar from "@/components/UsageBar.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
+import { computed, inject, type ComputedRef } from "vue";
 import { getAvgCpuUsage } from "@/libs/utils";
 import { IK_HOST_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
-import { computed, type ComputedRef, inject } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { UiCardTitleLevel } from "@/types/enums";
+import UsageBar from "@/components/UsageBar.vue";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 
 const { hasError } = useHostCollection();
 

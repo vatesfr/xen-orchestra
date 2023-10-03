@@ -1,24 +1,33 @@
 <template>
-  <!-- TODO: add a loader when data is not fully loaded or undefined -->
-  <!-- TODO: add small loader with tooltips when stats can be expired -->
-  <!-- TODO: Display the NoDataError component in case of a data recovery error -->
-  <LinearChart
-    :data="data"
-    :max-value="customMaxValue"
-    :subtitle="$t('last-week')"
-    :title="$t('pool-cpu-usage')"
-    :value-formatter="customValueFormatter"
-  />
+  <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
+    <UiCardTitle>{{ $t("pool-cpu-usage") }}</UiCardTitle>
+    <UiCardTitle :level="UiCardTitleLevel.Subtitle">
+      {{ $t("last-week") }}
+    </UiCardTitle>
+    <NoDataError v-if="hasError" />
+    <UiCardSpinner v-else-if="isLoading" />
+    <LinearChart
+      v-else
+      :data="data"
+      :max-value="customMaxValue"
+      :value-formatter="customValueFormatter"
+    />
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import type { HostStats } from "@/libs/xapi-stats";
-import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { LinearChartData, ValueFormatter } from "@/types/chart";
-import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
-import { sumBy } from "lodash-es";
 import { computed, defineAsyncComponent, inject } from "vue";
+import type { HostStats } from "@/libs/xapi-stats";
+import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
+import type { LinearChartData, ValueFormatter } from "@/types/chart";
+import NoDataError from "@/components/NoDataError.vue";
+import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
+import { sumBy } from "lodash-es";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import { UiCardTitleLevel } from "@/types/enums";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { useI18n } from "vue-i18n";
 
 const LinearChart = defineAsyncComponent(
@@ -29,8 +38,7 @@ const { t } = useI18n();
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
 
-const { records: hosts } = useHostCollection();
-
+const { records: hosts, isFetching, hasError } = useHostCollection();
 const customMaxValue = computed(
   () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)
 );
@@ -79,6 +87,22 @@ const data = computed<LinearChartData>(() => {
     },
   ];
 });
+const isStatFetched = computed(() => {
+  const stats = hostLastWeekStats?.stats?.value;
+  if (stats === undefined) {
+    return false;
+  }
+
+  return stats.every((host) => {
+    const hostStats = host.stats;
+    return (
+      hostStats != null &&
+      Object.values(hostStats.cpus)[0].length === data.value[0].data.length
+    );
+  });
+});
+
+const isLoading = computed(() => isFetching.value || !isStatFetched.value);
 
 const customValueFormatter: ValueFormatter = (value) => `${value}%`;
 </script>
