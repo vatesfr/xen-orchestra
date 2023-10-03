@@ -2,7 +2,7 @@ import XapiStats from "@/libs/xapi-stats";
 import XenApi from "@/libs/xen-api/xen-api";
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
 const HOST_URL = import.meta.env.PROD
   ? window.origin
@@ -17,15 +17,23 @@ enum STATUS {
 export const useXenApiStore = defineStore("xen-api", () => {
   const xenApi = new XenApi(HOST_URL);
   const xapiStats = new XapiStats(xenApi);
-  const currentSessionId = useLocalStorage<string | undefined>(
+  const storedSessionId = useLocalStorage<string | undefined>(
     "sessionId",
     undefined
   );
+  const currentSessionId = ref(storedSessionId.value);
+  const rememberMe = useLocalStorage("rememberMe", false);
   const status = ref(STATUS.DISCONNECTED);
   const isConnected = computed(() => status.value === STATUS.CONNECTED);
   const isConnecting = computed(() => status.value === STATUS.CONNECTING);
   const getXapi = () => xenApi;
   const getXapiStats = () => xapiStats;
+
+  watchEffect(() => {
+    storedSessionId.value = rememberMe.value
+      ? currentSessionId.value
+      : undefined;
+  });
 
   const connect = async (username: string, password: string) => {
     status.value = STATUS.CONNECTING;
@@ -63,7 +71,7 @@ export const useXenApiStore = defineStore("xen-api", () => {
 
   async function disconnect() {
     await xenApi.disconnect();
-    currentSessionId.value = null;
+    currentSessionId.value = undefined;
     status.value = STATUS.DISCONNECTED;
   }
 

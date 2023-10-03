@@ -16,6 +16,10 @@
           required
         />
       </FormInputWrapper>
+      <label class="remember-me-label">
+        <FormCheckbox v-model="rememberMe" />
+        <p>{{ $t("keep-me-logged") }}</p>
+      </label>
       <UiButton type="submit" :busy="isConnecting">
         {{ $t("login") }}
       </UiButton>
@@ -28,6 +32,9 @@ import { usePageTitleStore } from "@/stores/page-title.store";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useLocalStorage } from "@vueuse/core";
+
+import FormCheckbox from "@/components/form/FormCheckbox.vue";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import UiButton from "@/components/ui/UiButton.vue";
@@ -42,12 +49,16 @@ const password = ref("");
 const error = ref<string>();
 const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
+const rememberMe = useLocalStorage("rememberMe", false);
 
 const focusPasswordInput = () => passwordRef.value?.focus();
 
 onMounted(() => {
-  xenApiStore.reconnect();
-  focusPasswordInput();
+  if (rememberMe.value) {
+    xenApiStore.reconnect();
+  } else {
+    focusPasswordInput();
+  }
 });
 
 watch(password, () => {
@@ -72,6 +83,19 @@ async function handleSubmit() {
 </script>
 
 <style lang="postcss" scoped>
+.remember-me-label {
+  cursor: pointer;
+  width: fit-content;
+  & .form-checkbox {
+    margin: 1rem 1rem 1rem 0;
+    vertical-align: middle;
+  }
+  & p {
+    display: inline;
+    vertical-align: middle;
+  }
+}
+
 .form-container {
   display: flex;
   align-items: center;
@@ -87,7 +111,6 @@ form {
   font-size: 2rem;
   min-width: 30em;
   max-width: 100%;
-  align-items: center;
   flex-direction: column;
   justify-content: center;
   margin: 0 auto;
@@ -104,7 +127,7 @@ h1 {
 
 img {
   width: 40rem;
-  margin-bottom: 5rem;
+  margin: auto auto 5rem auto;
 }
 
 input {
@@ -118,6 +141,6 @@ input {
 }
 
 button {
-  margin-top: 2rem;
+  margin: 2rem auto;
 }
 </style>
