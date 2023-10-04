@@ -5,6 +5,7 @@ import {
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  GetObjectLockConfigurationCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -439,5 +440,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   useVhdDirectory() {
     return true
+  }
+
+  async #hasObjectLock(){
+    const res = await this.#s3.send(new GetObjectLockConfigurationCommand({Bucket: bucket}))
+    return res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled'
   }
 }
