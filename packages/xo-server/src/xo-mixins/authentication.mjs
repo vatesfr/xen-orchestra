@@ -138,14 +138,20 @@ export default class {
 
   async authenticateUser(credentials, userData) {
     const { tasks } = this._app
-    const task = await tasks.create({
-      type: 'xo:authentication:authenticateUser',
-      name: 'XO user authentication',
-      credentials: replace(credentials),
-      userData,
-    })
+    const task = await tasks.create(
+      {
+        type: 'xo:authentication:authenticateUser',
+        name: 'XO user authentication',
+        credentials: replace(credentials),
+        userData,
+      },
+      {
+        // only keep trace of failed attempts
+        clearLogOnSuccess: true,
+      }
+    )
 
-    const result = await task.run(async () => {
+    return task.run(async () => {
       // don't even attempt to authenticate with empty password
       const { password } = credentials
       if (password === '') {
@@ -177,11 +183,6 @@ export default class {
       delete failures[username]
       return result
     })
-
-    // only keep trace of failed attempts
-    await tasks.deleteLog(task.id)
-
-    return result
   }
 
   // -----------------------------------------------------------------
