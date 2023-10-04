@@ -24,6 +24,8 @@ const serializeError = error => ({
 })
 
 export default class Tasks extends EventEmitter {
+  #logsToClearOnSuccess = new Set()
+
   // contains consolidated logs of all live and finished tasks
   #store
 
@@ -36,6 +38,22 @@ export default class Tasks extends EventEmitter {
       this.#tasks.delete(id)
     },
     onTaskUpdate: async taskLog => {
+      const { id, status } = taskLog
+      if (status !== 'pending') {
+        if (this.#logsToClearOnSuccess.has(id)) {
+          this.#logsToClearOnSuccess.delete(id)
+
+          if (status === 'success') {
+            try {
+              await this.#store.del(id)
+            } catch (error) {
+              warn('failure on deleting task log from store', { error, taskLog })
+            }
+            return
+          }
+        }
+      }
+
       // Error objects are not JSON-ifiable by default
       const { result } = taskLog
       if (result instanceof Error && result.toJSON === undefined) {
@@ -135,7 +153,10 @@ export default class Tasks extends EventEmitter {
    *
    * @returns {Task}
    */
-  create({ name, objectId, userId = this.#app.apiContext?.user?.id, type, ...props }) {
+  create(
+    { name, objectId, userId = this.#app.apiContext?.user?.id, type, ...props },
+    { clearLogOnSuccess = false } = {}
+  ) {
     const tasks = this.#tasks
 
     const task = new Task({ properties: { ...props, name, objectId, userId, type }, onProgress: this.#onProgress })
@@ -152,6 +173,9 @@ export default class Tasks extends EventEmitter {
     task.id = id
 
     tasks.set(id, task)
+    if (clearLogOnSuccess) {
+      this.#logsToClearOnSuccess.add(id)
+    }
 
     return task
   }

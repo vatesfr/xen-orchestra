@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-web minor
