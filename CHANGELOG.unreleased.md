@@ -32,6 +32,7 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-web minor
 
 <!--packages-end-->
