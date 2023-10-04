@@ -82,13 +82,13 @@ As you may have seen in other parts of the documentation, XO is composed of two 
 
 #### NodeJS
 
-XO needs Node.js. **Please always use latest Node LTS**.
+XO requires Node.js 18.
 
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```console
 $ node -v
-v16.14.0
+v18.18.0
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.
