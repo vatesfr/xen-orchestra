@@ -90,6 +90,8 @@ const formatSpeed = (bytes, milliseconds) =>
       })
     : 'N/A'
 
+const noop = Function.prototype
+
 const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
@@ -193,13 +195,17 @@ const toMarkdown = parts => {
 class BackupReportsXoPlugin {
   constructor(xo) {
     this._xo = xo
-    this._eventListener = async (...args) => {
-      try {
-        await this._report(...args)
-      } catch (error) {
-        logger.warn(error)
-      }
-    }
+
+    const report = this._report
+    this._report = (...args) =>
+      xo.tasks
+        .create(
+          { type: 'xo:xo-server-backup-reports:sendReport', name: 'Sending backup report', runId: args[0] },
+          { clearLogOnSuccess: true }
+        )
+        .run(() => report.call(this, ...args))
+
+    this._eventListener = (...args) => this._report(...args).catch(noop)
   }
 
   configure({ toMails, toXmpp }) {
