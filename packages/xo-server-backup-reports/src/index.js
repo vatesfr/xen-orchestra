@@ -595,24 +595,28 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({ mailReceivers, markdown, subject, success }) {
+  async _sendReport({ mailReceivers, markdown, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
 
     const xo = this._xo
-    return Promise.all([
-      xo.sendEmail !== undefined &&
-        xo.sendEmail({
-          to: mailReceivers,
-          subject,
-          markdown,
-        }),
-      xo.sendToXmppClient !== undefined &&
-        xo.sendToXmppClient({
-          to: this._xmppReceivers,
-          message: markdown,
-        }),
+    const promises = [
+      mailReceivers !== undefined &&
+        (xo.sendEmail === undefined
+          ? Promise.reject(new Error('transport-email plugin not enabled'))
+          : xo.sendEmail({
+              to: mailReceivers,
+              subject,
+              markdown,
+            })),
+      this._xmppReceivers !== undefined &&
+        (xo.sendEmail === undefined
+          ? Promise.reject(new Error('transport-xmpp plugin not enabled'))
+          : xo.sendToXmppClient({
+              to: this._xmppReceivers,
+              message: markdown,
+            })),
       xo.sendSlackMessage !== undefined &&
         xo.sendSlackMessage({
           message: markdown,
@@ -622,7 +626,22 @@ class BackupReportsXoPlugin {
           status: success ? 'OK' : 'CRITICAL',
           message: markdown,
         }),
-    ])
+    ]
+
+    const errors = []
+    const pushError = errors.push.bind(errors)
+
+    await Promise.all(promises.filter(Boolean).map(_ => _.catch(pushError)))
+
+    if (errors.length !== 0) {
+      throw new AggregateError(
+        errors,
+        errors
+          .map(_ => _.message)
+          .filter(_ => _ != null && _.length !== 0)
+          .join(', ')
+      )
+    }
   }
 
   _legacyVmHandler(status) {
