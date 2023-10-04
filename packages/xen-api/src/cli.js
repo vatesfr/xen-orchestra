@@ -130,6 +130,6 @@ async function main(createClient) {
 }
 export default main
 
-if (!module.parent) {
+if (module.parent === null) {
   main(require('./').createClient).catch(console.error.bind(console, 'FATAL'))
 }
