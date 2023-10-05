@@ -94,9 +94,9 @@ uri = 'tcp://db:password@hostname:port'
 
 ## Proxy for updates and patches
 
-To check if your hosts are up-to-date, we need to access `http://updates.xensource.com/XenServer/updates.xml`.
+To check if your hosts are up-to-date, we need to access `https://updates.ops.xenserver.com/xenserver/updates.xml`.
 
-And to download the patches, we need access to `http://support.citrix.com/supportkc/filedownload?`.
+And to download the patches, we need access to `https://fileservice.citrix.com/direct/v2/download/secured/support/article/*/downloads/*.zip`.
 
 To do that behind a corporate proxy, just add the `httpProxy` variable to match your current proxy configuration.
 
