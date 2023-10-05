@@ -17,7 +17,7 @@
     "xo-fs": "./cli.js"
   },
   "engines": {
-    "node": ">=14.13"
+    "node": ">=15"
   },
   "dependencies": {
     "@aws-sdk/abort-controller": "^3.272.0",

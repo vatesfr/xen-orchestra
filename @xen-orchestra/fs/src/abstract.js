@@ -1,6 +1,5 @@
 import assert from 'assert'
 import getStream from 'get-stream'
-import { asyncEach } from '@vates/async-each'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
@@ -13,6 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
+import runAsync from './_runAsync.js'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -315,7 +315,7 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  async rmdir(dir) {
+  async __rmdir(dir) {
     await timeout.call(this._rmdir(normalizePath(dir)).catch(ignoreEnoent), this._timeout)
   }
 
@@ -614,26 +614,29 @@ export default class RemoteHandlerAbstract {
   }
 
   async _rmtree(dir) {
-    try {
-      return await this._rmdir(dir)
-    } catch (error) {
-      if (error.code !== 'ENOTEMPTY') {
-        throw error
-      }
-    }
+    await runAsync([dir], async (entry, push) => {
+      try {
+        await this.__unlink(entry)
+      } catch (error) {
+        const { code } = error
 
-    const files = await this._list(dir)
-    await asyncEach(files, file =>
-      this._unlink(`${dir}/${file}`).catch(error => {
         // Unlink dir behavior is not consistent across platforms
         // https://github.com/nodejs/node-v0.x-archive/issues/5791
-        if (error.code === 'EISDIR' || error.code === 'EPERM') {
-          return this._rmtree(`${dir}/${file}`)
+        if (code !== 'EISDIR' && code === 'EPERM') {
+          throw error
         }
-        throw error
-      })
-    )
-    return this._rmtree(dir)
+
+        try {
+          await this.__rmdir(entry)
+        } catch (error) {
+          if (error.code !== 'ENOTEMPTY') {
+            throw error
+          }
+
+          push(entry, runAsync.BARRIER, ...(await this.__list(entry, { prependDir: true })))
+        }
+      }
+    })
   }
 
   // called to initialize the remote
