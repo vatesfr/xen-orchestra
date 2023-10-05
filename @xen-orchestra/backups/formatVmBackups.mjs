@@ -16,6 +16,7 @@ function formatVmBackup(backup) {
           }),
 
     id: backup.id,
+    dedup: backup.dedup,
     jobId: backup.jobId,
     mode: backup.mode,
     scheduleId: backup.scheduleId,

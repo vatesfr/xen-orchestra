@@ -607,6 +607,7 @@ const xoItemToRender = {
       </span>{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
+      {backup.dedup === true && <span className='tag tag-info'>deduplicated</span>}{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}
         month='long'

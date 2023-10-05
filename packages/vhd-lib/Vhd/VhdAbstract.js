@@ -206,7 +206,14 @@ exports.VhdAbstract = class VhdAbstract {
       await handler.unlink(resolved)
     } catch (err) {
       if (err.code === 'EISDIR') {
-        await handler.rmtree(resolved)
+        // @todo : should we open it ?
+        const chunkFilters = await handler.readFile(resolved + '/chunk-filters.json').then(JSON.parse, error => {
+          if (error.code === 'ENOENT') {
+            return []
+          }
+          throw error
+        })
+        await handler.rmtree(resolved, { dedup: chunkFilters[1] === true })
       } else {
         throw err
       }

@@ -19,6 +19,7 @@ const NULL_COMPRESSOR = {
 }
 
 const COMPRESSORS = {
+  none: NULL_COMPRESSOR,
   gzip: {
     compress: (
       gzip => buffer =>
@@ -78,6 +79,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   #header
   footer
   #compressor
+  #dedup
 
   get compressionType() {
     return this.#compressor.id
@@ -102,8 +104,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#uncheckedBlockTable = blockTable
   }
 
-  static async open(handler, path, { flags = 'r+' } = {}) {
-    const vhd = new VhdDirectory(handler, path, { flags })
+  static async open(handler, path, { compression, flags = 'r+' } = {}) {
+    const dedup = path.endsWith('dedup.vhd')
+    const vhd = new VhdDirectory(handler, path, { compression, dedup, flags })
 
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
@@ -117,9 +120,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path, { flags = 'wx+', compression } = {}) {
+  static async create(handler, path, { flags = 'wx+', compression, dedup } = {}) {
     await handler.mktree(path)
-    const vhd = new VhdDirectory(handler, path, { flags, compression })
+    const vhd = new VhdDirectory(handler, path, { flags, compression, dedup })
     return {
       dispose: () => {},
       value: vhd,
@@ -132,6 +135,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this._path = path
     this._opts = opts
     this.#compressor = getCompressor(opts?.compression)
+    this.#dedup = opts?.dedup ?? false
     this.writeBlockAllocationTable = synchronized()(this.writeBlockAllocationTable)
   }
 
@@ -158,7 +162,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer) {
+  async _writeChunk(partName, buffer, dedup = false) {
     assert.notStrictEqual(
       this._opts?.flags,
       'r',
@@ -168,7 +172,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags, dedup })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -262,6 +266,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
     try {
       const blockExists = this.containsBlock(blockId)
+      if (blockExists && this.#dedup) {
+        // this will trigger the dedup store cleaning if needed
+        await this._handler.unlink(this._getFullBlockPath(blockId), { dedup: true })
+      }
       await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
@@ -285,7 +293,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
-    await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
+    await this._writeChunk(this.#getBlockPath(block.id), block.buffer, this.#dedup)
     setBitmap(this.#blockTable, block.id)
   }
 

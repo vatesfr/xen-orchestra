@@ -123,19 +123,19 @@ export async function checkAliases(
 ) {
   const aliasFound = []
   for (const alias of aliasPaths) {
-    const target = await resolveVhdAlias(handler, alias)
-
-    if (!isVhdFile(target)) {
-      logWarn('alias references non VHD target', { alias, target })
-      if (remove) {
-        logInfo('removing alias and non VHD target', { alias, target })
-        await handler.unlink(target)
-        await handler.unlink(alias)
-      }
-      continue
-    }
-
+    let target
     try {
+      target = await resolveVhdAlias(handler, alias)
+  
+      if (!isVhdFile(target)) {
+        logWarn('alias references non VHD target', { alias, target })
+        if (remove) {
+          logInfo('removing alias and non VHD target', { alias, target })
+          await handler.unlink(target)
+          await handler.unlink(alias)
+        }
+        continue
+      }
       const { dispose } = await openVhd(handler, target)
       try {
         await dispose()
