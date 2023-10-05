@@ -59,7 +59,7 @@ const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE
 // =============================================================================
 
 export default {
-  // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
+  // raw { uuid: patch } map translated from updates.ops.xenserver.com/xenserver/updates.xml
   // FIXME: should be static
   @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function () {
     return this
