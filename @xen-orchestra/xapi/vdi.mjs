@@ -1,7 +1,6 @@
 import CancelToken from 'promise-toolbox/CancelToken'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
-import {NodeSSH} from 'node-ssh'
 import net from 'node:net'
 
 import { createLogger } from '@xen-orchestra/log'
@@ -16,69 +15,45 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
-async function getTcpStream(host, xapi, vhdUuid){
-// Host.call_plugin avec plugin=vdi-tool fn=expoty_vdi et argument uuid=<vdi-uuid> hostname=<hostname or ip> port=<port>
-  const HOST_LOGIN = 'root'
-  const HOST_PWD = ''
+async function getTcpStream(host, xapi, vhdUuid) {
+
+  console.log({ vhdUuid })
+  // Host.call_plugin avec plugin=vdi-tools fn=expoty_vdi et argument uuid=<vdi-uuid> hostname=<hostname or ip> port=<port>
   const XO_ADDRESS = '10.200.200.32'
 
   // create tcp server 
   const server = net.createServer()
-  await new Promise(resolve =>{
-    server.listen(0, ()=>{
+  await new Promise(resolve => {
+    server.listen(0, () => {
       resolve()
     })
   })
-console.log(host.$ref,  {uuid: vhdUuid, host: XO_ADDRESS, port:server.address().port })
-try{
+  try {
+    const promise = new Promise((resolve, reject) => {
+      server.on('connection', clientSocket => {
+        console.log('client connected')
+        resolve(clientSocket)
+        clientSocket.on('end', () => {
+          console.log('client disconnected');
+          server.close()
 
-  const result = await xapi.call('host.call_plugin', host.$ref, 'vdi-tool', 'expoty_vdi', {uuid: vhdUuid, host: XO_ADDRESS, port:''+server.address().port })
-  return JSON.parse(result)
-}catch(error){
-  console.error(error)
-  console.log(error.call.params)
-}
-  const ssh = new NodeSSH()
-
-  await ssh.connect({
-    host: host.address,
-    username: HOST_LOGIN,
-    password: HOST_PWD
-  })
-  console.log('ssh connected')
-  await ssh.putFile('./uploadVhd.py', '/tmp/uploadVhd.py')
-  console.log('python file sent')
-  // create tcp server 
-  
-  console.log('tcp server up',server.address().port)
-  console.log( `python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port} ` )
-  ssh.execCommand(`python /tmp/uploadVhd.py /run/sr-mount/${srUuid}/${vhdUuid}.vhd ${XO_ADDRESS}  ${server.address().port}   `)
-    .then(result=>{
-      console.log('command done', result)
-      if(result.code  !== 0){
-        throw new Error(result.stderr)
-      }
-    })
-    .catch(err => {
-      console.error('command errored', err)
-      throw err
-    })
-
-  console.log('python script launched')
-  return new Promise((resolve, reject) =>{
-    server.on('connection', clientSocket=>{
-      console.log('client connected') 
-     // clientSocket.pipe(stream)
-      resolve(clientSocket)  
-      clientSocket.on('end', () => {
-        console.log('client disconnected'); 
-
+        });
+        clientSocket.on('error', err => {
+          console.log('client error', err)
+          server.close()
+        })
       });
-      clientSocket.on('error', err=>{
-        console.log('client error', err) 
-      })
-    });
-  })
+    })
+    xapi.call('host.call_plugin', host.$ref, 'vdi-tools', 'export_vdi', { uuid: vhdUuid, hostname: XO_ADDRESS, port: '' + server.address().port })
+      .then(res => console.log({ res }))
+      .catch(err => console.error(err))
+    const stream = await promise
+    return stream
+
+  } catch (error) {
+    console.error(error)
+    console.log(error.call.params)
+  }
 }
 class Vdi {
   async clone(vdiRef) {
@@ -161,15 +136,20 @@ class Vdi {
       assert.equal(format, 'vhd')
 
       query.base = baseRef
+    } else {
+      // for now the direct export plugin does not support differential disks
+      try{
+        const vdi = this.getObject(ref)
+        const sr = this.getObject(vdi.SR)
+        const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
+        const hosts = pbds.map(pbd => this.getObject(pbd.host))
+        return getTcpStream(hosts[0], this, vdi.uuid)
+
+      }catch(err){
+        // @todo : fall back to xapi export if plugin is not installed 
+        throw err
+      }
     }
-    const vdi = this.getObject(ref)
-    console.log('GOT VDI ')
-    this._preferNbd = false
-    const sr = this.getObject(vdi.SR)
-    const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
-    const hosts = pbds.map(pbd => this.getObject(pbd.host))
-    // console.log({vdi,sr, pbds, hosts})
-    return getTcpStream(hosts[0], this, vdi.$ref)
     let nbdClient, stream
     try {
       if (preferNbd) {
