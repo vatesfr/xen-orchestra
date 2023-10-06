@@ -1582,6 +1582,7 @@ const messages = {
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
   copyHostBiosStrings: 'Copy host BIOS strings to VM',
+  enableVtpm: 'Enable VTPM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Info',
@@ -1655,6 +1656,7 @@ const messages = {
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
   destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
   vtpmNotSupported: 'VTPM is only supported on pools running XCP-ng/XS 8.3 or later.',
+  warningVtpmRequired: 'This template requires a VTPM, if you proceed, the VM will likely not be able to boot',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

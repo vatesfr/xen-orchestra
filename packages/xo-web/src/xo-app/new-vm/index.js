@@ -346,6 +346,7 @@ export default class NewVm extends BaseComponent {
         seqStart: 1,
         share: this._getResourceSet()?.shareByDefault ?? false,
         tags: [],
+        createVtpm: this._templateNeedVtpm(),
       },
       callback
     )
@@ -493,6 +494,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' && !this._templateHasBiosStrings() && state.copyHostBiosStrings,
+      createVtpm: state.createVtpm,
       destroyCloudConfigVdiAfterBoot: state.destroyCloudConfigVdiAfterBoot,
       secureBoot: state.secureBoot,
       share: state.share,
@@ -599,6 +601,7 @@ export default class NewVm extends BaseComponent {
       }),
       // settings
       secureBoot: template.secureBoot,
+      createVtpm: this._templateNeedVtpm(),
     })
 
     if (this._isCoreOs()) {
@@ -748,6 +751,11 @@ export default class NewVm extends BaseComponent {
     template => template && template.virtualizationMode === 'hvm'
   )
 
+  _templateNeedVtpm = createSelector(
+    () => this.props.template,
+    template => template && Boolean(template.platform?.vtpm)
+  )
+
   // On change -------------------------------------------------------------------
 
   _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
@@ -881,7 +889,12 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id => (this.state.state.multipleVms ? '/home' : `/vms/${id}`)
 
-  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value, secureBoot: false })
+  _handleBootFirmware = value =>
+    this._setState({
+      hvmBootFirmware: value,
+      secureBoot: false,
+      createVtpm: value === 'uefi' ? this._templateNeedVtpm() : false,
+    })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1531,6 +1544,7 @@ export default class NewVm extends BaseComponent {
       cpuCap,
       cpusMax,
       cpuWeight,
+      createVtpm,
       destroyCloudConfigVdiAfterBoot,
       hvmBootFirmware,
       installMethod,
@@ -1768,6 +1782,21 @@ export default class NewVm extends BaseComponent {
             <SectionContent>
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
+              </Item>
+              <Item label={_('enableVtpm')} className='d-inline-flex'>
+                <Toggle onChange={this._toggleState('createVtpm')} value={createVtpm} />
+                &nbsp;
+                {/* FIXME: link to VTPM documentation when ready */}
+                {/* <Tooltip content={_('seeVtpmDocumentation')}>
+                  <a className='text-info align-self-center' style={{ cursor: 'pointer' }} href='#'>
+                    <Icon icon='info' />
+                  </a>
+                </Tooltip> */}
+                {!createVtpm && this._templateNeedVtpm() && (
+                  <span className='align-self-center text-warning ml-1'>
+                    <Icon icon='alarm' /> {_('warningVtpmRequired')}
+                  </span>
+                )}
               </Item>
             </SectionContent>
           ),
