@@ -79,7 +79,7 @@ export default class {
       const tokensDb = (this._tokens = new Tokens({
         connection: app._redis,
         namespace: 'token',
-        indexes: ['user_id'],
+        indexes: ['client_id', 'user_id'],
       }))
 
       app.addConfigManager(
@@ -180,7 +180,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({ description, expiresIn, userId }) {
+  async createAuthenticationToken({ client, description, expiresIn, userId }) {
     let duration = this._defaultTokenValidity
     if (expiresIn !== undefined) {
       duration = parseDuration(expiresIn)
@@ -191,8 +191,27 @@ export default class {
       }
     }
 
+    const tokens = this._tokens
     const now = Date.now()
+
+    const clientId = client?.id
+    if (clientId !== undefined) {
+      const token = await tokens.first({ client_id: clientId, user_id: userId })
+      if (token !== undefined) {
+        if (token.expiration > now) {
+          token.description = description
+          token.expiration = now + duration
+          tokens.update(token)::ignoreErrors()
+
+          return token
+        }
+
+        tokens.remove(token.id)::ignoreErrors()
+      }
+    }
+
     const token = {
+      client,
       created_at: now,
       description,
       id: await generateToken(),
