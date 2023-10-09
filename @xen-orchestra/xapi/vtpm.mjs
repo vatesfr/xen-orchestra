@@ -30,6 +30,8 @@ export default class Vtpm {
           property: 'power_state',
         })
       }
+
+      throw error
     }
   }
 }
