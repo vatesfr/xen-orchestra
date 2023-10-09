@@ -239,7 +239,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   if (params.createVtpm) {
-    const vtpmRef = await xapi.VTPM_create(xapiVm.$ref)
+    const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
     $defer.onFailure(() => xapi.VTPM_destroy(vtpmRef))
   }
 
