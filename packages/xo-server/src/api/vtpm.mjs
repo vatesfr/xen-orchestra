@@ -13,7 +13,7 @@ create.resolve = {
 }
 
 export function destroy({ vtpm }) {
-  return this.call('VTPM.destroy', vtpm._xapiRef)
+  return this.getXapi(vtpm).call('VTPM.destroy', vtpm._xapiRef)
 }
 
 destroy.description = 'destroy a VTPM'
