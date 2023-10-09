@@ -1,5 +1,5 @@
 export function create({ vm }) {
-  return this.getXapi(vm).VTPM_create(vm._xapiRef)
+  return this.getXapi(vm).VTPM_create({ VM: vm._xapiRef })
 }
 
 create.description = 'create a VTPM'
@@ -13,7 +13,7 @@ create.resolve = {
 }
 
 export function destroy({ vtpm }) {
-  return this.getXapi(vtpm).VTPM_destroy(vtpm._xapiRef)
+  return this.call('VTPM.destroy', vtpm._xapiRef)
 }
 
 destroy.description = 'destroy a VTPM'
