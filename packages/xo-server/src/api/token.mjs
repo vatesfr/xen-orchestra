@@ -1,8 +1,9 @@
 // TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
-export async function create({ description, expiresIn }) {
+export async function create({ client, description, expiresIn }) {
   return (
     await this.createAuthenticationToken({
+      client,
       description,
       expiresIn,
       userId: this.apiContext.user.id,
@@ -16,6 +17,15 @@ create.params = {
   description: {
     optional: true,
     type: 'string',
+  },
+  client: {
+    description:
+      'client this authentication token belongs to, if a previous token exists, it will be updated and returned',
+    optional: true,
+    type: 'object',
+    properties: {
+      id: { description: 'unique identifier of this client', type: 'string' },
+    },
   },
   expiresIn: {
     optional: true,
