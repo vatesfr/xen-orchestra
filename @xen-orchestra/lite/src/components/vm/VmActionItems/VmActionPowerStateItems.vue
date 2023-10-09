@@ -95,13 +95,14 @@
 import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
+import { VM_OPERATION, VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { useXenApiStore } from "@/stores/xen-api.store";
 import { useHostMetricsCollection } from "@/stores/xen-api/host-metrics.store";
+import { useHostCollection } from "@/stores/xen-api/host.store";
 import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { VM_POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
-import { useXenApiStore } from "@/stores/xen-api.store";
+import type { MaybeArray } from "@/types";
 import {
   faCirclePlay,
   faMoon,
@@ -148,7 +149,7 @@ const areVmsPaused = computed(() =>
   vms.value.every((vm) => vm.power_state === VM_POWER_STATE.PAUSED)
 );
 
-const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
+const areOperationsPending = (operation: MaybeArray<VM_OPERATION>) =>
   vms.value.some((vm) => isOperationPending(vm, operation));
 
 const areVmsBusyToStart = computed(() =>

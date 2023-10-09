@@ -25,6 +25,7 @@ export const XEN_API_OBJECT_TYPES = {
   pvs_proxy: "PVS_proxy",
   pvs_server: "PVS_server",
   pvs_site: "PVS_site",
+  repository: "repository",
   sdn_controller: "SDN_controller",
   sm: "SM",
   sr: "SR",

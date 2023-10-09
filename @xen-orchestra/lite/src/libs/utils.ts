@@ -1,9 +1,11 @@
+import type { MaybeArray } from "@/types";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
 import { find, forEach, round, size, sum } from "lodash-es";
+import { computed, type Ref } from "vue";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -140,5 +142,9 @@ export function parseRamUsage(
   };
 }
 
-export const getFirst = <T>(value: T | T[]): T | undefined =>
+export const getFirst = <T>(value: MaybeArray<T>): T | undefined =>
   Array.isArray(value) ? value[0] : value;
+
+export const areCollectionsReady = (
+  ...collections: { isReady: Ref<boolean> }[]
+) => computed(() => collections.every(({ isReady }) => isReady.value));

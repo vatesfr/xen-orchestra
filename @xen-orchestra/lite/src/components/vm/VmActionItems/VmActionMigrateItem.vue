@@ -1,10 +1,10 @@
 <template>
   <MenuItem
     v-tooltip="
-      !areAllVmsMigratable && $t('some-selected-vms-can-not-be-migrated')
+      !areAllVmsAllowedToMigrate && $t('some-selected-vms-can-not-be-migrated')
     "
     :busy="isMigrating"
-    :disabled="isParentDisabled || !areAllVmsMigratable"
+    :disabled="isParentDisabled || !areAllVmsAllowedToMigrate"
     :icon="faRoute"
     @click="openModal"
   >
@@ -12,33 +12,69 @@
   </MenuItem>
 
   <UiModal v-model="isModalOpen">
-    <FormModalLayout :disabled="isMigrating" @submit.prevent="handleMigrate">
+    <FormModalLayout
+      :disabled="!isReady || isMigrating"
+      @submit.prevent="handleMigrate"
+    >
       <template #title>
         {{ $t("migrate-n-vms", { n: selectedRefs.length }) }}
       </template>
 
       <div>
         <FormInputWrapper :label="$t('select-destination-host')" light>
-          <FormSelect v-model="selectedHost">
-            <option :value="undefined">
-              {{ $t("select-destination-host") }}
-            </option>
+          <FormSelect v-model="selectedHostRef">
+            <option :value="undefined">{{ $t("please-select") }}</option>
             <option
               v-for="host in availableHosts"
               :key="host.$ref"
-              :value="host"
+              :value="host.$ref"
             >
               {{ host.name_label }}
+            </option>
+          </FormSelect>
+        </FormInputWrapper>
+
+        <FormInputWrapper
+          v-if="selectedHostRef !== undefined"
+          :label="$t('select-optional-migration-network')"
+          light
+        >
+          <FormSelect v-model="selectedMigrationNetworkRef">
+            <option :value="undefined">{{ $t("please-select") }}</option>
+            <option
+              v-for="network in availableNetworks"
+              :key="network.$ref"
+              :value="network.$ref"
+            >
+              {{ network.name_label }}
+            </option>
+          </FormSelect>
+        </FormInputWrapper>
+
+        <FormInputWrapper
+          v-if="selectedMigrationNetworkRef !== undefined"
+          :label="$t('select-destination-sr')"
+          light
+        >
+          <FormSelect v-model="selectedSrRef">
+            <option :value="undefined">{{ $t("please-select") }}</option>
+            <option v-for="sr in availableSrs" :key="sr.$ref" :value="sr.$ref">
+              {{ sr.name_label }}
             </option>
           </FormSelect>
         </FormInputWrapper>
       </div>
 
       <template #buttons>
-        <UiButton outlined @click="closeModal">
+        <UiButton outlined @click="closeModal" :disabled="false">
           {{ isMigrating ? $t("close") : $t("cancel") }}
         </UiButton>
-        <UiButton :busy="isMigrating" :disabled="!isValid" type="submit">
+        <UiButton
+          :busy="isMigrating"
+          :disabled="!canExecuteMigration"
+          v-tooltip="notMigratableReason ?? false"
+          type="submit"
+        >
           {{ $t("migrate-n-vms", { n: selectedRefs.length }) }}
         </UiButton>
       </template>
@@ -60,6 +96,7 @@ import { DisabledContext } from "@/context";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
@@ -67,29 +104,40 @@ const props = defineProps<{
 
 const isParentDisabled = useContext(DisabledContext);
 
+const { t } = useI18n();
+
 const {
   open: openModal,
   isOpen: isModalOpen,
   close: closeModal,
 } = useModal({
-  onClose: () => (selectedHost.value = undefined),
+  confirmClose: () => {
+    if (!isMigrating.value) {
+      return true;
+    }
+
+    return confirm(t("migration-close-warning"));
+  },
+  onClose: () => (selectedHostRef.value = undefined),
 });
 
 const {
-  selectedHost,
+  isReady,
+  selectedHostRef,
+  selectedMigrationNetworkRef,
+  selectedSrRef,
   availableHosts,
-  isValid,
+  availableNetworks,
+  availableSrs,
   migrate,
   isMigrating,
-  areAllVmsMigratable,
+  canExecuteMigration,
+  notMigratableReason,
+  areAllVmsAllowedToMigrate,
 } = useVmMigration(() => props.selectedRefs);
 
 const handleMigrate = async () => {
-  try {
-    await migrate();
-    closeModal();
-  } catch (e) {
-    console.error("Error while migrating", e);
-  }
+  await migrate();
+  closeModal();
 };
 </script>

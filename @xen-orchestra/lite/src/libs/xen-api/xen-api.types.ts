@@ -1,9 +1,14 @@
 import type {
+  AFTER_APPLY_GUIDANCE,
   ALLOCATION_ALGORITHM,
   BOND_MODE,
+  CERTIFICATE_TYPE,
   DOMAIN_TYPE,
+  HOST_ALLOWED_OPERATION,
+  HOST_DISPLAY,
   IP_CONFIGURATION_MODE,
   IPV6_CONFIGURATION_MODE,
+  LATEST_SYNCED_UPDATES_APPLIED_STATE,
   NETWORK_DEFAULT_LOCKING_MODE,
   NETWORK_OPERATION,
   NETWORK_PURPOSE,
@@ -14,10 +19,15 @@ import type {
   PERSISTENCE_BACKEND,
   PGPU_DOM0_ACCESS,
   PIF_IGMP_STATUS,
+  POOL_ALLOWED_OPERATION,
   PRIMARY_ADDRESS_TYPE,
   SRIOV_CONFIGURATION_MODE,
+  STORAGE_OPERATION,
+  TELEMETRY_FREQUENCY,
   TUNNEL_PROTOCOL,
+  UPDATE_AFTER_APPLY_GUIDANCE,
   UPDATE_GUIDANCE,
+  UPDATE_SYNC_FREQUENCY,
   VBD_MODE,
   VBD_OPERATION,
   VBD_TYPE,
@@ -59,6 +69,12 @@ type ObjectTypeToRecordMapping = {
   vm: XenApiVm;
   vm_guest_metrics: XenApiVmGuestMetrics;
   vm_metrics: XenApiVmMetrics;
+  vbd: XenApiVbd;
+  vdi: XenApiVdi;
+  vif: XenApiVif;
+  pif: XenApiPif;
+  network: XenApiNetwork;
+  pbd: XenApiPbd;
 };
 
 export type ObjectTypeToRecord<Type extends ObjectType> =
@@ -96,26 +112,255 @@ export type RawXenApiRecord<T extends XenApiRecord<ObjectType>> = Omit<
 >;
 
 export interface XenApiPool extends XenApiRecord<"pool"> {
-  cpu_info: {
-    cpu_count: string;
-  };
+  allowed_operations: POOL_ALLOWED_OPERATION[];
+  blobs: Record<string, XenApiBlob["$ref"]>;
+  client_certificate_auth_enabled: boolean;
+  client_certificate_auth_name: string;
+  coordinator_bias: boolean;
+  cpu_info: Record<string, string> & { cpu_count: string };
+  crash_dump_SR: XenApiSr["$ref"];
+  current_operations: Record<string, POOL_ALLOWED_OPERATION>;
+  default_SR: XenApiSr["$ref"];
+  guest_agent_config: Record<string, string>;
+  gui_config: Record<string, string>;
+  ha_allow_overcommit: boolean;
+  ha_cluster_stack: string;
+  ha_configuration: Record<string, string>;
+  ha_enabled: boolean;
+  ha_host_failures_to_tolerate: number;
+  ha_overcommitted: boolean;
+  ha_plan_exists_for: number;
+  ha_statefiles: string[];
+  health_check_config: Record<string, string>;
+  igmp_snooping_enabled: boolean;
+  is_psr_pending: boolean;
+  last_update_sync: string;
+  live_patching_disabled: boolean;
   master: XenApiHost["$ref"];
+  metadata_VDIs: XenApiVdi["$ref"][];
+  migration_compression: boolean;
+  name_description: string;
   name_label: string;
+  other_config: Record<string, string>;
+  policy_no_vendor_device: boolean;
+  redo_log_enabled: boolean;
+  redo_log_vdi: XenApiVdi["$ref"];
+  repositories: XenApiRepository["$ref"][];
+  repository_proxy_password: XenApiSecret["$ref"];
+  repository_proxy_url: string;
+  repository_proxy_username: string;
+  restrictions: Record<string, string>;
+  suspend_image_SR: XenApiSr["$ref"];
+  tags: string[];
+  telemetry_frequency: TELEMETRY_FREQUENCY;
+  telemetry_next_collection: string;
+  telemetry_uuid: XenApiSecret["$ref"];
+  tls_verification_enabled: boolean;
+  uefi_certificates: string;
+  update_sync_day: number;
+  update_sync_enabled: boolean;
+  update_sync_frequency: UPDATE_SYNC_FREQUENCY;
+  vswitch_controller: string;
+  wlb_enabled: boolean;
+  wlb_url: string;
+  wlb_username: string;
+  wlb_verify_cert: boolean;
+}
+
+export interface XenApiSecret extends XenApiRecord<"secret"> {
+  other_config: Record<string, string>;
+  value: string;
+}
+
+export interface XenApiRepository extends XenApiRecord<"repository"> {
+  binary_url: string;
+  gpgkey_path: string;
+  hash: string;
+  name_description: string;
+  name_label: string;
+  source_url: string;
+  up_to_date: boolean;
+  update: boolean;
 }
 
 export interface XenApiHost extends XenApiRecord<"host"> {
+  API_version_major: number;
+  API_version_minor: number;
+  API_version_vendor: string;
+  API_version_vendor_implementation: Record<string, string>;
+  PBDs: XenApiPbd["$ref"][];
+  PCIs: XenApiPci["$ref"][];
+  PGPUs: XenApiPgpu["$ref"][];
+  PIFs: XenApiPif["$ref"][];
+  PUSBs: XenApiPusb["$ref"][];
   address: string;
-  name_label: string;
+  allowed_operations: HOST_ALLOWED_OPERATION[];
+  bios_strings: Record<string, string>;
+  blobs: Record<string, XenApiBlob["$ref"]>;
+  capabilities: string[];
+  certificates: XenApiCertificate["$ref"][];
+  chipset_info: Record<string, string>;
+  control_domain: XenApiVm["$ref"];
+  cpu_configuration: Record<string, string>;
+  cpu_info: Record<string, string> & { cpu_count: string };
+  crash_dump_sr: XenApiSr["$ref"];
+  crashdumps: XenApiHostCrashdump["$ref"][];
+  current_operations: Record<string, HOST_ALLOWED_OPERATION>;
+  display: HOST_DISPLAY;
+  edition: string;
+  editions: string[];
+  enabled: boolean;
+  external_auth_configuration: Record<string, string>;
+  external_auth_service_name: string;
+  external_auth_type: string;
+  features: XenApiFeature["$ref"][];
+  guest_VCPUs_params: Record<string, string>;
+  ha_network_peers: string[];
+  ha_statefiles: string[];
+  host_CPUs: XenApiHostCpu["$ref"][];
+  hostname: string;
+  https_only: boolean;
+  iscsi_iqn: string;
+  last_software_update: string;
+  latest_synced_updates_applied: LATEST_SYNCED_UPDATES_APPLIED_STATE;
+  license_params: Record<string, string>;
+  license_server: Record<string, string>;
+  local_cache_sr: XenApiSr["$ref"];
+  logging: Record<string, string>;
+  memory_overhead: number;
   metrics: XenApiHostMetrics["$ref"];
+  multipathing: boolean;
+  name_description: string;
+  name_label: string;
+  other_config: Record<string, string>;
+  patches: XenApiHostPatch["$ref"][];
+  pending_guidances: UPDATE_GUIDANCE[];
+  power_on_config: Record<string, string>;
+  power_on_mode: string;
   resident_VMs: XenApiVm["$ref"][];
-  cpu_info: { cpu_count: string };
-  software_version: { product_version: string };
+  sched_policy: string;
+  software_version: Record<string, string> & { product_version: string };
+  ssl_legacy: boolean;
+  supported_bootloaders: string[];
+  suspend_image_sr: XenApiSr["$ref"];
+  tags: string[];
+  tls_verification_enabled: boolean;
+  uefi_certificates: string;
+  updates: XenApiPoolUpdate["$ref"][];
+  updates_requiring_reboot: XenApiPoolUpdate["$ref"][];
+  virtual_hardware_platform_versions: number[];
+}
+
+export interface XenApiCertificate extends XenApiRecord<"certificate"> {
+  fingerprint: string;
+  host: XenApiHost["$ref"];
+  name: string;
+  not_after: string;
+  not_before: string;
+  type: CERTIFICATE_TYPE;
+}
+
+export interface XenApiHostCrashdump extends XenApiRecord<"host_crashdump"> {
+  host: XenApiHost["$ref"];
+  other_config: Record<string, string>;
+  size: number;
+  timestamp: string;
+}
+
+export interface XenApiFeature extends XenApiRecord<"feature"> {
+  enabled: boolean;
+  experimental: boolean;
+  host: XenApiHost["$ref"];
+  name_description: string;
+  name_label: string;
+  version: string;
+}
+
+export interface XenApiHostCpu extends XenApiRecord<"host_cpu"> {
+  family: number;
+  features: string;
+  flags: string;
+  host: XenApiHost["$ref"];
+  model: number;
+  modelname: string;
+  number: number;
+  other_config: Record<string, string>;
+  speed: number;
+  stepping: string;
+  utilisation: number;
+  vendor: string;
+}
+
+export interface XenApiPbd extends XenApiRecord<"pbd"> {
+  SR: XenApiSr["$ref"];
+  currently_attached: boolean;
+  device_config: Record<string, string>;
+  host: XenApiHost["$ref"];
+  other_config: Record<string, string>;
+}
+
+export interface XenApiPoolUpdate extends XenApiRecord<"pool_update"> {
+  after_apply_guidance: UPDATE_AFTER_APPLY_GUIDANCE[];
+  enforce_homogeneity: boolean;
+  hosts: XenApiHost["$ref"][];
+  installation_size: number;
+  key: string;
+  name_description: string;
+  name_label: string;
+  other_config: Record<string, string>;
+  vdi: XenApiVdi["$ref"];
+  version: string;
+}
+
+export interface XenApiHostPatch extends XenApiRecord<"host_patch"> {
+  applied: boolean;
+  host: XenApiHost["$ref"];
+  name_description: string;
+  name_label: string;
+  other_config: Record<string, string>;
+  pool_patch: XenApiPoolPatch["$ref"];
+  size: number;
+  timestamp_applied: string;
+  version: string;
+}
+
+export interface XenApiPoolPatch extends XenApiRecord<"pool_patch"> {
+  after_apply_guidance: AFTER_APPLY_GUIDANCE[];
+  host_patches: XenApiHostPatch["$ref"][];
+  name_description: string;
+  name_label: string;
+  other_config: Record<string, string>;
+  pool_applied: boolean;
+  pool_update: XenApiPoolUpdate["$ref"];
+  size: number;
+  version: string;
 }
 
 export interface XenApiSr extends XenApiRecord<"sr"> {
+  PBDs: XenApiPbd["$ref"][];
+  VDIs: XenApiVdi["$ref"][];
+  allowed_operations: STORAGE_OPERATION[];
+  blobs: Record<string, XenApiBlob["$ref"]>;
+  clustered: boolean;
+  content_type: string;
+  current_operations: Record<string, STORAGE_OPERATION>;
+  introduced_by: XenApiDrTask["$ref"];
+  is_tools_sr: boolean;
+  local_cache_enabled: boolean;
+  name_description: string;
   name_label: string;
+  other_config: Record<string, string>;
   physical_size: number;
   physical_utilisation: number;
+  shared: boolean;
+  sm_config: Record<string, string>;
+  tags: string[];
+  type: string;
+  virtual_allocation: number;
+}
+
+export interface XenApiDrTask extends XenApiRecord<"dr_task"> {
+  introduced_SRs: XenApiSr["$ref"][];
 }
 
 export interface XenApiVm extends XenApiRecord<"vm"> {
