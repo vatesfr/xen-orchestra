@@ -316,21 +316,28 @@ export const Pif = decorate([
     }
 
     const { carrier, device, deviceName, vlan } = pif
+    const showExtraInfo = deviceName || vlan !== -1 || (showNetwork && network !== undefined)
 
     return (
       <span>
-        <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device} ({deviceName}
-        {vlan !== -1 && (
+        <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device}
+        {showExtraInfo && (
           <span>
             {' '}
-            -{' '}
-            {_('keyValue', {
-              key: _('pifVlanLabel'),
-              value: vlan,
-            })}
+            ({deviceName}
+            {vlan !== -1 && (
+              <span>
+                {' '}
+                -{' '}
+                {_('keyValue', {
+                  key: _('pifVlanLabel'),
+                  value: vlan,
+                })}
+              </span>
+            )}
+            {showNetwork && network !== undefined && <span> - {network.name_label}</span>})
           </span>
         )}
-        {showNetwork && network !== undefined && <span> - {network.name_label}</span>})
       </span>
     )
   },
