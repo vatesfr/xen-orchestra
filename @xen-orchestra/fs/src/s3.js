@@ -31,6 +31,8 @@ import { pRetry } from 'promise-toolbox'
 
 // limits: https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
+const MAX_PART_NUMBER = 10000
+const MIN_PART_SIZE = 5 * 1024 * 1024
 const { warn } = createLogger('xo:fs:s3')
 
 export default class S3Handler extends RemoteHandlerAbstract {
@@ -221,15 +223,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  async _outputStream(path, input, { validator }) {
+  async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
     // S3 storage is limited to 10K part, each part is limited to 5GB. And the total upload must be smaller than 5TB
     // a bigger partSize increase the memory consumption of aws/lib-storage exponentially
-    const MAX_PART = 10000
-    const PART_SIZE = 5 * 1024 * 1024
-    const MAX_SIZE = MAX_PART * PART_SIZE
+    let partSize
+    if (maxStreamLength === undefined) {
+      warn(`Writing ${path} to a S3 remote without a max size set will cut it to 50GB`, { path })
+      partSize = MIN_PART_SIZE // min size for S3
+    } else {
+      partSize = Math.min(Math.max(Math.ceil(maxStreamLength / MAX_PART_NUMBER), MIN_PART_SIZE), MAX_PART_SIZE)
+    }
 
     // ensure we don't try to upload a stream to big for this partSize
     let readCounter = 0
+    const MAX_SIZE = MAX_PART_NUMBER * partSize
     const streamCutter = new Transform({
       transform(chunk, encoding, callback) {
         readCounter += chunk.length
@@ -252,7 +259,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this.#createParams(path),
         Body,
       },
-      partSize: PART_SIZE,
+      partSize,
       leavePartsOnError: false,
     })
 
