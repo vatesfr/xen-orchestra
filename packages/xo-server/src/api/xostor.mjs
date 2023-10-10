@@ -116,11 +116,15 @@ export const create = defer(async function (
 
   const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
 
-  const unboundLicenses = xostorLicenses.filter(license => license.boundObjectId === undefined)
-  let license = unboundLicenses.find(license => license.productId === 'xostor')
+  const now = Date.now()
+  const availableLicenses = xostorLicenses.filter(
+    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
+  )
+
+  let license = availableLicenses.find(license => license.productId === 'xostor')
 
   if (license === undefined) {
-    license = unboundLicenses.find(license => license.productId === 'xostor.trial')
+    license = availableLicenses.find(license => license.productId === 'xostor.trial')
   }
 
   if (license === undefined) {
@@ -128,9 +132,6 @@ export const create = defer(async function (
       boundObjectId: tmpBoundObjectId,
     })
   } else {
-    if (license.expires < Date.now()) {
-      throw new Error('License expired')
-    }
     this.bindLicense({
       licenseId: license.id,
       boundObjectId: tmpBoundObjectId,
@@ -188,7 +189,7 @@ export const create = defer(async function (
     shared: true,
     type: 'linstor',
   })
-  const srUuid = xapi.getObject(srRef).uuid
+  const srUuid = xapi.getField('SR', srRef, 'uuid')
 
   await this.rebindLicense({
     licenseId: license.id,
