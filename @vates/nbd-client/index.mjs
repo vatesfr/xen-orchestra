@@ -117,10 +117,16 @@ export default class NbdClient {
       return
     }
 
+    const queryId = this.#nextCommandQueryId
+    this.#nextCommandQueryId++
+
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
     buffer.writeInt16BE(0, 4) // no command flags for a disconnect
     buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
+    buffer.writeBigUInt64BE(queryId, 8)
+    buffer.writeBigUInt64BE(0n, 16)
+    buffer.writeInt32BE(0, 24)
     await this.#write(buffer)
     await this.#serverSocket.destroy()
     this.#serverSocket = undefined
