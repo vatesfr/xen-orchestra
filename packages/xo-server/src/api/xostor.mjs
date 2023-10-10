@@ -128,11 +128,11 @@ export const create = defer(async function (
   }
 
   if (license === undefined) {
-    license = this.createBoundXostorTrialLicense({
+    license = await this.createBoundXostorTrialLicense({
       boundObjectId: tmpBoundObjectId,
     })
   } else {
-    this.bindLicense({
+    await this.bindLicense({
       licenseId: license.id,
       boundObjectId: tmpBoundObjectId,
     })
