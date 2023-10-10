@@ -299,6 +299,63 @@ Vdi.defaultProps = {
 
 // ===================================================================
 
+export const Pif = decorate([
+  connectStore(() => {
+    const getObject = createGetObject()
+    const getNetwork = createGetObject(createSelector(getObject, pif => get(() => pif.$network)))
+
+    // FIXME: props.self ugly workaround to get object as a self user
+    return (state, props) => ({
+      pif: getObject(state, props, props.self),
+      network: getNetwork(state, props),
+    })
+  }),
+  ({ id, showNetwork, pif, network }) => {
+    if (pif === undefined) {
+      return unknowItem(id, 'PIF')
+    }
+
+    const { carrier, device, deviceName, vlan } = pif
+    const showExtraInfo = deviceName || vlan !== -1 || (showNetwork && network !== undefined)
+
+    return (
+      <span>
+        <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device}
+        {showExtraInfo && (
+          <span>
+            {' '}
+            ({deviceName}
+            {vlan !== -1 && (
+              <span>
+                {' '}
+                -{' '}
+                {_('keyValue', {
+                  key: _('pifVlanLabel'),
+                  value: vlan,
+                })}
+              </span>
+            )}
+            {showNetwork && network !== undefined && <span> - {network.name_label}</span>})
+          </span>
+        )}
+      </span>
+    )
+  },
+])
+
+Pif.propTypes = {
+  id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+  showNetwork: PropTypes.bool,
+}
+
+Pif.defaultProps = {
+  self: false,
+  showNetwork: false,
+}
+
+// ===================================================================
+
 export const Network = decorate([
   connectStore(() => {
     const getObject = createGetObject()
@@ -561,24 +618,8 @@ const xoItemToRender = {
   ),
 
   // PIF.
-  PIF: ({ carrier, device, deviceName, vlan }) => (
-    <span>
-      <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device}
-      {(deviceName !== '' || vlan !== -1) && (
-        <span>
-          {' '}
-          ({deviceName}
-          {deviceName !== '' && vlan !== -1 && ' - '}
-          {vlan !== -1 &&
-            _('keyValue', {
-              key: _('pifVlanLabel'),
-              value: vlan,
-            })}
-          )
-        </span>
-      )}
-    </span>
-  ),
+  PIF: props => <Pif {...props} />,
+
   // Tags.
   tag: tag => (
     <span>
