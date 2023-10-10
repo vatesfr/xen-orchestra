@@ -31,6 +31,8 @@ import { pRetry } from 'promise-toolbox'
 
 // limits: https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
+const MAX_PART_NUMBER = 10000
+const MIN_PART_SIZE = 5 * 1024 * 1024
 const { warn } = createLogger('xo:fs:s3')
 
 export default class S3Handler extends RemoteHandlerAbstract {
@@ -221,36 +223,40 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  async _outputStream(path, input, { validator }) {
-    const MAX_PART = 10000
-    const PART_SIZE = 5 * 1024 * 1024
+  async _outputStream(path, input, { maxStreamLength, streamLength, validator }) {
+    const maxInputLength = streamLength ?? maxStreamLength
+    let partSize
+    if (maxInputLength === undefined) {
+      warn(`Writing ${path} to a S3 remote without a max size set will cut it to 50GB`, { path })
+      partSize = MIN_PART_SIZE // min size for S3
+    } else {
+      partSize = Math.min(Math.max(Math.ceil(maxInputLength / MAX_PART_NUMBER), MIN_PART_SIZE), MAX_PART_SIZE)
+    }
+
+    // esnure we d'ont try to upload a stream to big for this part size
+    let readCounter = 0
     const streamCutter = new Transform({
       transform(chunk, encoding, callback) {
-        const MAX_SIZE = MAX_PART * PART_SIZE
-        if (this._readCounter === undefined) {
-          this._readCounter = 0
-        }
-        this._readCounter += chunk.length
-        if (this._readCounter > MAX_SIZE) {
-          callback(new Error(`read ${this._readCounter} bytes, maximum size allowed  is ${MAX_SIZE} `))
+        const MAX_SIZE = MAX_PART_NUMBER * partSize
+        readCounter += chunk.length
+        if (readCounter > MAX_SIZE) {
+          callback(new Error(`read ${readCounter} bytes, maximum size allowed  is ${MAX_SIZE} `))
         } else {
           callback(null, chunk)
         }
       },
     })
-
     // Workaround for "ReferenceError: ReadableStream is not defined"
     // https://github.com/aws/aws-sdk-js-v3/issues/2522
     const Body = new PassThrough()
     pipeline(input, streamCutter, Body, () => {})
-
     const upload = new Upload({
       client: this.#s3,
       params: {
         ...this.#createParams(path),
         Body,
       },
-      partSize: PART_SIZE,
+      partSize,
       leavePartsOnError: false,
     })
 

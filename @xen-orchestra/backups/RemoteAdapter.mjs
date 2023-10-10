@@ -681,11 +681,13 @@ export class RemoteAdapter {
     }
   }
 
-  async outputStream(path, input, { checksum = true, validator = noop } = {}) {
+  async outputStream(path, input, { checksum = true, maxStreamLength, streamLength, validator = noop } = {}) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
+      maxStreamLength,
+      streamLength,
       async validator() {
         await input.task
         return validator.apply(this, arguments)
@@ -742,8 +744,15 @@ export class RemoteAdapter {
     }
   }
 
-  readFullVmBackup(metadata) {
-    return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+  async readFullVmBackup(metadata) {
+    const xvaPath = resolve('/', dirname(metadata._filename), metadata.xva)
+    const stream = await this._handler.createReadStream(xvaPath)
+    try {
+      stream.length = await this._handler.getSize(xvaPath)
+    } catch (error) {
+      warn(`Can't compute length of xva file`, { xvaPath, error })
+    }
+    return stream
   }
 
   async readVmBackupMetadata(path) {
