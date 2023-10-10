@@ -41,6 +41,7 @@ export default class NbdClient {
   #readBlockRetries
   #reconnectRetry
   #connectTimeout
+  #messageTimeout
 
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
@@ -53,7 +54,14 @@ export default class NbdClient {
   #reconnectingPromise
   constructor(
     { address, port = NBD_DEFAULT_PORT, exportname, cert },
-    { connectTimeout = 6e4, waitBeforeReconnect = 1e3, readAhead = 10, readBlockRetries = 5, reconnectRetry = 5 } = {}
+    {
+      connectTimeout = 6e4,
+      messageTimeout = 6e4,
+      waitBeforeReconnect = 1e3,
+      readAhead = 10,
+      readBlockRetries = 5,
+      reconnectRetry = 5,
+    } = {}
   ) {
     this.#serverAddress = address
     this.#serverPort = port
@@ -64,6 +72,7 @@ export default class NbdClient {
     this.#readBlockRetries = readBlockRetries
     this.#reconnectRetry = reconnectRetry
     this.#connectTimeout = connectTimeout
+    this.#messageTimeout = messageTimeout
   }
 
   get exportSize() {
@@ -127,9 +136,14 @@ export default class NbdClient {
     buffer.writeBigUInt64BE(queryId, 8)
     buffer.writeBigUInt64BE(0n, 16)
     buffer.writeInt32BE(0, 24)
-    await pFromCallback(cb => {
+    const promise = pFromCallback(cb => {
       this.#serverSocket.end(buffer, 'utf8', cb)
     })
+    try {
+      await pTimeout.call(promise, this.#messageTimeout)
+    } catch (error) {
+      this.#serverSocket.destroy()
+    }
     this.#serverSocket = undefined
     this.#connected = false
   }
@@ -203,11 +217,13 @@ export default class NbdClient {
   }
 
   #read(length) {
-    return readChunkStrict(this.#serverSocket, length)
+    const promise = readChunkStrict(this.#serverSocket, length)
+    return pTimeout.call(promise, this.#messageTimeout)
   }
 
   #write(buffer) {
-    return fromCallback.call(this.#serverSocket, 'write', buffer)
+    const promise = fromCallback.call(this.#serverSocket, 'write', buffer)
+    return pTimeout.call(promise, this.#messageTimeout)
   }
 
   async #readInt32() {
