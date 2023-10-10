@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import { Socket } from 'node:net'
 import { connect } from 'node:tls'
-import { fromCallback, pRetry, pDelay, pTimeout } from 'promise-toolbox'
+import { fromCallback, pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -127,8 +127,9 @@ export default class NbdClient {
     buffer.writeBigUInt64BE(queryId, 8)
     buffer.writeBigUInt64BE(0n, 16)
     buffer.writeInt32BE(0, 24)
-    await this.#write(buffer)
-    await this.#serverSocket.destroy()
+    await pFromCallback(cb => {
+      this.#serverSocket.end(buffer, 'utf8', cb)
+    })
     this.#serverSocket = undefined
     this.#connected = false
   }
