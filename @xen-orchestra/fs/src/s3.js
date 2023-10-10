@@ -437,11 +437,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   async _sync() {
     await super._sync()
-    const res = await this.#s3.send(new GetObjectLockConfigurationCommand({ Bucket: this.#bucket }))
-    if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
-      // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-      // increase memory consumption in outputStream as if buffer the streams
-      this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+    try {
+      const res = await this.#s3.send(new GetObjectLockConfigurationCommand({ Bucket: this.#bucket }))
+      if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
+        // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
+        // increase memory consumption in outputStream as if buffer the streams
+        this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+      }
+    } catch (error) {
+      if (error.Code !== 'ObjectLockConfigurationNotFoundError') {
+        throw error
+      }
     }
   }
   useVhdDirectory() {
