@@ -1,4 +1,3 @@
-import fromEvent from 'promise-toolbox/fromEvent'
 import { client, xml } from '@xmpp/client'
 
 // ===================================================================
@@ -56,10 +55,7 @@ class TransportXmppPlugin {
 
   async load() {
     this._client = client(this._conf)
-    this._client.on('error', () => {})
-
-    await fromEvent(this._client.connection.socket, 'data')
-    await fromEvent(this._client, 'online')
+    await this._client.start()
 
     this._unset = this._set('sendToXmppClient', this._sendToXmppClient)
   }

@@ -28,6 +28,7 @@
 - Don't require to sign in again in XO after losing connection to XO Server (e.g. when restarting or upgrading XO) (PR [#7103](https://github.com/vatesfr/xen-orchestra/pull/7103))
 - [Usage report] Fix "Converting circular structure to JSON" error (PR [#7096](https://github.com/vatesfr/xen-orchestra/pull/7096))
 - [Usage report] Fix "Cannot convert undefined or null to object" error (PR [#7092](https://github.com/vatesfr/xen-orchestra/pull/7092))
+- [Plugin/transport-xmpp] Fix plugin load
 
 ### Packages to release
 
@@ -52,6 +53,7 @@
 - xo-server minor
 - xo-server-backup-reports minor
 - xo-server-netbox patch
+- xo-server-transport-xmpp patch
 - xo-server-usage-report patch
 - xo-web minor
 
