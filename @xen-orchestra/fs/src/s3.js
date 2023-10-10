@@ -72,9 +72,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       }),
     })
 
-    // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-    this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
-
     const parts = split(path)
     this.#bucket = parts.shift()
     this.#dir = join(...parts)
@@ -438,12 +435,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   async _closeFile(fd) {}
 
+  async _sync() {
+    await super._sync()
+    const res = await this.#s3.send(new GetObjectLockConfigurationCommand({ Bucket: this.#bucket }))
+    if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
+      // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
+      // increase memory consumption in outputStream as if buffer the streams
+      this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+    }
+  }
   useVhdDirectory() {
     return true
-  }
-
-  async #hasObjectLock(){
-    const res = await this.#s3.send(new GetObjectLockConfigurationCommand({Bucket: bucket}))
-    return res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled'
   }
 }
