@@ -5,6 +5,7 @@ import {
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  GetObjectLockConfigurationCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -70,9 +71,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
         }),
       }),
     })
-
-    // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-    this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
 
     const parts = split(path)
     this.#bucket = parts.shift()
@@ -438,6 +436,24 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {}
+
+  async _sync() {
+    await super._sync()
+    try {
+      // if Object Lock is enabled, each upload must come with a contentMD5 header
+      // the computation of this md5 is memory-intensive, especially when uploading a stream
+      const res = await this.#s3.send(new GetObjectLockConfigurationCommand({ Bucket: this.#bucket }))
+      if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
+        // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
+        // will automatically add the contentMD5 header to any upload to S3
+        this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+      }
+    } catch (error) {
+      if (error.Code !== 'ObjectLockConfigurationNotFoundError') {
+        throw error
+      }
+    }
+  }
 
   useVhdDirectory() {
     return true
