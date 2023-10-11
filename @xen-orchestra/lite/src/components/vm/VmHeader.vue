@@ -11,6 +11,23 @@
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </AppMenu>
+      <AppMenu v-if="vm !== undefined" placement="bottom-end" shadow>
+        <template #trigger="{ open, isOpen }">
+          <UiButton
+            :active="isOpen"
+            :icon="faEllipsisVertical"
+            @click="open"
+            transparent
+            class="more-actions-button"
+            v-tooltip="{
+              placement: 'left',
+              content: $t('more-actions'),
+            }"
+          />
+        </template>
+        <VmActionCopyItem :selected-refs="[vm.$ref]" is-single-action />
+        <VmActionSnapshotItem :vm-refs="[vm.$ref]" />
+      </AppMenu>
     </template>
   </TitleBar>
 </template>
@@ -21,11 +38,15 @@ import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
+import VmActionSnapshotItem from "@/components/vm/VmActionItems/VmActionSnapshotItem.vue";
+import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import {
   faAngleDown,
   faDisplay,
+  faEllipsisVertical,
   faPowerOff,
 } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
@@ -40,3 +61,9 @@ const vm = computed(() =>
 
 const name = computed(() => vm.value?.name_label);
 </script>
+
+<style lang="postcss">
+.more-actions-button {
+  font-size: 1.2em;
+}
+</style>

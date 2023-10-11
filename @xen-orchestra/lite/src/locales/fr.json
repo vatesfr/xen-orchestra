@@ -86,6 +86,7 @@
   "loading-hosts": "Chargement des hôtes…",
   "log-out": "Se déconnecter",
   "login": "Connexion",
+  "more-actions": "Plus d'actions",
   "migrate": "Migrer",
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
@@ -173,6 +174,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
+  "vm-is-running": "La VM est en cours d'exécution",
   "vms": "VMs",
   "xo-lite-under-construction": "XOLite est en construction"
 }
