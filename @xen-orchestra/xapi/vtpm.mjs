@@ -1,4 +1,4 @@
-import upperFirst from 'lodash/upperCase.js'
+import upperFirst from 'lodash/upperFirst.js'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 export default class Vtpm {
