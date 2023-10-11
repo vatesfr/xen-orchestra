@@ -462,17 +462,14 @@ export default class TabAdvanced extends Component {
   _getAddVtpmTooltip = createSelector(
     () => this.props.vm,
     () => this.props.pool,
-    (vm, pool) => {
-      if (!pool.vtpmSupported) {
-        return _('vtpmNotSupported')
-      }
-      if (vm.boot.firmware !== 'uefi') {
-        return _('vtpmRequireUefi')
-      }
-      if (vm.power_state !== 'Halted') {
-        return _('vmNeedToBeHalted')
-      }
-    }
+    (vm, pool) =>
+      !pool.vtpmSupported
+        ? _('vtpmNotSupported')
+        : vm.boot.firmware !== 'uefi'
+        ? _('vtpmRequireUefi')
+        : vm.power_state !== 'Halted'
+        ? _('vmNeedToBeHalted')
+        : undefined
   )
 
   _handleDeleteVtpm = async vtpm => {
