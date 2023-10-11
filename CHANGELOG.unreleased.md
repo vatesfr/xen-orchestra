@@ -10,7 +10,7 @@
 - [Host/Advanced] Allow to force _Smart reboot_ if some resident VMs have the suspend operation blocked [Forum#7136](https://xcp-ng.org/forum/topic/7136/suspending-vms-during-host-reboot/23) (PR [#7025](https://github.com/vatesfr/xen-orchestra/pull/7025))
 - [Plugin/backup-report] Errors are now listed in XO tasks
 - [PIF] Show network name in PIF selectors (PR [#7081](https://github.com/vatesfr/xen-orchestra/pull/7081))
-[VM/Advanced] Ability to create/delete VTPM (PR [#7085](https://github.com/vatesfr/xen-orchestra/pull/7085))
+- [VM/Advanced] Possibility to create/delete VTPM [#7066](https://github.com/vatesfr/xen-orchestra/issues/7066) [Forum#6578](https://xcp-ng.org/forum/topic/6578/xcp-ng-8-3-public-alpha/109) (PR [#7085](https://github.com/vatesfr/xen-orchestra/pull/7085))
 
 ### Bug fixes
 
