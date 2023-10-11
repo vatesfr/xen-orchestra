@@ -1656,7 +1656,7 @@ const messages = {
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
   destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
   vtpmNotSupported: 'VTPM is only supported on pools running XCP-ng/XS 8.3 or later.',
-  warningVtpmRequired: 'This template requires a VTPM, if you proceed, the VM will likely not be able to boot',
+  warningVtpmRequired: 'This template requires a VTPM, if you proceed, the VM will likely not be able to boot.',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
