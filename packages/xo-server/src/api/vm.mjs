@@ -15,6 +15,8 @@ import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
+import { destroy as destroyVtpm } from './vtpm.mjs'
+
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
 
 const log = createLogger('xo:vm')
@@ -240,7 +242,7 @@ export const create = defer(async function ($defer, params) {
 
   if (params.createVtpm) {
     const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
-    $defer.onFailure(() => xapi.VTPM_destroy(vtpmRef))
+    $defer.onFailure(() => destroyVtpm.call(this, { vtpm: xapi.getObjectbyRef('VTPM', vtpmRef) }))
   }
 
   if (params.bootAfterCreate) {
