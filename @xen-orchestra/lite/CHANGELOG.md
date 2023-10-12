@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Ability to snapshot/copy a VM from its view (PR [#7087](https://github.com/vatesfr/xen-orchestra/pull/7087))
+
 ## **0.1.4** (2023-10-03)
 
 - Ability to migrate selected VMs to another host (PR [#7040](https://github.com/vatesfr/xen-orchestra/pull/7040))

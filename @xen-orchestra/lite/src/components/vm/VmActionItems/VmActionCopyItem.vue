@@ -1,6 +1,9 @@
 <template>
   <MenuItem
-    v-tooltip="!areAllSelectedVmsHalted && $t('selected-vms-in-execution')"
+    v-tooltip="
+      !areAllSelectedVmsHalted &&
+      $t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')
+    "
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
     :icon="faCopy"
@@ -22,6 +25,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
+  isSingleAction?: boolean;
 }>();
 
 const { getByOpaqueRef, isOperationPending } = useVmCollection();
