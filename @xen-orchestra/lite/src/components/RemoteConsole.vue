@@ -105,6 +105,10 @@ watchEffect(() => {
 onBeforeUnmount(() => {
   clearVncClient();
 });
+
+defineExpose({
+  sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+});
 </script>
 
 <style lang="postcss" scoped>
