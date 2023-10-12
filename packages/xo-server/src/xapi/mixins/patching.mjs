@@ -493,7 +493,7 @@ export default {
   },
 
   @decorateWith(deferrable)
-  async rollingPoolUpdate($defer) {
+  async rollingPoolUpdate($defer, { xsCredentials } = {}) {
     const isXcp = _isXcp(this.pool.$master)
 
     if (this.pool.ha_enabled) {
@@ -530,7 +530,7 @@ export default {
     // On XS/CH, start by installing patches on all hosts
     if (!isXcp) {
       log.debug('Install patches')
-      await this.installPatches()
+      await this.installPatches({ xsCredentials })
     }
 
     // Remember on which hosts the running VMs are

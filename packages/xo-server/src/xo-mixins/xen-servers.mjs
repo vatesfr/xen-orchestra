@@ -686,7 +686,7 @@ export default class XenServers {
       $defer(() => app.loadPlugin('load-balancer'))
     }
 
-    await this.getXapi(pool).rollingPoolUpdate()
+    await this.getXapi(pool).rollingPoolUpdate({ xsCredentials: app.apiContext.user.preferences.xsCredentials })
   }
 }
 
