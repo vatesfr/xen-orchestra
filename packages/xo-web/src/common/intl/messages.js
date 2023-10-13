@@ -2092,8 +2092,7 @@ const messages = {
   addHostNoHostMessage: 'No host selected to be added',
 
   // ----- About View -----
-  xenOrchestraServer: 'Xen Orchestra server',
-  xenOrchestraWeb: 'Xen Orchestra web client',
+  failedToFetchLatestMasterCommit: 'Failed to fetch latest master commit',
   noProSupport: 'Professional support missing!',
   productionUse: 'Want to use in production?',
   getSupport: 'Get pro support with the Xen Orchestra Appliance at {website}',
@@ -2111,6 +2110,8 @@ const messages = {
   xoAccount: 'Access your XO Account',
   openTicket: 'Report a problem',
   openTicketText: 'Problem? Open a ticket!',
+  xoUpToDate: 'Your Xen Orchestra is up to date ✅',
+  xoFromSourceNotUpToDate: `You are not up to date with master. {nBehind} commit{nBehind, plural, one {} other {s}} behind ⚠️`,
 
   // ----- Upgrade Panel -----
   upgradeNeeded: 'Upgrade needed',

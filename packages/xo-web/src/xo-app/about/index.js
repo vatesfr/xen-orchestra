@@ -1,16 +1,13 @@
 import _ from 'intl'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import { getUser } from 'selectors'
-import { serverVersion } from 'xo'
+import { compareCommits, getMasterCommit, serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, getXoaPlan } from 'utils'
-
-import pkg from '../../../package'
 
 const COMMIT_ID = process.env.GIT_HEAD
 
@@ -34,9 +31,43 @@ export default class About extends Component {
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
+
+    if (process.env.XOA_PLAN > 4 && COMMIT_ID !== '') {
+      getMasterCommit()
+        .then(async commit => {
+          const isOnLatest = commit.sha === COMMIT_ID
+          let diff = 0
+          if (!isOnLatest) {
+            try {
+              diff = (await compareCommits(commit.sha, COMMIT_ID)).behind_by
+            } catch (err) {
+              console.error(err)
+              diff = 'unknown'
+            }
+          }
+
+          this.setState({
+            commit: {
+              isOnLatest,
+              master: commit,
+              diffWithMaster: diff,
+              fetched: true,
+            },
+          })
+        })
+        .catch(err => {
+          console.error(err)
+          this.setState({
+            commit: {
+              fetched: false,
+            },
+          })
+        })
+    }
   }
   render() {
     const { user } = this.props
+    const { commit } = this.state
     const isAdmin = user && user.permission === 'admin'
 
     return (
@@ -44,32 +75,43 @@ export default class About extends Component {
         <Container className='text-xs-center'>
           {isAdmin && [
             process.env.XOA_PLAN > 4 && COMMIT_ID !== '' && (
-              <Row key='0'>
-                <Col>
-                  <Icon icon='git' size={4} />
-                  <h4>
-                    Xen Orchestra, commit{' '}
-                    <a href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}>{COMMIT_ID.slice(0, 5)}</a>
-                  </h4>
-                </Col>
-              </Row>
+              <Col>
+                <Row key='0'>
+                  <Col mediumSize={6}>
+                    <Icon icon='git' size={4} />
+                    <h4>
+                      Xen Orchestra, commit{' '}
+                      <a href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}>
+                        {COMMIT_ID.slice(0, 5)}
+                      </a>
+                    </h4>
+                  </Col>
+                  {commit !== undefined && (
+                    <Col mediumSize={6} className={commit.fetched ? '' : 'text-warning'}>
+                      <Icon icon='git' size={4} />
+                      <h4>
+                        {commit.fetched ? (
+                          <span>
+                            Master, commit <a href={commit.master.html_url}>{commit.master.sha.slice(0, 5)}</a>
+                          </span>
+                        ) : (
+                          _('failedToFetchLatestMasterCommit')
+                        )}
+                      </h4>
+                    </Col>
+                  )}
+                </Row>
+                {commit?.fetched && (
+                  <Row className={`mt-1 ${commit.isOnLatest ? '' : 'text-warning '}`}>
+                    <h4>
+                      {commit.isOnLatest
+                        ? _('xoUpToDate')
+                        : _('xoFromSourceNotUpToDate', { nBehind: commit.diffWithMaster })}
+                    </h4>
+                  </Row>
+                )}
+              </Col>
             ),
-            <Row key='1'>
-              <Col mediumSize={6}>
-                <Icon icon='host' size={4} />
-                <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
-                  xo-server {this.state.serverVersion || 'unknown'}
-                </Copiable>
-                <p className='text-muted'>{_('xenOrchestraServer')}</p>
-              </Col>
-              <Col mediumSize={6}>
-                <Icon icon='vm' size={4} />
-                <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
-                  xo-web {pkg.version}
-                </Copiable>
-                <p className='text-muted'>{_('xenOrchestraWeb')}</p>
-              </Col>
-            </Row>,
           ]}
           {process.env.XOA_PLAN > 4 ? (
             <div>
