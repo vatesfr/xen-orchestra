@@ -17,6 +17,7 @@
 
 - [Rolling Pool Update] After the update, when migrating VMs back to their host, do not migrate VMs that are already on the right host [Forum#7802](https://xcp-ng.org/forum/topic/7802) (PR [#7071](https://github.com/vatesfr/xen-orchestra/pull/7071))
 - [RPU] Fix "XenServer credentials not found" when running a Rolling Pool Update on a XenServer pool (PR [#7089](https://github.com/vatesfr/xen-orchestra/pull/7089))
+- [Usage report] Fix "Converting circular structure to JSON" error
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-backup-reports minor
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->

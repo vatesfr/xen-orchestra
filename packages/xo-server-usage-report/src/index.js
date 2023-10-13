@@ -477,7 +477,7 @@ async function getHostsMissingPatches({ runningHosts, xo }) {
         .getXapi(host)
         .listMissingPatches(host._xapiId)
         .catch(error => {
-          console.error('[WARN] error on fetching hosts missing patches:', JSON.stringify(error))
+          log.warn('Error on fetching hosts missing patches', { error })
           return []
         })
 
@@ -741,7 +741,7 @@ class UsageReportPlugin {
       try {
         await this._sendReport(true)
       } catch (error) {
-        console.error('[WARN] scheduled function:', (error && error.stack) || error)
+        log.warn('Scheduled usage report error', { error })
       }
     })
 
