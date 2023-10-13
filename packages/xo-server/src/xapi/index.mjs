@@ -66,6 +66,7 @@ export default class Xapi extends XapiBase {
     maxUncoalescedVdis,
     restartHostTimeout,
     vdiExportConcurrency,
+    vmEvacuationConcurrency,
     vmExportConcurrency,
     vmMigrationConcurrency = 3,
     vmSnapshotConcurrency,
@@ -76,6 +77,7 @@ export default class Xapi extends XapiBase {
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
+    this._vmEvacuationConcurrency = vmEvacuationConcurrency
 
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
@@ -192,20 +194,58 @@ export default class Xapi extends XapiBase {
         return network.$ref
       }
     })(pool.other_config['xo:migrationNetwork'])
+
+    // host ref
+    // migration network: optional and might not be supported
+    // batch size: optional and might not be supported
+    const params = [hostRef, migrationNetworkRef ?? Ref.EMPTY, this._vmEvacuationConcurrency]
+
+    // Removes n params from the end and keeps removing until a non-empty param is found
+    const popParamsAndTrim = (n = 0) => {
+      let last
+      let i = 0
+      do {
+        if (params.length <= 1) {
+          throw new Error('not enough params left')
+        }
+        params.pop()
+        i++
+        last = params[params.length - 1]
+      } while (i < n || last === undefined || Ref.isEmpty(last))
+    }
+
+    popParamsAndTrim()
+
     try {
       try {
-        await (migrationNetworkRef === undefined
-          ? this.callAsync('host.evacuate', hostRef)
-          : this.callAsync('host.evacuate', hostRef, migrationNetworkRef))
-      } catch (error) {
-        if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+        await this.callAsync(...params)
+      } catch (error1) {
+        if (error1.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
           log.warn(
-            'host.evacuate with a migration network is not supported on this host, falling back to evacuating without the migration network',
-            { error }
+            'host.evacuate with a batch size is not supported on this host, falling back to evacuating without the batch size',
+            { error: error1 }
           )
-          await this.callAsync('host.evacuate', hostRef)
+
+          // Try without batch size
+          popParamsAndTrim(1)
+          try {
+            await this.callAsync('host.evacuate', ...params)
+          } catch (error2) {
+            if (error2.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+              log.warn(
+                'host.evacuate with a migration network is not supported on this host, falling back to evacuating without the migration network',
+                { error: error2 }
+              )
+
+              // Try without migration network
+              popParamsAndTrim(1)
+              await this.callAsync('host.evacuate', ...params)
+            } else {
+              throw error2
+            }
+          }
         } else {
-          throw error
+          throw error1
         }
       }
     } catch (error) {
