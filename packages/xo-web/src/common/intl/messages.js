@@ -1400,7 +1400,7 @@ const messages = {
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
-  vmNeedToBeHalted: 'The VM need to be halted',
+  vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
   vmNicType: 'NIC type',
