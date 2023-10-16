@@ -453,24 +453,27 @@ export default class TabAdvanced extends Component {
 
   _onNicTypeChange = value => editVm(this.props.vm, { nicType: value === '' ? null : value })
 
-  _isAddVtpmAvailable = createSelector(
+  _getDisabledAddVtpmReason = createSelector(
     () => this.props.vm,
     () => this.props.pool,
-    (vm, pool) => pool.vtpmSupported && vm.boot.firmware === 'uefi' && vm.power_state === 'Halted'
+    (vm, pool) => {
+      if (!pool.vtpmSupported) {
+        return _('vtpmNotSupported')
+      }
+      if (vm.boot.firmware !== 'uefi') {
+        return _('vtpmRequireUefi')
+      }
+      if (vm.power_state !== 'Halted') {
+        return _('vmNeedToBeHalted')
+      }
+    }
   )
 
-  _getAddVtpmTooltip = createSelector(
-    () => this.props.vm,
-    () => this.props.pool,
-    (vm, pool) =>
-      !pool.vtpmSupported
-        ? _('vtpmNotSupported')
-        : vm.boot.firmware !== 'uefi'
-        ? _('vtpmRequireUefi')
-        : vm.power_state !== 'Halted'
-        ? _('vmNeedToBeHalted')
-        : undefined
-  )
+  _getDisabledDeleteVtpmReason = () => {
+    if (this.props.vm.power_state !== 'Halted') {
+      return _('vmNeedToBeHalted')
+    }
+  }
 
   _handleDeleteVtpm = async vtpm => {
     await confirm({
@@ -487,9 +490,10 @@ export default class TabAdvanced extends Component {
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
-    const isAddVtpmAvailable = this._isAddVtpmAvailable()
-    const isDeleteVtpmAvailable = vm.power_state === 'Halted'
-    const addVtpmTooltip = this._getAddVtpmTooltip()
+    const addVtpmTooltip = this._getDisabledAddVtpmReason()
+    const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
+    const isAddVtpmAvailable = addVtpmTooltip === undefined
+    const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
     return (
       <Container>
@@ -864,7 +868,7 @@ export default class TabAdvanced extends Component {
                       </Tooltip>
                     ) : (
                       <div>
-                        <Tooltip content={!isDeleteVtpmAvailable ? _('vmNeedToBeHalted') : undefined}>
+                        <Tooltip content={deleteVtpmTooltip}>
                           <ActionButton
                             btnStyle='danger'
                             disabled={!isDeleteVtpmAvailable}
