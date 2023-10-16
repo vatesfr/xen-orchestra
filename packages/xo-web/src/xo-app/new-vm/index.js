@@ -1576,7 +1576,7 @@ export default class NewVm extends BaseComponent {
         </label>
       ) : null
 
-    const isVtpmEnabled = pool.vtpmSupported
+    const isVtpmSupported = pool.vtpmSupported
 
     return (
       <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
@@ -1783,8 +1783,8 @@ export default class NewVm extends BaseComponent {
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
               </Item>
               <Item label={_('enableVtpm')} className='d-inline-flex'>
-                <Tooltip content={!isVtpmEnabled ? _('vtpmNotSupported') : undefined}>
-                  <Toggle onChange={this._toggleState('createVtpm')} value={createVtpm} disabled={!isVtpmEnabled} />
+                <Tooltip content={!isVtpmSupported ? _('vtpmNotSupported') : undefined}>
+                  <Toggle onChange={this._toggleState('createVtpm')} value={createVtpm} disabled={!isVtpmSupported} />
                 </Tooltip>
                 {/* FIXME: link to VTPM documentation when ready */}
                 {/* &nbsp;

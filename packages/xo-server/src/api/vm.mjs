@@ -242,7 +242,7 @@ export const create = defer(async function ($defer, params) {
 
   if (params.createVtpm) {
     const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
-    $defer.onFailure(() => destroyVtpm.call(this, { vtpm: xapi.getObjectByRef(vtpmRef) }))
+    $defer.onFailure(() => xapi.call('VTPM.destroy', vtpmRef))
   }
 
   if (params.bootAfterCreate) {
@@ -267,7 +267,6 @@ create.params = {
 
   createVtpm: {
     type: 'boolean',
-    optional: true,
     default: false,
   },
 
