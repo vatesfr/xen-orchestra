@@ -16,6 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Rolling Pool Update] After the update, when migrating VMs back to their host, do not migrate VMs that are already on the right host [Forum#7802](https://xcp-ng.org/forum/topic/7802) (PR [#7071](https://github.com/vatesfr/xen-orchestra/pull/7071))
+- [Home] Fix OS icons alignment (PR [#7090](https://github.com/vatesfr/xen-orchestra/pull/7090))
 
 ### Packages to release
 
