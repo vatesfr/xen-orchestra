@@ -479,7 +479,7 @@ setControlDomainMemory.resolve = {
 /**
  *
  * @param {{host:HOST}} params
- * @returns null if plugin is not installed or don't have the method
+ * @returns null if plugin don't have the method
  *          an object device: status on success
  */
 export function getSmartctlHealth({ host }) {
@@ -499,7 +499,7 @@ getSmartctlHealth.resolve = {
 /**
  *
  * @param {{host:HOST}} params
- * @returns null if plugin is not installed or don't have the method
+ * @returns null if plugin don't have the method
  *          an object device: full device information on success
  */
 export function getSmartctlInformation({ host, deviceNames }) {
