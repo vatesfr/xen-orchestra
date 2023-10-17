@@ -525,7 +525,11 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
         Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
-        if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.VDI_type)) {
+        if (
+          vdi.$VBDs.length !== 0 || // vdi with a vbd aren't orphans
+          !HANDLED_VDI_TYPES.has(vdi.VDI_type) || // only for vdi with handled types
+          vdi.size === 0 // empty vdi aren't considered as orphans
+        ) {
           return false
         }
 

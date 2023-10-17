@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Fix VMs' `site` property being unnecessarily updated on some versions of Netbox (PR [#7145](https://github.com/vatesfr/xen-orchestra/pull/7145))
+- [Dashboard] Empty Vdis aren(t flagged as orphan) (PR [#7090](https://github.com/vatesfr/xen-orchestra/pull/7090)
 
 ### Packages to release
 
@@ -30,5 +31,5 @@
 <!--packages-start-->
 
 - xo-server-netbox patch
-
+- xo-web patch
 <!--packages-end-->
