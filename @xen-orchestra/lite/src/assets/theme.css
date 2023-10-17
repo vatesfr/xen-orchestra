@@ -59,6 +59,8 @@
 }
 
 :root.dark {
+  color-scheme: dark;
+
   --color-blue-scale-000: #ffffff;
   --color-blue-scale-100: #e5e5e7;
   --color-blue-scale-200: #9899a5;
