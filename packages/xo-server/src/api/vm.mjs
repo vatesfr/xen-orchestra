@@ -15,8 +15,6 @@ import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
-import { destroy as destroyVtpm } from './vtpm.mjs'
-
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
 
 const log = createLogger('xo:vm')
