@@ -2110,8 +2110,9 @@ const messages = {
   xoAccount: 'Access your XO Account',
   openTicket: 'Report a problem',
   openTicketText: 'Problem? Open a ticket!',
-  xoUpToDate: 'Your Xen Orchestra is up to date ✅',
-  xoFromSourceNotUpToDate: `You are not up to date with master. {nBehind} commit{nBehind, plural, one {} other {s}} behind ⚠️`,
+  xoUpToDate: 'Your Xen Orchestra is up to date',
+  xoFromSourceNotUpToDate:
+    'You are not up to date with master. {nBehind} commit{nBehind, plural, one {} other {s}} behind',
 
   // ----- Upgrade Panel -----
   upgradeNeeded: 'Upgrade needed',

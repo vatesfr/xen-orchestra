@@ -27,42 +27,41 @@ const HEADER = (
   user: getUser,
 }))
 export default class About extends Component {
-  componentWillMount() {
+  async componentWillMount() {
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
 
     if (process.env.XOA_PLAN > 4 && COMMIT_ID !== '') {
-      getMasterCommit()
-        .then(async commit => {
-          const isOnLatest = commit.sha === COMMIT_ID
-          let diff = 0
-          if (!isOnLatest) {
-            try {
-              diff = (await compareCommits(commit.sha, COMMIT_ID)).behind_by
-            } catch (err) {
-              console.error(err)
-              diff = 'unknown'
-            }
+      try {
+        const commit = await getMasterCommit()
+        const isOnLatest = commit.sha === COMMIT_ID
+        let diff = 0
+        if (!isOnLatest) {
+          try {
+            diff = (await compareCommits(commit.sha, COMMIT_ID)).behind_by
+          } catch (err) {
+            console.error(err)
+            diff = 'unknown'
           }
+        }
 
-          this.setState({
-            commit: {
-              isOnLatest,
-              master: commit,
-              diffWithMaster: diff,
-              fetched: true,
-            },
-          })
+        this.setState({
+          commit: {
+            isOnLatest,
+            master: commit,
+            diffWithMaster: diff,
+            fetched: true,
+          },
         })
-        .catch(err => {
-          console.error(err)
-          this.setState({
-            commit: {
-              fetched: false,
-            },
-          })
+      } catch (err) {
+        console.error(err)
+        this.setState({
+          commit: {
+            fetched: false,
+          },
         })
+      }
     }
   }
   render() {
@@ -86,27 +85,34 @@ export default class About extends Component {
                       </a>
                     </h4>
                   </Col>
-                  {commit !== undefined && (
-                    <Col mediumSize={6} className={commit.fetched ? '' : 'text-warning'}>
-                      <Icon icon='git' size={4} />
-                      <h4>
-                        {commit.fetched ? (
-                          <span>
-                            Master, commit <a href={commit.master.html_url}>{commit.master.sha.slice(0, 5)}</a>
-                          </span>
-                        ) : (
-                          _('failedToFetchLatestMasterCommit')
-                        )}
-                      </h4>
-                    </Col>
-                  )}
+                  <Col mediumSize={6} className={commit?.fetched === false ? 'text-warning' : ''}>
+                    <Icon icon='git' size={4} />
+                    <h4>
+                      {commit === undefined ? (
+                        _('statusLoading')
+                      ) : commit.fetched ? (
+                        <span>
+                          Master, commit <a href={commit.master.html_url}>{commit.master.sha.slice(0, 5)}</a>
+                        </span>
+                      ) : (
+                        _('failedToFetchLatestMasterCommit')
+                      )}
+                    </h4>
+                  </Col>
                 </Row>
                 {commit?.fetched && (
                   <Row className={`mt-1 ${commit.isOnLatest ? '' : 'text-warning '}`}>
                     <h4>
-                      {commit.isOnLatest
-                        ? _('xoUpToDate')
-                        : _('xoFromSourceNotUpToDate', { nBehind: commit.diffWithMaster })}
+                      {commit.isOnLatest ? (
+                        <span>
+                          {_('xoUpToDate')} <Icon icon='check' color='text-success' />
+                        </span>
+                      ) : (
+                        <span>
+                          {_('xoFromSourceNotUpToDate', { nBehind: commit.diffWithMaster })}{' '}
+                          <Icon icon='alarm' color='text-warning' />
+                        </span>
+                      )}
                     </h4>
                   </Row>
                 )}
