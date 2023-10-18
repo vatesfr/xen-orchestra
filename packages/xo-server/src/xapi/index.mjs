@@ -218,6 +218,7 @@ export default class Xapi extends XapiBase {
 
     try {
       await pRetry(() => this.callAsync('host.evacuate', ...params), {
+        delay: 0,
         when: { code: 'MESSAGE_PARAMETER_COUNT_MISMATCH' },
         onRetry: error => {
           log.warn(error)
