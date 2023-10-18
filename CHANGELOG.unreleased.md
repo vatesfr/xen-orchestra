@@ -19,6 +19,7 @@
 - [RPU] Fix "XenServer credentials not found" when running a Rolling Pool Update on a XenServer pool (PR [#7089](https://github.com/vatesfr/xen-orchestra/pull/7089))
 - [Usage report] Fix "Converting circular structure to JSON" error
 - [Home] Fix OS icons alignment (PR [#7090](https://github.com/vatesfr/xen-orchestra/pull/7090))
+- [SR/Advanced] Fix the total number of VDIs to coalesce by taking into account common chains [#7016](https://github.com/vatesfr/xen-orchestra/issues/7016) (PR [#7098](https://github.com/vatesfr/xen-orchestra/pull/7098))
 - Don't require to sign in again in XO after losing connection to XO Server (e.g. when restarting or upgrading XO) (PR [#7103](https://github.com/vatesfr/xen-orchestra/pull/7103))
 
 ### Packages to release
@@ -41,6 +42,7 @@
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-backup-reports minor
+- xo-server-netbox patch
 - xo-server-usage-report patch
 - xo-web minor
 
