@@ -109,7 +109,13 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', signOut)
+  xo.on('authenticationFailure', error => {
+    console.warn('authenticationFailure', error)
+
+    if (error.name !== 'ConnectionError') {
+      signOut(error)
+    }
+  })
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
