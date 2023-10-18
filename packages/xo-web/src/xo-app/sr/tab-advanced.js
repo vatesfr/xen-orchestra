@@ -10,7 +10,7 @@ import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
 import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr, reclaimSrSpace, toggleSrMaintenanceMode } from 'xo'
-import { flowRight, isEmpty, keys, sum, values } from 'lodash'
+import { flowRight, isEmpty, keys } from 'lodash'
 
 // ===================================================================
 
@@ -44,11 +44,11 @@ const UnhealthyVdiChains = flowRight(
   connectStore(() => ({
     vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains?.unhealthyVdis, keys)),
   }))
-)(({ chains: { unhealthyVdis } = {}, vdis }) =>
+)(({ chains: { nUnhealthyVdis, unhealthyVdis } = {}, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
       <hr />
-      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(unhealthyVdis)) })}</h3>
+      <h3>{_('srUnhealthyVdiTitle', { total: nUnhealthyVdis })}</h3>
       <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={unhealthyVdis} />
     </div>
   )
