@@ -41,6 +41,7 @@
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-backup-reports minor
+- xo-server-netbox patch
 - xo-server-usage-report patch
 - xo-web minor
 

@@ -103,6 +103,8 @@ class Netbox {
   }
 
   async test() {
+    await this.#checkCustomFields()
+
     const randomSuffix = Math.random().toString(36).slice(2, 11)
     const name = '[TMP] Xen Orchestra Netbox plugin test - ' + randomSuffix
     await this.#request('/virtualization/cluster-types/', 'POST', {
@@ -112,8 +114,6 @@ class Netbox {
         "This type has been created by Xen Orchestra's Netbox plugin test. If it hasn't been properly deleted, you may delete it manually.",
     })
     const nbClusterTypes = await this.#request(`/virtualization/cluster-types/?name=${encodeURIComponent(name)}`)
-
-    await this.#checkCustomFields()
 
     if (nbClusterTypes.length !== 1) {
       throw new Error('Could not properly write and read Netbox')
