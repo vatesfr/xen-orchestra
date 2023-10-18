@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdNegative, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
@@ -20,6 +20,7 @@ import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
 import tar from 'tar'
 import zlib from 'zlib'
+import assert from 'node:assert'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
 import { cleanVm } from './_cleanVm.mjs'
@@ -695,8 +696,8 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdStream(handler, path, { useChain }) {
-    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
+  async _createVhdStream(handler, path, { useChain, stopBeforeVhd }) {
+    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path, stopBeforeVhd) : await openVhd(handler, path)
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
 
@@ -721,6 +722,39 @@ export class RemoteAdapter {
     return stream
   }
 
+  // create an incrementalVm object, 
+  // with only the blocks of 'from' that have been overwritten in to 
+  // there may be an arbitrary number of differencing disk in the chain
+  // there MUST not have any dymanic/fixed disk in the chain  
+  async createNegativeVm(from, to, ignoredVdis){
+    const handler = this._handler
+    const { vbds, vifs, vm, vmSnapshot } = from
+    assert.strictEqual(dirname(from._filename),dirname(to._filename))
+    const dir = dirname(from._filename)
+    // @todo : handle case when a VDI has been created / removed from the VM ? 
+    // maybe fallback 
+    const vdis = ignoredVdis === undefined ? to.vdis : pickBy(to.vdis, vdi => !ignoredVdis.has(vdi.uuid))
+
+    const streams = {}
+    await asyncMapSettled(Object.keys(vdis), async ref => {
+      const vhdFrom = await this._createVhdStream(handler, join(dir, from.vhds[ref]), { useChain : true })
+      const vhdTo = await this._createVhdStream(handler, join(dir, to.vhds[ref]), { useChain : true, stopBeforeVhd: from.vhds[ref] })
+      const negative = new VhdNegative(vhdFrom, vhdTo)
+      await negative.readBlockAllocationTable()
+      streams[`${ref}.vhd`] = await negative.stream() // @todo handle dispose 
+    })
+
+    return {
+      streams,
+      vbds,
+      vdis,
+      version: '1.0.0',
+      vifs,
+      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
+    }
+
+  }
+  
   async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata

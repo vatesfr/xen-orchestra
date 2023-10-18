@@ -12,5 +12,6 @@ exports.openVhd = require('./openVhd').openVhd
 exports.VhdAbstract = require('./Vhd/VhdAbstract').VhdAbstract
 exports.VhdDirectory = require('./Vhd/VhdDirectory').VhdDirectory
 exports.VhdFile = require('./Vhd/VhdFile').VhdFile
+exports.VhdNegative = require('./Vhd/VhdNegative').VhdNegative
 exports.VhdSynthetic = require('./Vhd/VhdSynthetic').VhdSynthetic
 exports.Constants = require('./_constants')
