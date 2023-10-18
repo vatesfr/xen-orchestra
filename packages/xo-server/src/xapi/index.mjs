@@ -217,37 +217,13 @@ export default class Xapi extends XapiBase {
     popParamsAndTrim()
 
     try {
-      try {
-        await this.callAsync(...params)
-      } catch (error1) {
-        if (error1.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
-          log.warn(
-            'host.evacuate with a batch size is not supported on this host, falling back to evacuating without the batch size',
-            { error: error1 }
-          )
-
-          // Try without batch size
+      await pRetry(() => this.callAsync('host.evacuate', ...params), {
+        when: { code: 'MESSAGE_PARAMETER_COUNT_MISMATCH' },
+        onRetry: error => {
+          log.warn(error)
           popParamsAndTrim(1)
-          try {
-            await this.callAsync('host.evacuate', ...params)
-          } catch (error2) {
-            if (error2.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
-              log.warn(
-                'host.evacuate with a migration network is not supported on this host, falling back to evacuating without the migration network',
-                { error: error2 }
-              )
-
-              // Try without migration network
-              popParamsAndTrim(1)
-              await this.callAsync('host.evacuate', ...params)
-            } else {
-              throw error2
-            }
-          }
-        } else {
-          throw error1
-        }
-      }
+        },
+      })
     } catch (error) {
       if (!force) {
         await this.call('host.enable', hostRef)
