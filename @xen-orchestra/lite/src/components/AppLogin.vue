@@ -5,17 +5,17 @@
       <FormInputWrapper>
         <FormInput v-model="login" name="login" readonly type="text" />
       </FormInputWrapper>
-      <FormInputWrapper :error="error">
-        <FormInput
-          name="password"
-          ref="passwordRef"
-          type="password"
-          v-model="password"
-          :placeholder="$t('password')"
-          :readonly="isConnecting"
-          required
-        />
-      </FormInputWrapper>
+      <FormInput
+        name="password"
+        ref="passwordRef"
+        type="password"
+        v-model="password"
+        :class="{ error: isInvalidPassword }"
+        :placeholder="$t('password')"
+        :readonly="isConnecting"
+        required
+      />
+      <LoginError :error="error" />
       <label class="remember-me-label">
         <FormCheckbox v-model="rememberMe" />
         <p>{{ $t("keep-me-logged") }}</p>
@@ -37,7 +37,9 @@ import { useLocalStorage } from "@vueuse/core";
 import FormCheckbox from "@/components/form/FormCheckbox.vue";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
+import LoginError from "@/components/LoginError.vue";
 import UiButton from "@/components/ui/UiButton.vue";
+import type { XenApiError } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
 const { t } = useI18n();
@@ -46,7 +48,7 @@ const xenApiStore = useXenApiStore();
 const { isConnecting } = storeToRefs(xenApiStore);
 const login = ref("root");
 const password = ref("");
-const error = ref<string>();
+const error = ref<XenApiError>();
 const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
 const rememberMe = useLocalStorage("rememberMe", false);
@@ -69,15 +71,15 @@ watch(password, () => {
 async function handleSubmit() {
   try {
     await xenApiStore.connect(login.value, password.value);
-  } catch (err) {
-    if ((err as Error).message === "SESSION_AUTHENTICATION_FAILED") {
+  } catch (err: any) {
+    if (err.message === "SESSION_AUTHENTICATION_FAILED") {
       focusPasswordInput();
       isInvalidPassword.value = true;
-      error.value = t("password-invalid");
     } else {
-      error.value = t("error-occurred");
-      console.error(err);
+      console.error(error);
     }
+
+    error.value = err;
   }
 }
 </script>

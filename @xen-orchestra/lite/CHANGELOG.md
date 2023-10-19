@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Explicit error if users attempt to connect from a slave host (PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
+
 ## **0.1.5** (2023-11-07)
 
 - Ability to snapshot/copy a VM from its view (PR [#7087](https://github.com/vatesfr/xen-orchestra/pull/7087))
