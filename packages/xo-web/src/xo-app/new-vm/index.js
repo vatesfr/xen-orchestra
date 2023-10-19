@@ -346,6 +346,7 @@ export default class NewVm extends BaseComponent {
         seqStart: 1,
         share: this._getResourceSet()?.shareByDefault ?? false,
         tags: [],
+        createVtpm: this._templateNeedsVtpm(),
       },
       callback
     )
@@ -493,6 +494,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' && !this._templateHasBiosStrings() && state.copyHostBiosStrings,
+      createVtpm: state.createVtpm,
       destroyCloudConfigVdiAfterBoot: state.destroyCloudConfigVdiAfterBoot,
       secureBoot: state.secureBoot,
       share: state.share,
@@ -599,6 +601,7 @@ export default class NewVm extends BaseComponent {
       }),
       // settings
       secureBoot: template.secureBoot,
+      createVtpm: this._templateNeedsVtpm(),
     })
 
     if (this._isCoreOs()) {
@@ -748,6 +751,8 @@ export default class NewVm extends BaseComponent {
     template => template && template.virtualizationMode === 'hvm'
   )
 
+  _templateNeedsVtpm = () => this.props.template?.platform?.vtpm === 'true'
+
   // On change -------------------------------------------------------------------
 
   _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
@@ -881,7 +886,12 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id => (this.state.state.multipleVms ? '/home' : `/vms/${id}`)
 
-  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value, secureBoot: false })
+  _handleBootFirmware = value =>
+    this._setState({
+      hvmBootFirmware: value,
+      secureBoot: false,
+      createVtpm: value === 'uefi' ? this._templateNeedsVtpm() : false,
+    })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1531,6 +1541,7 @@ export default class NewVm extends BaseComponent {
       cpuCap,
       cpusMax,
       cpuWeight,
+      createVtpm,
       destroyCloudConfigVdiAfterBoot,
       hvmBootFirmware,
       installMethod,
@@ -1564,6 +1575,8 @@ export default class NewVm extends BaseComponent {
           {_('copyHostBiosStrings')}
         </label>
       ) : null
+
+    const isVtpmSupported = pool.vtpmSupported
 
     return (
       <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
@@ -1768,6 +1781,23 @@ export default class NewVm extends BaseComponent {
             <SectionContent>
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
+              </Item>
+              <Item label={_('enableVtpm')} className='d-inline-flex'>
+                <Tooltip content={!isVtpmSupported ? _('vtpmNotSupported') : undefined}>
+                  <Toggle onChange={this._toggleState('createVtpm')} value={createVtpm} disabled={!isVtpmSupported} />
+                </Tooltip>
+                {/* FIXME: link to VTPM documentation when ready */}
+                {/* &nbsp;
+                <Tooltip content={_('seeVtpmDocumentation')}>
+                  <a className='text-info align-self-center' style={{ cursor: 'pointer' }} href='#'>
+                    <Icon icon='info' />
+                  </a>
+                </Tooltip> */}
+                {!createVtpm && this._templateNeedsVtpm() && (
+                  <span className='align-self-center text-warning ml-1'>
+                    <Icon icon='alarm' /> {_('warningVtpmRequired')}
+                  </span>
+                )}
               </Item>
             </SectionContent>
           ),

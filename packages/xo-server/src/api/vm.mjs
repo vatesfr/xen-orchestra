@@ -238,6 +238,11 @@ export const create = defer(async function ($defer, params) {
     await this.allocIpAddresses(vif.$id, concat(vif.ipv4_allowed, vif.ipv6_allowed)).catch(() => xapi.deleteVif(vif))
   }
 
+  if (params.createVtpm) {
+    const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
+    $defer.onFailure(() => xapi.call('VTPM.destroy', vtpmRef))
+  }
+
   if (params.bootAfterCreate) {
     startVmAndDestroyCloudConfigVdi(xapi, xapiVm, cloudConfigVdiUuid, params)
   }
@@ -256,6 +261,11 @@ create.params = {
   cloudConfig: {
     type: 'string',
     optional: true,
+  },
+
+  createVtpm: {
+    type: 'boolean',
+    default: false,
   },
 
   networkConfig: {
