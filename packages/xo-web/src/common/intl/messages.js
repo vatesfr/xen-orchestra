@@ -25,6 +25,7 @@ const messages = {
   esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
   nImportVmsInParallel: 'Number of VMs to import in parallel',
   stopOnError: 'Stop on error',
+  uuid: 'UUID',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
@@ -1367,6 +1368,9 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  createVtpm: 'Create a VTPM',
+  deleteVtpm: 'Delete the VTPM',
+  deleteVtpmWarning: 'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1396,9 +1400,12 @@ const messages = {
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
+  vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
   vmNicType: 'NIC type',
+  vtpm: 'VTPM',
+  vtpmRequireUefi: 'A UEFI boot firmware is necessary to use a VTPM',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',
@@ -1644,8 +1651,10 @@ const messages = {
   newVmNetworkConfigDoc: 'Network config documentation',
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
+  seeVtpmDocumentation: 'See VTPM documentation',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
   destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
+  vtpmNotSupported: 'VTPM is only supported on pools running XCP-ng/XS 8.3 or later.',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

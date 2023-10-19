@@ -2155,6 +2155,11 @@ export const deleteAclRule = ({ protocol = undefined, port = undefined, ipRange 
     vifId: resolveId(vif),
   })
 
+// VTPM -----------------------------------------------------------
+
+export const createVtpm = vm => _call('vtpm.create', { id: resolveId(vm) })
+export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = (network, props) => _call('network.set', { ...props, id: resolveId(network) })
