@@ -1574,6 +1574,7 @@ const messages = {
   spaceLeftTooltip: '{used}% used ({free} left)',
   unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
+  nVdis: '{nVdis, number} VDI{nVdis, plural, one {} other {s}}:',
   vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
   srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 

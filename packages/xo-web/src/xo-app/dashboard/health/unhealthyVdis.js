@@ -35,6 +35,11 @@ const COLUMNS = [
   {
     itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
+        <SingleLineRow>
+          <Col>
+            <em>{_('nVdis', { nVdis: size(vdisHealthBySr[srId].unhealthyVdis) })}</em>
+          </Col>
+        </SingleLineRow>
         {map(vdisHealthBySr[srId].unhealthyVdis, (unhealthyVdiLength, vdiId) => (
           <SingleLineRow key={vdiId}>
             <Col>
