@@ -38,7 +38,6 @@
 
 - @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
-- xen-api minor
 - xo-server minor
 - xo-server-backup-reports minor
 - xo-server-usage-report patch

@@ -5,11 +5,6 @@ export default {
   // Reference to use to indicate it's not pointing to an object
   EMPTY,
 
-  // Whether this value is a null XAPI ref
-  isEmpty(val) {
-    return val === EMPTY
-  },
-
   // Whether this value is a reference (probably) pointing to an object
   isNotEmpty(val) {
     return val !== EMPTY && typeof val === 'string' && val.startsWith(PREFIX)
