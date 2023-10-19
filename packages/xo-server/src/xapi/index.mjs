@@ -204,14 +204,13 @@ export default class Xapi extends XapiBase {
     const popParamsAndTrim = (n = 0) => {
       let last
       let i = 0
-      do {
+      while (i < n || (last = params[params.length - 1]) === undefined || Ref.isEmpty(last)) {
         if (params.length <= 1) {
           throw new Error('not enough params left')
         }
         params.pop()
         i++
-        last = params[params.length - 1]
-      } while (i < n || last === undefined || Ref.isEmpty(last))
+      }
     }
 
     popParamsAndTrim()
