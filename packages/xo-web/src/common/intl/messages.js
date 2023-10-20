@@ -1370,7 +1370,8 @@ const messages = {
   // ----- VM advanced tab -----
   createVtpm: 'Create a VTPM',
   deleteVtpm: 'Delete the VTPM',
-  deleteVtpmWarning: 'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  deleteVtpmWarning:
+    'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1574,9 +1575,8 @@ const messages = {
   spaceLeftTooltip: '{used}% used ({free} left)',
   unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
-  nVdis: '{nVdis, number} VDI{nVdis, plural, one {} other {s}}:',
   vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
-  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has {nVdis, number} VDI{nVdis, plural, one {} other {s}} to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',
