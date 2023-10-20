@@ -633,7 +633,7 @@ export default class RemoteHandlerAbstract {
           }
           throw error
         },
-       // real unlink concurrency will be 2**max directory depth 
+        // real unlink concurrency will be 2**max directory depth
         { concurrency: 2 }
       )
     )
