@@ -1370,7 +1370,8 @@ const messages = {
   // ----- VM advanced tab -----
   createVtpm: 'Create a VTPM',
   deleteVtpm: 'Delete the VTPM',
-  deleteVtpmWarning: 'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  deleteVtpmWarning:
+    'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1691,6 +1692,8 @@ const messages = {
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
   shareVmsByDefault: 'Share VMs by default',
+  nVmsInResourceSet:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
 
   // ---- VM import ---
   fileType: 'File type:',
