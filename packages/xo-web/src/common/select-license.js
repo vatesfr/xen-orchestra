@@ -9,7 +9,7 @@ import map from 'lodash/map.js'
 import { renderXoItemFromId } from './render-xo-item'
 
 const LicenseOptions = ({ license, formatDate }) => {
-  const productId = license.productId.split('-')[1]
+  const productId = license.productId.startsWith('xostor') ? license.productId : license.productId.split('-')[1]
   return (
     <option value={license.id}>
       <span>

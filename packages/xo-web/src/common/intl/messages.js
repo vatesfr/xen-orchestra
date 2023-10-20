@@ -2500,11 +2500,13 @@ const messages = {
   storage: 'Storage',
   summary: 'Summary',
   wrongNumberOfHosts: 'Wrong number of hosts',
+
   xostor: 'XOSTOR',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
   xostorFailedVgAlreadyExists:
     "Formatting disks failed because a VG group named 'linstor_group' already exists on the hosts. Do you want to delete these VG groups?",
+  xostorMultipleLicenses: 'This proxy has more than 1 license!',
   xostorPackagesWillBeInstalled: '"xcp-ng-release-linstor" and "xcp-ng-linstor" will be installed on each host',
   xostorReplicationWarning: 'If a disk dies, you will lose data',
 
