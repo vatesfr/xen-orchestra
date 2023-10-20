@@ -10,6 +10,4 @@ It provides a web UI, a CLI and a REST API, while also getting a Terraform provi
 
 ## Quick start
 
-Log in to your account and use the deploy form available from [Vates website](https://vates.tech/deploy/).
-
-The official documentation is available at https://xen-orchestra.com/docs
+Log in to your account and use the deploy form available from [Vates website](https://vates.tech/deploy/)
