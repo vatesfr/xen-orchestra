@@ -2500,7 +2500,6 @@ const messages = {
   storage: 'Storage',
   summary: 'Summary',
   wrongNumberOfHosts: 'Wrong number of hosts',
-
   xostor: 'XOSTOR',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
