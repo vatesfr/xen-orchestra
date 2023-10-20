@@ -189,7 +189,7 @@ export const create = defer(async function (
     shared: true,
     type: 'linstor',
   })
-  const srUuid = xapi.getField('SR', srRef, 'uuid')
+  const srUuid = await xapi.getField('SR', srRef, 'uuid')
 
   await this.rebindLicense({
     licenseId: license.id,
@@ -221,6 +221,11 @@ export async function destroy({ sr }) {
   const hosts = Object.values(xapi.objects.indexes.type.host).map(host => this.getObject(host.uuid, 'host'))
 
   await xapi.destroySr(sr._xapiId)
+  const license = (await this.getLicenses({ productType: 'xostor' })).find(license => license.boundObjectId === sr.uuid)
+  await this.unbindLicense({
+    boundObjectId: license.boundObjectId,
+    productId: license.productId,
+  })
   return asyncEach(hosts, host => destroyVolumeGroup(xapi, host, true), { stopOnError: false })
 }
 destroy.description = 'Destroy a XOSTOR storage'
