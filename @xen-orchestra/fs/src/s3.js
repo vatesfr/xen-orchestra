@@ -5,6 +5,7 @@ import {
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  GetObjectLockConfigurationCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -17,7 +18,7 @@ import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-ch
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 import { createLogger } from '@xen-orchestra/log'
-import { PassThrough, pipeline } from 'stream'
+import { PassThrough, Transform, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
@@ -30,6 +31,8 @@ import { pRetry } from 'promise-toolbox'
 
 // limits: https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
+const MAX_PART_NUMBER = 10000
+const MIN_PART_SIZE = 5 * 1024 * 1024
 const { warn } = createLogger('xo:fs:s3')
 
 export default class S3Handler extends RemoteHandlerAbstract {
@@ -70,9 +73,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
         }),
       }),
     })
-
-    // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-    this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
 
     const parts = split(path)
     this.#bucket = parts.shift()
@@ -223,18 +223,41 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  async _outputStream(path, input, { validator }) {
+  async _outputStream(path, input, { maxStreamLength, streamLength, validator }) {
+    const maxInputLength = streamLength ?? maxStreamLength
+    let partSize
+    if (maxInputLength === undefined) {
+      warn(`Writing ${path} to a S3 remote without a max size set will cut it to 50GB`, { path })
+      partSize = MIN_PART_SIZE // min size for S3
+    } else {
+      partSize = Math.min(Math.max(Math.ceil(maxInputLength / MAX_PART_NUMBER), MIN_PART_SIZE), MAX_PART_SIZE)
+    }
+
+    // esnure we d'ont try to upload a stream to big for this part size
+    let readCounter = 0
+    const streamCutter = new Transform({
+      transform(chunk, encoding, callback) {
+        const MAX_SIZE = MAX_PART_NUMBER * partSize
+        readCounter += chunk.length
+        if (readCounter > MAX_SIZE) {
+          callback(new Error(`read ${readCounter} bytes, maximum size allowed  is ${MAX_SIZE} `))
+        } else {
+          callback(null, chunk)
+        }
+      },
+    })
     // Workaround for "ReferenceError: ReadableStream is not defined"
     // https://github.com/aws/aws-sdk-js-v3/issues/2522
     const Body = new PassThrough()
-    pipeline(input, Body, () => {})
-
+    pipeline(input, streamCutter, Body, () => {})
     const upload = new Upload({
       client: this.#s3,
       params: {
         ...this.#createParams(path),
         Body,
       },
+      partSize,
+      leavePartsOnError: false,
     })
 
     await upload.done()
@@ -418,6 +441,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   async _closeFile(fd) {}
 
+  async _sync() {
+    await super._sync()
+    try {
+      const res = await this.#s3.send(new GetObjectLockConfigurationCommand({ Bucket: this.#bucket }))
+      if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
+        // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
+        // increase memory consumption in outputStream as if buffer the streams
+        this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+      }
+    } catch (error) {
+      if (error.Code !== 'ObjectLockConfigurationNotFoundError') {
+        throw error
+      }
+    }
+  }
   useVhdDirectory() {
     return true
   }
