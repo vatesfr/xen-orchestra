@@ -39,7 +39,7 @@ export default class {
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(groups.map(group => groupsDb.save(group))),
+        groups => Promise.all(groups.map(group => groupsDb.update(group))),
         ['users']
       )
       app.addConfigManager(
@@ -368,7 +368,7 @@ export default class {
 
     if (name) group.name = name
 
-    await this._groups.save(group)
+    await this._groups.update(group)
   }
 
   async getGroup(id) {
@@ -390,12 +390,12 @@ export default class {
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)
 
-    await Promise.all([this._users.save(user), this._groups.save(group)])
+    await Promise.all([this._users.save(user), this._groups.update(group)])
   }
 
   async _removeUserFromGroup(userId, group) {
     group.users = removeFromArraySet(group.users, userId)
-    return this._groups.save(group)
+    return this._groups.update(group)
   }
 
   async _removeGroupFromUser(groupId, user) {
@@ -442,7 +442,7 @@ export default class {
     await Promise.all([
       Promise.all(newUsers.map(saveUser)),
       Promise.all(oldUsers.map(saveUser)),
-      this._groups.save(group),
+      this._groups.update(group),
     ])
   }
 }
