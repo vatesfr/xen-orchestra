@@ -7,7 +7,8 @@
       class="toggle-navigation"
     />
     <RouterLink :to="{ name: 'home' }">
-      <img alt="XO Lite" src="../assets/logo.svg" />
+      <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg" />
+      <img v-else alt="XO Lite" src="../assets/title.svg" />
     </RouterLink>
     <slot />
     <div class="right">
@@ -32,6 +33,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
 </script>
 
 <style lang="postcss" scoped>
+@import "@/assets/_responsive.pcss";
 .app-header {
   display: flex;
   align-items: center;
@@ -43,6 +45,10 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
 
   img {
     width: 4rem;
+    @media (--desktop) {
+      width: 10rem;
+      margin: 1rem;
+    }
   }
 }
 
