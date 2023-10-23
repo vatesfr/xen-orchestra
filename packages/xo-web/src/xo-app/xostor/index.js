@@ -5,6 +5,7 @@ import Icon from 'icon'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { Container, Col, Row } from 'grid'
+import { TryXoa } from 'utils'
 
 import NewXostorForm from './new-xostor-form'
 import XostorList from './xostor-list'
@@ -31,19 +32,30 @@ const Xostor = decorate([
   injectState,
   ({ effects, state }) => (
     <Page header={HEADER}>
-      <XostorList />
-      <Row className='mb-1'>
-        <Col>
-          <ActionButton
-            btnStyle='primary'
-            handler={effects._toggleShowNewXostorForm}
-            icon={state.showNewXostorForm ? 'minus' : 'plus'}
-          >
-            {_('new')}
-          </ActionButton>
-        </Col>
-      </Row>
-      {state.showNewXostorForm && <NewXostorForm />}
+      {process.env.XOA_PLAN < 5 ? (
+        <Container>
+          <XostorList />
+          <Row className='mb-1'>
+            <Col>
+              <ActionButton
+                btnStyle='primary'
+                handler={effects._toggleShowNewXostorForm}
+                icon={state.showNewXostorForm ? 'minus' : 'plus'}
+              >
+                {_('new')}
+              </ActionButton>
+            </Col>
+          </Row>
+          {state.showNewXostorForm && <NewXostorForm />}
+        </Container>
+      ) : (
+        <Container>
+          <h2 className='text-info'>{_('xostorCommunity')}</h2>
+          <p>
+            <TryXoa page='xosan' />
+          </p>
+        </Container>
+      )}
     </Page>
   ),
 ])
