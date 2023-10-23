@@ -36,13 +36,18 @@ export default class About extends Component {
       try {
         const commit = await getMasterCommit()
         const isOnLatest = commit.sha === COMMIT_ID
-        let diff = 0
+        const diff = {
+          nAhead: 0,
+          nBehind: 0,
+        }
         if (!isOnLatest) {
           try {
-            diff = (await compareCommits(commit.sha, COMMIT_ID)).behind_by
+            const { ahead_by, behind_by } = await compareCommits(commit.sha, COMMIT_ID)
+            diff.nAhead = ahead_by
+            diff.nBehind = behind_by
           } catch (err) {
             console.error(err)
-            diff = 'unknown'
+            diff.nBehind = 'unknown'
           }
         }
 
@@ -109,7 +114,10 @@ export default class About extends Component {
                         </span>
                       ) : (
                         <span>
-                          {_('xoFromSourceNotUpToDate', { nBehind: commit.diffWithMaster })}{' '}
+                          {_('xoFromSourceNotUpToDate', {
+                            nBehind: commit.diffWithMaster.nBehind,
+                            nAhead: commit.diffWithMaster.nAhead,
+                          })}{' '}
                           <Icon icon='alarm' color='text-warning' />
                         </span>
                       )}
