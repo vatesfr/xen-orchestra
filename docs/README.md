@@ -1,17 +1,13 @@
 # Xen Orchestra
 
+![](https://repository-images.githubusercontent.com/8077957/6dcf71fd-bad9-4bfa-933f-b466c52d513d)
+
 ## Introduction
 
-Welcome to the official Xen Orchestra (XO) documentation.
+XO (Xen Orchestra) is a complete solution to visualize, manage, backup and delegate your XCP-ng (or XenServer) infrastructure. **No agent** is required for it to work.
 
-XO is a web interface to visualize and administer your XenServer (or XAPI enabled) hosts. **No agent** is required for it to work.
-
-It aims to be easy to use on any device supporting modern web technologies (HTML 5, CSS 3, JavaScript), such as your desktop computer or your smartphone.
+It provides a web UI, a CLI and a REST API, while also getting a Terraform provider among other connectors/plugins.
 
 ## Quick start
 
-Log in to your account and use the deploy form available on [Xen Orchestra website](https://xen-orchestra.com/#!/xoa).
-
-More details available on the [installation section](installation.md#xoa).
-
-![Xen Orchestra logo](./assets/logo.png)
+Log in to your account and use the deploy form available from [Vates website](https://vates.tech/deploy/)
