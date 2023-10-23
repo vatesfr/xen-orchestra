@@ -11,7 +11,7 @@ import { connectStore } from 'utils'
 import { Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
-import { forEach, isEmpty, map, size } from 'lodash'
+import { forEach, isEmpty, map } from 'lodash'
 import { Sr, Vdi } from 'render-xo-item'
 import { subscribeSrsUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo'
 
@@ -20,8 +20,8 @@ const COLUMNS = [
     itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
         <Sr id={srId} link />{' '}
-        {size(vdisHealthBySr[srId].unhealthyVdis) >= VDIS_TO_COALESCE_LIMIT && (
-          <Tooltip content={_('srVdisToCoalesceWarning', { limitVdis: VDIS_TO_COALESCE_LIMIT })}>
+        {vdisHealthBySr[srId].nUnhealthyVdis >= VDIS_TO_COALESCE_LIMIT && (
+          <Tooltip content={_('srVdisToCoalesceWarning', { nVdis: vdisHealthBySr[srId].nUnhealthyVdis })}>
             <span className='text-warning'>
               <Icon icon='alarm' />
             </span>

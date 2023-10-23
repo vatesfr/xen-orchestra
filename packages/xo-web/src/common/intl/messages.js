@@ -1576,7 +1576,7 @@ const messages = {
   unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
   vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
-  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has {nVdis, number} VDI{nVdis, plural, one {} other {s}} to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

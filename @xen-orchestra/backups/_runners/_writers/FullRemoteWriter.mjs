@@ -24,7 +24,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
     )
   }
 
-  async _run({ timestamp, sizeContainer, stream, vm, vmSnapshot }) {
+  async _run({ maxStreamLength, timestamp, sizeContainer, stream, streamLength, vm, vmSnapshot }) {
     const settings = this._settings
     const job = this._job
     const scheduleId = this._scheduleId
@@ -65,6 +65,8 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
 
     await Task.run({ name: 'transfer' }, async () => {
       await adapter.outputStream(dataFilename, stream, {
+        maxStreamLength,
+        streamLength,
         validator: tmpPath => adapter.isValidXva(tmpPath),
       })
       return { size: sizeContainer.size }
