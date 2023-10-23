@@ -396,7 +396,7 @@ export default class Licenses extends Component {
         </Row>
         <Row>
           <Col>
-            <h2>XOSTOR</h2>
+            <h2>{_('xostor')}</h2>
             <Xostor xostorLicenses={this.state.licenses.xostor} updateLicenses={this._updateLicenses} />
           </Col>
         </Row>
