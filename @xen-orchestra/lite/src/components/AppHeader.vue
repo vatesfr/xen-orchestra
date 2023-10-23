@@ -8,7 +8,12 @@
     />
     <RouterLink :to="{ name: 'home' }">
       <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg" />
-      <img v-else alt="XO Lite" src="../assets/title.svg" />
+      <img
+        v-else
+        :class="{ dark: uiStore.colorMode === 'dark' }"
+        alt="XO Lite"
+        src="../assets/title.svg"
+      />
     </RouterLink>
     <slot />
     <div class="right">
@@ -48,6 +53,11 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
     @media (--desktop) {
       width: 10rem;
       margin: 1rem;
+    }
+    &.dark {
+      /* Make title color as close as possible to #e5e5e7. See https://codepen.io/sosuke/full/Pjoqqp */
+      filter: brightness(0) invert(95%) sepia(4%) saturate(60%)
+        hue-rotate(202deg) brightness(98%) contrast(90%);
     }
   }
 }
