@@ -19,10 +19,6 @@ class XostorLicensesForm extends Component {
     licenseId: 'none',
   }
 
-  onChangeLicense = event => {
-    this.setState({ licenseId: event.target.value })
-  }
-
   bind = () => {
     const { item, userData } = this.props
     return bindLicense(this.state.licenseId, item.uuid).then(userData.updateLicenses)
@@ -50,7 +46,7 @@ class XostorLicensesForm extends Component {
       <span>{license.id.slice(-4)}</span>
     ) : (
       <form className='form-inline'>
-        <SelectLicense onChange={this.onChangeLicense} productType='xostor' />
+        <SelectLicense onChange={this.linkState('licenseId')} productType='xostor' />
         <ActionButton
           btnStyle='primary'
           className='ml-1'
