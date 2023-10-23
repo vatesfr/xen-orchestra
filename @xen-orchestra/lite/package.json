@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource/poppins": "^5.0.8",
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-regular-svg-icons": "^6.2.0",
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
