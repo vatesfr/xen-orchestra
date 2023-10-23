@@ -1692,6 +1692,8 @@ const messages = {
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
   shareVmsByDefault: 'Share VMs by default',
+  nVmsInResourceSet:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
 
   // ---- VM import ---
   fileType: 'File type:',
