@@ -694,8 +694,8 @@ export class RemoteAdapter {
     return container.size
   }
 
-  // open the  hierarchy of ancestors until we find a full one
-  async _createVhdStream(handler, path, { useChain }) {
+  // open the  hierarchy of ancestors until we find a usable one
+  async _createVhdStream(handler, path, { useChain, snapshotedVdis }) {
     const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
@@ -713,7 +713,30 @@ export class RemoteAdapter {
     }
     const synthetic = disposableSynthetic.value
     await synthetic.readBlockAllocationTable()
-    const stream = await synthetic.stream()
+    let stream
+    if (snapshotedVdis) {
+      // chain = []
+      // current = path
+      // find the child VDI of path
+      //   more than one => break
+      //   inexistant => break
+      //   not a differential => break
+      //   have snapshot => // must dig in the xapi to find how to check this
+      //     descendant = new VhdSynthetic(chain)
+      //     negativeVhd = new NegativeVhd(synthetic, descendant)
+      //     stream = negative.stream()
+      //     break
+      //
+      //   // don't have a snapshot
+      //   unshift this vhd at the beginning the chain
+      //   current = child
+      //
+      // no negative stream : dispose all the vhd of the chain
+    }
+    // fallback
+    if (stream === undefined) {
+      stream = await synthetic.stream()
+    }
 
     stream.on('end', disposeOnce)
     stream.on('close', disposeOnce)
@@ -721,7 +744,7 @@ export class RemoteAdapter {
     return stream
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, snapshotedVdis } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
@@ -729,7 +752,7 @@ export class RemoteAdapter {
 
     const streams = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain })
+      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain, snapshotedVdis })
     })
 
     return {

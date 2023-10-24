@@ -33,7 +33,9 @@ export class ImportVmBackup {
           .filter(([_, srUuid]) => srUuid === null)
           .map(([vdiUuid]) => vdiUuid)
       )
-      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis)
+      const snapshotedVdis = {} // {vdiUuid => [snapshotsUuids]}
+      // VM => snapshots =>
+      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis, { snapshotedVdis })
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
