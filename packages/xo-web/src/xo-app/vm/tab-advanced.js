@@ -457,7 +457,7 @@ export default class TabAdvanced extends Component {
     () => this.props.vm,
     () => this.props.pool,
     (vm, pool) => {
-      if (!pool.vtpmSupported) {
+      if (pool?.vtpmSupported === false) {
         return _('vtpmNotSupported')
       }
       if (vm.boot.firmware !== 'uefi') {

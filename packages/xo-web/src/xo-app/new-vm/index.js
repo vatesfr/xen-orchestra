@@ -1576,7 +1576,7 @@ export default class NewVm extends BaseComponent {
         </label>
       ) : null
 
-    const isVtpmSupported = pool.vtpmSupported
+    const isVtpmSupported = pool?.vtpmSupported ?? true
 
     return (
       <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
