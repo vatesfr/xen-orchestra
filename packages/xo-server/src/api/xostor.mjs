@@ -1,5 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
+import { defer } from 'golike-defer'
 import { operationFailed } from 'xo-common/api-errors.js'
 
 const ENUM_PROVISIONING = {
@@ -105,10 +106,46 @@ formatDisks.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function create({ description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }) {
+export const create = defer(async function (
+  $defer,
+  { description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }
+) {
   const hostIds = Object.keys(disksByHost)
-  const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
 
+  const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
+
+  const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
+
+  const now = Date.now()
+  const availableLicenses = xostorLicenses.filter(
+    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
+  )
+
+  let license = availableLicenses.find(license => license.productId === 'xostor')
+
+  if (license === undefined) {
+    license = availableLicenses.find(license => license.productId === 'xostor.trial')
+  }
+
+  if (license === undefined) {
+    license = await this.createBoundXostorTrialLicense({
+      boundObjectId: tmpBoundObjectId,
+    })
+  } else {
+    await this.bindLicense({
+      licenseId: license.id,
+      boundObjectId: tmpBoundObjectId,
+    })
+  }
+  $defer.onFailure(() =>
+    this.unbindLicense({
+      licenseId: license.id,
+      productId: license.productId,
+      boundObjectId: tmpBoundObjectId,
+    })
+  )
+
+  const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
   if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
     // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
     throw new Error('All hosts must be in the same pool')
@@ -140,7 +177,7 @@ export async function create({ description, disksByHost, force, ignoreFileSystem
   const xapi = this.getXapi(host)
 
   log.info(`Create XOSTOR (${name}) with provisioning: ${provisioning}`)
-  const srRef = await this.getXapi(host).SR_create({
+  const srRef = await xapi.SR_create({
     device_config: {
       'group-name': 'linstor_group/' + LV_NAME,
       redundancy: String(replication),
@@ -152,9 +189,17 @@ export async function create({ description, disksByHost, force, ignoreFileSystem
     shared: true,
     type: 'linstor',
   })
+  const srUuid = await xapi.getField('SR', srRef, 'uuid')
 
-  return xapi.getObject(srRef).uuid
-}
+  await this.rebindLicense({
+    licenseId: license.id,
+    oldBoundObjectId: tmpBoundObjectId,
+    newBoundObjectId: srUuid,
+  })
+
+  return srUuid
+})
+
 create.description = 'Create a XOSTOR storage'
 create.permission = 'admin'
 create.params = {
@@ -176,6 +221,11 @@ export async function destroy({ sr }) {
   const hosts = Object.values(xapi.objects.indexes.type.host).map(host => this.getObject(host.uuid, 'host'))
 
   await xapi.destroySr(sr._xapiId)
+  const license = (await this.getLicenses({ productType: 'xostor' })).find(license => license.boundObjectId === sr.uuid)
+  await this.unbindLicense({
+    boundObjectId: license.boundObjectId,
+    productId: license.productId,
+  })
   return asyncEach(hosts, host => destroyVolumeGroup(xapi, host, true), { stopOnError: false })
 }
 destroy.description = 'Destroy a XOSTOR storage'
