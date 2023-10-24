@@ -31,6 +31,7 @@ import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
+import { DISK_TYPES } from 'vhd-lib/_constants'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -753,6 +754,21 @@ export class RemoteAdapter {
       vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
     }
 
+  }
+
+  async areAllIncrementalDiskDifferencing(metadata, ignoredVdis){
+    const handler = this._handler
+    const { vhds } = metadata
+    const dir = dirname(metadata._filename)
+    const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
+
+    for(const vdiRef of Object.keys(vdis)){
+      const isDifferencing = await Disposable.use(openVhd(handler, join(dir, vhds[vdiRef]), vhd=> vhd.footer.diskType === DISK_TYPES.DIFFERENCING))
+      if(!isDifferencing){
+        return false
+      }
+    }
+    return true
   }
   
   async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {

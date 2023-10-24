@@ -13,19 +13,30 @@ export class ImportVmBackup {
     this._srUuid = srUuid
     this._xapi = xapi
   }
-  // is there a snapshot ? 
-  // do we restore an incremental delta ? 
-  // Are all the backup in the chain delta. The oldest one can be a full
   
+  
+  async #isOnTheSameSr(vm, mapVdisSrs) {
+    const xapi = this._xapi
+    const vdiRefs = await xapi.VM_getDisks(vm.$ref)
+    for (const vdiRef of vdiRefs) {
+      const vdi = xapi.getObject(vdiRef)
+      if (vdi.$SR.uuid !== mapVdisSrs[vdi.$id]) {
+        return false
+      }
+    }
+    return true
+  }
+
   async #getIncrementalBackup(metadata, mapVdisSrs){
     const adapter = this._adapter
     const backups = await adapter.listVmBackups(metadata.vm.uuid,  _ => _.mode === 'delta' )
-    // sort by date
+    // sort by date ?
 
     let backupWithSnapshot, snapshot
     const backupChain = []
     for(const backup of backups){
       if(backup.timestamp <= metadata.timestamp){
+        // we won't use backup done before the cbackup that will be restored
         continue
       }
       backupChain.push(backup)
@@ -43,13 +54,15 @@ export class ImportVmBackup {
         .filter(([_, srUuid]) => srUuid === null)
         .map(([vdiUuid]) => vdiUuid)
     )
-    // @todo check if the vdis are on the  SR they will be restored to 
-    // we've got the snapshot and the mapVdisSrs
-    if(backupWithSnapshot !== undefined && !onTheSameSr(mapVdisSrs, snapshot)){
+    
+    if(backupWithSnapshot !== undefined 
+        && !this.#isOnTheSameSr(snapshot, mapVdisSrs) // can only use the fast path if the disk are restored in place
+        && adapter.allDiskAreDifferencing(backupChain.slice(1),ignoredVdis)){ // a delta backup can contains full disk ( newly created disk , problem with storage)
       // we can use the fast path
       return adapter.createNegativeVm(backupWithSnapshot,metadata, ignoredVdis)
     }
- 
+
+    // fallback to the normal restore
     return adapter.readIncrementalVmBackup(metadata, ignoredVdis)
 
   }
