@@ -143,11 +143,36 @@ export async function exportIncrementalVm(
   )
 }
 
+async function detectBaseVdis(vmRecord, sr) {
+  let baseVm
+  const xapi = sr.$xapi
+  const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
+  if (remoteBaseVmUuid) {
+    baseVm = find(
+      xapi.objects.all,
+      obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
+    )
+
+    if (!baseVm) {
+      throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
+    }
+  }
+  const baseVdis = {}
+  baseVm &&
+    baseVm.$VBDs.forEach(vbd => {
+      const vdi = vbd.$VDI
+      if (vdi !== undefined) {
+        baseVdis[vbd.VDI] = vbd.$VDI
+      }
+    })
+  return baseVdis
+}
+
 export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
+  { baseVdis = {}, cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -157,35 +182,15 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   const vmRecord = incrementalVm.vm
   const xapi = sr.$xapi
 
-  let baseVm
-  if (detectBase) {
-    const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
-    if (remoteBaseVmUuid) {
-      baseVm = find(
-        xapi.objects.all,
-        obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
-      )
-
-      if (!baseVm) {
-        throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
-      }
-    }
-  }
-
   const cache = new Map()
   const mapVdisSrRefs = {}
   for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
     mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
   }
 
-  const baseVdis = {}
-  baseVm &&
-    baseVm.$VBDs.forEach(vbd => {
-      const vdi = vbd.$VDI
-      if (vdi !== undefined) {
-        baseVdis[vbd.VDI] = vbd.$VDI
-      }
-    })
+  if (detectBase) {
+    baseVdis = await detectBaseVdis(vmRecord, sr)
+  }
   const vdiRecords = incrementalVm.vdis
 
   // 0. Create suspend_VDI
