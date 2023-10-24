@@ -13,60 +13,7 @@ export class ImportVmBackup {
     this._srUuid = srUuid
     this._xapi = xapi
   }
-  
-  
-  async #isOnTheSameSr(vm, mapVdisSrs) {
-    const xapi = this._xapi
-    const vdiRefs = await xapi.VM_getDisks(vm.$ref)
-    for (const vdiRef of vdiRefs) {
-      const vdi = xapi.getObject(vdiRef)
-      if (vdi.$SR.uuid !== mapVdisSrs[vdi.$id]) {
-        return false
-      }
-    }
-    return true
-  }
 
-  async #getIncrementalBackup(metadata, mapVdisSrs){
-    const adapter = this._adapter
-    const backups = await adapter.listVmBackups(metadata.vm.uuid,  _ => _.mode === 'delta' )
-    // sort by date ?
-
-    let backupWithSnapshot, snapshot
-    const backupChain = []
-    for(const backup of backups){
-      if(backup.timestamp <= metadata.timestamp){
-        // we won't use backup done before the cbackup that will be restored
-        continue
-      }
-      backupChain.push(backup)
-      if(backup.mode ==='full'){
-        break
-      }
-      if((snapshot = getSnapshot(backup))!== undefined){ // check if this backup have a snapshot
-        backupWithSnapshot = backup
-        break;
-      }
-    }
-
-    const ignoredVdis = new Set(
-      Object.entries(mapVdisSrs)
-        .filter(([_, srUuid]) => srUuid === null)
-        .map(([vdiUuid]) => vdiUuid)
-    )
-    
-    if(backupWithSnapshot !== undefined 
-        && !this.#isOnTheSameSr(snapshot, mapVdisSrs) // can only use the fast path if the disk are restored in place
-        && adapter.allDiskAreDifferencing(backupChain.slice(1),ignoredVdis)){ // a delta backup can contains full disk ( newly created disk , problem with storage)
-      // we can use the fast path
-      return adapter.createNegativeVm(backupWithSnapshot,metadata, ignoredVdis)
-    }
-
-    // fallback to the normal restore
-    return adapter.readIncrementalVmBackup(metadata, ignoredVdis)
-
-  }
-  
   async run() {
     const adapter = this._adapter
     const metadata = this._metadata
@@ -81,7 +28,12 @@ export class ImportVmBackup {
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 
-      backup = await this.#getIncrementalBackup(metadata, this._importIncrementalVmSettings.mapVdisSrs)
+      const ignoredVdis = new Set(
+        Object.entries(this._importIncrementalVmSettings.mapVdisSrs)
+          .filter(([_, srUuid]) => srUuid === null)
+          .map(([vdiUuid]) => vdiUuid)
+      )
+      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis)
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
