@@ -1667,14 +1667,22 @@ export const migrateVms = vms =>
     )
   }, noop)
 
-export const createVm = args => _call('vm.create', args)
+export const createVm = async args => {
+  try {
+    return await _call('vm.create', args)
+  } catch (err) {
+    handlePoolDoNotSupportVtpmError(err)
+    throw error
+  }
+}
 
-export const createVms = (args, nameLabels, cloudConfigs) =>
-  confirm({
+export const createVms = async (args, nameLabels, cloudConfigs) => {
+  await confirm({
     title: _('newVmCreateVms'),
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
-  }).then(() =>
-    Promise.all(
+  })
+  try {
+    return await Promise.all(
       map(
         nameLabels,
         (
@@ -1688,7 +1696,11 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
           })
       )
     )
-  )
+  } catch (error) {
+    handlePoolDoNotSupportVtpmError(error)
+    throw error
+  }
+}
 
 export const getCloudInitConfig = template => _call('vm.getCloudInitConfig', { template })
 
@@ -2156,8 +2168,27 @@ export const deleteAclRule = ({ protocol = undefined, port = undefined, ipRange 
   })
 
 // VTPM -----------------------------------------------------------
+const handlePoolDoNotSupportVtpmError = err => {
+  if (
+    incorrectState.is(err, {
+      property: 'restrictions.restrict_vtpm',
+      expected: 'false',
+    })
+  ) {
+    console.error(err)
+    throw new Error('This pool does not support VTPM')
+  }
+}
 
-export const createVtpm = vm => _call('vtpm.create', { id: resolveId(vm) })
+export const createVtpm = async vm => {
+  try {
+    const vtpmId = await _call('vtpm.create', { id: resolveId(vm) })
+    return vtpmId
+  } catch (err) {
+    handlePoolDoNotSupportVtpmError(err)
+    throw err
+  }
+}
 export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
 
 // Network -----------------------------------------------------------
