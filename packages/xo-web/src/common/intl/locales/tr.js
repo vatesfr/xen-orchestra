@@ -4011,12 +4011,6 @@ export default {
   // Original text: "Xen Orchestra"
   xenOrchestra: 'Xen Orchestra',
 
-  // Original text: "Xen Orchestra server"
-  xenOrchestraServer: 'Xen Orchestra sunucusu',
-
-  // Original text: "Xen Orchestra web client"
-  xenOrchestraWeb: 'Xen Orchestra web istemcisi',
-
   // Original text: "No pro support provided!"
   noProSupport: 'Hiçbir profesyonel destek verilmez!',
 

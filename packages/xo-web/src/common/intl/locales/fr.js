@@ -3261,12 +3261,6 @@ export default {
   // Original text: "Xen Orchestra"
   xenOrchestra: 'Xen Orchestra',
 
-  // Original text: "Xen Orchestra server"
-  xenOrchestraServer: 'Serveur Xen Orchestra',
-
-  // Original text: "Xen Orchestra web client"
-  xenOrchestraWeb: 'Client web Xen Orchestra',
-
   // Original text: "No pro support provided!"
   noProSupport: 'Pas de support professionel fourni !',
 

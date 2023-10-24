@@ -4697,12 +4697,6 @@ export default {
   // Original text: 'No host selected to be added'
   addHostNoHostMessage: 'Nessun host selezionato da aggiungere',
 
-  // Original text: 'Xen Orchestra server'
-  xenOrchestraServer: 'Server Xen Orchestra',
-
-  // Original text: 'Xen Orchestra web client'
-  xenOrchestraWeb: 'Client web Xen Orchestra',
-
   // Original text: 'Professional support missing!'
   noProSupport: 'Manca il supporto professionale!',
 

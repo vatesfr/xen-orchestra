@@ -3723,3 +3723,20 @@ export const esxiListVms = (host, user, password, sslVerify) =>
   _call('esxi.listVms', { host, user, password, sslVerify })
 
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
+
+// Github API ---------------------------------------------------------------
+const _callGithubApi = async (endpoint = '') => {
+  const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')
+  url.pathname += endpoint
+  const resp = await fetch(url.toString())
+  const json = await resp.json()
+  if (resp.ok) {
+    return json
+  } else {
+    throw new Error(json.message)
+  }
+}
+
+export const getMasterCommit = () => _callGithubApi('/commits/master')
+
+export const compareCommits = (base, head) => _callGithubApi(`/compare/${base}...${head}`)
