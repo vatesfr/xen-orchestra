@@ -85,8 +85,8 @@ export default class Redis extends Collection {
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.sMembers(idsIndex), id =>
-      redis.hGetAll(`${prefix}:${id}`).then(values =>
+    await asyncMapSettled(redis.sMembers(idsIndex), id => {
+      return this.#get(`${prefix}:${id}`).then(values =>
         values == null
           ? redis.sRem(idsIndex, id) // entry no longer exists
           : asyncMapSettled(indexes, index => {
@@ -96,17 +96,16 @@ export default class Redis extends Collection {
               }
             })
       )
-    )
+    })
   }
 
   _extract(ids) {
     const prefix = this.prefix + ':'
-    const { redis } = this
 
     const models = []
     return Promise.all(
       map(ids, id => {
-        return redis.hGetAll(prefix + id).then(model => {
+        return this.#get(prefix + id).then(model => {
           // If empty, consider it a no match.
           if (isEmpty(model)) {
             return
@@ -144,7 +143,7 @@ export default class Redis extends Collection {
 
           // remove the previous values from indexes
           if (indexes.length !== 0) {
-            const previous = await redis.hGetAll(`${prefix}:${id}`)
+            const previous = await this.#get(`${prefix}:${id}`)
             await asyncMapSettled(indexes, index => {
               const value = previous[index]
               if (value !== undefined) {
@@ -182,6 +181,22 @@ export default class Redis extends Collection {
         return model
       })
     )
+  }
+
+  async #get(key) {
+    const { redis } = this
+
+    let model
+    try {
+      model = await redis.hGetAll(key)
+    } catch (error) {
+      if (!error.message.startsWith('WRONGTYPE')) {
+        throw error
+      }
+      model = await redis.get(key).then(JSON.parse)
+    }
+
+    return model
   }
 
   _get(properties) {
@@ -227,7 +242,7 @@ export default class Redis extends Collection {
       promise = Promise.all([
         promise,
         asyncMapSettled(ids, id =>
-          redis.hGetAll(`${prefix}:${id}`).then(
+          this.#get(`${prefix}:${id}`).then(
             values =>
               values != null &&
               asyncMapSettled(indexes, index => {

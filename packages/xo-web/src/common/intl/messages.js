@@ -25,6 +25,7 @@ const messages = {
   esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
   nImportVmsInParallel: 'Number of VMs to import in parallel',
   stopOnError: 'Stop on error',
+  uuid: 'UUID',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
@@ -1367,6 +1368,10 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  createVtpm: 'Create a VTPM',
+  deleteVtpm: 'Delete the VTPM',
+  deleteVtpmWarning:
+    'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1396,9 +1401,12 @@ const messages = {
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
+  vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
   vmNicType: 'NIC type',
+  vtpm: 'VTPM',
+  vtpmRequireUefi: 'A UEFI boot firmware is necessary to use a VTPM',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',
@@ -1568,13 +1576,14 @@ const messages = {
   unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
   vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
-  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has {nVdis, number} VDI{nVdis, plural, one {} other {s}} to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
   copyHostBiosStrings: 'Copy host BIOS strings to VM',
+  enableVtpm: 'Enable VTPM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Info',
@@ -1644,8 +1653,11 @@ const messages = {
   newVmNetworkConfigDoc: 'Network config documentation',
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
+  seeVtpmDocumentation: 'See VTPM documentation',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
   destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
+  vtpmNotSupported: 'VTPM is only supported on pools running XCP-ng/XS 8.3 or later.',
+  warningVtpmRequired: 'This template requires a VTPM, if you proceed, the VM will likely not be able to boot.',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1680,6 +1692,8 @@ const messages = {
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
   shareVmsByDefault: 'Share VMs by default',
+  nVmsInResourceSet:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
 
   // ---- VM import ---
   fileType: 'File type:',
