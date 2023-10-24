@@ -1671,7 +1671,7 @@ export const createVm = async args => {
   try {
     return await _call('vm.create', args)
   } catch (err) {
-    handlePoolDoNotSupportVtpmError(err)
+    handlePoolDoesNotSupportVtpmError(err)
     throw error
   }
 }
@@ -1697,7 +1697,7 @@ export const createVms = async (args, nameLabels, cloudConfigs) => {
       )
     )
   } catch (error) {
-    handlePoolDoNotSupportVtpmError(error)
+    handlePoolDoesNotSupportVtpmError(error)
     throw error
   }
 }
@@ -2168,7 +2168,7 @@ export const deleteAclRule = ({ protocol = undefined, port = undefined, ipRange 
   })
 
 // VTPM -----------------------------------------------------------
-const handlePoolDoNotSupportVtpmError = err => {
+const handlePoolDoesNotSupportVtpmError = err => {
   if (
     incorrectState.is(err, {
       property: 'restrictions.restrict_vtpm',
@@ -2182,10 +2182,9 @@ const handlePoolDoNotSupportVtpmError = err => {
 
 export const createVtpm = async vm => {
   try {
-    const vtpmId = await _call('vtpm.create', { id: resolveId(vm) })
-    return vtpmId
+    return await _call('vtpm.create', { id: resolveId(vm) })
   } catch (err) {
-    handlePoolDoNotSupportVtpmError(err)
+    handlePoolDoesNotSupportVtpmError(err)
     throw err
   }
 }
