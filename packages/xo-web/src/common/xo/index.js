@@ -3631,6 +3631,11 @@ export const destroyProxyAppliances = proxies =>
 export const upgradeProxyAppliance = (proxy, props) =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy), ...props })
 
+export const openTunnelOnProxy = async proxy => {
+  const result = await _call('proxy.openSupportTunnel', { id: resolveId(proxy) }).catch(err => err.message)
+  await alert(_('supportTunnel'), <pre>{result}</pre>)
+}
+
 export const getProxyApplianceUpdaterState = id => _call('proxy.getApplianceUpdaterState', { id })
 
 export const updateProxyApplianceSettings = (id, props) => _call('proxy.updateApplianceSettings', { id, ...props })
