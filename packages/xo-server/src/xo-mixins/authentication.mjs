@@ -50,13 +50,28 @@ export default class {
     })
 
     // Token authentication provider.
-    this.registerAuthenticationProvider(async ({ token: tokenId }) => {
+    this.registerAuthenticationProvider(async ({ token: tokenId }, { ip } = {}) => {
       if (!tokenId) {
         return
       }
 
       try {
         const token = await app.getAuthenticationToken(tokenId)
+
+        let { last_uses = {} } = token
+        last_uses[ip] = { timestamp: Date.now() }
+
+        const MAX_LAST_USE_ENTRIES = 10
+        if (Object.keys(last_uses).length > MAX_LAST_USE_ENTRIES) {
+          const entries = Object.entries(last_uses).sort((a, b) => b[0].timestamp - a[0].timestamp)
+          entries.length = MAX_LAST_USE_ENTRIES
+          last_uses = Object.fromEntries(entries)
+        }
+
+        token.last_uses = last_uses
+
+        this._tokens.update(token)
+
         return { bypassOtp: true, expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
     })
