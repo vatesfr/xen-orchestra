@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-cli minor
 - xo-server-netbox patch
 - xo-web patch
 
