@@ -2501,7 +2501,7 @@ const messages = {
   summary: 'Summary',
   wrongNumberOfHosts: 'Wrong number of hosts',
   xostor: 'XOSTOR',
-  xostorCommunity: 'XOSTOR is available in XOA',
+  xostorAvailableInXoa: 'XOSTOR is available in XOA',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
   xostorFailedVgAlreadyExists:

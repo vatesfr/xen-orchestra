@@ -35,7 +35,7 @@ const Xostor = decorate([
     <Page header={HEADER}>
       {getXoaPlan() === SOURCES ? (
         <Container>
-          <h2 className='text-info'>{_('xostorCommunity')}</h2>
+          <h2 className='text-info'>{_('xostorAvailableInXoa')}</h2>
           <p>
             <TryXoa page='xosan' />
           </p>
