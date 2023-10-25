@@ -28,6 +28,7 @@
 - Don't require to sign in again in XO after losing connection to XO Server (e.g. when restarting or upgrading XO) (PR [#7103](https://github.com/vatesfr/xen-orchestra/pull/7103))
 - [Usage report] Fix "Converting circular structure to JSON" error (PR [#7096](https://github.com/vatesfr/xen-orchestra/pull/7096))
 - [Usage report] Fix "Cannot convert undefined or null to object" error (PR [#7092](https://github.com/vatesfr/xen-orchestra/pull/7092))
+- [Netbox] Fix "The selected cluster is not assigned to this site" error [Forum#7887](https://xcp-ng.org/forum/topic/7887) (PR [#7124](https://github.com/vatesfr/xen-orchestra/pull/7124))
 
 ### Packages to release
 
