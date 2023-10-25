@@ -5,6 +5,7 @@ import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import Select from 'form/select'
+import semver from 'semver'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
@@ -18,6 +19,8 @@ import { SelectHost, SelectPool, SelectNetwork } from 'select-objects'
 import { toggleState, linkState } from 'reaclette-utils'
 
 import styles from './index.css'
+
+const MINIMAL_POOL_VERSION_FOR_XOSTOR = '8.2.1'
 
 const N_HOSTS_MIN = 3
 const N_HOSTS_MAX = 7
@@ -39,15 +42,21 @@ const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.le
 const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
+const isTapdevsDisk = disk => disk.name.startsWith('td')
 const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
+const isHostRecentEnough = host => semver.satisfies(host?.version, `>=${MINIMAL_POOL_VERSION_FOR_XOSTOR}`)
 const diskSelectRenderer = disk => (
   <span>
     <Icon icon='disk' /> {formatDiskName(disk.name)} {formatSize(Number(disk.size))}
   </span>
 )
 const xostorDiskPredicate = disk =>
-  isDiskRecommendedType(disk) && !isDiskRo(disk) && !isDiskMounted(disk) && !diskHasChildren(disk)
+  isDiskRecommendedType(disk) &&
+  !isDiskRo(disk) &&
+  !isDiskMounted(disk) &&
+  !diskHasChildren(disk) &&
+  !isTapdevsDisk(disk)
 
 // ===================================================================
 
@@ -128,15 +137,20 @@ const PoolCard = decorate([
         }
         return pool => {
           const poolHosts = props.hostsByPoolId?.[pool.id]
+          const host = first(poolHosts)
           return (
-            isWithinRecommendedHostRange(poolHosts) && isXcpngHost(first(poolHosts)) && !hasXostor(props.srs[pool.id])
+            isWithinRecommendedHostRange(poolHosts) &&
+            isXcpngHost(host) &&
+            !hasXostor(props.srs[pool.id]) &&
+            isHostRecentEnough(host)
           )
         }
       },
       poolIsWithinRecommendedHostRange: state => isWithinRecommendedHostRange(state.poolHosts),
       poolHasXostor: (state, props) => hasXostor(props.srs[state.poolId]),
+      isPoolRecentEnough: state => isHostRecentEnough(first(state.poolHosts)),
       isPoolXostorCompatible: state =>
-        state.isXcpngHost && state.poolIsWithinRecommendedHostRange && !state.poolHasXostor,
+        state.isXcpngHost && state.poolIsWithinRecommendedHostRange && !state.poolHasXostor && state.isPoolRecentEnough,
     },
   }),
   injectState,
@@ -165,6 +179,9 @@ const PoolCard = decorate([
                 {!state.isXcpngHost && <li>{_('notXcpPool')}</li>}
                 {!state.poolIsWithinRecommendedHostRange && <li>{_('wrongNumberOfHosts')}</li>}
                 {state.poolHasXostor && <li>{_('poolAlreadyHasXostor')}</li>}
+                {!state.isPoolRecentEnough && (
+                  <li>{_('poolNotRecentEnough', { version: first(state.poolHosts).version })}</li>
+                )}
               </ul>
             </div>
           )}
@@ -341,7 +358,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren
+  const _isTapdevsDisk = isTapdevsDisk(disk)
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevsDisk
 
   return (
     <li className='list-group-item'>
@@ -362,6 +380,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
             {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
+            {_isTapdevsDisk && <li>{_('isTapdevsDisk')}</li>}
           </ul>
         </div>
       )}
