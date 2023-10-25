@@ -59,10 +59,38 @@ const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[e
 const ajv = new Ajv({ allErrors: true, allowUnionTypes: true, useDefaults: true })
 
 function checkParams(method, params) {
+  // Parameters suffixed by `?` are marked as ignorable by the client and
+  // ignored if unsupported by this version of the API
+  //
+  // This simplifies compatibility with older version of the API if support
+  // of the parameter is preferable but not necessary
+  const ignorableParams = new Set()
+  for (const key of Object.keys(params)) {
+    if (key.endsWith('?')) {
+      const rawKey = key.slice(0, -1)
+      if (Object.hasOwn(params, rawKey)) {
+        throw new Error(`conflicting keys: ${rawKey} and ${key}`)
+      }
+      params[rawKey] = params[key]
+      delete params[key]
+      ignorableParams.add(rawKey)
+    }
+  }
+
   const { validate } = method
   if (validate !== undefined) {
     if (!validate(params)) {
-      throw errors.invalidParameters(validate.errors)
+      const vErrors = new Set(validate.errors)
+      for (const error of vErrors) {
+        if (error.schemaPath === '#/additionalProperties' && ignorableParams.has(error.params.additionalProperty)) {
+          delete params[error.params.additionalProperty]
+          vErrors.delete(error)
+        }
+      }
+
+      if (vErrors.size !== 0) {
+        throw errors.invalidParameters(Array.from(vErrors))
+      }
     }
   }
 }
