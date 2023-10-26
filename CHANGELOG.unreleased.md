@@ -30,6 +30,7 @@
 - [Usage report] Fix "Converting circular structure to JSON" error (PR [#7096](https://github.com/vatesfr/xen-orchestra/pull/7096))
 - [Usage report] Fix "Cannot convert undefined or null to object" error (PR [#7092](https://github.com/vatesfr/xen-orchestra/pull/7092))
 - [Plugin/transport-xmpp] Fix plugin load
+- [Self Service] Fix Self users not being able to snapshot VMs when they're members of a user group (PR [#7129](https://github.com/vatesfr/xen-orchestra/pull/7129))
 
 ### Packages to release
 
