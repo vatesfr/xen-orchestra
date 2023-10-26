@@ -1,7 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
-import { operationFailed } from 'xo-common/api-errors.js'
 
 const ENUM_PROVISIONING = {
   Thin: 'thin',
@@ -75,16 +74,38 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
   if (force) {
     await destroyVolumeGroup(xapi, host, force)
   }
-  await lvmPlugin('create_physical_volume', {
-    devices: rawDisks,
-    ignore_existing_filesystems: String(ignoreFileSystems),
-    force: String(force),
-  })
 
-  await lvmPlugin('create_volume_group', {
-    devices: rawDisks,
-    vg_name: VG_NAME,
-  })
+  // ATM we are unable to correctly identify errors (error.code can be used for multiple errors.)
+  // so we are just adding some suggestion of "why there is this error"
+  // Error handling will be improved as errors are discovered and understood
+  try {
+    await lvmPlugin('create_physical_volume', {
+      devices: rawDisks,
+      ignore_existing_filesystems: String(ignoreFileSystems),
+      force: String(force),
+    })
+  } catch (error) {
+    if (error.code === 'LVM_ERROR(5)') {
+      error.params = error.params.concat([
+        "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
+        '[XO] This error can be triggered if one of the disks have children',
+      ])
+    }
+    throw error
+  }
+  try {
+    await lvmPlugin('create_volume_group', {
+      devices: rawDisks,
+      vg_name: VG_NAME,
+    })
+  } catch (error) {
+    if (error.code === 'LVM_ERROR(5)') {
+      error.params = error.params.concat([
+        "[XO] This error can be triggered if a VG 'linstor_group' is already present on the host.",
+      ])
+    }
+    throw error
+  }
 
   if (provisioning === ENUM_PROVISIONING.Thin) {
     await lvmPlugin('create_thin_pool', {
@@ -154,24 +175,13 @@ export const create = defer(async function (
   const boundInstallDependencies = installDependencies.bind(this)
   await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
   const boundFormatDisks = formatDisks.bind(this)
-  try {
-    await asyncEach(
-      hosts,
-      host => boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning }),
-      {
-        stopOnError: false,
-      }
-    )
-  } catch (error) {
-    log.error(error.errors[0])
-    const isForceRequired = error.errors.every(error => error.code === 'LVM_ERROR(5)')
-
-    if (isForceRequired) {
-      throw operationFailed({ objectId: hostIds, code: 'VG_GROUP_ALREADY_EXISTS' })
+  await asyncEach(
+    hosts,
+    host => boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning }),
+    {
+      stopOnError: false,
     }
-
-    throw error
-  }
+  )
 
   const host = hosts[0]
   const xapi = this.getXapi(host)

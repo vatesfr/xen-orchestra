@@ -9,6 +9,7 @@
 
 - [Host/Advanced] Allow to force _Smart reboot_ if some resident VMs have the suspend operation blocked [Forum#7136](https://xcp-ng.org/forum/topic/7136/suspending-vms-during-host-reboot/23) (PR [#7025](https://github.com/vatesfr/xen-orchestra/pull/7025))
 - [Plugin/backup-report] Errors are now listed in XO tasks
+- [XOSTOR] Ability to create a XOSTOR storage (PR [#6983](https://github.com/vatesfr/xen-orchestra/pull/6983))
 
 ### Bug fixes
 
