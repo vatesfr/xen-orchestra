@@ -35,13 +35,23 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
         useSnapshot: false,
       })
     )
+
+    const vdis = await exportedVm.$getDisks()
+    let maxStreamLength = 1024 * 1024 // Ovf file and tar headers are a few KB, let's stay safe
+    for (const vdiRef of vdis) {
+      const vdi = await this._xapi.getRecord(vdiRef)
+      // at most the xva will take the physical usage of the disk
+      // the resulting stream can be smaller due to the smaller block size for xva than vhd, and compression of xcp-ng
+      maxStreamLength += vdi.physical_utilisation
+    }
+
     const sizeContainer = watchStreamSize(stream)
 
     const timestamp = Date.now()
-
     await this._callWriters(
       writer =>
         writer.run({
+          maxStreamLength,
           sizeContainer,
           stream: forkStreamUnpipe(stream),
           timestamp,

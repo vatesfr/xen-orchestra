@@ -362,7 +362,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
   - Assign it to object types:
     - Virtualization > cluster
     - Virtualization > virtual machine
-    - Virtualization > interface`
+    - Virtualization > interface
 
 ![](./assets/customfield.png)
 

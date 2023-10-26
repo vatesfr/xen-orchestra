@@ -6,7 +6,7 @@ import React from 'react'
 const Icon = ({ icon, size = 1, color, fixedWidth, ...props }) => {
   props.className = classNames(
     props.className,
-    icon !== undefined ? `xo-icon-${icon}` : 'fa', // Without icon prop, is a placeholder.
+    icon != null ? `xo-icon-${icon}` : 'fa', // Misaligned problem modification: if no icon or null, apply 'fa'
     isInteger(size) ? `fa-${size}x` : `fa-${size}`,
     color,
     fixedWidth && 'fa-fw'

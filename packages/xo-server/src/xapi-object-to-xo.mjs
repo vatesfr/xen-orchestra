@@ -118,6 +118,7 @@ const TRANSFORMS = {
       },
       suspendSr: link(obj, 'suspend_image_SR'),
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
+      vtpmSupported: obj.restrictions.restrict_vtpm === 'false',
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -413,6 +414,7 @@ const TRANSFORMS = {
       suspendSr: link(obj, 'suspend_SR'),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
+      VTPMs: link(obj, 'VTPMs'),
       virtualizationMode: domainType,
 
       // deprecated, use pvDriversVersion instead
@@ -840,6 +842,14 @@ const TRANSFORMS = {
       pgpus: link(obj, 'enabled_on_PGPUs'),
       vendorName: obj.vendor_name,
       vgpus: link(obj, 'VGPUs'),
+    }
+  },
+
+  vtpm(obj) {
+    return {
+      type: 'VTPM',
+
+      vm: link(obj, 'VM'),
     }
   },
 }

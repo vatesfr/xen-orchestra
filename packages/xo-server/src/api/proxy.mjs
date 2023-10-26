@@ -202,6 +202,26 @@ checkHealth.params = {
   },
 }
 
+export async function openSupportTunnel({ id }) {
+  await this.callProxyMethod(id, 'appliance.supportTunnel.open')
+
+  for (let i = 0; i < 10; ++i) {
+    const { open, stdout } = await this.callProxyMethod(id, 'appliance.supportTunnel.getState')
+    if (open && stdout.length !== 0) {
+      return stdout
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1e3))
+  }
+
+  throw new Error('could not open support tunnel')
+}
+
+openSupportTunnel.permission = 'admin'
+openSupportTunnel.params = {
+  id: { type: 'string' },
+}
+
 export function updateApplianceSettings({ id, ...props }) {
   return this.updateProxyAppliance(id, props)
 }

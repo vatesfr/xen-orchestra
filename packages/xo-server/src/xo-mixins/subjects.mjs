@@ -39,7 +39,7 @@ export default class {
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(groups.map(group => groupsDb.save(group))),
+        groups => Promise.all(groups.map(group => groupsDb.update(group))),
         ['users']
       )
       app.addConfigManager(
@@ -53,7 +53,7 @@ export default class {
               if (!isEmpty(conflictUsers)) {
                 await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
               }
-              return usersDb.save(user)
+              return usersDb.update(user)
             })
           )
       )
@@ -196,7 +196,7 @@ export default class {
     user.email = user.name
     delete user.name
 
-    await this._users.save(user)
+    await this._users.update(user)
   }
 
   // Merge this method in getUser() when plain objects.
@@ -368,7 +368,7 @@ export default class {
 
     if (name) group.name = name
 
-    await this._groups.save(group)
+    await this._groups.update(group)
   }
 
   async getGroup(id) {
@@ -390,17 +390,17 @@ export default class {
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)
 
-    await Promise.all([this._users.save(user), this._groups.save(group)])
+    await Promise.all([this._users.update(user), this._groups.update(group)])
   }
 
   async _removeUserFromGroup(userId, group) {
     group.users = removeFromArraySet(group.users, userId)
-    return this._groups.save(group)
+    return this._groups.update(group)
   }
 
   async _removeGroupFromUser(groupId, user) {
     user.groups = removeFromArraySet(user.groups, groupId)
-    return this._users.save(user)
+    return this._users.update(user)
   }
 
   async removeUserFromGroup(userId, groupId) {
@@ -438,11 +438,11 @@ export default class {
 
     group.users = userIds
 
-    const saveUser = ::this._users.save
+    const updateUser = ::this._users.update
     await Promise.all([
-      Promise.all(newUsers.map(saveUser)),
-      Promise.all(oldUsers.map(saveUser)),
-      this._groups.save(group),
+      Promise.all(newUsers.map(updateUser)),
+      Promise.all(oldUsers.map(updateUser)),
+      this._groups.update(group),
     ])
   }
 }

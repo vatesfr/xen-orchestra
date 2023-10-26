@@ -29,6 +29,8 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
           writer =>
             writer.run({
               stream: forkStreamUnpipe(stream),
+              // stream will be forked and transformed, it's not safe to attach additionnal properties to it
+              streamLength: stream.length,
               timestamp: metadata.timestamp,
               vm: metadata.vm,
               vmSnapshot: metadata.vmSnapshot,

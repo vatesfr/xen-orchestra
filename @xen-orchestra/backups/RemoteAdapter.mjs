@@ -681,11 +681,13 @@ export class RemoteAdapter {
     }
   }
 
-  async outputStream(path, input, { checksum = true, validator = noop } = {}) {
+  async outputStream(path, input, { checksum = true, maxStreamLength, streamLength, validator = noop } = {}) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
+      maxStreamLength,
+      streamLength,
       async validator() {
         await input.task
         return validator.apply(this, arguments)

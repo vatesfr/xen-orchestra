@@ -62,11 +62,14 @@ export default class Pools {
       }
       const patchesName = await Promise.all([targetXapi.findPatches(targetRequiredPatches), ...findPatchesPromises])
 
+      const { xsCredentials } = _app.apiContext.user.preferences
+
       // Install patches in parallel.
       const installPatchesPromises = []
       installPatchesPromises.push(
         targetXapi.installPatches({
           patches: patchesName[0],
+          xsCredentials,
         })
       )
       let i = 1
@@ -74,6 +77,7 @@ export default class Pools {
         installPatchesPromises.push(
           sourceXapis[sourceId].installPatches({
             patches: patchesName[i++],
+            xsCredentials,
           })
         )
       }

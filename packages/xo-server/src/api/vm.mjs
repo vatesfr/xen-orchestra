@@ -5,6 +5,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
 import hrp from 'http-request-plus'
+import mapKeys from 'lodash/mapKeys.js'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
@@ -237,6 +238,11 @@ export const create = defer(async function ($defer, params) {
     await this.allocIpAddresses(vif.$id, concat(vif.ipv4_allowed, vif.ipv6_allowed)).catch(() => xapi.deleteVif(vif))
   }
 
+  if (params.createVtpm) {
+    const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
+    $defer.onFailure(() => xapi.call('VTPM.destroy', vtpmRef))
+  }
+
   if (params.bootAfterCreate) {
     startVmAndDestroyCloudConfigVdi(xapi, xapiVm, cloudConfigVdiUuid, params)
   }
@@ -255,6 +261,11 @@ create.params = {
   cloudConfig: {
     type: 'string',
     optional: true,
+  },
+
+  createVtpm: {
+    type: 'boolean',
+    default: false,
   },
 
   networkConfig: {
@@ -622,6 +633,8 @@ warmMigration.params = {
 
 // -------------------------------------------------------------------
 
+const autoPrefix = (pfx, str) => (str.startsWith(pfx) ? str : pfx + str)
+
 export const set = defer(async function ($defer, params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
@@ -644,6 +657,11 @@ export const set = defer(async function ($defer, params) {
   const suspendSr = extract(params, 'suspendSr')
   if (suspendSr !== undefined) {
     await xapi.call('VM.set_suspend_SR', VM._xapiRef, suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef)
+  }
+
+  const xenStoreData = extract(params, 'xenStoreData')
+  if (xenStoreData !== undefined) {
+    await this.getXapiObject(VM).update_xenstore_data(mapKeys(xenStoreData, (v, k) => autoPrefix('vm-data/', k)))
   }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
@@ -747,6 +765,15 @@ set.params = {
   blockedOperations: { type: 'object', optional: true, properties: { '*': { type: ['boolean', 'null', 'string'] } } },
 
   suspendSr: { type: ['string', 'null'], optional: true },
+
+  xenStoreData: {
+    description: 'properties that should be set or deleted (if null) in the VM XenStore',
+    optional: true,
+    type: 'object',
+    additionalProperties: {
+      type: ['null', 'string'],
+    },
+  },
 }
 
 set.resolve = {

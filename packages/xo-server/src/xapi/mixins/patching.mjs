@@ -405,6 +405,11 @@ export default {
   },
 
   _poolWideInstall: deferrable(async function ($defer, patches, xsCredentials) {
+    // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
+    if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
+      throw new Error('XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates')
+    }
+
     // Legacy XS patches
     if (!useUpdateSystem(this.pool.$master)) {
       // for each patch: pool_patch.pool_apply
@@ -419,11 +424,6 @@ export default {
       return
     }
     // ----------
-
-    // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
-    if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
-      throw new Error('XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates')
-    }
 
     // for each patch: pool_update.introduce → pool_update.pool_apply
     for (const p of patches) {
@@ -493,7 +493,7 @@ export default {
   },
 
   @decorateWith(deferrable)
-  async rollingPoolUpdate($defer) {
+  async rollingPoolUpdate($defer, { xsCredentials } = {}) {
     const isXcp = _isXcp(this.pool.$master)
 
     if (this.pool.ha_enabled) {
@@ -530,7 +530,7 @@ export default {
     // On XS/CH, start by installing patches on all hosts
     if (!isXcp) {
       log.debug('Install patches')
-      await this.installPatches()
+      await this.installPatches({ xsCredentials })
     }
 
     // Remember on which hosts the running VMs are
@@ -629,7 +629,13 @@ export default {
         continue
       }
 
+      const residentVms = host.$resident_VMs.map(vm => vm.uuid)
+
       for (const vmId of vmIds) {
+        if (residentVms.includes(vmId)) {
+          continue
+        }
+
         try {
           await this.migrateVm(vmId, this, hostId)
         } catch (err) {

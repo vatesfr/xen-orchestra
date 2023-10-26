@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
+import Copiable from 'copiable'
 import defined, { get } from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -28,8 +29,10 @@ import {
   cloneVm,
   convertVmToTemplate,
   createVgpu,
+  createVtpm,
   deleteVgpu,
   deleteVm,
+  deleteVtpm,
   editVm,
   getVmsHaValues,
   isVmRunning,
@@ -450,9 +453,48 @@ export default class TabAdvanced extends Component {
 
   _onNicTypeChange = value => editVm(this.props.vm, { nicType: value === '' ? null : value })
 
+  _getDisabledAddVtpmReason = createSelector(
+    () => this.props.vm,
+    () => this.props.pool,
+    (vm, pool) => {
+      if (pool?.vtpmSupported === false) {
+        return _('vtpmNotSupported')
+      }
+      if (vm.boot.firmware !== 'uefi') {
+        return _('vtpmRequireUefi')
+      }
+      if (vm.power_state !== 'Halted') {
+        return _('vmNeedToBeHalted')
+      }
+    }
+  )
+
+  _getDisabledDeleteVtpmReason = () => {
+    if (this.props.vm.power_state !== 'Halted') {
+      return _('vmNeedToBeHalted')
+    }
+  }
+
+  _handleDeleteVtpm = async vtpm => {
+    await confirm({
+      icon: 'delete',
+      title: _('deleteVtpm'),
+      body: <p>{_('deleteVtpmWarning')}</p>,
+      strongConfirm: {
+        messageId: 'deleteVtpm',
+      },
+    })
+    return deleteVtpm(vtpm)
+  }
+
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
+    const addVtpmTooltip = this._getDisabledAddVtpmReason()
+    const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
+    const isAddVtpmAvailable = addVtpmTooltip === undefined
+    const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
+    const vtpmId = vm.VTPMs[0]
     return (
       <Container>
         <Row>
@@ -798,6 +840,59 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('vtpm')}</th>
+                  <td>
+                    {/*
+                    FIXME: add documentation link
+                    <a
+                      className='text-muted'
+                      href='#'
+                      rel='noopener noreferrer'
+                      style={{ display: 'block' }}
+                      target='_blank'
+                    >
+                      <Icon icon='info' /> {_('seeVtpmDocumentation')}
+                    </a> */}
+                    {vtpmId === undefined ? (
+                      <Tooltip content={addVtpmTooltip}>
+                        <ActionButton
+                          btnStyle='primary'
+                          disabled={!isAddVtpmAvailable}
+                          handler={createVtpm}
+                          handlerParam={vm}
+                          icon='add'
+                        >
+                          {_('createVtpm')}
+                        </ActionButton>
+                      </Tooltip>
+                    ) : (
+                      <div>
+                        <Tooltip content={deleteVtpmTooltip}>
+                          <ActionButton
+                            btnStyle='danger'
+                            disabled={!isDeleteVtpmAvailable}
+                            handler={this._handleDeleteVtpm}
+                            handlerParam={vtpmId}
+                            icon='delete'
+                          >
+                            {_('deleteVtpm')}
+                          </ActionButton>
+                        </Tooltip>
+                        <table className='table mt-1'>
+                          <tbody>
+                            <tr>
+                              <th>{_('uuid')}</th>
+                              <Copiable tagName='td' data={vtpmId}>
+                                {vtpmId.slice(0, 4)}
+                              </Copiable>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </td>
+                </tr>
                 {vm.boot.firmware === 'uefi' && (
                   <tr>
                     <th>{_('secureBoot')}</th>

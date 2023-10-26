@@ -23,6 +23,7 @@ import {
   forgetProxyAppliances,
   getLicenses,
   getProxyApplianceUpdaterState,
+  openTunnelOnProxy,
   registerProxy,
   subscribeProxies,
   upgradeProxyAppliance,
@@ -110,6 +111,13 @@ const INDIVIDUAL_ACTIONS = [
     handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id, { ignoreRunningJobs: true }),
     icon: 'upgrade',
     label: _('forceUpgrade'),
+    level: 'primary',
+  },
+  {
+    collapsed: true,
+    handler: proxy => openTunnelOnProxy(proxy),
+    icon: 'open-tunnel',
+    label: _('openTunnel'),
     level: 'primary',
   },
   {

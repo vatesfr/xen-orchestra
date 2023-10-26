@@ -12,9 +12,9 @@ import {
   filter,
   find,
   forEach,
-  get,
   isFinite,
   map,
+  mapValues,
   orderBy,
   round,
   values,
@@ -204,6 +204,11 @@ function computeMean(values) {
     }
   })
 
+  // No values to work with, return null
+  if (n === 0) {
+    return null
+  }
+
   return sum / n
 }
 
@@ -226,7 +231,7 @@ function getTop(objects, options) {
           object => {
             const value = object[opt]
 
-            return isNaN(value) ? -Infinity : value
+            return isNaN(value) || value === null ? -Infinity : value
           },
           'desc'
         ).slice(0, 3),
@@ -244,7 +249,9 @@ function computePercentage(curr, prev, options) {
   return zipObject(
     options,
     map(options, opt =>
-      prev[opt] === 0 || prev[opt] === null ? 'NONE' : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
+      prev[opt] === 0 || prev[opt] === null || curr[opt] === null
+        ? 'NONE'
+        : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
     )
   )
 }
@@ -257,7 +264,15 @@ function getDiff(oldElements, newElements) {
 }
 
 function getMemoryUsedMetric({ memory, memoryFree = memory }) {
-  return map(memory, (value, key) => value - memoryFree[key])
+  return map(memory, (value, key) => {
+    const tMemory = value
+    const tMemoryFree = memoryFree[key]
+    if (tMemory == null || tMemoryFree == null) {
+      return null
+    }
+
+    return tMemory - tMemoryFree
+  })
 }
 
 const METRICS_MEAN = {
@@ -274,51 +289,61 @@ const DAYS_TO_KEEP = {
   weekly: 7,
   monthly: 30,
 }
-function getLastDays(data, periodicity) {
-  const daysToKeep = DAYS_TO_KEEP[periodicity]
-  const expectedData = {}
-  for (const [key, value] of Object.entries(data)) {
-    if (Array.isArray(value)) {
-      // slice only applies to array
-      expectedData[key] = value.slice(-daysToKeep)
-    } else {
-      expectedData[key] = value
-    }
+
+function getDeepLastValues(data, nValues) {
+  if (data == null) {
+    return {}
   }
-  return expectedData
+
+  if (Array.isArray(data)) {
+    return data.slice(-nValues)
+  }
+
+  if (typeof data !== 'object') {
+    throw new Error('data must be an object or an array')
+  }
+
+  return mapValues(data, value => getDeepLastValues(value, nValues))
 }
 
 // ===================================================================
 
 async function getVmsStats({ runningVms, periodicity, xo }) {
+  const lastNValues = DAYS_TO_KEEP[periodicity]
+
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const { stats } = await xo.getXapiVmStats(vm, GRANULARITY).catch(error => {
-          log.warn('Error on fetching VM stats', {
-            error,
-            vmId: vm.id,
-          })
-          return {
-            stats: {},
-          }
-        })
+        const stats = getDeepLastValues(
+          (
+            await xo.getXapiVmStats(vm, GRANULARITY).catch(error => {
+              log.warn('Error on fetching VM stats', {
+                error,
+                vmId: vm.id,
+              })
+              return {
+                stats: {},
+              }
+            })
+          ).stats,
+          lastNValues
+        )
 
-        const iopsRead = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'r'), periodicity))
-        const iopsWrite = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'w'), periodicity))
+        const iopsRead = METRICS_MEAN.iops(stats.iops?.r)
+        const iopsWrite = METRICS_MEAN.iops(stats.iops?.w)
         return {
           uuid: vm.uuid,
           name: vm.name_label,
           addresses: Object.values(vm.addresses),
-          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus, periodicity)),
-          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats), periodicity)),
-          diskRead: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'r'), periodicity)),
-          diskWrite: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'w'), periodicity)),
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(getMemoryUsedMetric(stats)),
+          diskRead: METRICS_MEAN.disk(stats.xvds?.r),
+          diskWrite: METRICS_MEAN.disk(stats.xvds?.w),
           iopsRead,
           iopsWrite,
           iopsTotal: iopsRead + iopsWrite,
-          netReception: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'rx'), periodicity)),
-          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'tx'), periodicity)),
+          netReception: METRICS_MEAN.net(stats.vifs?.rx),
+          netTransmission: METRICS_MEAN.net(stats.vifs?.tx),
         }
       })
     ),
@@ -328,27 +353,34 @@ async function getVmsStats({ runningVms, periodicity, xo }) {
 }
 
 async function getHostsStats({ runningHosts, periodicity, xo }) {
+  const lastNValues = DAYS_TO_KEEP[periodicity]
+
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const { stats } = await xo.getXapiHostStats(host, GRANULARITY).catch(error => {
-          log.warn('Error on fetching host stats', {
-            error,
-            hostId: host.id,
-          })
-          return {
-            stats: {},
-          }
-        })
+        const stats = getDeepLastValues(
+          (
+            await xo.getXapiHostStats(host, GRANULARITY).catch(error => {
+              log.warn('Error on fetching host stats', {
+                error,
+                hostId: host.id,
+              })
+              return {
+                stats: {},
+              }
+            })
+          ).stats,
+          lastNValues
+        )
 
         return {
           uuid: host.uuid,
           name: host.name_label,
-          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus, periodicity)),
-          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats), periodicity)),
-          load: METRICS_MEAN.load(getLastDays(stats.load, periodicity)),
-          netReception: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'rx'), periodicity)),
-          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'tx'), periodicity)),
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(getMemoryUsedMetric(stats)),
+          load: METRICS_MEAN.load(stats.load),
+          netReception: METRICS_MEAN.net(stats.pifs?.rx),
+          netTransmission: METRICS_MEAN.net(stats.pifs?.tx),
         }
       })
     ),
@@ -358,6 +390,8 @@ async function getHostsStats({ runningHosts, periodicity, xo }) {
 }
 
 async function getSrsStats({ periodicity, xo, xoObjects }) {
+  const lastNValues = DAYS_TO_KEEP[periodicity]
+
   return orderBy(
     await asyncMapSettled(
       filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0),
@@ -371,18 +405,23 @@ async function getSrsStats({ periodicity, xo, xoObjects }) {
           name += ` (${container.name_label})`
         }
 
-        const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY).catch(error => {
-          log.warn('Error on fetching SR stats', {
-            error,
-            srId: sr.id,
-          })
-          return {
-            stats: {},
-          }
-        })
+        const stats = getDeepLastValues(
+          (
+            await xo.getXapiSrStats(sr.id, GRANULARITY).catch(error => {
+              log.warn('Error on fetching SR stats', {
+                error,
+                srId: sr.id,
+              })
+              return {
+                stats: {},
+              }
+            })
+          ).stats,
+          lastNValues
+        )
 
-        const iopsRead = computeMean(getLastDays(get(stats.iops, 'r'), periodicity))
-        const iopsWrite = computeMean(getLastDays(get(stats.iops, 'w'), periodicity))
+        const iopsRead = computeMean(stats.iops?.r)
+        const iopsWrite = computeMean(stats.iops?.w)
 
         return {
           uuid: sr.uuid,
@@ -477,7 +516,7 @@ async function getHostsMissingPatches({ runningHosts, xo }) {
         .getXapi(host)
         .listMissingPatches(host._xapiId)
         .catch(error => {
-          console.error('[WARN] error on fetching hosts missing patches:', JSON.stringify(error))
+          log.warn('Error on fetching hosts missing patches', { error })
           return []
         })
 
@@ -741,7 +780,7 @@ class UsageReportPlugin {
       try {
         await this._sendReport(true)
       } catch (error) {
-        console.error('[WARN] scheduled function:', (error && error.stack) || error)
+        log.warn('Scheduled usage report error', { error })
       }
     })
 

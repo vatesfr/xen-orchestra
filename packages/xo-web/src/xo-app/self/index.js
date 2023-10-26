@@ -13,6 +13,7 @@ import intersection from 'lodash/intersection'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
+import Link from 'link'
 import map from 'lodash/map'
 import mapKeys from 'lodash/mapKeys'
 import PropTypes from 'prop-types'
@@ -20,6 +21,7 @@ import React from 'react'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import ResourceSetQuotas from 'resource-set-quotas'
+import size from 'lodash/size'
 import some from 'lodash/some'
 import Tags from 'tags'
 import Upgrade from 'xoa-upgrade'
@@ -570,10 +572,13 @@ export class Edit extends Component {
 @addSubscriptions({
   ipPools: subscribeIpPools,
 })
+@connectStore({
+  vms: createGetObjectsOfType('VM').filter((state, props) => vm => vm.resourceSet === props.resourceSet.id),
+})
 @injectIntl
 class ResourceSet extends Component {
   _renderDisplay = () => {
-    const { resourceSet } = this.props
+    const { resourceSet, vms } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
     const { limits, ipPools, subjects, objectsByType, tags } = resourceSet
 
@@ -615,6 +620,9 @@ class ResourceSet extends Component {
       </li>,
       <li key='graphs' className='list-group-item'>
         <ResourceSetQuotas limits={limits} />
+        <Link to={`/home?s=resourceSet:${resourceSet.id}&t=VM`}>
+          <Icon icon='preview' /> {_('nVmsInResourceSet', { nVms: size(vms) })}
+        </Link>
       </li>,
       <li key='actions' className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>

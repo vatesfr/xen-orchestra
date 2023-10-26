@@ -15,13 +15,6 @@ const log = createLogger('xo:authentification')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
-const unserialize = token => {
-  if (token.created_at !== undefined) {
-    token.created_at = +token.created_at
-  }
-  token.expiration = +token.expiration
-}
-
 export default class {
   constructor(app) {
     app.config.watch('authentication', config => {
@@ -234,8 +227,6 @@ export default class {
   async _getAuthenticationToken(id, properties) {
     const token = await this._tokens.first(properties ?? id)
     if (token !== undefined) {
-      unserialize(token)
-
       if (token.expiration > Date.now()) {
         return token
       }
@@ -261,8 +252,6 @@ export default class {
     const tokensDb = this._tokens
     const toRemove = []
     for (const token of await tokensDb.get({ user_id: userId })) {
-      unserialize(token)
-
       const { expiration } = token
       if (expiration < now) {
         toRemove.push(token.id)

@@ -6,25 +6,23 @@ import { parseProp } from './utils.mjs'
 
 // ===================================================================
 
-const serialize = user => {
-  let tmp
-  return {
-    ...user,
-    authProviders: isEmpty((tmp = user.authProviders)) ? undefined : JSON.stringify(tmp),
-    groups: isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp),
-    preferences: isEmpty((tmp = user.preferences)) ? undefined : JSON.stringify(tmp),
-  }
-}
-
-const deserialize = user => ({
-  permission: 'none',
-  ...user,
-  authProviders: parseProp('user', user, 'authProviders', undefined),
-  groups: parseProp('user', user, 'groups', []),
-  preferences: parseProp('user', user, 'preferences', {}),
-})
-
 export class Users extends Collection {
+  _serialize(user) {
+    let tmp
+    user.authProviders = isEmpty((tmp = user.authProviders)) ? undefined : JSON.stringify(tmp)
+    user.groups = isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp)
+    user.preferences = isEmpty((tmp = user.preferences)) ? undefined : JSON.stringify(tmp)
+  }
+
+  _unserialize(user) {
+    if (user.permission === undefined) {
+      user.permission = 'none'
+    }
+    user.authProviders = parseProp('user', user, 'authProviders', undefined)
+    user.groups = parseProp('user', user, 'groups', [])
+    user.preferences = parseProp('user', user, 'preferences', {})
+  }
+
   async create(properties) {
     const { email } = properties
 
@@ -34,14 +32,6 @@ export class Users extends Collection {
     }
 
     // Adds the user to the collection.
-    return /* await */ this.add(serialize(properties))
-  }
-
-  async save(user) {
-    return /* await */ this.update(serialize(user))
-  }
-
-  async get(properties) {
-    return (await super.get(properties)).map(deserialize)
+    return /* await */ this.add(properties)
   }
 }

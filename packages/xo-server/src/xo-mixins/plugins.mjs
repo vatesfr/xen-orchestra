@@ -33,7 +33,7 @@ export default class {
         plugins =>
           Promise.all(
             plugins.map(async plugin => {
-              await this._pluginsMetadata.save(plugin)
+              await this._pluginsMetadata.update(plugin)
               if (plugin.configuration !== undefined && this._plugins[plugin.id] !== undefined) {
                 await this.configurePlugin(plugin.id, plugin.configuration)
               }
@@ -88,7 +88,7 @@ export default class {
       ;({ autoload, configuration } = metadata)
     } else {
       log.info(`[NOTICE] register plugin ${name} for the first time`)
-      await this._pluginsMetadata.save({
+      await this._pluginsMetadata.update({
         id,
         autoload,
       })

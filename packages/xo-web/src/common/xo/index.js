@@ -109,7 +109,13 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', signOut)
+  xo.on('authenticationFailure', error => {
+    console.warn('authenticationFailure', error)
+
+    if (error.name !== 'ConnectionError') {
+      signOut(error)
+    }
+  })
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
@@ -1661,14 +1667,22 @@ export const migrateVms = vms =>
     )
   }, noop)
 
-export const createVm = args => _call('vm.create', args)
+export const createVm = async args => {
+  try {
+    return await _call('vm.create', args)
+  } catch (err) {
+    handlePoolDoesNotSupportVtpmError(err)
+    throw error
+  }
+}
 
-export const createVms = (args, nameLabels, cloudConfigs) =>
-  confirm({
+export const createVms = async (args, nameLabels, cloudConfigs) => {
+  await confirm({
     title: _('newVmCreateVms'),
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
-  }).then(() =>
-    Promise.all(
+  })
+  try {
+    return await Promise.all(
       map(
         nameLabels,
         (
@@ -1682,7 +1696,11 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
           })
       )
     )
-  )
+  } catch (error) {
+    handlePoolDoesNotSupportVtpmError(error)
+    throw error
+  }
+}
 
 export const getCloudInitConfig = template => _call('vm.getCloudInitConfig', { template })
 
@@ -2150,6 +2168,29 @@ export const deleteAclRule = ({ protocol = undefined, port = undefined, ipRange 
     direction,
     vifId: resolveId(vif),
   })
+
+// VTPM -----------------------------------------------------------
+const handlePoolDoesNotSupportVtpmError = err => {
+  if (
+    incorrectState.is(err, {
+      property: 'restrictions.restrict_vtpm',
+      expected: 'false',
+    })
+  ) {
+    console.error(err)
+    throw new Error('This pool does not support VTPM')
+  }
+}
+
+export const createVtpm = async vm => {
+  try {
+    return await _call('vtpm.create', { id: resolveId(vm) })
+  } catch (err) {
+    handlePoolDoesNotSupportVtpmError(err)
+    throw err
+  }
+}
+export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
 
 // Network -----------------------------------------------------------
 
@@ -3596,6 +3637,11 @@ export const destroyProxyAppliances = proxies =>
 export const upgradeProxyAppliance = (proxy, props) =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy), ...props })
 
+export const openTunnelOnProxy = async proxy => {
+  const result = await _call('proxy.openSupportTunnel', { id: resolveId(proxy) }).catch(err => err.message)
+  await alert(_('supportTunnel'), <pre>{result}</pre>)
+}
+
 export const getProxyApplianceUpdaterState = id => _call('proxy.getApplianceUpdaterState', { id })
 
 export const updateProxyApplianceSettings = (id, props) => _call('proxy.updateApplianceSettings', { id, ...props })
@@ -3688,3 +3734,20 @@ export const esxiListVms = (host, user, password, sslVerify) =>
   _call('esxi.listVms', { host, user, password, sslVerify })
 
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
+
+// Github API ---------------------------------------------------------------
+const _callGithubApi = async (endpoint = '') => {
+  const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')
+  url.pathname += endpoint
+  const resp = await fetch(url.toString())
+  const json = await resp.json()
+  if (resp.ok) {
+    return json
+  } else {
+    throw new Error(json.message)
+  }
+}
+
+export const getMasterCommit = () => _callGithubApi('/commits/master')
+
+export const compareCommits = (base, head) => _callGithubApi(`/compare/${base}...${head}`)
