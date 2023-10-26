@@ -973,7 +973,12 @@ export const snapshot = defer(async function (
     }
   }
 
-  if (resourceSet === undefined || !resourceSet.subjects.includes(user.id)) {
+  // Workaround: allow Resource Set members to snapshot a VM even though they
+  // don't have operate permissions on the SR(s)
+  if (
+    resourceSet === undefined ||
+    (!resourceSet.subjects.includes(user.id) && !user.groups.some(groupId => resourceSet.subjects.includes(groupId)))
+  ) {
     await checkPermissionOnSrs.call(this, vm)
   }
 
