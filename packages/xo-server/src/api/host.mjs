@@ -1,6 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import backupGuard from './_backupGuard.mjs'
 
@@ -522,4 +523,25 @@ getSmartctlInformation.params = {
 
 getSmartctlInformation.resolve = {
   host: ['id', 'host', 'view'],
+}
+
+export async function getBlockdevices({ host }) {
+  const xapi = this.getXapi(host)
+  if (host.productBrand !== 'XCP-ng') {
+    throw incorrectState({
+      actual: host.productBrand,
+      expected: 'XCP-ng',
+      object: host.id,
+      property: 'productBrand',
+    })
+  }
+  return JSON.parse(await xapi.call('host.call_plugin', host._xapiRef, 'lsblk.py', 'list_block_devices', {}))
+}
+
+getBlockdevices.params = {
+  id: { type: 'string' },
+}
+
+getBlockdevices.resolve = {
+  host: ['id', 'host', 'administrate'],
 }

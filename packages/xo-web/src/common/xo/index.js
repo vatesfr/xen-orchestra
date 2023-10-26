@@ -1940,6 +1940,8 @@ export const importDisks = (disks, sr) =>
     )
   )
 
+export const getBlockdevices = host => _call('host.getBlockdevices', { id: resolveId(host) })
+
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = async vm => {
   const { compression, format } = await confirm({
@@ -3484,6 +3486,10 @@ export const updateXosanPacks = pool =>
 
     return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
   })
+
+// XOSTOR   --------------------------------------------------------------------
+
+export const createXostorSr = params => _call('xostor.create', params)
 
 // Licenses --------------------------------------------------------------------
 
