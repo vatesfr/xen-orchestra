@@ -121,6 +121,8 @@ export default class Redis extends Collection {
             return
           }
 
+          model = this._unserialize(model) ?? model
+
           // Mix the identifier in.
           model.id = id
 
@@ -212,7 +214,7 @@ export default class Redis extends Collection {
       model = await redis.get(key).then(JSON.parse)
     }
 
-    return model === null ? null : this._unserialize(model) ?? model
+    return model
   }
 
   _get(properties) {
