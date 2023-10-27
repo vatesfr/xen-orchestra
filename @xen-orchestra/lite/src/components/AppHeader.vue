@@ -7,7 +7,8 @@
       class="toggle-navigation"
     />
     <RouterLink :to="{ name: 'home' }">
-      <img alt="XO Lite" src="../assets/logo.svg" />
+      <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg" />
+      <TextLogo v-else />
     </RouterLink>
     <slot />
     <div class="right">
@@ -18,6 +19,7 @@
 
 <script lang="ts" setup>
 import AccountButton from "@/components/AccountButton.vue";
+import TextLogo from "@/components/TextLogo.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { useNavigationStore } from "@/stores/navigation.store";
 import { useUiStore } from "@/stores/ui.store";
@@ -43,6 +45,10 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
 
   img {
     width: 4rem;
+  }
+
+  .text-logo {
+    margin: 1rem;
   }
 }
 

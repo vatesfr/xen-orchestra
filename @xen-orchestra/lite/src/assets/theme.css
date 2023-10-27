@@ -1,4 +1,6 @@
 :root {
+  --color-logo: #282467;
+
   --color-blue-scale-000: #000000;
   --color-blue-scale-100: #1a1b38;
   --color-blue-scale-200: #595a6f;
@@ -60,6 +62,8 @@
 
 :root.dark {
   color-scheme: dark;
+
+  --color-logo: #e5e5e7;
 
   --color-blue-scale-000: #ffffff;
   --color-blue-scale-100: #e5e5e7;
