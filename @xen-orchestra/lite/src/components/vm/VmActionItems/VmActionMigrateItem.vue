@@ -1,95 +1,60 @@
 <template>
   <MenuItem
     v-tooltip="
-      !areAllVmsMigratable && $t('some-selected-vms-can-not-be-migrated')
+      selectedRefs.length > 0 &&
+      !isMigratable &&
+      $t('no-selected-vm-can-be-migrated')
     "
     :busy="isMigrating"
-    :disabled="isParentDisabled || !areAllVmsMigratable"
+    :disabled="isParentDisabled || !isMigratable"
     :icon="faRoute"
-    @click="openModal"
+    @click="openModal()"
   >
     {{ $t("migrate") }}
   </MenuItem>
-
-  <UiModal v-model="isModalOpen">
-    <FormModalLayout :disabled="isMigrating" @submit.prevent="handleMigrate">
-      <template #title>
-        {{ $t("migrate-n-vms", { n: selectedRefs.length }) }}
-      </template>
-
-      <div>
-        <FormInputWrapper :label="$t('select-destination-host')" light>
-          <FormSelect v-model="selectedHost">
-            <option :value="undefined">
-              {{ $t("select-destination-host") }}
-            </option>
-            <option
-              v-for="host in availableHosts"
-              :key="host.$ref"
-              :value="host"
-            >
-              {{ host.name_label }}
-            </option>
-          </FormSelect>
-        </FormInputWrapper>
-      </div>
-
-      <template #buttons>
-        <UiButton outlined @click="closeModal">
-          {{ isMigrating ? $t("close") : $t("cancel") }}
-        </UiButton>
-        <UiButton :busy="isMigrating" :disabled="!isValid" type="submit">
-          {{ $t("migrate-n-vms", { n: selectedRefs.length }) }}
-        </UiButton>
-      </template>
-    </FormModalLayout>
-  </UiModal>
 </template>
 
 <script lang="ts" setup>
-import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
-import FormSelect from "@/components/form/FormSelect.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
-import FormModalLayout from "@/components/ui/modals/layouts/FormModalLayout.vue";
-import UiModal from "@/components/ui/modals/UiModal.vue";
-import UiButton from "@/components/ui/UiButton.vue";
 import { useContext } from "@/composables/context.composable";
-import useModal from "@/composables/modal.composable";
-import { useVmMigration } from "@/composables/vm-migration.composable";
+import { useModal } from "@/composables/modal.composable";
 import { DisabledContext } from "@/context";
 import { vTooltip } from "@/directives/tooltip.directive";
+import { VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
 
 const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
 }>();
 
+const { getByOpaqueRefs, isOperationPending, areSomeOperationAllowed } =
+  useVmCollection();
+
 const isParentDisabled = useContext(DisabledContext);
 
-const {
-  open: openModal,
-  isOpen: isModalOpen,
-  close: closeModal,
-} = useModal({
-  onClose: () => (selectedHost.value = undefined),
-});
+const isMigratable = computed(() =>
+  getByOpaqueRefs(props.selectedRefs).some((vm) =>
+    areSomeOperationAllowed(vm, [
+      VM_OPERATION.POOL_MIGRATE,
+      VM_OPERATION.MIGRATE_SEND,
+    ])
+  )
+);
 
-const {
-  selectedHost,
-  availableHosts,
-  isValid,
-  migrate,
-  isMigrating,
-  areAllVmsMigratable,
-} = useVmMigration(() => props.selectedRefs);
+const isMigrating = computed(() =>
+  getByOpaqueRefs(props.selectedRefs).some((vm) =>
+    isOperationPending(vm, [
+      VM_OPERATION.POOL_MIGRATE,
+      VM_OPERATION.MIGRATE_SEND,
+    ])
+  )
+);
 
-const handleMigrate = async () => {
-  try {
-    await migrate();
-    closeModal();
-  } catch (e) {
-    console.error("Error while migrating", e);
-  }
-};
+const openModal = () =>
+  useModal(() => import("@/components/modals/VmMigrateModal.vue"), {
+    vmRefs: props.selectedRefs,
+  });
 </script>

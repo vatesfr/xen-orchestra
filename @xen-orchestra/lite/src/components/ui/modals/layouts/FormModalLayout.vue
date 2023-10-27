@@ -26,16 +26,12 @@ import ModalCloseIcon from "@/components/ui/modals/ModalCloseIcon.vue";
 import ModalContainer from "@/components/ui/modals/ModalContainer.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import { useContext } from "@/composables/context.composable";
-import { ColorContext, DisabledContext } from "@/context";
+import { ColorContext } from "@/context";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
-const props = withDefaults(
-  defineProps<{
-    icon?: IconDefinition;
-    disabled?: boolean;
-  }>(),
-  { disabled: undefined }
-);
+defineProps<{
+  icon?: IconDefinition;
+}>();
 
 defineSlots<{
   title: () => void;
@@ -44,8 +40,6 @@ defineSlots<{
 }>();
 
 const { textClass, borderClass } = useContext(ColorContext);
-
-useContext(DisabledContext, () => props.disabled);
 </script>
 
 <style lang="postcss" scoped>

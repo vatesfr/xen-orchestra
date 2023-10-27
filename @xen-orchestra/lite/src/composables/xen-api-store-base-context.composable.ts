@@ -18,6 +18,12 @@ export const useXenApiStoreBaseContext = <
     return recordsByOpaqueRef.get(opaqueRef);
   };
 
+  const getByOpaqueRefs = (opaqueRefs: XRecord["$ref"][]) => {
+    return opaqueRefs
+      .map(getByOpaqueRef)
+      .filter((record) => record !== undefined) as XRecord[];
+  };
+
   const getByUuid = (uuid: XRecord["uuid"]) => {
     return recordsByUuid.get(uuid);
   };
@@ -49,6 +55,7 @@ export const useXenApiStoreBaseContext = <
     lastError,
     records,
     getByOpaqueRef,
+    getByOpaqueRefs,
     getByUuid,
     hasUuid,
     add,

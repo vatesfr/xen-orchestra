@@ -273,6 +273,7 @@ defineExpose({
 .textarea {
   height: auto;
   min-height: 2em;
+  overflow: hidden;
 }
 
 .input {

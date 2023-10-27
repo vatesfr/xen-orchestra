@@ -1,9 +1,5 @@
 <template>
-  <component
-    :is="tag"
-    :class="[backgroundClass, { nested: isNested }]"
-    class="modal-container"
-  >
+  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container">
     <header v-if="$slots.header" class="modal-header">
       <slot name="header" />
     </header>
@@ -13,7 +9,7 @@
     <footer v-if="$slots.footer" class="modal-footer">
       <slot name="footer" />
     </footer>
-  </component>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -23,13 +19,9 @@ import type { Color } from "@/types";
 import { IK_MODAL_NESTED } from "@/types/injection-keys";
 import { inject, provide } from "vue";
 
-const props = withDefaults(
-  defineProps<{
-    tag?: string;
-    color?: Color;
-  }>(),
-  { tag: "div" }
-);
+const props = defineProps<{
+  color?: Color;
+}>();
 
 defineSlots<{
   header: () => any;
