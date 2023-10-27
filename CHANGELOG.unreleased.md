@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Fix "The selected cluster is not assigned to this site" error [Forum#7887](https://xcp-ng.org/forum/topic/7887) (PR [#7124](https://github.com/vatesfr/xen-orchestra/pull/7124))
+- [Netbox] Do not override user defined tags in Netbox [#7078](https://github.com/vatesfr/xen-orchestra/issues/7078) (PR [#7133](https://github.com/vatesfr/xen-orchestra/pull/7133))
 
 ### Packages to release
 
@@ -29,7 +30,7 @@
 
 <!--packages-start-->
 
-- xo-server-netbox patch
+- xo-server-netbox minor
 - xo-web patch
 
 <!--packages-end-->

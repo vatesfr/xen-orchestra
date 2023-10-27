@@ -17,6 +17,7 @@ import slugify from './slugify'
 const log = createLogger('xo:netbox')
 
 const CLUSTER_TYPE = 'XCP-ng Pool'
+const XO_TAG_COLOR = '2598d9'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
 export const NAME_MAX_LENGTH = 64
@@ -366,7 +367,7 @@ class Netbox {
         nbVm.platform = nbPlatform.id
       }
 
-      const nbVmTags = []
+      nbVm.tags = []
       for (const tag of xoVm.tags) {
         const slug = slugify(tag)
         let nbTag = find(nbTags, { slug })
@@ -375,7 +376,7 @@ class Netbox {
           nbTag = await this.#request('/extras/tags/', 'POST', {
             name: tag,
             slug,
-            color: '2598d9',
+            color: XO_TAG_COLOR,
             description: 'XO tag',
           })
           nbTags[nbTag.id] = nbTag
@@ -384,13 +385,10 @@ class Netbox {
         // Edge case: tags "foo" and "Foo" would have the same slug. It's
         // allowed in XO but not in Netbox so in that case, we only add it once
         // to Netbox.
-        if (!some(nbVmTags, { id: nbTag.id })) {
-          nbVmTags.push({ id: nbTag.id })
+        if (!some(nbVm.tags, { id: nbTag.id })) {
+          nbVm.tags.push({ id: nbTag.id })
         }
       }
-
-      // Sort them so that they can be compared by diff()
-      nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
       if (this.#netboxVersion !== undefined && !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
@@ -454,6 +452,16 @@ class Netbox {
 
         if (nbVm !== undefined) {
           // VM found in Netbox: update VM (I.1)
+
+          // Keep user defined tags by adding all existing tags that don't have XO tags color
+          updatedVm.tags = updatedVm.tags
+            .concat(
+              nbVm.tags
+                .filter(nbTag => nbTag.color !== XO_TAG_COLOR && !some(updatedVm.tags, { id: nbTag.id }))
+                .map(nbTag => ({ id: nbTag.id }))
+            )
+            .sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
+
           const patch = diff(updatedVm, flattenNested(nbVm))
           if (patch !== undefined) {
             vmsToUpdate.push(patch)
