@@ -156,7 +156,7 @@ const NewNetwork = decorate([
       pifPredicate:
         (_, { pool }) =>
         pif =>
-          !pif.isBondSlave && pif.vlan === -1 && pif.$host === (pool && pool.master),
+          !pif.isBondSlave && !pif.isBondMaster && pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController:
         (_, { pool }) =>
         pif =>
