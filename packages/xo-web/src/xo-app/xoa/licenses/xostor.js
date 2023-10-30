@@ -38,18 +38,19 @@ class XostorLicensesForm extends Component {
           level: 'danger',
           render: (
             <p>
-              {licenses.map(license => license.id.slice(-4)).join(',')} {_('xostorMultipleLicenses')}
+              {_('xostorMultipleLicenses')}
+              <br />
+              {licenses.map(license => license.id.slice(-4)).join(',')}
             </p>
           ),
         })
       }
 
       const license = licenses?.[0]
-      const slicedLicenseId = license?.id.slice(-4)
       if (license?.expires < Date.now()) {
         alerts.push({
           level: 'danger',
-          render: _('licenseExpiredXostorWarning', { licenseId: slicedLicenseId }),
+          render: _('licenseExpiredXostorWarning', { licenseId: license?.id.slice(-4) }),
         })
       }
       return alerts
