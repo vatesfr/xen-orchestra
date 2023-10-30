@@ -144,7 +144,9 @@ class Netbox {
     const httpRequest = async () => {
       try {
         const response = await this.#xo.httpRequest(url, options)
-        this.#netboxApiVersion = response.headers['api-version']
+        // API version only follows minor version, which is less precise and is not semver-valid
+        // See https://github.com/netbox-community/netbox/issues/12879#issuecomment-1589190236
+        this.#netboxApiVersion = semver.coerce(response.headers['api-version'])?.version ?? undefined
         const body = await response.text()
         if (body.length > 0) {
           return JSON.parse(body)
@@ -336,6 +338,14 @@ class Netbox {
         tags: [],
       }
 
+      // Prior to Netbox v3.3.0: no "site" field on VMs
+      // v3.3.0: "site" is REQUIRED and MUST be the same as cluster's site
+      // v3.3.5: "site" is OPTIONAL (auto-assigned in UI, not in API). `null` and cluster's site are accepted.
+      // v3.4.8: "site" is OPTIONAL and AUTO-ASSIGNED with cluster's site. If passed: ignored except if site is different from cluster's, then error.
+      if (this.#netboxApiVersion === undefined || semver.satisfies(this.#netboxApiVersion, '3.3.0 - 3.4.7')) {
+        nbVm.site = find(nbClusters, { id: nbCluster.id })?.site?.id ?? null
+      }
+
       const distro = xoVm.os_version?.distro
       if (distro != null) {
         const slug = slugify(distro)
@@ -379,10 +389,7 @@ class Netbox {
       nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
-      if (
-        this.#netboxApiVersion !== undefined &&
-        !semver.satisfies(semver.coerce(this.#netboxApiVersion).version, '>=2.7.0')
-      ) {
+      if (this.#netboxApiVersion !== undefined && !semver.satisfies(this.#netboxApiVersion, '>=2.7.0')) {
         nbVm.status = xoVm.power_state === 'Running' ? 1 : 0
       }
 
@@ -395,6 +402,7 @@ class Netbox {
       cluster: nbVm.cluster?.id ?? null,
       status: nbVm.status?.value ?? null,
       platform: nbVm.platform?.id ?? null,
+      site: nbVm.site?.id,
       // Sort them so that they can be compared by diff()
       tags: nbVm.tags.map(nbTag => ({ id: nbTag.id })).sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1)),
     })
