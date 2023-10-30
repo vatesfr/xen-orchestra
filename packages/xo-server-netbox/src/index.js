@@ -402,7 +402,7 @@ class Netbox {
       cluster: nbVm.cluster?.id ?? null,
       status: nbVm.status?.value ?? null,
       platform: nbVm.platform?.id ?? null,
-      site: nbVm.site === undefined ? undefined : nbVm.site?.id ?? null,
+      site: nbVm.site?.id,
       // Sort them so that they can be compared by diff()
       tags: nbVm.tags.map(nbTag => ({ id: nbTag.id })).sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1)),
     })
