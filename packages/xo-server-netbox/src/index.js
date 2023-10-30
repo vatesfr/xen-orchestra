@@ -39,7 +39,7 @@ class Netbox {
   #endpoint
   #intervalToken
   #loaded
-  #netboxApiVersion
+  #netboxVersion
   #xoPools
   #removeApiMethods
   #syncInterval
@@ -103,6 +103,7 @@ class Netbox {
   }
 
   async test() {
+    await this.#fetchNetboxVersion()
     await this.#checkCustomFields()
 
     const randomSuffix = Math.random().toString(36).slice(2, 11)
@@ -185,7 +186,7 @@ class Netbox {
       response = await httpRequest()
     }
 
-    if (method !== 'GET') {
+    if (method !== 'GET' || response.results === undefined) {
       return response
     }
 
@@ -213,9 +214,15 @@ class Netbox {
     }
   }
 
+  async #fetchNetboxVersion() {
+    // Endpoint supported since v2.10. If not supported, Netbox needs to be updated.
+    this.#netboxVersion = (await this.#request('/status/'))['netbox-version']
+  }
+
   // ---------------------------------------------------------------------------
 
   async #synchronize(xoPools = this.#xoPools) {
+    await this.#fetchNetboxVersion()
     await this.#checkCustomFields()
 
     log.info(`Synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })
@@ -342,7 +349,7 @@ class Netbox {
       // v3.3.0: "site" is REQUIRED and MUST be the same as cluster's site
       // v3.3.5: "site" is OPTIONAL (auto-assigned in UI, not in API). `null` and cluster's site are accepted.
       // v3.4.8: "site" is OPTIONAL and AUTO-ASSIGNED with cluster's site. If passed: ignored except if site is different from cluster's, then error.
-      if (this.#netboxApiVersion === undefined || semver.satisfies(this.#netboxApiVersion, '3.3.0 - 3.4.7')) {
+      if (this.#netboxVersion === undefined || semver.satisfies(this.#netboxVersion, '3.3.0 - 3.4.7')) {
         nbVm.site = find(nbClusters, { id: nbCluster.id })?.site?.id ?? null
       }
 
@@ -389,7 +396,7 @@ class Netbox {
       nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
-      if (this.#netboxApiVersion !== undefined && !semver.satisfies(this.#netboxApiVersion, '>=2.7.0')) {
+      if (this.#netboxVersion !== undefined && !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
         nbVm.status = xoVm.power_state === 'Running' ? 1 : 0
       }
 
