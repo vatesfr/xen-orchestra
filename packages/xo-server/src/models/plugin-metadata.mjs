@@ -1,18 +1,26 @@
 import Collection from '../collection/redis.mjs'
 import { createLogger } from '@xen-orchestra/log'
-import { forEach } from '../utils.mjs'
 
 const log = createLogger('xo:plugin-metadata')
 
 // ===================================================================
 
 export class PluginsMetadata extends Collection {
-  async save({ id, autoload, configuration }) {
-    return /* await */ this.update({
-      id,
-      autoload: autoload ? 'true' : 'false',
-      configuration: configuration && JSON.stringify(configuration),
-    })
+  _serialize(metadata) {
+    const { autoload, configuration } = metadata
+    metadata.autoload = JSON.stringify(autoload)
+    metadata.configuration = JSON.stringify(configuration)
+  }
+
+  _unserialize(metadata) {
+    const { autoload, configuration } = metadata
+    metadata.autoload = autoload === 'true'
+    try {
+      metadata.configuration = configuration && JSON.parse(configuration)
+    } catch (error) {
+      log.warn(`cannot parse pluginMetadata.configuration: ${configuration}`)
+      metadata.configuration = []
+    }
   }
 
   async merge(id, data) {
@@ -21,27 +29,9 @@ export class PluginsMetadata extends Collection {
       throw new Error('no such plugin metadata')
     }
 
-    return /* await */ this.save({
+    return /* await */ this.update({
       ...pluginMetadata,
       ...data,
     })
-  }
-
-  async get(properties) {
-    const pluginsMetadata = await super.get(properties)
-
-    // Deserializes.
-    forEach(pluginsMetadata, pluginMetadata => {
-      const { autoload, configuration } = pluginMetadata
-      pluginMetadata.autoload = autoload === 'true'
-      try {
-        pluginMetadata.configuration = configuration && JSON.parse(configuration)
-      } catch (error) {
-        log.warn(`cannot parse pluginMetadata.configuration: ${configuration}`)
-        pluginMetadata.configuration = []
-      }
-    })
-
-    return pluginsMetadata
   }
 }

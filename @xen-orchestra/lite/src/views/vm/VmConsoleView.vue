@@ -7,40 +7,62 @@
       {{ $t("power-on-for-console") }}
     </div>
     <template v-else-if="vm && vmConsole">
+      <AppMenu horizontal>
+        <MenuItem
+          :icon="faArrowUpRightFromSquare"
+          @click="openInNewTab"
+          v-if="uiStore.hasUi"
+        >
+          {{ $t("open-console-in-new-tab") }}
+        </MenuItem>
+        <MenuItem
+          :icon="
+            uiStore.hasUi
+              ? faUpRightAndDownLeftFromCenter
+              : faDownLeftAndUpRightToCenter
+          "
+          @click="toggleFullScreen"
+        >
+          {{ $t(uiStore.hasUi ? "fullscreen" : "fullscreen-leave") }}
+        </MenuItem>
+        <MenuItem
+          :disabled="!consoleElement"
+          :icon="faKeyboard"
+          @click="sendCtrlAltDel"
+        >
+          {{ $t("send-ctrl-alt-del") }}
+        </MenuItem>
+      </AppMenu>
       <RemoteConsole
+        ref="consoleElement"
         :is-console-available="isConsoleAvailable"
         :location="vmConsole.location"
         class="remote-console"
       />
-      <div class="open-in-new-window">
-        <RouterLink
-          v-if="uiStore.hasUi"
-          :to="{ query: { ui: '0' } }"
-          class="link"
-          target="_blank"
-        >
-          <UiIcon :icon="faArrowUpRightFromSquare" />
-          {{ $t("open-in-new-window") }}
-        </RouterLink>
-      </div>
     </template>
   </div>
 </template>
 
 <script lang="ts" setup>
+import AppMenu from "@/components/menu/AppMenu.vue";
+import MenuItem from "@/components/menu/MenuItem.vue";
 import RemoteConsole from "@/components/RemoteConsole.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useConsoleCollection } from "@/stores/xen-api/console.store";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { VM_OPERATION, VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { VM_POWER_STATE, VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import { usePageTitleStore } from "@/stores/page-title.store";
 import { useUiStore } from "@/stores/ui.store";
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
-import { computed } from "vue";
+import { useConsoleCollection } from "@/stores/xen-api/console.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import {
+  faArrowUpRightFromSquare,
+  faDownLeftAndUpRightToCenter,
+  faKeyboard,
+  faUpRightAndDownLeftFromCenter,
+} from "@fortawesome/free-solid-svg-icons";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const STOP_OPERATIONS = [
   VM_OPERATION.SHUTDOWN,
@@ -54,6 +76,7 @@ const STOP_OPERATIONS = [
 
 usePageTitleStore().setTitle(useI18n().t("console"));
 
+const router = useRouter();
 const route = useRoute();
 const uiStore = useUiStore();
 
@@ -95,14 +118,26 @@ const isConsoleAvailable = computed(() =>
     ? !isOperationPending(vm.value, STOP_OPERATIONS)
     : false
 );
+
+const consoleElement = ref();
+
+const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel();
+
+const toggleFullScreen = () => {
+  uiStore.hasUi = !uiStore.hasUi;
+};
+
+const openInNewTab = () => {
+  const routeData = router.resolve({ query: { ui: "0" } });
+  window.open(routeData.href, "_blank");
+};
 </script>
 
 <style lang="postcss" scoped>
 .vm-console-view {
   display: flex;
-  align-items: center;
-  justify-content: center;
   height: calc(100% - 14.5rem);
+  flex-direction: column;
 
   &.no-ui {
     height: 100%;
@@ -159,5 +194,10 @@ const isConsoleAvailable = computed(() =>
       transform: translateX(0);
     }
   }
+}
+
+.vm-console-view:deep(.app-menu) {
+  background-color: transparent;
+  align-self: center;
 }
 </style>

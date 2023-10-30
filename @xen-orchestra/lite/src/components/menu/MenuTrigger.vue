@@ -25,10 +25,11 @@ defineProps<{
   align-items: center;
   height: 4.4rem;
   padding-right: 1.5rem;
-  padding-left: 1rem;
+  padding-left: 1.5rem;
   white-space: nowrap;
   border-radius: 0.8rem;
   gap: 1rem;
+  background-color: var(--color-blue-scale-500);
 
   &.disabled {
     color: var(--color-blue-scale-400);

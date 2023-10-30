@@ -35,6 +35,16 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
+  // Prepare a record before storing in the database
+  //
+  // Input object can be mutated or a new one returned
+  _serialize(record) {}
+
+  // Clean a record after being fetched from the database
+  //
+  // Input object can be mutated or a new one returned
+  _unserialize(record) {}
+
   constructor({ connection, indexes = [], namespace }) {
     super()
 
@@ -111,6 +121,8 @@ export default class Redis extends Collection {
             return
           }
 
+          model = this._unserialize(model) ?? model
+
           // Mix the identifier in.
           model.id = id
 
@@ -128,6 +140,12 @@ export default class Redis extends Collection {
 
     return Promise.all(
       map(models, async model => {
+        // don't mutate param
+        model = JSON.parse(JSON.stringify(model))
+
+        // allow specific serialization
+        model = this._serialize(model) ?? model
+
         // Generate a new identifier if necessary.
         if (model.id === undefined) {
           model.id = generateUuid()
