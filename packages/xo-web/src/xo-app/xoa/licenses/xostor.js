@@ -57,21 +57,18 @@ class XostorLicensesForm extends Component {
   )
 
   render() {
-    const { item, userData } = this.props
-    const { licenseId } = this.state
-    const licenses = userData.licensesByXostorUuid[item.id]
-
-    const license = licenses?.[0]
-    const slicedLicenseId = license?.id.slice(-4)
-
     const alerts = this.getAlerts()
-
     if (alerts.length > 0) {
       return <BulkIcons alerts={alerts} />
     }
 
+    const { item, userData } = this.props
+    const { licenseId } = this.state
+    const licenses = userData.licensesByXostorUuid[item.id]
+    const license = licenses?.[0]
+
     return license !== undefined ? (
-      <span>{slicedLicenseId}</span>
+      <span>{license?.id.slice(-4)}</span>
     ) : (
       <div>
         {license !== undefined && (
