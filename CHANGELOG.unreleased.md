@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Fix "The selected cluster is not assigned to this site" error [Forum#7887](https://xcp-ng.org/forum/topic/7887) (PR [#7124](https://github.com/vatesfr/xen-orchestra/pull/7124))
+- [Backups] Fix `MESSAGE_METHOD_UNKNOWN` during full backup [Forum#7894](https://xcp-ng.org/forum/topic/7894)(PR [#7139](https://github.com/vatesfr/xen-orchestra/pull/7139))
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-cli minor
 - xo-server-netbox patch
 - xo-web patch
