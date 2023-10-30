@@ -14,7 +14,7 @@
 - [About] For source users, display if their XO is up to date [#5934](https://github.com/vatesfr/xen-orchestra/issues/5934) (PR [#7091](https://github.com/vatesfr/xen-orchestra/pull/7091))
 - [Proxy] Ability to open support tunnel on XO Proxy (PRs [#7126](https://github.com/vatesfr/xen-orchestra/pull/7126) [#7127](https://github.com/vatesfr/xen-orchestra/pull/7127))
 - [XOSTOR] Ability to create a XOSTOR storage (PR [#6983](https://github.com/vatesfr/xen-orchestra/pull/6983))
-- [XO-WEB] Don't show PIFs that belong to a bond (PR [#7136](https://github.com/vatesfr/xen-orchestra/pull/7136))
+- [New network] Remove bonded PIFs from selector when creating bonded network (PR [#7136](https://github.com/vatesfr/xen-orchestra/pull/7136))
 
 ### Bug fixes
 
