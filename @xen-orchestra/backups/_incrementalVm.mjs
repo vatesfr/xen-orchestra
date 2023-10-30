@@ -143,6 +143,8 @@ export async function exportIncrementalVm(
   )
 }
 
+
+// @todo  movve this to incremental replication
 async function detectBaseVdis(vmRecord, sr) {
   let baseVm
   const xapi = sr.$xapi
@@ -162,7 +164,7 @@ async function detectBaseVdis(vmRecord, sr) {
     baseVm.$VBDs.forEach(vbd => {
       const vdi = vbd.$VDI
       if (vdi !== undefined) {
-        baseVdis[vbd.VDI] = vbd.$VDI
+        baseVdis[vdi.other_config[TAG_COPY_SRC]] = vbd.$VDI
       }
     })
   return baseVdis
@@ -254,10 +256,11 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   await asyncMap(Object.keys(vdiRecords), async vdiRef => {
     const vdi = vdiRecords[vdiRef]
     let newVdi
-
+    // @todo how to rewrite this condition when giving directly a baseVdi  ?
     const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
     if (remoteBaseVdiUuid) {
-      const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
+      const baseVdi = baseVdis[vdi.other_config[TAG_COPY_SRC]]
+      // @todo : should be an error only for detectBase
       if (!baseVdi) {
         throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
       }

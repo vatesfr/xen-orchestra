@@ -14,7 +14,26 @@ export class ImportVmBackup {
     this._xapi = xapi
   }
 
+  async #detectBaseVdis(){
+    const vmUuid = this._metadata.vm.uuid
+    const vm = await this._xapi.getRecordByUuid('VM', vmUuid)
+    const disks = vm.$getDisks()
+    const snapshots = {}
+    console.log({disks})
+    for (const disk of Object.values(disks)){
+      console.log({snapshots: disk.snapshots})
+      for(const snapshotRef of disk.snapshots){
+        
+        const snapshot = await this._xapi.getRecordByUuid('VDI', snapshotRef)
+        snapshots[snapshot.uuid] = disk.uuid
+      }
+    }
+    console.log({snapshots})
+    return snapshots
+  }
+
   async run() {
+    console.log('RUN')
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
@@ -22,20 +41,23 @@ export class ImportVmBackup {
     const sizeContainer = { size: 0 }
 
     let backup
+    
     if (isFull) {
       backup = await adapter.readFullVmBackup(metadata)
       watchStreamSize(backup, sizeContainer)
     } else {
+      console.log('restore delta')
       assert.strictEqual(metadata.mode, 'delta')
-
       const ignoredVdis = new Set(
         Object.entries(this._importIncrementalVmSettings.mapVdisSrs)
           .filter(([_, srUuid]) => srUuid === null)
           .map(([vdiUuid]) => vdiUuid)
       )
-      const snapshotedVdis = {} // {vdiUuid => [snapshotsUuids]}
-      // VM => snapshots =>
-      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis, { snapshotedVdis })
+      //const vdiSnap = await this._xapi.getRecord('VDI-snapshot','83c96977-9bc5-483d-b816-4c96622fb5e6') 
+      //console.log({vdiSnap})
+      const baseVdis = this.#detectBaseVdis()
+      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis, { baseVdis })
+      
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
@@ -51,7 +73,7 @@ export class ImportVmBackup {
           ? await xapi.VM_import(backup, srRef)
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               ...this._importIncrementalVmSettings,
-              detectBase: false,
+              baseVdis
             })
 
         await Promise.all([

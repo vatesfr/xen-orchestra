@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic ,Constants} from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
@@ -714,24 +714,61 @@ export class RemoteAdapter {
     const synthetic = disposableSynthetic.value
     await synthetic.readBlockAllocationTable()
     let stream
+    // try to create a stream that will reuse any data already present on the host storage 
+    // by looking for an existing snapshot matching one of the vhd in the chain
+    // and transfer only the differential 
     if (snapshotedVdis) {
-      // chain = []
-      // current = path
-      // find the child VDI of path
-      //   more than one => break
-      //   inexistant => break
-      //   not a differential => break
-      //   have snapshot => // must dig in the xapi to find how to check this
-      //     descendant = new VhdSynthetic(chain)
-      //     negativeVhd = new NegativeVhd(synthetic, descendant)
-      //     stream = negative.stream()
-      //     break
-      //
-      //   // don't have a snapshot
-      //   unshift this vhd at the beginning the chain
-      //   current = child
-      //
-      // no negative stream : dispose all the vhd of the chain
+      try{
+
+        let vhdPaths = await handler.list(dirname(path), {filter: path=>path.endsWith('.vhd')})
+        stream = await Disposable.use(async function *(){
+          const vhdChilds = {}
+          const vhds = yield Disposable.all(vhdPaths.map(path => openVhd(handler, path, opts)))
+          for(const vhd of vhds){
+            vhdChilds[vhd.header.parentUuid] = vhdChilds[vhd.header.parentUuid] ?? []
+            vhdChilds[vhd.header.parentUuid].push(vhd)
+          } 
+  
+          let chain = []
+          let current = synthetic
+
+          // @todo : special case : we want to restore a vdi 
+          // that still have its snapshot => nothing to transfer
+
+          while(current != undefined){
+
+            // find the child VDI of path
+            const childs = vhdChilds[current.footer.uuid]
+  
+            //   more than one => break
+            //   inexistant => break
+            if(childs.length !== 1){
+              break
+            }
+            const child = childs[0]
+  
+            // not a differential => we won't have a list of block changed
+            // no need to continue looking
+            if(child.footer.diskType !== Constants.DISK_TYPES.DIFFERENCING){
+              break
+            }
+            // we have a snapshot
+            if(snapshotedVdis[current.footer.uuid] !== undefined){
+              const descendants = VhdSynthetic.open(handler)
+              negativeVhd = new NegativeVhd(synthetic, descendants)
+              return negative.stream()
+            } else {
+              // continue to look into the chain
+              // hoping we'll found a match deeper
+              current  = child 
+              chain.unshift(current)
+            }
+          }
+        })
+      }catch(error){
+        warn("error while trying to reuse a snapshot, fallback to legacy restore", {error})
+      }
+      
     }
     // fallback
     if (stream === undefined) {

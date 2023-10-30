@@ -37,7 +37,7 @@ function mapProperties(object, mapping) {
 }
 
 async function showDetails(handler, path) {
-  const vhd = new VhdFile(handler, resolve(path))
+  const {value: vhd} = await openVhd(handler, resolve(path))
 
   try {
     await vhd.readHeaderAndFooter()
