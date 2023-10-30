@@ -30,5 +30,6 @@
 <!--packages-start-->
 
 - xo-server-netbox patch
+- xo-web patch
 
 <!--packages-end-->

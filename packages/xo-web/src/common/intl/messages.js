@@ -2504,6 +2504,10 @@ const messages = {
   fieldsMissing: 'Some fields are missing',
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
   isTapdevsDisk: 'This is "tapdevs" disk',
+  licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
+  licenseNotBoundXostor: 'No XOSTOR attached',
+  licenseExpiredXostorWarning:
+    'The license {licenseId} has expired. You can still use the SR but cannot administrate it anymore.',
   networks: 'Networks',
   notXcpPool: 'Not an XCP-ng pool',
   noXostorFound: 'No XOSTOR found',
