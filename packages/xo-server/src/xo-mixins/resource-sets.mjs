@@ -444,6 +444,7 @@ export default class {
 
   async shareVmResourceSet(vmId) {
     const xapi = this._app.getXapi(vmId)
+    await xapi.barrier(xapi.getObject(vmId).$ref)
     const resourceSetId = xapi.xo.getData(vmId, 'resourceSet')
     if (resourceSetId === undefined) {
       throw new Error('the vm is not in a resource set')
