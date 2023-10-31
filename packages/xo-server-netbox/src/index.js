@@ -216,7 +216,7 @@ class Netbox {
 
   async #fetchNetboxVersion() {
     // Endpoint supported since v2.10. If not supported, Netbox needs to be updated.
-    this.#netboxVersion = (await this.#request('/status/'))['netbox-version']
+    this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
   }
 
   // ---------------------------------------------------------------------------
