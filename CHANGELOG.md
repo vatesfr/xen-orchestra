@@ -6,7 +6,6 @@
 
 ### Highlights
 
-- Try to preserve current page across reauthentication (PR [#7013](https://github.com/vatesfr/xen-orchestra/pull/7013))
 - [About] For source users, display if their XO is up to date [#5934](https://github.com/vatesfr/xen-orchestra/issues/5934) (PR [#7091](https://github.com/vatesfr/xen-orchestra/pull/7091))
 - [Self] Show number of VMs that belong to each Resource Set (PR [#7114](https://github.com/vatesfr/xen-orchestra/pull/7114))
 - [VM/New] Possibility to create and attach a _VTPM_ to a VM [#7066](https://github.com/vatesfr/xen-orchestra/issues/7066) [Forum#6578](https://xcp-ng.org/forum/topic/6578/xcp-ng-8-3-public-alpha/109) (PR [#7077](https://github.com/vatesfr/xen-orchestra/pull/7077))
@@ -21,6 +20,7 @@
 - [Dashboard/Health] Displays number of VDIs to coalesce (PR [#7111](https://github.com/vatesfr/xen-orchestra/pull/7111))
 - [Proxy] Ability to open support tunnel on XO Proxy (PRs [#7126](https://github.com/vatesfr/xen-orchestra/pull/7126) [#7127](https://github.com/vatesfr/xen-orchestra/pull/7127))
 - [New network] Remove bonded PIFs from selector when creating network (PR [#7136](https://github.com/vatesfr/xen-orchestra/pull/7136))
+- Try to preserve current page across reauthentication (PR [#7013](https://github.com/vatesfr/xen-orchestra/pull/7013))
 
 ### Bug fixes
 
