@@ -1,6 +1,15 @@
 # ChangeLog
 
-## **next**
+## **5.88.0** (2023-10-31)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [About] For source users, display if their XO is up to date [#5934](https://github.com/vatesfr/xen-orchestra/issues/5934) (PR [#7091](https://github.com/vatesfr/xen-orchestra/pull/7091))
+- [Self] Show number of VMs that belong to each Resource Set (PR [#7114](https://github.com/vatesfr/xen-orchestra/pull/7114))
+- [VM/New] Possibility to create and attach a _VTPM_ to a VM [#7066](https://github.com/vatesfr/xen-orchestra/issues/7066) [Forum#6578](https://xcp-ng.org/forum/topic/6578/xcp-ng-8-3-public-alpha/109) (PR [#7077](https://github.com/vatesfr/xen-orchestra/pull/7077))
+- [XOSTOR] Ability to create a XOSTOR storage (PR [#6983](https://github.com/vatesfr/xen-orchestra/pull/6983))
 
 ### Enhancements
 
@@ -8,13 +17,10 @@
 - [Plugin/backup-report] Errors are now listed in XO tasks
 - [PIF] Show network name in PIF selectors (PR [#7081](https://github.com/vatesfr/xen-orchestra/pull/7081))
 - [VM/Advanced] Possibility to create/delete VTPM [#7066](https://github.com/vatesfr/xen-orchestra/issues/7066) [Forum#6578](https://xcp-ng.org/forum/topic/6578/xcp-ng-8-3-public-alpha/109) (PR [#7085](https://github.com/vatesfr/xen-orchestra/pull/7085))
-- [VM/New] Possibility to create and attach a _VTPM_ to a VM [#7066](https://github.com/vatesfr/xen-orchestra/issues/7066) [Forum#6578](https://xcp-ng.org/forum/topic/6578/xcp-ng-8-3-public-alpha/109) (PR [#7077](https://github.com/vatesfr/xen-orchestra/pull/7077))
 - [Dashboard/Health] Displays number of VDIs to coalesce (PR [#7111](https://github.com/vatesfr/xen-orchestra/pull/7111))
-- [Self] Show number of VMs that belong to each Resource Set (PR [#7114](https://github.com/vatesfr/xen-orchestra/pull/7114))
-- [About] For source users, display if their XO is up to date [#5934](https://github.com/vatesfr/xen-orchestra/issues/5934) (PR [#7091](https://github.com/vatesfr/xen-orchestra/pull/7091))
 - [Proxy] Ability to open support tunnel on XO Proxy (PRs [#7126](https://github.com/vatesfr/xen-orchestra/pull/7126) [#7127](https://github.com/vatesfr/xen-orchestra/pull/7127))
-- [XOSTOR] Ability to create a XOSTOR storage (PR [#6983](https://github.com/vatesfr/xen-orchestra/pull/6983))
 - [New network] Remove bonded PIFs from selector when creating network (PR [#7136](https://github.com/vatesfr/xen-orchestra/pull/7136))
+- Try to preserve current page across reauthentication (PR [#7013](https://github.com/vatesfr/xen-orchestra/pull/7013))
 
 ### Bug fixes
 
@@ -48,7 +54,7 @@
 
 ## **5.87.0** (2023-09-29)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -98,8 +104,6 @@
 - xo-web 5.126.0
 
 ## **5.86.1** (2023-09-07)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
