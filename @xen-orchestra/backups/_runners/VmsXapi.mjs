@@ -1,12 +1,11 @@
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { Task } from '@vates/task'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
-import { Task } from '../Task.mjs'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
-import { runTask } from './_runTask.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
@@ -34,6 +33,8 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   vmTimeout: 0,
 }
 
+const noop = Function.prototype
+
 export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
@@ -57,13 +58,16 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
           this._getRecord('SR', id).catch(error => {
-            runTask(
+            new Task(
               {
-                name: 'get SR record',
-                data: { type: 'SR', id },
+                properties: {
+                  id,
+                  name: 'get SR record',
+                  type: 'SR',
+                },
               },
               () => Promise.reject(error)
-            )
+            ).catch(noop)
           })
         )
       ),
@@ -90,13 +94,19 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const baseSettings = this._baseSettings
 
         const handleVm = vmUuid => {
-          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const taskStart = {
+            properties: {
+              id: vmUuid,
+              name: 'backup VM',
+              type: 'VM',
+            },
+          }
 
           return this._getRecord('VM', vmUuid).then(
             disposableVm =>
               Disposable.use(disposableVm, vm => {
                 taskStart.data.name_label = vm.name_label
-                return runTask(taskStart, () => {
+                return new Task()(taskStart, () => {
                   const opts = {
                     baseSettings,
                     config,
@@ -121,12 +131,12 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                     }
                   }
                   return vmBackup.run()
-                })
+                }).catch(noop)
               }),
             error =>
-              runTask(taskStart, () => {
+              new Task(taskStart, () => {
                 throw error
-              })
+              }).catch(noop)
           )
         }
         const { concurrency } = settings

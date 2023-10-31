@@ -6,9 +6,9 @@ import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { createVhdStreamWithLength } from 'vhd-lib'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 
 import { cancelableMap } from './_cancelableMap.mjs'
-import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 
 // in `other_config` of an incrementally replicated VM, contains the UUID of the source VM

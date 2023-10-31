@@ -1,10 +1,11 @@
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
+
 import { AbstractRemote } from './_AbstractRemote.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
-import { Task } from '../../Task.mjs'
 
 export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote {
   _getRemoteWriter() {

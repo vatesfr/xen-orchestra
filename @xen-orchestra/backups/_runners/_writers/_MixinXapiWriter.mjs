@@ -1,8 +1,8 @@
 import { extractOpaqueRef } from '@xen-orchestra/xapi'
+import { Task } from '@vates/task'
 import assert from 'node:assert/strict'
 
 import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
-import { Task } from '../../Task.mjs'
 
 export const MixinXapiWriter = (BaseClass = Object) =>
   class MixinXapiWriter extends BaseClass {
@@ -32,7 +32,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
       // copy VM
       return Task.run(
         {
-          name: 'health check',
+          properties: { name: 'health check' },
         },
         async () => {
           const { $xapi: xapi } = sr
@@ -42,7 +42,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
 
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
               healthCheckVmRef = await Task.run(
-                { name: 'cloning-vm' },
+                { properties: { name: 'cloning-vm' } },
                 async () =>
                   await xapi
                     .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
@@ -50,7 +50,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
               )
             } else {
               healthCheckVmRef = await Task.run(
-                { name: 'copying-vm' },
+                { properties: { name: 'copying-vm' } },
                 async () =>
                   await xapi
                     .callAsync('VM.copy', this._targetVmRef, `Health Check - ${baseVm.name_label}`, sr.$ref)

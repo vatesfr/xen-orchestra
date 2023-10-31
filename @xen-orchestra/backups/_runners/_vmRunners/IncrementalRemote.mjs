@@ -1,6 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 import assert from 'node:assert'
 import isVhdDifferencingDisk from 'vhd-lib/isVhdDifferencingDisk.js'
 import mapValues from 'lodash/mapValues.js'
@@ -8,7 +9,6 @@ import mapValues from 'lodash/mapValues.js'
 import { AbstractRemote } from './_AbstractRemote.mjs'
 import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
-import { Task } from '../../Task.mjs'
 
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   _getRemoteWriter() {
