@@ -28,20 +28,23 @@
 - [Usage report] Fix "Cannot convert undefined or null to object" error (PR [#7092](https://github.com/vatesfr/xen-orchestra/pull/7092))
 - [Plugin/transport-xmpp] Fix plugin load
 - [Self Service] Fix Self users not being able to snapshot VMs when they're members of a user group (PR [#7129](https://github.com/vatesfr/xen-orchestra/pull/7129))
+- [Netbox] Fix "The selected cluster is not assigned to this site" error [Forum#7887](https://xcp-ng.org/forum/topic/7887) (PR [#7124](https://github.com/vatesfr/xen-orchestra/pull/7124))
+- [Backups] Fix `MESSAGE_METHOD_UNKNOWN` during full backup [Forum#7894](https://xcp-ng.org/forum/topic/7894)(PR [#7139](https://github.com/vatesfr/xen-orchestra/pull/7139))
 
 ### Released packages
 
 - @xen-orchestra/fs 4.1.1
 - @xen-orchestra/xapi 3.3.0
-- @xen-orchestra/backups 0.43.1
 - @xen-orchestra/mixins 0.14.0
-- @xen-orchestra/proxy 0.26.36
-- xo-server 5.125.0
 - xo-server-backup-reports 0.18.0
-- xo-server-netbox 1.3.1
 - xo-server-transport-xmpp 0.1.3
 - xo-server-usage-report 0.10.5
-- xo-web 5.127.0
+- @xen-orchestra/backups 0.43.2
+- @xen-orchestra/proxy 0.26.37
+- xo-cli 0.21.0
+- xo-server 5.125.1
+- xo-server-netbox 1.3.2
+- xo-web 5.127.1
 
 ## **5.87.0** (2023-09-29)
 
