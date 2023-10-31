@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Add `users` collection
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
 
 ### Bug fixes
 
@@ -33,5 +34,6 @@
 
 - @xen-orchestra/backups patch
 - xo-server minor
+- xo-server-netbox minor
 
 <!--packages-end-->

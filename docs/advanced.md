@@ -349,6 +349,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
       - DCIM > platform
       - Extras > tag
       - IPAM > IP address
+      - Tenancy > tenant (if you want to synchronize XO users with Netbox tenants)
       - Virtualization > cluster
       - Virtualization > cluster type
       - Virtualization > virtual machine
@@ -360,6 +361,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
   - Go to Other > Customization > Custom fields > Add
   - Create a custom field called "uuid" (lower case!)
   - Assign it to object types:
+    - Tenancy > tenant (if you want to synchronize XO users with Netbox tenants)
     - Virtualization > cluster
     - Virtualization > virtual machine
     - Virtualization > interface
@@ -381,6 +383,7 @@ In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields
   - Unauthorized certificate: only for HTTPS, enable this option if your Netbox instance uses a self-signed SSL certificate
   - Token: the token you generated earlier
   - Pools: the pools you wish to automatically synchronize with Netbox
+  - Synchronize users: enable this if you wish to synchronize XO users with Netbox tenants. Tenants will be assigned to the VMs the XO user _created_ within XO. Important: if you want to enable this feature, you also need to assign the custom field "uuid" that you created in the previous step to the type "Tenancy > tenant".
   - Interval: the time interval (in hours) between 2 auto-synchronizations. Leave empty if you don't want to synchronize automatically.
 - Load the plugin (button next to the plugin's name)
 - Manual synchronization: if you correctly configured and loaded the plugin, a "Synchronize with Netbox" button will appear in every pool's Advanced tab, which allows you to manually synchronize it with Netbox
