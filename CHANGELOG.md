@@ -65,6 +65,7 @@
 - [Self Service] Fix Self users not being able to snapshot VMs when they're members of a user group (PR [#7129](https://github.com/vatesfr/xen-orchestra/pull/7129))
 - [Netbox] Fix "The selected cluster is not assigned to this site" error [Forum#7887](https://xcp-ng.org/forum/topic/7887) (PR [#7124](https://github.com/vatesfr/xen-orchestra/pull/7124))
 - [Backups] Fix `MESSAGE_METHOD_UNKNOWN` during full backup [Forum#7894](https://xcp-ng.org/forum/topic/7894)(PR [#7139](https://github.com/vatesfr/xen-orchestra/pull/7139))
+- [Resource Set] Fix error displayed after successful VM addition to resource set PR ([#7144](https://github.com/vatesfr/xen-orchestra/pull/7144))
 
 ### Released packages
 
