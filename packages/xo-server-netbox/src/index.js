@@ -147,24 +147,24 @@ class Netbox {
         // API version only follows minor version, which is less precise and is not semver-valid
         // See https://github.com/netbox-community/netbox/issues/12879#issuecomment-1589190236
         this.#netboxApiVersion = semver.coerce(response.headers['api-version'])?.version ?? undefined
-        const body = await response.text()
-        if (body.length > 0) {
-          return JSON.parse(body)
+        const resBody = await response.text()
+        if (resBody.length > 0) {
+          return JSON.parse(resBody)
         }
       } catch (error) {
-        error.data = {
-          method,
-          path,
-          body: dataDebug,
-        }
+        error.method = method
+        error.requestBody = dataDebug
+
+        let resBody = 'Netbox error could not be retrieved'
         try {
-          const body = await error.response.text()
-          if (body.length > 0) {
-            error.data.error = JSON.parse(body)
-          }
-        } catch {
-          throw error
+          resBody = await error.response.text()
+          error.netboxError = JSON.parse(resBody)
+        } catch (err) {
+          log.error(err)
+          // If the error couldn't be parsed, expose the response's raw body
+          error.netboxError = resBody
         }
+
         throw error
       }
     }
