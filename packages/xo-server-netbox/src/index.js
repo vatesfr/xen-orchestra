@@ -158,9 +158,7 @@ class Netbox {
         let resBody = 'Netbox error could not be retrieved'
         try {
           resBody = await error.response.text()
-          if (resBody.length > 0) {
-            error.netboxError = JSON.parse(resBody)
-          }
+          error.netboxError = JSON.parse(resBody)
         } catch (err) {
           log.error(err)
           // If the error couldn't be parsed, expose the response's raw body
