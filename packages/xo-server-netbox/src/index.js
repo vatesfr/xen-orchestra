@@ -261,6 +261,7 @@ class Netbox {
       await this.#request(`/virtualization/clusters/?type_id=${nbClusterType.id}`),
       'custom_fields.uuid'
     )
+    delete allNbClusters.null
     const nbClusters = pick(allNbClusters, xoPools)
 
     const clustersToCreate = []
@@ -421,7 +422,9 @@ class Netbox {
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
+    delete allNbVms.null
     const nbVms = keyBy(nbVmsList, 'custom_fields.uuid')
+    delete nbVms.null
 
     // Used for name deduplication
     // Start by storing the names of the VMs that have been created manually in
@@ -539,6 +542,7 @@ class Netbox {
     const nbIfsList = await this.#request(`/virtualization/interfaces/?${clusterFilter}`)
     // { ID → Interface }
     const nbIfs = keyBy(nbIfsList, 'custom_fields.uuid')
+    delete nbIfs.null
 
     const ifsToDelete = []
     const ifsToUpdate = []
@@ -780,7 +784,10 @@ class Netbox {
       }
     }
 
-    Object.assign(nbVms, keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2)))
+    Object.assign(
+      nbVms,
+      keyBy(await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate2), 'custom_fields.uuid')
+    )
 
     log.info(`Done synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })
   }
