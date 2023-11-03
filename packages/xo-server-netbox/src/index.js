@@ -215,8 +215,17 @@ class Netbox {
   }
 
   async #fetchNetboxVersion() {
-    // Endpoint supported since v2.10. If not supported, Netbox needs to be updated.
-    this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
+    try {
+      this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
+    } catch (err) {
+      if (err?.response?.statusCode === 404) {
+        // Endpoint not supported on versions prior to v2.10
+        // Best effort to support earlier versions without knowing the version explicitly
+        return
+      }
+
+      throw err
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -349,7 +358,7 @@ class Netbox {
       // v3.3.0: "site" is REQUIRED and MUST be the same as cluster's site
       // v3.3.5: "site" is OPTIONAL (auto-assigned in UI, not in API). `null` and cluster's site are accepted.
       // v3.4.8: "site" is OPTIONAL and AUTO-ASSIGNED with cluster's site. If passed: ignored except if site is different from cluster's, then error.
-      if (this.#netboxVersion === undefined || semver.satisfies(this.#netboxVersion, '3.3.0 - 3.4.7')) {
+      if (this.#netboxVersion !== undefined && semver.satisfies(this.#netboxVersion, '3.3.0 - 3.4.7')) {
         nbVm.site = find(nbClusters, { id: nbCluster.id })?.site?.id ?? null
       }
 
@@ -396,7 +405,7 @@ class Netbox {
       nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
-      if (this.#netboxVersion !== undefined && !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
+      if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
         nbVm.status = xoVm.power_state === 'Running' ? 1 : 0
       }
 
