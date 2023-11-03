@@ -2372,9 +2372,9 @@ const messages = {
     'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
   srForgetModalTitle: 'Forget SR',
   srsForgetModalTitle: 'Forget selected SRs',
-  srForgetModalMessage: "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
+  srForgetModalMessage: "Are you sure you want to forget this SR? You will lose all the metadata for it, meaning all the links between the VDIs (disks) and their respective VMs. This operation cannot be undone.",
   srsForgetModalMessage:
-    "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed.",
+    "Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? You will lose all the metadata for it, meaning all the links between the VDIs (disks) and their respective VMs. This operation cannot be undone.",
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
