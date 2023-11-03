@@ -1,6 +1,6 @@
 <template>
   <FormInputGroup>
-    <FormInput v-model="size" type="number" />
+    <FormInput v-model="size" min="0" step="0.5" type="number" />
     <FormSelect v-model="prefix">
       <option
         v-for="currentPrefix in availablePrefixes"
@@ -17,8 +17,9 @@
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputGroup from "@/components/form/FormInputGroup.vue";
 import FormSelect from "@/components/form/FormSelect.vue";
+import { useVModel } from "@vueuse/core";
 import humanFormat, { type Prefix } from "human-format";
-import { ref, watch } from "vue";
+import { computed } from "vue";
 
 const props = defineProps<{
   modelValue: number;
@@ -28,47 +29,37 @@ const emit = defineEmits<{
   (event: "update:modelValue", value: number): number;
 }>();
 
-const clampPrefix = (value: number) => {
-  if (value < 1024) {
-    return "Ki";
-  }
-
-  if (value >= 1024 ** 4) {
-    return "Gi";
-  }
-};
-
-const { value: initialSize, prefix: initialPrefix } = humanFormat.raw(
-  props.modelValue,
-  {
-    scale: "binary",
-    prefix: clampPrefix(props.modelValue),
-  }
-);
-
-const size = ref<number>(initialSize);
-const prefix = ref<Prefix<"binary">>(initialPrefix || "Ki");
 const availablePrefixes: Prefix<"binary">[] = ["Ki", "Mi", "Gi"];
 
-watch([size, prefix], ([nextSize, nextPrefix]) => {
-  const byteSize = humanFormat.parse(`${nextSize || 0} ${nextPrefix}`, {
-    scale: "binary",
-  });
-
-  if (byteSize !== props.modelValue) {
-    emit("update:modelValue", byteSize);
-  }
+const model = useVModel(props, "modelValue", emit, {
+  shouldEmit: (value) => value !== props.modelValue,
 });
 
-watch(
-  () => props.modelValue,
-  (modelValue) => {
-    const { value: newSize } = humanFormat.raw(modelValue, {
-      scale: "binary",
-      prefix: prefix.value,
-    });
+const scale = humanFormat.Scale.create(availablePrefixes, 1024, 1);
 
-    size.value = newSize;
-  }
+const rawValue = computed(() =>
+  humanFormat.raw(props.modelValue, {
+    scale,
+    maxDecimals: "auto",
+  })
 );
+
+const parse = (value: number, prefix: string) =>
+  humanFormat.parse(`${value || 0} ${prefix}`, {
+    scale,
+  });
+
+const size = computed<number>({
+  get: () => rawValue.value.value,
+  set: (newSize) => {
+    model.value = parse(newSize, prefix.value);
+  },
+});
+
+const prefix = computed<Prefix<"binary">>({
+  get: () => rawValue.value.prefix,
+  set: (newPrefix) => {
+    model.value = parse(size.value, newPrefix);
+  },
+});
 </script>
