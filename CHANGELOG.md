@@ -21,6 +21,7 @@
 - [Proxy] Ability to open support tunnel on XO Proxy (PRs [#7126](https://github.com/vatesfr/xen-orchestra/pull/7126) [#7127](https://github.com/vatesfr/xen-orchestra/pull/7127))
 - [New network] Remove bonded PIFs from selector when creating network (PR [#7136](https://github.com/vatesfr/xen-orchestra/pull/7136))
 - Try to preserve current page across reauthentication (PR [#7013](https://github.com/vatesfr/xen-orchestra/pull/7013))
+- [XO-WEB/Forget SR] Changed the modal message and added a confirmation text to be sure the action is understood by the user (PR [#7154](https://github.com/vatesfr/xen-orchestra/pull/7154))
 
 ### Bug fixes
 
