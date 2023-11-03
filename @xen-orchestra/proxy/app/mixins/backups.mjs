@@ -5,7 +5,6 @@ import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
-import { defer } from 'golike-defer'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.mjs'
 import { execFile } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
@@ -192,7 +191,7 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          defer(async ($defer, { backupId, remote, srUuid, settings, streamLogs = false, xapi: xapiOpts }) => {
+          async ({ backupId, remote, srUuid, settings, streamLogs = false, xapi: xapiOpts }) => {
             const {
               dispose,
               value: [adapter, xapi],
@@ -226,7 +225,7 @@ export default class Backups {
             } finally {
               await dispose()
             }
-          }),
+          },
           {
             description: 'create a new VM from a backup',
             params: {
