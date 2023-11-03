@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Fix VMs' `site` property being unnecessarily updated on some versions of Netbox (PR [#7145](https://github.com/vatesfr/xen-orchestra/pull/7145))
+- [Netbox] Fix "400 Bad Request" error
 
 ### Packages to release
 

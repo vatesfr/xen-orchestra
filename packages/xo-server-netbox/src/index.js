@@ -550,10 +550,11 @@ class Netbox {
         continue
       }
       // Start by deleting old interfaces attached to this Netbox VM
-      Object.entries(nbIfs).forEach(([id, nbIf]) => {
-        if (nbIf.virtual_machine.id === nbVm.id && !xoVm.VIFs.includes(nbIf.custom_fields.uuid)) {
+      nbIfsList.forEach(nbIf => {
+        const xoVifId = nbIf.custom_fields.uuid
+        if (nbIf.virtual_machine.id === nbVm.id && !xoVm.VIFs.includes(xoVifId)) {
           ifsToDelete.push({ id: nbIf.id })
-          delete nbIfs[id]
+          delete nbIfs[xoVifId]
         }
       })
 
