@@ -39,7 +39,7 @@ class Netbox {
   #endpoint
   #intervalToken
   #loaded
-  #netboxApiVersion
+  #netboxVersion
   #xoPools
   #removeApiMethods
   #syncInterval
@@ -103,6 +103,7 @@ class Netbox {
   }
 
   async test() {
+    await this.#fetchNetboxVersion()
     await this.#checkCustomFields()
 
     const randomSuffix = Math.random().toString(36).slice(2, 11)
@@ -144,9 +145,6 @@ class Netbox {
     const httpRequest = async () => {
       try {
         const response = await this.#xo.httpRequest(url, options)
-        // API version only follows minor version, which is less precise and is not semver-valid
-        // See https://github.com/netbox-community/netbox/issues/12879#issuecomment-1589190236
-        this.#netboxApiVersion = semver.coerce(response.headers['api-version'])?.version ?? undefined
         const resBody = await response.text()
         if (resBody.length > 0) {
           return JSON.parse(resBody)
@@ -185,7 +183,7 @@ class Netbox {
       response = await httpRequest()
     }
 
-    if (method !== 'GET') {
+    if (method !== 'GET' || response.results === undefined) {
       return response
     }
 
@@ -213,9 +211,24 @@ class Netbox {
     }
   }
 
+  async #fetchNetboxVersion() {
+    try {
+      this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
+    } catch (err) {
+      if (err?.response?.statusCode === 404) {
+        // Endpoint not supported on versions prior to v2.10
+        // Best effort to support earlier versions without knowing the version explicitly
+        return
+      }
+
+      throw err
+    }
+  }
+
   // ---------------------------------------------------------------------------
 
   async #synchronize(xoPools = this.#xoPools) {
+    await this.#fetchNetboxVersion()
     await this.#checkCustomFields()
 
     log.info(`Synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })
@@ -342,7 +355,7 @@ class Netbox {
       // v3.3.0: "site" is REQUIRED and MUST be the same as cluster's site
       // v3.3.5: "site" is OPTIONAL (auto-assigned in UI, not in API). `null` and cluster's site are accepted.
       // v3.4.8: "site" is OPTIONAL and AUTO-ASSIGNED with cluster's site. If passed: ignored except if site is different from cluster's, then error.
-      if (this.#netboxApiVersion === undefined || semver.satisfies(this.#netboxApiVersion, '3.3.0 - 3.4.7')) {
+      if (this.#netboxVersion !== undefined && semver.satisfies(this.#netboxVersion, '3.3.0 - 3.4.7')) {
         nbVm.site = find(nbClusters, { id: nbCluster.id })?.site?.id ?? null
       }
 
@@ -389,7 +402,7 @@ class Netbox {
       nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
-      if (this.#netboxApiVersion !== undefined && !semver.satisfies(this.#netboxApiVersion, '>=2.7.0')) {
+      if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
         nbVm.status = xoVm.power_state === 'Running' ? 1 : 0
       }
 
@@ -550,10 +563,12 @@ class Netbox {
         continue
       }
       // Start by deleting old interfaces attached to this Netbox VM
-      Object.entries(nbIfs).forEach(([id, nbIf]) => {
-        if (nbIf.virtual_machine.id === nbVm.id && !xoVm.VIFs.includes(nbIf.custom_fields.uuid)) {
+      // Loop over the array to make sure interfaces with a `null` UUID also get deleted
+      nbIfsList.forEach(nbIf => {
+        const xoVifId = nbIf.custom_fields.uuid
+        if (nbIf.virtual_machine.id === nbVm.id && !xoVm.VIFs.includes(xoVifId)) {
           ifsToDelete.push({ id: nbIf.id })
-          delete nbIfs[id]
+          delete nbIfs[xoVifId]
         }
       })
 
