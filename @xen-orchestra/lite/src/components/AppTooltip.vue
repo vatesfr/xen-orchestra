@@ -46,7 +46,7 @@ watchEffect(() => {
   color: var(--color-blue-scale-500);
   border-radius: 0.5em;
   background-color: var(--color-blue-scale-100);
-  z-index: 2;
+  z-index: 5;
 }
 
 .triangle {

@@ -1,6 +1,11 @@
 import type {
   RawObjectType,
+  XenApiHost,
   XenApiMessage,
+  XenApiNetwork,
+  XenApiSr,
+  XenApiVdi,
+  XenApiVm,
 } from "@/libs/xen-api/xen-api.types";
 
 export type XenApiAlarmType =
@@ -37,3 +42,32 @@ export type XenApiPatch = {
     author: string;
   };
 };
+
+export type XenApiMigrationToken = Record<string, string>;
+
+export type XenApiMigrationParams = [
+  XenApiVm["$ref"],
+  XenApiMigrationToken,
+  boolean,
+  Record<XenApiVdi["$ref"], XenApiSr["$ref"]>,
+  Record<any, never>,
+  { force: "true" | "false" },
+];
+
+export type VmRefsWithPowerState = Record<
+  XenApiVm["$ref"],
+  XenApiVm["power_state"]
+>;
+
+export type VmRefsWithNameLabel = Record<XenApiVm["$ref"], string>;
+
+export type VmMigrationData = {
+  destinationHost: XenApiHost["$ref"];
+  migrationNetwork: XenApiNetwork["$ref"];
+  destinationSr: XenApiSr["$ref"];
+  vdisMap: Record<XenApiVdi["$ref"], XenApiSr["$ref"]>;
+  force?: boolean;
+  bypassAssert?: boolean;
+};
+
+export type VmRefsWithMigration = Record<XenApiVm["$ref"], VmMigrationData>;

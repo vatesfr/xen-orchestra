@@ -2,14 +2,15 @@ import type { GetStats } from "@/composables/fetch-stats.composable";
 import { useXenApiStoreSubscribableContext } from "@/composables/xen-api-store-subscribable-context.composable";
 import { sortRecordsByNameLabel } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import {
   type VM_OPERATION,
   VM_POWER_STATE,
 } from "@/libs/xen-api/xen-api.enums";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { createUseCollection } from "@/stores/xen-api/create-use-collection";
 import { useHostStore } from "@/stores/xen-api/host.store";
+import type { MaybeArray } from "@/types";
 import { castArray } from "lodash-es";
 import { defineStore } from "pinia";
 import { computed } from "vue";
@@ -25,16 +26,29 @@ export const useVmStore = defineStore("xen-api-vm", () => {
       .sort(sortRecordsByNameLabel)
   );
 
-  const isOperationPending = (
-    vm: XenApiVm,
-    operations: VM_OPERATION[] | VM_OPERATION
+  const hasOperation = (
+    vms: MaybeArray<XenApiVm>,
+    operations: MaybeArray<VM_OPERATION>,
+    operationType: "current_operations" | "allowed_operations"
   ) => {
-    const currentOperations = Object.values(vm.current_operations);
+    return castArray(vms).some((vm) => {
+      const currentOperations = Object.values(vm[operationType]);
 
-    return castArray(operations).some((operation) =>
-      currentOperations.includes(operation)
-    );
+      return castArray(operations).some((operation) =>
+        currentOperations.includes(operation)
+      );
+    });
   };
+
+  const isOperationPending = (
+    vms: XenApiVm | XenApiVm[],
+    operations: MaybeArray<VM_OPERATION>
+  ) => hasOperation(vms, operations, "current_operations");
+
+  const isOperationAllowed = (
+    vms: MaybeArray<XenApiVm>,
+    operations: MaybeArray<VM_OPERATION>
+  ) => hasOperation(vms, operations, "allowed_operations");
 
   const runningVms = computed(() =>
     records.value.filter((vm) => vm.power_state === VM_POWER_STATE.RUNNING)
@@ -92,6 +106,7 @@ export const useVmStore = defineStore("xen-api-vm", () => {
     ...context,
     records,
     isOperationPending,
+    isOperationAllowed,
     runningVms,
     recordsByHostRef,
     getStats,

@@ -16,6 +16,13 @@ import type {
   XenApiVm,
 } from "@/libs/xen-api/xen-api.types";
 import { buildXoObject, typeToRawType } from "@/libs/xen-api/xen-api.utils";
+import type { MaybeArray } from "@/types";
+import type {
+  VmRefsWithMigration,
+  VmRefsWithNameLabel,
+  VmRefsWithPowerState,
+  XenApiMigrationParams,
+} from "@/types/xen-api";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
 
@@ -267,8 +274,6 @@ export default class XenApi {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     if (this.listenedTypes.length === 0) {
       void this.watch();
       return;
@@ -277,11 +282,7 @@ export default class XenApi {
     const result: {
       token: string;
       events: XenApiEvent<ObjectType, XenApiRecord<any>>[];
-    } = await this.call("event.from", [
-      this.listenedTypes,
-      this.fromToken,
-      5.001,
-    ]);
+    } = await this.call("event.from", [this.listenedTypes, this.fromToken, 60]);
 
     this.fromToken = result.token;
 
@@ -291,35 +292,31 @@ export default class XenApi {
   }
 
   get vm() {
-    type VmRefs = XenApiVm["$ref"] | XenApiVm["$ref"][];
-    type VmRefsWithPowerState = Record<
-      XenApiVm["$ref"],
-      XenApiVm["power_state"]
-    >;
-    type VmRefsWithNameLabel = Record<XenApiVm["$ref"], string>;
-
     return {
-      delete: (vmRefs: VmRefs) =>
+      delete: (vmRefs: MaybeArray<XenApiVm["$ref"]>) =>
         Promise.all(
           castArray(vmRefs).map((vmRef) => this.call("VM.destroy", [vmRef]))
         ),
-      start: (vmRefs: VmRefs) =>
+      start: (vmRefs: MaybeArray<XenApiVm["$ref"]>) =>
         Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this.call("VM.start", [vmRef, false, false])
           )
         ),
-      startOn: (vmRefs: VmRefs, hostRef: XenApiHost["$ref"]) =>
+      startOn: (
+        vmRefs: MaybeArray<XenApiVm["$ref"]>,
+        hostRef: XenApiHost["$ref"]
+      ) =>
         Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this.call("VM.start_on", [vmRef, hostRef, false, false])
           )
         ),
-      pause: (vmRefs: VmRefs) =>
+      pause: (vmRefs: MaybeArray<XenApiVm["$ref"]>) =>
         Promise.all(
           castArray(vmRefs).map((vmRef) => this.call("VM.pause", [vmRef]))
         ),
-      suspend: (vmRefs: VmRefs) => {
+      suspend: (vmRefs: MaybeArray<XenApiVm["$ref"]>) => {
         return Promise.all(
           castArray(vmRefs).map((vmRef) => this.call("VM.suspend", [vmRef]))
         );
@@ -337,14 +334,14 @@ export default class XenApi {
           })
         );
       },
-      reboot: (vmRefs: VmRefs, force = false) => {
+      reboot: (vmRefs: MaybeArray<XenApiVm["$ref"]>, force = false) => {
         return Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this.call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
           )
         );
       },
-      shutdown: (vmRefs: VmRefs, force = false) => {
+      shutdown: (vmRefs: MaybeArray<XenApiVm["$ref"]>, force = false) => {
         return Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this.call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
@@ -360,7 +357,10 @@ export default class XenApi {
           )
         );
       },
-      migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost["$ref"]) => {
+      migrate: (
+        vmRefs: MaybeArray<XenApiVm["$ref"]>,
+        destinationHostRef: XenApiHost["$ref"]
+      ) => {
         return Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this.call("VM.pool_migrate", [
@@ -369,6 +369,49 @@ export default class XenApi {
               { force: "false" },
             ])
           )
+        );
+      },
+      migrateComplex: (vmRefsToMigrate: VmRefsWithMigration) => {
+        const vmRefs = Object.keys(vmRefsToMigrate) as XenApiVm["$ref"][];
+
+        return Promise.all(
+          vmRefs.map(async (vmRef) => {
+            const migrateData = vmRefsToMigrate[vmRef];
+
+            const params: XenApiMigrationParams = [
+              vmRef,
+              await this.call("host.migrate_receive", [
+                migrateData.destinationHost,
+                migrateData.migrationNetwork,
+                {},
+              ]),
+              true, // Live migration
+              migrateData.vdisMap,
+              {}, // vifsMap,
+              {
+                force: migrateData.force ? "true" : "false",
+              },
+            ];
+
+            if (!migrateData.bypassAssert) {
+              await this.call("VM.assert_can_migrate", params);
+            }
+
+            const doMigration = async () => {
+              try {
+                await this.call("VM.migrate_send", params);
+              } catch (error: any) {
+                if (error?.code === "TOO_MANY_STORAGE_MIGRATES") {
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  await doMigration();
+                } else {
+                  throw error;
+                }
+              }
+            };
+
+            await doMigration();
+          })
         );
       },
       snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {

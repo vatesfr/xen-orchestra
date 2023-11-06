@@ -91,6 +91,7 @@
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
+  "migration-close-warning": "Warning: If you close this window, failed migration attempts will not be retried.",
   "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",
   "n-missing": "{n} missing",
   "n-vms": "1 VM | {n} VMs",
@@ -116,6 +117,7 @@
   "patches": "Patches",
   "pause": "Pause",
   "please-confirm": "Please confirm",
+  "please-select": "Please select",
   "pool-cpu-usage": "Pool CPU Usage",
   "pool-ram-usage": "Pool RAM Usage",
   "power-on-for-console": "Power on your VM to access its console",
@@ -138,6 +140,8 @@
   "resume": "Resume",
   "save": "Save",
   "select-destination-host": "Select a destination host",
+  "select-destination-sr": "Select a destination SR",
+  "select-optional-migration-network": "Select a migration network (optional)",
   "selected-vms-in-execution": "Some selected VMs are running",
   "send-ctrl-alt-del": "Send Ctrl+Alt+Del",
   "send-us-feedback": "Send us feedback",
@@ -179,5 +183,12 @@
   "version": "Version",
   "vm-is-running": "The VM is running",
   "vms": "VMs",
+  "vms-migration-error": {
+    "already-being-migrated": "At least one selected VM is already being migrated",
+    "not-allowed": "Some VMs are not allowed to be migrated",
+    "no-destination-host": "No destination host has been selected",
+    "no-migration-network": "No migration network has been selected",
+    "no-destination-sr": "No destination SR has been selected"
+  },
   "xo-lite-under-construction": "XOLite is under construction"
 }

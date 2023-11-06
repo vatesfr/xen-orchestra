@@ -81,7 +81,10 @@ const selectedVmsRefs = ref([]);
 titleStore.setCount(() => selectedVmsRefs.value.length);
 
 const isMigrating = (vm: XenApiVm) =>
-  isOperationPending(vm, VM_OPERATION.POOL_MIGRATE);
+  isOperationPending(vm, [
+    VM_OPERATION.POOL_MIGRATE,
+    VM_OPERATION.MIGRATE_SEND,
+  ]);
 </script>
 
 <style lang="postcss" scoped>
