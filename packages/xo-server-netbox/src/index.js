@@ -145,9 +145,6 @@ class Netbox {
     const httpRequest = async () => {
       try {
         const response = await this.#xo.httpRequest(url, options)
-        // API version only follows minor version, which is less precise and is not semver-valid
-        // See https://github.com/netbox-community/netbox/issues/12879#issuecomment-1589190236
-        this.#netboxApiVersion = semver.coerce(response.headers['api-version'])?.version ?? undefined
         const resBody = await response.text()
         if (resBody.length > 0) {
           return JSON.parse(resBody)
