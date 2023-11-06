@@ -13,6 +13,7 @@
 
 - [Netbox] Fix VMs' `site` property being unnecessarily updated on some versions of Netbox (PR [#7145](https://github.com/vatesfr/xen-orchestra/pull/7145))
 - [Netbox] Fix "400 Bad Request" error (PR [#7153](https://github.com/vatesfr/xen-orchestra/pull/7153))
+- [Backup/Restore] Fix timeout after 5 minutes [#7052](https://github.com/vatesfr/xen-orchestra/issues/7052)
 
 ### Packages to release
 
@@ -30,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/proxy patch
 - xo-server-netbox patch
 
 <!--packages-end-->
