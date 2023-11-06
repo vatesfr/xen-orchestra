@@ -2,7 +2,6 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('tag').str().default('div').widget(),
       colorProp(),
       slot('header'),
       slot(),
@@ -47,6 +46,6 @@
 <script lang="ts" setup>
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import ModalContainer from "@/components/ui/modals/ModalContainer.vue";
-import { colorProp, prop, setting, slot } from "@/libs/story/story-param";
+import { colorProp, setting, slot } from "@/libs/story/story-param";
 import { boolean, text } from "@/libs/story/story-widget";
 </script>

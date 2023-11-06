@@ -23,9 +23,7 @@
       </div>
 
       <template #buttons>
-        <ModalDeclineButton>
-          {{ $t("go-back") }}
-        </ModalDeclineButton>
+        <ModalDeclineButton />
         <ModalApproveButton>
           {{ $t("migrate-n-vms", { n: vmRefs.length }) }}
         </ModalApproveButton>
@@ -64,5 +62,3 @@ const handleSubmit = () => {
   modal.approve(migrate());
 };
 </script>
-
-<style lang="postcss" scoped></style>

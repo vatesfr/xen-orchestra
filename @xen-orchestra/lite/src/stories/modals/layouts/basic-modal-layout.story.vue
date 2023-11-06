@@ -3,7 +3,9 @@
     v-slot="{ settings }"
     :params="[
       slot(),
-      setting('defaultSlotContent').preset('Modal content').widget(text()),
+      setting('defaultSlotContent')
+        .preset('Here is a basic modal...')
+        .widget(text()),
     ]"
   >
     <BasicModalLayout>
