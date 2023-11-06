@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Fix VMs' `site` property being unnecessarily updated on some versions of Netbox (PR [#7145](https://github.com/vatesfr/xen-orchestra/pull/7145))
+- [S3] Handle S3 without Object Lock implementation (PR [#7157](https://github.com/vatesfr/xen-orchestra/pull/7157))
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - xo-server-netbox patch
 
 <!--packages-end-->

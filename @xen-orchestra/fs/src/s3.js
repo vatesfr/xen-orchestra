@@ -456,7 +456,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
       }
     } catch (error) {
-      if (error.Code !== 'ObjectLockConfigurationNotFoundError') {
+      if (error.Code !== 'ObjectLockConfigurationNotFoundError' && error.$metadata.httpStatusCode !== 501) {
         throw error
       }
     }
