@@ -35,7 +35,7 @@
     "test": "node--test"
   },
   "devDependencies": {
-    "sinon": "^16.0.0",
+    "sinon": "^17.0.1",
     "test": "^3.2.1"
   }
 }
