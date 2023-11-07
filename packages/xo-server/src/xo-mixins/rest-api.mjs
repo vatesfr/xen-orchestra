@@ -10,6 +10,8 @@ import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
+import { getUserPublicProperties } from '../utils.mjs'
+
 const { join } = path.posix
 const noop = Function.prototype
 
@@ -176,6 +178,7 @@ export default class RestApi {
     collections.backups = { id: 'backups' }
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
+    collections.users = { id: 'users' }
 
     collections.hosts.routes = {
       __proto__: null,
@@ -387,6 +390,30 @@ export default class RestApi {
           res.status = 202
           res.end(req.baseUrl + '/tasks/' + id)
         }, true)
+      )
+
+    api
+      .get(
+        '/users',
+        wrap(async (req, res) => {
+          let users = await app.getAllUsers()
+
+          const { filter, limit } = req.query
+          if (filter !== undefined) {
+            users = users.filter(CM.parse(filter).createPredicate())
+          }
+          if (limit < users.length) {
+            users.length = limit
+          }
+
+          sendObjects(users.map(getUserPublicProperties), req, res)
+        })
+      )
+      .get(
+        '/users/:id',
+        wrap(async (req, res) => {
+          res.json(getUserPublicProperties(await app.getUser(req.params.id)))
+        })
       )
 
     api.get(
