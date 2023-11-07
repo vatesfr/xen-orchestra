@@ -17,3 +17,8 @@ export interface SortConfig<T> {
   queryStringParam?: string;
   initialSorts?: InitialSorts<T>;
 }
+
+export type NewSort = {
+  property: string;
+  isAscending: boolean;
+};

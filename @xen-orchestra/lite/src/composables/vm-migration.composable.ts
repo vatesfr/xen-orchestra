@@ -39,12 +39,6 @@ export const useVmMigration = (
       .sort(sortRecordsByNameLabel);
   });
 
-  const areAllVmsMigratable = computed(() =>
-    vms.value.every((vm) =>
-      vm.allowed_operations.includes(VM_OPERATION.POOL_MIGRATE)
-    )
-  );
-
   const isValid = computed(
     () =>
       !isMigrating.value &&
@@ -75,7 +69,6 @@ export const useVmMigration = (
     isMigrating,
     availableHosts,
     selectedHost,
-    areAllVmsMigratable,
     isValid,
     migrate,
   };

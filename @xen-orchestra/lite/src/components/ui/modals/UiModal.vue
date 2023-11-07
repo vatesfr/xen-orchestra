@@ -1,39 +1,36 @@
 <template>
   <Teleport to="body">
-    <div v-if="isOpen" class="ui-modal" @click.self="close">
+    <form class="ui-modal" v-bind="$attrs" @click.self="modal.decline()">
       <slot />
-    </div>
+    </form>
   </Teleport>
 </template>
 
 <script lang="ts" setup>
 import { useContext } from "@/composables/context.composable";
-import { ColorContext } from "@/context";
+import { ColorContext, DisabledContext } from "@/context";
 import type { Color } from "@/types";
-import { IK_MODAL_CLOSE } from "@/types/injection-keys";
-import { useMagicKeys, useVModel, whenever } from "@vueuse/core/index";
-import { provide } from "vue";
+import { IK_MODAL } from "@/types/injection-keys";
+import { useMagicKeys, whenever } from "@vueuse/core/index";
+import { inject } from "vue";
 
 const props = defineProps<{
-  modelValue: boolean;
   color?: Color;
+  disabled?: boolean;
 }>();
 
-const emit = defineEmits<{
-  (event: "update:modelValue", value: boolean): void;
-}>();
+defineOptions({
+  inheritAttrs: false,
+});
 
-const isOpen = useVModel(props, "modelValue", emit);
-
-const close = () => (isOpen.value = false);
-
-provide(IK_MODAL_CLOSE, close);
+const modal = inject(IK_MODAL)!;
 
 useContext(ColorContext, () => props.color);
+useContext(DisabledContext, () => props.disabled || modal.isBusy);
 
 const { escape } = useMagicKeys();
 
-whenever(escape, () => close());
+whenever(escape, () => modal.decline());
 </script>
 
 <style lang="postcss" scoped>

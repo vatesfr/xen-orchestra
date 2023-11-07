@@ -36,6 +36,17 @@ export const useVmStore = defineStore("xen-api-vm", () => {
     );
   };
 
+  const areSomeOperationAllowed = (
+    vm: XenApiVm,
+    operations: VM_OPERATION[] | VM_OPERATION
+  ) => {
+    const allowedOperations = Object.values(vm.allowed_operations);
+
+    return castArray(operations).some((operation) =>
+      allowedOperations.includes(operation)
+    );
+  };
+
   const runningVms = computed(() =>
     records.value.filter((vm) => vm.power_state === VM_POWER_STATE.RUNNING)
   );
@@ -92,6 +103,7 @@ export const useVmStore = defineStore("xen-api-vm", () => {
     ...context,
     records,
     isOperationPending,
+    areSomeOperationAllowed,
     runningVms,
     recordsByHostRef,
     getStats,

@@ -1,6 +1,6 @@
 ```vue-template
-<UiModal v-model="isOpen">
-  <FormModalLayout :icon="faShip" @submit.prevent="handleSubmit">
+<UiModal @submit.prevent="handleSubmit()">
+  <FormModalLayout :icon="faShip">
     <template #title>Migrate 3 VMs/template>
 
     <template #default>
@@ -8,18 +8,23 @@
     </template>
 
     <template #buttons>
-      <UiButton outlined @click="close">Cancel</UiButton>
-      <UiButton type="submit">Migrate 3 VMs</UiButton>
+      <ModalDeclineButton />
+      <ModalApproveButton>Migrate 3 VMs</UiButton>
     </template>
   </ConfirmModalLayout>
 </UiModal>
 ```
 
 ```vue-script
-const { isOpen, close } = useModal();
+import { IK_MODAL } from "@/types/injection-keys";
 
-const handleSubmit = async () => {
-  // Handling form submission...
-  close();
+const { approve } = inject(IK_MODAL)!;
+
+const migrate = async () => {
+  // Do the migration...
+}
+
+const handleSubmit = () => {
+  approve(migrate());
 }
 ```

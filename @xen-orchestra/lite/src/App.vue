@@ -1,5 +1,4 @@
 <template>
-  <UnreachableHostsModal />
   <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
@@ -13,6 +12,7 @@
     </div>
     <AppTooltips />
   </div>
+  <ModalList />
 </template>
 
 <script lang="ts" setup>
@@ -21,8 +21,9 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
-import UnreachableHostsModal from "@/components/UnreachableHostsModal.vue";
+import ModalList from "@/components/ui/modals/ModalList.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
+import { useUnreachableHosts } from "@/composables/unreachable-hosts.composable";
 import { useUiStore } from "@/stores/ui.store";
 import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
@@ -78,6 +79,8 @@ whenever(
     xenApiStore.getXapi().startWatching(poolRef);
   }
 );
+
+useUnreachableHosts();
 </script>
 
 <style lang="postcss">

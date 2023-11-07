@@ -1,9 +1,4 @@
 <template>
-  <UiModal v-model="isRawValueModalOpen">
-    <BasicModalLayout>
-      <CodeHighlight :code="rawValueModalPayload" />
-    </BasicModalLayout>
-  </UiModal>
   <StoryParamsTable>
     <thead>
       <tr>
@@ -101,9 +96,7 @@ import CodeHighlight from "@/components/CodeHighlight.vue";
 import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
 import StoryWidget from "@/components/component-story/StoryWidget.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import BasicModalLayout from "@/components/ui/modals/layouts/BasicModalLayout.vue";
-import UiModal from "@/components/ui/modals/UiModal.vue";
-import useModal from "@/composables/modal.composable";
+import { useModal } from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { PropParam } from "@/libs/story/story-param";
@@ -131,11 +124,8 @@ const emit = defineEmits<{
 
 const model = useVModel(props, "modelValue", emit);
 
-const {
-  open: openRawValueModal,
-  isOpen: isRawValueModalOpen,
-  payload: rawValueModalPayload,
-} = useModal<string>();
+const openRawValueModal = (code: string) =>
+  useModal(() => import("@/components/CodeHighlight.vue"), { code });
 </script>
 
 <style lang="postcss" scoped>

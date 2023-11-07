@@ -1,5 +1,5 @@
 <template>
-  <ModalContainer tag="form">
+  <ModalContainer>
     <template #header>
       <div class="close-bar">
         <ModalCloseIcon />
