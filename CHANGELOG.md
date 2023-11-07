@@ -1,5 +1,23 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Netbox] Fix VMs' `site` property being unnecessarily updated on some versions of Netbox (PR [#7145](https://github.com/vatesfr/xen-orchestra/pull/7145))
+- [Netbox] Fix "400 Bad Request" error (PR [#7153](https://github.com/vatesfr/xen-orchestra/pull/7153))
+- [Backup/Restore] Fix timeout after 5 minutes [#7052](https://github.com/vatesfr/xen-orchestra/issues/7052)
+- [Dashboard/Health] Empty VDIs are no longer considered orphans (PR [#7102](https://github.com/vatesfr/xen-orchestra/pull/7102))
+- [S3] Handle S3 without _Object Lock_ implementation (PR [#7157](https://github.com/vatesfr/xen-orchestra/pull/7157))
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.2
+- @xen-orchestra/proxy 0.26.38
+- xo-server 5.125.2
+- xo-server-netbox 1.3.3
+- xo-web 5.127.2
+
 ## **5.88.0** (2023-10-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
