@@ -2,6 +2,8 @@
 
 # xo-server-auth-oidc
 
+> OpenID Connect authentication plugin for XO-Server
+
 ## Usage
 
 This plugin allows users to authenticate to Xen-Orchestra using [OpenID Connect](<https://en.wikipedia.org/wiki/OpenID#OpenID_Connect_(OIDC)>).

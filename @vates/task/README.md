@@ -111,7 +111,7 @@ const onProgress = makeOnProgress({
     // current status of the task as described in the previous section
     taskLog.status
 
-    // undefined or a dictionnary of properties attached to the task
+    // undefined or a dictionary of properties attached to the task
     taskLog.properties
 
     // timestamp at which the abortion was requested, undefined otherwise
