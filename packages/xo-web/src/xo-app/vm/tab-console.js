@@ -242,12 +242,16 @@ export default class TabConsole extends Component {
         </Row>
         <Row className='console'>
           <Col>
-            <NoVnc
-              onClipboardChange={this._getRemoteClipboard}
-              ref='noVnc'
-              scale={scale}
-              url={resolveUrl(`consoles/${vm.id}`)}
-            />
+            {vm.other.disable_pv_vnc === '1' ? (
+              _('disabledConsole')
+            ) : (
+              <NoVnc
+                onClipboardChange={this._getRemoteClipboard}
+                ref='noVnc'
+                scale={scale}
+                url={resolveUrl(`consoles/${vm.id}`)}
+              />
+            )}
           </Col>
         </Row>
       </Container>
