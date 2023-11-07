@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-server minor
 
 <!--packages-end-->

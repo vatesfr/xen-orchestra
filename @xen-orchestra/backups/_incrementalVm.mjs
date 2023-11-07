@@ -206,7 +206,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid,
           },
-          sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
+          SR: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
         })
       )
       $defer.onFailure(() => suspendVdi.$destroy())
