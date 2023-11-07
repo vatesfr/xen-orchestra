@@ -2,16 +2,16 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
-import httpRequest from 'http-request-plus'
 import map from 'lodash/map'
 import noop from 'lodash/noop'
 import ProxyAgent from 'proxy-agent'
+import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
-import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { request } from 'undici'
 
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
@@ -404,7 +404,7 @@ export class Xapi extends EventEmitter {
     const response = await this._addSyncStackTrace(
       pRetry(
         async () =>
-          httpRequest(url, {
+          request(url, {
             rejectUnauthorized: !this._allowUnauthorized,
 
             // this is an inactivity timeout (unclear in Node doc)
