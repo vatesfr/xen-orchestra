@@ -63,12 +63,12 @@ const [isExpanded, toggle] = useToggle(true);
 <style lang="postcss" scoped>
 .infra-host-item:deep(.link),
 .infra-host-item:deep(.link-placeholder) {
-  padding-left: 3rem;
+  padding-left: 2rem;
 }
 
 .infra-vm-list:deep(.link),
 .infra-vm-list:deep(.link-placeholder) {
-  padding-left: 4.5rem;
+  padding-left: 3rem;
 }
 
 .master-icon {

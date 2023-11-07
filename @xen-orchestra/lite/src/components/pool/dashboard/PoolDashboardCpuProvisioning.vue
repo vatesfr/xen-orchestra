@@ -12,7 +12,7 @@
       <UiProgressBar :max-value="maxValue" :value="value" color="custom" />
       <UiProgressScale :max-value="maxValue" :steps="1" unit="%" />
       <UiProgressLegend :label="$t('vcpus')" :value="`${value}%`" />
-      <UiCardFooter>
+      <UiCardFooter class="ui-card-footer">
         <template #left>
           <p>{{ $t("vcpus-used") }}</p>
           <p class="footer-value">{{ nVCpuInUse }}</p>
@@ -112,5 +112,9 @@ const hasError = computed(
   & .footer-value {
     color: var(--footer-value-color);
   }
+}
+
+.ui-card-footer {
+  margin-top: 2rem;
 }
 </style>

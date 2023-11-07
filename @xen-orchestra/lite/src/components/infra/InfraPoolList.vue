@@ -42,7 +42,7 @@ const { isReady, hasError, pool } = usePoolCollection();
 
 .infra-vm-list:deep(.link),
 .infra-vm-list:deep(.link-placeholder) {
-  padding-left: 3rem;
+  padding-left: 2rem;
 }
 
 .text-error {

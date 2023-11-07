@@ -51,7 +51,6 @@ const isTooltipEnabled = computed(() =>
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin: 1.6em 0;
 }
 
 .label-container {
