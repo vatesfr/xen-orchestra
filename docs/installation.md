@@ -115,6 +115,21 @@ On Fedora/CentOS like:
 dnf install redis libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
 ```
 
+### Make sure Redis is running
+
+Start the service:
+
+```sh
+systemctl restart redis.service
+```
+
+Ensure it's working:
+
+```console
+$ redis-cli ping
+PONG
+```
+
 ### Fetching the Code
 
 You need to use the `git` source code manager to fetch the code. Ideally, you should run XO as a non-root user, and if you choose to, you need to set up `sudo` to be able to mount NFS remotes. As your chosen non-root (or root) user, run the following:
