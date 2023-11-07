@@ -27,6 +27,7 @@
         </template>
         <VmActionCopyItem :selected-refs="[vm.$ref]" is-single-action />
         <VmActionSnapshotItem :vm-refs="[vm.$ref]" />
+        <VmActionMigrateItem :selected-refs="[vm.$ref]" is-single-action />
       </AppMenu>
     </template>
   </TitleBar>
@@ -37,6 +38,7 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
+import VmActionMigrateItem from "@/components/vm/VmActionItems/VmActionMigrateItem.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionSnapshotItem from "@/components/vm/VmActionItems/VmActionSnapshotItem.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";

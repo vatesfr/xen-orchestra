@@ -3,7 +3,11 @@
     v-tooltip="
       selectedRefs.length > 0 &&
       !isMigratable &&
-      $t('no-selected-vm-can-be-migrated')
+      $t(
+        isSingleAction
+          ? 'this-vm-cant-be-migrated'
+          : 'no-selected-vm-can-be-migrated'
+      )
     "
     :busy="isMigrating"
     :disabled="isParentDisabled || !isMigratable"
@@ -28,6 +32,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   selectedRefs: XenApiVm["$ref"][];
+  isSingleAction?: boolean;
 }>();
 
 const { getByOpaqueRefs, isOperationPending, areSomeOperationAllowed } =
