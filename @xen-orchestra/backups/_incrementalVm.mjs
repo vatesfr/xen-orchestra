@@ -32,6 +32,7 @@ export async function exportIncrementalVm(
     preferNbd,
   } = {}
 ) {
+  console.log('export with base, ', baseVm?.uuid)
   // refs of VM's VDIs → base's VDIs.
   const baseVdis = {}
   baseVm &&

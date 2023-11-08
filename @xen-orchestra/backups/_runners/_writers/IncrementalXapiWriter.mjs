@@ -11,7 +11,6 @@ import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
 import find from 'lodash/find.js'
-import cloneDeep from 'lodash/cloneDeep.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -83,14 +82,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
-  #decorateVmMetadata(exportedVm) {
+  #decorateVmMetadata(backup) {
     const { _warmMigration } = this._settings
     const sr = this._sr
     const xapi = sr.$xapi
-
-    const vm = cloneDeep(exportedVm)
-    vm.other_config[TAG_COPY_SRC] = exportedVm.uuid
-    const remoteBaseVmUuid = exportedVm.other_config[TAG_BASE_DELTA]
+    const vm = backup.vm
+    vm.other_config[TAG_COPY_SRC] = vm.uuid
+    const remoteBaseVmUuid = vm.other_config[TAG_BASE_DELTA]
     let baseVm
     if (remoteBaseVmUuid) {
       baseVm = find(
@@ -111,12 +109,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         }
       })
 
-    vm.other_config[TAG_COPY_SRC] = exportedVm.uuid
+    vm.other_config[TAG_COPY_SRC] = vm.uuid
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
 
-    Object.values(exportedVm.vdis, vdi => {
+    Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[TAG_COPY_SRC] = vdi.uuid
       vdi.SR = sr.$ref
       // vdi.other_config[TAG_BASE_DELTA] is never defined on a suspend vdi
@@ -130,7 +128,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       }
     })
 
-    return vm
+    return backup
   }
 
   async _transfer({ timestamp, deltaExport, sizeContainers, vm }) {
@@ -143,13 +141,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(
-        {
-          __proto__: deltaExport,
-          vm: this.#decorateVmMetadata(deltaExport.vm),
-        },
-        sr
-      )
+      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
@@ -170,13 +162,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         )
       ),
       targetVm.update_other_config({
-        'xo:backup:sr': srUuid,
+        [TAG_BACKUP_SR]: srUuid,
 
         // these entries need to be added in case of offline backup
         'xo:backup:datetime': formatDateTime(timestamp),
         'xo:backup:job': job.id,
         'xo:backup:schedule': scheduleId,
-        'xo:backup:vm': vm.uuid,
+        [TAG_BASE_DELTA]: vm.uuid,
       }),
     ])
   }
