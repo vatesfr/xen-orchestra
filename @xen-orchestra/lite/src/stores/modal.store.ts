@@ -12,9 +12,11 @@ import {
 
 export const useModalStore = defineStore("modal", () => {
   const modals = ref(new Map<symbol, ModalController>());
+  const closeEvent = createEventHook();
 
   const close = (id: symbol) => {
     modals.value.delete(id);
+    closeEvent.trigger(undefined);
   };
 
   const open = <T>(loader: AsyncComponentLoader, props: object) => {
@@ -61,6 +63,7 @@ export const useModalStore = defineStore("modal", () => {
     return {
       onApprove: approveEvent.on,
       onDecline: declineEvent.on,
+      onClose: closeEvent.on,
       id,
     };
   };
