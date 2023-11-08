@@ -4,7 +4,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { TAG_COPY_SRC, importIncrementalVm } from './_incrementalVm.mjs'
 import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-import { cloneDeep } from 'lodash'
+import cloneDeep from 'lodash/cloneDeep.js'
 
 const resolveUuid = async (xapi, cache, uuid, type) => {
   if (uuid == null) {

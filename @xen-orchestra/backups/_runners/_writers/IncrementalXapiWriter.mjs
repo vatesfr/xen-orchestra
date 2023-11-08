@@ -10,7 +10,8 @@ import { Task } from '../../Task.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
-import { cloneDeep, find } from 'lodash'
+import find from 'lodash/find.js'
+import cloneDeep from 'lodash/cloneDeep.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
