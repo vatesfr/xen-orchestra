@@ -101,13 +101,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       }
     }
     const baseVdis = {}
-    baseVm &&
-      baseVm.$VBDs.forEach(vbd => {
-        const vdi = vbd.$VDI
-        if (vdi !== undefined) {
-          baseVdis[vbd.VDI] = vbd.$VDI
-        }
-      })
+    baseVm?.$VBDs.forEach(vbd => {
+      const vdi = vbd.$VDI
+      if (vdi !== undefined) {
+        baseVdis[vbd.VDI] = vbd.$VDI
+      }
+    })
 
     vm.other_config[TAG_COPY_SRC] = vm.uuid
     if (!_warmMigration) {

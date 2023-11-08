@@ -11,11 +11,14 @@ import { cancelableMap } from './_cancelableMap.mjs'
 import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 
+// in `other_config` of an incrementally replicated VM, contains the uuid of the source VM
 export const TAG_BASE_DELTA = 'xo:base_delta'
 
-export const TAG_COPY_SRC = 'xo:copy_of'
-
+// in `other_config` of an incrementally replicated VM, contains the uuid of the targe SR used for replication
 export const TAG_BACKUP_SR = 'xo:backup:sr'
+
+// in other_config of VDIs of an incrementally replicated VM, contains the uuid of the source vdi
+export const TAG_COPY_SRC = 'xo:copy_of'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -32,7 +35,6 @@ export async function exportIncrementalVm(
     preferNbd,
   } = {}
 ) {
-  console.log('export with base, ', baseVm?.uuid)
   // refs of VM's VDIs → base's VDIs.
   const baseVdis = {}
   baseVm &&

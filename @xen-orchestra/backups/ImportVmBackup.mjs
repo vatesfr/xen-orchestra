@@ -5,16 +5,15 @@ import { importIncrementalVm } from './_incrementalVm.mjs'
 import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-const resolveUuid = async (xapi, cache, uuid, type) => {
+async function resolveUuid(xapi, cache, uuid, type) {
   if (uuid == null) {
     return uuid
   }
-  let ref = cache.get(uuid)
+  const ref = cache.get(uuid)
   if (ref === undefined) {
-    ref = await xapi.call(`${type}.get_by_uuid`, uuid)
-    cache.set(uuid, ref)
+    cache.set(uuid, xapi.call(`${type}.get_by_uuid`, uuid))
   }
-  return ref
+  return cache.get(uuid)
 }
 export class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses, mapVdisSrs = {} } = {} }) {
