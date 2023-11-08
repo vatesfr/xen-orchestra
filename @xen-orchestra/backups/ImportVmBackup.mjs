@@ -1,10 +1,9 @@
 import assert from 'node:assert'
 
 import { formatFilenameDate } from './_filenameDate.mjs'
-import { TAG_COPY_SRC, importIncrementalVm } from './_incrementalVm.mjs'
+import { importIncrementalVm } from './_incrementalVm.mjs'
 import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-import cloneDeep from 'lodash/cloneDeep.js'
 
 const resolveUuid = async (xapi, cache, uuid, type) => {
   if (uuid == null) {
@@ -26,25 +25,20 @@ export class ImportVmBackup {
     this._xapi = xapi
   }
 
-  async #decorateIncrementalVmMetadata(exportedVm) {
+  async #decorateIncrementalVmMetadata(backup) {
     const { mapVdisSrs } = this._importIncrementalVmSettings
-    const sr = this._sr
-    const xapi = sr.$xapi
-    const vm = cloneDeep(exportedVm)
-
-    vm.other_config[TAG_COPY_SRC] = exportedVm.uuid
+    const xapi = this._xapi
 
     const cache = new Map()
     const mapVdisSrRefs = {}
     for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
       mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
     }
-    Object.values(exportedVm.vdis, vdi => {
+    const sr = await resolveUuid(xapi, cache, this._srUuid, 'SR')
+    Object.values(backup.vdis).forEach(vdi => {
       vdi.SR = mapVdisSrRefs[vdi.uuid] ?? sr.$ref
-
-      // @todo : for differential restore : here we do some magic on the stream /baseVdi if we can take a fast path
     })
-    return vm
+    return backup
   }
 
   async run() {
@@ -81,10 +75,7 @@ export class ImportVmBackup {
         const vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
           : await importIncrementalVm(
-              {
-                ...backup,
-                vm: await this.#decorateIncrementalVmMetadata(backup.vm),
-              },
+              await this.#decorateIncrementalVmMetadata(backup),
               await xapi.getRecord('SR', srRef),
               {
                 ...this._importIncrementalVmSettings,
