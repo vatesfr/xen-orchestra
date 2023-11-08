@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+- [Import/Esxi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error whe importing a VM without any storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
 
 ### Packages to release
 
@@ -32,6 +33,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/vmware-explorer patch
 - xo-server minor
 
 <!--packages-end-->
