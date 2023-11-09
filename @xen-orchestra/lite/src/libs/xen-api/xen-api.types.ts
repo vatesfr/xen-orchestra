@@ -629,3 +629,7 @@ export type XenApiEvent<
   ref: XRecord["$ref"];
   snapshot: RawXenApiRecord<XRecord>;
 };
+
+export interface XenApiError extends Error {
+  data?: any;
+}

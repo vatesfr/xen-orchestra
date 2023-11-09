@@ -1,0 +1,34 @@
+<template>
+  <div class="error" v-if="error !== undefined">
+    <UiIcon :icon="faExclamationCircle" />
+    <span v-if="error.message === 'SESSION_AUTHENTICATION_FAILED'">
+      {{ $t("password-invalid") }}
+    </span>
+    <span v-else>
+      {{ $t("error-occurred") }}
+    </span>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { XenApiError } from "@/libs/xen-api/xen-api.types";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+
+defineProps<{
+  error: XenApiError | undefined;
+}>();
+</script>
+
+<style lang="postcss" scoped>
+.error {
+  font-size: 1.3rem;
+  line-height: 150%;
+  margin: 0.5rem 0;
+  color: var(--color-red-vates-base);
+
+  & svg {
+    margin-right: 0.5rem;
+  }
+}
+</style>
