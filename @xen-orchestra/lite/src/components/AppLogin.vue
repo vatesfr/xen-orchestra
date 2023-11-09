@@ -2,13 +2,11 @@
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
-      <template v-if="isHostIsSlaveErr(error)">
-        <p class="error">
-          <UiIcon :icon="faExclamationCircle" />
-          {{ $t("login-only-on-master") }}
-          <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
-        </p>
-      </template>
+      <p v-if="isHostIsSlaveErr(error)" class="error">
+        <UiIcon :icon="faExclamationCircle" />
+        {{ $t("login-only-on-master") }}
+        <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
+      </p>
       <template v-else>
         <FormInputWrapper>
           <FormInput v-model="login" name="login" readonly type="text" />
@@ -26,7 +24,7 @@
         <LoginError :error="error" />
         <label class="remember-me-label">
           <FormCheckbox v-model="rememberMe" />
-          <p>{{ $t("keep-me-logged") }}</p>
+          {{ $t("keep-me-logged") }}
         </label>
         <UiButton type="submit" :busy="isConnecting">
           {{ $t("login") }}
@@ -106,14 +104,11 @@ async function handleSubmit() {
 <style lang="postcss" scoped>
 .remember-me-label {
   cursor: pointer;
+  display: flex;
+  margin: 1rem;
   width: fit-content;
   & .form-checkbox {
-    margin: 1rem 1rem 1rem 0;
-    vertical-align: middle;
-  }
-  & p {
-    display: inline;
-    vertical-align: middle;
+    margin: auto 1rem auto auto;
   }
 }
 
