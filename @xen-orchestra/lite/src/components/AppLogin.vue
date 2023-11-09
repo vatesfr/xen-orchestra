@@ -2,27 +2,36 @@
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
-      <FormInputWrapper>
-        <FormInput v-model="login" name="login" readonly type="text" />
-      </FormInputWrapper>
-      <FormInput
-        name="password"
-        ref="passwordRef"
-        type="password"
-        v-model="password"
-        :class="{ error: isInvalidPassword }"
-        :placeholder="$t('password')"
-        :readonly="isConnecting"
-        required
-      />
-      <LoginError :error="error" />
-      <label class="remember-me-label">
-        <FormCheckbox v-model="rememberMe" />
-        <p>{{ $t("keep-me-logged") }}</p>
-      </label>
-      <UiButton type="submit" :busy="isConnecting">
-        {{ $t("login") }}
-      </UiButton>
+      <template v-if="isHostIsSlaveErr(error)">
+        <p class="error">
+          <UiIcon :icon="faExclamationCircle" />
+          {{ $t("login-only-on-master") }}
+          <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
+        </p>
+      </template>
+      <template v-else>
+        <FormInputWrapper>
+          <FormInput v-model="login" name="login" readonly type="text" />
+        </FormInputWrapper>
+        <FormInput
+          name="password"
+          ref="passwordRef"
+          type="password"
+          v-model="password"
+          :class="{ error: isInvalidPassword }"
+          :placeholder="$t('password')"
+          :readonly="isConnecting"
+          required
+        />
+        <LoginError :error="error" />
+        <label class="remember-me-label">
+          <FormCheckbox v-model="rememberMe" />
+          <p>{{ $t("keep-me-logged") }}</p>
+        </label>
+        <UiButton type="submit" :busy="isConnecting">
+          {{ $t("login") }}
+        </UiButton>
+      </template>
     </form>
   </div>
 </template>
@@ -32,14 +41,16 @@ import { usePageTitleStore } from "@/stores/page-title.store";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useLocalStorage } from "@vueuse/core";
+import { useLocalStorage, whenever } from "@vueuse/core";
 
 import FormCheckbox from "@/components/form/FormCheckbox.vue";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import LoginError from "@/components/LoginError.vue";
 import UiButton from "@/components/ui/UiButton.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import type { XenApiError } from "@/libs/xen-api/xen-api.types";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
 const { t } = useI18n();
@@ -51,9 +62,12 @@ const password = ref("");
 const error = ref<XenApiError>();
 const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
+const masterUrl = ref(new URL(window.origin));
 const rememberMe = useLocalStorage("rememberMe", false);
 
 const focusPasswordInput = () => passwordRef.value?.focus();
+const isHostIsSlaveErr = (err: XenApiError | undefined) =>
+  err?.message === "HOST_IS_SLAVE";
 
 onMounted(() => {
   if (rememberMe.value) {
@@ -67,6 +81,11 @@ watch(password, () => {
   isInvalidPassword.value = false;
   error.value = undefined;
 });
+
+whenever(
+  () => isHostIsSlaveErr(error.value),
+  () => (masterUrl.value.hostname = error.value!.data)
+);
 
 async function handleSubmit() {
   try {
@@ -118,6 +137,10 @@ form {
   margin: 0 auto;
   padding: 8.5rem;
   background-color: var(--background-color-secondary);
+
+  .error {
+    color: var(--color-red-vates-base);
+  }
 }
 
 h1 {
