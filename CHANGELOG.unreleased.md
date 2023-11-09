@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Add `users` collection
+- [Authentication] Re-use existing token instead of creating a new one when connecting with the same user on the same browser
 
 ### Bug fixes
 
