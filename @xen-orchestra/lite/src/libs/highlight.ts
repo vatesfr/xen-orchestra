@@ -1,4 +1,4 @@
-import type { HighlightResult, Language } from "highlight.js";
+import type { HighlightResult } from "highlight.js";
 import HLJS from "highlight.js/lib/core";
 import cssLang from "highlight.js/lib/languages/css";
 import jsonLang from "highlight.js/lib/languages/json";
@@ -18,10 +18,6 @@ export const highlight: (
   options: { language: AcceptedLanguage },
   ignoreIllegals?: boolean
 ) => HighlightResult = HLJS.highlight;
-
-export const getLanguage: (
-  languageName: AcceptedLanguage
-) => Language | undefined = HLJS.getLanguage;
 
 export type AcceptedLanguage =
   | "xml"
