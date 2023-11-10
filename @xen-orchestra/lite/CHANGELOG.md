@@ -3,6 +3,7 @@
 ## **next**
 
 - Explicit error if users attempt to connect from a slave host (PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
+- More compact UI (PR [#7134](https://github.com/vatesfr/xen-orchestra/pull/7134))
 
 ## **0.1.5** (2023-11-07)
 
@@ -10,7 +11,6 @@
 - [Header] Replace logo with "XO LITE" (PR [#7118](https://github.com/vatesfr/xen-orchestra/pull/7118))
 - New VM console toolbar + Ability to send Ctrl+Alt+Del (PR [#7088](https://github.com/vatesfr/xen-orchestra/pull/7088))
 - Total overhaul of the modal system (PR [#7134](https://github.com/vatesfr/xen-orchestra/pull/7134))
-- More compact UI (PR [#7134](https://github.com/vatesfr/xen-orchestra/pull/7134))
 
 ## **0.1.4** (2023-10-03)
 
