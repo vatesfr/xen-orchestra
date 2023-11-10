@@ -1,9 +1,9 @@
-import { createClient, createSecureClient } from 'xmlrpc'
+import xmlrpc from 'xmlrpc';
 import { promisify } from 'promise-toolbox'
 
-import XapiError from '../_XapiError'
+import XapiError from '../_XapiError.mjs'
 
-import prepareXmlRpcParams from './_prepareXmlRpcParams'
+import prepareXmlRpcParams from './_prepareXmlRpcParams.mjs'
 
 const logError = error => {
   if (error.res) {
@@ -32,7 +32,7 @@ const parseResult = result => {
 
 export default ({ secureOptions, url: { hostnameRaw, pathname, port, protocol }, agent }) => {
   const secure = protocol === 'https:'
-  const client = (secure ? createSecureClient : createClient)({
+  const client = (secure ? xmlrpc.createSecureClient : xmlrpc.createClient)({
     ...(secure ? secureOptions : undefined),
     agent,
     host: hostnameRaw,

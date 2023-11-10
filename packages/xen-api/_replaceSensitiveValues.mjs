@@ -1,4 +1,4 @@
-import mapValues from 'lodash/mapValues'
+import mapValues from 'lodash/mapValues.js'
 
 export default function replaceSensitiveValues(value, replacement) {
   function helper(value, name) {

@@ -1,30 +1,23 @@
+import httpRequestPlus from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
-import { Client } from 'undici'
 
-import XapiError from '../_XapiError'
+import XapiError from '../_XapiError.mjs'
 
-import UnsupportedTransport from './_UnsupportedTransport'
+import UnsupportedTransport from './_UnsupportedTransport.mjs'
 
 // https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
 export default ({ secureOptions, url, agent }) => {
   url = new URL('./jsonrpc', Object.assign(new URL('http://localhost'), url))
 
-  const path = url.pathname + url.search
-  url.pathname = url.search = ''
-
-  const client = new Client(url, {
-    connect: secureOptions,
-  })
-
   return async function (method, args) {
-    const res = await client.request({
+    const res = await httpRequestPlus(url, {
+      ...secureOptions,
       body: format.request(0, method, args),
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       method: 'POST',
-      path,
       agent,
     })
 
@@ -33,7 +26,7 @@ export default ({ secureOptions, url, agent }) => {
       throw new UnsupportedTransport()
     }
 
-    const response = parse(await res.body.text())
+    const response = parse(await res.text())
 
     if (response.type === 'response') {
       return response.result

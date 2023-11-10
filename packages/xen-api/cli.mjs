@@ -2,8 +2,8 @@
 
 import blocked from 'blocked'
 import createDebug from 'debug'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
+import filter from 'lodash/filter.js'
+import find from 'lodash/find.js'
 import L from 'lodash'
 import minimist from 'minimist'
 import pw from 'pw'
@@ -129,7 +129,3 @@ async function main(createClient) {
   } catch (error) {}
 }
 export default main
-
-if (module.parent === null) {
-  main(require('./').createClient).catch(console.error.bind(console, 'FATAL'))
-}

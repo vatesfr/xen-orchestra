@@ -6,7 +6,7 @@ const { PassThrough, pipeline } = require('readable-stream')
 const humanFormat = require('human-format')
 const Throttle = require('throttle')
 
-const Ref = require('../dist/_Ref').default
+const Ref = require('../_Ref.mjs').default
 
 exports.createInputStream = path => {
   if (path === undefined || path === '-') {

@@ -2,26 +2,27 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
-import map from 'lodash/map'
-import noop from 'lodash/noop'
+import httpRequest from 'http-request-plus'
+import map from 'lodash/map.js'
+import noop from 'lodash/noop.js'
 import ProxyAgent from 'proxy-agent'
-import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
-import { Index } from 'xo-collection/index'
+import { Index } from 'xo-collection/index.js'
+import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
-import { request } from 'undici'
+import { decorateClass } from '@vates/decorate-with'
 
-import debug from './_debug'
-import getTaskResult from './_getTaskResult'
-import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
-import isReadOnlyCall from './_isReadOnlyCall'
-import makeCallSetting from './_makeCallSetting'
-import parseUrl from './_parseUrl'
-import Ref from './_Ref'
-import replaceSensitiveValues from './_replaceSensitiveValues'
-import transports from './transports'
+import debug from './_debug.mjs'
+import getTaskResult from './_getTaskResult.mjs'
+import isGetAllRecordsMethod from './_isGetAllRecordsMethod.mjs'
+import isReadOnlyCall from './_isReadOnlyCall.mjs'
+import makeCallSetting from './_makeCallSetting.mjs'
+import parseUrl from './_parseUrl.mjs'
+import Ref from './_Ref.mjs'
+import replaceSensitiveValues from './_replaceSensitiveValues.mjs'
+import transports from './transports/index.mjs'
 
 // ===================================================================
 
@@ -286,7 +287,6 @@ export class Xapi extends EventEmitter {
         : this._sessionCall(method, args)
   }
 
-  @cancelable
   async callAsync($cancelToken, method, ...args) {
     if (this._readOnly && !isReadOnlyCall(method, args)) {
       throw new Error(`cannot call ${method}() in read only mode`)
@@ -379,7 +379,6 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  @cancelable
   async getResource($cancelToken, pathname, { host, query, task } = {}) {
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
 
@@ -404,7 +403,7 @@ export class Xapi extends EventEmitter {
     const response = await this._addSyncStackTrace(
       pRetry(
         async () =>
-          request(url, {
+          httpRequest(url, {
             rejectUnauthorized: !this._allowUnauthorized,
 
             // this is an inactivity timeout (unclear in Node doc)
@@ -439,7 +438,6 @@ export class Xapi extends EventEmitter {
     return response
   }
 
-  @cancelable
   async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
     if (this._readOnly) {
       throw new Error('cannot put resource in read only mode')
@@ -1374,6 +1372,12 @@ export class Xapi extends EventEmitter {
     return new Record(ref, data)
   }
 }
+
+decorateClass(Xapi, {
+  callAsync: cancelable,
+  getResource: cancelable,
+  putResource: cancelable
+})
 
 // ===================================================================
 
