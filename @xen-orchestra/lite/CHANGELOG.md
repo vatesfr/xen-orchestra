@@ -3,7 +3,7 @@
 ## **next**
 
 - Explicit error if users attempt to connect from a slave host (PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
-- More compact UI (PR [#7134](https://github.com/vatesfr/xen-orchestra/pull/7134))
+- More compact UI (PR [#7159](https://github.com/vatesfr/xen-orchestra/pull/7159))
 
 ## **0.1.5** (2023-11-07)
 
