@@ -72,7 +72,7 @@ const hasTooltip = computed(() => hasEllipsis(textElement.value));
   align-items: center;
   flex: 1;
   min-width: 0;
-  padding: 1.5rem;
+  padding: 1rem;
   text-decoration: none;
   color: inherit;
   gap: 1rem;

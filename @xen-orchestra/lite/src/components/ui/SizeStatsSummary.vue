@@ -43,6 +43,7 @@ const isDisplayed = computed(
   font-weight: 700;
   font-size: 14px;
   color: var(--color-blue-scale-300);
+  margin-top: 2rem;
 }
 
 .summary-card {

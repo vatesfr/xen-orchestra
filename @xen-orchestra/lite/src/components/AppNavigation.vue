@@ -48,7 +48,7 @@ whenever(isOpen, () => {
   overflow: auto;
   width: 37rem;
   max-width: 37rem;
-  height: calc(100vh - 8rem);
+  height: calc(100vh - 5.5rem);
   padding: 0.5rem;
   border-right: 1px solid var(--color-blue-scale-400);
   background-color: var(--background-color-primary);

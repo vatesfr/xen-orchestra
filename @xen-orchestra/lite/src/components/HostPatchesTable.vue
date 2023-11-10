@@ -2,26 +2,25 @@
   <UiCardSpinner v-if="!areSomeLoaded" />
   <UiTable v-else class="hosts-patches-table" :class="{ desktop: isDesktop }">
     <tr v-for="patch in sortedPatches" :key="patch.$id">
-      <th>{{ patch.name }}</th>
-      <td>
-        <div class="version">
-          {{ patch.version }}
-          <template v-if="hasMultipleHosts">
-            <UiSpinner v-if="!areAllLoaded" />
-            <UiCounter
-              v-else
-              v-tooltip="{
-                placement: 'left',
-                content: $t('n-hosts-awaiting-patch', {
-                  n: patch.$hostRefs.size,
-                }),
-              }"
-              :value="patch.$hostRefs.size"
-              class="counter"
-              color="error"
-            />
-          </template>
-        </div>
+      <th>
+        <span v-tooltip="{ placement: 'left', content: patch.version }">
+          {{ patch.name }}
+        </span>
+      </th>
+      <td v-if="hasMultipleHosts">
+        <UiSpinner v-if="!areAllLoaded" />
+        <UiCounter
+          v-else
+          v-tooltip="{
+            placement: 'left',
+            content: $t('n-hosts-awaiting-patch', {
+              n: patch.$hostRefs.size,
+            }),
+          }"
+          :value="patch.$hostRefs.size"
+          class="counter"
+          color="error"
+        />
       </td>
     </tr>
   </UiTable>
@@ -56,13 +55,6 @@ const { isDesktop } = useUiStore();
 <style lang="postcss" scoped>
 .hosts-patches-table.desktop {
   max-width: 45rem;
-}
-
-.version {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  align-items: center;
 }
 
 .counter {
