@@ -22,7 +22,7 @@ const ADDITIONAL_FILES_FETCH_TIMEOUT = 5e3
 const jsonStringify = json => JSON.stringify(json, null, 2)
 const logger = createLogger('report-bug-button')
 
-const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
+const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new/choose'
 const XO_SUPPORT_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
@@ -42,9 +42,12 @@ const ADDITIONAL_FILES = [
 ]
 
 const reportInNewWindow = (url, { title, message, formatMessage = identity }) => {
+  // message is ignored for the moment
+  //
+  // see https://github.com/vatesfr/xen-orchestra/issues/7142
+
   const encodedTitle = encodeURIComponent(title == null ? '' : title)
-  const encodedMessage = encodeURIComponent(message == null ? '' : formatMessage(message))
-  window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}`)
+  window.open(`${url}?title=${encodedTitle}`)
 }
 
 export const reportOnSupportPanel = async ({ files = [], formatMessage = identity, message, title } = {}) => {
