@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **5.88.2** (2023-11-13)
 
 ### Enhancement
 
