@@ -1,5 +1,3 @@
-'use strict'
-
 import t from 'tap'
 
 import parseUrl from './_parseUrl.mjs'
