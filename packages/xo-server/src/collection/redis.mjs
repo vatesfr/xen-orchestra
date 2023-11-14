@@ -242,7 +242,7 @@ export default class Redis extends Collection {
     }
 
     const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
-    return redis.sInter(...keys).then(ids => this._extract(ids))
+    return redis.sInter(keys).then(ids => this._extract(ids))
   }
 
   _remove(ids) {

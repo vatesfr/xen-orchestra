@@ -53,6 +53,14 @@ const { onDecline } = useModal(MyModal, { message: "Hello world!" });
 onDecline(() => console.log("Modal declined"));
 ```
 
+### Handle modal close
+
+```ts
+const { onClose } = useModal(MyModal, { message: "Hello world!" });
+
+onClose(() => console.log("Modal closed"));
+```
+
 ## Modal controller
 
 Inside the modal component, you can inject the modal controller with `inject(IK_MODAL)!`.

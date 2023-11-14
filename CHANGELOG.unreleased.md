@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Add `users` collection
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,6 +32,6 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
-- xo-server minor
+- xo-web patch
 
 <!--packages-end-->

@@ -87,6 +87,7 @@ const isMigrating = (vm: XenApiVm) =>
 <style lang="postcss" scoped>
 .pool-vms-view {
   overflow: auto;
+  margin: 1rem;
 }
 
 .vm-name {

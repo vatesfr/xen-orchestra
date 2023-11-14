@@ -82,7 +82,7 @@ const {
   }
 }
 .table-container {
-  max-height: 24rem;
+  max-height: 25rem;
   overflow: auto;
 }
 </style>

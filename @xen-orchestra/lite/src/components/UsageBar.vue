@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="usage-bar">
     <template v-if="data !== undefined">
       <div
         v-for="item in computedData.sortedArray"
@@ -67,6 +67,12 @@ const computedData = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
+.usage-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .progress-item:nth-child(1) {
   --progress-bar-color: var(--color-extra-blue-d60);
 }

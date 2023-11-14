@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **5.88.2** (2023-11-13)
+
+### Enhancement
+
+- [REST API] Add `users` collection
+- [Authentication] Re-use existing token instead of creating a new one when connecting with the same user on the same browser
+
+### Released packages
+
+- xo-server 5.125.3
+
 ## **5.88.1** (2023-11-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
