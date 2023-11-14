@@ -1,7 +1,7 @@
 <template>
   <FormInputGroup>
-    <FormInput v-model="size" min="0" step="0.5" type="number" />
-    <FormSelect v-model="prefix">
+    <FormNumber v-model="sizeInput" :max-decimals="3" />
+    <FormSelect v-model="prefixInput">
       <option
         v-for="currentPrefix in availablePrefixes"
         :key="currentPrefix"
@@ -14,15 +14,15 @@
 </template>
 
 <script lang="ts" setup>
-import FormInput from "@/components/form/FormInput.vue";
 import FormInputGroup from "@/components/form/FormInputGroup.vue";
+import FormNumber from "@/components/form/FormNumber.vue";
 import FormSelect from "@/components/form/FormSelect.vue";
 import { useVModel } from "@vueuse/core";
 import humanFormat, { type Prefix } from "human-format";
-import { computed } from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps<{
-  modelValue: number;
+  modelValue: number | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -35,31 +35,46 @@ const model = useVModel(props, "modelValue", emit, {
   shouldEmit: (value) => value !== props.modelValue,
 });
 
+const sizeInput = ref();
+const prefixInput = ref();
+
 const scale = humanFormat.Scale.create(availablePrefixes, 1024, 1);
 
-const rawValue = computed(() =>
-  humanFormat.raw(props.modelValue, {
-    scale,
-    maxDecimals: "auto",
-  })
-);
+watch([sizeInput, prefixInput], ([newSize, newPrefix]) => {
+  if (newSize === "" || newSize === undefined) {
+    return;
+  }
 
-const parse = (value: number, prefix: string) =>
-  humanFormat.parse(`${value || 0} ${prefix}`, {
+  model.value = humanFormat.parse(`${newSize || 0} ${newPrefix || "Ki"}`, {
     scale,
   });
-
-const size = computed<number>({
-  get: () => rawValue.value.value,
-  set: (newSize) => {
-    model.value = parse(newSize, prefix.value);
-  },
 });
 
-const prefix = computed<Prefix<"binary">>({
-  get: () => rawValue.value.prefix,
-  set: (newPrefix) => {
-    model.value = parse(size.value, newPrefix);
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue === undefined) {
+      sizeInput.value = undefined;
+
+      if (prefixInput.value === undefined) {
+        prefixInput.value = availablePrefixes[0];
+      }
+
+      return;
+    }
+
+    const { value, prefix } = humanFormat.raw(newValue, {
+      scale,
+      prefix: prefixInput.value,
+    });
+    console.log(value);
+
+    sizeInput.value = value;
+
+    if (value !== 0) {
+      prefixInput.value = prefix;
+    }
   },
-});
+  { immediate: true }
+);
 </script>
