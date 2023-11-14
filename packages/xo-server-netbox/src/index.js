@@ -321,7 +321,7 @@ class Netbox {
 
       const vmsToUpdate = []
       for (const nbVm of nbVms) {
-        if (find(dependentTenants, { id: nbVm.tenant?.id }) !== undefined) {
+        if (some(dependentTenants, { id: nbVm.tenant?.id })) {
           vmsToUpdate.push({ id: nbVm.id, tenant: null })
         }
       }
