@@ -44,9 +44,15 @@ const props = defineProps<{
 }>();
 
 const sortedPatches = computed(() =>
-  [...props.patches].sort(
-    (patch1, patch2) => patch1.changelog.date - patch2.changelog.date
-  )
+  [...props.patches].sort((patch1, patch2) => {
+    if (patch1.changelog == null) {
+      return 1;
+    } else if (patch2.changelog == null) {
+      return -1;
+    }
+
+    return patch1.changelog.date - patch2.changelog.date;
+  })
 );
 
 const { isDesktop } = useUiStore();
