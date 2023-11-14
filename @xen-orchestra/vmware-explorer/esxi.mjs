@@ -235,6 +235,9 @@ export default class Esxi extends EventEmitter {
 
     return Object.keys(datas).map(id => {
       const { config, storage, runtime } = datas[id]
+      if (storage === undefined) {
+        throw new Error(`source VM ${id} don't have any storage`)
+      }
       const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
         ? storage.perDatastoreUsage
         : [storage.perDatastoreUsage]

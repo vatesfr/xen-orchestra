@@ -88,6 +88,7 @@
   "loading-hosts": "Loading hosts…",
   "log-out": "Log out",
   "login": "Login",
+  "login-only-on-master": "Login is only possible on the master host",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",

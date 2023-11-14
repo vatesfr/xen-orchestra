@@ -26,11 +26,11 @@ const isTabBarDisabled = useContext(DisabledContext, () => props.disabled);
 
 <style lang="postcss" scoped>
 .ui-tab {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  padding: 0 1.2em;
+  padding: 0 1.5rem;
   text-decoration: none;
   text-transform: uppercase;
   color: var(--color-blue-scale-100);

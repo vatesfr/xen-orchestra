@@ -43,10 +43,6 @@ const { stop } = useIntersectionObserver(rootElement, ([entry]) => {
 </script>
 
 <style lang="postcss" scoped>
-.infra-vm-item {
-  height: 6rem;
-}
-
 .infra-action {
   color: var(--color-extra-blue-d60);
 

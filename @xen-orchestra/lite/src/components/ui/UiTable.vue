@@ -20,7 +20,7 @@ defineProps<{
   border-spacing: 0;
   background-color: var(--background-color-primary);
   font-weight: 400;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   line-height: 2.4rem;
   color: var(--color-blue-scale-200);
 
