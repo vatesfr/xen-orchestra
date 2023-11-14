@@ -1,6 +1,7 @@
 import tar from 'tar-stream'
 import { computeVmdkLength, vhdToVMDKIterator } from '.'
 import { fromCallback } from 'promise-toolbox'
+import { Readable, pipeline } from 'stream'
 
 // WE MIGHT WANT TO HAVE A LOOK HERE: https://opennodecloud.com/howto/2013/12/25/howto-ON-ovf-reference.html
 
@@ -21,14 +22,8 @@ export async function writeOvaOn(
 ) {
   const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount, firmware)
   const pack = tar.pack()
-  const pipe = pack.pipe(writeStream)
+  pipeline(pack, writeStream, () => {})
   await fromCallback.call(pack, pack.entry, { name: `metadata.ovf` }, Buffer.from(ovf, 'utf8'))
-
-  async function writeDisk(entry, blockIterator) {
-    for await (const block of blockIterator) {
-      await fromCallback.call(entry, entry.write, block)
-    }
-  }
 
   // https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
   async function pushDisk(disk) {
@@ -38,15 +33,15 @@ export async function writeOvaOn(
     }
     disk.fileSize = size
     return new Promise((resolve, reject) => {
-      const entry = pack.entry({ name: `${disk.name}.vmdk`, size }, err => {
-        if (err == null) {
-          return resolve()
-        } else return reject(err)
-      })
-      return writeDisk(entry, iterator).then(
-        () => entry.end(),
-        e => reject(e)
+      const entry = pack.entry(
+        { name: `${disk.name}.vmdk`, size, pax: { size: size.toString() }, type: 'file' },
+        err => {
+          if (err == null) {
+            return resolve()
+          } else return reject(err)
+        }
       )
+      pipeline(Readable.from(iterator), entry, () => {})
     })
   }
 
@@ -54,7 +49,7 @@ export async function writeOvaOn(
     await pushDisk(disk)
   }
   pack.finalize()
-  return pipe
+  return writeStream
 }
 
 function createDiskSections(disks) {

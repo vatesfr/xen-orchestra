@@ -18,14 +18,14 @@
   "preferGlobal": false,
   "main": "dist/",
   "engines": {
-    "node": ">=12"
+    "node": ">=12.3"
   },
   "dependencies": {
     "child-process-promise": "^2.0.3",
     "lodash": "^4.17.15",
     "pako": "^2.0.4",
     "promise-toolbox": "^0.21.0",
-    "tar-stream": "^2.2.0",
+    "tar-stream": "^3.1.6",
     "vhd-lib": "^4.6.1",
     "xml2js": "^0.4.23"
   },
