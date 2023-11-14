@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,6 +34,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
+- xo-server-netbox minor
 - xo-web patch
 
 <!--packages-end-->
