@@ -23,7 +23,7 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "main": "/",
+  "main": "./index.mjs",
   "bin": {
     "xen-api": "/cli.mjs"
   },
