@@ -33,6 +33,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/vmware-explorer patch
 - xo-server-netbox minor
 - xo-web patch
 
