@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-
+/* eslint-disable no-console */
 import blocked from 'blocked'
 import createDebug from 'debug'
 import filter from 'lodash/filter.js'
@@ -11,7 +10,6 @@ import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
 import { diff } from 'jest-diff'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
-import { createClient } from './index.mjs'
 
 // ===================================================================
 
@@ -43,7 +41,7 @@ function getAllBoundDescriptors(object) {
 
 const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
-async function main(createClient) {
+export async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
     string: ['proxy', 'session-id', 'transport'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
@@ -129,6 +127,4 @@ async function main(createClient) {
     await xapi.disconnect()
   } catch (error) {}
 }
-export default main
-
-main(createClient).catch(console.error.bind(console, 'FATAL'))
+/* eslint-enable no-console */
