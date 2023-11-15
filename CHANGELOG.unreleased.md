@@ -7,14 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Add `users` collection
-- [Authentication] Re-use existing token instead of creating a new one when connecting with the same user on the same browser
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+- [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
 
 ### Packages to release
 
@@ -32,8 +32,10 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
-- xo-server minor
+- @xen-orchestra/vmware-explorer patch
+- xo-server-netbox minor
 - xo-web patch
 
 <!--packages-end-->

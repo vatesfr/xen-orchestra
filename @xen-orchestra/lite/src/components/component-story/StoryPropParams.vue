@@ -125,7 +125,9 @@ const emit = defineEmits<{
 const model = useVModel(props, "modelValue", emit);
 
 const openRawValueModal = (code: string) =>
-  useModal(() => import("@/components/CodeHighlight.vue"), { code });
+  useModal(() => import("@/components/modals/CodeHighlightModal.vue"), {
+    code,
+  });
 </script>
 
 <style lang="postcss" scoped>

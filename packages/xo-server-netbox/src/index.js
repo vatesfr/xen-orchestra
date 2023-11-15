@@ -43,6 +43,7 @@ class Netbox {
   #xoPools
   #removeApiMethods
   #syncInterval
+  #syncUsers
   #token
   #xo
 
@@ -64,6 +65,7 @@ class Netbox {
       this.#endpoint = 'http://' + this.#endpoint
     }
     this.#allowUnauthorized = configuration.allowUnauthorized ?? false
+    this.#syncUsers = configuration.syncUsers ?? false
     this.#token = configuration.token
     this.#xoPools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
@@ -206,8 +208,12 @@ class Netbox {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
     const { content_types: types } = uuidCustomField
-    if (TYPES_WITH_UUID.some(type => !types.includes(type))) {
-      throw new Error('UUID custom field must be assigned to types ' + TYPES_WITH_UUID.join(', '))
+    const typesWithUuid = TYPES_WITH_UUID
+    if (this.#syncUsers) {
+      typesWithUuid.push('tenancy.tenant')
+    }
+    if (typesWithUuid.some(type => !types.includes(type))) {
+      throw new Error('UUID custom field must be assigned to types ' + typesWithUuid.join(', '))
     }
   }
 
@@ -232,6 +238,107 @@ class Netbox {
     await this.#checkCustomFields()
 
     log.info(`Synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })
+
+    // Tenants -----------------------------------------------------------------
+
+    let nbTenants
+    if (this.#syncUsers) {
+      log.info('Synchronizing users')
+
+      const createNbTenant = xoUser => {
+        const name = xoUser.email.slice(0, NAME_MAX_LENGTH)
+        return {
+          custom_fields: { uuid: xoUser.id },
+          name,
+          slug: slugify(name),
+          description: 'XO user',
+        }
+      }
+
+      const xoUsers = await this.#xo.getAllUsers()
+
+      nbTenants = keyBy(await this.#request('/tenancy/tenants/'), 'custom_fields.uuid')
+      delete nbTenants.null // Ignore tenants that don't have a UUID
+
+      const nbTenantsToCheck = { ...nbTenants }
+
+      const tenantsToUpdate = []
+      const tenantsToCreate = []
+      for (const xoUser of xoUsers) {
+        const nbTenant = nbTenants[xoUser.id]
+        delete nbTenantsToCheck[xoUser.id]
+
+        const updatedTenant = createNbTenant(xoUser)
+
+        if (nbTenant !== undefined) {
+          // Tenant was found in Netbox: update it
+          const patch = diff(updatedTenant, nbTenant)
+          if (patch !== undefined) {
+            tenantsToUpdate.push(patch)
+          }
+        } else {
+          // Tenant wasn't found: create it
+          tenantsToCreate.push(updatedTenant)
+        }
+      }
+
+      // Delete all the other tenants that weren't found in XO
+      const tenantsToDelete = Object.values(nbTenantsToCheck)
+
+      // If a tenant is assigned to a VM (dependentTenants), we must unassign it first.
+      // If a tenant is assigned to another type of object (nonDeletableTenants), we simply log an error.
+      const nonDeletableTenants = []
+      const dependentTenants = []
+      const nonDependentTenants = []
+      for (const nbTenant of tenantsToDelete) {
+        if (
+          (nbTenant.circuit_count ?? 0) +
+            (nbTenant.device_count ?? 0) +
+            (nbTenant.ipaddress_count ?? 0) +
+            (nbTenant.prefix_count ?? 0) +
+            (nbTenant.rack_count ?? 0) +
+            (nbTenant.site_count ?? 0) +
+            (nbTenant.vlan_count ?? 0) +
+            (nbTenant.vrf_count ?? 0) +
+            (nbTenant.cluster_count ?? 0) >
+          0
+        ) {
+          nonDeletableTenants.push(nbTenant)
+        } else if ((nbTenant.virtualmachine_count ?? 0) > 0) {
+          dependentTenants.push(nbTenant)
+        } else {
+          nonDependentTenants.push(nbTenant)
+        }
+      }
+
+      if (nonDeletableTenants.length > 0) {
+        log.warn(`Could not delete ${nonDeletableTenants.length} tenants because dependent object count is not 0`, {
+          tenant: nonDeletableTenants[0],
+        })
+      }
+
+      const nbVms = await this.#request('/virtualization/virtual-machines/')
+
+      const vmsToUpdate = []
+      for (const nbVm of nbVms) {
+        if (some(dependentTenants, { id: nbVm.tenant?.id })) {
+          vmsToUpdate.push({ id: nbVm.id, tenant: null })
+        }
+      }
+
+      // Perform calls to Netbox
+      await this.#request('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
+      await this.#request(
+        '/tenancy/tenants/',
+        'DELETE',
+        dependentTenants.concat(nonDependentTenants).map(nbTenant => ({ id: nbTenant.id }))
+      )
+      tenantsToDelete.forEach(nbTenant => delete nbTenants[nbTenant.custom_fields.uuid])
+      Object.assign(
+        nbTenants,
+        keyBy(await this.#request('/tenancy/tenants/', 'POST', tenantsToCreate), 'custom_fields.uuid')
+      )
+    }
 
     // Cluster type ------------------------------------------------------------
 
@@ -331,7 +438,7 @@ class Netbox {
 
     log.info('Synchronizing VMs')
 
-    const createNbVm = async (xoVm, { nbCluster, nbPlatforms, nbTags }) => {
+    const createNbVm = async (xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants }) => {
       const nbVm = {
         custom_fields: { uuid: xoVm.uuid },
         name: xoVm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
@@ -375,6 +482,7 @@ class Netbox {
         nbVm.platform = nbPlatform.id
       }
 
+      // Tags
       const nbVmTags = []
       for (const tag of xoVm.tags) {
         const slug = slugify(tag)
@@ -401,6 +509,12 @@ class Netbox {
       // Sort them so that they can be compared by diff()
       nbVm.tags = nbVmTags.sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1))
 
+      // Tenant = VM creator
+      if (this.#syncUsers) {
+        const nbTenant = nbTenants[xoVm.creation?.user]
+        nbVm.tenant = nbTenant === undefined ? null : nbTenant.id
+      }
+
       // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
       if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, '>=2.7.0')) {
         nbVm.status = xoVm.power_state === 'Running' ? 1 : 0
@@ -413,13 +527,14 @@ class Netbox {
     const flattenNested = nbVm => ({
       ...nbVm,
       cluster: nbVm.cluster?.id ?? null,
-      status: nbVm.status?.value ?? null,
-      platform: nbVm.platform?.id ?? null,
       // If site is not supported by Netbox, its value is undefined
       // If site is supported by Netbox but empty, its value is null
       site: nbVm.site == null ? nbVm.site : nbVm.site.id,
+      status: nbVm.status?.value ?? null,
+      platform: nbVm.platform?.id ?? null,
       // Sort them so that they can be compared by diff()
       tags: nbVm.tags.map(nbTag => ({ id: nbTag.id })).sort(({ id: id1 }, { id: id2 }) => (id1 < id2 ? -1 : 1)),
+      tenant: nbVm.tenant?.id ?? null,
     })
 
     const nbPlatforms = keyBy(await this.#request('/dcim/platforms/'), 'id')
@@ -461,7 +576,7 @@ class Netbox {
         const nbVm = allNbVms[xoVm.uuid]
         delete xoPoolNbVms[xoVm.uuid]
 
-        const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags })
+        const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants })
 
         if (nbVm !== undefined) {
           // VM found in Netbox: update VM (I.1)
@@ -487,7 +602,7 @@ class Netbox {
         const nbCluster = allNbClusters[xoPool?.uuid]
         if (nbCluster !== undefined) {
           // If the VM is found in XO: update it if necessary (II.1)
-          const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags })
+          const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants })
           const patch = diff(updatedVm, flattenNested(nbVm))
 
           if (patch === undefined) {
