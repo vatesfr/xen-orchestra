@@ -15,6 +15,7 @@
 
 - [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
 - [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
+- [Export/Ova] Handle ova export with resulting disk greater than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
 
 ### Packages to release
 
@@ -32,6 +33,7 @@
 
 <!--packages-start-->
 
+- xo-vmdk-to-vhd patch
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
