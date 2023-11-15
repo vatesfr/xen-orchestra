@@ -59,7 +59,7 @@ const compressionType = ref(VM_COMPRESSION_TYPE.DISABLED);
 
 const handleSubmit = () => {
   const xenApi = useXenApiStore().getXapi();
-  void xenApi.vm.export(props.vmRefs, compressionType.value);
+  xenApi.vm.export(props.vmRefs, compressionType.value);
   modal.approve();
 };
 </script>
