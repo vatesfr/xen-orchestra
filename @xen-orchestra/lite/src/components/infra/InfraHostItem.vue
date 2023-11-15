@@ -18,7 +18,9 @@
           @click="toggle()"
         />
       </template>
-      <li v-if="!isExpanded && faAngleUp">{{ getVmCount() }} VMs</li>
+      <li class="vm-number" v-if="!isExpanded && faAngleUp">
+        {{ getVmCount }} VMs
+      </li>
     </InfraItemLabel>
 
     <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
@@ -61,14 +63,13 @@ const isCurrentHost = computed(
 );
 const [isExpanded, toggle] = useToggle(true);
 
-function getVmCount() {
+const getVmCount = computed(() => {
   const { recordsByHostRef } = useVmCollection();
   const vms = recordsByHostRef.value.get(
     props.hostOpaqueRef ?? ("OpaqueRef:NULL" as XenApiHost["$ref"])
   );
-
-  return isExpanded ? (vms ? vms.length : 0) : undefined;
-}
+  return !isExpanded.value ? (vms ? vms.length : 0) : undefined;
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -84,5 +85,9 @@ function getVmCount() {
 
 .master-icon {
   color: var(--color-orange-world-base);
+}
+
+.vm-number {
+  font-style: italic;
 }
 </style>
