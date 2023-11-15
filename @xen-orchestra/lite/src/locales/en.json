@@ -82,6 +82,7 @@
   "fullscreen": "Fullscreen",
   "fullscreen-leave": "Leave fullscreen",
   "go-back": "Go back",
+  "gzip": "gzip",
   "here": "Here",
   "hosts": "Hosts",
   "keep-me-logged": "Keep me logged in",
@@ -186,5 +187,6 @@
   "version": "Version",
   "vm-is-running": "The VM is running",
   "vms": "VMs",
-  "xo-lite-under-construction": "XOLite is under construction"
+  "xo-lite-under-construction": "XOLite is under construction",
+  "zstd": "zstd"
 }

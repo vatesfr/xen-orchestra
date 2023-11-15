@@ -2,7 +2,7 @@
   <MenuItem :icon="faFileExport">
     {{ $t("export") }}
     <template #submenu>
-      <VmActionExportVmItem :vmRefs="vmRefs" />
+      <VmActionExportItem :vmRefs="vmRefs" />
       <MenuItem
         :icon="faCode"
         @click="
@@ -26,7 +26,7 @@ import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { computed } from "vue";
 import { exportVmsAsCsvFile, exportVmsAsJsonFile } from "@/libs/vm";
 import MenuItem from "@/components/menu/MenuItem.vue";
-import VmActionExportVmItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
+import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
 import {
   faCode,
   faFileCsv,

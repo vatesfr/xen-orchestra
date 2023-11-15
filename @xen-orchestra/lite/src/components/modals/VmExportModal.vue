@@ -1,5 +1,5 @@
 <template>
-  <UiModal @submit.prevent="handlesubmit">
+  <UiModal @submit.prevent="handleSubmit">
     <FormModalLayout :icon="faDisplay">
       <template #title>
         {{ $t("export-n-vms", { n: vmRefs.length }) }}
@@ -53,12 +53,13 @@ const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
 }>();
 
-const modal = inject(IK_MODAL);
+const modal = inject(IK_MODAL)!;
 
 const compressionType = ref(VM_COMPRESSION_TYPE.DISABLED);
 
-const handlesubmit = () => {
+const handleSubmit = () => {
   const xenApi = useXenApiStore().getXapi();
-  modal?.approve(xenApi.vm.export(props.vmRefs, compressionType.value));
+  void xenApi.vm.export(props.vmRefs, compressionType.value);
+  modal.approve();
 };
 </script>
