@@ -1,13 +1,13 @@
 import tar from 'tar-stream'
 import { computeVmdkLength, vhdToVMDKIterator } from '.'
 import { fromCallback } from 'promise-toolbox'
-import { Readable, pipeline } from 'stream'
+import { pipeline } from 'stream'
 
 // WE MIGHT WANT TO HAVE A LOOK HERE: https://opennodecloud.com/howto/2013/12/25/howto-ON-ovf-reference.html
 
 /**
  *
- * @param writeStream
+ * @param outStream
  * @param vmName
  * @param vmDescription
  * @param disks [{name, fileName, capacityMB, getStream}]
@@ -17,13 +17,13 @@ import { Readable, pipeline } from 'stream'
  * @returns readStream
  */
 export async function writeOvaOn(
-  writeStream,
+  outStream,
   { vmName, vmDescription = '', disks = [], firmware = 'bios', nics = [], vmMemoryMB = 64, cpuCount = 1 }
 ) {
   const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount, firmware)
-  const pack = tar.pack()
-  pipeline(pack, writeStream, () => {})
-  await fromCallback.call(pack, pack.entry, { name: `metadata.ovf` }, Buffer.from(ovf, 'utf8'))
+  const tarStream = tar.pack()
+  pipeline(tarStream, outStream, () => {})
+  await fromCallback.call(tarStream, tarStream.entry, { name: `metadata.ovf` }, Buffer.from(ovf, 'utf8'))
 
   // https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
   async function pushDisk(disk) {
@@ -33,23 +33,20 @@ export async function writeOvaOn(
     }
     disk.fileSize = size
     return new Promise((resolve, reject) => {
-      const entry = pack.entry(
-        { name: `${disk.name}.vmdk`, size, pax: { size: size.toString() }, type: 'file' },
-        err => {
-          if (err == null) {
-            return resolve()
-          } else return reject(err)
-        }
-      )
-      pipeline(Readable.from(iterator), entry, () => {})
+      const entryWriteStream = tarStream.entry({ name: `${disk.name}.vmdk`, size, type: 'file' }, err => {
+        if (err == null) {
+          return resolve()
+        } else return reject(err)
+      })
+      pipeline(iterator, entryWriteStream, () => {})
     })
   }
 
   for (const disk of disks) {
     await pushDisk(disk)
   }
-  pack.finalize()
-  return writeStream
+  tarStream.finalize()
+  return outStream
 }
 
 function createDiskSections(disks) {
