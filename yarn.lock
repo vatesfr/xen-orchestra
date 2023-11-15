@@ -2106,11 +2106,6 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.54.0.tgz#4fab9a2ff7860082c304f750e94acd644cf984cf"
   integrity sha512-ut5V+D+fOoWPgGGNj83GGjnntO39xDy6DWxO0wb7Jp3DcMX0TfIqdzHF85VTQkerdyGmuuMD9AKAo5KiNlf/AQ==
 
-"@fastify/busboy@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.0.0.tgz#f22824caff3ae506b18207bad4126dbc6ccdb6b8"
-  integrity sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==
-
 "@fontsource/poppins@^5.0.8":
   version "5.0.8"
   resolved "https://registry.yarnpkg.com/@fontsource/poppins/-/poppins-5.0.8.tgz#a1c5540aedb3719a36eba5c7c5dfaa3aed3c9f80"
@@ -8169,7 +8164,7 @@ debug-fabulous@1.X:
     memoizee "0.4.X"
     object-assign "4.X"
 
-debug@2.6.9, debug@^2.1.0, debug@^2.2.0, debug@^2.3.3, debug@^2.6.9:
+debug@2, debug@2.6.9, debug@^2.1.0, debug@^2.2.0, debug@^2.3.3, debug@^2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
   integrity sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
@@ -9677,6 +9672,14 @@ event-emitter@^0.3.5:
   dependencies:
     d "1"
     es5-ext "~0.10.14"
+
+event-loop-delay@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/event-loop-delay/-/event-loop-delay-1.0.1.tgz#c0e7e30a37e3ce77b1a179a23bee72cf34bcec9f"
+  integrity sha512-O7nq//Wqk2gY8IWqrQHJtlzT/Hbsn0alxX09J0RZ5Bljsfvd+xRtGGnurh+BFatzkNkGi5Ddd/vsA0v2K79g0A==
+  dependencies:
+    napi-macros "^2.0.0"
+    node-gyp-build "^4.2.0"
 
 event-stream@*:
   version "4.0.1"
@@ -17032,6 +17035,11 @@ preserve@^0.2.0:
   resolved "https://registry.yarnpkg.com/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
   integrity sha512-s/46sYeylUfHNjI+sA/78FAHlmIuKqI9wNnzEOGehAlUUYeObv5C2mOinXBjyUyWmJ2SfcS2/ydApH4hTF4WXQ==
 
+prettier-bytes@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/prettier-bytes/-/prettier-bytes-1.0.4.tgz#994b02aa46f699c50b6257b5faaa7fe2557e62d6"
+  integrity sha512-dLbWOa4xBn+qeWeIF60qRoB6Pk2jX5P3DIVgOQyMyvBpu931Q+8dXz8X0snJiFkQdohDDLnZQECjzsAj75hgZQ==
+
 prettier-linter-helpers@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/prettier-linter-helpers/-/prettier-linter-helpers-1.0.0.tgz#d23d41fe1375646de2d0104d3454a3008802cf7b"
@@ -17106,6 +17114,14 @@ process-on-spawn@^1.0.0:
   integrity sha512-1WsPDsUSMmZH5LeMLegqkPDrsGgsWwk1Exipy2hvB0o/F0ASzbpIctSCcZIK1ykJvtTJULEH+20WOFjMvGnCTg==
   dependencies:
     fromentries "^1.2.0"
+
+process-top@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/process-top/-/process-top-1.2.0.tgz#0443a7b2c61b0aae1207fa5562cb23252df986b6"
+  integrity sha512-R0WlpJe+os9deHxqua2S62gp7/IuWNG4T7buG0/VKwFg9/Zk5eicaI1IlwkBL3s+NXHBqdaKw/HgeG+kGL4bLw==
+  dependencies:
+    event-loop-delay "^1.0.0"
+    prettier-bytes "^1.0.4"
 
 process@^0.11.10, process@~0.11.0:
   version "0.11.10"
@@ -18116,7 +18132,7 @@ readable-stream@1.1.x, readable-stream@~1.1.9:
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
 
-readable-stream@^4.1.0, readable-stream@^4.3.0:
+"readable-stream@>= 0.3.0", readable-stream@^4.1.0, readable-stream@^4.3.0, readable-stream@^4.4.2:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-4.4.2.tgz#e6aced27ad3b9d726d8308515b9a1b98dc1b9d13"
   integrity sha512-Lk/fICSyIhodxy1IDK2HazkeGjSmezAWX2egdtJnYhtzKEsBPJowlI6F6LPb5tqIQILrMbx22S5o3GuJavPusA==
@@ -19581,6 +19597,13 @@ stream-http@^3.0.0:
     readable-stream "^3.6.0"
     xtend "^4.0.2"
 
+"stream-parser@>= 0.0.2":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/stream-parser/-/stream-parser-0.3.1.tgz#1618548694420021a1182ff0af1911c129761773"
+  integrity sha512-bJ/HgKq41nlKvlhccD5kaCr/P+Hu0wPNKPJOH7en+YrJu/9EgqUF+88w5Jb6KNcjOFMhfX4B2asfeAtIGuHObQ==
+  dependencies:
+    debug "2"
+
 stream-shift@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/stream-shift/-/stream-shift-1.0.1.tgz#d7088281559ab2778424279b0877da3c392d5a3d"
@@ -20205,6 +20228,14 @@ thirty-two@1.0.2:
   resolved "https://registry.yarnpkg.com/thirty-two/-/thirty-two-1.0.2.tgz#4ca2fffc02a51290d2744b9e3f557693ca6b627a"
   integrity sha512-OEI0IWCe+Dw46019YLl6V10Us5bi574EvlJEOcAkB29IzQ/mYD1A6RyNHLjZPiHCmuodxvgF6U+vZO1L15lxVA==
 
+throttle@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/throttle/-/throttle-1.0.3.tgz#8a32e4a15f1763d997948317c5ebe3ad8a41e4b7"
+  integrity sha512-VYINSQFQeFdmhCds0tTqvQmLmdAjzGX1D6GnRQa4zlq8OpTtWSMddNyRq8Z4Snw/d6QZrWt9cM/cH8xTiGUkYA==
+  dependencies:
+    readable-stream ">= 0.3.0"
+    stream-parser ">= 0.0.2"
+
 through2-filter@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/through2-filter/-/through2-filter-3.0.0.tgz#700e786df2367c2c88cd8aa5be4cf9c1e7831254"
@@ -20813,13 +20844,6 @@ undici-types@~5.26.4:
   version "5.26.5"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.26.5.tgz#bcd539893d00b56e964fd2657a4866b221a65617"
   integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
-
-undici@^5.27.2:
-  version "5.27.2"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-5.27.2.tgz#a270c563aea5b46cc0df2550523638c95c5d4411"
-  integrity sha512-iS857PdOEy/y3wlM3yRp+6SNQQ6xU0mmZcwRSriqk+et/cwWAtwmIGf6WkoDN2EK/AMdCO/dfXzIwi+rFMrjjQ==
-  dependencies:
-    "@fastify/busboy" "^2.0.0"
 
 unicode-canonical-property-names-ecmascript@^2.0.0:
   version "2.0.0"

@@ -2,14 +2,14 @@
 
 process.env.DEBUG = '*'
 
-const defer = require('golike-defer').default
-const getopts = require('getopts')
-const { CancelToken } = require('promise-toolbox')
-const { createVhdStreamWithLength } = require('vhd-lib')
+import getopts from 'getopts'
+import { defer } from 'golike-defer'
+import { CancelToken } from 'promise-toolbox'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
-const { createInputStream, resolveRef } = require('./utils')
+import { createInputStream, resolveRef } from './utils.mjs'
 
 defer(async ($defer, argv) => {
   const opts = getopts(argv, { boolean: ['events', 'raw', 'remove-length'], string: ['sr', 'vdi'] })

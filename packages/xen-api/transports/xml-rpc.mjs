@@ -1,4 +1,4 @@
-import xmlrpc from 'xmlrpc';
+import xmlrpc from 'xmlrpc'
 import { promisify } from 'promise-toolbox'
 
 import XapiError from '../_XapiError.mjs'

@@ -1376,7 +1376,7 @@ export class Xapi extends EventEmitter {
 decorateClass(Xapi, {
   callAsync: cancelable,
   getResource: cancelable,
-  putResource: cancelable
+  putResource: cancelable,
 })
 
 // ===================================================================
