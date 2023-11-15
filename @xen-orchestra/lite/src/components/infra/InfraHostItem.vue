@@ -18,6 +18,7 @@
           @click="toggle()"
         />
       </template>
+      <li v-if="!isExpanded && faAngleUp">{{ getVmCount() }} VMs</li>
     </InfraItemLabel>
 
     <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
@@ -41,6 +42,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useToggle } from "@vueuse/core";
 import { computed } from "vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 
 const props = defineProps<{
   hostOpaqueRef: XenApiHost["$ref"];
@@ -58,6 +60,15 @@ const isCurrentHost = computed(
   () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
 );
 const [isExpanded, toggle] = useToggle(true);
+
+function getVmCount() {
+  const { recordsByHostRef } = useVmCollection();
+  const vms = recordsByHostRef.value.get(
+    props.hostOpaqueRef ?? ("OpaqueRef:NULL" as XenApiHost["$ref"])
+  );
+
+  return isExpanded ? (vms ? vms.length : 0) : undefined;
+}
 </script>
 
 <style lang="postcss" scoped>
