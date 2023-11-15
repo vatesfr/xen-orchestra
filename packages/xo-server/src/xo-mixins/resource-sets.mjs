@@ -430,6 +430,10 @@ export default class {
     }
 
     await xapi.xo.setData(vmId, 'resourceSet', resourceSetId === undefined ? null : resourceSetId)
+    await xapi.barrier(xapi.getObject(vmId).$ref)
+    // barrier function is used to ensure completion of previous asynchronous operations
+    // on the vmId object, guaranteeing that all modifications are considered before
+    // retrieving the resourceSetId value.
     $defer.onFailure(() =>
       xapi.xo.setData(vmId, 'resourceSet', previousResourceSetId === undefined ? null : previousResourceSetId)
     )
@@ -444,9 +448,6 @@ export default class {
 
   async shareVmResourceSet(vmId) {
     const xapi = this._app.getXapi(vmId)
-    await xapi.barrier(xapi.getObject(vmId).$ref)
-    // barrier function is used to ensure completion of previous asynchronous operations
-    // on the vmId object, guaranteeing that all modifications are considered before retrieving the resourceSetId value.
     const resourceSetId = xapi.xo.getData(vmId, 'resourceSet')
     if (resourceSetId === undefined) {
       throw new Error('the vm is not in a resource set')
