@@ -184,7 +184,7 @@ export default class {
     let duration = this._defaultTokenValidity
     if (expiresIn !== undefined) {
       duration = parseDuration(expiresIn)
-      if (duration <= 60e3) {
+      if (duration < 60e3) {
         throw new Error('invalid expiresIn duration: ' + expiresIn)
       } else if (duration > this._maxTokenValidity) {
         throw new Error('too high expiresIn duration: ' + expiresIn)
