@@ -38,9 +38,13 @@ export default class BackupNgFileRestore {
     })
 
     app.hooks.on('stop', () =>
-      asyncEach(this.#mounts.values(), async pDisposable => {
-        await (await pDisposable).dispose()
-      })
+      asyncEach(
+        this.#mounts.values(),
+        async pDisposable => {
+          await (await pDisposable).dispose()
+        },
+        { stopOnError: false }
+      )
     )
   }
 
