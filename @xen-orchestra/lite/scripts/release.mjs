@@ -10,17 +10,24 @@ const SERVER = "www-xo.gpn.vates.fr";
 const { version: pkgVersion } = await fs.readJson("./package.json");
 
 const opts = argv(process.argv, {
-  boolean: ["help", "build", "deploy", "gh-release", "tarball"],
+  boolean: ["help", "build", "deploy", "ghRelease", "tarball"],
   string: [
     "base",
     "dist",
-    "gh-token",
-    "tarball-dest",
-    "tarball-name",
+    "ghToken",
+    "tarballDest",
+    "tarballName",
     "username",
     "version",
   ],
-  alias: { u: "username", h: "help" },
+  alias: {
+    u: "username",
+    h: "help",
+    "gh-release": "ghRelease",
+    "gh-token": "ghToken",
+    "tarball-dest": "tarballDest",
+    "tarball-name": "tarballName",
+  },
   default: {
     dist: "dist",
     version: pkgVersion,
@@ -62,13 +69,13 @@ const usage = () => {
 
           [
             --tarball - whether to generate a tarball or not
-            [--tarballDest /path/to/folder - tarball destination folder]
-            [--tarballName file.tar.gz - tarball file name - default xo-lite-X.Y.Z.tar.gz]
+            [--tarball-dest /path/to/folder - tarball destination folder]
+            [--tarball-name file.tar.gz - tarball file name - default xo-lite-X.Y.Z.tar.gz]
           ]
 
           [
-            --ghRelease - whether to release on GitHub or not
-            [--ghToken token - GitHub API token with "Contents" write permissions]
+            --gh-release - whether to release on GitHub or not
+            [--gh-token token - GitHub API token with "Contents" write permissions]
           ]
 `
   );
@@ -99,7 +106,7 @@ const ghApiCall = async (path, method = "GET", data) => {
   );
 
   if (!res.ok) {
-    console.log(await res.text());
+    console.log(chalk.red(await res.text()));
     throw new Error(`GitHub API error: ${res.statusText}`);
   }
 
@@ -127,7 +134,7 @@ const ghApiUploadReleaseAsset = async (releaseId, name, file) => {
   );
 
   if (!res.ok) {
-    console.log(await res.text());
+    console.log(chalk.red(await res.text()));
     throw new Error(`GitHub API error: ${res.statusText}`);
   }
 
@@ -138,13 +145,15 @@ const ghApiUploadReleaseAsset = async (releaseId, name, file) => {
 
 if (!build && !deploy && !tarball && !ghRelease) {
   console.log(
-    "Nothing to do! Use --build, --deploy, --tarball and/or --ghRelease"
+    chalk.yellow(
+      "Nothing to do! Use --build, --deploy, --tarball and/or --gh-release"
+    )
   );
   process.exit(0);
 }
 
 if (deploy && ghRelease) {
-  throw new Error("--deploy and --ghRelease cannot be used together");
+  throw new Error("--deploy and --gh-release cannot be used together");
 }
 
 if (deploy && username === undefined) {
@@ -155,15 +164,35 @@ if (base === undefined) {
   base = deploy ? "https://lite.xen-orchestra.com/dist/" : "/";
 }
 
-const tag = `xo-lite-v${version}`;
-let tarballPath;
-if (ghRelease) {
-  if (!tarball && (tarballDest === undefined || tarballName === undefined)) {
-    throw new Error(
-      "In order to release to GitHub, either use --tarball to generate a tarball or provide the tarball with --tarballDest and --tarballName"
-    );
-  }
+if (ghRelease && ghToken === undefined) {
+  throw new Error("--gh-token is required to upload a release to GitHub");
+}
 
+if (
+  ghRelease &&
+  !tarball &&
+  (tarballDest === undefined || tarballName === undefined)
+) {
+  throw new Error(
+    "In order to release to GitHub, either use --tarball to generate the tarball or provide the tarball with --tarball-dest and --tarball-name"
+  );
+}
+
+if (tarball) {
+  if (tarballDest === undefined) {
+    tarballDest = path.join(tmpdir(), `xo-lite-${new Date().toISOString()}`);
+    await fs.mkdirp(tarballDest);
+  }
+  tarballDest = path.resolve(tarballDest);
+
+  if (tarballName === undefined) {
+    tarballName = `xo-lite-${version}.tar.gz`;
+  }
+}
+const tarballPath = path.join(tarballDest, tarballName);
+
+const tag = `xo-lite-v${version}`;
+if (ghRelease) {
   if (!(await $`git tag --points-at HEAD`).stdout.split("\n").includes(tag)) {
     if (
       (
@@ -176,18 +205,6 @@ if (ghRelease) {
       process.exit(0);
     }
   }
-
-  if (tarballDest === undefined) {
-    tarballDest = path.join(tmpdir(), `xo-lite-${new Date().toISOString()}`);
-    await fs.mkdirp(tarballDest);
-  }
-  tarballDest = path.resolve(tarballDest);
-
-  if (tarballName === undefined) {
-    tarballName = `xo-lite-${version}.tar.gz`;
-  }
-
-  tarballPath = path.join(tarballDest, tarballName);
 
   if (!tarball) {
     const noSuchFile = new Error(`Tarball file ${tarballPath} does not exist`);
@@ -215,10 +232,6 @@ if (ghRelease) {
       }
       throw err;
     }
-  }
-
-  if (ghRelease && ghToken === undefined) {
-    throw new Error("--ghToken is required to upload release to GitHub");
   }
 }
 
@@ -287,11 +300,11 @@ if (tarball) {
 // Create GitHub release -------------------------------------------------------
 
 if (ghRelease) {
-  console.log(`Uploading to GitHub: ${tarballPath}`);
+  console.log(`Creating GitHub release ${tag}`);
 
-  const releases = await ghApiCall("/releases");
-
-  let release = releases.find((release) => release.tag_name === tag);
+  let release = (await ghApiCall("/releases")).find(
+    (release) => release.tag_name === tag
+  );
 
   if (release !== undefined) {
     if (
@@ -312,6 +325,8 @@ if (ghRelease) {
     });
   }
 
+  console.log(`Uploading tarball ${tarballPath} to GitHub`);
+
   let asset = release.assets.find((asset) => asset.name === tarballName);
   if (asset !== undefined) {
     if (
@@ -329,11 +344,13 @@ if (ghRelease) {
 
   asset = await ghApiUploadReleaseAsset(release.id, tarballName, tarballPath);
 
-  console.log(`GitHub release: ${release.html_url}`);
+  console.log(`GitHub release: ${chalk.blue(release.html_url)}`);
 
   if (release.draft) {
     console.log(
-      'The release is in DRAFT. To make it public, visit the URL, edit the release and click on "Publish release".'
+      chalk.yellow(
+        'The release is in DRAFT. To make it public, visit the URL, edit the release and click on "Publish release".'
+      )
     );
   }
 }
