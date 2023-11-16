@@ -48,6 +48,7 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import RemoteConsole from "@/components/RemoteConsole.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import { getFirst } from "@/libs/utils";
 import { VM_OPERATION, VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
@@ -128,7 +129,12 @@ const toggleFullScreen = () => {
 };
 
 const openInNewTab = () => {
-  const routeData = router.resolve({ query: { ui: "0" } });
+  const externalMaster = getFirst(route.query["master"]);
+  const query: { ui: string; master?: string } = { ui: "0" };
+  if (externalMaster != undefined) {
+    query["master"] = externalMaster;
+  }
+  const routeData = router.resolve({ query });
   window.open(routeData.href, "_blank");
 };
 </script>

@@ -1,8 +1,11 @@
+import { getFirst } from "@/libs/utils";
 import XapiStats from "@/libs/xapi-stats";
 import XenApi from "@/libs/xen-api/xen-api";
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
+import { watch } from "vue";
 import { computed, ref, watchEffect } from "vue";
+import { useRoute } from "vue-router";
 
 const HOST_URL = import.meta.env.PROD
   ? window.origin
@@ -15,7 +18,18 @@ enum STATUS {
 }
 
 export const useXenApiStore = defineStore("xen-api", () => {
-  const xenApi = new XenApi(HOST_URL);
+  const route = useRoute();
+
+  const hostUrl = computed(() => {
+    const url = new URL(HOST_URL);
+    const masterQueryUrl = getFirst(route.query["master"]);
+    if (masterQueryUrl != undefined) {
+      url.hostname = masterQueryUrl;
+    }
+    return url.origin;
+  });
+
+  const xenApi = new XenApi(hostUrl.value);
   const xapiStats = new XapiStats(xenApi);
   const storedSessionId = useLocalStorage<string | undefined>(
     "sessionId",
@@ -28,6 +42,15 @@ export const useXenApiStore = defineStore("xen-api", () => {
   const isConnecting = computed(() => status.value === STATUS.CONNECTING);
   const getXapi = () => xenApi;
   const getXapiStats = () => xapiStats;
+
+  watch(hostUrl, async (hostUrl) => {
+    if (xenApi.listenedTypes.length === 0) {
+      xenApi.setHostUrl(hostUrl);
+      await reconnect();
+    } else {
+      window.location.reload();
+    }
+  });
 
   watchEffect(() => {
     storedSessionId.value = rememberMe.value
