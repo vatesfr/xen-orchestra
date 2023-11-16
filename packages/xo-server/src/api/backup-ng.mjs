@@ -381,6 +381,12 @@ fetchFiles.params = {
   },
 }
 
+export function listMountedPartitions() {
+  return this.listMountedPartitions()
+}
+
+listMountedPartitions.permission = 'admin'
+
 export function mountPartition({ remote, disk, partition }) {
   return this.mountPartition(remote, disk, partition)
 }

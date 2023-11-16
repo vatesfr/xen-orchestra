@@ -36,6 +36,23 @@ function del(node, i, keys) {
   return node
 }
 
+function* entries(node, key) {
+  if (node !== undefined) {
+    if (node instanceof Node) {
+      const { value } = node
+      if (value !== undefined) {
+        yield [key, node.value]
+      }
+
+      for (const [childKey, child] of node.children.entries()) {
+        yield* entries(child, key.concat(childKey))
+      }
+    } else {
+      yield [key, node]
+    }
+  }
+}
+
 function get(node, i, keys) {
   return i === keys.length
     ? node instanceof Node
@@ -93,6 +110,10 @@ exports.MultiKeyMap = class MultiKeyMap {
 
   delete(keys) {
     this._root = del(this._root, 0, keys)
+  }
+
+  entries() {
+    return entries(this._root, [])
   }
 
   get(keys) {

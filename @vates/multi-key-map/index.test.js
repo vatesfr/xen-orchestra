@@ -27,6 +27,10 @@ describe('MultiKeyMap', () => {
       map.set(key, values[i])
     })
 
+    assert.deepEqual(
+      Array.from(map.entries()),
+      keys.map((key, i) => [key, values[i]])
+    )
     assert.deepEqual(Array.from(map.values()), values)
 
     keys.forEach((key, i) => {
