@@ -6,7 +6,7 @@ import Throttle from 'throttle'
 
 import Ref from '../_Ref.mjs'
 
-export function createInputStream(path) {
+export const createInputStream = path => {
   if (path === undefined || path === '-') {
     return process.stdin
   }
@@ -18,7 +18,7 @@ export function createInputStream(path) {
   return stream
 }
 
-export function createOutputStream(path) {
+export const createOutputStream = path => {
   if (path !== undefined && path !== '-') {
     return createWriteStream(path)
   }
@@ -32,7 +32,7 @@ export function createOutputStream(path) {
 const formatSizeOpts = { scale: 'binary', unit: 'B' }
 const formatSize = bytes => humanFormat(bytes, formatSizeOpts)
 
-export function formatProgress(p) {
+export const formatProgress = p => {
   return [
     formatSize(p.transferred),
     ' / ',
@@ -47,7 +47,7 @@ export function formatProgress(p) {
   ].join('')
 }
 
-export function pipeline(...streams) {
+export const pipeline = (...streams) => {
   return fromCallback(cb => {
     streams = streams.filter(_ => _ != null)
     streams.push(cb)
@@ -67,12 +67,9 @@ const resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
         })
       )
 
-export async function resolveRecord(xapi, type, refOrUuidOrNameLabel) {
-  return xapi.getRecord(type, await resolveRef(xapi, type, refOrUuidOrNameLabel))
-}
+export const resolveRecord = async (xapi, type, refOrUuidOrNameLabel) =>
+  xapi.getRecord(type, await resolveRef(xapi, type, refOrUuidOrNameLabel))
 
 export { resolveRef }
 
-export function throttle(opts) {
-  return opts != null ? new Throttle(opts) : undefined
-}
+export const throttle = opts => (opts != null ? new Throttle(opts) : undefined)

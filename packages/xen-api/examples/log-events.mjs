@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 
-import source_map_support from 'source-map-support'
-source_map_support.install()
+import 'source-map-support/register.js'
 
-import _ from 'lodash'
+import forEach from 'lodash/forEach.js'
+import size from 'lodash/size.js'
 
 import { createClient } from '../index.mjs'
 
 // ===================================================================
 
 if (process.argv.length < 3) {
-  console.log('Usage: log-events <XS URL>')
-  process.exit(1)
+  throw new Error('Usage: log-events <XS URL>')
 }
 
 // ===================================================================
@@ -29,7 +28,7 @@ xapi.connect().then(() => {
   xapi
     .call('VM.get_all_records')
     .then(function (vms) {
-      console.log('%s VMs fetched', _.size(vms))
+      console.log('%s VMs fetched', size(vms))
     })
     .catch(function (error) {
       console.error(error)
@@ -42,19 +41,19 @@ xapi.connect().then(() => {
 const objects = xapi.objects
 
 objects.on('add', objects => {
-  _.forEach(objects, object => {
+  forEach(objects, object => {
     console.log('+ %s: %s', object.$type, object.$id)
   })
 })
 
 objects.on('update', objects => {
-  _.forEach(objects, object => {
+  forEach(objects, object => {
     console.log('± %s: %s', object.$type, object.$id)
   })
 })
 
 objects.on('remove', objects => {
-  _.forEach(objects, (value, id) => {
+  forEach(objects, (value, id) => {
     console.log('- %s', id)
   })
 })
