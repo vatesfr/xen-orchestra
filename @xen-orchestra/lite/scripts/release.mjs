@@ -115,7 +115,7 @@ const ghApiCall = async (path, method = "GET", data) => {
   } catch {}
 };
 
-const ghApiUploadReleaseAsset = async (releaseId, name, file) => {
+const ghApiUploadReleaseAsset = async (releaseId, assetName, file) => {
   const opts = {
     method: "POST",
     body: fs.createReadStream(file),
@@ -129,7 +129,7 @@ const ghApiUploadReleaseAsset = async (releaseId, name, file) => {
   };
 
   const res = await fetch(
-    `https://uploads.github.com/repos/vatesfr/xen-orchestra/releases/${releaseId}/assets?name=${name}`,
+    `https://uploads.github.com/repos/vatesfr/xen-orchestra/releases/${releaseId}/assets?name=${assetName}`,
     opts
   );
 
@@ -201,7 +201,7 @@ if (ghRelease) {
         )
       ).toLowerCase() !== "y"
     ) {
-      console.log("Stopping");
+      console.log(chalk.yellow("Stopping"));
       process.exit(0);
     }
   }
@@ -310,11 +310,12 @@ if (ghRelease) {
     if (
       (
         await question(
-          `Release with tag ${tag} already exists. Skip and proceed? [y/N] `
+          `Release with tag ${tag} already exists. Skip and proceed with upload? [y/N] `
         )
       ).toLowerCase() !== "y"
     ) {
-      console.log("Stopping");
+      console.log(`Existing GitHub release: ${chalk.blue(release.html_url)}`);
+      console.log(chalk.yellow("Stopping"));
       process.exit(0);
     }
   } else {
@@ -328,21 +329,22 @@ if (ghRelease) {
   console.log(`Uploading tarball ${tarballPath} to GitHub`);
 
   let asset = release.assets.find((asset) => asset.name === tarballName);
-  if (asset !== undefined) {
-    if (
-      (
-        await question(
-          `An asset called ${tarballName} already exists on that release. Replace it? [y/N] `
-        )
-      ).toLowerCase() !== "y"
-    ) {
-      console.log("Stopping");
-      process.exit(0);
-    }
+  if (
+    asset !== undefined &&
+    (
+      await question(
+        `An asset called ${tarballName} already exists on that release. Replace it? [y/N] `
+      )
+    ).toLowerCase() === "y"
+  ) {
     await ghApiCall(`/releases/assets/${asset.id}`, "DELETE");
+    asset = undefined;
   }
 
-  asset = await ghApiUploadReleaseAsset(release.id, tarballName, tarballPath);
+  if (asset === undefined) {
+    console.log("Uploading…");
+    asset = await ghApiUploadReleaseAsset(release.id, tarballName, tarballPath);
+  }
 
   console.log(`GitHub release: ${chalk.blue(release.html_url)}`);
 
