@@ -38,7 +38,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 8rem;
+  height: 5.5rem;
   padding: 1rem;
   border-bottom: 0.1rem solid var(--color-blue-scale-400);
   background-color: var(--background-color-secondary);
@@ -48,7 +48,8 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
   }
 
   .text-logo {
-    margin: 1rem;
+    margin-left: 1rem;
+    vertical-align: middle;
   }
 }
 

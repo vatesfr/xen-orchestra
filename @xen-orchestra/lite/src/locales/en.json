@@ -43,6 +43,7 @@
   "delete-vms": "Delete 1 VM | Delete {n} VMs",
   "descending": "descending",
   "description": "Description",
+  "disabled": "Disabled",
   "display": "Display",
   "do-you-have-needs": "You have needs and/or expectations? Let us know",
   "documentation": "Documentation",
@@ -51,8 +52,11 @@
   "error-no-data": "Error, can't collect data.",
   "error-occurred": "An error has occurred",
   "export": "Export",
+  "export-n-vms": "Export 1 VM | Export {n} VMs",
+  "export-n-vms-manually": "Export 1 VM manually | Export {n} VMs manually",
   "export-table-to": "Export table to {type}",
   "export-vms": "Export VMs",
+  "export-vms-manually-information": "Some VM exports were not able to start automatically, probably due to your browser settings. To export them, you should click on each one. (Alternatively, copy the link as well.)",
   "fetching-fresh-data": "Fetching fresh data",
   "filter": {
     "comparison": {
@@ -78,6 +82,7 @@
   "fullscreen": "Fullscreen",
   "fullscreen-leave": "Leave fullscreen",
   "go-back": "Go back",
+  "gzip": "gzip",
   "here": "Here",
   "hosts": "Hosts",
   "keep-me-logged": "Keep me logged in",
@@ -88,6 +93,7 @@
   "loading-hosts": "Loading hosts…",
   "log-out": "Log out",
   "login": "Login",
+  "login-only-on-master": "Login is only possible on the master host",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
@@ -103,6 +109,7 @@
   "news": "News",
   "news-name": "{name} news",
   "no-alarm-triggered": "No alarm triggered",
+  "no-selected-vm-can-be-exported": "No selected VM can be exported",
   "no-selected-vm-can-be-migrated": "No selected VM can be migrated",
   "no-tasks": "No tasks",
   "not-found": "Not found",
@@ -138,6 +145,7 @@
   },
   "resume": "Resume",
   "save": "Save",
+  "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
   "selected-vms-in-execution": "Some selected VMs are running",
   "send-ctrl-alt-del": "Send Ctrl+Alt+Del",
@@ -179,5 +187,6 @@
   "version": "Version",
   "vm-is-running": "The VM is running",
   "vms": "VMs",
-  "xo-lite-under-construction": "XOLite is under construction"
+  "xo-lite-under-construction": "XOLite is under construction",
+  "zstd": "zstd"
 }

@@ -39,4 +39,8 @@ titleStore.setCount(() => pendingTasks.value.length);
     font-size: 1.4rem;
   }
 }
+
+.ui-card {
+  margin: 1rem;
+}
 </style>

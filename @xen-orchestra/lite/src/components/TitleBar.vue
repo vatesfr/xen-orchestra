@@ -27,20 +27,20 @@ defineProps<{
 .title-bar {
   display: flex;
   align-items: center;
-  height: 8rem;
-  padding: 0 2rem;
+  height: 6rem;
+  padding: 0 1.5rem;
   border-bottom: 1px solid var(--color-blue-scale-400);
   background-color: var(--background-color-primary);
-  gap: 1.5rem;
+  gap: 0.8rem;
 }
 
 .icon {
-  font-size: 3.8rem;
+  font-size: 2.5rem;
   color: var(--color-extra-blue-base);
 }
 
 .title {
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: var(--color-blue-scale-100);
 }
 </style>

@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Add `users` collection
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
 - [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [ #7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
 
 ### Bug fixes
@@ -15,6 +16,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+- [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
+- [Export/OVA] Handle export with resulting disk larger than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
 
 ### Packages to release
 
@@ -32,7 +35,11 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
-- xo-server minor
+- @xen-orchestra/vmware-explorer patch
+- xo-server-netbox minor
+- xo-vmdk-to-vhd patch
+- xo-web patch
 
 <!--packages-end-->

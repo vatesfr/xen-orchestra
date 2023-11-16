@@ -491,3 +491,9 @@ export enum CERTIFICATE_TYPE {
   HOST = "host",
   HOST_INTERNAL = "host_internal",
 }
+
+export enum VM_COMPRESSION_TYPE {
+  DISABLED = "false",
+  GZIP = "true",
+  ZSTD = "zstd",
+}

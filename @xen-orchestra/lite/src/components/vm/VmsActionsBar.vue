@@ -21,7 +21,7 @@
       {{ $t("edit-config") }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
-    <VmActionExportItem :vm-refs="selectedRefs" />
+    <VmActionExportItems :vm-refs="selectedRefs" />
     <VmActionDeleteItem :vm-refs="selectedRefs" />
   </AppMenu>
 </template>
@@ -32,7 +32,7 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
-import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
+import VmActionExportItems from "@/components/vm/VmActionItems/VmActionExportItems.vue";
 import VmActionMigrateItem from "@/components/vm/VmActionItems/VmActionMigrateItem.vue";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionSnapshotItem from "@/components/vm/VmActionItems/VmActionSnapshotItem.vue";

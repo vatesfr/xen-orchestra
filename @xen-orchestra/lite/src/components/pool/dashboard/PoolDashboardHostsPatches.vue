@@ -2,7 +2,7 @@
   <UiCard>
     <UiCardTitle class="patches-title">
       {{ $t("patches") }}
-      <template v-if="areAllLoaded" #right>
+      <template v-if="areAllLoaded && count > 0" #right>
         {{ $t("n-missing", { n: count }) }}
       </template>
     </UiCardTitle>
@@ -35,7 +35,7 @@ const { count, patches, areSomeLoaded, areAllLoaded } = useHostPatches(hosts);
 }
 
 .table-container {
-  max-height: 40rem;
+  max-height: 25rem;
   overflow: auto;
 }
 </style>
