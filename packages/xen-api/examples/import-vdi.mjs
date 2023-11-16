@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+import './env.mjs'
 
 import getopts from 'getopts'
 import { defer } from 'golike-defer'

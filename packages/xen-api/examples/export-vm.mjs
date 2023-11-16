@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+import './env.mjs'
 
 import createProgress from 'progress-stream'
 import getopts from 'getopts'

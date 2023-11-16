@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = 'xen-api'
+import './env.mjs'
 
 import createProgress from 'progress-stream'
 import createTop from 'process-top'
