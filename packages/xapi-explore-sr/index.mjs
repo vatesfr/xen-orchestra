@@ -7,7 +7,9 @@ import firstDefined from '@xen-orchestra/defined'
 import humanFormat from 'human-format'
 import pw from 'pw'
 import { createClient } from 'xen-api'
-import { forEach, map, orderBy } from 'lodash'
+import forEach from 'lodash/forEach.js'
+import map from 'lodash/map.js'
+import orderBy from 'lodash/orderBy.js'
 
 // ===================================================================
 

@@ -39,5 +39,6 @@
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web patch
+- xapi-explore-sr major
 
 <!--packages-end-->
