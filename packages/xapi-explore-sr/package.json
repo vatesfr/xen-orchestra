@@ -42,7 +42,6 @@
     "pw": "^0.0.4",
     "xen-api": "^1.3.6"
   },
-  "devDependencies": {},
   "scripts": {
     "postversion": "npm publish"
   }
