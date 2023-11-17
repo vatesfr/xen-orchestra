@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
+import { createClient } from 'xen-api'
 import archy from 'archy'
 import chalk from 'chalk'
 import execPromise from 'exec-promise'
 import firstDefined from '@xen-orchestra/defined'
-import humanFormat from 'human-format'
-import pw from 'pw'
-import { createClient } from 'xen-api'
 import forEach from 'lodash/forEach.js'
+import humanFormat from 'human-format'
 import map from 'lodash/map.js'
 import orderBy from 'lodash/orderBy.js'
+import pw from 'pw'
 
 // ===================================================================
 

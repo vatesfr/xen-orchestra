@@ -36,9 +36,9 @@
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
+- xapi-explore-sr major
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web patch
-- xapi-explore-sr major
 
 <!--packages-end-->
