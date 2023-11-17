@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-'use strict'
+import { Ref, Xapi } from 'xen-api'
+import { defer } from 'golike-defer'
+import { readFileSync } from 'fs'
 
-const { Ref, Xapi } = require('xen-api')
-const { defer } = require('golike-defer')
-
-const pkg = require('./package.json')
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)))
 
 Xapi.prototype.getVmDisks = async function (vm) {
   const disks = { __proto__: null }
