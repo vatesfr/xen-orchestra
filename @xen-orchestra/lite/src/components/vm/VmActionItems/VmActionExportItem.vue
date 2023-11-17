@@ -3,7 +3,7 @@
     v-tooltip="
       vmRefs.length > 0 &&
       !isSomeExportable &&
-      $t('no-selected-vm-can-be-exported')
+      $t(isSingleAction ? 'vm-is-running' : 'no-selected-vm-can-be-exported')
     "
     :icon="faDisplay"
     :disabled="isDisabled"
@@ -26,7 +26,10 @@ import { vTooltip } from "@/directives/tooltip.directive";
 
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 
-const props = defineProps<{ vmRefs: XenApiVm["$ref"][] }>();
+const props = defineProps<{
+  vmRefs: XenApiVm["$ref"][];
+  isSingleAction?: boolean;
+}>();
 
 const { getByOpaqueRefs, areSomeOperationAllowed } = useVmCollection();
 
