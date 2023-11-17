@@ -87,8 +87,8 @@ export class ImportVmBackup {
           xapi.call(
             'VM.set_name_description',
             vmRef,
-            `${metadata.vm.name_description}
-            Restored on ${formatFilenameDate(+new Date())} from ${adapter._handler._remote.name}
+            `Restored on ${formatFilenameDate(+new Date())} from ${adapter._handler._remote.name} -
+             ${metadata.vm.name_description}
             `
           ),
         ])
