@@ -40,7 +40,7 @@
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web patch
-- xo-server minor
 - xen-api major
+- xo-server minor
 
 <!--packages-end-->
