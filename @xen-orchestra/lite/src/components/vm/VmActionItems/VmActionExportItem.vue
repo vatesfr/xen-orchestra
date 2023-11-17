@@ -9,7 +9,7 @@
     :disabled="isDisabled"
     @click="openModal"
   >
-    {{ $t("export-vms") }}
+    {{ $t(isSingleAction ? "export-vm" : "export-vms") }}
   </MenuItem>
 </template>
 <script lang="ts" setup>

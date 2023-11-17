@@ -6,7 +6,7 @@
 - More compact UI (PR [#7159](https://github.com/vatesfr/xen-orchestra/pull/7159))
 - Fix dashboard host patches list (PR [#7169](https://github.com/vatesfr/xen-orchestra/pull/7169))
 - Ability to export selected VMs (PR [#7174](https://github.com/vatesfr/xen-orchestra/pull/7174))
-- [VM/Action] Ability to export a VM from its view
+- [VM/Action] Ability to export a VM from its view (PR [#7190](https://github.com/vatesfr/xen-orchestra/pull/7190))
 
 ## **0.1.5** (2023-11-07)
 
