@@ -1220,7 +1220,6 @@ export default class NewVm extends BaseComponent {
                 </Item>
               )}
             </LineItem>
-            <br />
           </SectionContent>
         ) : (
           <SectionContent>
