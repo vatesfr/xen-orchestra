@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { Ref, Xapi } from 'xen-api'
 import { defer } from 'golike-defer'
 import { readFileSync } from 'fs'
+import { Ref, Xapi } from 'xen-api'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)))
 
