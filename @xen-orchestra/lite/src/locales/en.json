@@ -226,6 +226,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
+  "vm-count": "{n} VMs running",
   "vm-is-running": "The VM is running",
   "vms": "VMs",
   "xo-lite-under-construction": "XOLite is under construction",

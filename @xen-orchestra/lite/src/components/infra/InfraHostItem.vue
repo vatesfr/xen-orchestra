@@ -5,7 +5,10 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      {{ host.name_label || "(Host)" }}
+      <span class="host-item">
+        <p>{{ host.name_label || "(Host)" }}</p>
+        <p class="vm-count">{{ $t("vm-count", { n: vmCount }) }}</p>
+      </span>
       <template #actions>
         <InfraAction
           v-if="isPoolMaster"
@@ -18,9 +21,6 @@
           @click="toggle()"
         />
       </template>
-      <li class="vm-number" v-if="!isExpanded && faAngleUp">
-        {{ getVmCount }} VMs
-      </li>
     </InfraItemLabel>
 
     <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
@@ -63,18 +63,19 @@ const isCurrentHost = computed(
 );
 const [isExpanded, toggle] = useToggle(true);
 
-const getVmCount = computed(() => {
-  const { recordsByHostRef } = useVmCollection();
-  const vms = recordsByHostRef.value.get(
-    props.hostOpaqueRef ?? ("OpaqueRef:NULL" as XenApiHost["$ref"])
-  );
-  return !isExpanded.value ? (vms ? vms.length : 0) : undefined;
+const { recordsByHostRef } = useVmCollection();
+
+const vmCount = computed(() => {
+  const vms = recordsByHostRef.value.get(props.hostOpaqueRef);
+  return vms?.length;
 });
 </script>
 
 <style lang="postcss" scoped>
 .infra-host-item:deep(.link),
 .infra-host-item:deep(.link-placeholder) {
+  display: flex;
+  align-content: baseline;
   padding-left: 2rem;
 }
 
@@ -87,7 +88,14 @@ const getVmCount = computed(() => {
   color: var(--color-orange-world-base);
 }
 
-.vm-number {
+.host-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.vm-count {
   font-style: italic;
+  font-size: smaller;
+  color: var(--color-blue-scale-200);
 }
 </style>

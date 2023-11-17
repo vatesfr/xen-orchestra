@@ -9,7 +9,7 @@
 - Add new UiStatusPanel component (PR [#7227](https://github.com/vatesfr/xen-orchestra/pull/7227))
 - XOA quick deploy (PR [#7245](https://github.com/vatesfr/xen-orchestra/pull/7245))
 - Fix infinite loader when no stats on pool dashboard (PR [#7236](https://github.com/vatesfr/xen-orchestra/pull/7236))
-- [Navigation] Display VMs count when menu is minimized (PR [#7185](https://github.com/vatesfr/xen-orchestra/pull/7185))
+- [Tree view] Display VMs count when host is minimized (PR [#7185](https://github.com/vatesfr/xen-orchestra/pull/7185))
 
 ## **0.1.6** (2023-11-30)
 
