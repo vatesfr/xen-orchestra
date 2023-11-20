@@ -408,6 +408,11 @@ export default class {
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }
 
+  /**
+   * Change or remove (if null) the resource set a VM belongs to
+   *
+   * The VM is also automatically shared in the new resource set.
+   */
   @decorateWith(deferrable)
   async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
     const xapi = this._app.getXapi(vmId)
@@ -430,10 +435,6 @@ export default class {
     }
 
     await xapi.xo.setData(vmId, 'resourceSet', resourceSetId === undefined ? null : resourceSetId)
-    await xapi.barrier(xapi.getObject(vmId).$ref)
-    // barrier function is used to ensure completion of previous asynchronous operations
-    // on the vmId object, guaranteeing that all modifications are considered before
-    // retrieving the resourceSetId value.
     $defer.onFailure(() =>
       xapi.xo.setData(vmId, 'resourceSet', previousResourceSetId === undefined ? null : previousResourceSetId)
     )
@@ -442,6 +443,9 @@ export default class {
       await this._app.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
+      // ensure the object VM is up-to-date
+      await xapi.barrier(xapi.getObject(vmId).$ref)
+
       await this.shareVmResourceSet(vmId)
     }
   }
