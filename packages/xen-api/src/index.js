@@ -282,8 +282,8 @@ export class Xapi extends EventEmitter {
     return isReadOnlyCall(method, args)
       ? this._roCall(method, args)
       : this._readOnly
-      ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(method, args)
+        ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
+        : this._sessionCall(method, args)
   }
 
   @cancelable

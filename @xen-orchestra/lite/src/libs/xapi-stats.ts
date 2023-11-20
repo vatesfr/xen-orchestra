@@ -82,8 +82,8 @@ const testMetric = (
   typeof test === "string"
     ? test === type
     : typeof test === "function"
-    ? test(type)
-    : test.exec(type);
+      ? test(type)
+      : test.exec(type);
 
 const findMetric = (metrics: any, metricType: string) => {
   let testResult;

@@ -17,20 +17,21 @@ if (process.argv.length < 3) {
 
 const xapi = createClient({
   allowUnauthorized: true,
-  url: process.argv[2]
+  url: process.argv[2],
 })
 
 // ===================================================================
 // Method call
 
 xapi.connect().then(() => {
-  xapi.call('VM.get_all_records')
-  .then(function (vms) {
-    console.log('%s VMs fetched', size(vms))
-  })
-  .catch(function (error) {
-    console.error(error)
-  })
+  xapi
+    .call('VM.get_all_records')
+    .then(function (vms) {
+      console.log('%s VMs fetched', size(vms))
+    })
+    .catch(function (error) {
+      console.error(error)
+    })
 })
 
 // ===================================================================

@@ -157,10 +157,10 @@ const BindLicensesButton = decorate([
         getXoaPlan() === SOURCES
           ? _('poolSupportSourceUsers')
           : !state.isXcpngPool
-          ? _('poolSupportXcpngOnly')
-          : state.isBindLicenseAvailable
-          ? undefined
-          : _('poolLicenseAlreadyFullySupported')
+            ? _('poolSupportXcpngOnly')
+            : state.isBindLicenseAvailable
+              ? undefined
+              : _('poolLicenseAlreadyFullySupported')
       }
     >
       {_('bindXcpngLicenses')}

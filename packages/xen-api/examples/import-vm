@@ -17,7 +17,7 @@ defer(async ($defer, args) => {
   const xapi = createClient({
     allowUnauthorized: true,
     url: args[0],
-    watchEvents: false
+    watchEvents: false,
   })
 
   await xapi.connect()
@@ -28,8 +28,6 @@ defer(async ($defer, args) => {
 
   // https://xapi-project.github.io/xen-api/importexport.html
   await xapi.putResource(token, createInputStream(args[1]), '/import/', {
-    query: args[2] && { sr_id: await resolveRef(xapi, 'SR', args[2]) }
+    query: args[2] && { sr_id: await resolveRef(xapi, 'SR', args[2]) },
   })
-})(process.argv.slice(2)).catch(
-  console.error.bind(console, 'error')
-)
+})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

@@ -9,15 +9,14 @@ const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const {
-  createOutputStream,
-  formatProgress,
-  pipeline,
-  resolveRecord,
-} = require('./utils')
+const { createOutputStream, formatProgress, pipeline, resolveRecord } = require('./utils')
 
 defer(async ($defer, rawArgs) => {
-  const { gzip, zstd, _: args } = getopts(rawArgs, {
+  const {
+    gzip,
+    zstd,
+    _: args,
+  } = getopts(rawArgs, {
     boolean: ['gzip', 'zstd'],
   })
 

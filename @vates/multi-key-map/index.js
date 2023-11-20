@@ -42,8 +42,8 @@ function get(node, i, keys) {
       ? node.value
       : node
     : node instanceof Node
-    ? get(node.children.get(keys[i]), i + 1, keys)
-    : undefined
+      ? get(node.children.get(keys[i]), i + 1, keys)
+      : undefined
 }
 
 function set(node, i, keys, value) {

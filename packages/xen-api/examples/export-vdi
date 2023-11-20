@@ -10,16 +10,14 @@ const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const {
-  createOutputStream,
-  formatProgress,
-  pipeline,
-  resolveRecord,
-  throttle,
-} = require('./utils')
+const { createOutputStream, formatProgress, pipeline, resolveRecord, throttle } = require('./utils')
 
 defer(async ($defer, rawArgs) => {
-  const { raw, throttle: bps, _: args } = getopts(rawArgs, {
+  const {
+    raw,
+    throttle: bps,
+    _: args,
+  } = getopts(rawArgs, {
     boolean: 'raw',
     alias: {
       raw: 'r',
@@ -28,9 +26,7 @@ defer(async ($defer, rawArgs) => {
   })
 
   if (args.length < 2) {
-    return console.log(
-      'Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]'
-    )
+    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
@@ -67,10 +63,5 @@ defer(async ($defer, rawArgs) => {
     }, 1e3)
   )
 
-  await pipeline(
-    exportStream,
-    progressStream,
-    throttle(bps),
-    createOutputStream(args[2])
-  )
+  await pipeline(exportStream, progressStream, throttle(bps), createOutputStream(args[2]))
 })(process.argv.slice(2)).catch(console.error.bind(console, 'error'))
