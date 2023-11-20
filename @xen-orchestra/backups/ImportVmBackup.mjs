@@ -5,6 +5,16 @@ import { importIncrementalVm } from './_incrementalVm.mjs'
 import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
+async function resolveUuid(xapi, cache, uuid, type) {
+  if (uuid == null) {
+    return uuid
+  }
+  const ref = cache.get(uuid)
+  if (ref === undefined) {
+    cache.set(uuid, xapi.call(`${type}.get_by_uuid`, uuid))
+  }
+  return cache.get(uuid)
+}
 export class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses, mapVdisSrs = {} } = {} }) {
     this._adapter = adapter
@@ -14,13 +24,29 @@ export class ImportVmBackup {
     this._xapi = xapi
   }
 
+  async #decorateIncrementalVmMetadata(backup) {
+    const { mapVdisSrs } = this._importIncrementalVmSettings
+    const xapi = this._xapi
+
+    const cache = new Map()
+    const mapVdisSrRefs = {}
+    for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
+      mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
+    }
+    const sr = await resolveUuid(xapi, cache, this._srUuid, 'SR')
+    Object.values(backup.vdis).forEach(vdi => {
+      vdi.SR = mapVdisSrRefs[vdi.uuid] ?? sr.$ref
+    })
+    return backup
+  }
+
   async run() {
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
 
     const sizeContainer = { size: 0 }
-
+    const { mapVdisSrs, newMacAddresses } = this._importIncrementalVmSettings
     let backup
     if (isFull) {
       backup = await adapter.readFullVmBackup(metadata)
@@ -29,11 +55,11 @@ export class ImportVmBackup {
       assert.strictEqual(metadata.mode, 'delta')
 
       const ignoredVdis = new Set(
-        Object.entries(this._importIncrementalVmSettings.mapVdisSrs)
+        Object.entries(mapVdisSrs)
           .filter(([_, srUuid]) => srUuid === null)
           .map(([vdiUuid]) => vdiUuid)
       )
-      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis)
+      backup = await this.#decorateIncrementalVmMetadata(await adapter.readIncrementalVmBackup(metadata, ignoredVdis))
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
@@ -48,8 +74,7 @@ export class ImportVmBackup {
         const vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
-              ...this._importIncrementalVmSettings,
-              detectBase: false,
+              newMacAddresses,
             })
 
         await Promise.all([
