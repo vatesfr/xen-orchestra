@@ -37,10 +37,9 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/cr-seed-cli major
 - @xen-orchestra/vmware-explorer patch
+- xen-api major
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web patch
-- xen-api major
-- xo-server minor
 
 <!--packages-end-->
