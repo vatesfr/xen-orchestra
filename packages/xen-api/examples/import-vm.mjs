@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+import './env.mjs'
 
-const defer = require('golike-defer').default
-const { CancelToken } = require('promise-toolbox')
+import { defer } from 'golike-defer'
+import { CancelToken } from 'promise-toolbox'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
-const { createInputStream, resolveRef } = require('./utils')
+import { createInputStream, resolveRef } from './utils.mjs'
 
 defer(async ($defer, args) => {
   if (args.length < 1) {

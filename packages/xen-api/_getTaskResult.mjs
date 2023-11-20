@@ -1,6 +1,6 @@
 import { Cancel } from 'promise-toolbox'
 
-import XapiError from './_XapiError'
+import XapiError from './_XapiError.mjs'
 
 export default task => {
   const { status } = task
