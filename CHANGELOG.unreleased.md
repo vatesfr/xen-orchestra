@@ -12,6 +12,7 @@
 - [Restore] Show source remote and restoration time on a restored VM (PR [#7186](https://github.com/vatesfr/xen-orchestra/pull/7186))
 - [Backup/Import] Show disk import status during Incremental Replication or restoration of Incremental Backup (PR [#7171](https://github.com/vatesfr/xen-orchestra/pull/7171))
 - [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [#7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
+- [REST API] `tags` property can be updated (PR [#7196](https://github.com/vatesfr/xen-orchestra/pull/7196))
 
 ### Bug fixes
 
@@ -43,7 +44,7 @@
 - @xen-orchestra/cr-seed-cli major
 - @xen-orchestra/vmware-explorer patch
 - xen-api major
-- xo-server patch
+- xo-server minor
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
