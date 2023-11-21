@@ -1200,6 +1200,7 @@ const messages = {
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
   ctrlAltDelConfirmation: 'Send Ctrl+Alt+Del to VM?',
+  disabledConsole: 'Console is disabled for this VM',
   multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
