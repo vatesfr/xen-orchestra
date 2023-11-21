@@ -48,6 +48,7 @@
     "promise-toolbox": "^0.21.0",
     "proxy-agent": "^5.0.0",
     "pw": "0.0.4",
+    "undici": "^5.27.2",
     "xmlrpc": "^1.3.2",
     "xo-collection": "^0.5.0"
   },

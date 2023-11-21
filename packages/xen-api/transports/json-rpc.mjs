@@ -1,4 +1,4 @@
-import httpRequestPlus from 'http-request-plus'
+import { Client } from 'undici'
 import { format, parse } from 'json-rpc-protocol'
 
 import XapiError from '../_XapiError.mjs'
@@ -9,15 +9,22 @@ import UnsupportedTransport from './_UnsupportedTransport.mjs'
 export default ({ secureOptions, url, agent }) => {
   url = new URL('./jsonrpc', Object.assign(new URL('http://localhost'), url))
 
+  const path = url.pathname + url.search
+  url.pathname = url.search = ''
+
+  const client = new Client(url, {
+    connect: secureOptions,
+  })
+
   return async function (method, args) {
-    const res = await httpRequestPlus(url, {
-      ...secureOptions,
+    const res = await client.request({
       body: format.request(0, method, args),
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       method: 'POST',
+      path,
       agent,
     })
 
@@ -26,7 +33,7 @@ export default ({ secureOptions, url, agent }) => {
       throw new UnsupportedTransport()
     }
 
-    const response = parse(await res.text())
+    const response = parse(await res.body.text())
 
     if (response.type === 'response') {
       return response.result
