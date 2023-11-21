@@ -140,7 +140,7 @@ class Vdi {
     try {
       const taskRef = await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`)
       const uuid = await this.getField('task', taskRef, 'uuid')
-      await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': stream.length })
+      await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': stream.length.toString() })
       await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
         query: {
           format,
