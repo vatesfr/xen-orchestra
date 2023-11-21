@@ -15,6 +15,7 @@
 - [REST API] `tags` property can be updated (PR [#7196](https://github.com/vatesfr/xen-orchestra/pull/7196))
 - [REST API] A VDI export can now be imported in an existing VDI (PR [#7199](https://github.com/vatesfr/xen-orchestra/pull/7199))
 - [File Restore] API method `backupNg.mountPartition` to manually mount a backup disk on the XOA
+- [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
 
 ### Bug fixes
 

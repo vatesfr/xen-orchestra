@@ -170,7 +170,9 @@ const COLUMNS_VM_PV = [
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
-const COLUMNS_VDI_IMPORT_STATUS = [
+const PROGRESS_STYLES = { margin: 0 }
+
+const COLUMN_VDI_TASKS = [
   {
     itemRenderer: task => task.name_label,
     name: _('name'),
@@ -179,19 +181,19 @@ const COLUMNS_VDI_IMPORT_STATUS = [
     itemRenderer: (task, { vdiByTaskId }) =>
       formatSize(Number(vdiByTaskId[task.uuid][0].other_config['xo:import:length'])),
     name: _('size'),
-    sortCriteria: (task, { vdiByTaskId }) => vdiByTaskId[task.uuid][0].other_config['xo:import:length'],
+    sortCriteria: (task, { vdiByTaskId }) => Number(vdiByTaskId[task.uuid][0].other_config['xo:import:length']),
   },
   {
-    itemRenderer: task => <progress style={{ margin: 0 }} className='progress' value={task.progress * 100} max='100' />,
+    itemRenderer: task => (
+      <progress style={PROGRESS_STYLES} className='progress' value={task.progress * 100} max='100' />
+    ),
     name: _('progress'),
     sortCriteria: 'progress',
   },
   {
-    default: true,
     itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
     name: _('taskStarted'),
     sortCriteria: 'created',
-    sortOrder: 'desc',
   },
   {
     itemRenderer: task => {
@@ -771,7 +773,7 @@ export default class TabDisks extends Component {
               <CardBlock>
                 <SortedTable
                   collection={this.props.tasks}
-                  columns={COLUMNS_VDI_IMPORT_STATUS}
+                  columns={COLUMN_VDI_TASKS}
                   data-vdiByTaskId={this._getVdiByTaskId()}
                   sateUrlParam='t'
                 />
