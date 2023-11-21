@@ -9,6 +9,7 @@
 
 - [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
 - [VM/Console] Add a message to indicate that the console view has been [disabled](https://support.citrix.com/article/CTX217766/how-to-disable-the-console-for-the-vm-in-xencenter) for this VM [#6319](https://github.com/vatesfr/xen-orchestra/issues/6319) (PR [#7161](https://github.com/vatesfr/xen-orchestra/pull/7161))
+- [Restore] Show source remote and restoration time on a restored VM (PR [#7186](https://github.com/vatesfr/xen-orchestra/pull/7186))
 
 ### Bug fixes
 
@@ -36,7 +37,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/cr-seed-cli major
 - @xen-orchestra/vmware-explorer patch
 - xen-api major
