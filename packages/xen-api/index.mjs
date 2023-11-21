@@ -5,6 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
+import { Client } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -402,37 +403,54 @@ export class Xapi extends EventEmitter {
     }
 
     let url = new URL('http://localhost')
-    url.protocol = this._url.protocol
-    url.pathname = pathname
-    url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
     const response = await this._addSyncStackTrace(
       pRetry(
-        async () =>
-          httpRequest(url, {
-            rejectUnauthorized: !this._allowUnauthorized,
+        async () => {
+          const client = new Client(url, {
+            connect: {
+              rejectUnauthorized: !this._allowUnauthorized,
+              // Support XS <= 6.5 with Node => 12
+              minVersion: 'TLSv1',
+            },
+          })
 
-            // this is an inactivity timeout (unclear in Node doc)
-            timeout: this._httpInactivityTimeout,
+          return client
+            .request({
+              method: 'GET',
+              path: pathname,
+              query,
+              maxRedirections: 0,
+              headersTimeout: this._httpInactivityTimeout,
+              bodyTimeout: this._httpInactivityTimeout,
+              agent: this.httpAgent,
 
-            maxRedirects: 0,
-
-            // Support XS <= 6.5 with Node => 12
-            minVersion: 'TLSv1',
-            agent: this.httpAgent,
-
-            signal: $cancelToken,
-          }),
+              signal: $cancelToken,
+            })
+            .then(response => {
+              const { statusCode } = response
+              if (((statusCode / 100) | 0) === 2) {
+                return response
+              }
+              const error = new Error(`${response.statusCode} ${response.statusMessage}`)
+              Object.defineProperty(error, 'response', { value: response })
+              throw error
+            })
+        },
         {
           when: error => error.response !== undefined && error.response.statusCode === 302,
           onRetry: async error => {
             const response = error.response
-            if (response === undefined) {
+            if (response === undefined || response.body === undefined) {
               throw error
             }
-            response.destroy()
+            response.body.on('error', noop)
+            response.body.destroy()
             url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
+            query = Object.fromEntries(url.searchParams.entries())
+            pathname = url.pathname
+            url.pathname = url.search = ''
           },
         }
       )
@@ -953,14 +971,18 @@ export class Xapi extends EventEmitter {
     const { hostname } = url
     url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
 
-    this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
-    this._transport = this._createTransport({
-      secureOptions: {
+    const client = new Client(url, {
+      connect: {
         minVersion: 'TLSv1',
         rejectUnauthorized: !this._allowUnauthorized,
       },
-      url,
+    })
+
+    this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
+    this._transport = this._createTransport({
       agent: this.httpAgent,
+      client,
+      url,
     })
     this._url = url
   }

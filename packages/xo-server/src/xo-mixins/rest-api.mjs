@@ -607,18 +607,7 @@ export default class RestApi {
         const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
         const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
 
-        // stream can be an HTTP response, in this case, extract interesting data
-        const { headers = {}, length, statusCode = 200, statusMessage = 'OK' } = stream
-
-        // Set the correct disposition
-        headers['content-disposition'] = 'attachment'
-
-        // expose the stream length if known
-        if (headers['content-length'] === undefined && length !== undefined) {
-          headers['content-length'] = length
-        }
-
-        res.writeHead(statusCode, statusMessage, headers)
+        res.writeHead(200, 'OK', { 'content-disposition': 'attachment', 'content-length': stream.length })
         await pipeline(stream, res)
       })
     )
@@ -634,12 +623,16 @@ export default class RestApi {
     api.get(
       '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
       wrap(async (req, res) => {
-        const stream = await req.xapiObject.$export({ compress: req.query.compress })
+        const { body, headers, statusCode, statusMessage } = await req.xapiObject.$export({
+          compress: req.query.compress,
+        })
 
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+        res.writeHead(statusCode, statusMessage != null ? statusMessage : '', {
+          ...headers,
+          'content-disposition': 'attachment',
+        })
 
-        await pipeline(stream, res)
+        await pipeline(body, res)
       })
     )
 

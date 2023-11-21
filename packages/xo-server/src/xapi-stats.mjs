@@ -255,7 +255,7 @@ export default class XapiStats {
           start: timestamp,
         },
       })
-      .then(response => response.text())
+      .then(response => response.body.text())
       .then(data => {
         try {
           // starting from XAPI 23.31, the response is valid JSON

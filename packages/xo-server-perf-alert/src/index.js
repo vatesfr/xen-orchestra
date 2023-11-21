@@ -693,7 +693,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
       payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
-    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).text())
+    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).body.text())
   }
 }
 

@@ -385,9 +385,11 @@ export default class Xapi extends XapiBase {
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.VM_export(this.getObject(vmId).$ref, {
-      compress,
-    })
+    const stream = (
+      await this.VM_export(this.getObject(vmId).$ref, {
+        compress,
+      })
+    ).body
 
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 

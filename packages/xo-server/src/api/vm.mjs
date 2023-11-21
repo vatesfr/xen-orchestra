@@ -1212,7 +1212,7 @@ revert.resolve = {
 async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' }) {
   // @todo : should we put back the handleExportFAIL_ON_QUEUE ?
   const stream =
-    format === 'ova' ? await xapi.exportVmOva(vmRef) : await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })
+    format === 'ova' ? await xapi.exportVmOva(vmRef) : (await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })).body
 
   res.on('close', () => stream.destroy())
   // Remove the filename as it is already part of the URL.
