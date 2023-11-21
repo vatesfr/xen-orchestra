@@ -172,10 +172,11 @@ const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
 const PROGRESS_STYLES = { margin: 0 }
 
-const COLUMN_VDI_TASKS = [
+const COLUMNS_VDI_TASKS = [
   {
     itemRenderer: task => task.name_label,
     name: _('name'),
+    sortCriteria: 'task.name_label',
   },
   {
     itemRenderer: (task, { vdiByTaskId }) =>
@@ -773,7 +774,7 @@ export default class TabDisks extends Component {
               <CardBlock>
                 <SortedTable
                   collection={this.props.tasks}
-                  columns={COLUMN_VDI_TASKS}
+                  columns={COLUMNS_VDI_TASKS}
                   data-vdiByTaskId={this._getVdiByTaskId()}
                   sateUrlParam='t'
                 />
