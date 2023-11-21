@@ -453,6 +453,15 @@ export default class RestApi {
         await pipeline(stream, res)
       })
     )
+    api.put(
+      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
+      wrap(async (req, res) => {
+        req.length = +req.headers['content-length']
+        await req.xapiObject.$importContent(req, { format: req.params.format })
+
+        res.sendStatus(204)
+      })
+    )
     api.get(
       '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
       wrap(async (req, res) => {
