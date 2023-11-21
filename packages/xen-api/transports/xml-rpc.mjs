@@ -1,4 +1,3 @@
-import { Client } from 'undici'
 import { XmlRpcMessage, XmlRpcResponse } from 'xmlrpc-parser'
 
 import prepareXmlRpcParams from './_prepareXmlRpcParams.mjs'
@@ -21,15 +20,9 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ secureOptions, url, agent }) => {
+export default ({ agent, client, url }) => {
   url = new URL('./xmlrpc', Object.assign(new URL('http://localhost'), url))
-
   const path = url.pathname + url.search
-  url.pathname = url.search = ''
-
-  const client = new Client(url, {
-    connect: secureOptions,
-  })
 
   return async function (method, args) {
     const message = new XmlRpcMessage(method, prepareXmlRpcParams(args))

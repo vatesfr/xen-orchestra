@@ -7,6 +7,7 @@ import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import ProxyAgent from 'proxy-agent'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { Client } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -946,14 +947,18 @@ export class Xapi extends EventEmitter {
     const { hostname } = url
     url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
 
-    this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
-    this._transport = this._createTransport({
-      secureOptions: {
+    const client = new Client(url, {
+      connect: {
         minVersion: 'TLSv1',
         rejectUnauthorized: !this._allowUnauthorized,
       },
-      url,
+    })
+
+    this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
+    this._transport = this._createTransport({
       agent: this.httpAgent,
+      client,
+      url,
     })
     this._url = url
   }
