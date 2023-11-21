@@ -1,18 +1,9 @@
-import xmlrpc from 'xmlrpc'
-import { promisify } from 'promise-toolbox'
-
-import XapiError from '../_XapiError.mjs'
+import { Client } from 'undici'
+import { XmlRpcMessage, XmlRpcResponse } from 'xmlrpc-parser'
 
 import prepareXmlRpcParams from './_prepareXmlRpcParams.mjs'
-
-const logError = error => {
-  if (error.res) {
-    console.error('XML-RPC Error: %s (response status %s)', error.message, error.res.statusCode)
-    console.error('%s', error.body)
-  }
-
-  throw error
-}
+import XapiError from '../_XapiError.mjs'
+import UnsupportedTransport from './_UnsupportedTransport.mjs'
 
 const parseResult = result => {
   const status = result.Status
@@ -30,16 +21,37 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ secureOptions, url: { hostnameRaw, pathname, port, protocol }, agent }) => {
-  const secure = protocol === 'https:'
-  const client = (secure ? xmlrpc.createSecureClient : xmlrpc.createClient)({
-    ...(secure ? secureOptions : undefined),
-    agent,
-    host: hostnameRaw,
-    pathname,
-    port,
-  })
-  const call = promisify(client.methodCall, client)
+export default ({ secureOptions, url, agent }) => {
+  url = new URL('./xmlrpc', Object.assign(new URL('http://localhost'), url))
 
-  return (method, args) => call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
+  const path = url.pathname + url.search
+  url.pathname = url.search = ''
+
+  const client = new Client(url, {
+    connect: secureOptions,
+  })
+
+  return async function (method, args) {
+    const message = new XmlRpcMessage(method, prepareXmlRpcParams(args))
+
+    const res = await client.request({
+      body: message.xml(),
+      headers: {
+        Accept: 'text/xml',
+        'Content-Type': 'text/xml',
+      },
+      method: 'POST',
+      path,
+      agent,
+    })
+
+    if (res.headers['content-type'] !== 'text/xml' && res.headers['content-type'] !== 'application/xml') {
+      throw new UnsupportedTransport()
+    }
+
+    const xml = await res.body.text()
+    const response = await new XmlRpcResponse().parse(xml)
+
+    return parseResult(response.params[0])
+  }
 }
