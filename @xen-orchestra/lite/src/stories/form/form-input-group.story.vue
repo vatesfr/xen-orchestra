@@ -1,6 +1,6 @@
 <template>
   <ComponentStory
-    :params="[slot().help('Can contains multiple FormInput and FormSelect')]"
+    :params="[slot().help('Can contain multiple FormInput and FormSelect')]"
   >
     <FormInputGroup>
       <FormInput />

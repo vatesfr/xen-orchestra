@@ -43,6 +43,7 @@
   "delete-vms": "Supprimer 1 VM | Supprimer {n} VMs",
   "descending": "descendant",
   "description": "Description",
+  "disabled": "Désactivé",
   "display": "Affichage",
   "do-you-have-needs": "Vous avez des besoins et/ou des attentes ? Faites le nous savoir",
   "documentation": "Documentation",
@@ -51,8 +52,11 @@
   "error-no-data": "Erreur, impossible de collecter les données.",
   "error-occurred": "Une erreur est survenue",
   "export": "Exporter",
+  "export-n-vms": "Exporter 1 VM | Exporter {n} VMs",
+  "export-n-vms-manually": "Exporter 1 VM manuellement | Exporter {n} VMs manuellement",
   "export-table-to": "Exporter le tableau en {type}",
   "export-vms": "Exporter les VMs",
+  "export-vms-manually-information": "Certaines exportations de VMs n'ont pas pu démarrer automatiquement, peut-être en raison des paramètres du navigateur. Pour les exporter, vous devrez cliquer sur chacune d'entre elles. (Ou copier le lien.)",
   "fetching-fresh-data": "Récupération de données à jour",
   "filter": {
     "comparison": {
@@ -78,6 +82,7 @@
   "fullscreen": "Plein écran",
   "fullscreen-leave": "Quitter plein écran",
   "go-back": "Revenir en arrière",
+  "gzip": "gzip",
   "here": "Ici",
   "hosts": "Hôtes",
   "keep-me-logged": "Rester connecté",
@@ -104,6 +109,7 @@
   "news": "Actualités",
   "news-name": "Actualités {name}",
   "no-alarm-triggered": "Aucune alarme déclenchée",
+  "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",
   "no-selected-vm-can-be-migrated": "Aucune VM sélectionnée ne peut être migrée",
   "no-tasks": "Aucune tâche",
   "not-found": "Non trouvé",
@@ -139,6 +145,7 @@
   },
   "resume": "Reprendre",
   "save": "Enregistrer",
+  "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
   "send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
@@ -180,5 +187,6 @@
   "version": "Version",
   "vm-is-running": "La VM est en cours d'exécution",
   "vms": "VMs",
-  "xo-lite-under-construction": "XOLite est en construction"
+  "xo-lite-under-construction": "XOLite est en construction",
+  "zstd": "zstd"
 }

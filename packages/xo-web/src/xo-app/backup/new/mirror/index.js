@@ -351,8 +351,8 @@ const NewMirrorBackup = decorate([
                     state.isMissingBackupMode
                       ? 'mirrorBackupVms'
                       : state.isFull
-                      ? 'mirrorFullBackup'
-                      : 'mirrorIncrementalBackup'
+                        ? 'mirrorFullBackup'
+                        : 'mirrorIncrementalBackup'
                   )}
                   <Link className='btn btn-primary pull-right' target='_blank' to='/settings/remotes'>
                     <Icon icon='settings' /> <strong>{_('remotesSettings')}</strong>

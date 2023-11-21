@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+import './env.mjs'
 
-const defer = require('golike-defer').default
-const { CancelToken } = require('promise-toolbox')
+import { defer } from 'golike-defer'
+import { CancelToken } from 'promise-toolbox'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
-const { createInputStream, resolveRef } = require('./utils')
+import { createInputStream, resolveRef } from './utils.mjs'
 
 defer(async ($defer, args) => {
   if (args.length < 1) {
@@ -17,7 +17,7 @@ defer(async ($defer, args) => {
   const xapi = createClient({
     allowUnauthorized: true,
     url: args[0],
-    watchEvents: false
+    watchEvents: false,
   })
 
   await xapi.connect()
@@ -28,8 +28,6 @@ defer(async ($defer, args) => {
 
   // https://xapi-project.github.io/xen-api/importexport.html
   await xapi.putResource(token, createInputStream(args[1]), '/import/', {
-    query: args[2] && { sr_id: await resolveRef(xapi, 'SR', args[2]) }
+    query: args[2] && { sr_id: await resolveRef(xapi, 'SR', args[2]) },
   })
-})(process.argv.slice(2)).catch(
-  console.error.bind(console, 'error')
-)
+})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

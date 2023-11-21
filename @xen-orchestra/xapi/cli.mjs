@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { Xapi } from './index.mjs'
-import CLI from 'xen-api/dist/cli.js'
+import { main } from 'xen-api/cli-lib.mjs'
 
-CLI.default(opts => new Xapi(opts)).catch(console.error.bind(console, 'FATAL'))
+import { Xapi } from './index.mjs'
+
+main(opts => new Xapi(opts)).catch(console.error.bind(console, 'FATAL'))

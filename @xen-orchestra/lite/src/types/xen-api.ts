@@ -31,9 +31,12 @@ export type XenApiPatch = {
   size: number;
   url: string;
   version: string;
-  changelog: {
-    date: number;
-    description: string;
-    author: string;
-  };
+  changelog:
+    | null
+    | undefined
+    | {
+        date: number;
+        description: string;
+        author: string;
+      };
 };

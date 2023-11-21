@@ -1,8 +1,6 @@
-'use strict'
+import t from 'tap'
 
-const t = require('tap')
-
-const parseUrl = require('./dist/_parseUrl.js').default
+import parseUrl from './_parseUrl.mjs'
 
 const data = {
   'xcp.company.lan': {

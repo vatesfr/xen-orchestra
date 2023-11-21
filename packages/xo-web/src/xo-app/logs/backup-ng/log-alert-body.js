@@ -507,8 +507,8 @@ export default decorate([
             type === 'VM'
               ? get(() => vms[task.data.id].name_label)
               : type === 'pool'
-              ? get(() => pools[task.data.id].name_label)
-              : 'xo'
+                ? get(() => pools[task.data.id].name_label)
+                : 'xo'
 
           if (task.tasks !== undefined) {
             const subTaskWithIsFull = task.tasks.find(({ data = {} }) => data.isFull !== undefined)

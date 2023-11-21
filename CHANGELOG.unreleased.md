@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
 - [VM/Console] Add a message to indicate that the console view has been [disabled](https://support.citrix.com/article/CTX217766/how-to-disable-the-console-for-the-vm-in-xencenter) for this VM [#6319](https://github.com/vatesfr/xen-orchestra/issues/6319) (PR [#7161](https://github.com/vatesfr/xen-orchestra/pull/7161))
 
 ### Bug fixes
@@ -14,6 +15,9 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+- [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
+- [Export/OVA] Handle export with resulting disk larger than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
+- [Self Service] Fix error displayed after adding a VM to a resource set (PR [#7144](https://github.com/vatesfr/xen-orchestra/pull/7144))
 
 ### Packages to release
 
@@ -31,7 +35,14 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/cr-seed-cli major
+- @xen-orchestra/vmware-explorer patch
+- xen-api major
+- xo-server patch
+- xo-server-netbox minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->

@@ -27,6 +27,12 @@ const configurationSchema = {
         $type: 'pool',
       },
     },
+    syncUsers: {
+      type: 'boolean',
+      title: 'Synchronize users',
+      description:
+        'Synchronize XO users as Netbox tenants and bind VM creators. For this to work, you need to assign the `uuid` custom field to the type "Tenancy > tenant".',
+    },
     syncInterval: {
       type: 'number',
       title: 'Interval',

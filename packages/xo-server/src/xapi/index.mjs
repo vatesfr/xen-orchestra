@@ -536,8 +536,8 @@ export default class Xapi extends XapiBase {
           mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
             : isSrConnected(vdi.$SR)
-            ? vdi.$SR.$ref
-            : getDefaultSrRef()
+              ? vdi.$SR.$ref
+              : getDefaultSrRef()
       }
     }
 

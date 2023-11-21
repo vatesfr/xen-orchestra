@@ -1,9 +1,8 @@
-#!/usr/bin/env node
-
+/* eslint-disable no-console */
 import blocked from 'blocked'
 import createDebug from 'debug'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
+import filter from 'lodash/filter.js'
+import find from 'lodash/find.js'
 import L from 'lodash'
 import minimist from 'minimist'
 import pw from 'pw'
@@ -42,7 +41,7 @@ function getAllBoundDescriptors(object) {
 
 const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
-async function main(createClient) {
+export async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
     string: ['proxy', 'session-id', 'transport'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
@@ -128,8 +127,4 @@ async function main(createClient) {
     await xapi.disconnect()
   } catch (error) {}
 }
-export default main
-
-if (module.parent === null) {
-  main(require('./').createClient).catch(console.error.bind(console, 'FATAL'))
-}
+/* eslint-enable no-console */

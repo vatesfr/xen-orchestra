@@ -11,6 +11,7 @@ import { dirname } from 'node:path'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
+import { TAG_BASE_DELTA } from '../../_incrementalVm.mjs'
 import { Task } from '../../Task.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
@@ -195,7 +196,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             assert.notStrictEqual(
               parentPath,
               undefined,
-              `missing parent of ${id} in ${dirname(path)}, looking for ${vdi.other_config['xo:base_delta']}`
+              `missing parent of ${id} in ${dirname(path)}, looking for ${vdi.other_config[TAG_BASE_DELTA]}`
             )
 
             parentPath = parentPath.slice(1) // remove leading slash

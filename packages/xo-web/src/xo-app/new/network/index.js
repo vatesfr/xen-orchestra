@@ -213,33 +213,33 @@ const NewNetwork = decorate([
             pool: pool.id,
           })
         : isPrivate
-        ? (() => {
-            const poolIds = [pool.id]
-            const pifIds = [pif.id]
-            for (const network of networks) {
-              poolIds.push(network.pool.id)
-              pifIds.push(network.pif.id)
-            }
-            return createPrivateNetwork({
-              poolIds,
-              pifIds,
-              name,
+          ? (() => {
+              const poolIds = [pool.id]
+              const pifIds = [pif.id]
+              for (const network of networks) {
+                poolIds.push(network.pool.id)
+                pifIds.push(network.pif.id)
+              }
+              return createPrivateNetwork({
+                poolIds,
+                pifIds,
+                name,
+                description,
+                encapsulation,
+                encrypted,
+                mtu,
+                preferredCenter: networkCenter,
+              })
+            })()
+          : createNetwork({
               description,
-              encapsulation,
-              encrypted,
               mtu,
-              preferredCenter: networkCenter,
+              name,
+              nbd,
+              pif: pif == null ? undefined : pif.id,
+              pool: pool.id,
+              vlan,
             })
-          })()
-        : createNetwork({
-            description,
-            mtu,
-            name,
-            nbd,
-            pif: pif == null ? undefined : pif.id,
-            pool: pool.id,
-            vlan,
-          })
     }
 
     _selectPool = pool => {

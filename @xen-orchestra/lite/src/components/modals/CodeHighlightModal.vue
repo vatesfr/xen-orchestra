@@ -12,6 +12,6 @@ import BasicModalLayout from "@/components/ui/modals/layouts/BasicModalLayout.vu
 import UiModal from "@/components/ui/modals/UiModal.vue";
 
 defineProps<{
-  code: string;
+  code: any;
 }>();
 </script>

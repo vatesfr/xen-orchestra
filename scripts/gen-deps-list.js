@@ -211,8 +211,8 @@ function versionToReleaseWeight(version) {
   return semver.major(version) > 0
     ? RELEASE_WEIGHT.MAJOR
     : semver.minor(version) > 0
-    ? RELEASE_WEIGHT.MINOR
-    : RELEASE_WEIGHT.PATCH
+      ? RELEASE_WEIGHT.MINOR
+      : RELEASE_WEIGHT.PATCH
 }
 
 /**

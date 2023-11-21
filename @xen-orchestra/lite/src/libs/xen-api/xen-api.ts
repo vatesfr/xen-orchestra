@@ -18,6 +18,8 @@ import type {
 import { buildXoObject, typeToRawType } from "@/libs/xen-api/xen-api.utils";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { castArray } from "lodash-es";
+import type { VM_COMPRESSION_TYPE } from "@/libs/xen-api/xen-api.enums";
+import { useModal } from "@/composables/modal.composable";
 
 export default class XenApi {
   private client: JSONRPCClient;
@@ -27,10 +29,12 @@ export default class XenApi {
     Set<(...args: any[]) => void>
   >();
   private fromToken: string | undefined;
+  private hostUrl: string;
 
   constructor(hostUrl: string) {
+    this.hostUrl = hostUrl;
     this.client = new JSONRPCClient(async (request) => {
-      const response = await fetch(`${hostUrl}/jsonrpc`, {
+      const response = await fetch(`${this.hostUrl}/jsonrpc`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(request),
@@ -379,6 +383,36 @@ export default class XenApi {
             this.call("VM.snapshot", [vmRef, vmRefsToSnapshot[vmRef]])
           )
         );
+      },
+      export: (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE) => {
+        const blockedUrls: URL[] = [];
+
+        castArray(vmRefs).forEach((vmRef) => {
+          const url = new URL(this.hostUrl);
+          url.pathname = "/export/";
+          url.search = new URLSearchParams({
+            session_id: this.sessionId!,
+            ref: vmRef,
+            use_compression: compression,
+          }).toString();
+
+          const _window = window.open(url.href, "_blank");
+          if (_window === null) {
+            blockedUrls.push(url);
+          } else {
+            URL.revokeObjectURL(url.toString());
+          }
+        });
+
+        if (blockedUrls.length > 0) {
+          const { onClose } = useModal(
+            () => import("@/components/modals/VmExportBlockedUrlsModal.vue"),
+            { blockedUrls }
+          );
+          onClose(() =>
+            blockedUrls.forEach((url) => URL.revokeObjectURL(url.toString()))
+          );
+        }
       },
     };
   }

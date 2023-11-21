@@ -4,12 +4,13 @@ import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { importIncrementalVm, TAG_COPY_SRC } from '../../_incrementalVm.mjs'
+import { importIncrementalVm, TAG_BACKUP_SR, TAG_BASE_DELTA, TAG_COPY_SRC } from '../../_incrementalVm.mjs'
 import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
+import find from 'lodash/find.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -81,6 +82,54 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
+  #decorateVmMetadata(backup) {
+    const { _warmMigration } = this._settings
+    const sr = this._sr
+    const xapi = sr.$xapi
+    const vm = backup.vm
+    vm.other_config[TAG_COPY_SRC] = vm.uuid
+    const remoteBaseVmUuid = vm.other_config[TAG_BASE_DELTA]
+    let baseVm
+    if (remoteBaseVmUuid) {
+      baseVm = find(
+        xapi.objects.all,
+        obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
+      )
+
+      if (!baseVm) {
+        throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
+      }
+    }
+    const baseVdis = {}
+    baseVm?.$VBDs.forEach(vbd => {
+      const vdi = vbd.$VDI
+      if (vdi !== undefined) {
+        baseVdis[vbd.VDI] = vbd.$VDI
+      }
+    })
+
+    vm.other_config[TAG_COPY_SRC] = vm.uuid
+    if (!_warmMigration) {
+      vm.tags.push('Continuous Replication')
+    }
+
+    Object.values(backup.vdis).forEach(vdi => {
+      vdi.other_config[TAG_COPY_SRC] = vdi.uuid
+      vdi.SR = sr.$ref
+      // vdi.other_config[TAG_BASE_DELTA] is never defined on a suspend vdi
+      if (vdi.other_config[TAG_BASE_DELTA]) {
+        const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
+        const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
+        if (!baseVdi) {
+          throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
+        }
+        vdi.baseVdi = baseVdi
+      }
+    })
+
+    return backup
+  }
+
   async _transfer({ timestamp, deltaExport, sizeContainers, vm }) {
     const { _warmMigration } = this._settings
     const sr = this._sr
@@ -91,16 +140,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(
-        {
-          __proto__: deltaExport,
-          vm: {
-            ...deltaExport.vm,
-            tags: _warmMigration ? deltaExport.vm.tags : [...deltaExport.vm.tags, 'Continuous Replication'],
-          },
-        },
-        sr
-      )
+      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
@@ -121,13 +161,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         )
       ),
       targetVm.update_other_config({
-        'xo:backup:sr': srUuid,
+        [TAG_BACKUP_SR]: srUuid,
 
         // these entries need to be added in case of offline backup
         'xo:backup:datetime': formatDateTime(timestamp),
         'xo:backup:job': job.id,
         'xo:backup:schedule': scheduleId,
-        'xo:backup:vm': vm.uuid,
+        [TAG_BASE_DELTA]: vm.uuid,
       }),
     ])
   }
