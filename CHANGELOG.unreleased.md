@@ -39,6 +39,7 @@
 - @vates/nbd-client patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/cr-seed-cli major
+- @xen-orchestra/fs patch
 - @xen-orchestra/vmware-explorer patch
 - xen-api major
 - xo-server patch
