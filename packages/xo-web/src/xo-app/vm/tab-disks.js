@@ -11,19 +11,19 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
+import { compact, every, filter, find, forEach, get, groupBy, map, some, sortedUniq, uniq } from 'lodash'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
+  createFilter,
   createFinder,
   getCheckPermissions,
   getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
-import { injectIntl } from 'react-intl'
 import {
   addSubscriptions,
   connectStore,
@@ -57,6 +57,8 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import { Card, CardHeader, CardBlock } from 'card'
+import { FormattedRelative, injectIntl } from 'react-intl'
 import { SelectResourceSetsSr, SelectSr as SelectAnySr, SelectVdi } from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
@@ -167,6 +169,43 @@ const COLUMNS_VM_PV = [
 ]
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
+
+const COLUMNS_VDI_IMPORT_STATUS = [
+  {
+    itemRenderer: task => task.name_label,
+    name: _('name'),
+  },
+  {
+    itemRenderer: (task, { vdiByTaskId }) =>
+      formatSize(Number(vdiByTaskId[task.uuid][0].other_config['xo:import:length'])),
+    name: _('size'),
+    sortCriteria: (task, { vdiByTaskId }) => vdiByTaskId[task.uuid][0].other_config['xo:import:length'],
+  },
+  {
+    itemRenderer: task => <progress style={{ margin: 0 }} className='progress' value={task.progress * 100} max='100' />,
+    name: _('progress'),
+    sortCriteria: 'progress',
+  },
+  {
+    default: true,
+    itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
+    name: _('taskStarted'),
+    sortCriteria: 'created',
+    sortOrder: 'desc',
+  },
+  {
+    itemRenderer: task => {
+      const started = task.created * 1000
+      const { progress } = task
+
+      if (progress === 0 || progress === 1) {
+        return // not yet started or already finished
+      }
+      return <FormattedRelative value={started + (Date.now() - started) / progress} />
+    },
+    name: _('taskEstimatedEnd'),
+  },
+]
 
 const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
@@ -454,13 +493,26 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
+  const getTasks = createGetObjectsOfType('task')
 
-  return (state, props) => ({
-    allVbds: getAllVbds(state, props),
-    checkPermissions: getCheckPermissions(state, props),
-    isAdmin: isAdmin(state, props),
-    resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
-  })
+  return (state, props) => {
+    const getVdiTasks = createSelector(
+      () => getTasks(state, props),
+      createFilter(() => props.vdis, [vdi => vdi.other_config['xo:import:task'] !== undefined]),
+      createCollectionWrapper((tasks, vdis) => {
+        const ids = map(vdis, vdi => vdi.other_config['xo:import:task'])
+        return filter(tasks, task => ids.includes(task.uuid))
+      })
+    )
+
+    return {
+      allVbds: getAllVbds(state, props),
+      checkPermissions: getCheckPermissions(state, props),
+      isAdmin: isAdmin(state, props),
+      resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
+      tasks: getVdiTasks(),
+    }
+  }
 })
 export default class TabDisks extends Component {
   constructor(props) {
@@ -474,6 +526,11 @@ export default class TabDisks extends Component {
   _getVdiSrs = createSelector(
     () => this.props.vdis,
     createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
+  )
+
+  _getVdiByTaskId = createSelector(
+    () => this.props.vdis,
+    vdis => groupBy(vdis, "other_config['xo:import:task']")
   )
 
   _areSrsOnSameHost = createSelector(
@@ -705,6 +762,21 @@ export default class TabDisks extends Component {
               shortcutsTarget='body'
               stateUrlParam='s'
             />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>{_('vdiTasks')}</CardHeader>
+              <CardBlock>
+                <SortedTable
+                  collection={this.props.tasks}
+                  columns={COLUMNS_VDI_IMPORT_STATUS}
+                  data-vdiByTaskId={this._getVdiByTaskId()}
+                  sateUrlParam='t'
+                />
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
         <Row>
