@@ -1,6 +1,6 @@
-import jsonRpc from './json-rpc'
-import UnsupportedTransport from './_UnsupportedTransport'
-import xmlRpc from './xml-rpc'
+import jsonRpc from './json-rpc.mjs'
+import UnsupportedTransport from './_UnsupportedTransport.mjs'
+import xmlRpc from './xml-rpc.mjs'
 
 const factories = [jsonRpc, xmlRpc]
 const { length } = factories

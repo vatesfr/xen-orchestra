@@ -205,8 +205,8 @@ export default class TabPatches extends Component {
                   pool.HA_enabled
                     ? _('highAvailabilityNotDisabledTooltip')
                     : needsCredentials
-                    ? _('xsCredentialsMissingShort')
-                    : undefined
+                      ? _('xsCredentialsMissingShort')
+                      : undefined
                 }
               />
             </Col>

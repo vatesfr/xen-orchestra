@@ -1,11 +1,11 @@
+import cloneDeep from 'lodash/cloneDeep.js'
 import mapValues from 'lodash/mapValues.js'
 
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 
 export function forkDeltaExport(deltaExport) {
-  return Object.create(deltaExport, {
-    streams: {
-      value: mapValues(deltaExport.streams, forkStreamUnpipe),
-    },
-  })
+  const { streams, ...rest } = deltaExport
+  const newMetadata = cloneDeep(rest)
+  newMetadata.streams = mapValues(streams, forkStreamUnpipe)
+  return newMetadata
 }

@@ -156,8 +156,8 @@ export const createFilter = (collection, predicate) =>
           ? EMPTY_ARRAY
           : EMPTY_OBJECT
         : predicate
-        ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
-        : collection
+          ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
+          : collection
     )
   )
 

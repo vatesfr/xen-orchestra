@@ -1,25 +1,23 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = 'xen-api'
+import './env.mjs'
 
-const createProgress = require('progress-stream')
-const createTop = require('process-top')
-const defer = require('golike-defer').default
-const getopts = require('getopts')
-const { CancelToken } = require('promise-toolbox')
+import createProgress from 'progress-stream'
+import createTop from 'process-top'
+import getopts from 'getopts'
+import { defer } from 'golike-defer'
+import { CancelToken } from 'promise-toolbox'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
-const {
-  createOutputStream,
-  formatProgress,
-  pipeline,
-  resolveRecord,
-  throttle,
-} = require('./utils')
+import { createOutputStream, formatProgress, pipeline, resolveRecord, throttle } from './utils.mjs'
 
 defer(async ($defer, rawArgs) => {
-  const { raw, throttle: bps, _: args } = getopts(rawArgs, {
+  const {
+    raw,
+    throttle: bps,
+    _: args,
+  } = getopts(rawArgs, {
     boolean: 'raw',
     alias: {
       raw: 'r',
@@ -28,9 +26,7 @@ defer(async ($defer, rawArgs) => {
   })
 
   if (args.length < 2) {
-    return console.log(
-      'Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]'
-    )
+    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
@@ -67,10 +63,5 @@ defer(async ($defer, rawArgs) => {
     }, 1e3)
   )
 
-  await pipeline(
-    exportStream,
-    progressStream,
-    throttle(bps),
-    createOutputStream(args[2])
-  )
+  await pipeline(exportStream, progressStream, throttle(bps), createOutputStream(args[2]))
 })(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

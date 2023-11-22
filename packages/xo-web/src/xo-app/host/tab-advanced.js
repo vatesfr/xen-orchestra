@@ -525,8 +525,8 @@ export default class extends Component {
                     {isHtEnabled === null
                       ? _('hyperThreadingNotAvailable')
                       : isHtEnabled
-                      ? _('stateEnabled')
-                      : _('stateDisabled')}
+                        ? _('stateEnabled')
+                        : _('stateDisabled')}
                   </td>
                 </tr>
                 <tr>

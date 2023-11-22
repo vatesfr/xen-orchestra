@@ -10,10 +10,10 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "bin": {
-    "xo-cr-seed": "./index.js"
+    "xo-cr-seed": "./index.mjs"
   },
   "preferGlobal": true,
   "dependencies": {

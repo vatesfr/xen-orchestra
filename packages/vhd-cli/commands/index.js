@@ -23,8 +23,8 @@ function r(p) {
   return v && v.__esModule
     ? v
     : typeof v === 'object' || typeof v === 'function'
-    ? Object.create(v, { default: { enumerable: true, value: v } })
-    : { default: v }
+      ? Object.create(v, { default: { enumerable: true, value: v } })
+      : { default: v }
 }
 function e(p, i) {
   dl(defaults, i, function () {

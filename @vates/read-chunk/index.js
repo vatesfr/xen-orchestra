@@ -22,41 +22,41 @@ const readChunk = (stream, size) =>
   stream.errored != null
     ? Promise.reject(stream.errored)
     : stream.closed || stream.readableEnded
-    ? Promise.resolve(null)
-    : new Promise((resolve, reject) => {
-        if (size !== undefined) {
-          assert(size > 0)
+      ? Promise.resolve(null)
+      : new Promise((resolve, reject) => {
+          if (size !== undefined) {
+            assert(size > 0)
 
-          // per Node documentation:
-          // > The size argument must be less than or equal to 1 GiB.
-          assert(size < 1073741824)
-        }
+            // per Node documentation:
+            // > The size argument must be less than or equal to 1 GiB.
+            assert(size < 1073741824)
+          }
 
-        function onEnd() {
-          resolve(null)
-          removeListeners()
-        }
-        function onError(error) {
-          reject(error)
-          removeListeners()
-        }
-        function onReadable() {
-          const data = stream.read(size)
-          if (data !== null) {
-            resolve(data)
+          function onEnd() {
+            resolve(null)
             removeListeners()
           }
-        }
-        function removeListeners() {
-          stream.removeListener('end', onEnd)
-          stream.removeListener('error', onError)
-          stream.removeListener('readable', onReadable)
-        }
-        stream.on('end', onEnd)
-        stream.on('error', onError)
-        stream.on('readable', onReadable)
-        onReadable()
-      })
+          function onError(error) {
+            reject(error)
+            removeListeners()
+          }
+          function onReadable() {
+            const data = stream.read(size)
+            if (data !== null) {
+              resolve(data)
+              removeListeners()
+            }
+          }
+          function removeListeners() {
+            stream.removeListener('end', onEnd)
+            stream.removeListener('error', onError)
+            stream.removeListener('readable', onReadable)
+          }
+          stream.on('end', onEnd)
+          stream.on('error', onError)
+          stream.on('readable', onReadable)
+          onReadable()
+        })
 exports.readChunk = readChunk
 
 /**
@@ -111,42 +111,42 @@ async function skip(stream, size) {
   return stream.errored != null
     ? Promise.reject(stream.errored)
     : size === 0 || stream.closed || stream.readableEnded
-    ? Promise.resolve(0)
-    : new Promise((resolve, reject) => {
-        let left = size
-        function onEnd() {
-          resolve(size - left)
-          removeListeners()
-        }
-        function onError(error) {
-          reject(error)
-          removeListeners()
-        }
-        function onReadable() {
-          const data = stream.read()
-          left -= data === null ? 0 : data.length
-          if (left > 0) {
-            // continue to read
-          } else {
-            // if more than wanted has been read, push back the rest
-            if (left < 0) {
-              stream.unshift(data.slice(left))
-            }
-
-            resolve(size)
+      ? Promise.resolve(0)
+      : new Promise((resolve, reject) => {
+          let left = size
+          function onEnd() {
+            resolve(size - left)
             removeListeners()
           }
-        }
-        function removeListeners() {
-          stream.removeListener('end', onEnd)
-          stream.removeListener('error', onError)
-          stream.removeListener('readable', onReadable)
-        }
-        stream.on('end', onEnd)
-        stream.on('error', onError)
-        stream.on('readable', onReadable)
-        onReadable()
-      })
+          function onError(error) {
+            reject(error)
+            removeListeners()
+          }
+          function onReadable() {
+            const data = stream.read()
+            left -= data === null ? 0 : data.length
+            if (left > 0) {
+              // continue to read
+            } else {
+              // if more than wanted has been read, push back the rest
+              if (left < 0) {
+                stream.unshift(data.slice(left))
+              }
+
+              resolve(size)
+              removeListeners()
+            }
+          }
+          function removeListeners() {
+            stream.removeListener('end', onEnd)
+            stream.removeListener('error', onError)
+            stream.removeListener('readable', onReadable)
+          }
+          stream.on('end', onEnd)
+          stream.on('error', onError)
+          stream.on('readable', onReadable)
+          onReadable()
+        })
 }
 exports.skip = skip
 

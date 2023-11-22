@@ -93,10 +93,10 @@ const SelectCoresPerSocket = decorate([
             state.valueExceedsCoresLimit
               ? _('vmCoresPerSocketExceedsCoresLimit', { maxCores })
               : state.valueExceedsSocketsLimit
-              ? _('vmCoresPerSocketExceedsSocketsLimit', {
-                  maxSockets: MAX_VM_SOCKETS,
-                })
-              : _('vmCoresPerSocketNotDivisor')
+                ? _('vmCoresPerSocketExceedsSocketsLimit', {
+                    maxSockets: MAX_VM_SOCKETS,
+                  })
+                : _('vmCoresPerSocketNotDivisor')
           }
         >
           <Icon icon='error' size='lg' />

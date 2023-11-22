@@ -16,19 +16,17 @@ require('@babel/register')
 
 // ===================================================================
 
-function defaultRequire (module) {
+function defaultRequire(module) {
   var value = require(module)
   return value && value.__esModule ? value.default : value
 }
 
 // See https://github.com/joliss/js-string-escape/blob/master/index.js
-function quote (string, q) {
+function quote(string, q) {
   string = string.split('')
 
   if (q === undefined) {
-    q = string.indexOf("'") !== -1 && string.indexOf('"') === -1
-      ? '"'
-      : "'"
+    q = string.indexOf("'") !== -1 && string.indexOf('"') === -1 ? '"' : "'"
   }
 
   var replacements = {
@@ -36,7 +34,7 @@ function quote (string, q) {
     '\n': '\\n',
     '\r': '\\r',
     '\u2028': '\\u2028',
-    '\u2029': '\\u2029'
+    '\u2029': '\\u2029',
   }
   replacements[q] = '\\' + q
 
@@ -55,7 +53,7 @@ var LOCALES_DIR = join(__dirname, '../src/common/intl/locales/')
 var LOCALE_RE = /^(.+)\.js(?:on)?$/
 var messages = defaultRequire('../src/common/intl/messages')
 
-function updateLocale (locale) {
+function updateLocale(locale) {
   var path = join(LOCALES_DIR, locale + '.js')
 
   try {
@@ -71,24 +69,31 @@ function updateLocale (locale) {
 
   var content = [
     '// See http://momentjs.com/docs/#/use-it/browserify/',
-    'import \'moment/locale/' + locale + '\'',
+    "import 'moment/locale/" + locale + "'",
     '',
-    'import reactIntlData from \'react-intl/locale-data/' + locale + '\'',
-    'import { addLocaleData } from \'react-intl\'',
+    "import reactIntlData from 'react-intl/locale-data/" + locale + "'",
+    "import { addLocaleData } from 'react-intl'",
     'addLocaleData(reactIntlData)',
     '',
     '// ===================================================================',
     '',
-    'export default {'
+    'export default {',
   ]
 
-  content.push(map(messages, function (message, id) {
-    var translation = translations && translations[id]
-    return [
-      '  // Original text: ', quote(message.defaultMessage, translation && '"'), '\n',
-      '  ', id, ': ', translation ? quote(translation) : 'undefined'
-    ].join('')
-  }).join(',\n\n'))
+  content.push(
+    map(messages, function (message, id) {
+      var translation = translations && translations[id]
+      return [
+        '  // Original text: ',
+        quote(message.defaultMessage, translation && '"'),
+        '\n',
+        '  ',
+        id,
+        ': ',
+        translation ? quote(translation) : 'undefined',
+      ].join('')
+    }).join(',\n\n')
+  )
 
   content.push('}', '')
 
@@ -97,14 +102,15 @@ function updateLocale (locale) {
 
 // ===================================================================
 
-(function main (args) {
+;(function main(args) {
   var locales = args.length
     ? args
-    : filter(map(readDir(LOCALES_DIR), function (entry) {
-      var matches = LOCALE_RE.exec(entry)
-      return matches && matches[1]
-    }))
+    : filter(
+        map(readDir(LOCALES_DIR), function (entry) {
+          var matches = LOCALE_RE.exec(entry)
+          return matches && matches[1]
+        })
+      )
 
   forEach(locales, updateLocale)
 })(process.argv.slice(2))
-

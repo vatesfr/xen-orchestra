@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+import './env.mjs'
 
-const defer = require('golike-defer').default
-const getopts = require('getopts')
-const { CancelToken } = require('promise-toolbox')
-const { createVhdStreamWithLength } = require('vhd-lib')
+import getopts from 'getopts'
+import { defer } from 'golike-defer'
+import { CancelToken } from 'promise-toolbox'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
-const { createInputStream, resolveRef } = require('./utils')
+import { createInputStream, resolveRef } from './utils.mjs'
 
 defer(async ($defer, argv) => {
   const opts = getopts(argv, { boolean: ['events', 'raw', 'remove-length'], string: ['sr', 'vdi'] })
@@ -25,8 +25,15 @@ defer(async ($defer, argv) => {
   const { raw, sr, vdi } = opts
 
   const createVdi = vdi === ''
-  if (createVdi && !(raw && sr !== undefined)) {
-    throw new Error('--vdi requires --raw and --sr flags')
+  if (createVdi) {
+    if (sr === '') {
+      throw 'requires either --vdi or --sr'
+    }
+    if (!raw) {
+      throw 'creating a VDI requires --raw'
+    }
+  } else if (sr !== '') {
+    throw '--vdi and --sr are mutually exclusive'
   }
 
   const xapi = createClient({
@@ -57,7 +64,7 @@ defer(async ($defer, argv) => {
     })
     $defer.onFailure(() => xapi.call('VDI.destroy', vdiRef))
   } else {
-    vdiRef = await resolveRef(xapi, 'VDI', args[1])
+    vdiRef = await resolveRef(xapi, 'VDI', vdi)
   }
 
   if (opts['remove-length']) {
@@ -78,4 +85,4 @@ defer(async ($defer, argv) => {
   if (result !== undefined) {
     console.log(result)
   }
-})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))
+})(process.argv.slice(2)).catch(console.error.bind(console, 'Fatal:'))

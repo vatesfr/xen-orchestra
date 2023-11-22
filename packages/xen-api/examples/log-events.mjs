@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
-require('source-map-support').install()
+import 'source-map-support/register.js'
 
-const { forEach, size } = require('lodash')
+import forEach from 'lodash/forEach.js'
+import size from 'lodash/size.js'
 
-const { createClient } = require('../')
+import { createClient } from '../index.mjs'
 
 // ===================================================================
 
 if (process.argv.length < 3) {
-  return console.log('Usage: log-events <XS URL>')
+  throw new Error('Usage: log-events <XS URL>')
 }
 
 // ===================================================================
@@ -17,20 +18,21 @@ if (process.argv.length < 3) {
 
 const xapi = createClient({
   allowUnauthorized: true,
-  url: process.argv[2]
+  url: process.argv[2],
 })
 
 // ===================================================================
 // Method call
 
 xapi.connect().then(() => {
-  xapi.call('VM.get_all_records')
-  .then(function (vms) {
-    console.log('%s VMs fetched', size(vms))
-  })
-  .catch(function (error) {
-    console.error(error)
-  })
+  xapi
+    .call('VM.get_all_records')
+    .then(function (vms) {
+      console.log('%s VMs fetched', size(vms))
+    })
+    .catch(function (error) {
+      console.error(error)
+    })
 })
 
 // ===================================================================

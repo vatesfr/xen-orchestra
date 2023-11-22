@@ -673,12 +673,12 @@ export const getDetachedBackupsOrSnapshots = (backupsOrSnapshots, { jobs, schedu
       vm === undefined
         ? 'missingVm'
         : job === undefined
-        ? 'missingJob'
-        : schedules[scheduleId] === undefined
-        ? 'missingSchedule'
-        : !createPredicate(omit(job.vms, 'power_state'))(vm)
-        ? 'missingVmInJob'
-        : undefined
+          ? 'missingJob'
+          : schedules[scheduleId] === undefined
+            ? 'missingSchedule'
+            : !createPredicate(omit(job.vms, 'power_state'))(vm)
+              ? 'missingVmInJob'
+              : undefined
 
     if (reason !== undefined) {
       detachedBackupsOrSnapshots.push({
