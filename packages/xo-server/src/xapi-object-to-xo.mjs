@@ -594,6 +594,7 @@ const TRANSFORMS = {
       usage: +obj.physical_utilisation,
       VDI_type: obj.type,
       current_operations: obj.current_operations,
+      other_config: obj.other_config,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
