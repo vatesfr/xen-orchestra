@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
-- [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [ #7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
+- [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [#7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
 
 ### Bug fixes
 
