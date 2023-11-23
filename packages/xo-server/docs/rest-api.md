@@ -188,7 +188,7 @@ A VHD or a raw export can be imported in an existing VDI respectively at `/rest/
 curl \
   -X PUT \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  -T myDisk.vhd
+  -T myDisk.vhd \
   'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
   | cat
 ```
