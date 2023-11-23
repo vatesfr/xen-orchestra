@@ -55,6 +55,7 @@
   "export-n-vms": "Export 1 VM | Export {n} VMs",
   "export-n-vms-manually": "Export 1 VM manually | Export {n} VMs manually",
   "export-table-to": "Export table to {type}",
+  "export-vm": "Export VM",
   "export-vms": "Export VMs",
   "export-vms-manually-information": "Some VM exports were not able to start automatically, probably due to your browser settings. To export them, you should click on each one. (Alternatively, copy the link as well.)",
   "fetching-fresh-data": "Fetching fresh data",

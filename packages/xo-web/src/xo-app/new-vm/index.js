@@ -1223,40 +1223,6 @@ export default class NewVm extends BaseComponent {
           </SectionContent>
         ) : (
           <SectionContent>
-            <Item>
-              <span className={styles.item}>
-                <input
-                  checked={installMethod === 'ISO'}
-                  name='installMethod'
-                  onChange={this._linkState('installMethod')}
-                  type='radio'
-                  value='ISO'
-                />
-                &nbsp;
-                <span>{_('newVmIsoDvdLabel')}</span>
-                &nbsp;
-                <span className={styles.inlineSelect}>
-                  {this.props.pool ? (
-                    <SelectVdi
-                      disabled={installMethod !== 'ISO'}
-                      onChange={this._linkState('installIso')}
-                      predicate={isVdiPresent}
-                      srPredicate={this._getIsoPredicate()}
-                      value={installIso}
-                    />
-                  ) : (
-                    <SelectResourceSetsVdi
-                      disabled={installMethod !== 'ISO'}
-                      onChange={this._linkState('installIso')}
-                      predicate={isVdiPresent}
-                      resourceSet={this._getResolvedResourceSet()}
-                      srPredicate={this._getIsoPredicate()}
-                      value={installIso}
-                    />
-                  )}
-                </span>
-              </span>
-            </Item>
             {template.virtualizationMode === 'pv' ? (
               <span>
                 <Item>
@@ -1295,6 +1261,40 @@ export default class NewVm extends BaseComponent {
             )}
           </SectionContent>
         )}
+        <SectionContent>
+          <span className={styles.item}>
+            <input
+              checked={installMethod === 'ISO'}
+              name='installMethod'
+              onChange={this._linkState('installMethod')}
+              type='radio'
+              value='ISO'
+            />
+            &nbsp;
+            <span>{_('newVmIsoDvdLabel')}</span>
+            &nbsp;
+            <span className={styles.inlineSelect}>
+              {this.props.pool ? (
+                <SelectVdi
+                  disabled={installMethod !== 'ISO'}
+                  onChange={this._linkState('installIso')}
+                  predicate={isVdiPresent}
+                  srPredicate={this._getIsoPredicate()}
+                  value={installIso}
+                />
+              ) : (
+                <SelectResourceSetsVdi
+                  disabled={installMethod !== 'ISO'}
+                  onChange={this._linkState('installIso')}
+                  predicate={isVdiPresent}
+                  resourceSet={this._getResolvedResourceSet()}
+                  srPredicate={this._getIsoPredicate()}
+                  value={installIso}
+                />
+              )}
+            </span>
+          </span>
+        </SectionContent>
         {this._isCoreOs() && (
           <div>
             <label>{_('newVmCloudConfig')}</label>{' '}

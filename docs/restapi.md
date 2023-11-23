@@ -123,7 +123,7 @@ Content-Type: application/x-ndjson
 
 ## Properties update
 
-> This feature is restricted to `name_label` and `name_description` at the moment.
+> This feature is restricted to `name_label`, `name_description` and `tags` at the moment.
 
 ```sh
 curl \
@@ -133,6 +133,30 @@ curl \
   -H 'Accept: application/json' \
   -d '{ "name_label": "The new name", "name_description": "The new description" }' \
   'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
+### Collections
+
+For collection properties, like `tags`, it can be more practical to touch a single item without impacting the others.
+
+An item can be created with `PUT <collection>/<item id>` and can be destroyed with `DELETE <collection>/<item id>`.
+
+Adding a tag:
+
+```sh
+curl \
+-X PUT \
+-b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/tags/My%20tag'
+```
+
+Removing a tag:
+
+```sh
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/tags/My%20tag'
 ```
 
 ## VM and VDI destruction
