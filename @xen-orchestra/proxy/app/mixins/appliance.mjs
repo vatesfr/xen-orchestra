@@ -33,7 +33,7 @@ const callUpdate = params =>
             } else if (method === 'server-error') {
               reject(new Error(params.message))
             } else if (method !== 'connected') {
-              warn('update.update, unhandled message', {
+              warn('updater.update, unhandled message', {
                 method,
                 params,
               })
