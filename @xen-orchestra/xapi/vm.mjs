@@ -200,6 +200,18 @@ class Vm {
     }
   }
 
+  _safeSetIsATemplate(ref) {
+    return pCatch.call(
+      this.setField('VM', ref, 'is_a_template', false),
+
+      // Ignore if this fails due to license restriction
+      //
+      // see https://bugs.xenserver.org/browse/XSO-766
+      { code: 'LICENSE_RESTRICTION' },
+      noop
+    )
+  }
+
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
     ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
@@ -486,9 +498,10 @@ class Vm {
     if (useSnapshot === undefined) {
       useSnapshot = isVmRunning(vm)
     }
-    let exportedVmRef, destroySnapshot
+    let exportedVmRef, destroySnapshot, isSnapshot
     if (useSnapshot) {
       exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
+      isSnapshot = true
       destroySnapshot = () =>
         this.VM_destroy(exportedVmRef).catch(error => {
           warn('VM_export: failed to destroy snapshot', {
@@ -500,8 +513,13 @@ class Vm {
       $defer.onFailure(destroySnapshot)
     } else {
       exportedVmRef = vmRef
+      isSnapshot = vm.is_a_snapshot
     }
     try {
+      // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
+      // which will import them as templates and not VM snapshots or plain VMs
+      await this._safeSetIsATemplate(exportedVmRef, false)
+
       const response = await this.getResource(cancelToken, '/export/', {
         query: {
           ref: exportedVmRef,
@@ -510,6 +528,16 @@ class Vm {
         task: taskRef,
       })
 
+      if (isSnapshot) {
+        // FIXME: VM_IS_SNAPSHOT(OpaqueRef:757d6cfd-a185-4114-bfc8-fb9fdd279bf2, make_into_template)
+        this._safeSetIsATemplate(exportedVmRef, true).catch(error => {
+          warn('VM_export: failed to reset is_a_template on snapshot', {
+            error,
+            snapshotRef: exportedVmRef,
+            vmRef,
+          })
+        })
+      }
       if (useSnapshot) {
         finished(response.body, destroySnapshot)
       }
@@ -691,18 +719,6 @@ class Vm {
 
     // detached async
     this._httpHook(vm, '/post-sync').catch(noop)
-
-    // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
-    // which will import them as templates and not VM snapshots or plain VMs
-    await pCatch.call(
-      this.setField('VM', ref, 'is_a_template', false),
-
-      // Ignore if this fails due to license restriction
-      //
-      // see https://bugs.xenserver.org/browse/XSO-766
-      { code: 'LICENSE_RESTRICTION' },
-      noop
-    )
 
     if (destroyNobakVdis) {
       // destroy the ignored VBDs on the VM snapshot
