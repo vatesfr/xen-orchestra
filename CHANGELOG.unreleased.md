@@ -42,7 +42,7 @@
 - @xen-orchestra/cr-seed-cli major
 - @xen-orchestra/vmware-explorer patch
 - xen-api major
-- xo-server patch
+- xo-server minor
 - xo-server-netbox minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
