@@ -201,7 +201,26 @@ curl \
 
 ## VDI Import
 
-A VHD or a raw export can be imported on an SR to create a new VDI at `/rest/v0/srs/<sr uuid>/vdis`.
+### Existing VDI
+
+A VHD or a raw export can be imported in an existing VDI respectively at `/rest/v0/vdis/<uuid>.vhd` and `/rest/v0/vdis/<uuid>.raw`.
+
+> Note: the size of the VDI must match exactly the size of VDI that was previously exported.
+
+```sh
+curl \
+  -X PUT \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  -T myDisk.vhd \
+  'https://xo.example.org/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
+  | cat
+```
+
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+
+### New VDI
+
+An export can also be imported on an SR to create a new VDI at `/rest/v0/srs/<sr uuid>/vdis`.
 
 ```sh
 curl \
