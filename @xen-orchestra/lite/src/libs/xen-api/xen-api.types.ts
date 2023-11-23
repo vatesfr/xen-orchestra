@@ -54,6 +54,7 @@ type ObjectTypeToRecordMapping = {
   host: XenApiHost;
   host_metrics: XenApiHostMetrics;
   message: XenApiMessage<any>;
+  network: XenApiNetwork;
   pool: XenApiPool;
   sr: XenApiSr;
   vm: XenApiVm;
@@ -113,9 +114,11 @@ export interface XenApiHost extends XenApiRecord<"host"> {
 }
 
 export interface XenApiSr extends XenApiRecord<"sr"> {
+  content_type: string;
   name_label: string;
   physical_size: number;
   physical_utilisation: number;
+  shared: boolean;
 }
 
 export interface XenApiVm extends XenApiRecord<"vm"> {
