@@ -507,46 +507,44 @@ const xoTaskOtherConfigRegex = /^xo:.*:task$/
   const getAllVbds = createGetObjectsOfType('VBD')
   const getTasks = createGetObjectsOfType('task')
 
-  return (state, props) => {
-    const getDetailedTasks = createSelector(
-      () => getTasks(state, props),
-      () => props.vdis,
-      createCollectionWrapper((tasks, vdis) =>
-        reduce(
-          vdis,
-          (acc, vdi) => {
-            forEach(vdi.other_config, (id, key) => {
-              const task = tasks[id]
-              if (xoTaskOtherConfigRegex.test(key) && task !== undefined) {
-                const [prefix, action] = key.split(':') // key === 'xo:<action>:task',
-                const length = vdi.other_config[`${prefix}:${action}:length`]
+  const getDetailedTasks = createSelector(
+    getTasks,
+    (state, props) => props.vdis,
+    createCollectionWrapper((tasks, vdis) =>
+      reduce(
+        vdis,
+        (acc, vdi) => {
+          forEach(vdi.other_config, (id, key) => {
+            const task = tasks[id]
+            if (xoTaskOtherConfigRegex.test(key) && task !== undefined) {
+              const [prefix, action] = key.split(':') // key === 'xo:<action>:task',
+              const length = vdi.other_config[`${prefix}:${action}:length`]
 
-                acc.push({
-                  ...task,
-                  details: {
-                    action,
-                    length: length !== undefined ? Number(length) : undefined,
-                    vdiId: vdi.uuid,
-                    vdiName: vdi.name_label,
-                  },
-                })
-              }
-            })
-            return acc
-          },
-          []
-        )
+              acc.push({
+                ...task,
+                details: {
+                  action,
+                  length: length !== undefined ? Number(length) : undefined,
+                  vdiId: vdi.uuid,
+                  vdiName: vdi.name_label,
+                },
+              })
+            }
+          })
+          return acc
+        },
+        []
       )
     )
+  )
 
-    return {
-      allVbds: getAllVbds(state, props),
-      checkPermissions: getCheckPermissions(state, props),
-      isAdmin: isAdmin(state, props),
-      resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
-      detailedTasks: getDetailedTasks(),
-    }
-  }
+  return (state, props) => ({
+    allVbds: getAllVbds(state, props),
+    checkPermissions: getCheckPermissions(state, props),
+    detailedTasks: getDetailedTasks(state, props),
+    isAdmin: isAdmin(state, props),
+    resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
+  })
 })
 export default class TabDisks extends Component {
   constructor(props) {
