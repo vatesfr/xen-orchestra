@@ -277,6 +277,10 @@ importVmBackup.params = {
   sr: {
     type: 'string',
   },
+  useDifferentialRestore: {
+    type: 'boolean',
+    optional: true
+  }
 }
 
 export function checkBackup({ id, settings, sr }) {

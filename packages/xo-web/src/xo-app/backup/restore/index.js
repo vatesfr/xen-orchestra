@@ -184,16 +184,16 @@ export default class Restore extends Component {
       body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
     })
-      .then(({ backup, generateNewMacAddresses, targetSrs: { mainSr, mapVdisSrs }, start }) => {
+      .then(({ backup, generateNewMacAddresses, targetSrs: { mainSr, mapVdisSrs }, start, useDifferentialRestore }) => {
         if (backup == null || mainSr == null) {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
-
         return restoreBackup(backup, mainSr, {
           generateNewMacAddresses,
           mapVdisSrs,
           startOnRestore: start,
+          useDifferentialRestore,
         })
       }, noop)
       .then(() => this._refreshBackupList())
