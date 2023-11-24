@@ -11,14 +11,13 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import { compact, every, filter, find, forEach, get, groupBy, map, some, sortedUniq, uniq } from 'lodash'
-import { Sr } from 'render-xo-item'
+import { compact, every, filter, find, forEach, get, map, reduce, some, sortedUniq, uniq } from 'lodash'
+import { Sr, Vdi } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
-  createFilter,
   createFinder,
   getCheckPermissions,
   getResolvedResourceSet,
@@ -176,13 +175,22 @@ const COLUMNS_VDI_TASKS = [
   {
     itemRenderer: task => task.name_label,
     name: _('name'),
-    sortCriteria: 'task.name_label',
+    sortCriteria: 'name_label',
   },
   {
-    itemRenderer: (task, { vdiByTaskId }) =>
-      formatSize(Number(vdiByTaskId[task.uuid][0].other_config['xo:import:length'])),
+    itemRenderer: task => <Vdi id={task.details.vdiId} />,
+    name: _('object'),
+    sortCriteria: 'details.vdiName',
+  },
+  {
+    itemRenderer: task => task.details.action,
+    name: _('action'),
+    sortCriteria: 'details.action',
+  },
+  {
+    itemRenderer: task => formatSize(task.details.length),
     name: _('size'),
-    sortCriteria: (task, { vdiByTaskId }) => Number(vdiByTaskId[task.uuid][0].other_config['xo:import:length']),
+    sortCriteria: 'details.length',
   },
   {
     itemRenderer: task => (
@@ -490,6 +498,7 @@ class AttachDisk extends Component {
   }
 }
 
+const xoTaskOtherConfigRegex = /^xo:.*:task$/
 @addSubscriptions(props => ({
   // used by getResolvedResourceSet
   resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.vm.resourceSet }))),
@@ -499,13 +508,35 @@ class AttachDisk extends Component {
   const getTasks = createGetObjectsOfType('task')
 
   return (state, props) => {
-    const getVdiTasks = createSelector(
+    const getDetailedTasks = createSelector(
       () => getTasks(state, props),
-      createFilter(() => props.vdis, [vdi => vdi.other_config['xo:import:task'] !== undefined]),
-      createCollectionWrapper((tasks, vdis) => {
-        const ids = map(vdis, vdi => vdi.other_config['xo:import:task'])
-        return filter(tasks, task => ids.includes(task.uuid))
-      })
+      () => props.vdis,
+      createCollectionWrapper((tasks, vdis) =>
+        reduce(
+          vdis,
+          (acc, vdi) => {
+            forEach(vdi.other_config, (id, key) => {
+              const task = tasks[id]
+              if (xoTaskOtherConfigRegex.test(key) && task !== undefined) {
+                const [prefix, action] = key.split(':') // key === 'xo:<action>:task',
+                const length = vdi.other_config[`${prefix}:${action}:length`]
+
+                acc.push({
+                  ...task,
+                  details: {
+                    action,
+                    length: length !== undefined ? Number(length) : undefined,
+                    vdiId: vdi.uuid,
+                    vdiName: vdi.name_label,
+                  },
+                })
+              }
+            })
+            return acc
+          },
+          []
+        )
+      )
     )
 
     return {
@@ -513,7 +544,7 @@ class AttachDisk extends Component {
       checkPermissions: getCheckPermissions(state, props),
       isAdmin: isAdmin(state, props),
       resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
-      tasks: getVdiTasks(),
+      detailedTasks: getDetailedTasks(),
     }
   }
 })
@@ -529,11 +560,6 @@ export default class TabDisks extends Component {
   _getVdiSrs = createSelector(
     () => this.props.vdis,
     createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
-  )
-
-  _getVdiByTaskId = createSelector(
-    () => this.props.vdis,
-    vdis => groupBy(vdis, "other_config['xo:import:task']")
   )
 
   _areSrsOnSameHost = createSelector(
@@ -772,12 +798,7 @@ export default class TabDisks extends Component {
             <Card>
               <CardHeader>{_('vdiTasks')}</CardHeader>
               <CardBlock>
-                <SortedTable
-                  collection={this.props.tasks}
-                  columns={COLUMNS_VDI_TASKS}
-                  data-vdiByTaskId={this._getVdiByTaskId()}
-                  sateUrlParam='t'
-                />
+                <SortedTable collection={this.props.detailedTasks} columns={COLUMNS_VDI_TASKS} stateUrlParam='t' />
               </CardBlock>
             </Card>
           </Col>
