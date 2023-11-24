@@ -1802,6 +1802,7 @@ const messages = {
   latest: 'latest',
   restoreVmBackupsStart: 'Start VM{nVms, plural, one {} other {s}} after restore',
   restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
+  restoreVmUseDifferentialRestore: 'Use differential restore',
   restoreMetadataBackupTitle: 'Restore {item}',
   bulkRestoreMetadataBackupTitle:
     'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}',

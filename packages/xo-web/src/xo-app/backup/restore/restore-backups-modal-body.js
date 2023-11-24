@@ -12,7 +12,11 @@ import { SelectSr } from 'select-objects'
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 export default class RestoreBackupsModalBody extends Component {
-  state = { generateNewMacAddresses: false, targetSrs: { mainSr: undefined, mapVdisSrs: undefined } }
+  state = {
+    generateNewMacAddresses: false,
+    targetSrs: { mainSr: undefined, mapVdisSrs: undefined },
+    useDifferentialRestore: false,
+  }
 
   get value() {
     return this.state
@@ -77,6 +81,17 @@ export default class RestoreBackupsModalBody extends Component {
                   onChange={this.toggleState('generateNewMacAddresses')}
                 />{' '}
                 {_('generateNewMacAddress')}
+              </div>
+            )}
+
+            {this.state.backup.mode === 'delta' && (
+              <div>
+                <Toggle
+                  iconSize={1}
+                  value={this.state.useDifferentialRestore}
+                  onChange={this.toggleState('useDifferentialRestore')}
+                />{' '}
+                {_('restoreVmUseDifferentialRestore')}
               </div>
             )}
           </div>
