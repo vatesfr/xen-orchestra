@@ -794,6 +794,11 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
+          <Col mediumSize={5}>
+            <IsoDevice vm={vm} />
+          </Col>
+        </Row>
+        <Row className='mt-1'>
           <Col>
             <Card>
               <CardHeader>{_('vdiTasks')}</CardHeader>
@@ -801,11 +806,6 @@ export default class TabDisks extends Component {
                 <SortedTable collection={this.props.detailedTasks} columns={COLUMNS_VDI_TASKS} stateUrlParam='t' />
               </CardBlock>
             </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col mediumSize={5}>
-            <IsoDevice vm={vm} />
           </Col>
         </Row>
       </Container>
