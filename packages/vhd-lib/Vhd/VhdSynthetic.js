@@ -120,7 +120,8 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 }
 
 // add decorated  static method
-VhdSynthetic.fromVhdChain = Disposable.factory(async function* fromVhdChain(handler, childPath) {
+// until is not included in the result , the chain will stop at its child
+VhdSynthetic.fromVhdChain = Disposable.factory(async function* fromVhdChain(handler, childPath, { until } = {}) {
   let vhdPath = childPath
   let vhd
   const vhds = []
@@ -128,8 +129,11 @@ VhdSynthetic.fromVhdChain = Disposable.factory(async function* fromVhdChain(hand
     vhd = yield openVhd(handler, vhdPath)
     vhds.unshift(vhd) // from oldest to most recent
     vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
-  } while (vhd.footer.diskType !== DISK_TYPES.DYNAMIC)
+  } while (vhd.footer.diskType !== DISK_TYPES.DYNAMIC && vhdPath !== until)
 
+  if (until !== undefined && vhdPath !== until) {
+    throw new Error(`Didn't find ${until} as a parent of ${childPath}`)
+  }
   const synthetic = new VhdSynthetic(vhds)
   await synthetic.readHeaderAndFooter()
   yield synthetic
