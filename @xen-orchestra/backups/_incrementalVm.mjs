@@ -250,6 +250,10 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     // Import VDI contents.
     cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
       for (let stream of ensureArray(streams[`${id}.vhd`])) {
+        if (stream === null) {
+          // we restore a backup and reuse completly a local snapshot
+          continue
+        }
         if (typeof stream === 'function') {
           stream = await stream()
         }
