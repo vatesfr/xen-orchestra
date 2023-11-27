@@ -409,7 +409,7 @@ export class Xapi extends EventEmitter {
       pRetry(
         async () =>
           client.request({
-            method: "GET",
+            method: 'GET',
             path: pathname,
             query,
             // Support XS <= 6.5 with Node => 12
@@ -430,18 +430,17 @@ export class Xapi extends EventEmitter {
       )
     )
 
-    const { statusCode } = response;
+    const { statusCode } = response
     if (((statusCode / 100) | 0) === 2) {
       if (pTaskResult !== undefined) {
         response.task = pTaskResult
       }
 
       return response.body
-    }
-    else{
-      const error = new Error(`${response.statusCode} ${response.statusMessage}`);
-      Object.defineProperty(error, "response", { value: response });
-      throw error;
+    } else {
+      const error = new Error(`${response.statusCode} ${response.statusMessage}`)
+      Object.defineProperty(error, 'response', { value: response })
+      throw error
     }
   }
 
