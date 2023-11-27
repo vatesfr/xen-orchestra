@@ -44,8 +44,10 @@ defer(async ($defer, rawArgs) => {
     },
   })
 
+  console.warn('Export task:', exportStream.headers['task-id'])
+
   await pipeline(
-    exportStream,
+    exportStream.body,
     createProgress({ time: 1e3 }, p => console.warn(formatProgress(p))),
     createOutputStream(args[2])
   )

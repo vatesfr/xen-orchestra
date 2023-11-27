@@ -51,6 +51,8 @@ defer(async ($defer, rawArgs) => {
     },
   })
 
+  console.warn('Export task:', exportStream.headers['task-id'])
+
   const top = createTop()
   const progressStream = createProgress()
 
@@ -61,5 +63,5 @@ defer(async ($defer, rawArgs) => {
     }, 1e3)
   )
 
-  await pipeline(exportStream, progressStream, throttle(bps), createOutputStream(args[2]))
+  await pipeline(exportStream.body, progressStream, throttle(bps), createOutputStream(args[2]))
 })(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

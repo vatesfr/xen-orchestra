@@ -439,7 +439,7 @@ export class Xapi extends EventEmitter {
         response.task = pTaskResult
       }
 
-      return response.body
+      return response
     } else {
       const error = new Error(`${response.statusCode} ${response.statusMessage}`)
       Object.defineProperty(error, 'response', { value: response })
