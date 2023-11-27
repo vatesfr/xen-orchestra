@@ -491,7 +491,7 @@ class Vm {
       exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
       destroySnapshot = () =>
         this.VM_destroy(exportedVmRef).catch(error => {
-          warn('VM_export: failed to destroy snapshots', {
+          warn('VM_export: failed to destroy snapshot', {
             error,
             snapshotRef: exportedVmRef,
             vmRef,

@@ -453,6 +453,15 @@ export default class RestApi {
         await pipeline(stream, res)
       })
     )
+    api.put(
+      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
+      wrap(async (req, res) => {
+        req.length = +req.headers['content-length']
+        await req.xapiObject.$importContent(req, { format: req.params.format })
+
+        res.sendStatus(204)
+      })
+    )
     api.get(
       '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
       wrap(async (req, res) => {
@@ -479,24 +488,43 @@ export default class RestApi {
 
       res.json(result)
     })
-    api.patch(
-      '/:collection/:object',
-      json(),
-      wrap(async (req, res) => {
-        const obj = req.xapiObject
+    api
+      .patch(
+        '/:collection/:object',
+        json(),
+        wrap(async (req, res) => {
+          const obj = req.xapiObject
 
-        const promises = []
-        const { body } = req
-        for (const key of ['name_description', 'name_label']) {
-          const value = body[key]
-          if (value !== undefined) {
-            promises.push(obj['set_' + key](value))
+          const promises = []
+          const { body } = req
+
+          for (const key of ['name_description', 'name_label', 'tags']) {
+            const value = body[key]
+            if (value !== undefined) {
+              promises.push(obj['set_' + key](value))
+            }
           }
-        }
-        await promises
-        res.sendStatus(204)
-      })
-    )
+
+          await promises
+          res.sendStatus(204)
+        })
+      )
+      .delete(
+        '/:collection/:object/tags/:tag',
+        wrap(async (req, res) => {
+          await req.xapiObject.$call('remove_tags', req.params.tag)
+
+          res.sendStatus(204)
+        })
+      )
+      .put(
+        '/:collection/:object/tags/:tag',
+        wrap(async (req, res) => {
+          await req.xapiObject.$call('add_tags', req.params.tag)
+
+          res.sendStatus(204)
+        })
+      )
 
     api.get(
       '/:collection/:object/tasks',

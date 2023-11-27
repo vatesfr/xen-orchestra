@@ -33,7 +33,7 @@ import { pRetry } from 'promise-toolbox'
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
 const MAX_PART_NUMBER = 10000
 const MIN_PART_SIZE = 5 * 1024 * 1024
-const { warn } = createLogger('xo:fs:s3')
+const { debug, info, warn } = createLogger('xo:fs:s3')
 
 export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
@@ -453,10 +453,18 @@ export default class S3Handler extends RemoteHandlerAbstract {
       if (res.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled') {
         // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
         // will automatically add the contentMD5 header to any upload to S3
+        debug(`Object Lock is enable, enable content md5 header`)
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
       }
     } catch (error) {
-      if (error.Code !== 'ObjectLockConfigurationNotFoundError' && error.$metadata.httpStatusCode !== 501) {
+      // maybe the account doesn't have enought privilege to query the object lock configuration
+      // be defensive and apply the md5  just in case
+      if (error.$metadata.httpStatusCode === 403) {
+        info(`s3 user doesnt have enough privilege to check for Object Lock, enable content MD5 header`)
+        this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+      } else if (error.Code === 'ObjectLockConfigurationNotFoundError' || error.$metadata.httpStatusCode === 501) {
+        info(`Object lock is not available or not configured, don't add the content MD5 header`)
+      } else {
         throw error
       }
     }

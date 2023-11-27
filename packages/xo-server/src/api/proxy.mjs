@@ -181,7 +181,7 @@ getApplianceUpdaterState.params = {
 
 export async function checkHealth({ id }) {
   try {
-    await this.callProxyMethod(id, 'system.getServerVersion')
+    await this.checkProxyHealth(id)
     return {
       success: true,
     }
