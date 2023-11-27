@@ -209,8 +209,8 @@ export const create = defer(async function (
     const host = hosts[0]
     const xapi = this.getXapi(host)
 
-    const srRef = await Task.run({ properties: { name: 'creation of the storage' } }, () =>
-      xapi.SR_create({
+    const srUuid = await Task.run({ properties: { name: 'creation of the storage' } }, async () => {
+      const srRef = await xapi.SR_create({
         device_config: {
           'group-name': 'linstor_group/' + LV_NAME,
           redundancy: String(replication),
@@ -222,8 +222,8 @@ export const create = defer(async function (
         shared: true,
         type: 'linstor',
       })
-    )
-    const srUuid = await xapi.getField('SR', srRef, 'uuid')
+      return xapi.getField('SR', srRef, 'uuid')
+    })
 
     await this.rebindLicense({
       licenseId: license.id,
@@ -273,7 +273,7 @@ export async function destroy({ sr }) {
         productId: license.productId,
       })
     )
-    return Task.run({ properties: { name: `destroy volume group on ${hosts.length} hosts` } }, () =>
+    await Task.run({ properties: { name: `destroy volume group on ${hosts.length} hosts` } }, () =>
       asyncEach(hosts, host => destroyVolumeGroup(xapi, host, true), { stopOnError: false })
     )
   })
