@@ -514,21 +514,19 @@ class AttachDisk extends Component {
       reduce(
         vdis,
         (acc, vdi) => {
-          const taskId = vdi.other_config['xo:import:task']
-          if (taskId !== undefined) {
-            const task = tasks[taskId]
-            const length = vdi.other_config['xo:import:length']
+          const task = tasks[vdi.other_config['xo:import:task']]
+          const length = vdi.other_config['xo:import:length']
 
-            acc.push({
-              ...task,
-              details: {
-                action: 'import',
-                length: Number(length),
-                vdiId: vdi.uuid,
-                vdiName: vdi.name_label,
-              },
-            })
-          }
+          acc.push({
+            ...task,
+            details: {
+              action: 'import',
+              length: Number(length),
+              vdiId: vdi.uuid,
+              vdiName: vdi.name_label,
+            },
+          })
+
           return acc
         },
         []
@@ -799,7 +797,11 @@ export default class TabDisks extends Component {
             <Card>
               <CardHeader>{_('vdiTasks')}</CardHeader>
               <CardBlock>
-                <SortedTable collection={this.props.detailedImportVdiTasks} columns={COLUMNS_VDI_TASKS} stateUrlParam='t' />
+                <SortedTable
+                  collection={this.props.detailedImportVdiTasks}
+                  columns={COLUMNS_VDI_TASKS}
+                  stateUrlParam='t'
+                />
               </CardBlock>
             </Card>
           </Col>
