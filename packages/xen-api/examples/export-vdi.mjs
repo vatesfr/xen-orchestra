@@ -51,8 +51,6 @@ defer(async ($defer, rawArgs) => {
     },
   })
 
-  console.warn('Export task:', exportStream.headers['task-id'])
-
   const top = createTop()
   const progressStream = createProgress()
 

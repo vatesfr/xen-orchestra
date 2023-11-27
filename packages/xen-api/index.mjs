@@ -395,25 +395,24 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    let url = new URL('http://localhost')
-    url.protocol = this._url.protocol
-    url.pathname = pathname
-    url.search = new URLSearchParams(query)
+    const url = new URL('http://localhost')
     await this._setHostAddressInUrl(url, host)
+
+    const client = new Client(url, {
+      connect: {
+        minVersion: 'TLSv1',
+        rejectUnauthorized: !this._allowUnauthorized,
+      },
+    })
 
     const response = await this._addSyncStackTrace(
       pRetry(
         async () =>
-          httpRequest(url, {
-            rejectUnauthorized: !this._allowUnauthorized,
-
-            // this is an inactivity timeout (unclear in Node doc)
-            timeout: this._httpInactivityTimeout,
-
-            maxRedirects: 0,
-
+          client.request({
+            method: "GET",
+            path: pathname,
+            query,
             // Support XS <= 6.5 with Node => 12
-            minVersion: 'TLSv1',
             agent: this.httpAgent,
 
             signal: $cancelToken,
@@ -426,17 +425,24 @@ export class Xapi extends EventEmitter {
               throw error
             }
             response.destroy()
-            url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
           },
         }
       )
     )
 
-    if (pTaskResult !== undefined) {
-      response.task = pTaskResult
-    }
+    const { statusCode } = response;
+    if (((statusCode / 100) | 0) === 2) {
+      if (pTaskResult !== undefined) {
+        response.task = pTaskResult
+      }
 
-    return response
+      return response.body
+    }
+    else{
+      const error = new Error(`${response.statusCode} ${response.statusMessage}`);
+      Object.defineProperty(error, "response", { value: response });
+      throw error;
+    }
   }
 
   async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
