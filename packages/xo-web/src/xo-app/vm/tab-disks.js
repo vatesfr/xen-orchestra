@@ -18,6 +18,7 @@ import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
+  createFilter,
   createFinder,
   getCheckPermissions,
   getResolvedResourceSet,
@@ -498,7 +499,6 @@ class AttachDisk extends Component {
   }
 }
 
-const xoTaskOtherConfigRegex = /^xo:.*:task$/
 @addSubscriptions(props => ({
   // used by getResolvedResourceSet
   resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.vm.resourceSet }))),
@@ -507,30 +507,28 @@ const xoTaskOtherConfigRegex = /^xo:.*:task$/
   const getAllVbds = createGetObjectsOfType('VBD')
   const getTasks = createGetObjectsOfType('task')
 
-  const getDetailedTasks = createSelector(
+  const getDetailedImportVdiTasks = createSelector(
     getTasks,
-    (state, props) => props.vdis,
+    createFilter((state, props) => props.vdis, [vdi => vdi.other_config['xo:import:task'] !== undefined]),
     createCollectionWrapper((tasks, vdis) =>
       reduce(
         vdis,
         (acc, vdi) => {
-          forEach(vdi.other_config, (id, key) => {
-            const task = tasks[id]
-            if (xoTaskOtherConfigRegex.test(key) && task !== undefined) {
-              const [prefix, action] = key.split(':') // key === 'xo:<action>:task',
-              const length = vdi.other_config[`${prefix}:${action}:length`]
+          const taskId = vdi.other_config['xo:import:task']
+          if (taskId !== undefined) {
+            const task = tasks[taskId]
+            const length = vdi.other_config['xo:import:length']
 
-              acc.push({
-                ...task,
-                details: {
-                  action,
-                  length: length !== undefined ? Number(length) : undefined,
-                  vdiId: vdi.uuid,
-                  vdiName: vdi.name_label,
-                },
-              })
-            }
-          })
+            acc.push({
+              ...task,
+              details: {
+                action: 'import',
+                length: Number(length),
+                vdiId: vdi.uuid,
+                vdiName: vdi.name_label,
+              },
+            })
+          }
           return acc
         },
         []
@@ -541,7 +539,7 @@ const xoTaskOtherConfigRegex = /^xo:.*:task$/
   return (state, props) => ({
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
-    detailedTasks: getDetailedTasks(state, props),
+    detailedImportVdiTasks: getDetailedImportVdiTasks(state, props),
     isAdmin: isAdmin(state, props),
     resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
   })
@@ -801,7 +799,7 @@ export default class TabDisks extends Component {
             <Card>
               <CardHeader>{_('vdiTasks')}</CardHeader>
               <CardBlock>
-                <SortedTable collection={this.props.detailedTasks} columns={COLUMNS_VDI_TASKS} stateUrlParam='t' />
+                <SortedTable collection={this.props.detailedImportVdiTasks} columns={COLUMNS_VDI_TASKS} stateUrlParam='t' />
               </CardBlock>
             </Card>
           </Col>
