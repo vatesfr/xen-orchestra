@@ -412,6 +412,9 @@ export class Xapi extends EventEmitter {
             method: 'GET',
             path: pathname,
             query,
+            maxRedirections: 0,
+            headersTimeout: this._httpInactivityTimeout,
+            bodyTimeout: this._httpInactivityTimeout,
             // Support XS <= 6.5 with Node => 12
             agent: this.httpAgent,
 
