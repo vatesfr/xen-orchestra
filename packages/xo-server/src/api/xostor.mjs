@@ -12,7 +12,10 @@ const VG_NAME = 'linstor_group'
 const XOSTOR_DEPENDENCIES = ['xcp-ng-release-linstor', 'xcp-ng-linstor']
 
 function pluginCall(xapi, host, plugin, fnName, args) {
-  return xapi.call('host.call_plugin', host._xapiRef, plugin, fnName, args)
+  return Task.run(
+    { properties: { name: `call plugin on: ${host.name_label}`, objectId: host.uuid, plugin, fnName, args } },
+    () => xapi.call('host.call_plugin', host._xapiRef, plugin, fnName, args)
+  )
 }
 
 async function destroyVolumeGroup(xapi, host, force) {
@@ -258,15 +261,21 @@ export async function destroy({ sr }) {
     const xapi = this.getXapi(sr)
     const hosts = Object.values(xapi.objects.indexes.type.host).map(host => this.getObject(host.uuid, 'host'))
 
-    await xapi.destroySr(sr._xapiId)
+    await Task.run({ properties: { name: 'deletion of the storage', objectId: sr.uuid } }, () =>
+      xapi.destroySr(sr._xapiId)
+    )
     const license = (await this.getLicenses({ productType: 'xostor' })).find(
       license => license.boundObjectId === sr.uuid
     )
-    await this.unbindLicense({
-      boundObjectId: license.boundObjectId,
-      productId: license.productId,
-    })
-    return asyncEach(hosts, host => destroyVolumeGroup(xapi, host, true), { stopOnError: false })
+    await Task.run({ properties: { name: 'unbind the attached license' } }, () =>
+      this.unbindLicense({
+        boundObjectId: license.boundObjectId,
+        productId: license.productId,
+      })
+    )
+    return Task.run({ properties: { name: `destroy volume group on ${hosts.length} hosts` } }, () =>
+      asyncEach(hosts, host => destroyVolumeGroup(xapi, host, true), { stopOnError: false })
+    )
   })
 }
 destroy.description = 'Destroy a XOSTOR storage'
