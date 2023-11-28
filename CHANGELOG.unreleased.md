@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
+- [REST API] Support VM import using the XVA format
 
 ### Bug fixes
 
@@ -30,6 +31,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->

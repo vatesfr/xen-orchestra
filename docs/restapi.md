@@ -199,6 +199,23 @@ curl \
   > myDisk.vhd
 ```
 
+## VM Import
+
+A VM can be imported by posting to `/rest/v0/pools/:id/vms`.
+
+```sh
+curl \
+  -X POST \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  -T myDisk.raw \
+  'https://xo.example.org/rest/v0/pools/355ee47d-ff4c-4924-3db2-fd86ae629676/vms?sr=357bd56c-71f9-4b2a-83b8-3451dec04b8f' \
+  | cat
+```
+
+The `sr` query parameter can be used to specify on which SR the VM should be imported, if not specified, the default SR will be used.
+
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+
 ## VDI Import
 
 ### Existing VDI

@@ -577,6 +577,22 @@ export default class RestApi {
     )
 
     api.post(
+      '/:collection(pools)/:object/vms',
+      wrap(async (req, res) => {
+        let srRef
+        const { sr } = req.params
+        if (sr !== undefined) {
+          srRef = app.getXapiObject(sr, 'SR').$ref
+        }
+
+        const { $xapi } = req.xapiObject
+        const ref = await $xapi.VM_import(req, srRef)
+
+        res.end(await $xapi.getField('VM', ref, 'uuid'))
+      })
+    )
+
+    api.post(
       '/:collection(srs)/:object/vdis',
       wrap(async (req, res) => {
         const sr = req.xapiObject
