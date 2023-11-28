@@ -14,7 +14,7 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "engines": {
     "node": ">=8.10"
   },
@@ -23,7 +23,7 @@
     "test": "node--test"
   },
   "dependencies": {
-    "@vates/multi-key-map": "^0.1.0",
+    "@vates/multi-key-map": "^0.2.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "ensure-array": "^1.0.0"

@@ -135,23 +135,15 @@
     </UiCard>
     <UiCard class="group">
       <UiCardTitle>{{ $t("language") }}</UiCardTitle>
-      <UiKeyValueList>
-        <UiKeyValueRow>
-          <template #value>
-            <FormWidget class="full-length" :before="faEarthAmericas">
-              <select v-model="$i18n.locale">
-                <option
-                  :value="locale"
-                  v-for="locale in $i18n.availableLocales"
-                  :key="locale"
-                >
-                  {{ locales[locale].name ?? locale }}
-                </option>
-              </select>
-            </FormWidget>
-          </template>
-        </UiKeyValueRow>
-      </UiKeyValueList>
+      <FormSelect :before="faEarthAmericas" v-model="$i18n.locale">
+        <option
+          :value="locale"
+          v-for="locale in $i18n.availableLocales"
+          :key="locale"
+        >
+          {{ locales[locale].name ?? locale }}
+        </option>
+      </FormSelect>
     </UiCard>
   </div>
 </template>
@@ -174,7 +166,7 @@ import {
   faGear,
   faCheck,
 } from "@fortawesome/free-solid-svg-icons";
-import FormWidget from "@/components/FormWidget.vue";
+import FormSelect from "@/components/form/FormSelect.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
@@ -248,9 +240,5 @@ h5 {
       border-radius: 8px;
     }
   }
-}
-
-.full-length {
-  width: 100%;
 }
 </style>

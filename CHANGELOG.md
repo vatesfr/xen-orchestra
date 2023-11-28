@@ -1,5 +1,45 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Netbox] Ability to synchronize XO users as Netbox tenants (PR [#7158](https://github.com/vatesfr/xen-orchestra/pull/7158))
+- [VM/Console] Add a message to indicate that the console view has been [disabled](https://support.citrix.com/article/CTX217766/how-to-disable-the-console-for-the-vm-in-xencenter) for this VM [#6319](https://github.com/vatesfr/xen-orchestra/issues/6319) (PR [#7161](https://github.com/vatesfr/xen-orchestra/pull/7161))
+- [Restore] Show source remote and restoration time on a restored VM (PR [#7186](https://github.com/vatesfr/xen-orchestra/pull/7186))
+- [Backup/Import] Show disk import status during Incremental Replication or restoration of Incremental Backup (PR [#7171](https://github.com/vatesfr/xen-orchestra/pull/7171))
+- [VM Creation] Added ISO option in new VM form when creating from template with a disk [#3464](https://github.com/vatesfr/xen-orchestra/issues/3464) (PR [#7166](https://github.com/vatesfr/xen-orchestra/pull/7166))
+- [REST API] `tags` property can be updated (PR [#7196](https://github.com/vatesfr/xen-orchestra/pull/7196))
+- [REST API] A VDI export can now be imported in an existing VDI (PR [#7199](https://github.com/vatesfr/xen-orchestra/pull/7199))
+- [File Restore] API method `backupNg.mountPartition` to manually mount a backup disk on the XOA
+
+### Bug fixes
+
+- [Backup/Restore] In case of snapshot with memory, create the suspend VDI on the correct SR instead of the default one
+- [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
+- [Export/OVA] Handle export with resulting disk larger than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
+- [Self Service] Fix error displayed after adding a VM to a resource set (PR [#7144](https://github.com/vatesfr/xen-orchestra/pull/7144))
+
+### Released packages
+
+- @vates/multi-key-map 0.2.0
+- @vates/disposable 0.1.5
+- @xen-orchestra/fs 4.1.3
+- xen-api 2.0.0
+- @vates/nbd-client 2.0.1
+- @xen-orchestra/xapi 4.0.0
+- @xen-orchestra/backups 0.44.0
+- @xen-orchestra/backups-cli 1.0.14
+- @xen-orchestra/cr-seed-cli 1.0.0
+- @xen-orchestra/proxy 0.26.39
+- xo-vmdk-to-vhd 2.5.7
+- @xen-orchestra/vmware-explorer 0.3.1
+- xapi-explore-sr 0.4.2
+- xo-cli 0.22.0
+- xo-server 5.127.0
+- xo-server-netbox 1.4.0
+- xo-web 5.128.0
+
 ## **5.88.2** (2023-11-13)
 
 ### Enhancement

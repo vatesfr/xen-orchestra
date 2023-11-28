@@ -33,9 +33,9 @@ export class ImportVmBackup {
     for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
       mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
     }
-    const sr = await resolveUuid(xapi, cache, this._srUuid, 'SR')
+    const srRef = await resolveUuid(xapi, cache, this._srUuid, 'SR')
     Object.values(backup.vdis).forEach(vdi => {
-      vdi.SR = mapVdisSrRefs[vdi.uuid] ?? sr.$ref
+      vdi.SR = mapVdisSrRefs[vdi.uuid] ?? srRef
     })
     return backup
   }
