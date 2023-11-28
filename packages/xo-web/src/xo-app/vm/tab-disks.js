@@ -11,19 +11,19 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
-import { Sr } from 'render-xo-item'
+import { compact, every, filter, find, forEach, get, map, reduce, some, sortedUniq, uniq } from 'lodash'
+import { Sr, Vdi } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
+  createFilter,
   createFinder,
   getCheckPermissions,
   getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
-import { injectIntl } from 'react-intl'
 import {
   addSubscriptions,
   connectStore,
@@ -57,6 +57,8 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import { Card, CardHeader, CardBlock } from 'card'
+import { FormattedRelative, injectIntl } from 'react-intl'
 import { SelectResourceSetsSr, SelectSr as SelectAnySr, SelectVdi } from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
@@ -167,6 +169,55 @@ const COLUMNS_VM_PV = [
 ]
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
+
+const PROGRESS_STYLES = { margin: 0 }
+
+const COLUMNS_VDI_TASKS = [
+  {
+    itemRenderer: task => task.name_label,
+    name: _('name'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: task => <Vdi id={task.details.vdiId} />,
+    name: _('object'),
+    sortCriteria: 'details.vdiName',
+  },
+  {
+    itemRenderer: task => task.details.action,
+    name: _('action'),
+    sortCriteria: 'details.action',
+  },
+  {
+    itemRenderer: task => formatSize(task.details.length),
+    name: _('size'),
+    sortCriteria: 'details.length',
+  },
+  {
+    itemRenderer: task => (
+      <progress style={PROGRESS_STYLES} className='progress' value={task.progress * 100} max='100' />
+    ),
+    name: _('progress'),
+    sortCriteria: 'progress',
+  },
+  {
+    itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
+    name: _('taskStarted'),
+    sortCriteria: 'created',
+  },
+  {
+    itemRenderer: task => {
+      const started = task.created * 1000
+      const { progress } = task
+
+      if (progress === 0 || progress === 1) {
+        return // not yet started or already finished
+      }
+      return <FormattedRelative value={started + (Date.now() - started) / progress} />
+    },
+    name: _('taskEstimatedEnd'),
+  },
+]
 
 const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
@@ -454,10 +505,39 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
+  const getTasks = createGetObjectsOfType('task')
+
+  const getDetailedImportVdiTasks = createSelector(
+    getTasks,
+    createFilter((state, props) => props.vdis, [vdi => vdi.other_config['xo:import:task'] !== undefined]),
+    createCollectionWrapper((tasks, vdis) =>
+      reduce(
+        vdis,
+        (acc, vdi) => {
+          const task = tasks[vdi.other_config['xo:import:task']]
+          const length = vdi.other_config['xo:import:length']
+
+          acc.push({
+            ...task,
+            details: {
+              action: 'import',
+              length: Number(length),
+              vdiId: vdi.uuid,
+              vdiName: vdi.name_label,
+            },
+          })
+
+          return acc
+        },
+        []
+      )
+    )
+  )
 
   return (state, props) => ({
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
+    detailedImportVdiTasks: getDetailedImportVdiTasks(state, props),
     isAdmin: isAdmin(state, props),
     resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
   })
@@ -710,6 +790,20 @@ export default class TabDisks extends Component {
         <Row>
           <Col mediumSize={5}>
             <IsoDevice vm={vm} />
+          </Col>
+        </Row>
+        <Row className='mt-1'>
+          <Col>
+            <Card>
+              <CardHeader>{_('vdiTasks')}</CardHeader>
+              <CardBlock>
+                <SortedTable
+                  collection={this.props.detailedImportVdiTasks}
+                  columns={COLUMNS_VDI_TASKS}
+                  stateUrlParam='t'
+                />
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
       </Container>

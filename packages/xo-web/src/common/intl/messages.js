@@ -1238,6 +1238,7 @@ const messages = {
   vdiNameDescription: 'Description',
   vdiPool: 'Pool',
   vdiTags: 'Tags',
+  vdiTasks: 'VDI tasks',
   vdiSize: 'Size',
   vdiSr: 'SR',
   vdiVms: 'VMs',
