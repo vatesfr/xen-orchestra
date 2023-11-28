@@ -395,56 +395,65 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const url = new URL('http://localhost')
+    let url = new URL('http://localhost')
     await this._setHostAddressInUrl(url, host)
-
-    const client = new Client(url, {
-      connect: {
-        minVersion: 'TLSv1',
-        rejectUnauthorized: !this._allowUnauthorized,
-      },
-    })
 
     const response = await this._addSyncStackTrace(
       pRetry(
-        async () =>
-          client.request({
-            method: 'GET',
-            path: pathname,
-            query,
-            maxRedirections: 0,
-            headersTimeout: this._httpInactivityTimeout,
-            bodyTimeout: this._httpInactivityTimeout,
-            // Support XS <= 6.5 with Node => 12
-            agent: this.httpAgent,
+        async () => {
+          const client = new Client(url, {
+            connect: {
+              rejectUnauthorized: !this._allowUnauthorized,
+              // Support XS <= 6.5 with Node => 12
+              minVersion: 'TLSv1',
+            },
+          })
 
-            signal: $cancelToken,
-          }),
+          return client
+            .request({
+              method: 'GET',
+              path: pathname,
+              query,
+              maxRedirections: 0,
+              headersTimeout: this._httpInactivityTimeout,
+              bodyTimeout: this._httpInactivityTimeout,
+              agent: this.httpAgent,
+
+              signal: $cancelToken,
+            })
+            .then(response => {
+              const { statusCode } = response
+              if (((statusCode / 100) | 0) === 2) {
+                return response
+              }
+              const error = new Error(`${response.statusCode} ${response.statusMessage}`)
+              Object.defineProperty(error, 'response', { value: response })
+              throw error
+            })
+        },
         {
           when: error => error.response !== undefined && error.response.statusCode === 302,
           onRetry: async error => {
             const response = error.response
-            if (response === undefined) {
+            if (response === undefined || response.body === undefined) {
               throw error
             }
-            response.destroy()
+            response.body.on('error', noop)
+            response.body.destroy()
+            url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
+            query = Object.fromEntries(url.searchParams.entries())
+            pathname = url.pathname
+            url.pathname = url.search = ''
           },
         }
       )
     )
 
-    const { statusCode } = response
-    if (((statusCode / 100) | 0) === 2) {
-      if (pTaskResult !== undefined) {
-        response.task = pTaskResult
-      }
-
-      return response
-    } else {
-      const error = new Error(`${response.statusCode} ${response.statusMessage}`)
-      Object.defineProperty(error, 'response', { value: response })
-      throw error
+    if (pTaskResult !== undefined) {
+      response.task = pTaskResult
     }
+
+    return response
   }
 
   async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
