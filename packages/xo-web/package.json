@@ -137,7 +137,7 @@
     "xo-common": "^0.8.0",
     "xo-lib": "^0.11.1",
     "xo-remote-parser": "^0.9.2",
-    "xo-vmdk-to-vhd": "^2.5.6"
+    "xo-vmdk-to-vhd": "^2.5.7"
   },
   "scripts": {
     "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",
