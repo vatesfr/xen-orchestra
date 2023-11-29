@@ -7,16 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
-- [REST API] Support VM import using the XVA format
-- [Task] Show the related SR on the Garbage Collector Task ( vdi coalescing) (PR [#7189](https://github.com/vatesfr/xen-orchestra/pull/7189))
-- [Backup] Don't backup VM with tag xo:no-bak (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Backup/HealthCheck] Don't backup VM created by health check when using smart mode (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
 
 ### Packages to release
 
@@ -33,9 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/backups patch
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->
