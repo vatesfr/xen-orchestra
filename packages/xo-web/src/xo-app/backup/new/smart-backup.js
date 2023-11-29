@@ -97,7 +97,12 @@ const SmartBackup = decorate([
         </label>
         <SelectPool multi onChange={effects.setPoolNotValues} value={state.pools.notValues} />
       </FormGroup>
-      <h3>{_('editBackupSmartTags')}</h3>
+      <h3>
+        {_('editBackupSmartTags')}
+        <Tooltip content={_('editBackupSmartTagsInfo')}>
+          <Icon icon='info' />
+        </Tooltip>{' '}
+      </h3>
       <hr />
       <FormGroup>
         <label>

@@ -129,7 +129,9 @@ export default class BackupNg {
                     isMatchingVm(obj) &&
                     // don't match replicated VMs created by this very job otherwise
                     // they will be replicated again and again
-                    !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id)
+                    !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id) &&
+                    // handle xo:no-bak and xo:no-bak=reason tags. For example : VMs from Health Check
+                    !obj.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
                 })(),
               })
             )
