@@ -96,6 +96,9 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             metadata,
             srUuid,
             xapi,
+            settings: {
+              additionnalVmTag: 'xo:no-bak=Health Check',
+            },
           }).run()
           const restoredVm = xapi.getObject(restoredId)
           try {
