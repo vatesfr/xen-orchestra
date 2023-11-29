@@ -2272,10 +2272,10 @@ export const forgetSr = sr => forgetSrs([sr])
 
 export const forgetSrs = srs =>
   confirm({
-    title: _('srForgetModalTitle', { nSrs: srs.length }),
+    title: _('nSrsForget', { nSrs: srs.length }),
     body: (
       <p className='text-warning font-weight-bold'>
-        {_('srForgetModalMessage', { nSrs: srs.length })} {_('srForgetModalWarning')}
+        {_('forgetNSrsModalMessage', { nSrs: srs.length })} {_('srForgetModalWarning')}
       </p>
     ),
     strongConfirm: {
