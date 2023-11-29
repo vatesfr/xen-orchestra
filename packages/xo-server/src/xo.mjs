@@ -127,16 +127,16 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   _handleHttpRequest(req, res, next) {
-    const { url } = req
+    const { path } = req
 
     const { _httpRequestWatchers: watchers } = this
-    const watcher = watchers[url]
+    const watcher = watchers[path]
     if (!watcher) {
       next()
       return
     }
     if (!watcher.persistent) {
-      delete watchers[url]
+      delete watchers[path]
     }
 
     const { fn, data } = watcher
@@ -172,34 +172,34 @@ export default class Xo extends EventEmitter {
 
   async registerHttpRequest(fn, data, { suffix = '' } = {}) {
     const { _httpRequestWatchers: watchers } = this
-    let url
+    let path
 
     do {
-      url = `/api/${await generateToken()}${suffix}`
-    } while (url in watchers)
+      path = `/api/${await generateToken()}${suffix}`
+    } while (path in watchers)
 
-    watchers[url] = {
+    watchers[path] = {
       data,
       fn,
     }
-    return url
+    return path
   }
 
-  async registerHttpRequestHandler(url, fn, { data = undefined, persistent = true } = {}) {
+  async registerHttpRequestHandler(path, fn, { data = undefined, persistent = true } = {}) {
     const { _httpRequestWatchers: watchers } = this
 
-    if (url in watchers) {
-      throw new Error(`a handler is already registered for ${url}`)
+    if (path in watchers) {
+      throw new Error(`a handler is already registered for ${path}`)
     }
 
-    watchers[url] = {
+    watchers[path] = {
       data,
       fn,
       persistent,
     }
 
     return once(() => {
-      delete this._httpRequestWatchers[url]
+      delete this._httpRequestWatchers[path]
     })
   }
 
