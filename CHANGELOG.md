@@ -12,6 +12,10 @@
 - [REST API] `tags` property can be updated (PR [#7196](https://github.com/vatesfr/xen-orchestra/pull/7196))
 - [REST API] A VDI export can now be imported in an existing VDI (PR [#7199](https://github.com/vatesfr/xen-orchestra/pull/7199))
 - [File Restore] API method `backupNg.mountPartition` to manually mount a backup disk on the XOA
+- [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
+- [REST API] Support VM import using the XVA format
+- [Task] Show the related SR on the Garbage Collector Task ( vdi coalescing) (PR [#7189](https://github.com/vatesfr/xen-orchestra/pull/7189))
+- [Backup] Don't backup VM with tag xo:no-bak (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
 
 ### Bug fixes
 
@@ -19,6 +23,7 @@
 - [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
 - [Export/OVA] Handle export with resulting disk larger than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
 - [Self Service] Fix error displayed after adding a VM to a resource set (PR [#7144](https://github.com/vatesfr/xen-orchestra/pull/7144))
+- [Backup/HealthCheck] Don't backup VM created by health check when using smart mode (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
 
 ### Released packages
 
@@ -28,17 +33,17 @@
 - xen-api 2.0.0
 - @vates/nbd-client 2.0.1
 - @xen-orchestra/xapi 4.0.0
-- @xen-orchestra/backups 0.44.0
+- @xen-orchestra/backups 0.44.1
 - @xen-orchestra/backups-cli 1.0.14
 - @xen-orchestra/cr-seed-cli 1.0.0
-- @xen-orchestra/proxy 0.26.39
+- @xen-orchestra/proxy 0.26.40
 - xo-vmdk-to-vhd 2.5.7
 - @xen-orchestra/vmware-explorer 0.3.1
 - xapi-explore-sr 0.4.2
 - xo-cli 0.22.0
-- xo-server 5.127.0
+- xo-server 5.128.0
 - xo-server-netbox 1.4.0
-- xo-web 5.128.0
+- xo-web 5.129.0
 
 ## **5.88.2** (2023-11-13)
 
