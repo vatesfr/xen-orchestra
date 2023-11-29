@@ -16,6 +16,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup/HealthCheck] Don't backup VM created by health check when using smart mode (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
