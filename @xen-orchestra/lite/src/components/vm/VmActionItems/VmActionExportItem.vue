@@ -1,51 +1,53 @@
 <template>
-  <MenuItem :icon="faFileExport">
-    {{ $t("export") }}
-    <template #submenu>
-      <MenuItem
-        v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
-        :icon="faDisplay"
-      >
-        {{ $t("export-vms") }}
-      </MenuItem>
-      <MenuItem
-        :icon="faCode"
-        @click="
-          exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)
-        "
-      >
-        {{ $t("export-table-to", { type: ".json" }) }}
-      </MenuItem>
-      <MenuItem
-        :icon="faFileCsv"
-        @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)"
-      >
-        {{ $t("export-table-to", { type: ".csv" }) }}
-      </MenuItem>
-    </template>
+  <MenuItem
+    v-tooltip="
+      vmRefs.length > 0 &&
+      !isSomeExportable &&
+      $t(isSingleAction ? 'vm-is-running' : 'no-selected-vm-can-be-exported')
+    "
+    :icon="faDisplay"
+    :disabled="isDisabled"
+    @click="openModal"
+  >
+    {{ $t(isSingleAction ? "export-vm" : "export-vms") }}
   </MenuItem>
 </template>
-
 <script lang="ts" setup>
-import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { computed } from "vue";
-import { exportVmsAsCsvFile, exportVmsAsJsonFile } from "@/libs/vm";
+import { faDisplay } from "@fortawesome/free-solid-svg-icons";
+
 import MenuItem from "@/components/menu/MenuItem.vue";
-import {
-  faCode,
-  faDisplay,
-  faFileCsv,
-  faFileExport,
-} from "@fortawesome/free-solid-svg-icons";
+import { DisabledContext } from "@/context";
+import { useContext } from "@/composables/context.composable";
+import { useModal } from "@/composables/modal.composable";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { VM_OPERATION } from "@/libs/xen-api/xen-api.enums";
 import { vTooltip } from "@/directives/tooltip.directive";
+
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 
 const props = defineProps<{
   vmRefs: XenApiVm["$ref"][];
+  isSingleAction?: boolean;
 }>();
 
-const { getByOpaqueRef: getVm } = useVmCollection();
-const vms = computed(() =>
-  props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
+const { getByOpaqueRefs, areSomeOperationAllowed } = useVmCollection();
+
+const isParentDisabled = useContext(DisabledContext);
+
+const isSomeExportable = computed(() =>
+  getByOpaqueRefs(props.vmRefs).some((vm) =>
+    areSomeOperationAllowed(vm, VM_OPERATION.EXPORT)
+  )
 );
+
+const isDisabled = computed(
+  () => isParentDisabled.value || !isSomeExportable.value
+);
+
+const openModal = () => {
+  useModal(() => import("@/components/modals/VmExportModal.vue"), {
+    vmRefs: props.vmRefs,
+  });
+};
 </script>

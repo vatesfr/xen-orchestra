@@ -137,14 +137,16 @@ class Vdi {
 
     const vdi = await this.getRecord('VDI', ref)
     const sr = await this.getRecord('SR', vdi.SR)
-
     try {
+      const taskRef = await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`)
+      const uuid = await this.getField('task', taskRef, 'uuid')
+      await vdi.update_other_config({ 'xo:import:task': uuid, 'xo:import:length': stream.length.toString() })
       await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,
         },
-        task: await this.task_create(`Importing content into VDI ${vdi.name_label} on SR ${sr.name_label}`),
+        task: taskRef,
       })
     } catch (error) {
       // augment the error with as much relevant info as possible
@@ -153,6 +155,8 @@ class Vdi {
       error.SR = sr
       error.VDI = vdi
       throw error
+    } finally {
+      vdi.update_other_config({ 'xo:import:task': null, 'xo:import:length': null }).catch(warn)
     }
   }
 }

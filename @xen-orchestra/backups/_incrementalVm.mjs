@@ -1,4 +1,3 @@
-import find from 'lodash/find.js'
 import groupBy from 'lodash/groupBy.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import omit from 'lodash/omit.js'
@@ -12,24 +11,18 @@ import { cancelableMap } from './_cancelableMap.mjs'
 import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 
+// in `other_config` of an incrementally replicated VM, contains the UUID of the source VM
 export const TAG_BASE_DELTA = 'xo:base_delta'
 
+// in `other_config` of an incrementally replicated VM, contains the UUID of the target SR used for replication
+//
+// added after the complete replication
+export const TAG_BACKUP_SR = 'xo:backup:sr'
+
+// in other_config of VDIs of an incrementally replicated VM, contains the UUID of the source VDI
 export const TAG_COPY_SRC = 'xo:copy_of'
 
-const TAG_BACKUP_SR = 'xo:backup:sr'
-
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
-const resolveUuid = async (xapi, cache, uuid, type) => {
-  if (uuid == null) {
-    return uuid
-  }
-  let ref = cache.get(uuid)
-  if (ref === undefined) {
-    ref = await xapi.call(`${type}.get_by_uuid`, uuid)
-    cache.set(uuid, ref)
-  }
-  return ref
-}
 
 export async function exportIncrementalVm(
   vm,
@@ -147,7 +140,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
+  { cancelToken = CancelToken.none, newMacAddresses = false } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -157,35 +150,6 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   const vmRecord = incrementalVm.vm
   const xapi = sr.$xapi
 
-  let baseVm
-  if (detectBase) {
-    const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
-    if (remoteBaseVmUuid) {
-      baseVm = find(
-        xapi.objects.all,
-        obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
-      )
-
-      if (!baseVm) {
-        throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
-      }
-    }
-  }
-
-  const cache = new Map()
-  const mapVdisSrRefs = {}
-  for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
-    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
-  }
-
-  const baseVdis = {}
-  baseVm &&
-    baseVm.$VBDs.forEach(vbd => {
-      const vdi = vbd.$VDI
-      if (vdi !== undefined) {
-        baseVdis[vbd.VDI] = vbd.$VDI
-      }
-    })
   const vdiRecords = incrementalVm.vdis
 
   // 0. Create suspend_VDI
@@ -197,18 +161,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
       })
     } else {
-      suspendVdi = await xapi.getRecord(
-        'VDI',
-        await xapi.VDI_create({
-          ...vdi,
-          other_config: {
-            ...vdi.other_config,
-            [TAG_BASE_DELTA]: undefined,
-            [TAG_COPY_SRC]: vdi.uuid,
-          },
-          sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
-        })
-      )
+      suspendVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
       $defer.onFailure(() => suspendVdi.$destroy())
     }
   }
@@ -226,10 +179,6 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       ha_always_run: false,
       is_a_template: false,
       name_label: '[Importing…] ' + vmRecord.name_label,
-      other_config: {
-        ...vmRecord.other_config,
-        [TAG_COPY_SRC]: vmRecord.uuid,
-      },
     },
     {
       bios_strings: vmRecord.bios_strings,
@@ -250,14 +199,8 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     const vdi = vdiRecords[vdiRef]
     let newVdi
 
-    const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
-    if (remoteBaseVdiUuid) {
-      const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
-      if (!baseVdi) {
-        throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
-      }
-
-      newVdi = await xapi.getRecord('VDI', await baseVdi.$clone())
+    if (vdi.baseVdi !== undefined) {
+      newVdi = await xapi.getRecord('VDI', await vdi.baseVdi.$clone())
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
@@ -268,18 +211,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       // suspendVDI has already created
       newVdi = suspendVdi
     } else {
-      newVdi = await xapi.getRecord(
-        'VDI',
-        await xapi.VDI_create({
-          ...vdi,
-          other_config: {
-            ...vdi.other_config,
-            [TAG_BASE_DELTA]: undefined,
-            [TAG_COPY_SRC]: vdi.uuid,
-          },
-          SR: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
-        })
-      )
+      newVdi = await xapi.getRecord('VDI', await xapi.VDI_create(vdi))
       $defer.onFailure(() => newVdi.$destroy())
     }
 
@@ -324,7 +256,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         if (stream.length === undefined) {
           stream = await createVhdStreamWithLength(stream)
         }
+        await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
         await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+        await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),
 

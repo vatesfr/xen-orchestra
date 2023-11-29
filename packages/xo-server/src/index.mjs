@@ -214,10 +214,25 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
   const PERMANENT_VALIDITY = ifDef(authCfg.permanentCookieValidity, parseDuration)
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
+  const TEN_YEARS = 10 * 365 * 24 * 60 * 60 * 1e3
   const setToken = async (req, res, next) => {
+    let { clientId } = req.cookies
+    if (clientId === undefined) {
+      clientId = Math.random().toString(36).slice(2)
+      res.cookie('clientId', clientId, {
+        ...cookieCfg,
+
+        // no reason for this entry to ever expire, can be set to a long duration
+        maxAge: TEN_YEARS,
+      })
+    }
+
     const { user, isPersistent } = req.session
     const token = await xo.createAuthenticationToken({
-      description: 'web sign in',
+      client: {
+        id: clientId,
+      },
+      description: req.get('user-agent') ?? 'unknown browser',
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
       userId: user.id,
     })

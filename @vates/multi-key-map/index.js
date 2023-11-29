@@ -36,14 +36,31 @@ function del(node, i, keys) {
   return node
 }
 
+function* entries(node, key) {
+  if (node !== undefined) {
+    if (node instanceof Node) {
+      const { value } = node
+      if (value !== undefined) {
+        yield [key, node.value]
+      }
+
+      for (const [childKey, child] of node.children.entries()) {
+        yield* entries(child, key.concat(childKey))
+      }
+    } else {
+      yield [key, node]
+    }
+  }
+}
+
 function get(node, i, keys) {
   return i === keys.length
     ? node instanceof Node
       ? node.value
       : node
     : node instanceof Node
-    ? get(node.children.get(keys[i]), i + 1, keys)
-    : undefined
+      ? get(node.children.get(keys[i]), i + 1, keys)
+      : undefined
 }
 
 function set(node, i, keys, value) {
@@ -69,6 +86,22 @@ function set(node, i, keys, value) {
   return node
 }
 
+function* values(node) {
+  if (node !== undefined) {
+    if (node instanceof Node) {
+      const { value } = node
+      if (value !== undefined) {
+        yield node.value
+      }
+      for (const child of node.children.values()) {
+        yield* values(child)
+      }
+    } else {
+      yield node
+    }
+  }
+}
+
 exports.MultiKeyMap = class MultiKeyMap {
   constructor() {
     // each node is either a value or a Node if it contains children
@@ -79,11 +112,19 @@ exports.MultiKeyMap = class MultiKeyMap {
     this._root = del(this._root, 0, keys)
   }
 
+  entries() {
+    return entries(this._root, [])
+  }
+
   get(keys) {
     return get(this._root, 0, keys)
   }
 
   set(keys, value) {
     this._root = set(this._root, 0, keys, value)
+  }
+
+  values() {
+    return values(this._root)
   }
 }

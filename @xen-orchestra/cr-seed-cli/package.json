@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/cr-seed-cli",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cr-seed-cli",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -10,15 +10,15 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "bin": {
-    "xo-cr-seed": "./index.js"
+    "xo-cr-seed": "./index.mjs"
   },
   "preferGlobal": true,
   "dependencies": {
     "golike-defer": "^0.5.1",
-    "xen-api": "^1.3.6"
+    "xen-api": "^2.0.0"
   },
   "scripts": {
     "postversion": "npm publish"

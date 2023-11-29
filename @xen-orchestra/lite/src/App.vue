@@ -91,7 +91,7 @@ useUnreachableHosts();
 .main {
   overflow: auto;
   flex: 1;
-  height: calc(100vh - 8rem);
+  height: calc(100vh - 5.5rem);
   background-color: var(--background-color-secondary);
 
   &.no-ui {

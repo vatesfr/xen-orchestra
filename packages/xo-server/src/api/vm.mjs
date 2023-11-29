@@ -647,11 +647,12 @@ export const set = defer(async function ($defer, params) {
     }
 
     await this.setVmResourceSet(vmId, resourceSetId, true)
-  }
-
-  const share = extract(params, 'share')
-  if (share) {
-    await this.shareVmResourceSet(vmId)
+  } else {
+    // share is implicit in the other branch with `setVmResourceSet`
+    const share = extract(params, 'share')
+    if (share) {
+      await this.shareVmResourceSet(vmId)
+    }
   }
 
   const suspendSr = extract(params, 'suspendSr')

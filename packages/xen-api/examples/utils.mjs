@@ -1,14 +1,12 @@
-'use strict'
+import { createReadStream, createWriteStream, statSync } from 'fs'
+import { fromCallback } from 'promise-toolbox'
+import { PassThrough, pipeline as Pipeline } from 'readable-stream'
+import humanFormat from 'human-format'
+import Throttle from 'throttle'
 
-const { createReadStream, createWriteStream, statSync } = require('fs')
-const { fromCallback } = require('promise-toolbox')
-const { PassThrough, pipeline } = require('readable-stream')
-const humanFormat = require('human-format')
-const Throttle = require('throttle')
+import Ref from '../_Ref.mjs'
 
-const Ref = require('../dist/_Ref').default
-
-exports.createInputStream = path => {
+export const createInputStream = path => {
   if (path === undefined || path === '-') {
     return process.stdin
   }
@@ -20,7 +18,7 @@ exports.createInputStream = path => {
   return stream
 }
 
-exports.createOutputStream = path => {
+export const createOutputStream = path => {
   if (path !== undefined && path !== '-') {
     return createWriteStream(path)
   }
@@ -34,8 +32,8 @@ exports.createOutputStream = path => {
 const formatSizeOpts = { scale: 'binary', unit: 'B' }
 const formatSize = bytes => humanFormat(bytes, formatSizeOpts)
 
-exports.formatProgress = p =>
-  [
+export const formatProgress = p => {
+  return [
     formatSize(p.transferred),
     ' / ',
     formatSize(p.length),
@@ -47,12 +45,13 @@ exports.formatProgress = p =>
     formatSize(p.speed),
     '/s',
   ].join('')
+}
 
-exports.pipeline = (...streams) => {
+export const pipeline = (...streams) => {
   return fromCallback(cb => {
     streams = streams.filter(_ => _ != null)
     streams.push(cb)
-    pipeline.apply(undefined, streams)
+    Pipeline.apply(undefined, streams)
   })
 }
 
@@ -68,9 +67,9 @@ const resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
         })
       )
 
-exports.resolveRecord = async (xapi, type, refOrUuidOrNameLabel) =>
+export const resolveRecord = async (xapi, type, refOrUuidOrNameLabel) =>
   xapi.getRecord(type, await resolveRef(xapi, type, refOrUuidOrNameLabel))
 
-exports.resolveRef = resolveRef
+export { resolveRef }
 
-exports.throttle = opts => (opts != null ? new Throttle(opts) : undefined)
+export const throttle = opts => (opts != null ? new Throttle(opts) : undefined)

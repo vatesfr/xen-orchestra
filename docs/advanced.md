@@ -323,7 +323,7 @@ From there, you can even manage your existing resources with Terraform!
 
 ## Netbox
 
-Synchronize your pools, VMs, network interfaces and IP addresses with your [Netbox](https://netbox.readthedocs.io/en/stable/) instance.
+Synchronize your pools, VMs, network interfaces and IP addresses with your [Netbox](https://docs.netbox.dev/en/stable/) instance.
 
 ![](./assets/netbox.png)
 
@@ -338,37 +338,47 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 XO will try to find the right prefix for each IP address. If it can't find a prefix that fits, the IP address won't be synchronized.
 :::
 
-- Create a Netbox user:
-  - Go to Admin > Authentication and Authorization > Users > Add
-  - Enter a name and a password and click on "Save and continue editing"
-  - Scroll down to Permissions and add the following permissions:
-    - View permissions on:
+- Create permissions:
+  - Go to Admin > Permissions > Add and create 2 permissions:
+    - "XO read" with action "Can view" enabled and object types:
       - Extras > custom field
       - IPAM > prefix
-    - All permissions on:
+    - "XO read-write" with all 4 actions enabled and object types:
       - DCIM > platform
       - Extras > tag
       - IPAM > IP address
+      - Tenancy > tenant (if you want to synchronize XO users with Netbox tenants)
       - Virtualization > cluster
       - Virtualization > cluster type
       - Virtualization > virtual machine
       - Virtualization > interface
-- From that user's account, generate an API token:
-  - Go to Profile > API Tokens > Add a token
-  - Create a token with "Write enabled"
-- Add a UUID custom field:
-  - Go to Other > Customization > Custom fields > Add
-  - Create a custom field called "uuid" (lower case!)
-  - Assign it to object types:
+
+![](./assets/netbox-permissions.png)
+
+- Create a Netbox user:
+  - Go to Admin > Users > Add
+  - Choose a username and a password
+  - Scroll down to Permissions and select the 2 permissions "XO read" and "XO read-write"
+- Create an API token:
+  - Got to Admin > API Tokens > Add
+  - Select the user you just created
+  - Copy the token for the next step
+  - Make sure "Write enabled" is checked and create it
+
+:::warning
+For testing purposes, you can create an API token bound to a Netbox superuser account, but once in production, it is highly recommended to create a dedicated user with only the required permissions.
+:::
+
+- Create a UUID custom field:
+  - Go to Customization > Custom Fields > Add
+  - Select object types:
+    - Tenancy > tenant (if you want to synchronize XO users with Netbox tenants)
     - Virtualization > cluster
     - Virtualization > virtual machine
     - Virtualization > interface
+  - Name it "uuid" (lower case!)
 
 ![](./assets/customfield.png)
-
-:::warning
-You can generate an API token from a Netbox superuser account for testing purposes, but once in production, it is highly recommended to create a dedicated user with only the required permissions.
-:::
 
 :::tip
 In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields > Add custom field.
@@ -381,6 +391,7 @@ In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields
   - Unauthorized certificate: only for HTTPS, enable this option if your Netbox instance uses a self-signed SSL certificate
   - Token: the token you generated earlier
   - Pools: the pools you wish to automatically synchronize with Netbox
+  - Synchronize users: enable this if you wish to synchronize XO users with Netbox tenants. Tenants will be assigned to the VMs the XO user _created_ within XO. Important: if you want to enable this feature, you also need to assign the custom field "uuid" that you created in the previous step to the type "Tenancy > tenant".
   - Interval: the time interval (in hours) between 2 auto-synchronizations. Leave empty if you don't want to synchronize automatically.
 - Load the plugin (button next to the plugin's name)
 - Manual synchronization: if you correctly configured and loaded the plugin, a "Synchronize with Netbox" button will appear in every pool's Advanced tab, which allows you to manually synchronize it with Netbox

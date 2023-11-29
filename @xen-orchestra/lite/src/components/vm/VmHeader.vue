@@ -26,6 +26,7 @@
           />
         </template>
         <VmActionCopyItem :selected-refs="[vm.$ref]" is-single-action />
+        <VmActionExportItem :vm-refs="[vm.$ref]" is-single-action />
         <VmActionSnapshotItem :vm-refs="[vm.$ref]" />
         <VmActionMigrateItem :selected-refs="[vm.$ref]" is-single-action />
       </AppMenu>
@@ -42,6 +43,7 @@ import VmActionMigrateItem from "@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionSnapshotItem from "@/components/vm/VmActionItems/VmActionSnapshotItem.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
+import VmActionExportItem from "@/components/vm/VmActionItems/VmActionExportItem.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";

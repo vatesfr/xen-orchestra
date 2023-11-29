@@ -62,10 +62,10 @@ const JobCallStateInfos = ({ end, error, isJobInterrupted }) => {
         ? ['skipped', 'jobCallSkipped']
         : ['halted', 'failedJobCall']
       : end !== undefined
-      ? ['running', 'successfulJobCall']
-      : isJobInterrupted
-      ? ['halted', 'jobInterrupted']
-      : ['busy', 'jobCallInProgess']
+        ? ['running', 'successfulJobCall']
+        : isJobInterrupted
+          ? ['halted', 'jobInterrupted']
+          : ['busy', 'jobCallInProgess']
 
   return (
     <Tooltip content={_(tooltip)}>

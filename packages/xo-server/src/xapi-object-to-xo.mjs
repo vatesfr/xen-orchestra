@@ -594,6 +594,7 @@ const TRANSFORMS = {
       usage: +obj.physical_utilisation,
       VDI_type: obj.type,
       current_operations: obj.current_operations,
+      other_config: obj.other_config,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
@@ -696,6 +697,10 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   task(obj) {
+    let applies_to
+    if (obj.other_config.applies_to) {
+      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined).uuid
+    }
     return {
       allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
@@ -707,7 +712,7 @@ const TRANSFORMS = {
       result: obj.result,
       status: obj.status,
       xapiRef: obj.$ref,
-
+      applies_to,
       $host: link(obj, 'resident_on'),
     }
   },

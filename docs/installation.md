@@ -112,7 +112,22 @@ apt-get install build-essential redis-server libpng-dev git python3-minimal libv
 On Fedora/CentOS like:
 
 ```sh
-dnf install redis libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
+dnf install redis libpng-devel git libvhdi-tools lvm2 cifs-utils make automake gcc gcc-c++
+```
+
+### Make sure Redis is running
+
+Start the service:
+
+```sh
+systemctl restart redis.service
+```
+
+Ensure it's working:
+
+```console
+$ redis-cli ping
+PONG
 ```
 
 ### Fetching the Code

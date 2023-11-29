@@ -274,6 +274,7 @@ const help = wrap(
 
     Examples:
       $name rest del tasks/<task id>
+      $name rest del vms/<vm id>/tags/<tag>
 
   $name rest get <collection> [fields=<fields>] [filter=<filter>] [limit=<limit>]
     List objects in a REST API collection.
@@ -346,6 +347,18 @@ const help = wrap(
     Examples:
       $name rest post tasks/<task id>/actions/abort
       $name rest post vms/<VM UUID>/actions/snapshot name_label='My snapshot'
+
+  $name rest put <collection>/<item id> <name>=<value>...
+    Put a item in a collection
+
+    <collection>/<item id>
+      Full path of the item to add
+
+    <name>=<value>...
+      Properties of the item
+
+    Examples:
+      $name rest put vms/<vm id>/tags/<tag>
 
 $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
