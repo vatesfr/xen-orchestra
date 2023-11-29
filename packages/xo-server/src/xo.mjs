@@ -7,6 +7,7 @@ import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
+import once from 'lodash/once.js'
 import stubTrue from 'lodash/stubTrue.js'
 import SslCertificate from '@xen-orchestra/mixins/SslCertificate.mjs'
 import Tasks from '@xen-orchestra/mixins/Tasks.mjs'
@@ -196,10 +197,10 @@ export default class Xo extends EventEmitter {
       fn,
       persistent,
     }
-  }
 
-  async unregisterHttpRequestHandler(url) {
-    delete this._httpRequestWatchers[url]
+    return once(() => {
+      delete this._httpRequestWatchers[url]
+    })
   }
 
   // -----------------------------------------------------------------
