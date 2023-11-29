@@ -697,6 +697,10 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   task(obj) {
+    let applies_to
+    if (obj.other_config.applies_to) {
+      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined).uuid
+    }
     return {
       allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
@@ -708,7 +712,7 @@ const TRANSFORMS = {
       result: obj.result,
       status: obj.status,
       xapiRef: obj.$ref,
-
+      applies_to,
       $host: link(obj, 'resident_on'),
     }
   },
