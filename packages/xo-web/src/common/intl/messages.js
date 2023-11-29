@@ -572,6 +572,8 @@ const messages = {
   editBackupSmartNotResidentOn: 'Not resident on',
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
+  editBackupSmartTagsInfo:
+    "VMs with tags in the form of <b>xo:no-bak</b> or <b>xo:no-bak=Reason</b>won't be included in any backup.For example, ephemeral VMs created by health check have this tag",
   sampleOfMatchingVms: 'Sample of matching VMs',
   backupReplicatedVmsInfo:
     'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!',
