@@ -2,6 +2,8 @@
 
 ## **next**
 
+## **0.1.6** (2023-11-30)
+
 - Explicit error if users attempt to connect from a slave host (PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
 - More compact UI (PR [#7159](https://github.com/vatesfr/xen-orchestra/pull/7159))
 - Fix dashboard host patches list (PR [#7169](https://github.com/vatesfr/xen-orchestra/pull/7169))
