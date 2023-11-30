@@ -12,6 +12,7 @@
     </RouterLink>
     <slot />
     <div class="right">
+      <WarningNotTheCurrentPool display-tooltip />
       <AccountButton />
     </div>
   </header>
@@ -25,6 +26,7 @@ import { useNavigationStore } from "@/stores/navigation.store";
 import { useUiStore } from "@/stores/ui.store";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
+import WarningNotTheCurrentPool from "@/components/WarningNotTheCurrentPool.vue";
 
 const uiStore = useUiStore();
 const { isMobile } = storeToRefs(uiStore);
@@ -50,6 +52,10 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
   .text-logo {
     margin-left: 1rem;
     vertical-align: middle;
+  }
+
+  .warning-not-current-pool {
+    font-size: 2rem;
   }
 }
 

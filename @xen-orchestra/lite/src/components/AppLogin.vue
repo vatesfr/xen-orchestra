@@ -2,6 +2,7 @@
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
+      <WarningNotTheCurrentPool />
       <p v-if="isHostIsSlaveErr(error)" class="error">
         <UiIcon :icon="faExclamationCircle" />
         {{ $t("login-only-on-master") }}
@@ -47,6 +48,7 @@ import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import LoginError from "@/components/LoginError.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import WarningNotTheCurrentPool from "@/components/WarningNotTheCurrentPool.vue";
 import type { XenApiError } from "@/libs/xen-api/xen-api.types";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { useXenApiStore } from "@/stores/xen-api.store";

@@ -27,6 +27,7 @@
   "cancel": "Annuler",
   "change-state": "Changer l'état",
   "click-to-display-alarms": "Cliquer pour afficher les alarmes :",
+  "click-to-return-default-pool": "Cliquer ici pour revenir au pool par défaut",
   "close": "Fermer",
   "coming-soon": "Bientôt disponible !",
   "community": "Communauté",
@@ -190,5 +191,6 @@
   "vm-is-running": "La VM est en cours d'exécution",
   "vms": "VMs",
   "xo-lite-under-construction": "XOLite est en construction",
+  "you-are-currently-on": "vous êtes actuellement sur : {0}",
   "zstd": "zstd"
 }

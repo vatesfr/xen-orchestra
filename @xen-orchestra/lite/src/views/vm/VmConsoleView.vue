@@ -129,12 +129,7 @@ const toggleFullScreen = () => {
 };
 
 const openInNewTab = () => {
-  const externalMaster = getFirst(route.query["master"]);
-  const query: { ui: string; master?: string } = { ui: "0" };
-  if (externalMaster != undefined) {
-    query["master"] = externalMaster;
-  }
-  const routeData = router.resolve({ query });
+  const routeData = router.resolve({ query: { ui: "0" } });
   window.open(routeData.href, "_blank");
 };
 </script>
