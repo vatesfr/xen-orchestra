@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/Action] Ability to migrate a VM from its view (PR [#7164](https://github.com/vatesfr/xen-orchestra/pull/7164))
+- Ability to override host address with `master` URL query param (PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
 
 ## **0.1.6** (2023-11-30)
 
