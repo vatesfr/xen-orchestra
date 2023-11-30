@@ -16,6 +16,9 @@
 - [REST API] Support VM import using the XVA format
 - [Task] Show the related SR on the Garbage Collector Task ( vdi coalescing) (PR [#7189](https://github.com/vatesfr/xen-orchestra/pull/7189))
 - [Backup] Don't backup VM with tag xo:no-bak (PR [#7173](https://github.com/vatesfr/xen-orchestra/pull/7173))
+- [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
+- [REST API] Support VM import using the XVA format
+- [Backup] Implement differential restore (PR [#7202](https://github.com/vatesfr/xen-orchestra/pull/7202))
 
 ### Bug fixes
 
@@ -27,23 +30,24 @@
 
 ### Released packages
 
+- vhd-lib 4.7.0
 - @vates/multi-key-map 0.2.0
 - @vates/disposable 0.1.5
 - @xen-orchestra/fs 4.1.3
 - xen-api 2.0.0
 - @vates/nbd-client 2.0.1
 - @xen-orchestra/xapi 4.0.0
-- @xen-orchestra/backups 0.44.1
+- @xen-orchestra/backups 0.44.2
 - @xen-orchestra/backups-cli 1.0.14
 - @xen-orchestra/cr-seed-cli 1.0.0
-- @xen-orchestra/proxy 0.26.40
+- @xen-orchestra/proxy 0.26.41
 - xo-vmdk-to-vhd 2.5.7
 - @xen-orchestra/vmware-explorer 0.3.1
 - xapi-explore-sr 0.4.2
 - xo-cli 0.22.0
-- xo-server 5.128.0
+- xo-server 5.129.0
 - xo-server-netbox 1.4.0
-- xo-web 5.129.0
+- xo-web 5.130.0
 
 ## **5.88.2** (2023-11-13)
 
