@@ -1,8 +1,5 @@
-import {
-  type AcceptedLanguage,
-  getLanguage,
-  highlight,
-} from "@/libs/highlight";
+import { type AcceptedLanguage, highlight } from "@/libs/highlight";
+import HLJS from "highlight.js/lib/core";
 import { marked } from "marked";
 
 enum VUE_TAG {
@@ -11,15 +8,26 @@ enum VUE_TAG {
   STYLE = "vue-style",
 }
 
+function extractLang(lang: string | undefined): AcceptedLanguage | VUE_TAG {
+  if (lang === undefined) {
+    return "plaintext";
+  }
+
+  if (Object.values(VUE_TAG).includes(lang as VUE_TAG)) {
+    return lang as VUE_TAG;
+  }
+
+  if (HLJS.getLanguage(lang) !== undefined) {
+    return lang as AcceptedLanguage;
+  }
+
+  return "plaintext";
+}
+
 marked.use({
   renderer: {
-    code(str: string, lang: AcceptedLanguage) {
-      const code = customHighlight(
-        str,
-        Object.values(VUE_TAG).includes(lang as VUE_TAG) || getLanguage(lang)
-          ? lang
-          : "plaintext"
-      );
+    code(str, lang) {
+      const code = customHighlight(str, extractLang(lang));
       return `<pre class="hljs"><button class="copy-button" type="button">Copy</button><code class="hljs-code">${code}</code></pre>`;
     },
   },
