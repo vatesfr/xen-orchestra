@@ -49,10 +49,6 @@ export default class XenApi {
     });
   }
 
-  setHostUrl(hostUrl: string) {
-    this.hostUrl = hostUrl;
-  }
-
   async connectWithPassword(username: string, password: string) {
     this.sessionId = await this.request("session.login_with_password", [
       username,
