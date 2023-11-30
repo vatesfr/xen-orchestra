@@ -2,7 +2,6 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
-import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import ProxyAgent from 'proxy-agent'
@@ -396,6 +395,7 @@ export class Xapi extends EventEmitter {
     }
 
     let url = new URL('http://localhost')
+    url.protocol = this._url.protocol
     await this._setHostAddressInUrl(url, host)
 
     const response = await this._addSyncStackTrace(
@@ -418,7 +418,6 @@ export class Xapi extends EventEmitter {
               headersTimeout: this._httpInactivityTimeout,
               bodyTimeout: this._httpInactivityTimeout,
               agent: this.httpAgent,
-
               signal: $cancelToken,
             })
             .then(response => {
@@ -426,7 +425,7 @@ export class Xapi extends EventEmitter {
               if (((statusCode / 100) | 0) === 2) {
                 return response
               }
-              const error = new Error(`${response.statusCode} ${response.statusMessage}`)
+              const error = new Error(response.statusCode)
               Object.defineProperty(error, 'response', { value: response })
               throw error
             })
@@ -497,25 +496,49 @@ export class Xapi extends EventEmitter {
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
-    const doRequest = (url, opts) =>
-      httpRequest(url, {
-        agent: this.httpAgent,
+    const doRequest = (url, opts) => {
+      query = Object.fromEntries(url.searchParams.entries())
+      pathname = url.pathname
+      url.pathname = url.search = ''
 
-        body,
-        headers,
-        method: 'PUT',
-        rejectUnauthorized: !this._allowUnauthorized,
-        signal: $cancelToken,
+      console.log("====> doing request <=====")
+      console.log("URL :", url)
+      console.log("query :", query)
+      console.log("path :", pathname)
 
-        // this is an inactivity timeout (unclear in Node doc)
-        timeout: this._httpInactivityTimeout,
-
-        // Support XS <= 6.5 with Node => 12
-        minVersion: 'TLSv1',
-
-        ...opts,
+      const client = new Client(url, {
+        connect: {
+          rejectUnauthorized: !this._allowUnauthorized,
+          // Support XS <= 6.5 with Node => 12
+          minVersion: 'TLSv1',
+          ...opts,
+        },
       })
 
+      return client
+        .request({
+          agent: this.httpAgent,
+          body,
+          headers,
+          method: 'PUT',
+          path: pathname,
+          query,
+          signal: $cancelToken,
+
+          headersTimeout: this._httpInactivityTimeout,
+          bodyTimeout: this._httpInactivityTimeout,
+          ...opts,
+        })
+        .then(response => {
+          const { statusCode } = response
+          if (((statusCode / 100) | 0) === 2) {
+            return response
+          }
+          const error = new Error(response.statusCode)
+          Object.defineProperty(error, 'response', { value: response })
+          throw error
+        })
+    }
     const dummyUrl = new URL(url)
     dummyUrl.searchParams.delete('task_id')
 
@@ -525,17 +548,19 @@ export class Xapi extends EventEmitter {
       isStream
         ? doRequest(dummyUrl, {
             body: '',
-
             maxRedirects: 0,
           }).then(
             response => {
-              response.destroy()
+              response.body.on('error', noop)
+              response.body.destroy()
               return doRequest(url)
             },
             async error => {
+              console.log("ERREUR")
               let response
               if (error != null && (response = error.response) != null) {
-                response.destroy()
+                response.body.on('error', noop)
+                response.body.destroy()
 
                 const {
                   headers: { location },
@@ -555,6 +580,9 @@ export class Xapi extends EventEmitter {
         : doRequest(url)
     )
 
+
+    console.log("statusCode :", response.statusCode)
+
     if (pTaskResult !== undefined) {
       if (useHack) {
         // In case of the hack, ignore (but log) the very probably `VDI_IO_ERROR` because it is usually irrelevant
@@ -563,7 +591,7 @@ export class Xapi extends EventEmitter {
         })
       } else {
         pTaskResult = pTaskResult.catch(error => {
-          error.url = response.url
+          error.url = response.body.url
           throw error
         })
 
@@ -573,24 +601,25 @@ export class Xapi extends EventEmitter {
     }
 
     try {
-      const { req } = response
-      if (!req.finished) {
+      if (!response.body.bodyUsed) {
         await new Promise((resolve, reject) => {
-          req.on('finish', resolve)
+          response.body.on('finish', resolve)
           response.on('error', reject)
         })
       }
 
       if (useHack) {
-        response.destroy()
+        response.body.on('error', noop)
+        response.body.destroy()
       } else {
         // consume the response
-        response.resume()
+        response.body.resume()
         await new Promise((resolve, reject) => {
-          response.on('end', resolve).on('error', reject)
+          response.body.on('end', resolve).on('error', reject)
         })
       }
     } catch (error) {
+      console.log("passé par là")
       if (this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
         console.warn(this._humanId, 'Xapi#putResource', pathname, error)
       } else {
