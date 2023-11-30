@@ -7,10 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Disks] Display task information when importing VDIs (PR [#7197](https://github.com/vatesfr/xen-orchestra/pull/7197))
-- [REST API] Support VM import using the XVA format
-- [Backup] Implement differential restore (PR [#7202](https://github.com/vatesfr/xen-orchestra/pull/7202))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,10 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/backups patch
-- vhd-lib minor
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->

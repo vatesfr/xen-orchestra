@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.128.0",
+  "version": "5.129.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -41,7 +41,7 @@
     "@vates/predicates": "^1.1.0",
     "@vates/read-chunk": "^1.2.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.44.1",
+    "@xen-orchestra/backups": "^0.44.2",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.1",
     "@xen-orchestra/emit-async": "^1.0.0",
@@ -127,7 +127,7 @@
     "unzipper": "^0.10.5",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^4.6.1",
+    "vhd-lib": "^4.7.0",
     "ws": "^8.2.3",
     "xdg-basedir": "^5.1.0",
     "xen-api": "^2.0.0",
