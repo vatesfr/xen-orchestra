@@ -48,7 +48,6 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import RemoteConsole from "@/components/RemoteConsole.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { getFirst } from "@/libs/utils";
 import { VM_OPERATION, VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";

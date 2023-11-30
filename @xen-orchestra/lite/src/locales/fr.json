@@ -191,6 +191,6 @@
   "vm-is-running": "La VM est en cours d'exécution",
   "vms": "VMs",
   "xo-lite-under-construction": "XOLite est en construction",
-  "you-are-currently-on": "vous êtes actuellement sur : {0}",
+  "you-are-currently-on": "Vous êtes actuellement sur : {0}",
   "zstd": "zstd"
 }

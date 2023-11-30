@@ -2,17 +2,15 @@
   <div
     v-if="masterSessionStorage !== null"
     class="warning warning-not-current-pool"
-    @click="resetPoolMasterIp"
+    @click="xenApi.resetPoolMasterIp"
     v-tooltip="
-      displayTooltip
-        ? {
-            placement: 'right',
-            content: `
+      displayTooltip && {
+        placement: 'right',
+        content: `
       ${$t('you-are-currently-on', [masterSessionStorage])}.
       ${$t('click-to-return-default-pool')}
       `,
-          }
-        : undefined
+      }
     "
   >
     <div class="wrapper">
@@ -30,11 +28,11 @@
 
 <script lang="ts" setup>
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
+import { useSessionStorage } from "@vueuse/core";
 
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { vTooltip } from "@/directives/tooltip.directive";
-import { useSessionStorage } from "@vueuse/core";
 
 defineProps<{
   displayTooltip?: boolean;
@@ -42,32 +40,20 @@ defineProps<{
 
 const xenApi = useXenApiStore();
 const masterSessionStorage = useSessionStorage("master", null);
-
-const resetPoolMasterIp = () => {
-  console.log(vTooltip);
-  void xenApi.resetPoolMasterIp();
-};
 </script>
 
 <style lang="postcss" scoped>
-.wrapper {
-  display: flex;
-
-  p {
-    margin-bottom: 1rem;
-  }
-
-  svg {
-    margin: auto 1rem;
-  }
-}
 .warning {
   color: var(--color-orange-world-base);
   cursor: pointer;
 
-  transition:
-    opacity 0.3s ease-in-out,
-    color 0.3s ease-in-out;
-  animation: infinite;
+  .wrapper {
+    display: flex;
+    justify-content: center;
+
+    svg {
+      margin: auto 1rem;
+    }
+  }
 }
 </style>

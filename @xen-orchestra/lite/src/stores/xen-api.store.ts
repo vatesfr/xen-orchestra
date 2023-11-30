@@ -19,18 +19,7 @@ enum STATUS {
 
 export const useXenApiStore = defineStore("xen-api", () => {
   // undefined not correctly handled. See https://github.com/vueuse/vueuse/issues/3595
-
-  // const foo = useSessionStorage("some", null);
-
-  watchEffect(() => {
-    // console.log(foo.value);
-  });
-
-  const masterSessionStorage = useSessionStorage<null | string>(
-    "master",
-    null,
-    { deep: true, shallow: true }
-  );
+  const masterSessionStorage = useSessionStorage<null | string>("master", null);
   const router = useRouter();
   const route = useRoute();
 

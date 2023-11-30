@@ -55,7 +55,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
   }
 
   .warning-not-current-pool {
-    font-size: 2rem;
+    font-size: 2.4rem;
   }
 }
 
