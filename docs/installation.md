@@ -18,9 +18,10 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 - Check your router's DHCP leases for an `xoa` lease
 
 :::tip
+
 - Default Web UI credentials are `admin@admin.net` / `admin`
 - Default console/SSH credentials are not set, you need to set them [as described here](troubleshooting.md#set-or-recover-xoa-vm-password).
-:::
+  :::
 
 ### Registration
 
@@ -106,14 +107,22 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian/Ubuntu:
 
 ```sh
-apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common ntfs-3g dmidecode
+apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common
 ```
 
 On Fedora/CentOS like:
 
 ```sh
-dnf install redis libpng-devel git libvhdi-tools lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g dmidecode python3
+dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils
 ```
+
+:::tip
+You might need some additionnal packages depending on your use of XO.
+
+For instance, you may need _ntfs-3g_ if you are using NTFS disks.
+
+For development purposes, you may need _libvhdi-tools_ and _python3_ on Fedora/CentOS
+:::
 
 ### Make sure Redis is running
 
