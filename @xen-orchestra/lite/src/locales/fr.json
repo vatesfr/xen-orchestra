@@ -177,6 +177,7 @@
   "theme-auto": "Auto",
   "theme-dark": "Sombre",
   "theme-light": "Clair",
+  "this-vm-cant-be-migrated": "Cette VM ne peut pas être migrée",
   "top-#": "Top {n}",
   "total-cpus": "Total CPUs",
   "total-free": "Total libre",
