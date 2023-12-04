@@ -73,9 +73,16 @@ connect.resolve = {
 // ===================================================================
 // Reconfigure IP
 
-export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
+export async function reconfigureIp({ pif, mode, ip = '', netmask = '', gateway = '', dns = '', ipv6, ipv6Mode }) {
   const xapi = this.getXapi(pif)
-  await xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+
+  if ((ipv6 !== '' && pif.ipv6?.[0] !== ipv6) || (ipv6Mode !== undefined && ipv6Mode !== pif.ipv6Mode)) {
+    await xapi.call('PIF.reconfigure_ipv6', pif._xapiRef, ipv6Mode, ipv6, gateway, dns)
+  }
+
+  if (mode !== undefined && mode !== pif.mode) {
+    await xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+  }
   if (pif.management) {
     await xapi.call('host.management_reconfigure', pif._xapiRef)
   }
@@ -88,6 +95,8 @@ reconfigureIp.params = {
   netmask: { type: 'string', minLength: 0, optional: true },
   gateway: { type: 'string', minLength: 0, optional: true },
   dns: { type: 'string', minLength: 0, optional: true },
+  ipv6: { type: 'string', minLength: 0, default: '' },
+  ipv6Mode: { enum: getIpv6ConfigurationModes(), optional: true },
 }
 
 reconfigureIp.resolve = {
