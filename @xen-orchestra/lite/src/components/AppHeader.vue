@@ -12,7 +12,7 @@
     </RouterLink>
     <slot />
     <div class="right">
-      <WarningNotTheCurrentPool display-tooltip />
+      <PoolOverrideWarning as-tooltip />
       <AccountButton />
     </div>
   </header>
@@ -20,13 +20,13 @@
 
 <script lang="ts" setup>
 import AccountButton from "@/components/AccountButton.vue";
+import PoolOverrideWarning from "@/components/PoolOverrideWarning.vue";
 import TextLogo from "@/components/TextLogo.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { useNavigationStore } from "@/stores/navigation.store";
 import { useUiStore } from "@/stores/ui.store";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
-import WarningNotTheCurrentPool from "@/components/WarningNotTheCurrentPool.vue";
 
 const uiStore = useUiStore();
 const { isMobile } = storeToRefs(uiStore);

@@ -1,10 +1,10 @@
 <template>
   <div
-    v-if="masterSessionStorage !== null"
-    class="warning warning-not-current-pool"
+    v-if="xenApi.isPoolOverridden"
+    class="warning-not-current-pool"
     @click="xenApi.resetPoolMasterIp"
     v-tooltip="
-      displayTooltip && {
+      asTooltip && {
         placement: 'right',
         content: `
       ${$t('you-are-currently-on', [masterSessionStorage])}.
@@ -15,7 +15,7 @@
   >
     <div class="wrapper">
       <UiIcon :icon="faWarning" />
-      <p v-if="!displayTooltip">
+      <p v-if="!asTooltip">
         <i18n-t keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
         </i18n-t>
@@ -35,7 +35,7 @@ import { useXenApiStore } from "@/stores/xen-api.store";
 import { vTooltip } from "@/directives/tooltip.directive";
 
 defineProps<{
-  displayTooltip?: boolean;
+  asTooltip?: boolean;
 }>();
 
 const xenApi = useXenApiStore();
@@ -43,7 +43,7 @@ const masterSessionStorage = useSessionStorage("master", null);
 </script>
 
 <style lang="postcss" scoped>
-.warning {
+.warning-not-current-pool {
   color: var(--color-orange-world-base);
   cursor: pointer;
 
