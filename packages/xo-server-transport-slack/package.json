@@ -29,8 +29,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "promise-toolbox": "^0.21.0",
-    "slack-node": "^0.1.8"
+    "@slack/webhook": "^7.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
