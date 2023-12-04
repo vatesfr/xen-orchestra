@@ -12,6 +12,7 @@
     </RouterLink>
     <slot />
     <div class="right">
+      <PoolOverrideWarning as-tooltip />
       <AccountButton />
     </div>
   </header>
@@ -19,6 +20,7 @@
 
 <script lang="ts" setup>
 import AccountButton from "@/components/AccountButton.vue";
+import PoolOverrideWarning from "@/components/PoolOverrideWarning.vue";
 import TextLogo from "@/components/TextLogo.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { useNavigationStore } from "@/stores/navigation.store";
@@ -50,6 +52,10 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore);
   .text-logo {
     margin-left: 1rem;
     vertical-align: middle;
+  }
+
+  .warning-not-current-pool {
+    font-size: 2.4rem;
   }
 }
 

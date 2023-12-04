@@ -1,8 +1,10 @@
 import XapiStats from "@/libs/xapi-stats";
 import XenApi from "@/libs/xen-api/xen-api";
-import { useLocalStorage } from "@vueuse/core";
+import { useLocalStorage, useSessionStorage, whenever } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, watchEffect } from "vue";
+import { useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 
 const HOST_URL = import.meta.env.PROD
   ? window.origin
@@ -15,7 +17,27 @@ enum STATUS {
 }
 
 export const useXenApiStore = defineStore("xen-api", () => {
-  const xenApi = new XenApi(HOST_URL);
+  // undefined not correctly handled. See https://github.com/vueuse/vueuse/issues/3595
+  const masterSessionStorage = useSessionStorage<null | string>("master", null);
+  const router = useRouter();
+  const route = useRoute();
+
+  whenever(
+    () => route.query.master,
+    async (newMaster) => {
+      masterSessionStorage.value = newMaster as string;
+      await router.replace({ query: { ...route.query, master: undefined } });
+      window.location.reload();
+    }
+  );
+
+  const hostUrl = new URL(HOST_URL);
+  if (masterSessionStorage.value !== null) {
+    hostUrl.hostname = masterSessionStorage.value;
+  }
+
+  const isPoolOverridden = hostUrl.origin !== new URL(HOST_URL).origin;
+  const xenApi = new XenApi(hostUrl.origin);
   const xapiStats = new XapiStats(xenApi);
   const storedSessionId = useLocalStorage<string | undefined>(
     "sessionId",
@@ -75,14 +97,21 @@ export const useXenApiStore = defineStore("xen-api", () => {
     status.value = STATUS.DISCONNECTED;
   }
 
+  function resetPoolMasterIp() {
+    masterSessionStorage.value = null;
+    window.location.reload();
+  }
+
   return {
     isConnected,
     isConnecting,
+    isPoolOverridden,
     connect,
     reconnect,
     disconnect,
     getXapi,
     getXapiStats,
     currentSessionId,
+    resetPoolMasterIp,
   };
 });
