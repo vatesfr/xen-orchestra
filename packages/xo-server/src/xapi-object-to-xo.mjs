@@ -562,15 +562,18 @@ const TRANSFORMS = {
       disallowUnplug: Boolean(obj.disallow_unplug),
       gateway: obj.gateway,
       ip: obj.IP,
+      ipv6: obj.IPv6,
       mac: obj.MAC,
       management: Boolean(obj.management), // TODO: find a better name.
       carrier: Boolean(metrics && metrics.carrier),
       mode: obj.ip_configuration_mode,
+      ipv6Mode: obj.ipv6_configuration_mode,
       mtu: +obj.MTU,
       netmask: obj.netmask,
       // A non physical PIF is a "copy" of an existing physical PIF (same device)
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
+      primaryAddressType: obj.primary_address_type,
       vlan: +obj.VLAN,
       speed: metrics && +metrics.speed,
       $host: link(obj, 'host'),
