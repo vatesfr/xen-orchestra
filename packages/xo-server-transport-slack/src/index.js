@@ -50,7 +50,7 @@ class XoServerTransportSlack {
   configure({ webhookUri, ...conf }) {
     const slack = new IncomingWebhook(webhookUri)
     this._conf = conf
-    this._send = slack.send
+    this._send = slack.send.bind(slack)
   }
 
   load() {
