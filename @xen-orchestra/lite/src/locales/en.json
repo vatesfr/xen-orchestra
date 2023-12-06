@@ -38,7 +38,7 @@
   "console-unavailable": "Console unavailable",
   "copy": "Copy",
   "cpu-provisioning": "CPU provisioning",
-  "cpu-provisioning-warning-tooltip": "The number of vCPUs allocated exceeds the number of physical CPUs available. System performance could be affected",
+  "cpu-provisioning-warning": "The number of vCPUs allocated exceeds the number of physical CPUs available. System performance could be affected",
   "cpu-usage": "CPU usage",
   "dashboard": "Dashboard",
   "delete": "Delete",

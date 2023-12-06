@@ -6,7 +6,7 @@
         <UiStatusIcon
           v-if="state !== 'success'"
           v-tooltip="{
-            content: $t('cpu-provisioning-warning-tooltip'),
+            content: $t('cpu-provisioning-warning'),
             placement: 'left',
           }"
           :state="state"
