@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Remove PIF] Removing NIC in network tab of a host generated an error "PIF_IS_PHYSICAL" [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR[7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
