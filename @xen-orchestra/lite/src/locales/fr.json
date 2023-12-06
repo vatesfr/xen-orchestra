@@ -38,6 +38,7 @@
   "console-unavailable": "Console indisponible",
   "copy": "Copier",
   "cpu-provisioning": "Provisionnement CPU",
+  "cpu-provisioning-warning-tooltip": "Le nombre de vCPU alloués dépasse le nombre de CPU physique disponible. Les performances du système pourraient être affectées",
   "cpu-usage": "Utilisation CPU",
   "dashboard": "Tableau de bord",
   "delete": "Supprimer",

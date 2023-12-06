@@ -3,8 +3,14 @@
     <UiCardTitle>
       {{ $t("cpu-provisioning") }}
       <template v-if="!hasError" #right>
-        <!-- TODO: add a tooltip for the warning icon -->
-        <UiStatusIcon v-if="state !== 'success'" :state="state" />
+        <UiStatusIcon
+          v-if="state !== 'success'"
+          v-tooltip="{
+            content: $t('cpu-provisioning-warning-tooltip'),
+            placement: 'left',
+          }"
+          :state="state"
+        />
       </template>
     </UiCardTitle>
     <NoDataError v-if="hasError" />
@@ -37,11 +43,12 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
-import { useVmMetricsCollection } from "@/stores/xen-api/vm-metrics.store";
+import { vTooltip } from "@/directives/tooltip.directive";
 import { percent } from "@/libs/utils";
 import { VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
+import { useHostCollection } from "@/stores/xen-api/host.store";
+import { useVmMetricsCollection } from "@/stores/xen-api/vm-metrics.store";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
 
