@@ -106,22 +106,14 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian/Ubuntu:
 
 ```sh
-apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common
+apt-get install build-essential redis-server libpng-dev git python3-minimal libvhdi-utils lvm2 cifs-utils nfs-common ntfs-3g
 ```
 
 On Fedora/CentOS like:
 
 ```sh
-dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils
+dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g
 ```
-
-:::tip
-You might need some additionnal packages depending on your use of XO.
-
-For instance, you may need _ntfs-3g_ if you are using NTFS disks.
-
-For development purposes, you may need _libvhdi-tools_ and _python3_ on Fedora/CentOS
-:::
 
 ### Make sure Redis is running
 
