@@ -28,7 +28,7 @@ async function delete_({ pif }) {
     return
   }
 
-  await xapi.callAsync('PIF.destroy', pif._xapiRef)
+  await xapi.callAsync('PIF.forget', pif._xapiRef)
 }
 export { delete_ as delete }
 
