@@ -42,7 +42,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xapi patch
+- @vates/nbd-client minor
+- @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
