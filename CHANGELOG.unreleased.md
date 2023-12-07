@@ -44,6 +44,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client major
+- @xen-orchestra/backups patch
 - @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server minor
