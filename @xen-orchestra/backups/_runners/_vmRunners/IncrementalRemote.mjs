@@ -32,10 +32,10 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           useChain: false,
         })
 
-        const differentialVhds = {}
+        const isVhdDifferencing = {}
 
         await asyncEach(Object.entries(incrementalExport.streams), async ([key, stream]) => {
-          differentialVhds[key] = await isVhdDifferencingDisk(stream)
+          isVhdDifferencing[key] = await isVhdDifferencingDisk(stream)
         })
 
         incrementalExport.streams = mapValues(incrementalExport.streams, this._throttleStream)
@@ -43,7 +43,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           writer =>
             writer.transfer({
               deltaExport: forkDeltaExport(incrementalExport),
-              differentialVhds,
+              isVhdDifferencing,
               timestamp: metadata.timestamp,
               vm: metadata.vm,
               vmSnapshot: metadata.vmSnapshot,
