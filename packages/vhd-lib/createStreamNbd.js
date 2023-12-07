@@ -78,10 +78,23 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     }
   }
 
+  const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+  let readedLength = 0
+  let progress = 0
+  function* trackAndYield(buffer) {
+    readedLength += buffer.length
+    const _progress = (readedLength / totalLength).toFixed(2)
+    if (progress !== _progress) {
+      progress = _progress
+      stream.emit('progress', progress)
+    }
+    yield buffer
+  }
+
   async function* iterator() {
-    yield bufFooter
-    yield rawHeader
-    yield bat
+    yield* trackAndYield(bufFooter)
+    yield* trackAndYield(rawHeader)
+    yield* trackAndYield(bat)
 
     let precBlocOffset = FOOTER_SIZE + HEADER_SIZE + batSize
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
@@ -91,7 +104,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
         await skipStrict(sourceStream, parentLocatorOffset - precBlocOffset)
         const data = await readChunkStrict(sourceStream, space)
         precBlocOffset = parentLocatorOffset + space
-        yield data
+        yield* trackAndYield(data)
       }
     }
 
@@ -106,14 +119,14 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
     for await (const block of nbdIterator) {
-      yield bitmap // don't forget the bitmap before the block
-      yield block
+      yield* trackAndYield(bitmap) // don't forget the bitmap before the block
+      yield* trackAndYield(block)
     }
-    yield bufFooter
+    yield* trackAndYield(bufFooter)
   }
 
   const stream = Readable.from(iterator(), { objectMode: false })
-  stream.length = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+  stream.length = totalLength
   stream._nbd = true
   stream.on('error', () => nbdClient.disconnect())
   stream.on('end', () => nbdClient.disconnect())

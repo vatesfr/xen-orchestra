@@ -106,12 +106,17 @@ class Vdi {
         stream = createNbdRawStream(nbdClient)
       } else {
         // raw export without nbd or vhd exports needs a resource stream
+        const vdiName = await this.getField('VDI', ref, 'name_label')
         stream = await this.getResource(cancelToken, '/export_raw_vdi/', {
           query,
-          task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
+          task: await this.task_create(`Exporting content of VDI ${vdiName}`),
         })
         if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
+          const taskRef = await this.task_create(`Exporting content of VDI ${vdiName} using NBD`)
           stream = await createNbdVhdStream(nbdClient, stream)
+          stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
+          stream.on('end', () => this.task_destroy(taskRef))
+          stream.on('error', () => this.task_destroy(taskRef))
         }
       }
       return stream
