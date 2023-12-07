@@ -63,7 +63,7 @@ export async function copyVm({ vm, sr }) {
     const input = await srcXapi.VM_export(vm._xapiRef)
     // eslint-disable-next-line no-console
     console.log('import full VM...')
-    await tgtXapi.VM_destroy((await tgtXapi.importVm(input, { srId: sr })).$ref)
+    await tgtXapi.VM_destroy(await tgtXapi.VM_import(input, sr._xapiRef))
   }
 }
 
