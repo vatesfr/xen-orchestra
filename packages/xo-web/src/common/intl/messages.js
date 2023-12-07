@@ -586,6 +586,7 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD protocol to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
+  nbdConcurrency: 'Number of NBD connexion per disk',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',

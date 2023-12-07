@@ -42,6 +42,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const deltaExport = await exportIncrementalVm(exportedVm, baseVm, {
       fullVdisRequired,
       preferNbd: this._settings.preferNbd,
+      nbdConcurrency: this._settings.nbdConcurrency,
     })
     // since NBD is network based, if one disk use nbd , all the disk use them
     // except the suspended VDI
