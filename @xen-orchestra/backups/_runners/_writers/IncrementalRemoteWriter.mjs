@@ -204,14 +204,18 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
           }
-
-          transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+          
+          // don't write it as transferSize += await async function
+          // since i += await asyncFun lead to race condition
+          // as explained : https://eslint.org/docs/latest/rules/require-atomic-updates
+          const transferSizeOneDisk = await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
+          transferSize += transferSizeOneDisk
 
           if (isDelta) {
             await chainVhd(handler, parentPath, handler, path)
