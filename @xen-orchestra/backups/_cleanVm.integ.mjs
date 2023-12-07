@@ -67,6 +67,11 @@ async function generateVhd(path, opts = {}) {
     await VhdAbstract.createAlias(handler, path + '.alias.vhd', dataPath)
   }
 
+  if (opts.blocks) {
+    for (const blockId of opts.blocks) {
+      await vhd.writeEntireBlock({ id: blockId, buffer: Buffer.alloc(2 * 1024 * 1024 + 512, blockId) })
+    }
+  }
   await vhd.writeBlockAllocationTable()
   await vhd.writeHeader()
   await vhd.writeFooter()
@@ -230,7 +235,7 @@ test('it merges delta of non destroyed chain', async () => {
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
-  assert.equal(metadata.size, 209920)
+  assert.equal(metadata.size, 104960)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
@@ -320,6 +325,7 @@ describe('tests multiple combination ', () => {
         const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, {
           useAlias,
           mode: vhdMode,
+          blocks: [1, 3],
         })
         const child = await generateVhd(`${basePath}/child.vhd`, {
           useAlias,
@@ -328,6 +334,7 @@ describe('tests multiple combination ', () => {
             parentUnicodeName: 'ancestor.vhd' + (useAlias ? '.alias.vhd' : ''),
             parentUuid: ancestor.footer.uuid,
           },
+          blocks: [1, 2],
         })
         // a grand child  vhd in metadata
         await generateVhd(`${basePath}/grandchild.vhd`, {
@@ -337,6 +344,7 @@ describe('tests multiple combination ', () => {
             parentUnicodeName: 'child.vhd' + (useAlias ? '.alias.vhd' : ''),
             parentUuid: child.footer.uuid,
           },
+          blocks: [2, 3],
         })
 
         // an older parent that was merging in clean
@@ -395,7 +403,7 @@ describe('tests multiple combination ', () => {
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
-        assert.deepEqual(metadata.size, vhdMode === 'file' ? 314880 : undefined)
+        assert.deepEqual(metadata.size, vhdMode === 'file' ? 6502400 : 6501888)
 
         // broken vhd, non referenced, abandonned should be deleted ( alias and data)
         // ancestor and child should be merged
