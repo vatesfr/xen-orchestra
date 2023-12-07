@@ -22,6 +22,15 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
+        preferNbd: {
+          type: 'boolean',
+          optional: true,
+        },
+        nbdConcurrency: {
+          type: 'number',
+          minimum: 1,
+          optional: true,
+        },
       },
       additionalProperties: true,
     },
@@ -279,8 +288,8 @@ importVmBackup.params = {
   },
   useDifferentialRestore: {
     type: 'boolean',
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 export function checkBackup({ id, settings, sr }) {
