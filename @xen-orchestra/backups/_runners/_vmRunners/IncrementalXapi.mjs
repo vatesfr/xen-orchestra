@@ -50,11 +50,11 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       Task.info('Transfer data using NBD')
     }
 
-    const differentialVhds = {}
+    const isVhdDifferencing = {}
     // since isVhdDifferencingDisk is reading and unshifting data in stream
     // it should be done BEFORE any other stream transform
     await asyncEach(Object.entries(deltaExport.streams), async ([key, stream]) => {
-      differentialVhds[key] = await isVhdDifferencingDisk(stream)
+      isVhdDifferencing[key] = await isVhdDifferencingDisk(stream)
     })
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
 
@@ -69,7 +69,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       writer =>
         writer.transfer({
           deltaExport: forkDeltaExport(deltaExport),
-          differentialVhds,
+          isVhdDifferencing,
           sizeContainers,
           timestamp,
           vm,

@@ -133,7 +133,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { differentialVhds, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._scheduleId
@@ -161,6 +161,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     )
 
     metadataContent = {
+      differentialVhds,
       jobId,
       mode: job.mode,
       scheduleId,
@@ -180,9 +181,9 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         async ([id, vdi]) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
 
-          const isDelta = differentialVhds[`${id}.vhd`]
+          const isDifferencing = isVhdDifferencing[`${id}.vhd`]
           let parentPath
-          if (isDelta) {
+          if (isDifferencing) {
             const vdiDir = dirname(path)
             parentPath = (
               await handler.list(vdiDir, {
@@ -217,7 +218,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           })
           transferSize += transferSizeOneDisk
 
-          if (isDelta) {
+          if (isDifferencing) {
             await chainVhd(handler, parentPath, handler, path)
           }
 
