@@ -25,6 +25,8 @@ function formatVmBackup(backup) {
       name_description: backup.vm.name_description,
       name_label: backup.vm.name_label,
     },
+    differencingVhds: Object.values(backup.isVhdDifferencing).filter(t => t).length,
+    dynamicVhds: Object.values(backup.isVhdDifferencing).filter(t => !t).length,
   }
 }
 
