@@ -521,6 +521,13 @@ export async function cleanVm(
         const linkedXva = resolve('/', vmDir, xva)
         try {
           fileSystemSize = await handler.getSize(linkedXva)
+          if (fileSystemSize !== size && fileSystemSize !== undefined) {
+            logWarn('cleanVm: incorrect backup size in metadata', {
+              path: metadataPath,
+              actual: size ?? 'none',
+              expected: fileSystemSize,
+            })
+          }
         } catch (error) {
           // can fail with encrypted remote
         }
