@@ -123,6 +123,10 @@ async function readPackagesFromChangelog(toRelease) {
     }
 
     const { name, releaseType } = match.groups
+    if (name in toRelease) {
+      throw new Error('duplicate package to release in CHANGELOG.unreleased.md: ' + name)
+    }
+
     toRelease[name] = releaseType
   })
 }
