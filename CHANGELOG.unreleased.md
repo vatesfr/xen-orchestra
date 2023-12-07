@@ -17,6 +17,8 @@
 
 ### Bug fixes
 
+- [Backup] Reduce memory consumption when using NBD (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
@@ -41,6 +43,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
 - xo-server-transport-email major

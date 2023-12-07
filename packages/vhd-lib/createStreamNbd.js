@@ -14,8 +14,8 @@ const {
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
-exports.createNbdRawStream = async function createRawStream(nbdClient) {
-  const stream = Readable.from(nbdClient.readBlocks())
+exports.createNbdRawStream = function createRawStream(nbdClient) {
+  const stream = Readable.from(nbdClient.readBlocks(), { objectMode: false })
 
   stream.on('error', () => nbdClient.disconnect())
   stream.on('end', () => nbdClient.disconnect())
@@ -103,7 +103,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     yield bufFooter
   }
 
-  const stream = Readable.from(iterator())
+  const stream = Readable.from(iterator(), { objectMode: false })
   stream.length = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
   stream._nbd = true
   stream.on('error', () => nbdClient.disconnect())
