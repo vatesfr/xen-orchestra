@@ -223,6 +223,15 @@ class Merger {
     )
     // ensure data size is correct
     await this.#writeState()
+    try {
+      // vhd file
+      this.#state.vhdSize = await parentVhd.getSize()
+    } catch (err) {
+      // vhd directory
+      // parentVhd has its bat already loaded
+      this.#state.vhdSize = parentVhd.streamSize()
+    }
+
     this.#onProgress({ total: nBlocks, done: nBlocks })
   }
 
@@ -294,9 +303,10 @@ class Merger {
   }
 
   async #cleanup() {
-    const mergedSize = this.#state?.mergedDataSize ?? 0
+    const finalVhdSize = this.#state?.vhdSize ?? 0
+    const mergedDataSize = this.#state?.mergedDataSize ?? 0
     await this.#handler.unlink(this.#statePath).catch(warn)
-    return mergedSize
+    return { mergedDataSize, finalVhdSize}
   }
 }
 

@@ -46,7 +46,7 @@
 - @vates/nbd-client major
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi minor
-- vhd-lib patch
+- vhd-lib minor
 - xo-server minor
 - xo-server-auth-saml minor
 - xo-server-transport-email major
