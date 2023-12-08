@@ -9,6 +9,9 @@
 
 - [Forget SR] Changed the modal message and added a confirmation text to be sure the action is understood by the user [#7148](https://github.com/vatesfr/xen-orchestra/issues/7148) (PR [#7155](https://github.com/vatesfr/xen-orchestra/pull/7155))
 - [REST API] `/backups` has been renamed to `/backup` (redirections are in place for compatibility)
+- [REST API] _VM backup & Replication_ jobs have been moved from `/backup/jobs/:id` to `/backup/jobs/vm/:id` (redirections are in place for compatibility)
+- [REST API] _XO config & Pool metadata Backup_ jobs are available at `/backup/jobs/metadata`
+- [REST API] _Mirror Backup_ jobs are available at `/backup/jobs/metadata`
 
 ### Bug fixes
 
