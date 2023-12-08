@@ -14,6 +14,9 @@ const {
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
+const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e4
+const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 1
+
 exports.createNbdRawStream = function createRawStream(nbdClient) {
   const exportSize = Number(nbdClient.exportSize)
   const chunkSize = 2 * 1024 * 1024
@@ -31,7 +34,14 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
   return stream
 }
 
-exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStream) {
+exports.createNbdVhdStream = async function createVhdStream(
+  nbdClient,
+  sourceStream,
+  {
+    maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
+    minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
+  }
+) {
   const bufFooter = await readChunkStrict(sourceStream, FOOTER_SIZE)
 
   const header = unpackHeader(await readChunkStrict(sourceStream, HEADER_SIZE))
@@ -79,25 +89,28 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
   }
 
   const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+
   let readedLength = 0
-  let lastProgress = 0
   let lastUpdate = 0
+  let lastReadedLength = 0
+
+  function throttleEmitProgress() {
+    const now = Date.now()
+
+    if (
+      readedLength - lastReadedLength > (minTresholdPercentBetweenProgressEmit / 100) * totalLength ||
+      (now - lastUpdate > maxDurationBetweenProgressEmit && readedLength !== lastReadedLength)
+    ) {
+      stream.emit('progress', readedLength / totalLength)
+      lastUpdate = now
+      lastReadedLength = readedLength
+    }
+  }
+
+  const interval = setInterval(throttleEmitProgress, maxDurationBetweenProgressEmit)
   function* trackAndYield(buffer) {
     readedLength += buffer.length
-    const currentProgress = readedLength / totalLength
-    const formattedProgress = currentProgress.toFixed(2)
-    const now = Date.now()
-    const diffInSeconds = (now - lastUpdate) / 1000
-
-    if (lastProgress !== formattedProgress) {
-      lastProgress = formattedProgress
-      lastUpdate = now
-      stream.emit('progress', lastProgress)
-    } else if (diffInSeconds > 5) {
-      lastUpdate = now
-      stream.emit('progress', currentProgress)
-    }
-
+    throttleEmitProgress()
     yield buffer
   }
 
@@ -138,7 +151,13 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
   const stream = Readable.from(iterator(), { objectMode: false })
   stream.length = totalLength
   stream._nbd = true
-  stream.on('error', () => nbdClient.disconnect())
-  stream.on('end', () => nbdClient.disconnect())
+  stream.on('error', () => {
+    clearInterval(interval)
+    nbdClient.disconnect()
+  })
+  stream.on('end', () => {
+    clearInterval(interval)
+    nbdClient.disconnect()
+  })
   return stream
 }
