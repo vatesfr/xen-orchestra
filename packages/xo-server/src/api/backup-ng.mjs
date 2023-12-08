@@ -22,13 +22,13 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
-        preferNbd: {
-          type: 'boolean',
-          optional: true,
-        },
         nbdConcurrency: {
           type: 'number',
           minimum: 1,
+          optional: true,
+        },
+        preferNbd: {
+          type: 'boolean',
           optional: true,
         },
       },

@@ -1,7 +1,9 @@
 import { asyncEach } from '@vates/async-each'
 import { NBD_DEFAULT_BLOCK_SIZE } from './constants.mjs'
 import NbdClient from './index.mjs'
+import { createLogger } from '@xen-orchestra/log'
 
+const { warn } = createLogger('vates:nbd-client:multi')
 export default class MultiNbdClient {
   #clients = []
   #readAhead
@@ -19,8 +21,25 @@ export default class MultiNbdClient {
   }
 
   async connect() {
-    for (const client of this.#clients) {
-      await client.connect()
+    const connectedClients = []
+    for (const clientId in this.#clients) {
+      const client = this.#clients[clientId]
+      try {
+        await client.connect()
+        connectedClients.push(client)
+      } catch (err) {
+        client.disconnect().catch(() => {})
+        warn(`can't connect to one nbd client`, { err })
+      }
+    }
+    if (connectedClients.length === 0) {
+      throw new Error(`Fail to connect to any Nbd client`)
+    }
+    if (connectedClients.length < this.#clients.length) {
+      warn(
+        `incomplete connection by multi Nbd, only ${connectedClients.length} over ${this.#clients.length} expected clients`
+      )
+      this.#clients = connectedClients
     }
   }
 
