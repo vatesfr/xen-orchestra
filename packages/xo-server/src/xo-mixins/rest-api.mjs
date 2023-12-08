@@ -175,7 +175,7 @@ export default class RestApi {
       })
     )
 
-    collections.backups = { id: 'backups' }
+    collections.backup = { id: 'backup' }
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
     collections.users = { id: 'users' }
@@ -280,23 +280,28 @@ export default class RestApi {
       wrap((req, res) => sendObjects(collections, req, res))
     )
 
+    // For compatibility redirect from /backups* to /backup
+    api.get('/backups*', (req, res) => {
+      res.redirect(308, req.baseUrl + '/backup' + req.params[0])
+    })
+
     api
       .get(
-        '/backups',
+        '/backup',
         wrap((req, res) => sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res))
       )
       .get(
-        '/backups/jobs',
+        '/backup/jobs',
         wrap(async (req, res) => sendObjects(await app.getAllJobs('backup'), req, res))
       )
       .get(
-        '/backups/jobs/:id',
+        '/backup/jobs/:id',
         wrap(async (req, res) => {
           res.json(await app.getJob(req.params.id, 'backup'))
         })
       )
       .get(
-        '/backups/logs',
+        '/backup/logs',
         wrap(async (req, res) => {
           const { filter, limit } = req.query
           const logs = await app.getBackupNgLogsSorted({
