@@ -15,6 +15,11 @@ const parseOptionList = (optionList = '') => {
     optionList = optionList.substring(1)
   }
   const parsed = queryString.parse(optionList)
+
+  // bugfix for persisting error notification
+  delete parsed.error
+  delete parsed.name
+
   Object.keys(parsed).forEach(key => {
     const val = parsed[key]
     // some incorrect values have been saved in users database (introduced by #6270)
