@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.

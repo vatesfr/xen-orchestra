@@ -330,7 +330,7 @@ export default class RestApi {
           `/backup/jobs/${collection}/:id`,
           wrap(async (req, res) => {
             res.json(await app.getJob(req.params.id, type))
-          })
+          }, true)
         )
     }
 
