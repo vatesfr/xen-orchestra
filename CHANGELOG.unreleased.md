@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
+- [Host/Smart reboot] Automatically retries up to a minute when `HOST_STILL_BOOTING` [#7194](https://github.com/vatesfr/xen-orchestra/issues/7194) (PR [#7231](https://github.com/vatesfr/xen-orchestra/pull/7231))
 
 ### Packages to release
 
@@ -35,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi patch
 - xo-server minor
 
 <!--packages-end-->
