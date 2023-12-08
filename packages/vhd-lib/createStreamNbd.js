@@ -40,7 +40,7 @@ exports.createNbdVhdStream = async function createVhdStream(
   {
     maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
     minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
-  }
+  } = {}
 ) {
   const bufFooter = await readChunkStrict(sourceStream, FOOTER_SIZE)
 
