@@ -80,14 +80,24 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
 
   const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
   let readedLength = 0
-  let progress = 0
+  let lastProgress = 0
+  let lastUpdate = 0
   function* trackAndYield(buffer) {
     readedLength += buffer.length
-    const _progress = (readedLength / totalLength).toFixed(2)
-    if (progress !== _progress) {
-      progress = _progress
-      stream.emit('progress', progress)
+    const currentProgress = readedLength / totalLength
+    const formattedProgress = currentProgress.toFixed(2)
+    const now = Date.now()
+    const diffInSeconds = (now - lastUpdate) / 1000
+
+    if (lastProgress !== formattedProgress) {
+      lastProgress = formattedProgress
+      lastUpdate = now
+      stream.emit('progress', lastProgress)
+    } else if (diffInSeconds > 5) {
+      lastUpdate = now
+      stream.emit('progress', currentProgress)
     }
+
     yield buffer
   }
 
