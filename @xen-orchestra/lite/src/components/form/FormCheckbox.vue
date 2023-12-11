@@ -6,7 +6,7 @@
   >
     <input
       v-model="value"
-      :class="{ indeterminate: type === 'checkbox' && value === undefined }"
+      :class="{ indeterminate: isIndeterminate }"
       :disabled="isDisabled"
       :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
@@ -60,6 +60,10 @@ const icon = computed(() => {
 
   return faCheck;
 });
+
+const isIndeterminate = computed(
+  () => (type === "checkbox" || type === "toggle") && value.value === undefined
+);
 </script>
 
 <style lang="postcss" scoped>
@@ -126,6 +130,12 @@ const icon = computed(() => {
 
   .input:checked + .fake-checkbox > .icon {
     transform: translateX(0.7em);
+  }
+
+  .input.indeterminate + .fake-checkbox > .icon {
+    opacity: 1;
+    color: var(--color-blue-scale-300);
+    transform: translateX(0);
   }
 }
 
