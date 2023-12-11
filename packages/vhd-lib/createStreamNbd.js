@@ -90,26 +90,26 @@ exports.createNbdVhdStream = async function createVhdStream(
 
   const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
 
-  let readedLength = 0
+  let lengthRead = 0
   let lastUpdate = 0
-  let lastReadedLength = 0
+  let lastLengthRead = 0
 
   function throttleEmitProgress() {
     const now = Date.now()
 
     if (
-      readedLength - lastReadedLength > (minTresholdPercentBetweenProgressEmit / 100) * totalLength ||
-      (now - lastUpdate > maxDurationBetweenProgressEmit && readedLength !== lastReadedLength)
+      lengthRead - lastLengthRead > (minTresholdPercentBetweenProgressEmit / 100) * totalLength ||
+      (now - lastUpdate > maxDurationBetweenProgressEmit && lengthRead !== lastLengthRead)
     ) {
-      stream.emit('progress', readedLength / totalLength)
+      stream.emit('progress', lengthRead / totalLength)
       lastUpdate = now
-      lastReadedLength = readedLength
+      lastLengthRead = lengthRead
     }
   }
 
   const interval = setInterval(throttleEmitProgress, maxDurationBetweenProgressEmit)
   function* trackAndYield(buffer) {
-    readedLength += buffer.length
+    lengthRead += buffer.length
     throttleEmitProgress()
     yield buffer
   }
