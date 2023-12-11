@@ -4,6 +4,9 @@ import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 import queryString from 'querystring'
 import urlParser from 'url-parse'
+import { createLogger } from '@xen-orchestra/log'
+
+const { warn } = createLogger('xo:xo-remote-parser')
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
@@ -17,8 +20,14 @@ const parseOptionList = (optionList = '') => {
   const parsed = queryString.parse(optionList)
 
   // bugfix for persisting error notification
-  delete parsed.error
-  delete parsed.name
+  if ('error' in parsed) {
+    warn('Deleting "error" value in url query', { error: parsed.error })
+    delete parsed.error
+  }
+  if ('name' in parsed) {
+    warn('Deleting "name" value in url query', { name: parsed.name })
+    delete parsed.name
+  }
 
   Object.keys(parsed).forEach(key => {
     const val = parsed[key]

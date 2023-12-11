@@ -21,6 +21,7 @@
     "node": ">=6"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.6.0",
     "lodash": "^4.13.1",
     "url-parse": "^1.4.7"
   },
