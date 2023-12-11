@@ -66,6 +66,20 @@ describe('VhdAbstract', async () => {
     })
   })
 
+  it('Creates alias unencrypted in encrypted remote', async () => {
+    await Disposable.use(async function* () {
+      const handler = yield getSyncedHandler({
+        url: `file://${tempDir}/?encryptionKey="85704F498279D6FCD2B2AA7B793944DF"`,
+      })
+      const aliasPath = `alias.alias.vhd`
+      const aliasFsPath = `${tempDir}/${aliasPath}`
+      await VhdAbstract.createAlias(handler, aliasPath, 'target.vhd')
+      assert.equal(await fs.exists(aliasFsPath), true)
+      const content = await fs.readFile(aliasFsPath, 'utf-8')
+      assert.equal(content, 'target.vhd')
+    })
+  })
+
   it('has *.alias.vhd extension', async () => {
     await Disposable.use(async function* () {
       const handler = yield getSyncedHandler({ url: 'file:///' })

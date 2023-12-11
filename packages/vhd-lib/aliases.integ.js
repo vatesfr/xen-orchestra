@@ -10,6 +10,7 @@ const { Disposable, pFromCallback } = require('promise-toolbox')
 
 const { isVhdAlias, resolveVhdAlias } = require('./aliases')
 const { ALIAS_MAX_PATH_LENGTH } = require('./_constants')
+const fs = require('node:fs/promises')
 
 let tempDir
 
@@ -72,6 +73,19 @@ describe('resolveVhdAlias()', async () => {
       const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
       await handler.writeFile('toobig.alias.vhd', Buffer.alloc(ALIAS_MAX_PATH_LENGTH + 1, 0))
       await assert.rejects(async () => await resolveVhdAlias(handler, 'toobig.alias.vhd'), Error)
+    })
+  })
+
+  it('read an plaintext alias from an encrypted remote', async () => {
+    await Disposable.use(async function* () {
+      const handler = yield getSyncedHandler({
+        url: `file://${tempDir}/?encryptionKey="85704F498279D6FCD2B2AA7B793944DF"`,
+      })
+      await handler.writeFile(`crypted.alias.vhd`, `target.vhd`)
+
+      await fs.writeFile(`${tempDir}/plain.alias.vhd`, `target.vhd`)
+      assert.equal(await resolveVhdAlias(handler, `plain.alias.vhd`), `target.vhd`)
+      assert.equal(await resolveVhdAlias(handler, `crypted.alias.vhd`), `target.vhd`)
     })
   })
 })

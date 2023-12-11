@@ -236,7 +236,8 @@ exports.VhdAbstract = class VhdAbstract {
         `Alias relative path ${relativePathToTarget} is too long : ${relativePathToTarget.length} chars, max is ${ALIAS_MAX_PATH_LENGTH}`
       )
     }
-    await handler.writeFile(aliasPath, relativePathToTarget)
+    // using _outputFile means the checksum will NOT be encrypted
+    await handler._outputFile(path.resolve('/', aliasPath), relativePathToTarget, { flags: 'wx' })
   }
 
   streamSize() {
