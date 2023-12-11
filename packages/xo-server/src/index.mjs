@@ -13,6 +13,7 @@ import memoryStoreFactory from 'memorystore'
 import merge from 'lodash/merge.js'
 import ms from 'ms'
 import once from 'lodash/once.js'
+import proxyAddr from 'proxy-addr'
 import proxyConsole from './proxy-console.mjs'
 import pw from 'pw'
 import serveStatic from 'serve-static'
@@ -584,7 +585,7 @@ const setUpStaticFiles = (express, opts) => {
 
 // ===================================================================
 
-const setUpApi = (webServer, xo, config) => {
+const setUpApi = (webServer, xo, config, useForwardedHeaders) => {
   const webSocketServer = new WebSocketServer({
     ...config.apiWebSocketOptions,
 
@@ -593,7 +594,7 @@ const setUpApi = (webServer, xo, config) => {
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   const onConnection = (socket, upgradeReq) => {
-    const { remoteAddress } = upgradeReq.socket
+    const remoteAddress = proxyAddr(upgradeReq, useForwardedHeaders)
 
     // Create the abstract XO object for this connection.
     const connection = xo.createApiConnection(remoteAddress)
@@ -653,7 +654,7 @@ const setUpApi = (webServer, xo, config) => {
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
-const setUpConsoleProxy = (webServer, xo) => {
+const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
   const webSocketServer = new WebSocketServer({
     noServer: true,
   })
@@ -678,7 +679,7 @@ const setUpConsoleProxy = (webServer, xo) => {
           throw invalidCredentials()
         }
 
-        const { remoteAddress } = socket
+        const remoteAddress = proxyAddr(req, useForwardedHeaders)
         log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
 
         const data = {
@@ -836,8 +837,12 @@ export default async function main(args) {
   // Trigger a clean job.
   await xo.hooks.clean()
 
+  const useForwardedHeaders = () => xo.config.get('http.useForwardedHeaders')
+
+  express.set('trust proxy', useForwardedHeaders)
+
   // Must be set up before the API.
-  setUpConsoleProxy(webServer, xo)
+  setUpConsoleProxy(webServer, xo, useForwardedHeaders)
 
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
@@ -847,7 +852,7 @@ export default async function main(args) {
   await setUpPassport(express, xo, config)
 
   // Must be set up before the static files.
-  setUpApi(webServer, xo, config)
+  setUpApi(webServer, xo, config, useForwardedHeaders)
 
   setUpProxies(express, config.http.proxies, xo)
 

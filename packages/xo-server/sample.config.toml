@@ -72,6 +72,12 @@
 # good enough (e.g. a domain name must be used or there is a reverse proxy).
 #publicUrl = 'https://xoa.company.lan'
 
+# Uncomment this if xo-server is behind a reverse proxy to make xo-server use
+# X-Forwarded-* headers to determine the IP address of clients.
+#
+# > Note: X-Forwarded-* headers are easily spoofed and the detected IP addresses are unreliable.
+useForwardedHeaders = true
+
 # Settings applied to cookies created by xo-server's embedded HTTP server.
 #
 # See https://www.npmjs.com/package/cookie#options-1
