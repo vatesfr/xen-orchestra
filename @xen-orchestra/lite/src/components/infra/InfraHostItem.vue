@@ -5,10 +5,9 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      <span class="host-item">
-        <p>{{ host.name_label || "(Host)" }}</p>
-        <p class="vm-count">{{ $t("vm-count", { n: vmCount }) }}</p>
-      </span>
+      <div class="host-item">
+        {{ host.name_label || "(Host)" }}
+      </div>
       <template #actions>
         <InfraAction
           v-if="isPoolMaster"
@@ -16,6 +15,7 @@
           :icon="faStar"
           class="master-icon"
         />
+        <p class="vm-count" v-tooltip="$t('vm-count')">{{ vmCount }}</p>
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
           @click="toggle()"
@@ -94,8 +94,16 @@ const vmCount = computed(() => {
 }
 
 .vm-count {
-  font-style: italic;
   font-size: smaller;
-  color: var(--color-blue-scale-200);
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size);
+  height: var(--size);
+  color: var(--color-blue-scale-500);
+  border-radius: calc(var(--size) / 2);
+  background-color: var(--color-extra-blue-base);
+  --size: 1.75em;
 }
 </style>
