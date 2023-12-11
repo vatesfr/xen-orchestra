@@ -389,7 +389,7 @@ export default class Xapi extends XapiBase {
 
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
-    const vm = await targetXapi._getOrWaitObject(await targetXapi._importVm(stream, sr, onVmCreation))
+    const vm = await targetXapi._getOrWaitObject(await targetXapi.VM_import(stream, sr.$ref, onVmCreation))
 
     return {
       vm,
@@ -674,36 +674,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @cancelable
-  async _importVm($cancelToken, stream, sr, onVmCreation = undefined) {
-    const taskRef = await this.task_create('VM import')
-    const query = {}
-
-    if (sr != null) {
-      query.sr_id = sr.$ref
-    }
-
-    if (onVmCreation != null) {
-      this.waitObject(
-        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
-        onVmCreation
-      )
-    }
-
-    const vmRef = await this.putResource($cancelToken, stream, '/import/', {
-      query,
-      task: taskRef,
-    }).then(extractOpaqueRef, error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = this.pool.$master
-      error.SR = sr
-
-      throw error
-    })
-
-    return vmRef
-  }
-
   @decorateWith(deferrable)
   async _importOvaVm($defer, stream, { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables }, sr) {
     // 1. Create VM.
@@ -812,7 +782,7 @@ export default class Xapi extends XapiBase {
     const sr = srId && this.getObject(srId)
 
     if (type === 'xva') {
-      return /* await */ this._getOrWaitObject(await this._importVm(stream, sr))
+      return /* await */ this._getOrWaitObject(await this.VM_import(stream, sr?.$ref))
     }
 
     if (type === 'ova') {

@@ -1297,7 +1297,8 @@ async function import_({ data, sr, type = 'xva', url }) {
       throw invalidParameters('URL import is only compatible with XVA')
     }
 
-    return (await xapi.importVm(await hrp(url), { srId, type })).$id
+    const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
+    return xapi.call('VM.get_by_uuid', ref)
   }
 
   return {

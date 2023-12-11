@@ -175,7 +175,7 @@ export default class RestApi {
       })
     )
 
-    collections.backups = { id: 'backups' }
+    collections.backup = { id: 'backup' }
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
     collections.users = { id: 'users' }
@@ -280,23 +280,26 @@ export default class RestApi {
       wrap((req, res) => sendObjects(collections, req, res))
     )
 
+    // For compatibility redirect from /backups* to /backup
+    api.get('/backups*', (req, res) => {
+      res.redirect(308, req.baseUrl + '/backup' + req.params[0])
+    })
+
+    const backupTypes = {
+      __proto__: null,
+
+      metadata: 'metadataBackup',
+      mirror: 'mirrorBackup',
+      vm: 'backup',
+    }
+
     api
       .get(
-        '/backups',
+        '/backup',
         wrap((req, res) => sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res))
       )
       .get(
-        '/backups/jobs',
-        wrap(async (req, res) => sendObjects(await app.getAllJobs('backup'), req, res))
-      )
-      .get(
-        '/backups/jobs/:id',
-        wrap(async (req, res) => {
-          res.json(await app.getJob(req.params.id, 'backup'))
-        })
-      )
-      .get(
-        '/backups/logs',
+        '/backup/logs',
         wrap(async (req, res) => {
           const { filter, limit } = req.query
           const logs = await app.getBackupNgLogsSorted({
@@ -306,6 +309,37 @@ export default class RestApi {
           await sendObjects(logs, req, res)
         })
       )
+      .get(
+        '/backup/jobs',
+        wrap((req, res) =>
+          sendObjects(
+            Object.keys(backupTypes).map(id => ({ id })),
+            req,
+            res
+          )
+        )
+      )
+
+    for (const [collection, type] of Object.entries(backupTypes)) {
+      api
+        .get(
+          '/backup/jobs/' + collection,
+          wrap(async (req, res) => sendObjects(await app.getAllJobs(type), req, res))
+        )
+        .get(
+          `/backup/jobs/${collection}/:id`,
+          wrap(async (req, res) => {
+            res.json(await app.getJob(req.params.id, type))
+          }, true)
+        )
+    }
+
+    // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
+    api.get('/backup/jobs/:id', (req, res) => {
+      res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
+    })
+
+    api
       .get(
         '/restore',
         wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))

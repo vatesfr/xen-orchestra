@@ -8,11 +8,16 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Forget SR] Changed the modal message and added a confirmation text to be sure the action is understood by the user [#7148](https://github.com/vatesfr/xen-orchestra/issues/7148) (PR [#7155](https://github.com/vatesfr/xen-orchestra/pull/7155))
+- [REST API] `/backups` has been renamed to `/backup` (redirections are in place for compatibility)
+- [REST API] _VM backup & Replication_ jobs have been moved from `/backup/jobs/:id` to `/backup/jobs/vm/:id` (redirections are in place for compatibility)
+- [REST API] _XO config & Pool metadata Backup_ jobs are available at `/backup/jobs/metadata`
+- [REST API] _Mirror Backup_ jobs are available at `/backup/jobs/metadata`
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
 - [Remove PIF] Removing NIC in network tab of a host generated an error "PIF_IS_PHYSICAL" [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR[7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
 
 ### Packages to release
@@ -30,5 +35,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server minor
 
 <!--packages-end-->
