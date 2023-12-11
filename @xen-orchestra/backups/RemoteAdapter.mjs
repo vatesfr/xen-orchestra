@@ -30,6 +30,7 @@ import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
+import { pick } from 'lodash'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -253,7 +254,9 @@ export class RemoteAdapter {
     const handler = this._handler
 
     // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await asyncMapSettled(backups, ({ _filename }) =>
+      Promise.all([handler.unlink(_filename), handler.unlink(_filename + '.plaintext').catch(() => {})])
+    )
 
     await this.#removeVmBackupsFromCache(backups)
   }
@@ -646,6 +649,14 @@ export class RemoteAdapter {
     await this.handler.outputFile(path, JSON.stringify(metadata), {
       dirMode: this._dirMode,
     })
+    // using _outputFile means this will NOT be encrypted, to allow for immutability
+    await this.handler._outputFile(
+      path + '.plaintext',
+      JSON.stringify(pick(metadata, ['type', 'differentialVhds', 'vhds', 'xva'])),
+      {
+        dirMode: this._dirMode,
+      }
+    )
 
     // will not throw
     await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {

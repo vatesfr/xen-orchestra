@@ -4,7 +4,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { Constants, openVhd, VhdAbstract, VhdFile } from 'vhd-lib'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { dirname, resolve } from 'node:path'
-import { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
+import { isMetadataFile, isMetadataPlainTextFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 
@@ -310,6 +310,7 @@ export async function cleanVm(
   const jsons = new Set()
   const xvas = new Set()
   const xvaSums = []
+  const plainTexts = new Set()
   const entries = await handler.list(vmDir, {
     prependDir: true,
   })
@@ -320,8 +321,17 @@ export async function cleanVm(
       xvas.add(path)
     } else if (isXvaSumFile(path)) {
       xvaSums.push(path)
+    } else if (isMetadataPlainTextFile(path)) {
+      plainTexts.push(path)
     }
   })
+
+  for (const plainTextPath of plainTexts) {
+    if (!jsons.has(plainTextPath.substring(0, -15))) {
+      logWarn('plaintext without metadata', { plainTextPath })
+      await handler.unlink(plainTextPath)
+    }
+  }
 
   const cachePath = vmDir + '/cache.json.gz'
 
