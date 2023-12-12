@@ -837,7 +837,15 @@ export default async function main(args) {
   // Trigger a clean job.
   await xo.hooks.clean()
 
-  const useForwardedHeaders = () => xo.config.get('http.useForwardedHeaders')
+  const useForwardedHeaders = (() => {
+    // recompile the fonction when the setting change
+    let useForwardedHeaders
+    xo.config.watch('http.useForwardedHeaders', val => {
+      useForwardedHeaders = typeof val === 'boolean' ? () => val : proxyAddr.compile(val)
+    })
+
+    return (...args) => useForwardedHeaders(...args)
+  })()
 
   express.set('trust proxy', useForwardedHeaders)
 

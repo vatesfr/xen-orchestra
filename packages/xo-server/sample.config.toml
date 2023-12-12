@@ -75,8 +75,16 @@
 # Uncomment this if xo-server is behind a reverse proxy to make xo-server use
 # X-Forwarded-* headers to determine the IP address of clients.
 #
+# Accepted values for this setting:
+# - false (default): do not use the headers
+# - true: always use the headers
+# - a list of trusted addresses: the headers will be used only if the connection
+#   is coming from of these addresses
+#
+# More info about the accepted values: https://www.npmjs.com/package/proxy-addr?activeTab=readme#proxyaddrreq-trust
+#
 # > Note: X-Forwarded-* headers are easily spoofed and the detected IP addresses are unreliable.
-useForwardedHeaders = true
+#useForwardedHeaders = true
 
 # Settings applied to cookies created by xo-server's embedded HTTP server.
 #
