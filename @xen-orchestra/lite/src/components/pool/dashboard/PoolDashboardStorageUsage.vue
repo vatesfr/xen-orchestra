@@ -5,11 +5,8 @@
       :right="$t('top-#', { n: N_ITEMS })"
     />
     <NoDataError v-if="hasError" />
-    <UsageBar
-      v-else
-      :data="isReady ? data.result : undefined"
-      :nItems="N_ITEMS"
-    >
+    <UiCardSpinner v-else-if="isFetching" />
+    <UsageBar v-else :data="isReady ? data.result : []" :nItems="N_ITEMS">
       <template #footer>
         <SizeStatsSummary :size="data.maxSize" :usage="data.usedSize" />
       </template>
@@ -21,13 +18,14 @@
 import NoDataError from "@/components/NoDataError.vue";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
 import { useSrCollection } from "@/stores/xen-api/sr.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed } from "vue";
 
-const { records: srs, isReady, hasError } = useSrCollection();
+const { records: srs, isReady, hasError, isFetching } = useSrCollection();
 
 const data = computed<{
   result: { id: string; label: string; value: number }[];

@@ -1,43 +1,32 @@
 <template>
   <div class="usage-bar">
-    <template v-if="data !== undefined">
-      <div
-        v-for="item in computedData.sortedArray"
-        :key="item.id"
-        :class="{
-          warning: item.value > MIN_WARNING_VALUE,
-          error: item.value > MIN_DANGEROUS_VALUE,
-        }"
-        class="progress-item"
-      >
-        <UiProgressBar :value="item.value" color="custom" />
-        <UiProgressLegend
-          :label="item.label"
-          :value="item.badgeLabel ?? `${item.value}%`"
-        />
-      </div>
-      <slot :total-percent="computedData.totalPercentUsage" name="footer" />
-    </template>
-    <UiCardSpinner v-else />
+    <div
+      v-for="item in computedData.sortedArray"
+      :key="item.id"
+      :class="{
+        warning: item.value > MIN_WARNING_VALUE,
+        error: item.value > MIN_DANGEROUS_VALUE,
+      }"
+      class="progress-item"
+    >
+      <UiProgressBar :value="item.value" color="custom" />
+      <UiProgressLegend
+        :label="item.label"
+        :value="item.badgeLabel ?? `${item.value}%`"
+      />
+    </div>
+    <slot :total-percent="computedData.totalPercentUsage" name="footer" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
-import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import type { StatData } from "@/types/stat";
 import { computed } from "vue";
 
-interface Data {
-  id: string;
-  value: number;
-  label?: string;
-  badgeLabel?: string;
-  maxValue?: number;
-}
-
 interface Props {
-  data?: Data[];
+  data: StatData[];
   nItems?: number;
 }
 

@@ -7,6 +7,7 @@
 - Added tooltip on CPU provisioning warning icon (PR [#7223](https://github.com/vatesfr/xen-orchestra/pull/7223))
 - Add indeterminate state on FormToggle component (PR [#7230](https://github.com/vatesfr/xen-orchestra/pull/7230))
 - Add new UiStatusPanel component (PR [#7227](https://github.com/vatesfr/xen-orchestra/pull/7227))
+- Fix infinite loader when no stats on pool dashboard (PR [#7236](https://github.com/vatesfr/xen-orchestra/pull/7236))
 
 ## **0.1.6** (2023-11-30)
 
