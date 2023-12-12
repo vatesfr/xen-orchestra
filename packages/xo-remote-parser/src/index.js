@@ -21,11 +21,11 @@ const parseOptionList = (optionList = '') => {
 
   // bugfix for persisting error notification
   if ('error' in parsed) {
-    warn('Deleting "error" value in url query', { error: parsed.error })
+    warn('Deleting "error" value in url query, resave your remote to clear this values', { error: parsed.error })
     delete parsed.error
   }
   if ('name' in parsed) {
-    warn('Deleting "name" value in url query', { name: parsed.name })
+    warn('Deleting "name" value in url query, resave your remote to clear this values', { name: parsed.name })
     delete parsed.name
   }
 

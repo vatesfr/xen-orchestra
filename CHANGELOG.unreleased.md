@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Remotes] Prevents the "connection failed" alert from continuing to appear after successfull connection
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,5 +30,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-remote-parser patch
 
 <!--packages-end-->
