@@ -6,6 +6,7 @@
 - Ability to override host address with `master` URL query param (PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
 - Added tooltip on CPU provisioning warning icon (PR [#7223](https://github.com/vatesfr/xen-orchestra/pull/7223))
 - Add indeterminate state on FormToggle component (PR [#7230](https://github.com/vatesfr/xen-orchestra/pull/7230))
+- Add new UiStatusPanel component (PR [#7227](https://github.com/vatesfr/xen-orchestra/pull/7227))
 
 ## **0.1.6** (2023-11-30)
 
