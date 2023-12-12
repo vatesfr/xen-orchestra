@@ -79,7 +79,7 @@
 # - false (default): do not use the headers
 # - true: always use the headers
 # - a list of trusted addresses: the headers will be used only if the connection
-#   is coming from of these addresses
+#   is coming from one of these addresses
 #
 # More info about the accepted values: https://www.npmjs.com/package/proxy-addr?activeTab=readme#proxyaddrreq-trust
 #
