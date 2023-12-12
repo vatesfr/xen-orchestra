@@ -161,7 +161,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     )
 
     metadataContent = {
-      differentialVhds,
+      isVhdDifferencing,
       jobId,
       mode: job.mode,
       scheduleId,
