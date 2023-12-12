@@ -14,7 +14,7 @@ const {
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
-const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e4
+const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
 const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 1
 
 exports.createNbdRawStream = function createRawStream(nbdClient) {
