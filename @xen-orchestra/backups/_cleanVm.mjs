@@ -556,7 +556,14 @@ export async function cleanVm(
     // @todo : after 2024-04-01 remove the fixmetadata options since the size computation is fixed
     if (mergedSize || (fixMetadata && fileSystemSize !== size)) {
       metadata.size = mergedSize ?? fileSystemSize ?? size
-
+      
+      if (mergedSize) {
+        // all disks are now key disk
+        metadata.isVhdDifferencing = {}
+        for (const id of Object.values(metadata.vdis)) {
+          metadata.isVhdDifferencing[`${id}.vhd`] = false
+        }
+      }
       mustRegenerateCache = true
       try {
         await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
