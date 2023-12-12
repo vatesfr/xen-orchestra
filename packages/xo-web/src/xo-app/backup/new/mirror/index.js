@@ -68,7 +68,7 @@ const normalize = state => {
   schedules = mapValues(schedules, ({ id, ...schedule }) => schedule)
   settings[''] = {
     ...advancedSettings,
-    reportWhen: reportWhen.value,
+    reportWhen: reportWhen.value ?? reportWhen,
     reportRecipients: reportRecipients.length !== 0 ? reportRecipients : undefined,
   }
   return {
