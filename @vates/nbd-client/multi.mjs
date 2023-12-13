@@ -8,6 +8,10 @@ export default class MultiNbdClient {
   #clients = []
   #readAhead
 
+  get exportSize() {
+    return this.#clients[0].exportSize
+  }
+
   constructor(settings, { nbdConcurrency = 8, readAhead = 16, ...options } = {}) {
     this.#readAhead = readAhead
     if (!Array.isArray(settings)) {
@@ -44,11 +48,9 @@ export default class MultiNbdClient {
   }
 
   async disconnect() {
-    asyncEach(this.#clients, 
-      client => client.disconnect(),
-      {
-        stopOnError: false
-      }) 
+    asyncEach(this.#clients, client => client.disconnect(), {
+      stopOnError: false,
+    })
   }
 
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
