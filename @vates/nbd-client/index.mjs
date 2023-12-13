@@ -3,7 +3,7 @@ import { Socket } from 'node:net'
 import { connect } from 'node:tls'
 import { fromCallback, pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
-
+import { createLogger } from '@xen-orchestra/log'
 import {
   INIT_PASSWD,
   NBD_CMD_READ,
@@ -20,6 +20,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
@@ -286,7 +287,7 @@ export default class NbdClient {
     }
   }
 
-  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+  async #readBlock(index, size) {
     // we don't want to add anything in backlog while reconnecting
     if (this.#reconnectingPromise) {
       await this.#reconnectingPromise
@@ -331,6 +332,16 @@ export default class NbdClient {
       // #readBlockResponse never throws directly
       // but if it fails it will reject all the promises in the backlog
       this.#readBlockResponse()
+    })
+  }
+
+  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    return pRetry(() => this.#readBlock(index, size), {
+      tries: this.#readBlockRetries,
+      onRetry: async err => {
+        warn('will retry reading block ', index, err)
+        await this.reconnect()
+      },
     })
   }
 }
