@@ -46,6 +46,12 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       default: DEFAULTS.disableRequestedAuthnContext,
       type: 'boolean',
     },
+    forceAuthn: {
+      title: 'Force re-authentication',
+      description: 'Request the identity provider to authenticate the user, even if they possess a valid session.',
+      default: false,
+      type: 'boolean',
+    },
   },
   required: ['cert', 'entryPoint', 'issuer', 'usernameField'],
 }
