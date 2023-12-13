@@ -122,6 +122,8 @@ export default class NbdClient {
     if (!this.#connected) {
       return
     }
+    this.#connected = false
+    const socket = this.#serverSocket
 
     const queryId = this.#nextCommandQueryId
     this.#nextCommandQueryId++
@@ -134,12 +136,12 @@ export default class NbdClient {
     buffer.writeBigUInt64BE(0n, 16)
     buffer.writeInt32BE(0, 24)
     const promise = pFromCallback(cb => {
-      this.#serverSocket.end(buffer, 'utf8', cb)
+      socket.end(buffer, 'utf8', cb)
     })
     try {
       await pTimeout.call(promise, this.#messageTimeout)
     } catch (error) {
-      this.#serverSocket.destroy()
+      socket.destroy()
     }
     this.#serverSocket = undefined
     this.#connected = false
