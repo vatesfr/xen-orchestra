@@ -8,7 +8,8 @@ import { NBD_DEFAULT_PORT } from '../constants.mjs'
 import assert from 'node:assert'
 import MultiNbdClient from '../multi.mjs'
 
-const FILE_SIZE = 10 * 1024 * 1024
+const CHUNK_SIZE = 1024 * 1024 // non default size
+const FILE_SIZE = 1024 * 1024 * 9.5 // non aligned file size
 
 async function createTempFile(size) {
   const tmpPath = await pFromCallback(cb => tmp.file(cb))
@@ -109,13 +110,13 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
 `,
     },
     {
+      nbdConcurrency: 1,
       readAhead: 2,
     }
   )
 
   await client.connect()
   tap.equal(client.exportSize, BigInt(FILE_SIZE))
-  const CHUNK_SIZE = 1024 * 1024 // non default size
   const indexes = []
   for (let i = 0; i < FILE_SIZE / CHUNK_SIZE; i++) {
     indexes.push(i)
@@ -127,9 +128,9 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
   })
   let i = 0
   for await (const block of nbdIterator) {
-    let blockOk = true
+    let blockOk = block.length === Math.min(CHUNK_SIZE, FILE_SIZE - CHUNK_SIZE * i)
     let firstFail
-    for (let j = 0; j < CHUNK_SIZE; j += 4) {
+    for (let j = 0; j < block.length; j += 4) {
       const wanted = i * CHUNK_SIZE + j
       const found = block.readUInt32BE(j)
       blockOk = blockOk && found === wanted
@@ -137,7 +138,7 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
         firstFail = j
       }
     }
-    tap.ok(blockOk, `check block ${i} content`)
+    tap.ok(blockOk, `check block ${i} content ${block.length}`)
     i++
 
     // flaky server is flaky
