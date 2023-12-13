@@ -15,7 +15,16 @@ const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
 exports.createNbdRawStream = function createRawStream(nbdClient) {
-  const stream = Readable.from(nbdClient.readBlocks(), { objectMode: false })
+  const exportSize = Number(nbdClient.exportSize)
+  const chunkSize = 2 * 1024 * 1024
+
+  const indexGenerator = function* () {
+    const nbBlocks = Math.ceil(exportSize / chunkSize)
+    for (let index = 0; index < nbBlocks; index++) {
+      yield { index, size: chunkSize }
+    }
+  }
+  const stream = Readable.from(nbdClient.readBlocks(indexGenerator), { objectMode: false })
 
   stream.on('error', () => nbdClient.disconnect())
   stream.on('end', () => nbdClient.disconnect())
@@ -26,6 +35,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
   const bufFooter = await readChunkStrict(sourceStream, FOOTER_SIZE)
 
   const header = unpackHeader(await readChunkStrict(sourceStream, HEADER_SIZE))
+  header.tableOffset = FOOTER_SIZE + HEADER_SIZE
   // compute BAT in order
   const batSize = Math.ceil((header.maxTableEntries * 4) / SECTOR_SIZE) * SECTOR_SIZE
   await skipStrict(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
@@ -47,7 +57,6 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
       precLocator = offset
     }
   }
-  header.tableOffset = FOOTER_SIZE + HEADER_SIZE
   const rawHeader = fuHeader.pack(header)
   checksumStruct(rawHeader, fuHeader)
 

@@ -3,7 +3,6 @@ import { Socket } from 'node:net'
 import { connect } from 'node:tls'
 import { fromCallback, pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
-import { createLogger } from '@xen-orchestra/log'
 
 import {
   INIT_PASSWD,
@@ -21,9 +20,6 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
-import { Readable } from 'node:stream'
-
-const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
@@ -336,59 +332,5 @@ export default class NbdClient {
       // but if it fails it will reject all the promises in the backlog
       this.#readBlockResponse()
     })
-  }
-
-  async *readBlocks(indexGenerator = 2 * 1024 * 1024) {
-    // default : read all blocks
-    if (typeof indexGenerator === 'number') {
-      const exportSize = Number(this.#exportSize)
-      const chunkSize = indexGenerator
-
-      indexGenerator = function* () {
-        const nbBlocks = Math.ceil(exportSize / chunkSize)
-        for (let index = 0; index < nbBlocks; index++) {
-          yield { index, size: chunkSize }
-        }
-      }
-    }
-    const readAhead = []
-    const readAheadMaxLength = this.#readAhead
-    const makeReadBlockPromise = (index, size) => {
-      const promise = pRetry(() => this.readBlock(index, size), {
-        tries: this.#readBlockRetries,
-        onRetry: async err => {
-          warn('will retry reading block ', index, err)
-          await this.reconnect()
-        },
-      })
-      // error is handled during unshift
-      promise.catch(() => {})
-      return promise
-    }
-
-    // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
-    for (const { index, size } of indexGenerator()) {
-      // stack readAheadMaxLength promises before starting to handle the results
-      if (readAhead.length === readAheadMaxLength) {
-        // any error will stop reading blocks
-        yield readAhead.shift()
-      }
-
-      readAhead.push(makeReadBlockPromise(index, size))
-    }
-    while (readAhead.length > 0) {
-      yield readAhead.shift()
-    }
-  }
-
-  stream(chunkSize) {
-    async function* iterator() {
-      for await (const chunk of this.readBlocks(chunkSize)) {
-        yield chunk
-      }
-    }
-    // create a readable stream instead of returning the iterator
-    // since iterators don't like unshift and partial reading
-    return Readable.from(iterator())
   }
 }
