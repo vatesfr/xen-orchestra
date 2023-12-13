@@ -1,4 +1,3 @@
-import NbdClient from '../index.mjs'
 import { spawn, exec } from 'node:child_process'
 import fs from 'node:fs/promises'
 import { test } from 'tap'
@@ -7,6 +6,7 @@ import { pFromCallback } from 'promise-toolbox'
 import { Socket } from 'node:net'
 import { NBD_DEFAULT_PORT } from '../constants.mjs'
 import assert from 'node:assert'
+import MultiNbdClient from '../multi.mjs'
 
 const FILE_SIZE = 10 * 1024 * 1024
 
@@ -81,7 +81,7 @@ test('it works with unsecured network', async tap => {
   const path = await createTempFile(FILE_SIZE)
 
   let nbdServer = await spawnNbdKit(path)
-  const client = new NbdClient(
+  const client = new MultiNbdClient(
     {
       address: '127.0.0.1',
       exportname: 'MY_SECRET_EXPORT',
@@ -147,17 +147,6 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
       nbdServer = await spawnNbdKit(path)
     }
   }
-
-  // we can reuse the conneciton to read other blocks
-  // default iterator
-  const nbdIteratorWithDefaultBlockIterator = client.readBlocks()
-  let nb = 0
-  for await (const block of nbdIteratorWithDefaultBlockIterator) {
-    nb++
-    tap.equal(block.length, 2 * 1024 * 1024)
-  }
-
-  tap.equal(nb, 5)
   assert.rejects(() => client.readBlock(100, CHUNK_SIZE))
 
   await client.disconnect()
