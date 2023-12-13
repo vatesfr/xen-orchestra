@@ -111,7 +111,10 @@ export default class Menu extends Component {
     () => this.state.proxyStates,
     proxyStates => some(proxyStates, state => state.endsWith('-upgrade-needed'))
   )
-
+  _areProxiesErrors = createSelector(
+    () => this.state.proxyStates,
+    proxyStates => some(proxyStates, state => state === 'error')
+  )
   _checkPermissions = createSelector(
     () => this.props.isAdmin,
     () => this.props.permissions,
@@ -467,6 +470,12 @@ export default class Menu extends Component {
                   { icon: 'menu-update', size: 1 },
                 ]}
               />
+            </Tooltip>
+          ) : this._areProxiesErrors() ? (
+            <Tooltip content={_('someProxiesHaveErrors')}>
+              <span className='text-warning'>
+                <Icon icon='alarm' />
+              </span>
             </Tooltip>
           ) : null,
         ],
