@@ -629,7 +629,7 @@ export default {
         continue
       }
 
-      const residentVms = host.$resident_VMs.map(vm => vm.uuid)
+      const residentVms = await this.getField('host', host.$ref,'resident_VMs')
 
       for (const vmId of vmIds) {
         if (residentVms.includes(vmId)) {
