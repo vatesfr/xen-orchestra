@@ -36,34 +36,32 @@ const computeVhdsSize = (handler, vhdPaths) =>
   )
 
 // chain is [ ancestor, child_1, ..., child_n ]
-async function _mergeVhdChain(handler, chain, { logInfo, remove, merge, mergeBlockConcurrency }) {
-  if (merge) {
-    logInfo(`merging VHD chain`, { chain })
+async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcurrency }) {
+  logInfo(`merging VHD chain`, { chain })
 
-    let done, total
-    const handle = setInterval(() => {
-      if (done !== undefined) {
-        logInfo('merge in progress', {
-          done,
-          parent: chain[0],
-          progress: Math.round((100 * done) / total),
-          total,
-        })
-      }
-    }, 10e3)
-    try {
-      return await mergeVhdChain(handler, chain, {
-        logInfo,
-        mergeBlockConcurrency,
-        onProgress({ done: d, total: t }) {
-          done = d
-          total = t
-        },
-        removeUnused: remove,
+  let done, total
+  const handle = setInterval(() => {
+    if (done !== undefined) {
+      logInfo('merge in progress', {
+        done,
+        parent: chain[0],
+        progress: Math.round((100 * done) / total),
+        total,
       })
-    } finally {
-      clearInterval(handle)
     }
+  }, 10e3)
+  try {
+    return await mergeVhdChain(handler, chain, {
+      logInfo,
+      mergeBlockConcurrency,
+      onProgress({ done: d, total: t }) {
+        done = d
+        total = t
+      },
+      removeUnused: remove,
+    })
+  } finally {
+    clearInterval(handle)
   }
 }
 
@@ -475,7 +473,6 @@ export async function cleanVm(
         logInfo,
         logWarn,
         remove,
-        merge,
         mergeBlockConcurrency,
       })
       const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
@@ -485,7 +482,7 @@ export async function cleanVm(
 
   await Promise.all([
     ...unusedVhdsDeletion,
-    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : doMerge()),
+    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : () => Promise.resolve()),
     asyncMap(unusedXvas, path => {
       logWarn('unused XVA', { path })
       if (remove) {
