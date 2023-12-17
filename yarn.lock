@@ -14594,15 +14594,15 @@ markdown-it@^8.4.1:
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
-marked@^0.6.2:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-0.6.3.tgz#79babad78af638ba4d522a9e715cdfdd2429e946"
-  integrity sha512-Fqa7eq+UaxfMriqzYLayfqAE40WN03jf+zHjT18/uXNuzjq3TY0XTbrAoPeqSJrAmPz11VuUA+kBPYOhHt9oOQ==
-
 marked@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.7.0.tgz#b64201f051d271b1edc10a04d1ae9b74bb8e5c0e"
   integrity sha512-c+yYdCZJQrsRjTPhUx7VKkApw9bwDkNbHUKo1ovgcfDjb2kc8rLuRbIFyXL5WOEUwzSSKo3IXpph2K6DqB/KZg==
+
+marked@^11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-11.1.0.tgz#f2d12323e80ba8a97cc8262fe7e94fcc007476ab"
+  integrity sha512-fvKJWAPEafVj1dwGwcPI5mBB/0pvViL6NlCbNDG1HOIRwwAU/jeMoFxfbRLuirO1wRH7m4yPvBqD/O1wyWvayw==
 
 marked@^9.1.5:
   version "9.1.6"
@@ -15403,13 +15403,6 @@ node-zone@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-zone/-/node-zone-0.4.0.tgz#b058401a2e7c4bd34cb8cda8ee9d61360f620711"
   integrity sha512-JzQcDNvCdWF1wmHAvNN2U63+8K72u4hN40axkrpRWE6Yvhkuf2i72SMzWUHiP3rxdm2CbgaaOw8N5Gw2qN5pbA==
-
-nodemailer-markdown@^1.0.1:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/nodemailer-markdown/-/nodemailer-markdown-1.0.3.tgz#13b1f9bcbcce3ff5d5c22a32bf097583e5f194bd"
-  integrity sha512-ztFMhfyQr7qKWofUDUXmC4qKylZsGLx/4Cn6ncjTrPfoeV9U4jyVx7NDT1nlKG7uNXJl1CIggeRgR9NOXTaxBA==
-  dependencies:
-    marked "^0.6.2"
 
 nodemailer@^6.1.0:
   version "6.9.7"

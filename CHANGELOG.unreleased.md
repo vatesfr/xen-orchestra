@@ -41,5 +41,6 @@
 - @xen-orchestra/xapi patch
 - xo-server minor
 - xo-server-auth-saml minor
+- xo-server-transport-email major
 
 <!--packages-end-->
