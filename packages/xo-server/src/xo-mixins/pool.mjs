@@ -134,4 +134,12 @@ export default class Pools {
         srsByPool[pool.id].some(sr => sr.size - sr.physical_usage >= minAvailableSrSize && checkSrName(sr.name_label))
     )
   }
+
+  async rollingPoolReboot(pool) {
+    const { _app } = this
+    await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
+    const xapi = _app.getXapi(pool)
+    const app = this._app
+    await xapi.rollingPoolReboot({ xsCredentials: app.apiContext.user.preferences.xsCredentials })
+  }
 }
