@@ -6,6 +6,7 @@
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+- [SR] show an icon on SR during VDI coalescing (with XCP-ng 8.3+) (PR [#7241](https://github.com/vatesfr/xen-orchestra/pull/7241))
 
 ### Bug fixes
 
@@ -26,5 +27,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web minor
 
 <!--packages-end-->
