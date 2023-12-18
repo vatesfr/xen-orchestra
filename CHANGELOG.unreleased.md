@@ -18,7 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
-- [Remove PIF] Removing NIC in network tab of a host generated an error "PIF_IS_PHYSICAL" [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR[7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
+- [Host/Network] Fix error "PIF_IS_PHYSICAL" when trying to remove a PIF that had already been physically disconnected [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR [#7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
 
 ### Packages to release
 
