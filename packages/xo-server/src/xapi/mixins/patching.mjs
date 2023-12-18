@@ -6,6 +6,7 @@ import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -629,7 +630,7 @@ export default {
         continue
       }
 
-      const residentVms = await this.getField('host', host.$ref,'resident_VMs')
+      const residentVms = await asyncMap(await this.getField('host', host.$ref,'resident_VMs'), ref => this.getField('VM', ref, 'uuid'))
 
       for (const vmId of vmIds) {
         if (residentVms.includes(vmId)) {
