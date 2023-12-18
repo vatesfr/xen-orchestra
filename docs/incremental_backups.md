@@ -73,6 +73,7 @@ To enable NBD on the pool network, select the relevant pool, and navigate to the
 
 ![](./assets/nbdconnection.png)
 
+This will transfer data encrypted from the host to the XOA. 
 When creating or editing a incremental (formerly delta) backup and replication on this pool in the future, you can activate NBD under the Advanced settings:
 
 ![](./assets/enablenbd.png)
@@ -81,6 +82,6 @@ After the job is completed, you can verify whether NBD was used for the transfer
 
 ![](./assets/backuplog.png)
 
-It's important to note that NBD exports are not currently visible in the task list, but we are actively addressing this. Stay tuned for more updates in upcoming versions!
+It's important to note that NBD exports are not currently visible in the task list before 5.90 (december 2023).
 
 To learn more about the evolution of this feature across various XO releases, check out our blog posts for versions [5.76](https://xen-orchestra.com/blog/xen-orchestra-5-76/), [5.81](https://xen-orchestra.comblog/xen-orchestra-5-81/), [5.82](https://xen-orchestra.com/blog/xen-orchestra-5-82/), and [5.86](https://xen-orchestra.com/blog/xen-orchestra-5-86/).
