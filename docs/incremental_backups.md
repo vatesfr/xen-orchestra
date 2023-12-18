@@ -73,7 +73,7 @@ To enable NBD on the pool network, select the relevant pool, and navigate to the
 
 ![](./assets/nbdconnection.png)
 
-When creating or editing a delta backup on this pool in the future, you can activate NBD under the Advanced settings:
+When creating or editing a incremental (formerly delta) backup and replication on this pool in the future, you can activate NBD under the Advanced settings:
 
 ![](./assets/enablenbd.png)
 
