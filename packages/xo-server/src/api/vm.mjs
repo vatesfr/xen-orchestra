@@ -12,7 +12,7 @@ import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors } from 'promise-toolbox'
-import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
@@ -561,24 +561,14 @@ export async function migrate({
 
   await this.checkPermissions(permissions)
 
-  await this.getXapi(vm)
-    .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
-      sr: sr && this.getObject(sr, 'SR')._xapiId,
-      migrationNetworkId: migrationNetwork != null ? migrationNetwork._xapiId : undefined,
-      mapVifsNetworks: mapVifsNetworksXapi,
-      mapVdisSrs: mapVdisSrsXapi,
-      force,
-      bypassAssert,
-    })
-    .catch(error => {
-      if (error?.code !== undefined) {
-        // make sure we log the original error
-        log.warn('vm.migrate', { error })
-
-        throw operationFailed({ objectId: vm.id, code: error.code })
-      }
-      throw error
-    })
+  await this.getXapi(vm).migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
+    sr: sr && this.getObject(sr, 'SR')._xapiId,
+    migrationNetworkId: migrationNetwork != null ? migrationNetwork._xapiId : undefined,
+    mapVifsNetworks: mapVifsNetworksXapi,
+    mapVdisSrs: mapVdisSrsXapi,
+    force,
+    bypassAssert,
+  })
 }
 
 migrate.params = {
