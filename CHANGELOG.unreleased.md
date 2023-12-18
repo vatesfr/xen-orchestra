@@ -43,7 +43,7 @@
 
 <!--packages-start-->
 
-- @vates/nbd-client minor
+- @vates/nbd-client major
 - @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server minor
