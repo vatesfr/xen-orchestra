@@ -73,7 +73,7 @@ To enable NBD on the pool network, select the relevant pool, and navigate to the
 
 ![](./assets/nbdconnection.png)
 
-This will transfer data encrypted from the host to the XOA. 
+This will securely transfer encrypted data from the host to the XOA.
 When creating or editing a incremental (formerly delta) backup and replication on this pool in the future, you can activate NBD under the Advanced settings:
 
 ![](./assets/enablenbd.png)
