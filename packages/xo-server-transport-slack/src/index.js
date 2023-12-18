@@ -1,5 +1,4 @@
-import Slack from 'slack-node'
-import { promisify } from 'promise-toolbox'
+import { IncomingWebhook } from '@slack/webhook'
 
 // ===================================================================
 
@@ -49,10 +48,9 @@ class XoServerTransportSlack {
   }
 
   configure({ webhookUri, ...conf }) {
-    const slack = new Slack()
-    slack.setWebhook(webhookUri)
+    const slack = new IncomingWebhook(webhookUri)
     this._conf = conf
-    this._send = promisify(slack.webhook)
+    this._send = slack.send.bind(slack)
   }
 
   load() {

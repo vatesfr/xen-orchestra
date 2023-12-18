@@ -5,7 +5,6 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
-import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -13,6 +12,7 @@ import { Index } from 'xo-collection/index.js'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
+import { ProxyAgent } from 'proxy-agent'
 
 import debug from './_debug.mjs'
 import getTaskResult from './_getTaskResult.mjs'
@@ -135,13 +135,12 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
-    let { httpProxy } = opts
+    const { httpProxy } = opts
     if (httpProxy !== undefined) {
-      if (httpProxy.startsWith('https:')) {
-        httpProxy = parseUrl(httpProxy)
-        httpProxy.rejectUnauthorized = !opts.allowUnauthorized
-      }
-      this._httpAgent = new ProxyAgent(httpProxy)
+      this._httpAgent = new ProxyAgent({
+        getProxyForUrl: () => httpProxy,
+        rejectUnauthorized: !opts.allowUnauthorized,
+      })
     }
     this._setUrl(url)
 
