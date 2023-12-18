@@ -80,7 +80,7 @@ When creating or editing an incremental (previously known as delta) backup and r
 
 After the job is completed, you can verify whether NBD was used for the transfer in the backup log:
 
-![](./assets/backuplog.png)
+![](./assets/nbd-backup-log.png)
 
 It's important to note that NBD exports are not currently visible in the task list before 5.90 (december 2023).
 
