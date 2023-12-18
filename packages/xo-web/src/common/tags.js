@@ -17,18 +17,23 @@ const INPUT_STYLE = {
   maxWidth: '8em',
 }
 const TAG_STYLE = {
-  backgroundColor: '#2598d9',
   borderRadius: '0.5em',
+  border: '0.2em solid #2598d9',
+  backgroundColor: '#2598d9',
   color: 'white',
   fontSize: '0.6em',
   margin: '0.2em',
   marginTop: '-0.1em',
-  padding: '0.3em',
   verticalAlign: 'middle',
 }
 const LINK_STYLE = {
   cursor: 'pointer',
 }
+const TAG_STYLE_ONCLICK = {
+  ...TAG_STYLE,
+  ...LINK_STYLE,
+}
+
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
   fontSize: '0.8em',
@@ -36,6 +41,23 @@ const ADD_TAG_STYLE = {
 }
 const REMOVE_TAG_STYLE = {
   cursor: 'pointer',
+}
+
+const TAG_SCOPE_STYLE = {
+  padding: '0.1em',
+
+  borderRadius: '0.2em',
+}
+const TAG_SCOPE_LINK_STYLE = {
+  ...TAG_SCOPE_STYLE,
+  ...LINK_STYLE,
+}
+const TAG_SCOPE_VALUE_STYLE = {
+  padding: '0 0.2em',
+  color: '#2598d9',
+  backgroundColor: 'white',
+  borderTopRightRadius: '0.3em', // tag border radius - tag padding
+  borderBottomRightRadius: '0.3em', // tag border radius - tag padding
 }
 
 class SelectExistingTag extends Component {
@@ -156,20 +178,51 @@ export default class Tags extends Component {
   }
 }
 
-export const Tag = ({ type, label, onDelete, onClick }) => (
-  <span style={TAG_STYLE}>
-    <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
-      {label}
-    </span>{' '}
-    {onDelete ? (
-      <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
-        <Icon icon='remove-tag' />
+const ScopedTag = ({ type, label, scope, value, onDelete, onClick }) => {
+  return (
+    <span style={onClick ? TAG_STYLE_ONCLICK : TAG_STYLE}>
+      <span style={onClick ? TAG_SCOPE_LINK_STYLE : TAG_SCOPE_STYLE} onClick={onClick && (() => onClick(label))}>
+        {scope}
       </span>
-    ) : (
-      []
-    )}
-  </span>
-)
+      <span style={TAG_SCOPE_VALUE_STYLE}>
+        <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
+          {value}
+        </span>{' '}
+        {onDelete && (
+          <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
+            <Icon icon='remove-tag' />
+          </span>
+        )}
+      </span>
+    </span>
+  )
+}
+
+ScopedTag.propTypes = {
+  scope: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+}
+
+export const Tag = ({ type, label, onDelete, onClick }) => {
+  const [scope, ...values] = label.split('=')
+  if (scope && values?.length > 0) {
+    return <ScopedTag {...{ type, label, scope, value: values.join('='), onDelete, onClick }} />
+  }
+  return (
+    <span style={TAG_STYLE}>
+      <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
+        {label}
+      </span>{' '}
+      {onDelete ? (
+        <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
+          <Icon icon='remove-tag' />
+        </span>
+      ) : (
+        []
+      )}
+    </span>
+  )
+}
 Tag.propTypes = {
   label: PropTypes.string.isRequired,
 }
