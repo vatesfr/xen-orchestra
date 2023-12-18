@@ -2,16 +2,17 @@
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
     <div v-if="hasError">{{ $t("error-occurred") }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <div v-else-if="!isVmRunning" class="not-running">
-      <div><img alt="" src="@/assets/monitor.svg" /></div>
-      {{ $t("power-on-for-console") }}
-    </div>
+    <UiStatusPanel
+      v-else-if="!isVmRunning"
+      :image-source="monitor"
+      :title="$t('power-on-for-console')"
+    />
     <template v-else-if="vm && vmConsole">
       <AppMenu horizontal>
         <MenuItem
+          v-if="uiStore.hasUi"
           :icon="faArrowUpRightFromSquare"
           @click="openInNewTab"
-          v-if="uiStore.hasUi"
         >
           {{ $t("open-console-in-new-tab") }}
         </MenuItem>
@@ -44,10 +45,12 @@
 </template>
 
 <script lang="ts" setup>
+import monitor from "@/assets/monitor.svg";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import RemoteConsole from "@/components/RemoteConsole.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import UiStatusPanel from "@/components/ui/UiStatusPanel.vue";
 import { VM_OPERATION, VM_POWER_STATE } from "@/libs/xen-api/xen-api.enums";
 import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { usePageTitleStore } from "@/stores/page-title.store";
@@ -158,7 +161,6 @@ const openInNewTab = () => {
   height: 100%;
 }
 
-.not-running,
 .not-available {
   display: flex;
   align-items: center;

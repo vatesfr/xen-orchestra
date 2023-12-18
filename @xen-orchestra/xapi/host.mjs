@@ -3,6 +3,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
+import pRetry from 'promise-toolbox/retry'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
@@ -69,7 +70,12 @@ class Host {
     if (await this.getField('host', ref, 'enabled')) {
       await this.callAsync('host.disable', ref)
       $defer(async () => {
-        await this.callAsync('host.enable', ref)
+        await pRetry(() => this.callAsync('host.enable', ref), {
+          delay: 10e3,
+          retries: 6,
+          when: { code: 'HOST_STILL_BOOTING' },
+        })
+
         // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
         return asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false))
       })
