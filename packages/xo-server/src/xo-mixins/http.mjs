@@ -1,5 +1,5 @@
 import hrp from 'http-request-plus'
-import ProxyAgent from 'proxy-agent'
+import { ProxyAgent } from 'proxy-agent'
 
 const { env } = process
 

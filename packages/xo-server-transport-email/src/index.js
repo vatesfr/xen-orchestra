@@ -1,5 +1,5 @@
 import { createTransport } from 'nodemailer'
-import { markdown as nodemailerMarkdown } from 'nodemailer-markdown'
+import { Marked } from 'marked'
 import { promisify } from 'promise-toolbox'
 
 // ===================================================================
@@ -12,8 +12,6 @@ const removeUndefined = obj => {
   })
   return obj
 }
-
-const markdownCompiler = nodemailerMarkdown()
 
 const logAndRethrow = error => {
   console.error('[WARN] plugin transport-email:', (error && error.stack) || error)
@@ -138,6 +136,7 @@ export const testSchema = {
 
 class TransportEmailPlugin {
   constructor({ staticConfig, xo }) {
+    this._marked = new Marked()
     this._staticConfig = staticConfig
     this._xo = xo
     this._unset = null
@@ -168,7 +167,26 @@ class TransportEmailPlugin {
     }
 
     const transport = createTransport({ ...transportConf, ...this._staticConfig.transport }, { from })
-    transport.use('compile', markdownCompiler)
+    transport.use('compile', (mail, cb) => {
+      const data = mail?.data
+      if (data == null || data.markdown == null || data.html !== undefined) {
+        return cb()
+      }
+
+      mail.resolveContent(data, 'markdown', (error, markdown) => {
+        if (error != null) {
+          return cb(error)
+        }
+
+        markdown = String(markdown)
+
+        data.html = this._marked.parse(markdown)
+        if (data.text === undefined) {
+          data.text = markdown
+        }
+        cb()
+      })
+    })
 
     this._send = promisify(transport.sendMail, transport)
   }
@@ -187,7 +205,7 @@ class TransportEmailPlugin {
       subject: '[Xen Orchestra] Test of transport-email plugin',
       markdown: `Hi there,
 
-The transport-email plugin for Xen Orchestra server seems to be working fine, nicely done :)
+The \`transport-email\` plugin for *Xen Orchestra* server seems to be working fine, nicely done :)
 `,
       attachments: [
         {

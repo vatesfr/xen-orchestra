@@ -107,6 +107,9 @@ writeBlockConcurrency = 16
 enabled = false
 threshold = 1000
 
+[http]
+useForwardedHeaders = false
+
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/
