@@ -11,7 +11,7 @@ import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
-import { ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
@@ -1027,11 +1027,7 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: implements timeout.
-// - if !force → clean shutdown
-// - if force is true → hard shutdown
-// - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = force }) {
+export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = Boolean(force) }) {
   const xapi = this.getXapi(vm)
 
   if (bypassBlockedOperation) {
@@ -1046,27 +1042,37 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
     )
   }
 
-  // Hard shutdown
-  if (force) {
-    return xapi.shutdownVm(vm._xapiRef, { hard: true })
+  // Clean shutdown
+  let timedOut = false
+  if (!force || typeof force === 'number') {
+    const shutdownPromise = xapi.shutdownVm(vm._xapiRef).catch(error => {
+      const { code } = error
+      if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
+        throw invalidParameters('clean shutdown requires PV drivers')
+      }
+      throw error
+    })
+
+    if (typeof force === 'number') {
+      await timeout.call(shutdownPromise, force).catch(error => {
+        if (error instanceof TimeoutError) {
+          timedOut = true
+        } else throw error
+      })
+    } else {
+      await shutdownPromise
+    }
   }
 
-  // Clean shutdown
-  try {
-    await xapi.shutdownVm(vm._xapiRef)
-  } catch (error) {
-    const { code } = error
-    if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
-      throw invalidParameters('clean shutdown requires PV drivers')
-    }
-
-    throw error
+  // Hard shutdown
+  if (force === true || timedOut) {
+    return xapi.shutdownVm(vm._xapiRef, { hard: true })
   }
 })
 
 stop.params = {
   id: { type: 'string' },
-  force: { type: 'boolean', optional: true },
+  force: { type: ['boolean', 'number'], optional: true },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
