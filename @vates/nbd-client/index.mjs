@@ -4,7 +4,6 @@ import { connect } from 'node:tls'
 import { fromCallback, pRetry, pDelay, pTimeout, pFromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { createLogger } from '@xen-orchestra/log'
-
 import {
   INIT_PASSWD,
   NBD_CMD_READ,
@@ -21,8 +20,6 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
-import { Readable } from 'node:stream'
-
 const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -125,6 +122,8 @@ export default class NbdClient {
     if (!this.#connected) {
       return
     }
+    this.#connected = false
+    const socket = this.#serverSocket
 
     const queryId = this.#nextCommandQueryId
     this.#nextCommandQueryId++
@@ -137,12 +136,12 @@ export default class NbdClient {
     buffer.writeBigUInt64BE(0n, 16)
     buffer.writeInt32BE(0, 24)
     const promise = pFromCallback(cb => {
-      this.#serverSocket.end(buffer, 'utf8', cb)
+      socket.end(buffer, 'utf8', cb)
     })
     try {
       await pTimeout.call(promise, this.#messageTimeout)
     } catch (error) {
-      this.#serverSocket.destroy()
+      socket.destroy()
     }
     this.#serverSocket = undefined
     this.#connected = false
@@ -290,7 +289,7 @@ export default class NbdClient {
     }
   }
 
-  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+  async #readBlock(index, size) {
     // we don't want to add anything in backlog while reconnecting
     if (this.#reconnectingPromise) {
       await this.#reconnectingPromise
@@ -338,57 +337,13 @@ export default class NbdClient {
     })
   }
 
-  async *readBlocks(indexGenerator = 2 * 1024 * 1024) {
-    // default : read all blocks
-    if (typeof indexGenerator === 'number') {
-      const exportSize = Number(this.#exportSize)
-      const chunkSize = indexGenerator
-
-      indexGenerator = function* () {
-        const nbBlocks = Math.ceil(exportSize / chunkSize)
-        for (let index = 0; index < nbBlocks; index++) {
-          yield { index, size: chunkSize }
-        }
-      }
-    }
-    const readAhead = []
-    const readAheadMaxLength = this.#readAhead
-    const makeReadBlockPromise = (index, size) => {
-      const promise = pRetry(() => this.readBlock(index, size), {
-        tries: this.#readBlockRetries,
-        onRetry: async err => {
-          warn('will retry reading block ', index, err)
-          await this.reconnect()
-        },
-      })
-      // error is handled during unshift
-      promise.catch(() => {})
-      return promise
-    }
-
-    // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
-    for (const { index, size } of indexGenerator()) {
-      // stack readAheadMaxLength promises before starting to handle the results
-      if (readAhead.length === readAheadMaxLength) {
-        // any error will stop reading blocks
-        yield readAhead.shift()
-      }
-
-      readAhead.push(makeReadBlockPromise(index, size))
-    }
-    while (readAhead.length > 0) {
-      yield readAhead.shift()
-    }
-  }
-
-  stream(chunkSize) {
-    async function* iterator() {
-      for await (const chunk of this.readBlocks(chunkSize)) {
-        yield chunk
-      }
-    }
-    // create a readable stream instead of returning the iterator
-    // since iterators don't like unshift and partial reading
-    return Readable.from(iterator())
+  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    return pRetry(() => this.#readBlock(index, size), {
+      tries: this.#readBlockRetries,
+      onRetry: async err => {
+        warn('will retry reading block ', index, err)
+        await this.reconnect()
+      },
+    })
   }
 }

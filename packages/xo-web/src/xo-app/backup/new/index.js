@@ -188,6 +188,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     deltaMode: false,
     drMode: false,
     name: '',
+    nbdConcurrency: 1,
     preferNbd: false,
     remotes: [],
     schedules: {},
@@ -629,6 +630,11 @@ const New = decorate([
             preferNbd,
           })
         },
+      setNbdConcurrency({ setGlobalSettings }, nbdConcurrency) {
+        setGlobalSettings({
+          nbdConcurrency,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -637,6 +643,7 @@ const New = decorate([
       inputFullIntervalId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
+      inputNbdConcurrency: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -748,6 +755,7 @@ const New = decorate([
       concurrency,
       fullInterval,
       maxExportRate,
+      nbdConcurrency = 1,
       offlineBackup,
       offlineSnapshot,
       preferNbd,
@@ -1037,6 +1045,20 @@ const New = decorate([
                             name='preferNbd'
                             value={preferNbd}
                             onChange={effects.setPreferNbd}
+                          />
+                        </FormGroup>
+                      )}
+                      {state.isDelta && (
+                        <FormGroup>
+                          <label htmlFor={state.inputNbdConcurrency}>
+                            <strong>{_('nbdConcurrency')}</strong>
+                          </label>
+                          <Number
+                            id={state.inputNbdConcurrency}
+                            min={1}
+                            onChange={effects.setNbdConcurrency}
+                            value={nbdConcurrency}
+                            disabled={!state.inputPreferNbd}
                           />
                         </FormGroup>
                       )}

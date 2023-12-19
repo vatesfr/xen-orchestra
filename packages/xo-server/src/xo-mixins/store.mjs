@@ -53,6 +53,7 @@ export default class {
     this._db = (async () => {
       await fse.ensureDir(dir)
       await fse.access(dir, fse.constants.R_OK | fse.constants.W_OK)
+      await fse.chmod(dir, 0o700)
       return levelup(dir)
     })()
   }

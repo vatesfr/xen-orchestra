@@ -147,10 +147,13 @@ export default class Redis extends Collection {
         model = this._serialize(model) ?? model
 
         // Generate a new identifier if necessary.
-        if (model.id === undefined) {
-          model.id = generateUuid()
+        let { id } = model
+        if (id === undefined) {
+          id = generateUuid()
+        } else {
+          // identifier is not stored as value in the database, it's already part of the key
+          delete model.id
         }
-        const { id } = model
 
         const newEntry = await redis.sAdd(prefix + '_ids', id)
 
@@ -172,16 +175,7 @@ export default class Redis extends Collection {
         }
 
         const key = `${prefix}:${id}`
-        const props = {}
-        for (const name of Object.keys(model)) {
-          if (name !== 'id') {
-            const value = model[name]
-            if (value !== undefined) {
-              props[name] = String(value)
-            }
-          }
-        }
-        const promises = [redis.del(key), redis.hSet(key, props)]
+        const promises = [redis.del(key), redis.set(key, JSON.stringify(model))]
 
         // Update indexes.
         forEach(indexes, index => {
@@ -206,12 +200,13 @@ export default class Redis extends Collection {
 
     let model
     try {
-      model = await redis.hGetAll(key)
+      model = await redis.get(key).then(JSON.parse)
     } catch (error) {
       if (!error.message.startsWith('WRONGTYPE')) {
         throw error
       }
-      model = await redis.get(key).then(JSON.parse)
+
+      model = await redis.hGetAll(key)
     }
 
     return model

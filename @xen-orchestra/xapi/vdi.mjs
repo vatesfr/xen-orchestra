@@ -6,14 +6,13 @@ import { decorateClass } from '@vates/decorate-with'
 import { strict as assert } from 'node:assert'
 
 import extractOpaqueRef from './_extractOpaqueRef.mjs'
-import NbdClient from '@vates/nbd-client'
-import { createNbdRawStream, createNbdVhdStream } from 'vhd-lib/createStreamNbd.js'
+import MultiNbdClient from '@vates/nbd-client/multi.mjs'
+import { createNbdVhdStream, createNbdRawStream } from 'vhd-lib/createStreamNbd.js'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 
 const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
-
 class Vdi {
   async clone(vdiRef) {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
@@ -64,13 +63,13 @@ class Vdi {
     })
   }
 
-  async _getNbdClient(ref) {
+  async _getNbdClient(ref, { nbdConcurrency = 1 } = {}) {
     const nbdInfos = await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
       // a little bit of randomization to spread the load
       const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
       try {
-        const nbdClient = new NbdClient(nbdInfo, this._nbdOptions)
+        const nbdClient = new MultiNbdClient(nbdInfos, { ...this._nbdOptions, nbdConcurrency })
         await nbdClient.connect()
         return nbdClient
       } catch (err) {
@@ -83,7 +82,10 @@ class Vdi {
     }
   }
 
-  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format, preferNbd = this._preferNbd }) {
+  async exportContent(
+    ref,
+    { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
+  ) {
     const query = {
       format,
       vdi: ref,
@@ -97,7 +99,7 @@ class Vdi {
     let nbdClient, stream
     try {
       if (preferNbd) {
-        nbdClient = await this._getNbdClient(ref)
+        nbdClient = await this._getNbdClient(ref, { nbdConcurrency })
       }
       // the raw nbd export does not need to peek ath the vhd source
       if (nbdClient !== undefined && format === VDI_FORMAT_RAW) {

@@ -20,7 +20,10 @@ export class Remotes extends Collection {
 
   _unserialize(remote) {
     remote.benchmarks = parseProp('remote', remote, 'benchmarks')
-    remote.enabled = remote.enabled === 'true'
+
+    const { enabled } = remote
+    remote.enabled = typeof enabled === 'boolean' ? enabled : enabled === 'true'
+
     remote.error = parseProp('remote', remote, 'error', remote.error)
   }
 }

@@ -11,14 +11,22 @@
 - [REST API] `/backups` has been renamed to `/backup` (redirections are in place for compatibility)
 - [REST API] _VM backup & Replication_ jobs have been moved from `/backup/jobs/:id` to `/backup/jobs/vm/:id` (redirections are in place for compatibility)
 - [REST API] _XO config & Pool metadata Backup_ jobs are available at `/backup/jobs/metadata`
-- [REST API] _Mirror Backup_ jobs are available at `/backup/jobs/metadata`
+- [REST API] _Mirror Backup_ jobs are available at `/backup/jobs/mirror`
+- [Plugin/auth-saml] Add _Force re-authentication_ setting [Forum#67764](https://xcp-ng.org/forum/post/67764) (PR [#7232](https://github.com/vatesfr/xen-orchestra/pull/7232))
+- [HTTP] `http.useForwardedHeaders` setting can be enabled when XO is behind a reverse proxy to fetch clients IP addresses from `X-Forwarded-*` headers [Forum#67625](https://xcp-ng.org/forum/post/67625) (PR [#7233](https://github.com/vatesfr/xen-orchestra/pull/7233))
+- [Backup]Use multiple link to speedup NBD backup (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
+- [Backup] Show if disk is differential or full in incremental backups (PR [#7222](https://github.com/vatesfr/xen-orchestra/pull/7222))
 
 ### Bug fixes
+
+- [Backup] Reduce memory consumption when using NBD (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
 - [Host/Smart reboot] Automatically retries up to a minute when `HOST_STILL_BOOTING` [#7194](https://github.com/vatesfr/xen-orchestra/issues/7194) (PR [#7231](https://github.com/vatesfr/xen-orchestra/pull/7231))
+- [Plugin/transport-slack] Compatibility with other services like Mattermost or Discord [#7130](https://github.com/vatesfr/xen-orchestra/issues/7130) (PR [#7220](https://github.com/vatesfr/xen-orchestra/pull/7220))
+- [Host/Network] Fix error "PIF_IS_PHYSICAL" when trying to remove a PIF that had already been physically disconnected [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR [#7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
 - [Mirror backup] Fix backup reports not being sent (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
 
 ### Packages to release
@@ -37,8 +45,14 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xapi patch
+- @vates/nbd-client major
+- @xen-orchestra/backups patch
+- @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-server minor
+- xo-server-auth-saml minor
+- xo-server-transport-email major
+- xo-server-transport-slack patch
 - xo-web patch
 
 <!--packages-end-->
