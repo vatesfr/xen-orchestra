@@ -6,7 +6,6 @@ import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
-import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -630,6 +629,8 @@ export default {
         continue
       }
 
+      // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
+      // this.getField is used in order not to get cached data.
       const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
 
       for (const vmRef of vmRefs) {
