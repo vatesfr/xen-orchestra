@@ -48,6 +48,7 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+import RollingPoolRebootModal from './rolling-pool-reboot-modal'
 
 // ===================================================================
 
@@ -815,6 +816,32 @@ export const setPoolMaster = host =>
       host: <strong>{host.name_label}</strong>,
     }),
   }).then(() => _call('pool.setPoolMaster', { host: resolveId(host) }), noop)
+
+export const rollingPoolReboot = async pool => {
+  const poolId = resolveId(pool)
+  await confirm({
+    body: <RollingPoolRebootModal pool={poolId} />,
+    title: _('rollingPoolReboot'),
+    icon: 'pool-rolling-reboot',
+  })
+  try {
+    return await _call('pool.rollingReboot', { pool: poolId })
+  } catch (error) {
+    if (!forbiddenOperation.is(error)) {
+      throw error
+    }
+    await confirm({
+      body: (
+        <p className='text-warning'>
+          <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+        </p>
+      ),
+      title: _('rollingPoolReboot'),
+      icon: 'pool-rolling-reboot',
+    })
+    return _call('pool.rollingReboot', { pool: poolId, bypassBackupCheck: true })
+  }
+}
 
 // Host --------------------------------------------------------------
 

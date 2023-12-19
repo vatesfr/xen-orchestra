@@ -20,6 +20,7 @@
 - [Tags] Admin can create colored tags (PR [#7262](https://github.com/vatesfr/xen-orchestra/pull/7262))
 - [Tags] Add tooltips on `xo:no-bak` and `xo:notify-on-snapshot` tags (PR [#7335](https://github.com/vatesfr/xen-orchestra/pull/7335))
 - [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792) (PR [#7322](https://github.com/vatesfr/xen-orchestra/pull/7322))
+- [Pool/Advanced] Ability to do a `Rolling Pool Reboot` (Enterprise plans)
 
 ### Bug fixes
 
