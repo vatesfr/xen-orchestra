@@ -1,6 +1,6 @@
 'use strict'
+const { finished, Readable } = require('node:stream')
 const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
-const { Readable } = require('node:stream')
 const { unpackHeader } = require('./Vhd/_utils')
 const {
   FOOTER_SIZE,
@@ -107,17 +107,16 @@ exports.createNbdVhdStream = async function createVhdStream(
     }
   }
 
-  const interval = setInterval(throttleEmitProgress, maxDurationBetweenProgressEmit)
-  function* trackAndYield(buffer) {
+  function trackAndGet(buffer) {
     lengthRead += buffer.length
     throttleEmitProgress()
-    yield buffer
+    return buffer
   }
 
   async function* iterator() {
-    yield* trackAndYield(bufFooter)
-    yield* trackAndYield(rawHeader)
-    yield* trackAndYield(bat)
+    yield trackAndGet(bufFooter)
+    yield trackAndGet(rawHeader)
+    yield trackAndGet(bat)
 
     let precBlocOffset = FOOTER_SIZE + HEADER_SIZE + batSize
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
@@ -127,7 +126,7 @@ exports.createNbdVhdStream = async function createVhdStream(
         await skipStrict(sourceStream, parentLocatorOffset - precBlocOffset)
         const data = await readChunkStrict(sourceStream, space)
         precBlocOffset = parentLocatorOffset + space
-        yield* trackAndYield(data)
+        yield trackAndGet(data)
       }
     }
 
@@ -142,22 +141,20 @@ exports.createNbdVhdStream = async function createVhdStream(
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
     for await (const block of nbdIterator) {
-      yield* trackAndYield(bitmap) // don't forget the bitmap before the block
-      yield* trackAndYield(block)
+      yield trackAndGet(bitmap) // don't forget the bitmap before the block
+      yield trackAndGet(block)
     }
-    yield* trackAndYield(bufFooter)
+    yield trackAndGet(bufFooter)
   }
 
   const stream = Readable.from(iterator(), { objectMode: false })
   stream.length = totalLength
   stream._nbd = true
-  stream.on('error', () => {
+  finished(stream, () => {
     clearInterval(interval)
     nbdClient.disconnect()
   })
-  stream.on('end', () => {
-    clearInterval(interval)
-    nbdClient.disconnect()
-  })
+  const interval = setInterval(throttleEmitProgress, maxDurationBetweenProgressEmit)
+
   return stream
 }
