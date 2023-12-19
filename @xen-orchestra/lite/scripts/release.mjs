@@ -54,7 +54,7 @@ const usage = () => {
     `Usage: ./release.mjs
     [--help|-h - show this message]
 
-    [--version X.Y.Z - XO Lite version - default: package.json version]
+    [--version X.Y.Z - XO Lite version - default: package.json version (${version})]
     [--dist /path/to/folder - build destination folder - default: dist]
 
     [
