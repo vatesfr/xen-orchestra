@@ -3,6 +3,7 @@ import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
+import { finished } from 'node:stream'
 import { strict as assert } from 'node:assert'
 
 import extractOpaqueRef from './_extractOpaqueRef.mjs'
@@ -106,12 +107,16 @@ class Vdi {
         stream = createNbdRawStream(nbdClient)
       } else {
         // raw export without nbd or vhd exports needs a resource stream
+        const vdiName = await this.getField('VDI', ref, 'name_label')
         stream = await this.getResource(cancelToken, '/export_raw_vdi/', {
           query,
-          task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
+          task: await this.task_create(`Exporting content of VDI ${vdiName}`),
         })
         if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
+          const taskRef = await this.task_create(`Exporting content of VDI ${vdiName} using NBD`)
           stream = await createNbdVhdStream(nbdClient, stream)
+          stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
+          finished(stream, () => this.task_destroy(taskRef))
         }
       }
       return stream

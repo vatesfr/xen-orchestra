@@ -1,6 +1,6 @@
 'use strict'
+const { finished, Readable } = require('node:stream')
 const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
-const { Readable } = require('node:stream')
 const { unpackHeader } = require('./Vhd/_utils')
 const {
   FOOTER_SIZE,
@@ -13,6 +13,9 @@ const {
 } = require('./_constants')
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
+
+const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
+const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 1
 
 exports.createNbdRawStream = function createRawStream(nbdClient) {
   const exportSize = Number(nbdClient.exportSize)
@@ -31,7 +34,14 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
   return stream
 }
 
-exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStream) {
+exports.createNbdVhdStream = async function createVhdStream(
+  nbdClient,
+  sourceStream,
+  {
+    maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
+    minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
+  } = {}
+) {
   const bufFooter = await readChunkStrict(sourceStream, FOOTER_SIZE)
 
   const header = unpackHeader(await readChunkStrict(sourceStream, HEADER_SIZE))
@@ -78,10 +88,35 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     }
   }
 
+  const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+
+  let lengthRead = 0
+  let lastUpdate = 0
+  let lastLengthRead = 0
+
+  function throttleEmitProgress() {
+    const now = Date.now()
+
+    if (
+      lengthRead - lastLengthRead > (minTresholdPercentBetweenProgressEmit / 100) * totalLength ||
+      (now - lastUpdate > maxDurationBetweenProgressEmit && lengthRead !== lastLengthRead)
+    ) {
+      stream.emit('progress', lengthRead / totalLength)
+      lastUpdate = now
+      lastLengthRead = lengthRead
+    }
+  }
+
+  function trackAndGet(buffer) {
+    lengthRead += buffer.length
+    throttleEmitProgress()
+    return buffer
+  }
+
   async function* iterator() {
-    yield bufFooter
-    yield rawHeader
-    yield bat
+    yield trackAndGet(bufFooter)
+    yield trackAndGet(rawHeader)
+    yield trackAndGet(bat)
 
     let precBlocOffset = FOOTER_SIZE + HEADER_SIZE + batSize
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
@@ -91,7 +126,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
         await skipStrict(sourceStream, parentLocatorOffset - precBlocOffset)
         const data = await readChunkStrict(sourceStream, space)
         precBlocOffset = parentLocatorOffset + space
-        yield data
+        yield trackAndGet(data)
       }
     }
 
@@ -106,16 +141,20 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
     for await (const block of nbdIterator) {
-      yield bitmap // don't forget the bitmap before the block
-      yield block
+      yield trackAndGet(bitmap) // don't forget the bitmap before the block
+      yield trackAndGet(block)
     }
-    yield bufFooter
+    yield trackAndGet(bufFooter)
   }
 
   const stream = Readable.from(iterator(), { objectMode: false })
-  stream.length = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+  stream.length = totalLength
   stream._nbd = true
-  stream.on('error', () => nbdClient.disconnect())
-  stream.on('end', () => nbdClient.disconnect())
+  finished(stream, () => {
+    clearInterval(interval)
+    nbdClient.disconnect()
+  })
+  const interval = setInterval(throttleEmitProgress, maxDurationBetweenProgressEmit)
+
   return stream
 }
