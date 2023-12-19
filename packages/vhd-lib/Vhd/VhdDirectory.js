@@ -317,4 +317,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     })
     this.#compressor = getCompressor(chunkFilters[0])
   }
+
+  async _checkBlock(blockId){
+    const path = this._getFullBlockPath(blockId)
+    return this._handler.exists(path)
+  }
 }

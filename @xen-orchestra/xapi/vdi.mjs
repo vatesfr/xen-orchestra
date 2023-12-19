@@ -1,6 +1,8 @@
 import CancelToken from 'promise-toolbox/CancelToken'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
+import net from 'node:net'
+
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { strict as assert } from 'node:assert'
@@ -13,7 +15,46 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
+async function getTcpStream(host, xapi, vhdUuid) {
 
+  console.log({ vhdUuid })
+  // Host.call_plugin avec plugin=vdi-tools fn=expoty_vdi et argument uuid=<vdi-uuid> hostname=<hostname or ip> port=<port>
+  const XO_ADDRESS = '10.200.200.32'
+
+  // create tcp server 
+  const server = net.createServer()
+  await new Promise(resolve => {
+    server.listen(0, () => {
+      resolve()
+    })
+  })
+  try {
+    const promise = new Promise((resolve, reject) => {
+      server.on('connection', clientSocket => {
+        console.log('client connected')
+        resolve(clientSocket)
+        clientSocket.on('end', () => {
+          console.log('client disconnected');
+          server.close()
+
+        });
+        clientSocket.on('error', err => {
+          console.log('client error', err)
+          server.close()
+        })
+      });
+    })
+    xapi.call('host.call_plugin', host.$ref, 'vdi-tools', 'export_vdi', { uuid: vhdUuid, hostname: XO_ADDRESS, port: '' + server.address().port })
+      .then(res => console.log({ res }))
+      .catch(err => console.error(err))
+    const stream = await promise
+    return stream
+
+  } catch (error) {
+    console.error(error)
+    console.log(error.call.params)
+  }
+}
 class Vdi {
   async clone(vdiRef) {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
@@ -64,6 +105,8 @@ class Vdi {
     })
   }
 
+
+
   async _getNbdClient(ref) {
     const nbdInfos = await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
@@ -93,6 +136,19 @@ class Vdi {
       assert.equal(format, 'vhd')
 
       query.base = baseRef
+    } else {
+      // for now the direct export plugin does not support differential disks
+      try{
+        const vdi = this.getObject(ref)
+        const sr = this.getObject(vdi.SR)
+        const pbds = sr.PBDs.map(pbdUuid => this.getObject(pbdUuid))
+        const hosts = pbds.map(pbd => this.getObject(pbd.host))
+        return getTcpStream(hosts[0], this, vdi.uuid)
+
+      }catch(err){
+        // @todo : fall back to xapi export if plugin is not installed 
+        throw err
+      }
     }
     let nbdClient, stream
     try {
