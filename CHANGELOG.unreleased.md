@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Network/PIF] Display and ability to edit IPv6 field [#5400](https://github.com/vatesfr/xen-orchestra/issues/5400) (PR [#7218](https://github.com/vatesfr/xen-orchestra/pull/7218))
+- [VM] Trying to increase the memory of a running VM will now propose the option to automatically restart it and increasing its memory (PR [#7244](https://github.com/vatesfr/xen-orchestra/pull/7244))
 
 ### Bug fixes
 
