@@ -3,6 +3,7 @@ import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
+import { finished } from 'node:stream'
 import { strict as assert } from 'node:assert'
 
 import extractOpaqueRef from './_extractOpaqueRef.mjs'
@@ -115,8 +116,7 @@ class Vdi {
           const taskRef = await this.task_create(`Exporting content of VDI ${vdiName} using NBD`)
           stream = await createNbdVhdStream(nbdClient, stream)
           stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
-          stream.on('end', () => this.task_destroy(taskRef))
-          stream.on('error', () => this.task_destroy(taskRef))
+          finished(stream, () => this.task_destroy(taskRef))
         }
       }
       return stream
