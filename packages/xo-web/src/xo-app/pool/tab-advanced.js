@@ -267,35 +267,33 @@ export default class TabAdvanced extends Component {
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
-    const isEnterprisePlan = getXoaPlan() === ENTERPRISE
+    const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
 
     return (
       <div>
         <Container>
-          <div>
-            <Row>
-              <Col className='text-xs-right'>
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle='warning'
+                handler={rollingPoolReboot}
+                handlerParam={pool}
+                icon='pool-rolling-reboot'
+                labelId='rollingPoolReboot'
+                disabled={!isEnterprisePlan}
+                tooltip={!isEnterprisePlan ? _('onlyAvailableToEnterprise') : undefined}
+              />
+              {this._isNetboxPluginLoaded() && (
                 <TabButton
-                  btnStyle='warning'
-                  handler={rollingPoolReboot}
-                  handlerParam={pool}
-                  icon='pool-rolling-reboot'
-                  labelId='rollingPoolReboot'
-                  disabled={!isEnterprisePlan}
-                  tooltip={!isEnterprisePlan ? _('onlyAvailableToEnterprise') : undefined}
+                  btnStyle='primary'
+                  handler={synchronizeNetbox}
+                  handlerParam={[pool]}
+                  icon='refresh'
+                  labelId='syncNetbox'
                 />
-                {this._isNetboxPluginLoaded() && (
-                  <TabButton
-                    btnStyle='primary'
-                    handler={synchronizeNetbox}
-                    handlerParam={[pool]}
-                    icon='refresh'
-                    labelId='syncNetbox'
-                  />
-                )}
-              </Col>
-            </Row>
-          </div>
+              )}
+            </Col>
+          </Row>
           <Row>
             <Col>
               <h3>{_('xenSettingsLabel')}</h3>
