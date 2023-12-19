@@ -19,7 +19,7 @@
 
 - [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
 - [Host/Smart reboot] Automatically retries up to a minute when `HOST_STILL_BOOTING` [#7194](https://github.com/vatesfr/xen-orchestra/issues/7194) (PR [#7231](https://github.com/vatesfr/xen-orchestra/pull/7231))
-- [Mirror backup] Preventing `reportWhen` value from occasionally resetting to *Failure*
+- [Mirror backup] Fix backup reports not being sent (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
 
 ### Packages to release
 
