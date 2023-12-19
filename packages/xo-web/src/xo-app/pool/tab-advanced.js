@@ -281,7 +281,7 @@ export default class TabAdvanced extends Component {
                   handlerParam={pool}
                   icon='pool-rolling-reboot'
                   labelId='rollingPoolReboot'
-                  // disabled={!isEnterprisePlan}
+                  disabled={!isEnterprisePlan}
                   tooltip={!isEnterprisePlan ? _('onlyAvailableToEnterprise') : undefined}
                 />
                 {this._isNetboxPluginLoaded() && (
