@@ -534,7 +534,7 @@ export default {
     }
 
     // Remember on which hosts the running VMs are
-    const vmsByHost = mapValues(
+    const vmRefsByHost = mapValues(
       groupBy(
         filter(this.objects.all, {
           $type: 'VM',
@@ -551,7 +551,7 @@ export default {
           return hostId
         }
       ),
-      vms => vms.map(vm => vm.$id)
+      vms => vms.map(vm => vm.$ref)
     )
 
     // Put master in first position to restart it first
@@ -623,20 +623,23 @@ export default {
         continue
       }
 
-      const vmIds = vmsByHost[hostId]
+      const vmRefs = vmRefsByHost[hostId]
 
-      if (vmIds === undefined) {
+      if (vmRefs === undefined) {
         continue
       }
 
-      const residentVms = host.$resident_VMs.map(vm => vm.uuid)
+      // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
+      // this.getField is used in order not to get cached data.
+      const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
 
-      for (const vmId of vmIds) {
-        if (residentVms.includes(vmId)) {
+      for (const vmRef of vmRefs) {
+        if (residentVmRefs.includes(vmRef)) {
           continue
         }
 
         try {
+          const vmId = await this.getField('VM', vmRef, 'uuid')
           await this.migrateVm(vmId, this, hostId)
         } catch (err) {
           log.error(err)
