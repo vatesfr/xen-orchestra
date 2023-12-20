@@ -81,14 +81,14 @@ exports.createNbdVhdStream = async function createVhdStream(
     const entry = streamBat.readUInt32BE(i * 4)
     if (entry !== BLOCK_UNUSED) {
       bat.writeUInt32BE(offsetSector, i * 4)
-      offsetSector += blockSizeInSectors
       entries.push(i)
+      offsetSector += blockSizeInSectors
     } else {
       bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
     }
   }
 
-  const totalLength = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+  const totalLength = (offsetSector + 1) /* end footer */ * SECTOR_SIZE
 
   let lengthRead = 0
   let lastUpdate = 0
