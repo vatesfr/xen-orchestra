@@ -17,6 +17,7 @@ module.exports = {
     "@vue/eslint-config-prettier",
   ],
   plugins: ["@limegrass/import-alias"],
+  ignorePatterns: ["scripts/*.mjs"],
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-explicit-any": "off",
