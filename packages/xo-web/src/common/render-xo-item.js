@@ -641,34 +641,39 @@ const xoItemToRender = {
     <span>{group.name_label.startsWith('Group of ') ? group.name_label.slice(9) : group.name_label}</span>
   ),
 
-  backup: backup => (
-    <span>
-      <span className='tag tag-info' style={{ textTransform: 'capitalize' }}>
-        {backup.mode === 'delta' ? _('backupIsIncremental') : backup.mode}
-      </span>{' '}
-      <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
-      {backup.differencingVhds > 0 && (
-        <span className='tag tag-info'>
-          {backup.differencingVhds} {_('backupIsDifferencing')}{' '}
-        </span>
-      )}
-      {backup.dynamicVhds > 0 && (
-        <span className='tag tag-info'>
-          {backup.dynamicVhds} {_('backupisKey')}{' '}
-        </span>
-      )}
-      {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
-      <FormattedDate
-        value={new Date(backup.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    </span>
-  ),
+  backup: backup => {
+    const nbDifferencings = backup.differencingVhds ?? 0
+    const nbKeys = backup.dynamicVhds ?? 0
+    const nbDisks = backup.disks.length
+    return (
+      <span>
+        <span className='tag tag-info' style={{ textTransform: 'capitalize' }}>
+          {backup.mode === 'delta' ? _('backupIsIncremental') : backup.mode}
+        </span>{' '}
+        <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
+        {nbDifferencings > 0 && (
+          <span className='tag tag-info'>
+            {nbDifferencings < nbDisks && `${nbDifferencings}/${nbDisks}`} {_('backupIsDifferencing')}{' '}
+          </span>
+        )}
+        {nbKeys > 0 && (
+          <span className='tag tag-info'>
+            {nbKeys < nbDisks && `${nbKeys}/${nbDisks}`} {_('backupisKey')}{' '}
+          </span>
+        )}
+        {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
+        <FormattedDate
+          value={new Date(backup.timestamp)}
+          month='long'
+          day='numeric'
+          year='numeric'
+          hour='2-digit'
+          minute='2-digit'
+          second='2-digit'
+        />
+      </span>
+    )
+  },
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
