@@ -199,6 +199,11 @@ curl \
   > myDisk.vhd
 ```
 
+The following optional query parameters are supported for VDI export:
+
+- `preferNbd`: will use NBD for export if available
+- `nbdConcurrency=<integer>`: set the number of concurrent stream per disk if NBD is enabled, default 1
+
 ## VM Import
 
 A VM can be imported by posting to `/rest/v0/pools/:id/vms`.

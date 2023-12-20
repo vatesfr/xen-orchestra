@@ -8,6 +8,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 - [SR] show an icon on SR during VDI coalescing (with XCP-ng 8.3+) (PR [#7241](https://github.com/vatesfr/xen-orchestra/pull/7241))
 
+- [VDI/Export] Expose NBD settings in the XO and REST APIs api (PR [#7251](https://github.com/vatesfr/xen-orchestra/pull/7251))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
