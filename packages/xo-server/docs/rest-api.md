@@ -210,6 +210,11 @@ curl \
 
 A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
+The following optional query parameters are supported:
+
+- `preferNbd`: will use NBD for export if available
+- `nbdConcurrency=<integer>`: set the number of concurrent stream per disk if NBD is enabled, default 1
+
 ```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \

@@ -470,7 +470,9 @@ export default class RestApi {
     api.get(
       '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
       wrap(async (req, res) => {
-        const stream = await req.xapiObject.$exportContent({ format: req.params.format })
+        const preferNbd = Object.hasOwn(req.query, 'preferNbd')
+        const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
+        const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
 
         // stream can be an HTTP response, in this case, extract interesting data
         const { headers = {}, length, statusCode = 200, statusMessage = 'OK' } = stream
