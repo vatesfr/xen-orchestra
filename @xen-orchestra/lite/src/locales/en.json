@@ -112,6 +112,7 @@
   "news": "News",
   "news-name": "{name} news",
   "no-alarm-triggered": "No alarm triggered",
+  "no-result": "No result",
   "no-selected-vm-can-be-exported": "No selected VM can be exported",
   "no-selected-vm-can-be-migrated": "No selected VM can be migrated",
   "no-tasks": "No tasks",

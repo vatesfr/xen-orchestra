@@ -1,33 +1,39 @@
 <template>
   <UiCardTitle
-    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('hosts')"
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :right="$t('top-#', { n: N_ITEMS })"
   />
   <NoDataError v-if="hasError" />
-  <UsageBar v-else :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
+  <UiCardSpinner v-else-if="isLoading" />
+  <NoResult v-else-if="isStatEmpty" />
+  <UsageBar v-else :data="data" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, type ComputedRef } from "vue";
-import { getAvgCpuUsage } from "@/libs/utils";
-import { IK_HOST_STATS } from "@/types/injection-keys";
-import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
+import NoResult from "@/components/NoResult.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { UiCardTitleLevel } from "@/types/enums";
 import UsageBar from "@/components/UsageBar.vue";
+import { useStatStatus } from "@/composables/stat-status.composable";
+import { getAvgCpuUsage } from "@/libs/utils";
 import { useHostCollection } from "@/stores/xen-api/host.store";
+import { UiCardTitleLevel } from "@/types/enums";
+import { IK_HOST_STATS } from "@/types/injection-keys";
+import type { StatData } from "@/types/stat";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { computed, inject } from "vue";
 
-const { hasError } = useHostCollection();
+const { hasError, isFetching } = useHostCollection();
 
 const stats = inject(
   IK_HOST_STATS,
   computed(() => [])
 );
 
-const data = computed<{ id: string; label: string; value: number }[]>(() => {
-  const result: { id: string; label: string; value: number }[] = [];
+const data = computed<StatData[]>(() => {
+  const result: StatData[] = [];
 
   stats.value.forEach((stat) => {
     if (stat.stats == null) {
@@ -50,9 +56,5 @@ const data = computed<{ id: string; label: string; value: number }[]>(() => {
   return result;
 });
 
-const statFetched: ComputedRef<boolean> = computed(() =>
-  statFetched.value
-    ? true
-    : stats.value.length > 0 && stats.value.length === data.value.length
-);
+const { isLoading, isStatEmpty } = useStatStatus(stats, data, isFetching);
 </script>
