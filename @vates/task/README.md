@@ -139,7 +139,7 @@ const onProgress = makeOnProgress({
   onTaskUpdate(taskLog) {},
 })
 
-Task.run({ data: { name: 'my task' }, onProgress }, asyncFn)
+Task.run({ properties: { name: 'my task' }, onProgress }, asyncFn)
 ```
 
 It can also be fed event logs directly:
