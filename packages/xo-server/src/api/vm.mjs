@@ -1042,38 +1042,29 @@ export const stop = defer(async function ($defer, { vm, force, forceShutdownDela
     )
   }
 
-  // Clean shutdown
-  let timedOut = false
-  if (!force) {
-    const shutdownPromise = xapi.shutdownVm(vm._xapiRef).catch(error => {
-      const { code } = error
-      if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
-        throw invalidParameters('clean shutdown requires PV drivers')
-      }
-      throw error
-    })
-
-    if (forceShutdownDelay !== undefined) {
-      // forceShutdownDelay = 0 allows to hard shutdown only if clean shutdown fails
-      await timeout.call(shutdownPromise, forceShutdownDelay).catch(() => {
-        // timeout over, or clean shutdown failed
-        timedOut = true
-      })
-    } else {
-      await shutdownPromise
-    }
+  // Hard shutdown
+  if (force) {
+    return xapi.shutdownVm(vm._xapiRef, { hard: true })
   }
 
-  // Hard shutdown
-  if (force === true || timedOut) {
-    return xapi.shutdownVm(vm._xapiRef, { hard: true })
+  // Clean shutdown
+  try {
+    await timeout.call(xapi.shutdownVm(vm._xapiRef), forceShutdownDelay, () =>
+      xapi.shutdownVm(vm._xapiRef, { hard: true })
+    )
+  } catch (error) {
+    const { code } = error
+    if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
+      throw invalidParameters('clean shutdown requires PV drivers')
+    }
+    throw error
   }
 })
 
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
-  forceShutdownDelay: { type: 'number', optional: true },
+  forceShutdownDelay: { type: 'number', default: 0 },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
