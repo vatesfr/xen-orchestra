@@ -143,7 +143,7 @@ export default class Jobs {
       job = await this.getJob(id)
       patch(job, props)
     }
-    return /* await */ this._jobs.update(job)
+    await this._jobs.update(job)
   }
 
   registerJobExecutor(type, executor) {
