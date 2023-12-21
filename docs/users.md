@@ -255,7 +255,7 @@ To create a new set of resources to delegate, go to the "Self Service" section i
 Only an admin can create a set of resources
 :::
 
-To allow people to create VMs as they want, we need to give them a _part_ of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you first need to decide which resources will be used.
+To allow people to create VMs as they want, we need to give them a _part_ of your XCP-ng/XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you first need to decide which resources will be used.
 
 In this example below, we'll create a set called **"sandbox"** with:
 
