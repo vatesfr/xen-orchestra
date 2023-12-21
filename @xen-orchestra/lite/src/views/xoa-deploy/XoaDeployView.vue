@@ -2,56 +2,53 @@
   <TitleBar :icon="faDownload">{{ $t("deploy-xoa") }}</TitleBar>
   <div v-if="deploying" class="status">
     <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
-    <div>
-      <h2 v-if="error !== undefined">{{ $t("xoa-deploy-failed") }}</h2>
-      <h2 v-else-if="url !== undefined">{{ $t("xoa-deploy-successful") }}</h2>
-      <h2 v-else>{{ $t("xoa-deploy") }}</h2>
 
-      <UiIcon
-        v-if="error !== undefined"
-        :icon="faExclamationCircle"
-        class="danger"
-      />
-      <UiIcon
-        v-else-if="url !== undefined"
-        :icon="faCircleCheck"
-        class="success"
-      />
-      <!-- TODO: add progress bar -->
-      <p v-else>{{ status }}</p>
-    </div>
+    <!-- Error -->
+    <template v-if="error !== undefined">
+      <div>
+        <h2>{{ $t("xoa-deploy-failed") }}</h2>
+        <UiIcon :icon="faExclamationCircle" class="danger" />
+      </div>
+      <div class="error">
+        <strong>{{ $t("check-errors") }}</strong>
+        <UiRaw>{{ error }}</UiRaw>
+      </div>
+      <UiButton :icon="faDownload" @click="resetValues()">
+        {{ $t("xoa-deploy-retry") }}
+      </UiButton>
+    </template>
 
-    <div v-if="error !== undefined" class="error">
-      <strong>{{ $t("check-errors") }}</strong>
-      <UiRaw>{{ error }}</UiRaw>
-    </div>
-    <p v-else-if="url === undefined" class="warning">
-      <UiIcon :icon="faExclamationCircle" /> {{ $t("keep-page-open") }}
-    </p>
+    <!-- Success -->
+    <template v-else-if="url !== undefined">
+      <div>
+        <h2>{{ $t("xoa-deploy-successful") }}</h2>
+        <UiIcon :icon="faCircleCheck" class="success" />
+      </div>
+      <UiButton :icon="faArrowUpRightFromSquare" @click="openXoa">
+        {{ $t("access-xoa") }}
+      </UiButton>
+    </template>
 
-    <UiButton
-      v-if="error !== undefined"
-      :icon="faDownload"
-      @click="resetValues()"
-    >
-      {{ $t("xoa-deploy-retry") }}
-    </UiButton>
-    <UiButton
-      v-else-if="url !== undefined"
-      :icon="faArrowUpRightFromSquare"
-      @click="openXoa"
-    >
-      {{ $t("access-xoa") }}
-    </UiButton>
-    <UiButton
-      v-else
-      @click="cancel()"
-      :disabled="vmRef === undefined"
-      color="error"
-      outlined
-    >
-      {{ $t("cancel") }}
-    </UiButton>
+    <!-- Deploying -->
+    <template v-else>
+      <div>
+        <h2>{{ $t("xoa-deploy") }}</h2>
+        <!-- TODO: add progress bar -->
+        <p>{{ status }}</p>
+      </div>
+      <p class="warning">
+        <UiIcon :icon="faExclamationCircle" />
+        {{ $t("keep-page-open") }}
+      </p>
+      <UiButton
+        :disabled="vmRef === undefined"
+        color="error"
+        outlined
+        @click="cancel()"
+      >
+        {{ $t("cancel") }}
+      </UiButton>
+    </template>
   </div>
 
   <div v-else-if="isMobile" class="not-available">
@@ -65,7 +62,7 @@
           <div class="row">
             <FormInputWrapper
               :label="$t('storage')"
-              :help="$t('gb-required', { n: 20 })"
+              :help="$t('n-gb-required', { n: REQUIRED_GB })"
             >
               <FormSelect v-model="srId" required>
                 <option disabled value="">
@@ -76,19 +73,27 @@
                   :value="sr.uuid"
                   :key="sr.uuid"
                   :class="
-                    sr.physical_size - sr.physical_utilisation < 20 * 1024 ** 3
+                    sr.physical_size - sr.physical_utilisation <
+                    REQUIRED_GB * 1024 ** 3
                       ? 'warning'
                       : 'success'
                   "
                 >
                   {{ sr.name_label }} -
                   {{
-                    $t("gb-left", {
+                    $t("n-gb-left", {
                       n: Math.round(
                         (sr.physical_size - sr.physical_utilisation) / 1024 ** 3
                       ),
                     })
                   }}
+                  <span
+                    v-if="
+                      sr.physical_size - sr.physical_utilisation <
+                      REQUIRED_GB * 1024 ** 3
+                    "
+                    >⚠️</span
+                  >
                 </option>
               </FormSelect>
             </FormInputWrapper>
@@ -132,7 +137,6 @@
             >
               <FormInput
                 v-model="ip"
-                :required="requireIpConf"
                 :disabled="!requireIpConf"
                 placeholder="xxx.xxx.xxx.xxx"
               />
@@ -143,7 +147,6 @@
             >
               <FormInput
                 v-model="netmask"
-                :required="requireIpConf"
                 :disabled="!requireIpConf"
                 placeholder="255.255.255.0"
               />
@@ -156,7 +159,6 @@
             >
               <FormInput
                 v-model="dns"
-                :required="requireIpConf"
                 :disabled="!requireIpConf"
                 placeholder="8.8.8.8"
               />
@@ -167,7 +169,6 @@
             >
               <FormInput
                 v-model="gateway"
-                :required="requireIpConf"
                 :disabled="!requireIpConf"
                 placeholder="xxx.xxx.xxx.xxx"
               />
@@ -179,7 +180,7 @@
           <div class="row">
             <FormInputWrapper
               :label="$t('admin-login')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput
                 v-model="xoaUser"
@@ -191,7 +192,7 @@
           <div class="row">
             <FormInputWrapper
               :label="$t('admin-password')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput
                 type="password"
@@ -202,7 +203,7 @@
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('admin-password-confirm')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput
                 type="password"
@@ -226,18 +227,12 @@
             </FormInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper
-              :label="$t('ssh-login')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
-            >
+            <FormInputWrapper :label="$t('ssh-login')">
               <FormInput value="xoa" placeholder="xoa" disabled />
             </FormInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper
-              :label="$t('ssh-password')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
-            >
+            <FormInputWrapper :label="$t('ssh-password')">
               <FormInput
                 type="password"
                 v-model="sshPwd"
@@ -246,10 +241,7 @@
                 :required="enableSshAccount"
               />
             </FormInputWrapper>
-            <FormInputWrapper
-              :label="$t('ssh-password-confirm')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
-            >
+            <FormInputWrapper :label="$t('ssh-password-confirm')">
               <FormInput
                 type="password"
                 v-model="sshPwdConfirm"
@@ -262,7 +254,7 @@
         </FormSection>
 
         <UiButtonGroup>
-          <UiButton outlined @click="router.go(-1)">
+          <UiButton outlined @click="router.back()">
             {{ $t("cancel") }}
           </UiButton>
           <UiButton type="submit">
@@ -304,13 +296,15 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiRaw from "@/components/ui/UiRaw.vue";
 
+const REQUIRED_GB = 20;
+
 const { t } = useI18n();
 const router = useRouter();
 
 usePageTitleStore().setTitle(() => t("deploy-xoa"));
 
 const invalidField = (message: string) =>
-  useModal(() => import("./InvalidFieldModal.vue"), {
+  useModal(() => import("@/components/modals/InvalidFieldModal.vue"), {
     message,
   });
 
