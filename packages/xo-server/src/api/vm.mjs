@@ -1400,7 +1400,7 @@ export async function importMultipleFromEsxi({
       await asyncEach(
         vms,
         async vm => {
-          await Task.run({ data: { name: `importing vm ${vm}` } }, async () => {
+          await Task.run({ properties: { name: `importing vm ${vm}` } }, async () => {
             try {
               const vmUuid = await this.migrationfromEsxi({
                 host,
