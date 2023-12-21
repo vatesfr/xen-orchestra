@@ -17,6 +17,11 @@ import { connectStore, formatSizeShort, getIscsiPaths } from 'utils'
 import styles from './index.css'
 
 @connectStore({
+  coalesceTask: createSelector(
+    (_, props) => props.item,
+    createGetObjectsOfType('task').groupBy('applies_to'),
+    (sr, tasks) => tasks[sr.uuid]?.[0]
+  ),
   container: createGetObject((_, props) => props.item.$container),
   isHa: createSelector(
     (_, props) => props.item,
@@ -102,7 +107,7 @@ export default class SrItem extends Component {
   }
 
   render() {
-    const { container, expandAll, isDefaultSr, isHa, isShared, item: sr, selected } = this.props
+    const { coalesceTask, container, expandAll, isDefaultSr, isHa, isShared, item: sr, selected } = this.props
 
     return (
       <div className={styles.item}>
@@ -121,6 +126,11 @@ export default class SrItem extends Component {
                 {isHa && (
                   <Tooltip content={_('srHaTooltip')}>
                     <span className='tag tag-pill tag-info ml-1'>{_('ha')}</span>
+                  </Tooltip>
+                )}
+                {coalesceTask !== undefined && (
+                  <Tooltip content={`${coalesceTask.name_label} ${Math.round(coalesceTask.progress * 100)}%`}>
+                    <Icon icon='coalesce' fixedWidth />
                   </Tooltip>
                 )}
                 {sr.inMaintenanceMode && <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>}

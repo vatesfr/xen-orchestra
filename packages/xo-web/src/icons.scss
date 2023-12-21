@@ -136,6 +136,10 @@
     @extend .fa;
     @extend .fa-caret-up;
   }
+  &-coalesce {
+    @extend .fa;
+    @extend .fa-cog;
+  }
   &-loading {
     @extend .fa;
     @extend .fa-spinner;
