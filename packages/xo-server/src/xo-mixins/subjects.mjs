@@ -39,7 +39,7 @@ export default class {
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(groups.map(group => groupsDb.update(group))),
+        groups => groupsDb.update(groups),
         ['users']
       )
       app.addConfigManager(
