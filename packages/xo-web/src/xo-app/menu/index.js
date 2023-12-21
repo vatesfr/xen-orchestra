@@ -111,9 +111,19 @@ export default class Menu extends Component {
     () => this.state.proxyStates,
     proxyStates => some(proxyStates, state => state.endsWith('-upgrade-needed'))
   )
-  _areProxiesErrors = createSelector(
+  _getNProxiesErrors = createSelector(
     () => this.state.proxyStates,
-    proxyStates => some(proxyStates, state => state === 'error')
+    (proxyStates) => {
+      let count = 0
+
+      forEach(proxyStates, proxyState => {
+        if (proxyState === 'error') {
+          count++
+        }
+      })
+
+      return count
+    }
   )
   _checkPermissions = createSelector(
     () => this.props.isAdmin,
@@ -216,6 +226,7 @@ export default class Menu extends Component {
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
+    const nProxiesErrors = this._getNProxiesErrors()
 
     const missingPatchesWarning = this._hasMissingPatches() ? (
       <Tooltip content={_('homeMissingPatches')}>
@@ -471,11 +482,9 @@ export default class Menu extends Component {
                 ]}
               />
             </Tooltip>
-          ) : this._areProxiesErrors() ? (
-            <Tooltip content={_('someProxiesHaveErrors')}>
-              <span className='text-warning'>
-                <Icon icon='alarm' />
-              </span>
+          ) : nProxiesErrors > 0 ? (
+            <Tooltip content={_('someProxiesHaveErrors', { n: nProxiesErrors })}>
+              <span className='tag tag-pill tag-warning'>{nProxiesErrors}</span>
             </Tooltip>
           ) : null,
         ],
