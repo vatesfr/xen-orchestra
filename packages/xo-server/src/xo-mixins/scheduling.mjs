@@ -7,23 +7,16 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import Collection from '../collection/redis.mjs'
 import patch from '../patch.mjs'
 
-const normalize = schedule => {
-  const { enabled } = schedule
-  if (typeof enabled !== 'boolean') {
-    schedule.enabled = enabled === 'true'
-  }
-  if ('job' in schedule) {
-    schedule.jobId = schedule.job
-    delete schedule.job
-  }
-  return schedule
-}
-
 class Schedules extends Collection {
-  async get(properties) {
-    const schedules = await super.get(properties)
-    schedules.forEach(normalize)
-    return schedules
+  _unserialize(schedule) {
+    const { enabled } = schedule
+    if (typeof enabled !== 'boolean') {
+      schedule.enabled = enabled === 'true'
+    }
+    if ('job' in schedule) {
+      schedule.jobId = schedule.job
+      delete schedule.job
+    }
   }
 }
 
@@ -55,7 +48,7 @@ export default class Scheduling {
         () => db.get(),
         schedules =>
           asyncMapSettled(schedules, async schedule => {
-            await db.update(normalize(schedule))
+            await db.update(schedule)
             this._start(schedule.id)
           }),
         ['jobs']
