@@ -14,7 +14,7 @@ It means you don't have a default SR set on the pool you are importing XOA on. T
 
 ## Unreachable after boot
 
-XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
+XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XCP-ng/XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
 ## Set or recover XOA VM password
 
@@ -195,7 +195,7 @@ If you have ghost tasks accumulating in your Xen Orchestra you can try the follo
 
 1. refresh the web page
 1. disconnect and reconnect the Xen pool/server owning the tasks
-1. restart the XenAPI Toolstack of the XenServer master
+1. restart the XenAPI Toolstack of the XCP-ng/XenServer master
 1. restart xo-server
 
 ### Redownload and rebuild
