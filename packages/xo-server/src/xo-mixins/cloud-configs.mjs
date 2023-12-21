@@ -31,7 +31,7 @@ export default class {
   async updateCloudConfig({ id, name, template }) {
     const cloudConfig = await this.getCloudConfig(id)
     patch(cloudConfig, { name, template })
-    return this._db.update(cloudConfig)
+    await this._db.update(cloudConfig)
   }
 
   deleteCloudConfig(id) {
