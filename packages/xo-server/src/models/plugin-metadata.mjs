@@ -29,7 +29,7 @@ export class PluginsMetadata extends Collection {
       throw new Error('no such plugin metadata')
     }
 
-    return /* await */ this.update({
+    await this.update({
       ...pluginMetadata,
       ...data,
     })
