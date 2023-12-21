@@ -3,11 +3,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import Collection from '../collection/redis.mjs'
 import patch from '../patch.mjs'
 
-class CloudConfigs extends Collection {
-  get(properties) {
-    return super.get(properties)
-  }
-}
+class CloudConfigs extends Collection {}
 
 export default class {
   constructor(app) {
