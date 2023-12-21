@@ -64,13 +64,13 @@
               :label="$t('storage')"
               :help="$t('n-gb-required', { n: REQUIRED_GB })"
             >
-              <FormSelect v-model="srId" required>
-                <option disabled value="">
+              <FormSelect v-model="selectedSr" required>
+                <option disabled :value="undefined">
                   {{ $t("select.storage") }}
                 </option>
                 <option
                   v-for="sr in filteredSrs"
-                  :value="sr.uuid"
+                  :value="sr"
                   :key="sr.uuid"
                   :class="
                     sr.physical_size - sr.physical_utilisation <
@@ -100,13 +100,13 @@
           </div>
           <div class="row">
             <FormInputWrapper :label="$t('network')" required>
-              <FormSelect v-model="networkId" required>
-                <option disabled value="">
+              <FormSelect v-model="selectedNetwork" required>
+                <option disabled :value="undefined">
                   {{ $t("select.network") }}
                 </option>
                 <option
                   v-for="network in networks"
-                  :value="network.uuid"
+                  :value="network"
                   :key="network.uuid"
                 >
                   {{ network.name_label }}
@@ -283,6 +283,7 @@ import { useRouter } from "vue-router";
 import { useSrCollection } from "@/stores/xen-api/sr.store";
 import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import type { XenApiNetwork, XenApiSr } from "@/libs/xen-api/xen-api.types";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import FormRadio from "@/components/form/FormRadio.vue";
@@ -350,12 +351,8 @@ const openXoa = () => {
   window.open(url.value, "_blank", "noopener");
 };
 
-const srId = ref<string>("");
-const sr = computed(() => srs.value.find((sr) => sr.uuid === srId.value));
-const networkId = ref<string>("");
-const network = computed(() =>
-  networks.value.find((network) => network.uuid === networkId.value)
-);
+const selectedSr = ref<XenApiSr>();
+const selectedNetwork = ref<XenApiNetwork>();
 const ipStrategy = ref<"static" | "dhcp">("dhcp");
 const requireIpConf = computed(() => ipStrategy.value === "static");
 
@@ -371,7 +368,7 @@ const sshPwd = ref("");
 const sshPwdConfirm = ref("");
 
 async function deploy() {
-  if (sr.value === undefined || network.value === undefined) {
+  if (selectedSr.value === undefined || selectedNetwork.value === undefined) {
     // Should not happen
     console.error("SR or network is undefined");
     return;
@@ -408,7 +405,7 @@ async function deploy() {
   }
 
   if (enableSshAccount.value && sshPwd.value !== sshPwdConfirm.value) {
-    // TODO: use formal validation system
+    // TODO: use form validation system
     invalidField(t("xoa-ssh-password-confirm-different"));
     return;
   }
@@ -421,7 +418,7 @@ async function deploy() {
     vmRef.value = (
       (await xapi.call("VM.import", [
         "http://xoa.io:8888/",
-        sr.value.$ref,
+        selectedSr.value.$ref,
         false, // full_restore
         false, // force
       ])) as string[]
@@ -445,8 +442,8 @@ async function deploy() {
       {
         device,
         MAC: "",
-        MTU: network.value.MTU,
-        network: network.value.$ref,
+        MTU: selectedNetwork.value.MTU,
+        network: selectedNetwork.value.$ref,
         other_config: {},
         qos_algorithm_params: {},
         qos_algorithm_type: "",
