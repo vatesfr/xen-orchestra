@@ -157,33 +157,32 @@ function extractFlags(args) {
 
 const noop = Function.prototype
 
+function parseValue(value) {
+  if (value.startsWith('json:')) {
+    return JSON.parse(value.slice(5))
+  }
+  if (value === 'true') {
+    return true
+  }
+  if (value === 'false') {
+    return false
+  }
+  return value
+}
+
 const PARAM_RE = /^([^=]+)=([^]*)$/
 function parseParameters(args) {
+  if (args[0] === '--') {
+    return args.slice(1).map(parseValue)
+  }
+
   const params = {}
   forEach(args, function (arg) {
     let matches
     if (!(matches = arg.match(PARAM_RE))) {
       throw new Error('invalid arg: ' + arg)
     }
-    const name = matches[1]
-    let value = matches[2]
-
-    if (value.startsWith('json:')) {
-      value = JSON.parse(value.slice(5))
-    }
-
-    if (name === '@') {
-      params['@'] = value
-      return
-    }
-
-    if (value === 'true') {
-      value = true
-    } else if (value === 'false') {
-      value = false
-    }
-
-    params[name] = value
+    params[matches[1]] = parseValue(matches[2])
   })
 
   return params

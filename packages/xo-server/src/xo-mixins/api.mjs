@@ -251,8 +251,18 @@ export default class Api {
 
   constructor(app) {
     this._logger = null
-    this._methods = { __proto__: null }
     this._app = app
+
+    const defer =
+    const seq = async methods => {
+      for (const method of methods) {
+        await this.#callApiMethod(method[0], method[1])
+      }
+    }
+    seq.validate = ajv.compile({ type: 'array', minLength: 1, items: { type: ['array', 'string'] } })
+    const if =
+
+    this._methods = { __proto__: null, seq }
 
     this.addApiMethods(methods)
     app.hooks.on('start', async () => {
@@ -367,8 +377,7 @@ export default class Api {
   }
 
   async callApiMethod(connection, name, params = {}) {
-    const method = this._methods[name]
-    if (!method) {
+    if (!Object.hasOwn(this._methods, name)) {
       throw new MethodNotFound(name)
     }
 
@@ -383,11 +392,12 @@ export default class Api {
       apiContext.permission = 'none'
     }
 
-    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))
+    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, params))
   }
 
-  async #callApiMethod(name, method, params) {
+  async #callApiMethod(name, params) {
     const app = this._app
+    const method = this._methods[name]
     const startTime = Date.now()
 
     const { connection, user } = this.apiContext
