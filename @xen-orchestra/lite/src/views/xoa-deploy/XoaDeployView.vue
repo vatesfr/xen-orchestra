@@ -105,7 +105,7 @@
                   {{ $t("select.network") }}
                 </option>
                 <option
-                  v-for="network in networks"
+                  v-for="network in filteredNetworks"
                   :value="network"
                   :key="network.uuid"
                 >
@@ -331,7 +331,13 @@ const filteredSrs = computed(() =>
       }
     })
 );
+
 const { records: networks } = useNetworkCollection();
+const filteredNetworks = computed(() =>
+  [...networks.value].sort((network1, network2) =>
+    network1.name_label < network2.name_label ? -1 : 1
+  )
+);
 
 const deploying = ref(false);
 const status = ref<string | undefined>();
