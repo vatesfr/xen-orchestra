@@ -11,7 +11,7 @@ import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
-import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
@@ -1027,7 +1027,7 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = Boolean(force) }) {
+export const stop = defer(async function ($defer, { vm, force, forceShutdownDelay, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
 
   if (bypassBlockedOperation) {
@@ -1044,7 +1044,7 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
 
   // Clean shutdown
   let timedOut = false
-  if (!force || typeof force === 'number') {
+  if (!force) {
     const shutdownPromise = xapi.shutdownVm(vm._xapiRef).catch(error => {
       const { code } = error
       if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
@@ -1053,11 +1053,11 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
       throw error
     })
 
-    if (typeof force === 'number') {
-      await timeout.call(shutdownPromise, force).catch(error => {
-        if (error instanceof TimeoutError) {
-          timedOut = true
-        } else throw error
+    if (forceShutdownDelay !== undefined) {
+      // forceShutdownDelay = 0 allows to hard shutdown only if clean shutdown fails
+      await timeout.call(shutdownPromise, forceShutdownDelay).catch(() => {
+        // timeout over, or clean shutdown failed
+        timedOut = true
       })
     } else {
       await shutdownPromise
@@ -1072,7 +1072,8 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
 
 stop.params = {
   id: { type: 'string' },
-  force: { type: ['boolean', 'number'], optional: true },
+  force: { type: 'boolean', optional: true },
+  forceShutdownDelay: { type: 'number', optional: true },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
