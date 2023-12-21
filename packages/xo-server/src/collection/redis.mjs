@@ -190,6 +190,8 @@ export default class Redis extends Collection {
 
         await Promise.all(promises)
 
+        model = this._unserialize(model) ?? model
+        model.id = id
         return model
       })
     )
