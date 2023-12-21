@@ -12,7 +12,7 @@ If you don't have any servers connected, you'll see a panel telling you to add a
 
 ### Add a host
 
-Just click on "Add server", enter the IP of a XenServer host (ideally the pool master if in a pool):
+Just click on "Add server", enter the IP of a XCP-ng/XenServer host (ideally the pool master if in a pool):
 
 ![](./assets/xo5addserver.png)
 
