@@ -22,7 +22,7 @@
 - [Plugin/transport-slack] Compatibility with other services like Mattermost or Discord [#7130](https://github.com/vatesfr/xen-orchestra/issues/7130) (PR [#7220](https://github.com/vatesfr/xen-orchestra/pull/7220))
 - [Host/Network] Fix error "PIF_IS_PHYSICAL" when trying to remove a PIF that had already been physically disconnected [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR [#7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
 - [Backup] Reduce memory consumption when using NBD (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
-- [Mirror backup] Fix backup reports not being sent (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
+- [Mirror backup] Fix _Report when_ setting being reset to _Failure_ when editing backup job (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
 - [RPU] VMs are correctly migrated to their original host (PR [#7238](https://github.com/vatesfr/xen-orchestra/pull/7238))
 
 ### Released packages
