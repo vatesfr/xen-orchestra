@@ -171,7 +171,7 @@ export default class Jobs {
 
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
       data:
-        type === 'backup' || type === 'metadataBackup'
+        type === 'backup' || type === 'metadataBackup' || type === 'mirrorBackup'
           ? {
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',
