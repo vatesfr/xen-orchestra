@@ -35,6 +35,7 @@
 <!--packages-start-->
 
 - vhd-lib patch
+- xo-cli minor
 - xo-server minor
 - xo-web minor
 
