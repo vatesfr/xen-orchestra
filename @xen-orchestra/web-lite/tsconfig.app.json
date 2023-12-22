@@ -1,0 +1,22 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "rootDir": "..",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@xen-orchestra/web-core/*": ["../web-core/lib/*"]
+    },
+    "noEmit": true
+  },
+  "include": [
+    "env.d.ts",
+    "typed-router.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "../web-core/lib/**/*",
+    "../web-core/lib/**/*.vue"
+  ],
+  "exclude": ["src/**/__tests__/*"]
+}

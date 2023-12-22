@@ -1,0 +1,10 @@
+{
+  "extends": ["@vue/tsconfig/tsconfig.dom.json"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "ESNext",
+    "noEmit": true
+  },
+  "include": ["env.d.ts", "eslint.config.js", "lib/**/*", "lib/**/*.vue"],
+  "exclude": ["lib/**/__tests__/*"]
+}
