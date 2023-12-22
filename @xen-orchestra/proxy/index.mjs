@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import forOwn from 'lodash/forOwn.js'
 import fse from 'fs-extra'
 import getopts from 'getopts'
 import pRetry from 'promise-toolbox/retry'
@@ -56,7 +55,7 @@ ${APP_NAME} v${APP_VERSION}
     createSecureServer: opts => createSecureServer({ ...opts, allowHTTP1: true }),
   })
 
-  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }, configKey) => {
+  for (const [configKey, { autoCert, cert, key, ...opts }] of Object.entries(config.http.listen)) {
     const useAcme = autoCert && opts.acmeDomain !== undefined
 
     // don't pass these entries to httpServer.listen(opts)
@@ -130,7 +129,7 @@ ${APP_NAME} v${APP_VERSION}
         warn('web server could not listen', { error })
       }
     }
-  })
+  }
 
   const { group, user } = config
   group != null && process.setgid(group)

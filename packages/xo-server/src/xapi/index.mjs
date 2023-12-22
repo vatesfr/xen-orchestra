@@ -1104,9 +1104,9 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base } = {}) {
+  async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base, nbdConcurrency, preferNbd } = {}) {
     vdi = this.getObject(vdi)
-    const params = { cancelToken, format: VDI_FORMAT_VHD }
+    const params = { cancelToken, format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd }
     if (base !== undefined) {
       params.base = base
     }

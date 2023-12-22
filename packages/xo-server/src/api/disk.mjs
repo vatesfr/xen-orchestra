@@ -87,11 +87,11 @@ create.resolve = {
 const VHD = 'vhd'
 const VMDK = 'vmdk'
 
-async function handleExportContent(req, res, { filename, format, vdi }) {
+async function handleExportContent(req, res, { filename, format, nbdConcurrency, preferNbd, vdi }) {
   const stream =
     format === VMDK
-      ? await vdi.$xapi.exportVdiAsVmdk(vdi.$id, filename)
-      : await vdi.$exportContent({ format: VDI_FORMAT_VHD })
+      ? await vdi.$xapi.exportVdiAsVmdk(vdi.$id, filename, { nbdConcurrency, preferNbd })
+      : await vdi.$exportContent({ format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd })
   req.on('close', () => stream.destroy())
 
   // stream can be an HTTP response, in this case, extract interesting data
@@ -113,7 +113,7 @@ async function handleExportContent(req, res, { filename, format, vdi }) {
   })
 }
 
-export async function exportContent({ vdi, format = VHD }) {
+export async function exportContent({ vdi, format = VHD, nbdConcurrency, preferNbd }) {
   const filename = (vdi.name_label || 'unknown') + '.' + (format === VHD ? 'vhd' : 'vmdk')
   return {
     $getFrom: await this.registerHttpRequest(
@@ -122,6 +122,8 @@ export async function exportContent({ vdi, format = VHD }) {
         vdi: this.getXapiObject(vdi),
         filename,
         format,
+        nbdConcurrency,
+        preferNbd,
       },
       {
         suffix: `/${encodeURIComponent(filename)}`,
@@ -134,6 +136,8 @@ exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
   format: { enum: [VMDK, VHD], optional: true },
+  preferNbd: { type: 'boolean', optional: true },
+  nbdConcurrency: { type: 'number', optional: true },
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],

@@ -154,7 +154,7 @@ export default class MigrateVm {
   }
 
   #connectToEsxi(host, user, password, sslVerify) {
-    return Task.run({ data: { name: `connecting to ${host}` } }, async () => {
+    return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       await fromEvent(esxi, 'ready')
       return esxi
@@ -174,7 +174,7 @@ export default class MigrateVm {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
 
-    const esxiVmMetadata = await Task.run({ data: { name: `get metadata of ${vmId}` } }, async () => {
+    const esxiVmMetadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
@@ -182,7 +182,7 @@ export default class MigrateVm {
     const isRunning = powerState !== 'poweredOff'
 
     const chainsByNodes = await Task.run(
-      { data: { name: `build disks and snapshots chains for ${vmId}` } },
+      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
       async () => {
         return this.#buildDiskChainByNode(disks, snapshots)
       }
@@ -191,7 +191,7 @@ export default class MigrateVm {
     const sr = app.getXapiObject(srId)
     const xapi = sr.$xapi
 
-    const vm = await Task.run({ data: { name: 'creating MV on XCP side' } }, async () => {
+    const vm = await Task.run({ properties: { name: 'creating MV on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
@@ -236,7 +236,7 @@ export default class MigrateVm {
 
     const vhds = await Promise.all(
       Object.keys(chainsByNodes).map(async (node, userdevice) =>
-        Task.run({ data: { name: `Cold import of disks ${node}` } }, async () => {
+        Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
           const chainByNode = chainsByNodes[node]
           const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
@@ -289,11 +289,11 @@ export default class MigrateVm {
 
     if (isRunning && stopSource) {
       // it the vm was running, we stop it and transfer the data in the active disk
-      await Task.run({ data: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
+      await Task.run({ properties: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
 
       await Promise.all(
         Object.keys(chainsByNodes).map(async (node, userdevice) => {
-          await Task.run({ data: { name: `Transfering deltas of ${userdevice}` } }, async () => {
+          await Task.run({ properties: { name: `Transfering deltas of ${userdevice}` } }, async () => {
             const chainByNode = chainsByNodes[node]
             const disk = chainByNode[chainByNode.length - 1]
             const { fileName, path, datastore, isFull } = disk
@@ -322,7 +322,7 @@ export default class MigrateVm {
       )
     }
 
-    await Task.run({ data: { name: 'Finishing transfer' } }, async () => {
+    await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(esxiVmMetadata.name_label)
 

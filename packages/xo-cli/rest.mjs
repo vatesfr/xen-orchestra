@@ -134,6 +134,12 @@ export async function rest(args) {
 
   const { allowUnauthorized, server, token } = await config.load()
 
+  if (server === undefined) {
+    const errorMessage =
+      'Please use `xo-cli --register` to associate with an XO instance first.\n\nSee `xo-cli --help` for more info.'
+    throw errorMessage
+  }
+
   const baseUrl = server
   const baseOpts = {
     headers: {

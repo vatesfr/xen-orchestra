@@ -3,11 +3,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import Collection from '../collection/redis.mjs'
 import patch from '../patch.mjs'
 
-class CloudConfigs extends Collection {
-  get(properties) {
-    return super.get(properties)
-  }
-}
+class CloudConfigs extends Collection {}
 
 export default class {
   constructor(app) {
@@ -35,7 +31,7 @@ export default class {
   async updateCloudConfig({ id, name, template }) {
     const cloudConfig = await this.getCloudConfig(id)
     patch(cloudConfig, { name, template })
-    return this._db.update(cloudConfig)
+    await this._db.update(cloudConfig)
   }
 
   deleteCloudConfig(id) {

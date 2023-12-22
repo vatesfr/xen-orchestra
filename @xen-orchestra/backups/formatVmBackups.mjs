@@ -2,6 +2,8 @@ import mapValues from 'lodash/mapValues.js'
 import { dirname } from 'node:path'
 
 function formatVmBackup(backup) {
+  const { isVhdDifferencing } = backup
+
   return {
     disks:
       backup.vhds === undefined
@@ -25,6 +27,10 @@ function formatVmBackup(backup) {
       name_description: backup.vm.name_description,
       name_label: backup.vm.name_label,
     },
+
+    // isVhdDifferencing is either undefined or an object
+    differencingVhds: isVhdDifferencing && Object.values(isVhdDifferencing).filter(t => t).length,
+    dynamicVhds: isVhdDifferencing && Object.values(isVhdDifferencing).filter(t => !t).length,
   }
 }
 

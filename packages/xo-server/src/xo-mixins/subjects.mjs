@@ -39,7 +39,7 @@ export default class {
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(groups.map(group => groupsDb.update(group))),
+        groups => groupsDb.update(groups),
         ['users']
       )
       app.addConfigManager(
@@ -83,10 +83,7 @@ export default class {
       properties.pw_hash = await hash(password)
     }
 
-    // TODO: use plain objects
-    const user = await this._users.create(properties)
-
-    return user
+    return this._users.create(properties)
   }
 
   async deleteUser(id) {
@@ -336,11 +333,8 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createGroup({ name, provider, providerGroupId }) {
-    // TODO: use plain objects.
-    const group = await this._groups.create(name, provider, providerGroupId)
-
-    return group
+  createGroup({ name, provider, providerGroupId }) {
+    return this._groups.create(name, provider, providerGroupId)
   }
 
   async deleteGroup(id) {

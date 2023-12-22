@@ -133,7 +133,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { differentialVhds, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._scheduleId
@@ -161,6 +161,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     )
 
     metadataContent = {
+      isVhdDifferencing,
       jobId,
       mode: job.mode,
       scheduleId,
@@ -180,9 +181,9 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         async ([id, vdi]) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
 
-          const isDelta = differentialVhds[`${id}.vhd`]
+          const isDifferencing = isVhdDifferencing[`${id}.vhd`]
           let parentPath
-          if (isDelta) {
+          if (isDifferencing) {
             const vdiDir = dirname(path)
             parentPath = (
               await handler.list(vdiDir, {
@@ -204,16 +205,20 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
           }
-
-          transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+          
+          // don't write it as transferSize += await async function
+          // since i += await asyncFun lead to race condition
+          // as explained : https://eslint.org/docs/latest/rules/require-atomic-updates
+          const transferSizeOneDisk = await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
+          transferSize += transferSizeOneDisk
 
-          if (isDelta) {
+          if (isDifferencing) {
             await chainVhd(handler, parentPath, handler, path)
           }
 

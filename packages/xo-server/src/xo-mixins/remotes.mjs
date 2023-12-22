@@ -47,7 +47,7 @@ export default class {
       app.addConfigManager(
         'remotes',
         () => this._remotes.get(),
-        remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
+        remotes => this._remotes.update(remotes)
       )
     })
     app.hooks.on('start', async () => {

@@ -1,5 +1,48 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Forget SR] Changed the modal message and added a confirmation text to be sure the action is understood by the user [#7148](https://github.com/vatesfr/xen-orchestra/issues/7148) (PR [#7155](https://github.com/vatesfr/xen-orchestra/pull/7155))
+- [REST API] `/backups` has been renamed to `/backup` (redirections are in place for compatibility)
+- [REST API] _VM backup & Replication_ jobs have been moved from `/backup/jobs/:id` to `/backup/jobs/vm/:id` (redirections are in place for compatibility)
+- [REST API] _XO config & Pool metadata Backup_ jobs are available at `/backup/jobs/metadata`
+- [REST API] _Mirror Backup_ jobs are available at `/backup/jobs/mirror`
+- [Plugin/auth-saml] Add _Force re-authentication_ setting [Forum#67764](https://xcp-ng.org/forum/post/67764) (PR [#7232](https://github.com/vatesfr/xen-orchestra/pull/7232))
+- [HTTP] `http.useForwardedHeaders` setting can be enabled when XO is behind a reverse proxy to fetch clients IP addresses from `X-Forwarded-*` headers [Forum#67625](https://xcp-ng.org/forum/post/67625) (PR [#7233](https://github.com/vatesfr/xen-orchestra/pull/7233))
+- [Backup]Use multiple link to speedup NBD backup (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
+- [Backup] Show if disk is differential or full in incremental backups (PR [#7222](https://github.com/vatesfr/xen-orchestra/pull/7222))
+- [VDI] Create XAPI task during NBD export (PR [#7228](https://github.com/vatesfr/xen-orchestra/pull/7228))
+- [SR] show an icon on SR during VDI coalescing (with XCP-ng 8.3+) (PR [#7241](https://github.com/vatesfr/xen-orchestra/pull/7241))
+- [VDI/Export] Expose NBD settings in the XO and REST APIs api (PR [#7251](https://github.com/vatesfr/xen-orchestra/pull/7251))
+- [Menu/Proxies] Added a warning icon if unable to check proxies upgrade (PR [#7237](https://github.com/vatesfr/xen-orchestra/pull/7237))
+
+### Bug fixes
+
+- [REST API] Returns a proper 404 _Not Found_ error when a job does not exist instead of _Internal Server Error_
+- [Host/Smart reboot] Automatically retries up to a minute when `HOST_STILL_BOOTING` [#7194](https://github.com/vatesfr/xen-orchestra/issues/7194) (PR [#7231](https://github.com/vatesfr/xen-orchestra/pull/7231))
+- [Plugin/transport-slack] Compatibility with other services like Mattermost or Discord [#7130](https://github.com/vatesfr/xen-orchestra/issues/7130) (PR [#7220](https://github.com/vatesfr/xen-orchestra/pull/7220))
+- [Host/Network] Fix error "PIF_IS_PHYSICAL" when trying to remove a PIF that had already been physically disconnected [#7193](https://github.com/vatesfr/xen-orchestra/issues/7193) (PR [#7221](https://github.com/vatesfr/xen-orchestra/pull/7221))
+- [Backup] Reduce memory consumption when using NBD (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
+- [Mirror backup] Fix _Report when_ setting being reset to _Failure_ when editing backup job (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
+- [RPU] VMs are correctly migrated to their original host (PR [#7238](https://github.com/vatesfr/xen-orchestra/pull/7238))
+- [Backup/Report] Missing report for Mirror Backup (PR [#7254](https://github.com/vatesfr/xen-orchestra/pull/7254))
+
+### Released packages
+
+- @vates/nbd-client 3.0.0
+- @xen-orchestra/xapi 4.1.0
+- @xen-orchestra/backups 0.44.3
+- @xen-orchestra/proxy 0.26.42
+- xo-server-auth-saml 0.11.0
+- xo-server-transport-email 1.0.0
+- xo-server-transport-slack 0.0.1
+- vhd-lib 4.8.1
+- xo-cli 0.23.0
+- xo-server 5.131.0
+- xo-web 5.131.0
+
 ## **5.89.0** (2023-11-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

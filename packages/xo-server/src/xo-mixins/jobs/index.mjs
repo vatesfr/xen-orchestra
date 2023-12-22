@@ -19,47 +19,31 @@ const log = createLogger('xo:jobs')
 
 // -----------------------------------------------------------------------------
 
-const normalize = job => {
-  Object.keys(job).forEach(key => {
-    try {
-      const value = (job[key] = JSON.parse(job[key]))
-
-      // userId are always strings, even if the value is numeric, which might to
-      // them being parsed as numbers.
-      //
-      // The issue has been introduced by
-      // 48b2297bc151df582160be7c1bf1e8ee160320b8.
-      if (key === 'userId' && typeof value === 'number') {
-        job[key] = String(value)
-      }
-    } catch (_) {}
-  })
-  return job
-}
-
-const serialize = job => {
-  Object.keys(job).forEach(key => {
-    const value = job[key]
-    if (typeof value !== 'string') {
-      job[key] = JSON.stringify(job[key])
-    }
-  })
-  return job
-}
-
 class JobsDb extends Collection {
-  async create(job) {
-    return normalize(await this.add(serialize(job)))
+  _serialize(job) {
+    Object.keys(job).forEach(key => {
+      const value = job[key]
+      if (typeof value !== 'string') {
+        job[key] = JSON.stringify(job[key])
+      }
+    })
   }
 
-  async save(job) {
-    await this.update(serialize(job))
-  }
+  _unserialize(job) {
+    Object.keys(job).forEach(key => {
+      try {
+        const value = (job[key] = JSON.parse(job[key]))
 
-  async get(properties) {
-    const jobs = await super.get(properties)
-    jobs.forEach(normalize)
-    return jobs
+        // userId are always strings, even if the value is numeric, which might to
+        // them being parsed as numbers.
+        //
+        // The issue has been introduced by
+        // 48b2297bc151df582160be7c1bf1e8ee160320b8.
+        if (key === 'userId' && typeof value === 'number') {
+          job[key] = String(value)
+        }
+      } catch (_) {}
+    })
   }
 }
 
@@ -90,7 +74,7 @@ export default class Jobs {
       app.addConfigManager(
         'jobs',
         () => jobsDb.get(),
-        jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
+        jobs => jobsDb.update(jobs),
         ['users']
       )
     })
@@ -150,7 +134,7 @@ export default class Jobs {
   }
 
   createJob(job) {
-    return this._jobs.create(job)
+    return this._jobs.add(job)
   }
 
   async updateJob(job, merge = true) {
@@ -159,7 +143,7 @@ export default class Jobs {
       job = await this.getJob(id)
       patch(job, props)
     }
-    return /* await */ this._jobs.save(job)
+    await this._jobs.update(job)
   }
 
   registerJobExecutor(type, executor) {
@@ -187,7 +171,7 @@ export default class Jobs {
 
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
       data:
-        type === 'backup' || type === 'metadataBackup'
+        type === 'backup' || type === 'metadataBackup' || type === 'mirrorBackup'
           ? {
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',

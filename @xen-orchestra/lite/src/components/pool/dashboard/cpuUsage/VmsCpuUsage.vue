@@ -1,33 +1,39 @@
 <template>
   <UiCardTitle
-    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :left="$t('vms')"
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
     :right="$t('top-#', { n: N_ITEMS })"
   />
   <NoDataError v-if="hasError" />
-  <UsageBar v-else :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
+  <UiCardSpinner v-else-if="isLoading" />
+  <NoResult v-else-if="isStatEmpty" />
+  <UsageBar v-else :data="data" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
-import { type ComputedRef, computed, inject } from "vue";
 import NoDataError from "@/components/NoDataError.vue";
+import NoResult from "@/components/NoResult.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { useStatStatus } from "@/composables/stat-status.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
-import { IK_VM_STATS } from "@/types/injection-keys";
-import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { UiCardTitleLevel } from "@/types/enums";
+import { IK_VM_STATS } from "@/types/injection-keys";
+import type { StatData } from "@/types/stat";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { computed, inject } from "vue";
 
-const { hasError } = useVmCollection();
+const { hasError, isFetching } = useVmCollection();
 
 const stats = inject(
   IK_VM_STATS,
   computed(() => [])
 );
 
-const data = computed<{ id: string; label: string; value: number }[]>(() => {
-  const result: { id: string; label: string; value: number }[] = [];
+const data = computed<StatData[]>(() => {
+  const result: StatData[] = [];
 
   stats.value.forEach((stat) => {
     if (!stat.stats) {
@@ -50,9 +56,5 @@ const data = computed<{ id: string; label: string; value: number }[]>(() => {
   return result;
 });
 
-const statFetched: ComputedRef<boolean> = computed(() =>
-  statFetched.value
-    ? true
-    : stats.value.length > 0 && stats.value.length === data.value.length
-);
+const { isLoading, isStatEmpty } = useStatStatus(stats, data, isFetching);
 </script>

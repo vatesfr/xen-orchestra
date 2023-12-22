@@ -11,7 +11,7 @@ import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
-import { ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
@@ -1027,11 +1027,7 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: implements timeout.
-// - if !force → clean shutdown
-// - if force is true → hard shutdown
-// - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = force }) {
+export const stop = defer(async function ($defer, { vm, force, forceShutdownDelay, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
 
   if (bypassBlockedOperation) {
@@ -1053,13 +1049,14 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
 
   // Clean shutdown
   try {
-    await xapi.shutdownVm(vm._xapiRef)
+    await timeout.call(xapi.shutdownVm(vm._xapiRef), forceShutdownDelay, () =>
+      xapi.shutdownVm(vm._xapiRef, { hard: true })
+    )
   } catch (error) {
     const { code } = error
     if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
       throw invalidParameters('clean shutdown requires PV drivers')
     }
-
     throw error
   }
 })
@@ -1067,6 +1064,7 @@ export const stop = defer(async function ($defer, { vm, force, bypassBlockedOper
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
+  forceShutdownDelay: { type: 'number', default: 0 },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
@@ -1400,7 +1398,7 @@ export async function importMultipleFromEsxi({
       await asyncEach(
         vms,
         async vm => {
-          await Task.run({ data: { name: `importing vm ${vm}` } }, async () => {
+          await Task.run({ properties: { name: `importing vm ${vm}` } }, async () => {
             try {
               const vmUuid = await this.migrationfromEsxi({
                 host,
