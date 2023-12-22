@@ -2703,6 +2703,8 @@ const messages = {
   proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
   xoProxyConcreteGuide: 'XO Proxy: a concrete guide',
+  someProxiesHaveErrors:
+    '{n, number} prox{n, plural, one {y} other {ies}} ha{n, plural, one {s} other {ve}} error{n, plural, one {} other {s}}',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
