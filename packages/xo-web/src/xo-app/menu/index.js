@@ -32,7 +32,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from 'lodash'
+import { countBy, every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from "lodash";
 
 import styles from './index.css'
 
@@ -113,17 +113,7 @@ export default class Menu extends Component {
   )
   _getNProxiesErrors = createSelector(
     () => this.state.proxyStates,
-    (proxyStates) => {
-      let count = 0
-
-      forEach(proxyStates, proxyState => {
-        if (proxyState === 'error') {
-          count++
-        }
-      })
-
-      return count
-    }
+    proxyStates => countBy(proxyStates).error
   )
   _checkPermissions = createSelector(
     () => this.props.isAdmin,
@@ -484,7 +474,7 @@ export default class Menu extends Component {
             </Tooltip>
           ) : nProxiesErrors > 0 ? (
             <Tooltip content={_('someProxiesHaveErrors', { n: nProxiesErrors })}>
-              <span className='tag tag-pill tag-warning'>{nProxiesErrors}</span>
+              <span className='tag tag-pill tag-danger'>{nProxiesErrors}</span>
             </Tooltip>
           ) : null,
         ],
