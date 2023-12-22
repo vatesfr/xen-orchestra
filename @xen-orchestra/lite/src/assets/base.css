@@ -21,7 +21,8 @@ a {
 }
 
 code,
-code * {
+code *,
+pre {
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
 }
