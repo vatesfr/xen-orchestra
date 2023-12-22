@@ -14,6 +14,9 @@
 - [Backup]Use multiple link to speedup NBD backup (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
 - [Backup] Show if disk is differential or full in incremental backups (PR [#7222](https://github.com/vatesfr/xen-orchestra/pull/7222))
 - [VDI] Create XAPI task during NBD export (PR [#7228](https://github.com/vatesfr/xen-orchestra/pull/7228))
+- [SR] show an icon on SR during VDI coalescing (with XCP-ng 8.3+) (PR [#7241](https://github.com/vatesfr/xen-orchestra/pull/7241))
+- [VDI/Export] Expose NBD settings in the XO and REST APIs api (PR [#7251](https://github.com/vatesfr/xen-orchestra/pull/7251))
+- [Menu/Proxies] Added a warning icon if unable to check proxies upgrade (PR [#7237](https://github.com/vatesfr/xen-orchestra/pull/7237))
 
 ### Bug fixes
 
@@ -24,19 +27,21 @@
 - [Backup] Reduce memory consumption when using NBD (PR [#7216](https://github.com/vatesfr/xen-orchestra/pull/7216))
 - [Mirror backup] Fix _Report when_ setting being reset to _Failure_ when editing backup job (PR [#7235](https://github.com/vatesfr/xen-orchestra/pull/7235))
 - [RPU] VMs are correctly migrated to their original host (PR [#7238](https://github.com/vatesfr/xen-orchestra/pull/7238))
+- [Backup/Report] Missing report for Mirror Backup (PR [#7254](https://github.com/vatesfr/xen-orchestra/pull/7254))
 
 ### Released packages
 
-- vhd-lib 4.8.0
 - @vates/nbd-client 3.0.0
 - @xen-orchestra/xapi 4.1.0
 - @xen-orchestra/backups 0.44.3
 - @xen-orchestra/proxy 0.26.42
-- xo-server 5.130.0
 - xo-server-auth-saml 0.11.0
 - xo-server-transport-email 1.0.0
 - xo-server-transport-slack 0.0.1
-- xo-web 5.130.1
+- vhd-lib 4.8.1
+- xo-cli 0.23.0
+- xo-server 5.131.0
+- xo-web 5.131.0
 
 ## **5.89.0** (2023-11-30)
 
