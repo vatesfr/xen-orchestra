@@ -43,9 +43,9 @@ Just remember this: **a coalesce should happen every time a snapshot is removed*
 
 ### Troubleshooting a constant VDI Chain Protection message (XCP-ng/XenServer failure to coalesce)
 
-As previously mentioned, this message can be normal and it just means XCP-ng/XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XenServer is not coalescing, You can take a few steps to determine why.
+As previously mentioned, this message can be normal and it just means XCP-ng/XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XCP-ng/XenServer is not coalescing, You can take a few steps to determine why.
 
-First check SMlog on the XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XCP-ng/XenServer host with the affected storage.
+First check SMlog on the XCP-ng/XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XCP-ng/XenServer host with the affected storage.
 
 Coalesce jobs can also fail to run if the SR does not have enough free space. Check the problematic SR and make sure it has enough free space, generally 30% or more free is recommended depending on VM size. You can check if this is the issue by searching `SMlog` with `grep -i coales /var/log/SMlog` (you may have to look at previous logs such as `SMlog.1`).
 
