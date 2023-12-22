@@ -32,7 +32,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { countBy, every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from "lodash";
+import { countBy, every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from 'lodash'
 
 import styles from './index.css'
 
