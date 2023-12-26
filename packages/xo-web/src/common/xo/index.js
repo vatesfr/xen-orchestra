@@ -1825,11 +1825,10 @@ export const editVm = async (vm, props) => {
             icon: 'vm-reboot',
             title: _('vmEditAndRestartModalTitle'),
           })
-          return _call('vm.setAndRestart', { ...props, id: resolveId(vm), force }).then(noop, err => {
-            error(_('setAndRestartVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
-          })
+          await _call('vm.setAndRestart', { ...props, id: resolveId(vm), force })
         } catch (err) {
           if (err !== undefined) {
+            error(_('setAndRestartVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
             throw err
           }
         }
