@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- vhd-lib minor
 - xo-server minor
 - xo-web minor
 
