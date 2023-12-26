@@ -1296,9 +1296,6 @@ export default {
   // Original text: 'Invalid parameters'
   configIpErrorTitle: undefined,
 
-  // Original text: 'IP address and netmask required'
-  configIpErrorMessage: undefined,
-
   // Original text: 'Static IP address'
   staticIp: undefined,
 
