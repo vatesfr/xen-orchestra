@@ -13,7 +13,11 @@
           :icon="faStar"
           class="master-icon"
         />
-        <p class="vm-count" v-tooltip="$t('vm-count')" v-if="isReady">
+        <p
+          class="vm-count"
+          v-tooltip="$t('vm-running', { count: vmCount })"
+          v-if="isReady"
+        >
           {{ vmCount }}
         </p>
         <InfraAction
