@@ -1596,9 +1596,6 @@ export default {
   // Original text: "Invalid parameters"
   configIpErrorTitle: 'Paramètres invalides',
 
-  // Original text: "IP address and netmask required"
-  configIpErrorMessage: 'Adresse IP et masque de réseau requis',
-
   // Original text: "Static IP address"
   staticIp: 'Adresse IP statique',
 

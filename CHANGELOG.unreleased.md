@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host/Network/PIF] Display and ability to edit IPv6 field [#5400](https://github.com/vatesfr/xen-orchestra/issues/5400) (PR [#7218](https://github.com/vatesfr/xen-orchestra/pull/7218))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -26,5 +28,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->

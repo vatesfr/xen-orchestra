@@ -58,18 +58,18 @@ Please only use this if you have issues with [the default way to deploy XOA](ins
 
 ### Via a bash script
 
-Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
+Alternatively, you can deploy it by connecting to your XCP-ng/XenServer host and executing the following:
 
 ```sh
 bash -c "$(wget -qO- https://xoa.io/deploy)"
 ```
 
 :::tip
-This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+This won't write or modify anything on your XCP-ng/XenServer host: it will just import the XOA VM into your default storage repository.
 :::
 
 :::warning
-If you are using an old XenServer version, you may get a `curl` error:
+If you are using an old XCP-ng/XenServer version, you may get a `curl` error:
 
 ```
 curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protocol version
