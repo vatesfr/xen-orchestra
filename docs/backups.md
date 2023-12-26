@@ -311,7 +311,7 @@ The first purely sequential strategy will lead to the fact that: **you can't pre
 If you need your backup to be done at a specific time you should consider creating a specific backup task for this VM.
 :::
 
-Strategy number 2 is to parallelise: all the snapshots will be taken at 3 AM. However **it's risky without limits**: it means potentially doing 50 snapshots or more at once on the same storage. **Since XenServer doesn't have a queue**, it will try to do all of them at once. This is also prone to race conditions and could cause crashes on your storage.
+Strategy number 2 is to parallelise: all the snapshots will be taken at 3 AM. However **it's risky without limits**: it means potentially doing 50 snapshots or more at once on the same storage. **Since XCP-ng/XenServer doesn't have a queue**, it will try to do all of them at once. This is also prone to race conditions and could cause crashes on your storage.
 
 By default the _parallel strategy_ is, on paper, the most logical one. But you need to be careful and give it some limits on concurrency.
 
