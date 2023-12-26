@@ -195,35 +195,9 @@ There are 3 different roles for your users:
 - Operator
 - Viewer
 
-#### Admin
-
-An object admin can do everything on it, even destroy it. E.g with its admin VM:
-
-- remove it
-- migrate it (to a host with admin permission on it)
-- modify the VM resources, name and description
-- clone it
-- copy it
-- convert it into a template
-- snapshot it (even revert from a snapshot)
-- export it
-- attach/add visible disks
-- same for network cards
-
-#### Operator
-
-An operator can make everyday operations on assigned objects. E.g on a VM:
-
-- eject a CD
-- insert a CD (if he can view the ISO storage repository)
-- start, restart, shutdown, suspend/resume it
-
-All other operations are forbidden.
-
-#### Viewer
-
-A viewer can only see the VM state and its metrics. That's all!
-
+Below is a Permissions Matrix which specifies what each role has access too, permissions are set on a per object basis. If you don't expressly grant a user (other than with the Admin role) access to a resource (Virtual Machine, Repository, Network etc) they won't be granted permissions. See Inheritance for more details.  
+  ![image](https://github.com/vatesfr/xen-orchestra/assets/14837699/3b273e84-bfbf-4064-9e50-a3cae0fcdcbb)
+  
 ### Inheritance
 
 Objects have a hierarchy: a Pool contains all its hosts, containing itself all its VMs.
