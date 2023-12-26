@@ -5,9 +5,7 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      <div class="host-item">
-        {{ host.name_label || "(Host)" }}
-      </div>
+      {{ host.name_label || "(Host)" }}
       <template #actions>
         <InfraAction
           v-if="isPoolMaster"
@@ -15,7 +13,9 @@
           :icon="faStar"
           class="master-icon"
         />
-        <p class="vm-count" v-tooltip="$t('vm-count')">{{ vmCount }}</p>
+        <p class="vm-count" v-tooltip="$t('vm-count')" v-if="isReady">
+          {{ vmCount }}
+        </p>
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
           @click="toggle()"
@@ -63,19 +63,16 @@ const isCurrentHost = computed(
 );
 const [isExpanded, toggle] = useToggle(true);
 
-const { recordsByHostRef } = useVmCollection();
+const { recordsByHostRef, isReady } = useVmCollection();
 
-const vmCount = computed(() => {
-  const vms = recordsByHostRef.value.get(props.hostOpaqueRef);
-  return vms?.length;
-});
+const vmCount = computed(
+  () => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0
+);
 </script>
 
 <style lang="postcss" scoped>
 .infra-host-item:deep(.link),
 .infra-host-item:deep(.link-placeholder) {
-  display: flex;
-  align-content: baseline;
   padding-left: 2rem;
 }
 
@@ -86,11 +83,6 @@ const vmCount = computed(() => {
 
 .master-icon {
   color: var(--color-orange-world-base);
-}
-
-.host-item {
-  display: flex;
-  flex-direction: column;
 }
 
 .vm-count {
@@ -104,6 +96,6 @@ const vmCount = computed(() => {
   color: var(--color-blue-scale-500);
   border-radius: calc(var(--size) / 2);
   background-color: var(--color-extra-blue-base);
-  --size: 1.75em;
+  --size: 2.3rem;
 }
 </style>
