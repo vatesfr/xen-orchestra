@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxies] Fix `this.getObject` is not a function during deployment
+- [Menu] Don't subscribe to unhealthy VDI chains if user has not enough permissions (PR [#7265](https://github.com/vatesfr/xen-orchestra/pull/7265))
 
 ### Packages to release
 

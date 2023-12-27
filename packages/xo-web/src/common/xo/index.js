@@ -34,7 +34,7 @@ import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
-import { getObject } from 'selectors'
+import { getObject, isAdmin } from 'selectors'
 import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
@@ -564,7 +564,11 @@ subscribeVolumeInfo.forceRefresh = (() => {
   }
 })()
 
-export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => _call('sr.getAllUnhealthyVdiChainsLength'))
+export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(async () => {
+  const _isAdmin = isAdmin(store.getState())
+
+  return _isAdmin ? await _call('sr.getAllUnhealthyVdiChainsLength') : undefined
+})
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
 export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
