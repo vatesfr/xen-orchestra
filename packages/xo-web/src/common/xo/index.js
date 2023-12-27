@@ -361,16 +361,9 @@ export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 export const subscribeRemotesInfo = createSubscription(() => _call('remote.getAllInfo'))
 
 export const subscribeProxies = createSubscription(async () => {
-  const { user } = store.getState()
-  if (user != null && user.permission !== 'admin') {
-    return
-  }
+  const _isAdmin = isAdmin(store.getState())
 
-  try {
-    return await _call('proxy.getAll')
-  } catch (e) {
-    console.log('Error when subscribing to proxies : ', e)
-  }
+  return _isAdmin ? await _call('proxy.getAll') : undefined
 })
 
 export const subscribeResourceSets = createSubscription(() => _call('resourceSet.getAll'))
