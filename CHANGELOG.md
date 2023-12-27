@@ -17,6 +17,8 @@
 - [SR] show an icon on SR during VDI coalescing (with XCP-ng 8.3+) (PR [#7241](https://github.com/vatesfr/xen-orchestra/pull/7241))
 - [VDI/Export] Expose NBD settings in the XO and REST APIs api (PR [#7251](https://github.com/vatesfr/xen-orchestra/pull/7251))
 - [Menu/Proxies] Added a warning icon if unable to check proxies upgrade (PR [#7237](https://github.com/vatesfr/xen-orchestra/pull/7237))
+- [Host/Network/PIF] Display and ability to edit IPv6 field [#5400](https://github.com/vatesfr/xen-orchestra/issues/5400) (PR [#7218](https://github.com/vatesfr/xen-orchestra/pull/7218))
+- [VM] Trying to increase the memory of a running VM will now propose the option to automatically restart it and increasing its memory [#7069](https://github.com/vatesfr/xen-orchestra/issues/7069) (PR [#7244](https://github.com/vatesfr/xen-orchestra/pull/7244))
 
 ### Bug fixes
 
@@ -38,10 +40,10 @@
 - xo-server-auth-saml 0.11.0
 - xo-server-transport-email 1.0.0
 - xo-server-transport-slack 0.0.1
-- vhd-lib 4.8.1
 - xo-cli 0.23.0
-- xo-server 5.131.0
-- xo-web 5.131.0
+- vhd-lib 4.9.0
+- xo-server 5.132.0
+- xo-web 5.132.0
 
 ## **5.89.0** (2023-11-30)
 
