@@ -1456,6 +1456,10 @@ const messages = {
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
+  setAndRestartVmFailed: 'Error on restarting and setting the VM: {vm}',
+  vmEditAndRestartModalTitle: 'VM is currently running',
+  vmEditAndRestartModalMessage:
+    'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
 
   // ----- VM placeholders -----
 

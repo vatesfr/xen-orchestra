@@ -45,10 +45,12 @@ exports.createNbdVhdStream = async function createVhdStream(
   const bufFooter = await readChunkStrict(sourceStream, FOOTER_SIZE)
 
   const header = unpackHeader(await readChunkStrict(sourceStream, HEADER_SIZE))
-  header.tableOffset = FOOTER_SIZE + HEADER_SIZE
   // compute BAT in order
   const batSize = Math.ceil((header.maxTableEntries * 4) / SECTOR_SIZE) * SECTOR_SIZE
+  // skip space between header and beginning of the table
   await skipStrict(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
+  // new table offset
+  header.tableOffset = FOOTER_SIZE + HEADER_SIZE
   const streamBat = await readChunkStrict(sourceStream, batSize)
   let offset = FOOTER_SIZE + HEADER_SIZE + batSize
   // check if parentlocator are ordered
