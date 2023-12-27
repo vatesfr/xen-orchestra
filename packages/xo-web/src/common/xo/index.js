@@ -564,10 +564,10 @@ subscribeVolumeInfo.forceRefresh = (() => {
   }
 })()
 
-export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(async () => {
+export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => {
   const _isAdmin = isAdmin(store.getState())
 
-  return _isAdmin ? await _call('sr.getAllUnhealthyVdiChainsLength') : undefined
+  return _isAdmin ? _call('sr.getAllUnhealthyVdiChainsLength') : undefined
 })
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
