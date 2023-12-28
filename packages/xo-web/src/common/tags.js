@@ -154,7 +154,7 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
   // must be in format #rrggbb for luminance parsing
   const color = '#2598d9'
 
-  const borderSize = '0.1em'
+  const borderSize = '0.2em'
   const padding = '0.2em'
 
   const isLight =
