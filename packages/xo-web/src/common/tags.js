@@ -150,10 +150,15 @@ export default class Tags extends Component {
   }
 }
 
-export const Tag = ({ type, label, onDelete, onClick }) => {
-  // must be in format #rrggbb for luminance parsing
-  const color = '#2598d9'
+export const Tag = ({
+  type,
+  label,
+  onDelete,
+  onClick,
 
+  // must be in format #rrggbb for luminance parsing
+  color = '#2598d9',
+}) => {
   const borderSize = '0.2em'
   const padding = '0.2em'
 
@@ -164,7 +169,6 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
         return parseInt(color.slice(j, j + 2), 16)
       })
     ) > 0.5
-  const color2 = isLight ? '#000' : '#fff'
 
   const i = label.indexOf('=')
   const isScoped = i !== -1
@@ -175,7 +179,7 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
         background: color,
         border: borderSize + ' solid ' + color,
         borderRadius: '0.5em',
-        color: color2,
+        color: isLight ? '#000' : '#fff',
         display: 'inline-block',
         margin: '0.2em',
 
@@ -201,8 +205,8 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
         {isScoped && (
           <div
             style={{
-              background: color2,
-              color,
+              background: '#fff',
+              color: '#000',
               display: 'inline-block',
               padding,
             }}
@@ -220,9 +224,8 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
             padding,
 
             // if isScoped, the display is a bit different
-            background: isScoped && color2,
-            color: isScoped && color,
-            borderLeft: isScoped && borderSize + ' solid ' + color,
+            background: isScoped && '#fff',
+            color: isScoped && (isLight ? '#000' : color),
           }}
         >
           <Icon icon='remove-tag' />
