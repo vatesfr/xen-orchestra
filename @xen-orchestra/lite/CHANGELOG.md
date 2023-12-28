@@ -2,6 +2,8 @@
 
 ## **next**
 
+## **0.1.7** (2023-12-28)
+
 - [VM/Action] Ability to migrate a VM from its view (PR [#7164](https://github.com/vatesfr/xen-orchestra/pull/7164))
 - Ability to override host address with `master` URL query param (PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
 - Added tooltip on CPU provisioning warning icon (PR [#7223](https://github.com/vatesfr/xen-orchestra/pull/7223))
