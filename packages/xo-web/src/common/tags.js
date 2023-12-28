@@ -218,6 +218,11 @@ export const Tag = ({ type, label, onDelete, onClick }) => {
             cursor: 'pointer',
             display: 'inline-block',
             padding,
+
+            // if isScoped, the display is a bit different
+            background: isScoped && color2,
+            color: isScoped && color,
+            borderLeft: isScoped && borderSize + ' solid ' + color,
           }}
         >
           <Icon icon='remove-tag' />
