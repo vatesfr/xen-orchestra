@@ -120,6 +120,7 @@
     "readable-stream": "^3.0.2",
     "redux": "^4.0.0",
     "redux-thunk": "^2.0.1",
+    "relative-luminance": "^2.0.1",
     "reselect": "^2.5.4",
     "rimraf": "^5.0.1",
     "sass": "^1.38.1",

@@ -5,6 +5,7 @@ import map from 'lodash/map'
 import pFinally from 'promise-toolbox/finally'
 import PropTypes from 'prop-types'
 import React from 'react'
+import relativeLuminance from 'relative-luminance'
 
 import ActionButton from './action-button'
 import Component from './base-component'
@@ -16,26 +17,12 @@ import { SelectTag } from './select-objects'
 const INPUT_STYLE = {
   maxWidth: '8em',
 }
-const TAG_STYLE = {
-  backgroundColor: '#2598d9',
-  borderRadius: '0.5em',
-  color: 'white',
-  fontSize: '0.6em',
-  margin: '0.2em',
-  marginTop: '-0.1em',
-  padding: '0.3em',
-  verticalAlign: 'middle',
-}
-const LINK_STYLE = {
-  cursor: 'pointer',
-}
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
+  display: 'inline-block',
   fontSize: '0.8em',
   marginLeft: '0.2em',
-}
-const REMOVE_TAG_STYLE = {
-  cursor: 'pointer',
+  verticalAlign: 'middle',
 }
 
 class SelectExistingTag extends Component {
@@ -128,19 +115,26 @@ export default class Tags extends Component {
     const deleteTag = (onDelete || onChange) && this._deleteTag
 
     return (
-      <span className='form-group' style={{ color: '#999' }}>
-        <Icon icon='tags' />{' '}
-        <span>
+      <div style={{ color: '#999', display: 'inline-block' }}>
+        <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+          <Icon icon='tags' />
+        </div>
+        <div style={{ display: 'inline-block', fontSize: '0.6em', verticalAlign: 'middle' }}>
           {map(labels.sort(), (label, index) => (
             <Tag label={label} onDelete={deleteTag} key={index} onClick={onClick} />
           ))}
-        </span>
+        </div>
         {(onAdd || onChange) && !this.state.editing ? (
-          <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
+          <div onClick={this._startEdit} style={ADD_TAG_STYLE}>
             <Icon icon='add-tag' />
-          </span>
+          </div>
         ) : (
-          <span className='form-inline' onBlur={this._closeEditionIfUnfocused} onFocus={this._focus}>
+          <div
+            style={{ display: 'inline-block', verticalAlign: 'middle' }}
+            className='form-inline'
+            onBlur={this._closeEditionIfUnfocused}
+            onFocus={this._focus}
+          >
             <span className='input-group'>
               <input autoFocus className='form-control' onKeyDown={this._onKeyDown} style={INPUT_STYLE} type='text' />
               <span className='input-group-btn'>
@@ -149,27 +143,97 @@ export default class Tags extends Component {
                 </Tooltip>
               </span>
             </span>
-          </span>
+          </div>
         )}
-      </span>
+      </div>
     )
   }
 }
 
-export const Tag = ({ type, label, onDelete, onClick }) => (
-  <span style={TAG_STYLE}>
-    <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
-      {label}
-    </span>{' '}
-    {onDelete ? (
-      <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
-        <Icon icon='remove-tag' />
-      </span>
-    ) : (
-      []
-    )}
-  </span>
-)
+export const Tag = ({
+  type,
+  label,
+  onDelete,
+  onClick,
+
+  // must be in format #rrggbb for luminance parsing
+  color = '#2598d9',
+}) => {
+  const borderSize = '0.2em'
+  const padding = '0.2em'
+
+  const isLight =
+    relativeLuminance(
+      Array.from({ length: 3 }, (_, i) => {
+        const j = i * 2 + 1
+        return parseInt(color.slice(j, j + 2), 16)
+      })
+    ) > 0.5
+
+  const i = label.indexOf('=')
+  const isScoped = i !== -1
+
+  return (
+    <div
+      style={{
+        background: color,
+        border: borderSize + ' solid ' + color,
+        borderRadius: '0.5em',
+        color: isLight ? '#000' : '#fff',
+        display: 'inline-block',
+        margin: '0.2em',
+
+        // prevent value background from breaking border radius
+        overflow: 'clip',
+      }}
+    >
+      <div
+        onClick={onClick && (() => onClick(label))}
+        style={{
+          cursor: onClick && 'pointer',
+          display: 'inline-block',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-block',
+            padding,
+          }}
+        >
+          {isScoped ? label.slice(0, i) : label}
+        </div>
+        {isScoped && (
+          <div
+            style={{
+              background: '#fff',
+              color: '#000',
+              display: 'inline-block',
+              padding,
+            }}
+          >
+            {label.slice(i + 1) || <i>N/A</i>}
+          </div>
+        )}
+      </div>
+      {onDelete && (
+        <div
+          onClick={onDelete && (() => onDelete(label))}
+          style={{
+            cursor: 'pointer',
+            display: 'inline-block',
+            padding,
+
+            // if isScoped, the display is a bit different
+            background: isScoped && '#fff',
+            color: isScoped && (isLight ? '#000' : color),
+          }}
+        >
+          <Icon icon='remove-tag' />
+        </div>
+      )}
+    </div>
+  )
+}
 Tag.propTypes = {
   label: PropTypes.string.isRequired,
 }
