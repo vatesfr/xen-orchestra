@@ -4,6 +4,7 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  addTagColor: 'Add tag color',
   alpha: 'Alpha',
   alerts: 'Alerts',
   creation: 'Creation',

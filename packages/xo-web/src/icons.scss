@@ -766,6 +766,11 @@
     @extend .fa-tags;
   }
 
+  &-tag-color {
+    @extend .fa;
+    @extend .fa-paint-brush;
+  }
+
   &-remove-tag {
     @extend .fa;
     @extend .fa-times;

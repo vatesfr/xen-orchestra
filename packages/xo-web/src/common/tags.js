@@ -6,6 +6,10 @@ import pFinally from 'promise-toolbox/finally'
 import PropTypes from 'prop-types'
 import React from 'react'
 import relativeLuminance from 'relative-luminance'
+import { addSubscriptions, connectStore } from 'utils'
+import { addTagColor, subscribeTagColorsByTag } from 'xo'
+import { Col, Container, Row } from 'grid'
+import { isAdmin } from 'selectors'
 
 import ActionButton from './action-button'
 import Component from './base-component'
@@ -13,6 +17,8 @@ import Icon from './icon'
 import Tooltip from './tooltip'
 import { confirm } from './modal'
 import { SelectTag } from './select-objects'
+
+const DEFAULT_TAG_COLOR = '#2598d9'
 
 const INPUT_STYLE = {
   maxWidth: '8em',
@@ -37,6 +43,46 @@ class SelectExistingTag extends Component {
   }
 }
 
+class AddTagColors extends Component {
+  state = { tag: '', color: DEFAULT_TAG_COLOR }
+
+  get value() {
+    return this.state
+  }
+
+  render() {
+    return (
+      <Container>
+        <Row>
+          <Col size={6}>
+            <span className='input-group'>
+              <input
+                autoFocus
+                className='form-control'
+                type='text'
+                onChange={this.linkState('tag')}
+                value={this.state.tag}
+              />
+            </span>
+          </Col>
+          <Col size={6}>
+            <input
+              className='form-control'
+              style={INPUT_STYLE}
+              type='color'
+              onChange={this.linkState('color')}
+              value={this.state.color}
+            />
+          </Col>
+        </Row>
+      </Container>
+    )
+  }
+}
+
+@connectStore({
+  isAdmin,
+})
 export default class Tags extends Component {
   static propTypes = {
     labels: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -98,6 +144,18 @@ export default class Tags extends Component {
       ::pFinally(this._stopEdit)
       .then(tags => Promise.all(tags.map(this._addTag)))
 
+  _addTagColor = async () => {
+    const { tag, color } = await confirm({
+      body: <AddTagColors />,
+      icon: 'tag-color',
+      title: _('addTagColor'),
+    })
+    if (tag !== '') {
+      await this._addTag(tag)
+      await addTagColor(tag, color)
+    }
+  }
+
   _focus = () => {
     this._focused = true
   }
@@ -110,10 +168,8 @@ export default class Tags extends Component {
   }
 
   render() {
-    const { labels, onAdd, onChange, onClick, onDelete } = this.props
-
+    const { isAdmin, labels, onAdd, onChange, onClick, onDelete } = this.props
     const deleteTag = (onDelete || onChange) && this._deleteTag
-
     return (
       <div style={{ color: '#999', display: 'inline-block' }}>
         <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
@@ -137,6 +193,13 @@ export default class Tags extends Component {
           >
             <span className='input-group'>
               <input autoFocus className='form-control' onKeyDown={this._onKeyDown} style={INPUT_STYLE} type='text' />
+              {isAdmin && (
+                <span className='input-group-btn'>
+                  <Tooltip content={_('addTagColor')}>
+                    <ActionButton handler={this._addTagColor} icon='tag-color' />
+                  </Tooltip>
+                </span>
+              )}
               <span className='input-group-btn'>
                 <Tooltip content={_('selectExistingTags')}>
                   <ActionButton handler={this._selectExistingTags} icon='add' />
@@ -150,31 +213,29 @@ export default class Tags extends Component {
   }
 }
 
-export const Tag = ({
-  type,
-  label,
-  onDelete,
-  onClick,
+@addSubscriptions({
+  tagColorsByTag: subscribeTagColorsByTag,
+})
+export class Tag extends Component {
+  render() {
+    const { label, onDelete, onClick, tagColorsByTag } = this.props
+    const color = tagColorsByTag?.[label]?.color ?? DEFAULT_TAG_COLOR
+    const borderSize = '0.2em'
+    const padding = '0.2em'
 
-  // must be in format #rrggbb for luminance parsing
-  color = '#2598d9',
-}) => {
-  const borderSize = '0.2em'
-  const padding = '0.2em'
+    const isLight =
+      relativeLuminance(
+        Array.from({ length: 3 }, (_, i) => {
+          const j = i * 2 + 1
+          return parseInt(color.slice(j, j + 2), 16)
+        })
+      ) > 0.5
 
-  const isLight =
-    relativeLuminance(
-      Array.from({ length: 3 }, (_, i) => {
-        const j = i * 2 + 1
-        return parseInt(color.slice(j, j + 2), 16)
-      })
-    ) > 0.5
+    const i = label.indexOf('=')
+    const isScoped = i !== -1
 
-  const i = label.indexOf('=')
-  const isScoped = i !== -1
-
-  return (
-    <div
+    return (
+      <div
       style={{
         background: color,
         border: borderSize + ' solid ' + color,
@@ -232,8 +293,11 @@ export const Tag = ({
         </div>
       )}
     </div>
-  )
+    )
+  }
 }
 Tag.propTypes = {
   label: PropTypes.string.isRequired,
+  onDelete: PropTypes.func,
+  onClick: PropTypes.func,
 }
