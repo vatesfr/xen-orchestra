@@ -19,6 +19,7 @@
 - [Menu/Proxies] Added a warning icon if unable to check proxies upgrade (PR [#7237](https://github.com/vatesfr/xen-orchestra/pull/7237))
 - [Host/Network/PIF] Display and ability to edit IPv6 field [#5400](https://github.com/vatesfr/xen-orchestra/issues/5400) (PR [#7218](https://github.com/vatesfr/xen-orchestra/pull/7218))
 - [VM] Trying to increase the memory of a running VM will now propose the option to automatically restart it and increasing its memory [#7069](https://github.com/vatesfr/xen-orchestra/issues/7069) (PR [#7244](https://github.com/vatesfr/xen-orchestra/pull/7244))
+- [Tags] Implement scoped tags (PR [#7270](https://github.com/vatesfr/xen-orchestra/pull/7270))
 
 ### Bug fixes
 
@@ -43,7 +44,7 @@
 - xo-cli 0.23.0
 - vhd-lib 4.9.0
 - xo-server 5.132.0
-- xo-web 5.132.0
+- xo-web 5.133.0
 
 ## **5.89.0** (2023-11-30)
 
