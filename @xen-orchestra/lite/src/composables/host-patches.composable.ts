@@ -15,7 +15,7 @@ type HostConfig = {
 export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
   const hostStore = useHostStore();
 
-  const configByHost = reactive(new Map<string, HostConfig>());
+  const configByHost = reactive(new Map()) as Map<string, HostConfig>;
 
   const fetchHostPatches = async (hostRef: XenApiHost["$ref"]) => {
     if (!configByHost.has(hostRef)) {
