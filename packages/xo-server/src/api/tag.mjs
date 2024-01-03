@@ -32,33 +32,30 @@ remove.params = {
   id: { type: 'string' },
 }
 
-export async function addTagColor({ tag, color }) {
-  await this.addTagColor(tag, color)
+// -------------------------------------------------------------------
+
+export async function set({ id, ...params }) {
+  await this.setTag(id, params)
 }
 
-addTagColor.description = 'Add a color to a tag'
+set.description = 'Set a tag configuration'
 
-addTagColor.params = {
-  tag: { type: 'string' },
-  color: { type: 'string' },
+set.params = {
+  id: { type: 'string' },
+  color: { type: ['string', 'null'], optional: true },
 }
 
-addTagColor.permission = 'admin'
-
-export async function deleteTagColor({ id }) {
-  await this.deleteTagColor(id)
+export async function removeConfiguration({ id }) {
+  await this.deleteTag(id)
 }
 
-deleteTagColor.description = 'Delete a color to a tag'
-
-deleteTagColor.params = {
+removeConfiguration.description = 'Remove tag configuration'
+removeConfiguration.params = {
   id: { type: 'string' },
 }
 
-deleteTagColor.permission = 'admin'
-
-export async function getTagColorsByTag() {
-  return keyBy(await this.getTagColors(), 'tag')
+export async function getAllConfigured() {
+  return keyBy(await this.getConfiguredTag(), 'id')
 }
 
-getTagColorsByTag.description = 'Get tag colors by tag'
+getAllConfigured.description = 'Get all configured tag'
