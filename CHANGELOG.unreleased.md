@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+[Vm Creator] Admin can change VM creator (PR [#7276](https://github.com/vatesfr/xen-orchestra/pull/7276))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
