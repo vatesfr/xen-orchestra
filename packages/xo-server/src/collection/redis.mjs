@@ -116,11 +116,6 @@ export default class Redis extends Collection {
     return Promise.all(
       map(ids, id => {
         return this.#get(prefix + id).then(model => {
-          // If empty, consider it a no match.
-          if (isEmpty(model)) {
-            return
-          }
-
           model = this._unserialize(model) ?? model
 
           // Mix the identifier in.
