@@ -44,7 +44,12 @@ async function connect() {
 
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url: server })
   await xo.open()
-  await xo.signIn({ token })
+  try {
+    await xo.signIn({ token })
+  } catch (error) {
+    await xo.close()
+    throw error
+  }
   return xo
 }
 

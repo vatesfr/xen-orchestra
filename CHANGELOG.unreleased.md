@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-cli patch
 - xo-server patch
 
 <!--packages-end-->
