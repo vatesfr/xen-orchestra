@@ -20,7 +20,7 @@ import { CustomFields } from 'custom-fields'
 import { injectState, provideState } from 'reaclette'
 import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
-import { SelectResourceSet, SelectRole, SelectSubject, SelectVgpuType } from 'select-objects'
+import { SelectResourceSet, SelectRole, SelectSubject, SelectUser, SelectVgpuType } from 'select-objects'
 import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, osFamily } from 'utils'
 import { every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
 import {
@@ -486,6 +486,8 @@ export default class TabAdvanced extends Component {
     })
     return deleteVtpm(vtpm)
   }
+
+  _updateUser = user => editVm(this.props.vm, { creation: { ...this.props.vm.creation, user: user.id } })
 
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
@@ -1023,6 +1025,12 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('vmCreator')}</th>
+                  <td>
+                    <SelectUser onChange={this._updateUser} value={vm.creation?.user} />
+                  </td>
+                </tr>
               </tbody>
             </table>
           </Col>

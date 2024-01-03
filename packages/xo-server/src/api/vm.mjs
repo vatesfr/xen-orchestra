@@ -15,6 +15,8 @@ import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
+import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
+
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
 
 const log = createLogger('xo:vm')
@@ -655,6 +657,12 @@ export const set = defer(async function ($defer, params) {
     await this.getXapiObject(VM).update_xenstore_data(mapKeys(xenStoreData, (v, k) => autoPrefix('vm-data/', k)))
   }
 
+  const creation = extract(params, 'creation')
+  if(creation !== undefined){
+    const xapiVm = await this.getXapiObject(VM)
+    await xoData.set(xapiVm, {creation})
+  }
+
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
@@ -754,6 +762,10 @@ set.params = {
   viridian: { type: 'boolean', optional: true },
 
   blockedOperations: { type: 'object', optional: true, properties: { '*': { type: ['boolean', 'null', 'string'] } } },
+
+  creation: {type: 'object', optional: true, properties: {
+    user: {type: 'string', optional: true},
+  }},
 
   suspendSr: { type: ['string', 'null'], optional: true },
 
