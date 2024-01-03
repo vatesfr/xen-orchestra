@@ -374,7 +374,7 @@ export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
 )
 
-export const subscribeTagColorsByTag = createSubscription(() => _call('tag.getTagColorsByTag'))
+export const subscribeConfiguredTags = createSubscription(() => _call('tag.getAllConfigured'))
 
 export const subscribeUsers = createSubscription(() =>
   _call('user.getAll').then(users => {
@@ -2459,8 +2459,8 @@ export const deleteMessages = logs =>
 
 export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
 
-export const addTagColor = (tag, color) =>
-  _call('tag.addTagColor', { tag, color })::tap(subscribeTagColorsByTag.forceRefresh)
+export const setTag = (id, params) =>
+  _call('tag.set', { id, ...params })::tap(subscribeConfiguredTags.forceRefresh)
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
 

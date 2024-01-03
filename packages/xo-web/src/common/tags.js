@@ -7,7 +7,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import relativeLuminance from 'relative-luminance'
 import { addSubscriptions, connectStore } from 'utils'
-import { addTagColor, subscribeTagColorsByTag } from 'xo'
+import { setTag, subscribeConfiguredTags } from 'xo'
 import { Col, Container, Row } from 'grid'
 import { isAdmin } from 'selectors'
 
@@ -152,7 +152,7 @@ export default class Tags extends Component {
     })
     if (tag !== '') {
       await this._addTag(tag)
-      await addTagColor(tag, color)
+      await setTag(tag, { color })
     }
   }
 
@@ -214,12 +214,12 @@ export default class Tags extends Component {
 }
 
 @addSubscriptions({
-  tagColorsByTag: subscribeTagColorsByTag,
+  configuredTags: subscribeConfiguredTags,
 })
 export class Tag extends Component {
   render() {
-    const { label, onDelete, onClick, tagColorsByTag } = this.props
-    const color = tagColorsByTag?.[label]?.color ?? DEFAULT_TAG_COLOR
+    const { label, onDelete, onClick, configuredTags } = this.props
+    const color = configuredTags?.[label]?.color ?? DEFAULT_TAG_COLOR
     const borderSize = '0.2em'
     const padding = '0.2em'
 
@@ -236,63 +236,63 @@ export class Tag extends Component {
 
     return (
       <div
-      style={{
-        background: color,
-        border: borderSize + ' solid ' + color,
-        borderRadius: '0.5em',
-        color: isLight ? '#000' : '#fff',
-        display: 'inline-block',
-        margin: '0.2em',
-
-        // prevent value background from breaking border radius
-        overflow: 'clip',
-      }}
-    >
-      <div
-        onClick={onClick && (() => onClick(label))}
         style={{
-          cursor: onClick && 'pointer',
+          background: color,
+          border: borderSize + ' solid ' + color,
+          borderRadius: '0.5em',
+          color: isLight ? '#000' : '#fff',
           display: 'inline-block',
+          margin: '0.2em',
+
+          // prevent value background from breaking border radius
+          overflow: 'clip',
         }}
       >
         <div
+          onClick={onClick && (() => onClick(label))}
           style={{
+            cursor: onClick && 'pointer',
             display: 'inline-block',
-            padding,
           }}
         >
-          {isScoped ? label.slice(0, i) : label}
-        </div>
-        {isScoped && (
           <div
             style={{
-              background: '#fff',
-              color: '#000',
               display: 'inline-block',
               padding,
             }}
           >
-            {label.slice(i + 1) || <i>N/A</i>}
+            {isScoped ? label.slice(0, i) : label}
+          </div>
+          {isScoped && (
+            <div
+              style={{
+                background: '#fff',
+                color: '#000',
+                display: 'inline-block',
+                padding,
+              }}
+            >
+              {label.slice(i + 1) || <i>N/A</i>}
+            </div>
+          )}
+        </div>
+        {onDelete && (
+          <div
+            onClick={onDelete && (() => onDelete(label))}
+            style={{
+              cursor: 'pointer',
+              display: 'inline-block',
+              padding,
+
+              // if isScoped, the display is a bit different
+              background: isScoped && '#fff',
+              color: isScoped && (isLight ? '#000' : color),
+            }}
+          >
+            <Icon icon='remove-tag' />
           </div>
         )}
       </div>
-      {onDelete && (
-        <div
-          onClick={onDelete && (() => onDelete(label))}
-          style={{
-            cursor: 'pointer',
-            display: 'inline-block',
-            padding,
-
-            // if isScoped, the display is a bit different
-            background: isScoped && '#fff',
-            color: isScoped && (isLight ? '#000' : color),
-          }}
-        >
-          <Icon icon='remove-tag' />
-        </div>
-      )}
-    </div>
     )
   }
 }
