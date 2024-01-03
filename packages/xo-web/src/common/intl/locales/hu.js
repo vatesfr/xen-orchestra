@@ -1491,9 +1491,6 @@ export default {
   // Original text: "Invalid parameters"
   configIpErrorTitle: 'Invalid parameters',
 
-  // Original text: "IP address and netmask required"
-  configIpErrorMessage: 'IP cím and netmask required',
-
   // Original text: "Static IP address"
   staticIp: 'Static IP cím',
 

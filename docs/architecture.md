@@ -24,7 +24,7 @@ Xen Orchestra itself is built as a modular solution. Each part has its role.
 
 ## xo-server (server)
 
-The core is "[xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/)" - a daemon dealing directly with XenServer or XAPI capable hosts. This is where users are stored, and it's the center point for talking to your whole Xen infrastructure.
+The core is "[xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/)" - a daemon dealing directly with XCP-ng/XenServer or XAPI capable hosts. This is where users are stored, and it's the center point for talking to your whole Xen infrastructure.
 
 XO-Server is the core of Xen Orchestra. Its central role opens a lot of possibilities versus other solutions - let's see why.
 

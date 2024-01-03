@@ -13,6 +13,13 @@
           :icon="faStar"
           class="master-icon"
         />
+        <p
+          class="vm-count"
+          v-tooltip="$t('vm-running', { count: vmCount })"
+          v-if="isReady"
+        >
+          {{ vmCount }}
+        </p>
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
           @click="toggle()"
@@ -41,6 +48,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useToggle } from "@vueuse/core";
 import { computed } from "vue";
+import { useVmCollection } from "@/stores/xen-api/vm.store";
 
 const props = defineProps<{
   hostOpaqueRef: XenApiHost["$ref"];
@@ -58,6 +66,12 @@ const isCurrentHost = computed(
   () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
 );
 const [isExpanded, toggle] = useToggle(true);
+
+const { recordsByHostRef, isReady } = useVmCollection();
+
+const vmCount = computed(
+  () => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0
+);
 </script>
 
 <style lang="postcss" scoped>
@@ -73,5 +87,19 @@ const [isExpanded, toggle] = useToggle(true);
 
 .master-icon {
   color: var(--color-orange-world-base);
+}
+
+.vm-count {
+  font-size: smaller;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size);
+  height: var(--size);
+  color: var(--color-blue-scale-500);
+  border-radius: calc(var(--size) / 2);
+  background-color: var(--color-extra-blue-base);
+  --size: 2.3rem;
 }
 </style>
