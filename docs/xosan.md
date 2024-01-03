@@ -39,7 +39,7 @@ In order to work, XOSAN need a minimal set of requirements.
 
 ### Storage
 
-XOSAN can be deployed on an existing **Local LVM storage**, that XenServer configure by default during its installation. You need 10GiB for XOSAN VM (one on each host) and the rest for XOSAN data, eg all the space left.
+XOSAN can be deployed on an existing **Local LVM storage**, that XCP-ng/XenServer configure by default during its installation. You need 10GiB for XOSAN VM (one on each host) and the rest for XOSAN data, eg all the space left.
 
 However, if you have unused disks on your host, you can also create yourself a local LVM storage while using Xen Orchestra:
 
@@ -47,7 +47,7 @@ However, if you have unused disks on your host, you can also create yourself a l
 - Select the host having the disk you want to use for XOSAN
 - Select "Local LVM" and enter the path of this disk (e.g: `/dev/sdf`)
 
-> You can discover disks names by issuing `fdisk -l` command on your XenServer host.
+> You can discover disks names by issuing `fdisk -l` command on your XCP-ng/XenServer host.
 
 > **Recommended hardware:** we don't have specific hardware recommendation regarding hard disks. It could be directly a disk or even a disk exposed via a hardware RAID. Note that RAID mode will influence global speed of XOSAN.
 
@@ -183,13 +183,13 @@ It's very similar to **RAID 10**. In this example, you'll have 300GiB of data us
 
 #### Examples
 
-Here is some examples depending of the number of XenServer hosts.
+Here is some examples depending of the number of XCP-ng/XenServer hosts.
 
 ##### 2 hosts
 
 This is a kind of special mode. On a 2 nodes setup, one node must know what's happening if it can't contact the other node. This is called a **split brain** scenario. To avoid data loss, it goes on read only. But there is a way to overcome this, with a special node, called **the arbiter**. It will only require an extra VM using only few disk space.
 
-Thanks to this arbiter, you'll have 3 nodes running on 2 XenServer hosts:
+Thanks to this arbiter, you'll have 3 nodes running on 2 XCP-ng/XenServer hosts:
 
 - if the host with 1 node is down, the other host will continue to provide a working XOSAN
 - if the host with 2 nodes (1 normal and 1 arbiter) id down, the other node will go into read only mode, to avoid split brain scenario.
@@ -312,13 +312,13 @@ Once you are ready, you can click on `Create`. XOSAN will automatically deploy i
 
 ## Try it!
 
-XOSAN is a 100% software defined solution for XenServer hyperconvergence. You can unlock a free 50GiB cluster to test the solution in your infrastructure and discover all the benefits you can get by using XOSAN.
+XOSAN is a 100% software defined solution for XCP-ng/XenServer hyperconvergence. You can unlock a free 50GiB cluster to test the solution in your infrastructure and discover all the benefits you can get by using XOSAN.
 
 ### Step 1
 
 You will need to be registered on our website in order to use Xen Orchestra. If you are not yet registered, [here is the way](https://xen-orchestra.com/#!/signup)
 
-SSH in your XenServer and use the command line `bash -c "$(wget -qO- https://xoa.io/deploy)"` - it will deploy Xen Orchestra Appliance on your XenServer infrastructure which is required to use XOSAN.
+SSH in your XCP-ng/XenServer and use the command line `bash -c "$(wget -qO- https://xoa.io/deploy)"` - it will deploy Xen Orchestra Appliance on your XCP-ng/XenServer infrastructure which is required to use XOSAN.
 
 > Note: You can also download the XVA file and follow [these instructions](https://xen-orchestra.com/docs/xoa.html#the-alternative).
 

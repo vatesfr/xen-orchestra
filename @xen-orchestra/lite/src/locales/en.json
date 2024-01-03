@@ -227,6 +227,7 @@
   "vcpus-used": "vCPUs used",
   "version": "Version",
   "vm-is-running": "The VM is running",
+  "vm-running": "VM running | VMs running",
   "vms": "VMs",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",

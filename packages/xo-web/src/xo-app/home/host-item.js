@@ -335,9 +335,9 @@ export default class HostItem extends Component {
               {host.productBrand} {host.version}
             </Col>
             <Col mediumSize={3} className={styles.itemExpanded}>
-              <span style={{ fontSize: '1.4em' }}>
+              <div style={{ fontSize: '1.4em' }}>
                 <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </span>
+              </div>
             </Col>
             <Col mediumSize={6} className={styles.itemExpanded}>
               <MiniStats fetch={this._fetchStats} />

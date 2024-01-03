@@ -209,9 +209,9 @@ export default class VmItem extends Component {
               ))}
             </Col>
             <Col mediumSize={6}>
-              <span style={{ fontSize: '1.4em' }}>
+              <div style={{ fontSize: '1.4em' }}>
                 <HomeTags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </span>
+              </div>
             </Col>
             <Col mediumSize={6} className={styles.itemExpanded}>
               {this._isRunning && <MiniStats fetch={this._fetchStats} />}

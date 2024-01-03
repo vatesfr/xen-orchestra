@@ -1990,9 +1990,6 @@ export default {
   // Original text: "Invalid parameters"
   configIpErrorTitle: 'Geçersiz parametre',
 
-  // Original text: "IP address and netmask required"
-  configIpErrorMessage: 'IP adresi ve ağ maskesi gerekli',
-
   // Original text: "Static IP address"
   staticIp: 'Statik IP adresi',
 

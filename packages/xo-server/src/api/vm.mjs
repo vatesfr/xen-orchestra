@@ -786,6 +786,29 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
+export const setAndRestart = defer(async function ($defer, params) {
+  const vm = params.VM
+  const force = extract(params, 'force')
+
+  await stop.bind(this)({ vm, force })
+
+  $defer(start.bind(this), { vm, force })
+
+  return set.bind(this)(params)
+})
+
+setAndRestart.params = {
+  // Restart options
+  force: { type: 'boolean', optional: true },
+
+  // Set params
+  ...set.params,
+}
+
+setAndRestart.resolve = set.resolve
+
+// -------------------------------------------------------------------
+
 export const restart = defer(async function ($defer, { vm, force = false, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
   if (bypassBlockedOperation) {

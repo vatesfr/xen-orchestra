@@ -17,6 +17,7 @@ import {
   noHostsAvailable,
   operationBlocked,
   operationFailed,
+  vmBadPowerState,
   vmLacksFeature,
 } from 'xo-common/api-errors'
 
@@ -1812,8 +1813,28 @@ export const editVm = async (vm, props) => {
     }
   }
   await _call('vm.set', { ...props, id: resolveId(vm) })
-    .catch(err => {
-      error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
+    .catch(async err => {
+      if (vmBadPowerState.is(err, { actual: 'running' }) || err.message === 'Cannot change memory on running VM') {
+        try {
+          const force = await chooseAction({
+            body: <p>{_('vmEditAndRestartModalMessage')}</p>,
+            buttons: [
+              { label: _('rebootVmLabel'), value: false, btnStyle: 'success' },
+              { label: _('forceRebootVmLabel'), value: true, btnStyle: 'danger' },
+            ],
+            icon: 'vm-reboot',
+            title: _('vmEditAndRestartModalTitle'),
+          })
+          await _call('vm.setAndRestart', { ...props, id: resolveId(vm), force })
+        } catch (err) {
+          if (err !== undefined) {
+            error(_('setAndRestartVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
+            throw err
+          }
+        }
+      } else {
+        error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
+      }
     })
     ::tap(subscribeResourceSets.forceRefresh)
 }
@@ -2244,17 +2265,21 @@ export const deletePifs = pifs =>
     body: _('deletePifsConfirm', { nPifs: pifs.length }),
   }).then(() => Promise.all(map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))), noop)
 
-export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
+export const reconfigurePifIp = (pif, { mode, ip, ipv6, ipv6Mode, netmask, gateway, dns }) =>
   _call('pif.reconfigureIp', {
     pif: resolveId(pif),
     mode,
     ip,
+    ipv6,
+    ipv6Mode,
     netmask,
     gateway,
     dns,
   })
 
 export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
+
+export const getIpv6ConfigModes = () => _call('pif.getIpv6ConfigurationModes')
 
 export const editPif = (pif, { vlan }) => _call('pif.editPif', { pif: resolveId(pif), vlan })
 
@@ -2596,7 +2621,7 @@ export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remote
 export const restoreBackup = (
   backup,
   sr,
-  { generateNewMacAddresses = false, mapVdisSrs = {}, startOnRestore = false, useDifferentialRestore= false } = {}
+  { generateNewMacAddresses = false, mapVdisSrs = {}, startOnRestore = false, useDifferentialRestore = false } = {}
 ) => {
   const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),

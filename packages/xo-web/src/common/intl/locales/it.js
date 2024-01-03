@@ -2387,9 +2387,6 @@ export default {
   // Original text: 'Invalid parameters'
   configIpErrorTitle: 'Parametri non validi',
 
-  // Original text: 'IP address and netmask required'
-  configIpErrorMessage: 'Indirizzo IP e maschera di rete richiesti',
-
   // Original text: 'Static IP address'
   staticIp: 'Indirizzo IP statico',
 

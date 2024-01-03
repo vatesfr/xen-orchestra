@@ -2,6 +2,7 @@
 
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi/index.mjs'
 
@@ -73,12 +74,34 @@ connect.resolve = {
 // ===================================================================
 // Reconfigure IP
 
-export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
-  const xapi = this.getXapi(pif)
-  await xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
-  if (pif.management) {
-    await xapi.call('host.management_reconfigure', pif._xapiRef)
-  }
+export async function reconfigureIp({ pif, mode, ip = '', netmask = '', gateway = '', dns = '', ipv6, ipv6Mode }) {
+  const task = this.tasks.create({
+    name: `reconfigure ip of: ${pif.device}`,
+    objectId: pif.uuid,
+    type: 'xo:pif:reconfigureIp',
+  })
+  await task.run(async () => {
+    const xapi = this.getXapi(pif)
+
+    if ((ipv6 !== '' && pif.ipv6?.[0] !== ipv6) || (ipv6Mode !== undefined && ipv6Mode !== pif.ipv6Mode)) {
+      await Task.run(
+        { properties: { name: 'reconfigure IPv6', mode: ipv6Mode, ipv6, gateway, dns, objectId: pif.uuid } },
+        () => xapi.call('PIF.reconfigure_ipv6', pif._xapiRef, ipv6Mode, ipv6, gateway, dns)
+      )
+    }
+
+    if (mode !== undefined && mode !== pif.mode) {
+      await Task.run(
+        { properties: { name: 'reconfigure IPv4', mode, ip, netmask, gateway, dns, objectId: pif.uuid } },
+        () => xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+      )
+    }
+    if (pif.management) {
+      await Task.run({ properties: { name: 'reconfigure PIF management', objectId: pif.uuid } }, () =>
+        xapi.call('host.management_reconfigure', pif._xapiRef)
+      )
+    }
+  })
 }
 
 reconfigureIp.params = {
@@ -88,6 +111,8 @@ reconfigureIp.params = {
   netmask: { type: 'string', minLength: 0, optional: true },
   gateway: { type: 'string', minLength: 0, optional: true },
   dns: { type: 'string', minLength: 0, optional: true },
+  ipv6: { type: 'string', minLength: 0, default: '' },
+  ipv6Mode: { enum: getIpv6ConfigurationModes(), optional: true },
 }
 
 reconfigureIp.resolve = {

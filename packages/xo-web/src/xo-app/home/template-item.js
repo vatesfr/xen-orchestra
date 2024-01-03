@@ -87,9 +87,9 @@ export default class TemplateItem extends Component {
               ))}
             </Col>
             <Col mediumSize={4}>
-              <span style={{ fontSize: '1.4em' }}>
+              <div style={{ fontSize: '1.4em' }}>
                 <HomeTags type='VM-template' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </span>
+              </div>
             </Col>
           </Row>
         )}

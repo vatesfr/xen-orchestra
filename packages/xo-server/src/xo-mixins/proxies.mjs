@@ -277,7 +277,7 @@ export default class Proxy {
         namespace,
         version: xva.version,
       }),
-      srId && this.getObject(srId, 'SR')._xapiRef
+      srId && app.getObject(srId, 'SR')._xapiRef
     )
     $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 
