@@ -45,17 +45,10 @@ set.params = {
   color: { type: ['string', 'null'], optional: true },
 }
 
-export async function removeConfiguration({ id }) {
-  await this.deleteTag(id)
-}
-
-removeConfiguration.description = 'Remove tag configuration'
-removeConfiguration.params = {
-  id: { type: 'string' },
-}
+set.permission = 'admin'
 
 export async function getAllConfigured() {
-  return keyBy(await this.getConfiguredTag(), 'id')
+  return keyBy(await this.getConfiguredTags(), 'id')
 }
 
-getAllConfigured.description = 'Get all configured tag'
+getAllConfigured.description = 'Get all configured tags'
