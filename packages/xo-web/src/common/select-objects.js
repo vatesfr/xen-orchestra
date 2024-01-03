@@ -701,9 +701,8 @@ export const SelectUser = makeSubscriptionSelect(
 
     return unsubscribeUsers
   },
-  { placeholder: _('selectCreator') }
+  { placeholder: _('selectUser') }
 )
-
 
 // ===================================================================
 

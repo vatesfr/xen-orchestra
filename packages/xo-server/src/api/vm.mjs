@@ -1,4 +1,5 @@
 import * as multiparty from 'multiparty'
+import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import assignWith from 'lodash/assignWith.js'
 import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
@@ -14,8 +15,6 @@ import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
-
-import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
 
@@ -763,9 +762,13 @@ set.params = {
 
   blockedOperations: { type: 'object', optional: true, properties: { '*': { type: ['boolean', 'null', 'string'] } } },
 
-  creation: {type: 'object', optional: true, properties: {
-    user: {type: 'string', optional: true},
-  }},
+  creation: {
+    type: 'object',
+    optional: true,
+    properties: {
+      user: { type: 'string', optional: true },
+    },
+  },
 
   suspendSr: { type: ['string', 'null'], optional: true },
 

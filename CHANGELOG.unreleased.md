@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-[Vm Creator] Admin can change VM creator (PR [#7276](https://github.com/vatesfr/xen-orchestra/pull/7276))
+[VM/Advanced] Admin can change VM creator [Forum#7313](https://xcp-ng.org/forum/topic/7313/change-created-by-and-date-information) (PR [#7276](https://github.com/vatesfr/xen-orchestra/pull/7276))
 
 ### Bug fixes
 
@@ -32,5 +32,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->

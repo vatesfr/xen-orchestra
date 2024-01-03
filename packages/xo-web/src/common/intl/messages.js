@@ -1426,7 +1426,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
-  selectCreator: 'Select creator',
+  selectUser: 'Select user',
   suspendSr: 'Suspend SR',
   viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
