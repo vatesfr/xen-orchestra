@@ -42,6 +42,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/self-signed minor
 - @xen-orchestra/xapi minor
 - xen-api patch
 - xo-server minor

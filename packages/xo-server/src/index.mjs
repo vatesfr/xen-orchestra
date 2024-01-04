@@ -24,8 +24,8 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
-import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
+import { readCert } from '@xen-orchestra/self-signed/readCert'
 import { URL } from 'url'
 import { verifyTotp } from '@vates/otp'
 
@@ -429,6 +429,7 @@ async function makeWebServerListen(
       delete opts[key]
     }
 
+    let niceAddress
     if (cert && key) {
       if (useAcme) {
         opts.SNICallback = async (serverName, callback) => {
@@ -443,32 +444,30 @@ async function makeWebServerListen(
         }
       }
 
-      try {
-        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
-        if (opts.key.includes('ENCRYPTED')) {
-          opts.passphrase = await new Promise(resolve => {
-            // eslint-disable-next-line no-console
-            console.log('Encrypted key %s', key)
-            process.stdout.write(`Enter pass phrase: `)
-            pw(resolve)
-          })
-        }
-      } catch (error) {
-        if (!(autoCert && error.code === 'ENOENT')) {
-          throw error
-        }
-        const pems = await genSelfSignedCert()
-        await Promise.all([
-          fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
-        ])
-        log.info('new certificate generated', { cert, key })
-        opts.cert = pems.cert
-        opts.key = pems.key
-      }
+      niceAddress = await readCert(cert, key, {
+        autoCert,
+        info: log.info,
+        warn: log.warn,
+        async use({ cert, key }) {
+          if (key.includes('ENCRYPTED')) {
+            opts.passphrase = await new Promise(resolve => {
+              // eslint-disable-next-line no-console
+              console.log('Encrypted key %s', key)
+              process.stdout.write(`Enter pass phrase: `)
+              pw(resolve)
+            })
+          }
+
+          opts.cert = cert
+          opts.key = key
+
+          return webServer.listen(opts)
+        },
+      })
+    } else {
+      niceAddress = await webServer.listen(opts)
     }
 
-    const niceAddress = await webServer.listen(opts)
     log.info(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
