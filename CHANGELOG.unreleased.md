@@ -39,7 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/xapi patch
+- @xen-orchestra/xapi minor
 - xen-api patch
 - xo-server patch
 - xo-server-load-balancer patch
