@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
+
 ## **0.1.7** (2023-12-28)
 
 - [VM/Action] Ability to migrate a VM from its view (PR [#7164](https://github.com/vatesfr/xen-orchestra/pull/7164))

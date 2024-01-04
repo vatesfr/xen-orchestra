@@ -7,7 +7,7 @@ import {
 } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
 import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
-import { computed, type ComputedRef, onUnmounted, ref } from "vue";
+import { computed, type ComputedRef, onUnmounted, ref, type Ref } from "vue";
 
 export type Stat<T> = {
   canBeExpired: boolean;
@@ -42,7 +42,7 @@ export default function useFetchStats<
   T extends XenApiHost | XenApiVm,
   S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
 >(getStats: GetStats<T, S>, granularity: GRANULARITY): FetchedStats<T, S> {
-  const stats = ref<Map<string, Stat<S>>>(new Map());
+  const stats = ref(new Map()) as Ref<Map<string, Stat<S>>>;
   const timestamp = ref<number[]>([0, 0]);
   const abortController = new AbortController();
 
