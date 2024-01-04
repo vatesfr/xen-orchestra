@@ -13,6 +13,7 @@ import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
 import { compact, flatten, map, size, uniq } from 'lodash'
 import { createGetObjectsOfType, createGetHostMetrics, createSelector } from 'selectors'
+import { Host, Pool } from 'render-xo-item'
 import { injectState } from 'reaclette'
 
 import styles from './index.css'
@@ -101,10 +102,15 @@ export default class PoolItem extends Component {
 
   _getPoolLicenseInfo = () => this.props.state.poolLicenseInfoByPoolId[this.props.item.id]
 
+  _getDistinctHostVersions = () => this.props.state.distinctHostVersionsByPoolId[this.props.item.id]
+
   _getAlerts = createSelector(
     () => this.props.isAdmin,
     this._getPoolLicenseInfo,
-    (isAdmin, poolLicenseInfo) => {
+    this._getDistinctHostVersions,
+    () => this.props.poolHosts,
+    () => this.props.item.id,
+    (isAdmin, poolLicenseInfo, distinctHostVersions, hosts, poolId) => {
       const alerts = []
 
       if (isAdmin && this._isXcpngPool()) {
@@ -120,6 +126,27 @@ export default class PoolItem extends Component {
           })
         }
       }
+
+      if (distinctHostVersions.size !== 1) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <div>
+              <p>
+                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={poolId} /> })}
+              </p>
+              <ul>
+                {map(hosts, host => (
+                  <li>
+                    <Host id={host.id} />: {host.version}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        })
+      }
+
       return alerts
     }
   )

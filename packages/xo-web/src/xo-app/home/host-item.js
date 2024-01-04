@@ -30,6 +30,7 @@ import {
   createSelector,
 } from 'selectors'
 import { injectState } from 'reaclette'
+import { Host, Pool } from 'render-xo-item'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
@@ -126,13 +127,16 @@ export default class HostItem extends Component {
       message,
     }
   }
+  _getDistinctHostVersions = () => this.props.state.distinctHostVersionsByPoolId[this.props.item.$pool]
 
   _getAlerts = createSelector(
     () => this.props.needsRestart,
     () => this.props.item,
     this._isMaintained,
     () => this.state.isHostTimeConsistentWithXoaTime,
-    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime) => {
+    this._getDistinctHostVersions,
+    () => this.props.state.hostsByPoolId[this.props.item.$pool],
+    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime, distinctHostVersions, poolHosts) => {
       const alerts = []
 
       if (needsRestart) {
@@ -201,6 +205,27 @@ export default class HostItem extends Component {
           ),
         })
       }
+
+      if (distinctHostVersions.size !== 1) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <div>
+              <p>
+                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} /> })}
+              </p>
+              <ul>
+                {map(poolHosts, host => (
+                  <li>
+                    <Host id={host.id} />: {host.version}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        })
+      }
+
       return alerts
     }
   )
