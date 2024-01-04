@@ -230,6 +230,11 @@ export default class RestApi {
     collections.pools.actions = {
       __proto__: null,
 
+      emergency_shutdown: async ({ xapiObject }) => {
+        await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
+
+        await xapiObject.$xapi.pool_emergencyShutdown()
+      },
       rolling_update: async ({ xoObject }) => {
         await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
 
