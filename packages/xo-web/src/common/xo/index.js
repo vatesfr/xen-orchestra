@@ -360,7 +360,11 @@ export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
 export const subscribeRemotesInfo = createSubscription(() => _call('remote.getAllInfo'))
 
-export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
+export const subscribeProxies = createSubscription(() => {
+  const _isAdmin = isAdmin(store.getState())
+
+  return _isAdmin ? _call('proxy.getAll') : undefined
+})
 
 export const subscribeResourceSets = createSubscription(() => _call('resourceSet.getAll'))
 
