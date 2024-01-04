@@ -31,6 +31,7 @@ const AUTHORIZATIONS = {
     XVA: STARTER, // @todo handleExport in xen-orchestra/packages/xo-server/src/api/vm.mjs
   },
   LIST_MISSING_PATCHES: STARTER,
+  POOL_EMERGENCY_SHUTDOWN: ENTERPRISE,
   ROLLING_POOL_UPDATE: ENTERPRISE,
 }
 

@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
+- [REST API] New pool action: `emergency_shutdown`, it suspends all the VMs and then shuts down all the host [#7277](https://github.com/vatesfr/xen-orchestra/issues/7277) (PR [#7279](https://github.com/vatesfr/xen-orchestra/pull/7279))
 
 ### Bug fixes
 
@@ -41,7 +42,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi minor
 - xen-api patch
-- xo-server patch
+- xo-server minor
 - xo-server-load-balancer patch
 - xo-web minor
 
