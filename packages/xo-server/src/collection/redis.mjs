@@ -192,12 +192,21 @@ export default class Redis extends Collection {
     )
   }
 
+  /**
+   * Fetches the record in the database
+   *
+   * Returns undefined if not present.
+   */
   async #get(key) {
     const { redis } = this
 
     let model
     try {
-      model = await redis.get(key).then(JSON.parse)
+      const json = await redis.get(key)
+
+      if (json !== null) {
+        model = JSON.parse(json)
+      }
     } catch (error) {
       if (!error.message.startsWith('WRONGTYPE')) {
         throw error
