@@ -192,9 +192,9 @@ Any Debian Linux mount point could be supported this way, until we add further o
 
 All your scheduled backups are acccessible in the "Restore" view in the backup section of Xen Orchestra.
 
-1. Select your remote and click on the eye icon to see the VMs available
+1. Search the VM Name and click on the blue button with a white arrow
 2. Choose the backup you want to restore
-3. Select the SR where you want to restore it
+3. Select the SR where you want to restore it and click "OK"
 
 :::tip
 You can restore your backup even on a brand new host/pool and on brand new hardware.
