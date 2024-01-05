@@ -1,6 +1,7 @@
 {
   "about": "About",
   "access-xoa": "Access XOA",
+  "active": "Active",
   "add": "Add",
   "add-filter": "Add filter",
   "add-or": "+OR",
@@ -111,6 +112,7 @@
   "gzip": "gzip",
   "here": "Here",
   "hosts": "Hosts",
+  "inactive": "Inactive",
   "invalid-field": "Invalid field",
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
@@ -218,6 +220,7 @@
   "theme-light": "Light",
   "this-vm-cant-be-migrated": "This VM can't be migrated",
   "top-#": "Top {n}",
+  "total": "Total",
   "total-cpus": "Total CPUs",
   "total-free": "Total free",
   "total-used": "Total used",

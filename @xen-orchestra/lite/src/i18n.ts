@@ -17,6 +17,10 @@ export const locales: Locales = {
     code: "fr",
     name: "Français",
   },
+  de: {
+    code: "de",
+    name: "Deutsch",
+  },
 };
 
 export default createI18n({
@@ -108,5 +112,47 @@ export default createI18n({
         minute: "2-digit",
       },
     },
+    de: {
+      date_short: {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      },
+      date_medium: {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      },
+      date_long: {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+      datetime_short: {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+      datetime_medium: {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+      datetime_long: {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+      time: {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    }
   },
 });
