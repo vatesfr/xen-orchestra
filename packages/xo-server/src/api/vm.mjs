@@ -657,9 +657,9 @@ export const set = defer(async function ($defer, params) {
   }
 
   const creation = extract(params, 'creation')
-  if(creation !== undefined){
+  if (creation !== undefined) {
     const xapiVm = await this.getXapiObject(VM)
-    await xoData.set(xapiVm, {creation})
+    await xoData.set(xapiVm, { creation })
   }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
