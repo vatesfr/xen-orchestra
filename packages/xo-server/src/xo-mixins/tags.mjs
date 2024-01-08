@@ -20,16 +20,7 @@ export default class Tags {
   }
 
   #isColorInHex(color) {
-    return /^#?([0-9A-F]{3}){1,2}$/i.test(color)
-  }
-
-  #convertToLongHex(shortHex) {
-    if (shortHex.length !== 4) {
-      throw invalidParameters('to convert color to full hex format, color must have 4 characters')
-    }
-
-    const [, r, g, b] = shortHex
-    return `#${r}${r}${g}${g}${b}${b}`
+    return /^#?([0-9A-F]{6})$/i.test(color)
   }
 
   async setTag(id, { color }) {
@@ -42,10 +33,9 @@ export default class Tags {
         delete tag.color
       } else {
         if (!this.#isColorInHex(color)) {
-          throw invalidParameters('the color must be in hexadecimal format')
+          throw invalidParameters('the color must be in hexadecimal format #rrggbb')
         }
 
-        color = color.length === 4 ? this.#convertToLongHex(color) : color
         tag.color = color
       }
     }

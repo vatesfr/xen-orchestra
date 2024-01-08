@@ -1,6 +1,7 @@
 import _ from 'intl'
 import filter from 'lodash/filter'
 import includes from 'lodash/includes'
+import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import pFinally from 'promise-toolbox/finally'
 import PropTypes from 'prop-types'
@@ -214,7 +215,7 @@ export default class Tags extends Component {
 }
 
 @addSubscriptions({
-  configuredTags: subscribeConfiguredTags,
+  configuredTags: cb => subscribeConfiguredTags(tags => cb(keyBy(tags, 'id'))),
 })
 export class Tag extends Component {
   render() {

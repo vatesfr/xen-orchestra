@@ -1,5 +1,3 @@
-import keyBy from 'lodash/keyBy.js'
-
 export async function add({ tag, object }) {
   await this.getXapiObject(object).add_tags(tag)
 }
@@ -42,13 +40,13 @@ set.description = 'Set a tag configuration'
 
 set.params = {
   id: { type: 'string' },
-  color: { type: ['string', 'null'], optional: true },
+  color: { nullable: true, optional: true, pattern: '^#?([0-9A-Fa-f]{6})$', type: 'string' },
 }
 
 set.permission = 'admin'
 
 export async function getAllConfigured() {
-  return keyBy(await this.getConfiguredTags(), 'id')
+  return this.getConfiguredTags()
 }
 
 getAllConfigured.description = 'Get all configured tags'
