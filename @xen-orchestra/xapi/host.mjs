@@ -66,16 +66,17 @@ class Host {
     })
 
     const suspendedVms = []
-    if (await this.getField('host', ref, 'enabled')) {
-      await this.callAsync('host.disable', ref)
-      $defer(async () => {
-        // host may have been re-enabled already (by the reboot), this is not an problem
-        await this.callAsync('host.enable', ref)
 
-        // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
-        return asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false))
-      })
-    }
+    await this.callAsync('host.disable', ref)
+
+    // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
+    //
+    // The defers are running in reverse order.
+    $defer(() => asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false)))
+    $defer.onFailure(() =>
+      // if the host has not been rebooted, it might still be disabled and need to be enabled manually
+      this.callAsync('host.enable', ref)
+    )
 
     await asyncEach(
       residentVmRefs,
