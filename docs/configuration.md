@@ -163,4 +163,12 @@ location /[<path>] {
 }
 ```
 
+### Xen-orchestra config
+
+Allow Xen Orchestra to use the Forwarded Header for the reverse proxy.
+```
+[http]
+useForwardedHeaders = ['127.0.0.1']
+```
+
 That's all!
