@@ -178,7 +178,7 @@ export default class PerformancePlan extends Plan {
       const state = this._getThresholdState(exceededAverages)
       if (
         destinationAverages.cpu + vmAverages.cpu >= this._thresholds.cpu.low ||
-        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.cpu.high ||
+        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.memory.high ||
         (!state.cpu &&
           !state.memory &&
           (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
