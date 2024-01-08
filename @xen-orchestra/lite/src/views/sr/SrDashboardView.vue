@@ -2,7 +2,7 @@
   <div class="sr-dashboard-view">
     
     <UiCard class="group about">
-      <UiCardTitle>{{ $t("details") }}</UiCardTitle>
+      <UiCardTitle>{{ $t("general") }}</UiCardTitle>
       <div class="sections">
         <div>
           <UiKeyValueList>
