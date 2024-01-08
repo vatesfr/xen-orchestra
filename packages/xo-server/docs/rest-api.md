@@ -117,6 +117,16 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
 
+## Task monitoring
+
+When fetching a task record, the special `wait` query string can be used. If its value is `result` it will wait for the task to be resolved (either success or failure) before returning, otherwise it will wait for the next change of state.
+
+```sh
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/tasks/0lr4zljbe?wait=result'
+```
+
 ## Properties update
 
 > This feature is restricted to `name_label`, `name_description` and `tags` at the moment.
@@ -303,9 +313,7 @@ curl \
   'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/snapshot'
 ```
 
-By default, actions are asynchronous and return the reference of the task associated with the request.
-
-> Tasks monitoring is still under construcration and will come in a future release :)
+By default, actions are asynchronous and return the reference of the task associated with the request (see [_Task monitoring_](#task-monitoring)).
 
 The `?sync` flag can be used to run the action synchronously without requiring task monitoring. The result of the action will be returned encoded as JSON:
 
