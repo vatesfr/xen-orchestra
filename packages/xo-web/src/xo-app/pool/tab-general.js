@@ -103,7 +103,7 @@ export default decorate([
           </h2>
         </Col>
       </Row>
-      {distinctHostVersions.size === 1 && (
+      {distinctHostVersions.size !== 1 && (
         <Row className='text-xs-center text-danger'>
           <Col>
             <p>
