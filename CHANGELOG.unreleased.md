@@ -7,12 +7,16 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxies] Fix `this.getObject` is not a function during deployment
 - [Settings/Logs] Fix `sr.getAllUnhealthyVdiChainsLength: not enough permissions` error with non-admin users (PR [#7265](https://github.com/vatesfr/xen-orchestra/pull/7265))
+- [Settings/Logs] Fix `proxy.getAll: not enough permissions` error with non-admin users (PR [#7249](https://github.com/vatesfr/xen-orchestra/pull/7249))
+- [Replication/Health Check] Fix `healthCheckVm.add_tag is not a function` error [Forum#69156](https://xcp-ng.org/forum/post/69156)
 - [Pool/patches] Resolves [#6415] disable Rolling Pool Update button if host is alone in its pool (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 
 ### Packages to release
@@ -31,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-cli patch
 - xo-server patch
 - xo-web minor

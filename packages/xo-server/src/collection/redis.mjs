@@ -116,6 +116,10 @@ export default class Redis extends Collection {
     return Promise.all(
       map(ids, id => {
         return this.#get(prefix + id).then(model => {
+          if (model === undefined) {
+            return
+          }
+
           model = this._unserialize(model) ?? model
 
           // Mix the identifier in.
@@ -192,12 +196,21 @@ export default class Redis extends Collection {
     )
   }
 
+  /**
+   * Fetches the record in the database
+   *
+   * Returns undefined if not present.
+   */
   async #get(key) {
     const { redis } = this
 
     let model
     try {
-      model = await redis.get(key).then(JSON.parse)
+      const json = await redis.get(key)
+
+      if (json !== null) {
+        model = JSON.parse(json)
+      }
     } catch (error) {
       if (!error.message.startsWith('WRONGTYPE')) {
         throw error
