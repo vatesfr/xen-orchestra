@@ -3,6 +3,7 @@
 ## **next**
 
 - Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
+- Introduce PWA Json Manifest.
 
 ## **0.1.7** (2023-12-28)
 
