@@ -118,6 +118,22 @@ On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the 
 
 If you don't want to have Xen Orchestra exposed directly outside, or just integrating it with your existing infrastructure, you can use a Reverse Proxy.
 
+First of all you need to allow Xen Orchestra to use `X-Forwarded-*` headers to determine the IP addresses of clients:
+
+```toml
+[http]
+# Accepted values for this setting:
+# - false (default): do not use the headers
+# - true: always use the headers
+# - a list of trusted addresses: the headers will be used only if the connection
+#   is coming from one of these addresses
+#
+# More info about the accepted values: https://www.npmjs.com/package/proxy-addr?activeTab=readme#proxyaddrreq-trust
+#
+# > Note: X-Forwarded-* headers are easily spoofed and the detected IP addresses are unreliable.
+useForwardedHeaders = ['127.0.0.1']
+```
+
 ### Apache
 
 As `xo-web` and `xo-server` communicate with _WebSockets_, you need to have the [`mod_proxy`](http://httpd.apache.org/docs/2.4/mod/mod_proxy.html), [`mod_proxy_http`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html), [`mod_proxy_wstunnel`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) and [`mod_rewrite`](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html) modules enabled.
@@ -161,14 +177,6 @@ location /[<path>] {
   # Without a proper value, nginx will have error "client intended to send too large body"
   client_max_body_size 4G;
 }
-```
-
-### Xen-orchestra config
-
-Allow Xen Orchestra to use the Forwarded Header for the reverse proxy.
-```
-[http]
-useForwardedHeaders = ['127.0.0.1']
 ```
 
 That's all!
