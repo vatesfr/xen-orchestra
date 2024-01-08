@@ -34,6 +34,11 @@ class Host {
    * @param {string} ref - Opaque reference of the host
    */
   async smartReboot($defer, ref, bypassBlockedSuspend = false, bypassCurrentVmCheck = false) {
+    await this.callAsync('host.disable', ref)
+
+    // host may have been re-enabled already, this is not an problem
+    $defer.onFailure(() => this.callAsync('host.enable', ref))
+
     let currentVmRef
     try {
       currentVmRef = await this.call('VM.get_by_uuid', await getCurrentVmUuid())
@@ -66,8 +71,6 @@ class Host {
     })
 
     const suspendedVms = []
-
-    await this.callAsync('host.disable', ref)
 
     // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
     //
