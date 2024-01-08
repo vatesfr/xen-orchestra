@@ -19,6 +19,8 @@
       <InfraHostList />
 
       <InfraVmList />
+
+      <InfraSrList />
     </li>
   </ul>
 </template>
@@ -28,6 +30,7 @@ import InfraHostList from "@/components/infra/InfraHostList.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
+import InfraSrList from "@/components/infra/InfraSrList.vue";
 import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 

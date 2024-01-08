@@ -1,6 +1,7 @@
 import pool from "@/router/pool";
 import story from "@/router/story";
 import vm from "@/router/vm";
+import sr from "@/router/sr";
 import HomeView from "@/views/HomeView.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
@@ -25,6 +26,7 @@ const router = createRouter({
     story,
     pool,
     vm,
+    sr,
     {
       path: "/host/:uuid",
       component: () => import("@/views/host/HostRootView.vue"),

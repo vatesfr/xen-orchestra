@@ -5,6 +5,7 @@ import { useRoute, useRouter } from "vue-router";
 
 export const useUiStore = defineStore("ui", () => {
   const currentHostOpaqueRef = ref();
+  const currentSrOpaqueRef = ref();
 
   const { store: colorMode } = useColorMode({ initialValue: "dark" });
 
@@ -27,6 +28,7 @@ export const useUiStore = defineStore("ui", () => {
   return {
     colorMode,
     currentHostOpaqueRef,
+    currentSrOpaqueRef,
     isDesktop,
     isMobile,
     hasUi,

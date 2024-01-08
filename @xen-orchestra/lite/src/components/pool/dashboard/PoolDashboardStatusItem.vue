@@ -5,16 +5,16 @@
       <UiTitle type="h5">{{ label }}</UiTitle>
       <div class="status-line">
         <div class="bullet" />
-        <div class="label">Active</div>
+        <div class="label">{{ $t('active') }}</div>
         <div class="count">{{ active }}</div>
       </div>
       <div class="status-line">
         <div class="bullet inactive" />
-        <div class="label">Inactive</div>
+        <div class="label">{{ $t('inactive') }}</div>
         <div class="count">{{ inactive }}</div>
       </div>
       <div class="total">
-        Total <span>{{ total }}</span>
+        {{ $t('total') }} <span>{{ total }}</span>
       </div>
     </div>
   </div>
