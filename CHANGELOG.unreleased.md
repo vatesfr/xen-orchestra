@@ -36,6 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/xapi patch
 - xo-cli patch
 - xo-server patch
 - xo-server-load-balancer patch

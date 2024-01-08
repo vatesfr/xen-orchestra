@@ -3,7 +3,6 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
-import pRetry from 'promise-toolbox/retry'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
@@ -11,7 +10,7 @@ const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
     // even though the ref could change in case of pool master restart, tests show it stays the same
     const stopWatch = xapi.watchObject(hostRef, host => {
-      if (+host.other_config.agent_start_time > prevAgentStartTime) {
+      if (+host.other_config.agent_start_time > prevAgentStartTime && host.enabled) {
         stopWatch()
         resolve()
       }
@@ -70,11 +69,8 @@ class Host {
     if (await this.getField('host', ref, 'enabled')) {
       await this.callAsync('host.disable', ref)
       $defer(async () => {
-        await pRetry(() => this.callAsync('host.enable', ref), {
-          delay: 10e3,
-          retries: 6,
-          when: { code: 'HOST_STILL_BOOTING' },
-        })
+        // host may have been re-enabled already (by the reboot), this is not an problem
+        await this.callAsync('host.enable', ref)
 
         // Resuming VMs should occur after host enabling to avoid triggering a 'NO_HOSTS_AVAILABLE' error
         return asyncEach(suspendedVms, vmRef => this.callAsync('VM.resume', vmRef, false, false))
