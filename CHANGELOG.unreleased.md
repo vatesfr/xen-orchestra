@@ -13,6 +13,7 @@
 
 - [Proxies] Fix `this.getObject` is not a function during deployment
 - [Settings/Logs] Fix `sr.getAllUnhealthyVdiChainsLength: not enough permissions` error with non-admin users (PR [#7265](https://github.com/vatesfr/xen-orchestra/pull/7265))
+- [Pool/patches] Resolves [#6415] disable Rolling Pool Update button if host is alone in its pool (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 
 ### Packages to release
 
@@ -32,5 +33,6 @@
 
 - xo-cli patch
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->

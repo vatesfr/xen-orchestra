@@ -172,7 +172,7 @@ const INSTALLED_PATCH_COLUMNS = [
       (_, props) => props.pool.id,
       poolId => host => host.$pool === poolId
     )
-  )
+  ),
 })
 export default class TabPatches extends Component {
   render() {
@@ -184,7 +184,6 @@ export default class TabPatches extends Component {
       poolHosts,
       userPreferences,
     } = this.props
-    console.log(poolHosts)
 
     const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
 
