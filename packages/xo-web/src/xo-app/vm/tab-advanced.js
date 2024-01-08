@@ -487,7 +487,7 @@ export default class TabAdvanced extends Component {
     return deleteVtpm(vtpm)
   }
 
-  _updateUser = user => editVm(this.props.vm, { creation: { ...this.props.vm.creation, user: user.id } })
+  _updateUser = user => editVm(this.props.vm, { creation: { user: user.id } })
 
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
