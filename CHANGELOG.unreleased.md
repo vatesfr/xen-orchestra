@@ -18,6 +18,7 @@
 - [Settings/Logs] Fix `proxy.getAll: not enough permissions` error with non-admin users (PR [#7249](https://github.com/vatesfr/xen-orchestra/pull/7249))
 - [Replication/Health Check] Fix `healthCheckVm.add_tag is not a function` error [Forum#69156](https://xcp-ng.org/forum/post/69156)
 - [Plugin/load-balancer] Prevent unwanted migrations to hosts with low free memory (PR [#7288](https://github.com/vatesfr/xen-orchestra/pull/7288))
+- Avoid unnecessary `pool.add_to_other_config: Duplicate key` error in XAPI log [Forum#68761](https://xcp-ng.org/forum/post/68761)
 
 ### Packages to release
 
@@ -37,6 +38,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi patch
+- xen-api patch
 - xo-server patch
 - xo-server-load-balancer patch
 - xo-web minor
