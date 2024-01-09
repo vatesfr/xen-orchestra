@@ -165,14 +165,16 @@ export default class Xapi extends XapiBase {
 
   async emergencyShutdownHost(hostId) {
     const host = this.getObject(hostId)
-    const vms = host.$resident_VMs
     log.debug(`Emergency shutdown: ${host.name_label}`)
-    await asyncMap(vms, vm => {
+
+    await this.call('host.disable', host.$ref)
+
+    await asyncMap(host.$resident_VMs, vm => {
       if (!vm.is_control_domain) {
         return ignoreErrors.call(this.callAsync('VM.suspend', vm.$ref))
       }
     })
-    await this.call('host.disable', host.$ref)
+
     await this.callAsync('host.shutdown', host.$ref)
   }
 

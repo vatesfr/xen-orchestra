@@ -1,11 +1,11 @@
-import { computed, ref, unref } from "vue";
 import type { MaybeRef } from "@vueuse/core";
+import { computed, ref, type Ref, unref } from "vue";
 
 export default function useMultiSelect<T>(
   usableIds: MaybeRef<T[]>,
   selectableIds?: MaybeRef<T[]>
 ) {
-  const $selected = ref<Set<T>>(new Set());
+  const $selected = ref(new Set()) as Ref<Set<T>>;
 
   const selected = computed({
     get() {

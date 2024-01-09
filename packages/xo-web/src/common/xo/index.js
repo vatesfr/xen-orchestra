@@ -34,7 +34,7 @@ import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
-import { getObject } from 'selectors'
+import { getObject, isAdmin } from 'selectors'
 import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
@@ -360,7 +360,11 @@ export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
 export const subscribeRemotesInfo = createSubscription(() => _call('remote.getAllInfo'))
 
-export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
+export const subscribeProxies = createSubscription(() => {
+  const _isAdmin = isAdmin(store.getState())
+
+  return _isAdmin ? _call('proxy.getAll') : undefined
+})
 
 export const subscribeResourceSets = createSubscription(() => _call('resourceSet.getAll'))
 
@@ -564,7 +568,11 @@ subscribeVolumeInfo.forceRefresh = (() => {
   }
 })()
 
-export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => _call('sr.getAllUnhealthyVdiChainsLength'))
+export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => {
+  const _isAdmin = isAdmin(store.getState())
+
+  return _isAdmin ? _call('sr.getAllUnhealthyVdiChainsLength') : undefined
+})
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
 export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
