@@ -900,6 +900,21 @@ const _restartHost = async ({ host, ...opts }) => {
       return _restartHost({ ...opts, host, bypassBackupCheck: true })
     }
 
+    if (masterNeedUpdate(error)) {
+      await chooseAction({
+        body: (
+          <p>
+            <Icon icon='alarm' /> {_('slaveHostMoreUpToDateThanMasterAfterReboot')}
+          </p>
+        ),
+        buttons: [{ label: _('rebootAnyway'), btnStyle: 'warning' }],
+        icon: 'alarm',
+        title: _('restartHostModalTitle'),
+      })
+
+      return _restartHost({ ...opts, host, bypassVersionCheck: true })
+    }
+
     if (noHostsAvailableErrCheck(error)) {
       alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
     }
@@ -926,6 +941,12 @@ const backupIsRunning = (err, poolId) =>
     forbiddenOperation.is(err, {
       reason: `A backup is running on the pool: ${poolId}`,
     }))
+const masterNeedUpdate = err =>
+  err !== undefined &&
+  incorrectState.is(err, {
+    property: 'rebootRequired',
+  })
+
 const noHostsAvailableErrCheck = err => err !== undefined && noHostsAvailable.is(err)
 
 export const restartHosts = (hosts, force = false) => {
