@@ -79,6 +79,25 @@ module.exports = {
         'vue/require-default-prop': 'off', // https://github.com/vuejs/eslint-plugin-vue/issues/2051
       },
     },
+    {
+      files: ['@xen-orchestra/{web-core,lite,web}/src/pages/**/*.vue'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'vue/multi-word-component-names': 'off',
+      },
+    },
+    {
+      files: ['@xen-orchestra/{web-core,lite,web}/typed-router.d.ts'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'eslint-comments/disable-enable-pair': 'off',
+        'eslint-comments/no-unlimited-disable': 'off',
+      },
+    },
   ],
 
   parserOptions: {
