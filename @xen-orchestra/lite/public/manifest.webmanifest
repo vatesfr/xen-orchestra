@@ -6,7 +6,7 @@
   "description": "Integrated local and lightweight solution to manage a local XCP-ng pool.",
   "icons": [
     {
-      "src": "/src/assets/favicon.svg",
+      "src": "/publc/favicon.svg",
       "sizes": "any",
       "type": "image/svg"
      }
