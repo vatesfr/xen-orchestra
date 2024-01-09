@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
+- [xo-cli] Supports NDJSON response for the `rest get` command (it also respects the `--json` flag) [Forum#69326](https://xcp-ng.org/forum/post/69326)
 
 ### Bug fixes
 
@@ -37,7 +38,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi patch
-- xo-cli patch
+- xo-cli minor
 - xo-server patch
 - xo-server-load-balancer patch
 - xo-web minor
