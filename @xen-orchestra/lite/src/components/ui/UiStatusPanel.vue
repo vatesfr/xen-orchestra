@@ -9,10 +9,10 @@
 
 <script lang="ts" setup>
 defineProps<{
-  imageSource: string;
-  title?: string;
-  subtitle?: string;
-}>();
+  imageSource: string
+  title?: string
+  subtitle?: string
+}>()
 </script>
 
 <style lang="postcss" scoped>

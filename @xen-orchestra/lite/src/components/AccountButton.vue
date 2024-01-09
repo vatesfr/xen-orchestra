@@ -6,54 +6,44 @@
         <UiIcon :icon="faAngleDown" class="dropdown-icon" />
       </button>
     </template>
-    <MenuItem :icon="faGear" @click="openSettings">{{
-      $t("settings")
-    }}</MenuItem>
+    <MenuItem :icon="faGear" @click="openSettings">{{ $t('settings') }}</MenuItem>
     <MenuItem :icon="faMessage" @click="openFeedbackUrl">
-      {{ $t("send-us-feedback") }}
+      {{ $t('send-us-feedback') }}
     </MenuItem>
-    <MenuItem
-      :icon="faArrowRightFromBracket"
-      class="menu-item-logout"
-      @click="logout"
-    >
-      {{ $t("log-out") }}
+    <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
+      {{ $t('log-out') }}
     </MenuItem>
   </AppMenu>
 </template>
 
 <script lang="ts" setup>
-import { nextTick } from "vue";
-import { useRouter } from "vue-router";
+import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   faAngleDown,
   faArrowRightFromBracket,
   faCircleUser,
   faGear,
   faMessage,
-} from "@fortawesome/free-solid-svg-icons";
-import AppMenu from "@/components/menu/AppMenu.vue";
-import MenuItem from "@/components/menu/MenuItem.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useXenApiStore } from "@/stores/xen-api.store";
+} from '@fortawesome/free-solid-svg-icons'
+import AppMenu from '@/components/menu/AppMenu.vue'
+import MenuItem from '@/components/menu/MenuItem.vue'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useXenApiStore } from '@/stores/xen-api.store'
 
-const router = useRouter();
+const router = useRouter()
 
 const logout = () => {
-  const xenApiStore = useXenApiStore();
-  xenApiStore.disconnect();
-  nextTick(() => router.push({ name: "home" }));
-};
+  const xenApiStore = useXenApiStore()
+  xenApiStore.disconnect()
+  nextTick(() => router.push({ name: 'home' }))
+}
 
 const openFeedbackUrl = () => {
-  window.open(
-    "https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite",
-    "_blank",
-    "noopener"
-  );
-};
+  window.open('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite', '_blank', 'noopener')
+}
 
-const openSettings = () => router.push({ name: "settings" });
+const openSettings = () => router.push({ name: 'settings' })
 </script>
 
 <style scoped>

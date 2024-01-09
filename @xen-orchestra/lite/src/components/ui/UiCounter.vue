@@ -7,12 +7,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { Color } from "@/types";
+import type { Color } from '@/types'
 
 defineProps<{
-  value: number;
-  color?: Color;
-}>();
+  value: number
+  color?: Color
+}>()
 </script>
 
 <style lang="postcss" scoped>

@@ -3,81 +3,70 @@
 </template>
 
 <script lang="ts" setup>
-import type { LinearChartData, ValueFormatter } from "@/types/chart";
-import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
-import { utcFormat } from "d3-time-format";
-import type { EChartsOption } from "echarts";
-import { LineChart } from "echarts/charts";
-import {
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-} from "echarts/components";
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
-import { computed, provide } from "vue";
-import VueCharts from "vue-echarts";
+import type { LinearChartData, ValueFormatter } from '@/types/chart'
+import { IK_CHART_VALUE_FORMATTER } from '@/types/injection-keys'
+import { utcFormat } from 'd3-time-format'
+import type { EChartsOption } from 'echarts'
+import { LineChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { computed, provide } from 'vue'
+import VueCharts from 'vue-echarts'
 
-const Y_AXIS_MAX_VALUE = 200;
+const Y_AXIS_MAX_VALUE = 200
 
 const props = defineProps<{
-  data: LinearChartData;
-  valueFormatter?: ValueFormatter;
-  maxValue?: number;
-}>();
+  data: LinearChartData
+  valueFormatter?: ValueFormatter
+  maxValue?: number
+}>()
 
 const valueFormatter = computed<ValueFormatter>(() => {
-  const formatter = props.valueFormatter;
+  const formatter = props.valueFormatter
 
-  return (value) => {
+  return value => {
     if (formatter === undefined) {
-      return value.toString();
+      return value.toString()
     }
 
-    return formatter(value);
-  };
-});
+    return formatter(value)
+  }
+})
 
-provide(IK_CHART_VALUE_FORMATTER, valueFormatter);
+provide(IK_CHART_VALUE_FORMATTER, valueFormatter)
 
-use([
-  CanvasRenderer,
-  LineChart,
-  GridComponent,
-  TooltipComponent,
-  LegendComponent,
-]);
+use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
 
 const option = computed<EChartsOption>(() => ({
   legend: {
-    data: props.data.map((series) => series.label),
+    data: props.data.map(series => series.label),
   },
   tooltip: {
-    valueFormatter: (v) => valueFormatter.value(v as number),
+    valueFormatter: v => valueFormatter.value(v as number),
   },
   xAxis: {
-    type: "time",
+    type: 'time',
     axisLabel: {
-      formatter: (timestamp: number) =>
-        utcFormat("%a\n%I:%M\n%p")(new Date(timestamp)),
+      formatter: (timestamp: number) => utcFormat('%a\n%I:%M\n%p')(new Date(timestamp)),
       showMaxLabel: false,
       showMinLabel: false,
     },
   },
   yAxis: {
-    type: "value",
+    type: 'value',
     axisLabel: {
       formatter: valueFormatter.value,
     },
     max: props.maxValue ?? Y_AXIS_MAX_VALUE,
   },
   series: props.data.map((series, index) => ({
-    type: "line",
+    type: 'line',
     name: series.label,
     zlevel: index + 1,
-    data: series.data.map((item) => [item.timestamp, item.value]),
+    data: series.data.map(item => [item.timestamp, item.value]),
   })),
-}));
+}))
 </script>
 
 <style lang="postcss" scoped>

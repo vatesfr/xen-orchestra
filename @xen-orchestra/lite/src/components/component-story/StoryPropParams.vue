@@ -18,12 +18,7 @@
       </tr>
     </tfoot>
     <tbody>
-      <tr
-        v-for="param in params"
-        :key="param.name"
-        :class="{ required: param.isRequired() }"
-        class="row"
-      >
+      <tr v-for="param in params" :key="param.name" :class="{ required: param.isRequired() }" class="row">
         <th class="name">
           {{ param.getFullName() }}
           <sup
@@ -48,11 +43,7 @@
         </td>
         <td class="reset-param">
           <UiIcon
-            v-if="
-              param.hasWidget() &&
-              !param.isRequired() &&
-              model[param.name] !== undefined
-            "
+            v-if="param.hasWidget() && !param.isRequired() && model[param.name] !== undefined"
             :icon="faClose"
             class="reset-icon"
             @click="model[param.name] = undefined"
@@ -74,12 +65,8 @@
           </span>
         </td>
         <td>
-          <code
-            v-if="!param.isRequired()"
-            :class="{ active: model[param.name] === undefined }"
-            class="default-value"
-          >
-            {{ JSON.stringify(param.getDefaultValue()) ?? "undefined" }}
+          <code v-if="!param.isRequired()" :class="{ active: model[param.name] === undefined }" class="default-value">
+            {{ JSON.stringify(param.getDefaultValue()) ?? 'undefined' }}
           </code>
           <span v-else>-</span>
         </td>
@@ -92,42 +79,42 @@
 </template>
 
 <script lang="ts" setup>
-import CodeHighlight from "@/components/CodeHighlight.vue";
-import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
-import StoryWidget from "@/components/component-story/StoryWidget.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useModal } from "@/composables/modal.composable";
-import useSortedCollection from "@/composables/sorted-collection.composable";
-import { vTooltip } from "@/directives/tooltip.directive";
-import type { PropParam } from "@/libs/story/story-param";
-import { faClose, faRepeat } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
-import { toRef } from "vue";
+import CodeHighlight from '@/components/CodeHighlight.vue'
+import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
+import StoryWidget from '@/components/component-story/StoryWidget.vue'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useModal } from '@/composables/modal.composable'
+import useSortedCollection from '@/composables/sorted-collection.composable'
+import { vTooltip } from '@/directives/tooltip.directive'
+import type { PropParam } from '@/libs/story/story-param'
+import { faClose, faRepeat } from '@fortawesome/free-solid-svg-icons'
+import { useVModel } from '@vueuse/core'
+import { toRef } from 'vue'
 
 const props = defineProps<{
-  params: PropParam[];
-  modelValue: Record<string, any>;
-}>();
+  params: PropParam[]
+  modelValue: Record<string, any>
+}>()
 
-const params = useSortedCollection(toRef(props, "params"), (p1, p2) => {
+const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
   if (p1.isRequired() === p2.isRequired()) {
-    return 0;
+    return 0
   }
 
-  return p1.isRequired() ? -1 : 1;
-});
+  return p1.isRequired() ? -1 : 1
+})
 
 const emit = defineEmits<{
-  (event: "reset"): void;
-  (event: "update:modelValue", value: any): void;
-}>();
+  (event: 'reset'): void
+  (event: 'update:modelValue', value: any): void
+}>()
 
-const model = useVModel(props, "modelValue", emit);
+const model = useVModel(props, 'modelValue', emit)
 
 const openRawValueModal = (code: string) =>
-  useModal(() => import("@/components/modals/CodeHighlightModal.vue"), {
+  useModal(() => import('@/components/modals/CodeHighlightModal.vue'), {
     code,
-  });
+  })
 </script>
 
 <style lang="postcss" scoped>

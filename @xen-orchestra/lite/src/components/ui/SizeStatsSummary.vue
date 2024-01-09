@@ -1,7 +1,7 @@
 <template>
-  <div class="summary" v-if="isDisplayed">
+  <div v-if="isDisplayed" class="summary">
     <div class="summary-card">
-      <p>{{ $t("total-used") }}:</p>
+      <p>{{ $t('total-used') }}:</p>
       <div class="summary-value">
         <p>{{ percentUsed }}%</p>
         <p>
@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="summary-card">
-      <p>{{ $t("total-free") }}:</p>
+      <p>{{ $t('total-free') }}:</p>
       <div class="summary-value">
         <p>{{ percentFree }}%</p>
         <p>
@@ -21,20 +21,18 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { formatSize, percent } from "@/libs/utils";
-import { computed } from "vue";
+import { formatSize, percent } from '@/libs/utils'
+import { computed } from 'vue'
 const props = defineProps<{
-  size: number;
-  usage: number;
-}>();
+  size: number
+  usage: number
+}>()
 
-const free = computed(() => props.size - props.usage);
-const percentFree = computed(() => percent(free.value, props.size));
-const percentUsed = computed(() => percent(props.usage, props.size));
+const free = computed(() => props.size - props.usage)
+const percentFree = computed(() => percent(free.value, props.size))
+const percentUsed = computed(() => percent(props.usage, props.size))
 
-const isDisplayed = computed(
-  () => !isNaN(percentUsed.value) && !isNaN(percentFree.value)
-);
+const isDisplayed = computed(() => !isNaN(percentUsed.value) && !isNaN(percentFree.value))
 </script>
 <style lang="postcss" scoped>
 .summary {

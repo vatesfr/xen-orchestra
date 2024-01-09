@@ -10,13 +10,13 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { faRemove } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { faRemove } from '@fortawesome/free-solid-svg-icons'
 
 const emit = defineEmits<{
-  (event: "edit"): void;
-  (event: "remove"): void;
-}>();
+  (event: 'edit'): void
+  (event: 'remove'): void
+}>()
 </script>
 
 <style lang="postcss" scoped>

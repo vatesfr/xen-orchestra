@@ -21,17 +21,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import ProgressCircle from "@/components/ProgressCircle.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import { computed } from 'vue'
+import ProgressCircle from '@/components/ProgressCircle.vue'
+import UiTitle from '@/components/ui/UiTitle.vue'
 
 const props = defineProps<{
-  label: string;
-  active: number;
-  total: number;
-}>();
+  label: string
+  active: number
+  total: number
+}>()
 
-const inactive = computed(() => props.total - props.active);
+const inactive = computed(() => props.total - props.active)
 </script>
 
 <style lang="postcss" scoped>

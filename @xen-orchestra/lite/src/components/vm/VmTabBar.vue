@@ -1,37 +1,37 @@
 <template>
   <UiTabBar>
     <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }">
-      {{ $t("dashboard") }}
+      {{ $t('dashboard') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.console', params: { uuid } }">
-      {{ $t("console") }}
+      {{ $t('console') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.alarms', params: { uuid } }">
-      {{ $t("alarms") }}
+      {{ $t('alarms') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.stats', params: { uuid } }">
-      {{ $t("stats") }}
+      {{ $t('stats') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.system', params: { uuid } }">
-      {{ $t("system") }}
+      {{ $t('system') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.network', params: { uuid } }">
-      {{ $t("network") }}
+      {{ $t('network') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.storage', params: { uuid } }">
-      {{ $t("storage") }}
+      {{ $t('storage') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.tasks', params: { uuid } }">
-      {{ $t("tasks") }}
+      {{ $t('tasks') }}
     </RouterTab>
   </UiTabBar>
 </template>
 
 <script lang="ts" setup>
-import RouterTab from "@/components/RouterTab.vue";
-import UiTabBar from "@/components/ui/UiTabBar.vue";
+import RouterTab from '@/components/RouterTab.vue'
+import UiTabBar from '@/components/ui/UiTabBar.vue'
 
 defineProps<{
-  uuid: string;
-}>();
+  uuid: string
+}>()
 </script>

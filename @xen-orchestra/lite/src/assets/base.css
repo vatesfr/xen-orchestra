@@ -1,11 +1,11 @@
-@import "reset.css";
-@import "theme.css";
-@import "@fontsource/poppins/400.css";
-@import "@fontsource/poppins/500.css";
-@import "@fontsource/poppins/600.css";
-@import "@fontsource/poppins/700.css";
-@import "@fontsource/poppins/900.css";
-@import "@fontsource/poppins/400-italic.css";
+@import 'reset.css';
+@import 'theme.css';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/900.css';
+@import '@fontsource/poppins/400-italic.css';
 
 body {
   min-height: 100vh;
@@ -23,8 +23,7 @@ a {
 code,
 code *,
 pre {
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 .card-view {

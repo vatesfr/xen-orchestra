@@ -1,3 +1,3 @@
-declare module "limit-concurrency-decorator" {
-  export const limitConcurrency: any;
+declare module 'limit-concurrency-decorator' {
+  export const limitConcurrency: any
 }

@@ -13,41 +13,41 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { useVModel, whenever } from "@vueuse/core";
-import { computed } from "vue";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
+import { useVModel, whenever } from '@vueuse/core'
+import { computed } from 'vue'
 
 const props = defineProps<{
-  label: string;
-  collapsible?: boolean;
-  collapsed?: boolean;
-}>();
+  label: string
+  collapsible?: boolean
+  collapsed?: boolean
+}>()
 
 const emit = defineEmits<{
-  (event: "update:collapsed", value: boolean): void;
-}>();
+  (event: 'update:collapsed', value: boolean): void
+}>()
 
-const isCollapsed = useVModel(props, "collapsed", emit);
+const isCollapsed = useVModel(props, 'collapsed', emit)
 
 const toggleCollapse = () => {
   if (props.collapsible) {
-    isCollapsed.value = !isCollapsed.value;
+    isCollapsed.value = !isCollapsed.value
   }
-};
+}
 
 const icon = computed(() => {
   if (!props.collapsible) {
-    return undefined;
+    return undefined
   }
 
-  return isCollapsed.value ? faChevronDown : faChevronUp;
-});
+  return isCollapsed.value ? faChevronDown : faChevronUp
+})
 
 whenever(
   () => !props.collapsible,
   () => (isCollapsed.value = false)
-);
+)
 </script>
 
 <style lang="postcss" scoped>
