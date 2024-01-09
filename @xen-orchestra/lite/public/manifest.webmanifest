@@ -8,7 +8,7 @@
     {
       "src": "/publc/favicon.svg",
       "sizes": "any",
-      "type": "image/svg"
+      "type": "image/svg+xml"
      }
 ]
 }
