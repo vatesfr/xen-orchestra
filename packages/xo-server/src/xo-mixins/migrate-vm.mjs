@@ -167,6 +167,129 @@ export default class MigrateVm {
   }
 
   @decorateWith(deferrable)
+  async _createVdis($defer, { diskChains, sr, xapi, vm }) {
+    const vdis = {}
+    for (const [node, chainByNode] of Object.entries(diskChains)) {
+      const vdi = await xapi._getOrWaitObject(
+        await xapi.VDI_create({
+          name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
+          name_label: '[ESXI]' + chainByNode[0].nameLabel,
+          SR: sr.$ref,
+          virtual_size: chainByNode[0].capacity,
+        })
+      )
+      // it can fail before the vdi is connected to the vm
+
+      $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
+
+      await xapi.VBD_create({
+        VDI: vdi.$ref,
+        VM: vm.$ref,
+      })
+      vdis[node] = vdi
+    }
+    return vdis
+  }
+
+  async #instantiateVhd({ esxi, disk, lookMissingBlockInParent = true, parentVhd, thin }) {
+    const { fileName, path, datastore, isFull } = disk
+    let vhd
+    if (isFull) {
+      vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
+      await vhd.readBlockAllocationTable()
+    } else {
+      if (parentVhd === undefined) {
+        throw new Error(`Can't import delta of a running VM without its parent VHD`)
+      }
+      vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, { lookMissingBlockInParent })
+    }
+    return vhd
+  }
+
+  async #importDiskChain({ esxi, diskChain, lookMissingBlockInParent = true, parentVhd, thin, vdi }) {
+    let vhd
+    for (let diskIndex = 0; diskIndex < diskChain.length; diskIndex++) {
+      const disk = diskChain[diskIndex]
+      vhd = await this.#instantiateVhd({ esxi, disk, lookMissingBlockInParent, parentVhd, thin })
+    }
+    if (thin || parentVhd !== undefined) {
+      const stream = vhd.stream()
+      await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+    } else {
+      // no transformation when there is no snapshot in thick mode
+      const stream = await vhd.rawContent()
+      await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
+    }
+    return vhd
+  }
+
+  async #coldImportDiskChainFromEsxi({ esxi, diskChains, isRunning, stopSource, vdis, thin, vmId }) {
+    if (isRunning) {
+      if (stopSource) {
+        // it the vm was running, we stop it and transfer the data in the active disk
+        await Task.run({ properties: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
+      } else {
+        throw new Error(`can't cold import disk from VM ${vmId} with stopSource disabled `)
+      }
+    }
+
+    await Promise.all(
+      Object.entries(diskChains).map(async ([node, diskChainByNode]) =>
+        Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
+          const vdi = vdis[node]
+          return this.#importDiskChain({ esxi, diskChain: diskChainByNode, thin, vdi })
+        })
+      )
+    )
+  }
+
+  async #warmImportDiskChainFromEsxi({ esxi, diskChains, isRunning, stopSource, thin, vdis, vmId }) {
+    if (!isRunning) {
+      return this.#coldImportDiskChainFromEsxi({ esxi, diskChains, isRunning, stopSource, vdis, vmId })
+    }
+
+    const vhds = await Promise.all(
+      // we need to to the cold import on all disks before stoppng the VM and starting to import the last delta
+      Object.entries(diskChains).map(async ([node, chainByNode]) =>
+        Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
+          const vdi = vdis[node]
+
+          // it can be empty if the VM don't have a snapshot
+          // nothing can be warm tranferred
+          if (chainByNode.length === 1) {
+            return
+          }
+          // if the VM is running we'll transfer everything before the last , which is an active disk
+          //  the esxi api does not allow us to read an active disk
+          // later we'll stop the VM and transfer this snapshot
+          return this.#importDiskChain({ esxi, diskChain: chainByNode.slice(0, -1), thin, vdi })
+        })
+      )
+    )
+
+    if (stopSource) {
+      // The vm was running, we stop it and transfer the data in the active disk
+      await Task.run({ properties: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
+
+      await Promise.all(
+        Object.keys(diskChains).map(async (node, index) => {
+          await Task.run({ properties: { name: `Transfering deltas of ${index}` } }, async () => {
+            const chainByNode = diskChains[node]
+            const vdi = vdis[node]
+            if (vdi === undefined) {
+              throw new Error(`Can't import delta of a running VM without its parent vdi`)
+            }
+            const vhd = vhds[index]
+            return this.#importDiskChain({ esxi, diskChain: chainByNode.slice(-1), parentVhd: vhd, thin, vdi })
+          })
+        })
+      )
+    } else {
+      Task.warning(`Import from  VM ${vmId} with stopSource disabled won't contains the data of the mast snapshot`)
+    }
+  }
+
+  @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
     { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin, stopSource }
@@ -231,96 +354,18 @@ export default class MigrateVm {
       )
       return vm
     })
-
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
-
-    const vhds = await Promise.all(
-      Object.keys(chainsByNodes).map(async (node, userdevice) =>
-        Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
-          const chainByNode = chainsByNodes[node]
-          const vdi = await xapi._getOrWaitObject(
-            await xapi.VDI_create({
-              name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
-              name_label: '[ESXI]' + chainByNode[0].nameLabel,
-              SR: sr.$ref,
-              virtual_size: chainByNode[0].capacity,
-            })
-          )
-          // it can fail before the vdi is connected to the vm
-
-          $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
-
-          await xapi.VBD_create({
-            VDI: vdi.$ref,
-            VM: vm.$ref,
-          })
-          let parentVhd, vhd
-          // if the VM is running we'll transfer everything before the last , which is an active disk
-          //  the esxi api does not allow us to read an active disk
-          // later we'll stop the VM and transfer this snapshot
-          const nbColdDisks = isRunning ? chainByNode.length - 1 : chainByNode.length
-          for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex++) {
-            // the first one  is a RAW disk ( full )
-            const disk = chainByNode[diskIndex]
-            const { fileName, path, datastore, isFull } = disk
-            if (isFull) {
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
-              await vhd.readBlockAllocationTable()
-            } else {
-              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
-            }
-            parentVhd = vhd
-          }
-          // it can be empty if the VM don't have a snapshot and is running
-          if (vhd !== undefined) {
-            if (thin) {
-              const stream = vhd.stream()
-              await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-            } else {
-              // no transformation when there is no snapshot in thick mode
-              const stream = await vhd.rawContent()
-              await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
-            }
-          }
-          return { vdi, vhd }
-        })
-      )
-    )
-
-    if (isRunning && stopSource) {
-      // it the vm was running, we stop it and transfer the data in the active disk
-      await Task.run({ properties: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
-
-      await Promise.all(
-        Object.keys(chainsByNodes).map(async (node, userdevice) => {
-          await Task.run({ properties: { name: `Transfering deltas of ${userdevice}` } }, async () => {
-            const chainByNode = chainsByNodes[node]
-            const disk = chainByNode[chainByNode.length - 1]
-            const { fileName, path, datastore, isFull } = disk
-            const { vdi, vhd: parentVhd } = vhds[userdevice]
-            let vhd
-            if (vdi === undefined) {
-              throw new Error(`Can't import delta of a running VM without its parent vdi`)
-            }
-            if (isFull) {
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
-              await vhd.readBlockAllocationTable()
-            } else {
-              if (parentVhd === undefined) {
-                throw new Error(`Can't import delta of a running VM without its parent VHD`)
-              }
-              // we only want to transfer blocks present in the delta vhd, not the full vhd chain
-              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
-                lookMissingBlockInParent: false,
-              })
-            }
-            const stream = vhd.stream()
-
-            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-          })
-        })
-      )
-    }
+    const vdis = await this._createVdis({ diskChains: chainsByNodes, sr, xapi, vm })
+    $defer.onFailure.call(async () => Object.values(vdis).map(vdi => vdi && xapi.VDI_destroy(vdi.$ref)))
+    await this.#coldImportDiskChainFromEsxi({
+      esxi,
+      diskChains: chainsByNodes,
+      isRunning,
+      stopSource,
+      thin,
+      vdis,
+      vmId,
+    })
 
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
