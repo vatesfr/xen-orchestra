@@ -1,5 +1,6 @@
 import { createSchedule } from '@xen-orchestra/cron'
 import { intersection, uniq } from 'lodash'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
@@ -11,6 +12,11 @@ import { EXECUTION_DELAY, debug } from './utils'
 
 const PERFORMANCE_MODE = 0
 const DENSITY_MODE = 1
+
+// ===================================================================
+
+// Maximum number of concurrent migrations
+const MAX_CONCURRENT_MIGRATIONS = 2
 
 // ===================================================================
 
@@ -115,6 +121,7 @@ class LoadBalancerPlugin {
   constructor(xo) {
     this.xo = xo
 
+    this._concurrentMigrationLimiter = limitConcurrency(MAX_CONCURRENT_MIGRATIONS)
     this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(async () => {
       try {
         await this._executePlans()
@@ -155,11 +162,11 @@ class LoadBalancerPlugin {
     this._poolIds = this._poolIds.concat(pools)
     let plan
     if (mode === PERFORMANCE_MODE) {
-      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     } else if (mode === DENSITY_MODE) {
-      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     } else {
-      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     }
     this._plans.push(plan)
   }

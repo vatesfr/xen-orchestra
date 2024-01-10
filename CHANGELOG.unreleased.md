@@ -40,7 +40,7 @@
 - @xen-orchestra/xapi patch
 - xen-api patch
 - xo-server patch
-- xo-server-load-balancer patch
+- xo-server-load-balancer minor
 - xo-web minor
 
 <!--packages-end-->
