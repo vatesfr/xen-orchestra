@@ -13,7 +13,7 @@ import { alert } from 'modal'
 import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { reportBug } from 'report-bug-button'
-import { deleteApiLog, deleteApiLogs, subscribeApiLogs, subscribeUsers } from 'xo'
+import { deleteApiLog, deleteApiLogs, subscribeApiLogs, subscribeUsers , uuidToLink } from 'xo'
 
 const formatMessage = data =>
   `\`\`\`\n${data.method}\n${JSON.stringify(data.params, null, 2)}\n${JSON.stringify(data.error, null, 2).replace(
@@ -99,7 +99,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: log => alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
+    handler: log => alert(_('logError'), <Copiable tagName='pre'>{uuidToLink(formatLog(log))}</Copiable>),
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
