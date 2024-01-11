@@ -170,13 +170,31 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
   // Registers the sign in form.
   const signInPage = compilePug(await fse.readFile(new URL('../signin.pug', import.meta.url)))
-  express.get('/signin', (req, res, next) => {
-    res.send(
-      signInPage({
-        error: req.flash('error')[0],
-        strategies,
-      })
-    )
+  express.get('/signin', async (req, res, next) => {
+    try {
+      let errorMsg
+      const tokenId = req.query.token
+      if (tokenId !== undefined) {
+        try {
+          const token = await xo.getAuthenticationToken(tokenId)
+
+          req.session.isPersistent = req.query
+          return saveToken(token, req, res, next)
+        } catch (error) {
+          errorMsg = error.message
+        }
+      } else {
+        errorMsg = req.flash('error')[0]
+      }
+      res.send(
+        signInPage({
+          error: errorMsg,
+          strategies,
+        })
+      )
+    } catch (error) {
+      next(error)
+    }
   })
 
   express.get('/signout', (req, res) => {
@@ -206,7 +224,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     }
 
     if (await verifyTotp(req.body.otp, { secret: user.preferences.otp })) {
-      setToken(req, res, next)
+      createAndSaveToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
       res.redirect(303, '/signin-otp')
@@ -216,7 +234,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   const PERMANENT_VALIDITY = ifDef(authCfg.permanentCookieValidity, parseDuration)
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
   const TEN_YEARS = 10 * 365 * 24 * 60 * 60 * 1e3
-  const setToken = async (req, res, next) => {
+  const createAndSaveToken = async (req, res, next) => {
     let { clientId } = req.cookies
     if (clientId === undefined) {
       clientId = Math.random().toString(36).slice(2)
@@ -237,17 +255,20 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
       userId: user.id,
     })
+    delete req.session.user
 
+    return saveToken(token, req, res, next)
+  }
+  const saveToken = async (token, req, res, next) => {
     res.cookie('token', token.id, {
       ...cookieCfg,
 
       // a session (non-permanent) cookie must not have an expiration date
       // because it must not survive browser restart
-      ...(isPersistent ? { expires: new Date(token.expiration) } : undefined),
+      ...(req.session.isPersistent ? { expires: new Date(token.expiration) } : undefined),
     })
 
     delete req.session.isPersistent
-    delete req.session.user
     res.redirect(303, req.flash('return-url')[0] || '/')
   }
 
@@ -288,7 +309,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
           return res.redirect(303, '/signin-otp')
         }
 
-        setToken(req, res, next)
+        createAndSaveToken(req, res, next)
       })(req, res, next)
     }
 
