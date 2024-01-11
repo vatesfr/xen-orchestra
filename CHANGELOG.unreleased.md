@@ -21,6 +21,7 @@
 - [Tags] Add tooltips on `xo:no-bak` and `xo:notify-on-snapshot` tags (PR [#7335](https://github.com/vatesfr/xen-orchestra/pull/7335))
 - [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792) (PR [#7322](https://github.com/vatesfr/xen-orchestra/pull/7322))
 - [Pool/Advanced] Ability to do a `Rolling Pool Reboot` (Enterprise plans) [#6885](https://github.com/vatesfr/xen-orchestra/issues/6885) (PRs [#7243](https://github.com/vatesfr/xen-orchestra/pull/7243), [#7242](https://github.com/vatesfr/xen-orchestra/pull/7242))
+- [Settings/Logs] Transform objects UUIDs into clickable links, leading to the corresponding object page (PR [#7300](https://github.com/vatesfr/xen-orchestra/pull/7300))
 
 ### Bug fixes
 
