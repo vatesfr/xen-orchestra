@@ -2692,7 +2692,7 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- plan -----
-  onlyAvailableToEnterprise: 'Only available to enterprise users',
+  onlyAvailableToEnterprise: 'Only available to Enterprise users',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
