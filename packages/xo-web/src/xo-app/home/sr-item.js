@@ -192,9 +192,9 @@ export default class SrItem extends Component {
               {sr.VDIs.length}x <Icon icon='disk' />
             </Col>
             <Col mediumSize={4}>
-              <span style={{ fontSize: '1.4em' }}>
+              <div style={{ fontSize: '1.4em' }}>
                 <HomeTags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </span>
+              </div>
             </Col>
           </SingleLineRow>
         )}

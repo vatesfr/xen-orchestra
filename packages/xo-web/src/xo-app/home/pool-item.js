@@ -265,9 +265,9 @@ export default class PoolItem extends Component {
               {master.productBrand} {master.version}
             </Col>
             <Col mediumSize={5}>
-              <span style={{ fontSize: '1.4em' }}>
+              <div style={{ fontSize: '1.4em' }}>
                 <HomeTags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </span>
+              </div>
             </Col>
             <Col mediumSize={3} className={styles.itemExpanded}>
               <span>

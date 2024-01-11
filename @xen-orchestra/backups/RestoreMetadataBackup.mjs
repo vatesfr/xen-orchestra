@@ -21,7 +21,7 @@ export class RestoreMetadataBackup {
       })
     } else {
       const metadata = JSON.parse(await handler.readFile(join(backupId, 'metadata.json')))
-      const dataFileName = resolve(backupId, metadata.data ?? 'data.json')
+      const dataFileName = resolve('/', backupId, metadata.data ?? 'data.json').slice(1)
       const data = await handler.readFile(dataFileName)
 
       // if data is JSON, sent it as a plain string, otherwise, consider the data as binary and encode it

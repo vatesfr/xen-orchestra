@@ -2,6 +2,10 @@
 
 ## **next**
 
+- Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
+
+## **0.1.7** (2023-12-28)
+
 - [VM/Action] Ability to migrate a VM from its view (PR [#7164](https://github.com/vatesfr/xen-orchestra/pull/7164))
 - Ability to override host address with `master` URL query param (PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
 - Added tooltip on CPU provisioning warning icon (PR [#7223](https://github.com/vatesfr/xen-orchestra/pull/7223))
@@ -9,7 +13,7 @@
 - Add new UiStatusPanel component (PR [#7227](https://github.com/vatesfr/xen-orchestra/pull/7227))
 - XOA quick deploy (PR [#7245](https://github.com/vatesfr/xen-orchestra/pull/7245))
 - Fix infinite loader when no stats on pool dashboard (PR [#7236](https://github.com/vatesfr/xen-orchestra/pull/7236))
-- [Tree view] Display VMs count when host is minimized (PR [#7185](https://github.com/vatesfr/xen-orchestra/pull/7185))
+- [Tree view] Display VMs count (PR [#7185](https://github.com/vatesfr/xen-orchestra/pull/7185))
 
 ## **0.1.6** (2023-11-30)
 

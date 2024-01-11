@@ -965,7 +965,9 @@ async function _importGlusterVM(xapi, template, lvmsrId) {
     namespace: 'xosan',
     version: template.version,
   })
-  const newVM = await xapi.VM_import(templateStream, this.getObject(lvmsrId, 'SR')._xapiRef)
+  const newVM = await xapi._getOrWaitObject(
+    await xapi.VM_import(templateStream, this.getObject(lvmsrId, 'SR')._xapiRef)
+  )
   await xapi.editVm(newVM, {
     autoPoweron: true,
     name_label: 'XOSAN imported VM',

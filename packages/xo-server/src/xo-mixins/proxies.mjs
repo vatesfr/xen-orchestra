@@ -271,13 +271,15 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    const vm = await xapi.VM_import(
-      await app.requestResource({
-        id: xva.id,
-        namespace,
-        version: xva.version,
-      }),
-      srId && this.getObject(srId, 'SR')._xapiRef
+    const vm = await xapi.getOrWaitObject(
+      await xapi.VM_import(
+        await app.requestResource({
+          id: xva.id,
+          namespace,
+          version: xva.version,
+        }),
+        srId && app.getObject(srId, 'SR')._xapiRef
+      )
     )
     $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 

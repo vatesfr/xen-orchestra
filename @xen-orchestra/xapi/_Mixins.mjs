@@ -1,4 +1,5 @@
 export { default as host } from './host.mjs'
+export { default as pool } from './pool.mjs'
 export { default as SR } from './sr.mjs'
 export { default as task } from './task.mjs'
 export { default as VBD } from './vbd.mjs'

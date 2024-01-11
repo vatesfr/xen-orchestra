@@ -33,7 +33,6 @@ html
                 i.fa.fa-sign-in
                 |  Sign in
       else
-        div.mb-2
         each label, id in strategies
           div: a(href = 'signin/' + id).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
         form(action = 'signin/local' method = 'post')
