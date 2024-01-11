@@ -1,7 +1,9 @@
-#!/usr/bin/env zx
+/* eslint-disable no-console, n/no-process-exit, n/no-extraneous-import */
 
 import argv from 'minimist'
 import { tmpdir } from 'os'
+import { fileURLToPath, URL } from 'url'
+import { $, cd, chalk, fs, path, question, within } from 'zx'
 
 $.verbose = false
 
@@ -266,8 +268,7 @@ if (ghRelease || deploy) {
 
   if (ghRelease) {
     console.log(`Adding LICENSE file to ${dist}`)
-
-    await fs.copy(path.join(__dirname, 'agpl-3.0.txt'), path.join(dist, 'LICENSE'))
+    await fs.copy(fileURLToPath(new URL('agpl-3.0.txt', import.meta.url)), path.join(dist, 'LICENSE'))
   }
 
   if (deploy) {
@@ -390,3 +391,5 @@ if (deploy) {
   \trsync -r --delete /home/${username}/xo-lite/ /home/xo-lite/public/latest
   `)
 }
+
+/* eslint-enable no-console, n/no-process-exit, n/no-extraneous-import */

@@ -47,25 +47,6 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/lite/scripts/release.mjs'],
-      globals: {
-        $: true,
-        fs: true,
-        question: true,
-        chalk: true,
-        cd: true,
-        within: true,
-        path: true,
-        __dirname: true,
-      },
-      rules: {
-        'n/shebang': 'off',
-        'n/no-extraneous-import': 'off',
-        'no-console': 'off',
-        'n/no-process-exit': 'off',
-      },
-    },
-    {
       files: ['@xen-orchestra/lite/**/*.{vue,ts}'],
       parserOptions: {
         sourceType: 'module',
