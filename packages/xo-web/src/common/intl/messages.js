@@ -912,7 +912,7 @@ const messages = {
   poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
-  rollingPoolReboot: 'Rolling pool reboot',
+  rollingPoolReboot: 'Rolling Pool Reboot',
   rollingPoolRebootHaWarning: 'High Availability is enabled. This will automatically disable it during the reboot.',
   rollingPoolRebootLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the reboot.',
