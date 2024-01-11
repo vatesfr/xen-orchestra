@@ -391,3 +391,5 @@ if (deploy) {
   \trsync -r --delete /home/${username}/xo-lite/ /home/xo-lite/public/latest
   `)
 }
+
+/* eslint-enable no-console, n/no-process-exit, n/no-extraneous-import */
