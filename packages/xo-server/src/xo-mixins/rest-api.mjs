@@ -361,7 +361,7 @@ export default class RestApi {
         })
       )
       .get(
-        ['/backups/logs/:id', '/restore/logs/:id'],
+        ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
         })
