@@ -202,7 +202,7 @@ export default class TabPatches extends Component {
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
-                  tooltip={isSingleHost ? _('isSingleHost') : null}
+                  tooltip={isSingleHost ? _('isSingleHost') : undefined}
                 />
               )}
               <TabButton
