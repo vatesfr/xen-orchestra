@@ -261,8 +261,18 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     }
 
     const matches = url.match(SIGNIN_STRATEGY_RE)
-    if (matches) {
-      return passport.authenticate(matches[1], async (err, user, info) => {
+    if (matches !== null) {
+      let provider = matches[1]
+      if (provider === 'dispatch') {
+        provider = req.body.provider
+      }
+
+      // directly from the signin form, not a callback
+      if (matches[2] === undefined) {
+        req.session.isPersistent = req.body['remember-me'] === 'on'
+      }
+
+      return passport.authenticate(provider, async (err, user, info) => {
         if (err) {
           return next(err)
         }
@@ -273,7 +283,6 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
         }
 
         req.session.user = { id: user.id, preferences: user.preferences }
-        req.session.isPersistent = matches[1] === 'local' && req.body['remember-me'] === 'on'
 
         if (user.preferences?.otp !== undefined) {
           return res.redirect(303, '/signin-otp')
