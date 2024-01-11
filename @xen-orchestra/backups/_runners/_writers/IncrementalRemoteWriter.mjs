@@ -205,7 +205,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
           }
-          
+
           // don't write it as transferSize += await async function
           // since i += await asyncFun lead to race condition
           // as explained : https://eslint.org/docs/latest/rules/require-atomic-updates
