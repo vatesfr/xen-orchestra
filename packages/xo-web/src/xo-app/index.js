@@ -285,6 +285,12 @@ export default class XoApp extends Component {
     }
   }
 
+  componentDidUpdate(prev) {
+    if (prev.location.pathname !== this.props.location.pathname) {
+      Modal.close()
+    }
+  }
+
   _shortcutsHandler = (command, event) => {
     event.preventDefault()
     switch (command) {
