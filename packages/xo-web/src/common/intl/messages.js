@@ -917,7 +917,7 @@ const messages = {
   rollingPoolRebootLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the reboot.',
   rollingPoolRebootMessage:
-    'Are you sure you want to start a rolling pool reboot? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
+    'Are you sure you want to start a Rolling Pool Reboot? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
 
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
