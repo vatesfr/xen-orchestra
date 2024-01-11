@@ -26,6 +26,7 @@
     "@vates/async-each": "^1.0.0",
     "@vates/decorate-with": "^2.0.0",
     "@vates/nbd-client": "^3.0.0",
+    "@vates/task": "^0.2.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "d3-time-format": "^4.1.0",

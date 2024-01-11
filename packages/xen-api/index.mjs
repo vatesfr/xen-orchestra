@@ -361,7 +361,16 @@ export class Xapi extends EventEmitter {
     if (value === null) {
       return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
     }
+
     while (true) {
+      // First, remove any previous value to avoid triggering an unnecessary
+      // `MAP_DUPLICATE_KEY` error which will appear in the XAPI logs
+      //
+      // This is safe because this method does not throw if the entry is missing.
+      //
+      // See https://xcp-ng.org/forum/post/68761
+      await this.call(`${type}.remove_from_${field}`, ref, entry)
+
       try {
         await this.call(`${type}.add_to_${field}`, ref, entry, value)
         return
@@ -370,7 +379,6 @@ export class Xapi extends EventEmitter {
           throw error
         }
       }
-      await this.call(`${type}.remove_from_${field}`, ref, entry)
     }
   }
 

@@ -8,6 +8,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
+- [REST API] New pool action: `emergency_shutdown`, it suspends all the VMs and then shuts down all the host [#7277](https://github.com/vatesfr/xen-orchestra/issues/7277) (PR [#7279](https://github.com/vatesfr/xen-orchestra/pull/7279))
+- [Tasks] Hide `/rrd_updates` tasks by default
 
 ### Bug fixes
 
@@ -18,6 +20,9 @@
 - [Settings/Logs] Fix `proxy.getAll: not enough permissions` error with non-admin users (PR [#7249](https://github.com/vatesfr/xen-orchestra/pull/7249))
 - [Replication/Health Check] Fix `healthCheckVm.add_tag is not a function` error [Forum#69156](https://xcp-ng.org/forum/post/69156)
 - [Plugin/load-balancer] Prevent unwanted migrations to hosts with low free memory (PR [#7288](https://github.com/vatesfr/xen-orchestra/pull/7288))
+- Avoid unnecessary `pool.add_to_other_config: Duplicate key` error in XAPI log [Forum#68761](https://xcp-ng.org/forum/post/68761)
+- [Jobs] Reset parameters when editing method to avoid invalid parameters on execution [Forum#69299](https://xcp-ng.org/forum/post/69299)
+- [Metadata Backup] Fix `ENOENT` error when restoring an _XO Config_ backup [Forum#68999](https://xcp-ng.org/forum/post/68999)
 - [Pool/patches] Resolves [#6415] disable Rolling Pool Update button if host is alone in its pool (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 
 ### Packages to release
@@ -37,9 +42,9 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/xapi patch
-- xo-cli patch
-- xo-server patch
+- @xen-orchestra/xapi minor
+- xen-api patch
+- xo-server minor
 - xo-server-load-balancer patch
 - xo-web minor
 
