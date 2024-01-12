@@ -102,15 +102,15 @@ export default class PoolItem extends Component {
 
   _getPoolLicenseInfo = () => this.props.state.poolLicenseInfoByPoolId[this.props.item.id]
 
-  _getDistinctHostVersions = () => this.props.state.distinctHostVersionsByPoolId[this.props.item.id]
+  _getAreHostsVersionsEqual = () => this.props.state.areHostsVersionsEqualByPool[this.props.item.id]
 
   _getAlerts = createSelector(
     () => this.props.isAdmin,
     this._getPoolLicenseInfo,
-    this._getDistinctHostVersions,
+    this._getAreHostsVersionsEqual,
     () => this.props.poolHosts,
     () => this.props.item.id,
-    (isAdmin, poolLicenseInfo, distinctHostVersions, hosts, poolId) => {
+    (isAdmin, poolLicenseInfo, areHostsVersionsEqual, hosts, poolId) => {
       const alerts = []
 
       if (isAdmin && this._isXcpngPool()) {
@@ -127,13 +127,13 @@ export default class PoolItem extends Component {
         }
       }
 
-      if (distinctHostVersions.size !== 1) {
+      if (!areHostsVersionsEqual) {
         alerts.push({
           level: 'danger',
           render: (
             <div>
               <p>
-                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={poolId} /> })}
+                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={poolId} link /> })}
               </p>
               <ul>
                 {map(hosts, host => (

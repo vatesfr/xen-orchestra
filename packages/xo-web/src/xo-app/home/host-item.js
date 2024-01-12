@@ -127,16 +127,16 @@ export default class HostItem extends Component {
       message,
     }
   }
-  _getDistinctHostVersions = () => this.props.state.distinctHostVersionsByPoolId[this.props.item.$pool]
+  _getAreHostsVersionsEqual = () => this.props.state.areHostsVersionsEqualByPool[this.props.item.$pool]
 
   _getAlerts = createSelector(
     () => this.props.needsRestart,
     () => this.props.item,
     this._isMaintained,
     () => this.state.isHostTimeConsistentWithXoaTime,
-    this._getDistinctHostVersions,
+    this._getAreHostsVersionsEqual,
     () => this.props.state.hostsByPoolId[this.props.item.$pool],
-    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime, distinctHostVersions, poolHosts) => {
+    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime, areHostsVersionsEqual, poolHosts) => {
       const alerts = []
 
       if (needsRestart) {
@@ -206,13 +206,13 @@ export default class HostItem extends Component {
         })
       }
 
-      if (distinctHostVersions.size !== 1) {
+      if (!areHostsVersionsEqual) {
         alerts.push({
           level: 'danger',
           render: (
             <div>
               <p>
-                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} /> })}
+                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} link /> })}
               </p>
               <ul>
                 {map(poolHosts, host => (

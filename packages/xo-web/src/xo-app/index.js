@@ -1,6 +1,7 @@
 import Component from 'base-component'
 import cookies from 'js-cookie'
 import DocumentTitle from 'react-document-title'
+import every from 'lodash/every'
 import Icon from 'icon'
 import Link from 'link'
 import map from 'lodash/map'
@@ -231,8 +232,8 @@ export const ICON_POOL_LICENSE = {
       placeholder: '',
     },
     isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
-    distinctHostVersionsByPoolId: ({ hostsByPoolId }) =>
-      mapValues(hostsByPoolId, hosts => new Set(map(hosts, 'version'))),
+    areHostsVersionsEqualByPool: ({ hostsByPoolId }) =>
+      mapValues(hostsByPoolId, hosts => every(hosts, host => host.version === hosts[0].version)),
   },
 })
 export default class XoApp extends Component {

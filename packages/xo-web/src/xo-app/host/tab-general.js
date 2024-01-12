@@ -23,11 +23,11 @@ import LicenseWarning from './license-warning'
 export default decorate([
   provideState({
     computed: {
-      distinctHostVersions: ({ distinctHostVersionsByPoolId }, { host }) => distinctHostVersionsByPoolId[host.$pool],
+      areHostsVersionsEqual: ({ areHostsVersionsEqualByPool }, { host }) => areHostsVersionsEqualByPool[host.$pool],
     },
   }),
   injectState,
-  ({ statsOverview, host, nVms, vmController, vms, state: { distinctHostVersions } }) => {
+  ({ statsOverview, host, nVms, vmController, vms, state: { areHostsVersionsEqual } }) => {
     const pool = getObject(store.getState(), host.$pool)
     const vmsFilter = encodeURIComponent(new CM.Property('$container', new CM.String(host.id)).toString())
     return (
@@ -165,11 +165,11 @@ export default decorate([
             </h2>
           </Col>
         </Row>
-        {distinctHostVersions.size !== 1 && (
+        {!areHostsVersionsEqual && (
           <Row className='text-xs-center text-danger'>
             <Col>
               <p>
-                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} /> })}
+                <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} link /> })}
               </p>
             </Col>
           </Row>

@@ -18,11 +18,11 @@ import { Pool } from 'render-xo-item'
 export default decorate([
   provideState({
     computed: {
-      distinctHostVersions: ({ distinctHostVersionsByPoolId }, { pool }) => distinctHostVersionsByPoolId[pool.id],
+      areHostsVersionsEqual: ({ areHostsVersionsEqualByPool }, { pool }) => areHostsVersionsEqualByPool[pool.id],
     },
   }),
   injectState,
-  ({ hosts, nVms, pool, srs, state: { distinctHostVersions } }) => (
+  ({ hosts, nVms, pool, srs, state: { areHostsVersionsEqual } }) => (
     <Container>
       <br />
       <Row className='text-xs-center'>
@@ -103,11 +103,11 @@ export default decorate([
           </h2>
         </Col>
       </Row>
-      {distinctHostVersions.size !== 1 && (
+      {!areHostsVersionsEqual && (
         <Row className='text-xs-center text-danger'>
           <Col>
             <p>
-              <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={pool.id} /> })}
+              <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={pool.id} link /> })}
             </p>
           </Col>
         </Row>
