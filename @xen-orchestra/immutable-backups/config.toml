@@ -1,0 +1,14 @@
+
+# how often does the lift immutability script will run to check if 
+# some files need to be made mutable 
+liftEvery =  1h
+
+# you can add as many remote as you want, if you change the id ( here : remote1)
+#[remotes.remote1]
+#root = "/mnt/ssd/vhdblock/" # the absolute path of the root of the backup repository
+#immutabilityDuration = 7d # mandatory
+# optional, default value is false will scan and update the index on start, can be expensive
+#rebuildIndexOnStart = true 
+
+# the index path is optional, default in XDG_DATA_HOME, or if this is not set, in ~/.local/share
+#indexPath = "/var/lib/" # will add automatically the application name immutable-backup 
