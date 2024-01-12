@@ -23,7 +23,6 @@
     "@intlify/unplugin-vue-i18n": "^2.0.0",
     "@novnc/novnc": "^1.4.0",
     "@tsconfig/node18": "^18.2.2",
-    "strip-json-comments": "^5.0.1",
     "@types/d3-time-format": "^4.0.3",
     "@types/file-saver": "^2.0.7",
     "@types/lodash-es": "^4.17.12",
