@@ -938,7 +938,7 @@ const messages = {
   nbdConnection: 'NBD Connection',
   insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
   // ----- Pool patches tab -----
-  isSingleHost: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
+  multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',

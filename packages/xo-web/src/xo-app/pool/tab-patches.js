@@ -187,7 +187,7 @@ export default class TabPatches extends Component {
 
     const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
 
-    const isSingleHost = poolHosts === undefined || size(poolHosts) === 1
+    const isSingleHost = size(poolHosts) < 2
 
     return (
       <Upgrade place='poolPatches' required={2}>
@@ -202,7 +202,7 @@ export default class TabPatches extends Component {
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
-                  tooltip={isSingleHost ? _('isSingleHost') : undefined}
+                  tooltip={isSingleHost ? _('multiHostPoolUpdate') : undefined}
                 />
               )}
               <TabButton
