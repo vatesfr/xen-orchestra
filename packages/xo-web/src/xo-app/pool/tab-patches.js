@@ -235,7 +235,7 @@ export default class TabPatches extends Component {
                       ? _('nVmsRunningOnLocalStorage', {
                           nVms: this.nVmsRunningOnLocalStorage(),
                         })
-                      : null
+                      : undefined
                   }
                 />
               )}
