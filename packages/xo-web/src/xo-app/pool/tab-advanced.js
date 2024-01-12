@@ -440,7 +440,15 @@ export default class TabAdvanced extends Component {
                         value={migrationNetwork}
                         xoType='network'
                       >
-                        {migrationNetwork !== undefined ? <Network id={migrationNetwork.id} /> : _('noValue')}
+                        {pool.otherConfig['xo:migrationNetwork'] === undefined ? (
+                          _('noValue')
+                        ) : migrationNetwork !== undefined ? (
+                          <Network id={migrationNetwork.id} />
+                        ) : (
+                          <span className='text-danger'>
+                            {_('networkIdDeleted', { networkID: pool.otherConfig['xo:migrationNetwork'] })}
+                          </span>
+                        )}
                       </XoSelect>{' '}
                       {migrationNetwork !== undefined && (
                         <a role='button' onClick={this._removeMigrationNetwork}>
@@ -458,7 +466,15 @@ export default class TabAdvanced extends Component {
                         value={backupNetwork}
                         xoType='network'
                       >
-                        {backupNetwork !== undefined ? <Network id={backupNetwork.id} /> : _('noValue')}
+                        {pool.otherConfig['xo:backupNetwork'] === undefined ? (
+                          _('noValue')
+                        ) : backupNetwork !== undefined ? (
+                          <Network id={backupNetwork.id} />
+                        ) : (
+                          <span className='text-danger'>
+                            {_('networkIdDeleted', { networkID: pool.otherConfig['xo:backupNetwork'] })}
+                          </span>
+                        )}
                       </XoSelect>{' '}
                       {backupNetwork !== undefined && (
                         <a role='button' onClick={this._removeBackupNetwork}>
