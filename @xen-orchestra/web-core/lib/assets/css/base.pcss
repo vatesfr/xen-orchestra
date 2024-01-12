@@ -1,0 +1,53 @@
+@import '_colors.pcss';
+@import '_reset.pcss';
+@import '_fonts.pcss';
+@import '_context.pcss';
+@import '_shadows.pcss';
+@import '_typography.pcss';
+
+:root {
+  color: var(--color-blue-scale-100);
+  background-color: var(--background-color-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  &.dark {
+    color-scheme: dark;
+  }
+}
+
+a {
+  color: var(--color-purple-base);
+}
+
+code,
+code *,
+pre {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+.card-view {
+  padding: 1.2rem;
+  display: flex;
+  gap: 2rem;
+}
+
+.link {
+  text-decoration: underline;
+  color: var(--color-purple-base);
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-purple-d20);
+}
+
+.link:active,
+.link.router-link-active {
+  color: var(--color-purple-d40);
+}
+
+.link.router-link-active {
+  text-decoration: underline;
+}

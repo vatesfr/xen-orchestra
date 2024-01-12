@@ -41,9 +41,9 @@ watchEffect(() => {
   display: inline-flex;
   padding: 0.3125em 0.5em;
   pointer-events: none;
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: 0.5em;
-  background-color: var(--color-blue-scale-100);
+  background-color: var(--color-grey-100);
   z-index: 2;
 }
 
@@ -145,6 +145,6 @@ watchEffect(() => {
   content: '';
   transform: rotate(45deg) skew(20deg, 20deg);
   border-radius: 0.3125em;
-  background-color: var(--color-blue-scale-100);
+  background-color: var(--color-grey-100);
 }
 </style>

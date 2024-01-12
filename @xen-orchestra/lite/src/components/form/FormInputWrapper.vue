@@ -96,7 +96,7 @@ useContext(DisabledContext, () => props.disabled)
 
   &.light {
     font-size: 1.6rem;
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
     font-weight: 400;
   }
 
@@ -104,7 +104,7 @@ useContext(DisabledContext, () => props.disabled)
     font-size: 1.4rem;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--color-blue-scale-100);
+    color: var(--color-grey-100);
   }
 }
 
@@ -126,7 +126,7 @@ useContext(DisabledContext, () => props.disabled)
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
 
   & > span {
     text-decoration: underline;
@@ -134,14 +134,14 @@ useContext(DisabledContext, () => props.disabled)
 }
 
 .warning {
-  color: var(--color-orange-world-base);
+  color: var(--color-orange-base);
 }
 
 .error {
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 }
 
 .help {
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
 }
 </style>

@@ -25,7 +25,7 @@ defineProps<{
   font-size: 1.3rem;
   line-height: 150%;
   margin: 0.5rem 0;
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 
   & svg {
     margin-right: 0.5rem;

@@ -29,18 +29,18 @@ defineProps<{
   align-items: center;
   height: 6rem;
   padding: 0 1.5rem;
-  border-bottom: 1px solid var(--color-blue-scale-400);
+  border-bottom: 1px solid var(--color-grey-500);
   background-color: var(--background-color-primary);
   gap: 0.8rem;
 }
 
 .icon {
   font-size: 2.5rem;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
 }
 
 .title {
   font-size: 2.5rem;
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
 }
 </style>

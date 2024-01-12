@@ -24,8 +24,8 @@ defineProps<{
   font-weight: 500;
   padding: 0 0.8rem;
   height: 1.8em;
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: 9.6rem;
-  background-color: var(--color-blue-scale-300);
+  background-color: var(--color-grey-300);
 }
 </style>

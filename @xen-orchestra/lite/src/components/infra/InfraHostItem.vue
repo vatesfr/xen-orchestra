@@ -65,7 +65,7 @@ const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.
 }
 
 .master-icon {
-  color: var(--color-orange-world-base);
+  color: var(--color-orange-base);
 }
 
 .vm-count {
@@ -76,9 +76,9 @@ const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.
   justify-content: center;
   width: var(--size);
   height: var(--size);
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: calc(var(--size) / 2);
-  background-color: var(--color-extra-blue-base);
+  background-color: var(--color-purple-base);
   --size: 2.3rem;
 }
 </style>

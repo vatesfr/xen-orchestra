@@ -25,15 +25,15 @@ defineProps<{
 }
 
 .icon {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   font-size: 3.2rem;
 }
 
 .separator {
   height: 4.5rem;
   width: 0;
-  border-left: 0.1rem solid var(--color-extra-blue-base);
-  background-color: var(--color-extra-blue-base);
+  border-left: 0.1rem solid var(--color-purple-base);
+  background-color: var(--color-purple-base);
   margin: 0 1.5rem;
 }
 

@@ -29,10 +29,10 @@ defineProps<{
   white-space: nowrap;
   border-radius: 0.8rem;
   gap: 1rem;
-  background-color: var(--color-blue-scale-500);
+  background-color: var(--color-grey-600);
 
   &.disabled {
-    color: var(--color-blue-scale-400);
+    color: var(--color-grey-500);
   }
 
   &:not(.disabled) {
@@ -44,8 +44,8 @@ defineProps<{
 
     &:active,
     &.active {
-      color: var(--color-extra-blue-base);
-      background-color: var(--background-color-extra-blue);
+      color: var(--color-purple-base);
+      background-color: var(--background-color-purple-10);
     }
   }
 }

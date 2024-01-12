@@ -127,14 +127,14 @@ const openRawValueModal = (code: string) =>
     align-items: center;
     padding: 0.4rem 0.6rem;
     cursor: pointer;
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
     border-radius: 0.4rem;
     gap: 0.6rem;
 
     &.active {
       font-weight: 600;
       cursor: default;
-      color: var(--color-green-infra-l20);
+      color: var(--color-green-l20);
     }
   }
 }
@@ -157,7 +157,7 @@ const openRawValueModal = (code: string) =>
 
 .help {
   font-style: italic;
-  color: var(--color-blue-scale-200);
+  color: var(--color-grey-200);
 }
 
 .default-value {
@@ -168,12 +168,12 @@ const openRawValueModal = (code: string) =>
     font-weight: 600;
     font-style: normal;
     opacity: 1;
-    color: var(--color-green-infra-base);
+    color: var(--color-green-base);
   }
 }
 
 .v-model-indicator,
 .context-indicator {
-  color: var(--color-green-infra-base);
+  color: var(--color-green-base);
 }
 </style>

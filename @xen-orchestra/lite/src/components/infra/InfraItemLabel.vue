@@ -40,27 +40,27 @@ const hasTooltip = computed(() => hasEllipsis(textElement.value))
 .infra-item-label {
   display: flex;
   align-items: stretch;
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);
 
   &:hover {
-    color: var(--color-blue-scale-100);
+    color: var(--color-grey-100);
     background-color: var(--background-color-secondary);
   }
 
   &:active,
   &.active {
-    color: var(--color-extra-blue-base);
+    color: var(--color-purple-base);
     background-color: var(--background-color-primary);
   }
 
   &.exact-active {
-    color: var(--color-blue-scale-100);
-    background-color: var(--background-color-extra-blue);
+    color: var(--color-grey-100);
+    background-color: var(--background-color-purple-10);
 
     .icon {
-      color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
     }
   }
 }

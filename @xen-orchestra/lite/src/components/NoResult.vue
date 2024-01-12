@@ -27,6 +27,6 @@
   font-weight: 500;
   font-size: 2rem;
   line-height: 150%;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
 }
 </style>
