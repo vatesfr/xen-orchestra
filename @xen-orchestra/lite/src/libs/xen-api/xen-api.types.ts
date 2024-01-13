@@ -60,6 +60,8 @@ type ObjectTypeToRecordMapping = {
   vm: XenApiVm;
   vm_guest_metrics: XenApiVmGuestMetrics;
   vm_metrics: XenApiVmMetrics;
+  vdi: XenApiVdi;
+  vbd: XenApiVbd;
 };
 
 export type ObjectTypeToRecord<Type extends ObjectType> =
@@ -116,6 +118,8 @@ export interface XenApiHost extends XenApiRecord<"host"> {
 export interface XenApiSr extends XenApiRecord<"sr"> {
   content_type: string;
   name_label: string;
+  name_description: string;
+  type: string;
   physical_size: number;
   physical_utilisation: number;
   shared: boolean;
