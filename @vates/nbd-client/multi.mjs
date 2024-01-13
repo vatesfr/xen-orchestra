@@ -41,9 +41,7 @@ export default class MultiNbdClient {
     }
     if (connectedClients.length < this.#clients.length) {
       warn(
-        `incomplete connection by multi Nbd, only ${connectedClients.length} over ${
-          this.#clients.length
-        } expected clients`
+        `incomplete connection by multi Nbd, only ${connectedClients.length} over ${this.#clients.length} expected clients`
       )
       this.#clients = connectedClients
     }
