@@ -306,7 +306,7 @@ class Merger {
     const finalVhdSize = this.#state?.vhdSize ?? 0
     const mergedDataSize = this.#state?.mergedDataSize ?? 0
     await this.#handler.unlink(this.#statePath).catch(warn)
-    return { mergedDataSize, finalVhdSize}
+    return { mergedDataSize, finalVhdSize }
   }
 }
 

@@ -283,7 +283,14 @@ export default class Jobs extends Component {
     })
   }
 
-  _handleSelectMethod = action => this.setState({ action })
+  _handleSelectMethod = action => {
+    this.setState({ action })
+
+    // reset parameters
+    //
+    // see https://xcp-ng.org/forum/post/69299
+    this.refs.params.value = undefined
+  }
 
   _handleSubmit = () => {
     const { name, method, params } = this.refs

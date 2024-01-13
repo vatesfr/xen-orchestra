@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [xo-cli] Supports NDJSON response for the `rest get` command (it also respects the `--json` flag) [Forum#69326](https://xcp-ng.org/forum/post/69326)
+
+## Released packages
+
+- xo-cli 0.24.0
+
 ## **5.90.0** (2023-12-29)
 
 ### Highlights
