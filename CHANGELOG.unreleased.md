@@ -59,6 +59,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/self-signed minor
 - @xen-orchestra/xapi minor
+- @vates/fuse-vhd minor
 - xen-api patch
 - xo-server minor
 - xo-server-load-balancer minor
