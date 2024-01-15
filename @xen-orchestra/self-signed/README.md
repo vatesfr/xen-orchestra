@@ -59,10 +59,10 @@ const { cert, key } = await readCert('path/to/cert.pem', 'path/to/key.pem', {
   mode: 0o400,
 
   // this function is called when there is a non fatal error (fatal errors are thrown)
-  warn: console.warn.
+  warn: console.warn,
 })
 
-// unfortunately some cer/key issues are detected only when attempting to use them
+// unfortunately some cert/key issues are detected only when attempting to use them
 //
 // that's why you can pass a `use` function to `readCert` that will received the pair
 // and in case some specific errors are thrown, it will trigger a new generation
@@ -75,7 +75,7 @@ await readCert('path/to/cert.pem', 'path/to/key.pem', {
     await new Promise((resolve, reject) => {
       server.once('error', reject).listen(443, resolve)
     })
-  }
+  },
 })
 ```
 
