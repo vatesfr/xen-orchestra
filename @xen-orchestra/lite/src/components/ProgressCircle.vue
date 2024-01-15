@@ -1,9 +1,5 @@
 <template>
-  <svg
-    class="progress-circle"
-    viewBox="0 0 36 36"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg class="progress-circle" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
     <path
       class="progress-circle-background"
       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -12,31 +8,29 @@
       class="progress-circle-fill"
       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
     />
-    <text class="progress-circle-text" text-anchor="middle" x="50%" y="50%">
-      {{ progress }}%
-    </text>
+    <text class="progress-circle-text" text-anchor="middle" x="50%" y="50%">{{ progress }}%</text>
   </svg>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed } from 'vue'
 
 interface Props {
-  value: number;
-  maxValue?: number;
+  value: number
+  maxValue?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxValue: 100,
-});
+})
 
 const progress = computed(() => {
   if (props.maxValue === 0) {
-    return 0;
+    return 0
   }
 
-  return Math.round((props.value / props.maxValue) * 100);
-});
+  return Math.round((props.value / props.maxValue) * 100)
+})
 </script>
 
 <style lang="postcss" scoped>

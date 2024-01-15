@@ -1,7 +1,7 @@
 <template>
   <div class="no-result">
     <img alt="" class="img" src="@/assets/no-result.svg" />
-    <p class="text-info">{{ $t("no-result") }}</p>
+    <p class="text-info">{{ $t('no-result') }}</p>
   </div>
 </template>
 

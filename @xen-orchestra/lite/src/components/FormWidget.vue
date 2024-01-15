@@ -26,18 +26,17 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  before?: IconDefinition | string | object; // "object" added as workaround
-  after?: IconDefinition | string | object; // See https://github.com/vuejs/core/issues/4294
-  label?: string;
-  inline?: boolean;
-}>();
+  before?: IconDefinition | string | object // "object" added as workaround
+  after?: IconDefinition | string | object // See https://github.com/vuejs/core/issues/4294
+  label?: string
+  inline?: boolean
+}>()
 
-const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
-  typeof maybeIcon === "object";
+const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon === 'object'
 </script>
 
 <style lang="postcss" scoped>
@@ -103,7 +102,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   }
 }
 
-:slotted(input[type="checkbox"]) {
+:slotted(input[type='checkbox']) {
   font: inherit;
   display: grid;
   flex: 1.5rem 0 0;
@@ -121,7 +120,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   &::before {
     width: 0.65em;
     height: 0.65em;
-    content: "";
+    content: '';
     transition: 120ms transform ease-in-out;
     transform: scale(0);
     transform-origin: center;

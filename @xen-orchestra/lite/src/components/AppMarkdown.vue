@@ -1,39 +1,40 @@
 <template>
+  <!-- eslint-disable vue/no-v-html -->
   <div ref="rootElement" class="app-markdown" v-html="html" />
+  <!-- eslint-enable vue/no-v-html -->
 </template>
 
 <script lang="ts" setup>
-import markdown from "@/libs/markdown";
-import { useEventListener } from "@vueuse/core";
-import { computed, type Ref, ref } from "vue";
+import markdown from '@/libs/markdown'
+import { useEventListener } from '@vueuse/core'
+import { computed, type Ref, ref } from 'vue'
 
-const rootElement = ref() as Ref<HTMLElement>;
+const rootElement = ref() as Ref<HTMLElement>
 
 const props = defineProps<{
-  content: string;
-}>();
+  content: string
+}>()
 
-const html = computed(() => markdown.parse(props.content ?? ""));
+const html = computed(() => markdown.parse(props.content ?? ''))
 
 useEventListener(
   rootElement,
-  "click",
+  'click',
   (event: MouseEvent) => {
-    const target = event.target as HTMLElement;
+    const target = event.target as HTMLElement
 
-    if (!target.classList.contains("copy-button")) {
-      return;
+    if (!target.classList.contains('copy-button')) {
+      return
     }
 
-    const copyable =
-      target.parentElement!.querySelector<HTMLElement>(".copyable");
+    const copyable = target.parentElement!.querySelector<HTMLElement>('.copyable')
 
     if (copyable !== null) {
-      navigator.clipboard.writeText(copyable.innerText);
+      navigator.clipboard.writeText(copyable.innerText)
     }
   },
   { capture: true }
-);
+)
 </script>
 
 <style lang="postcss" scoped>

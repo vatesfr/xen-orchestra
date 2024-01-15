@@ -1,451 +1,425 @@
-import {
-  faFloppyDisk,
-  faRocket,
-  faShip,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
-import mixin, { type MixinAbstractConstructor } from "@/libs/mixin";
-import type { Widget } from "@/libs/story/story-widget";
-import {
-  boolean,
-  choice,
-  number,
-  object,
-  text,
-} from "@/libs/story/story-widget";
+import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
+import mixin, { type MixinAbstractConstructor } from '@/libs/mixin'
+import type { Widget } from '@/libs/story/story-widget'
+import { boolean, choice, number, object, text } from '@/libs/story/story-widget'
 
 function WithType(Base: MixinAbstractConstructor<BaseParam>) {
-  abstract class WithType extends Base /*implements HasType*/ {
-    #type: string | undefined;
+  abstract class WithType extends Base /* implements HasType */ {
+    #type: string | undefined
 
     type(type: string) {
-      this.#type = type;
+      this.#type = type
 
-      return this;
+      return this
     }
 
-    abstract getTypeLabel(): string;
+    abstract getTypeLabel(): string
 
     getType() {
-      return this.#type;
+      return this.#type
     }
   }
 
-  return WithType;
+  return WithType
 }
 
 function WithWidget(Base: MixinAbstractConstructor<BaseParam>) {
-  abstract class WithWidget extends Base /*implements HasWidget*/ {
-    #widget: Widget | undefined;
+  abstract class WithWidget extends Base /* implements HasWidget */ {
+    #widget: Widget | undefined
 
-    abstract guessWidget(): Widget | undefined;
+    abstract guessWidget(): Widget | undefined
 
     widget(widget?: Widget): this {
-      this.#widget = widget === undefined ? this.guessWidget() : widget;
+      this.#widget = widget === undefined ? this.guessWidget() : widget
 
-      return this;
+      return this
     }
 
     getWidget() {
-      return this.#widget;
+      return this.#widget
     }
 
     hasWidget() {
-      return this.#widget !== undefined;
+      return this.#widget !== undefined
     }
   }
 
-  return WithWidget;
+  return WithWidget
 }
 
 abstract class BaseParam {
-  #help: string | undefined;
-  readonly #name: string;
-  #presetValue: any;
+  #help: string | undefined
+  readonly #name: string
+  #presetValue: any
 
-  protected abstract getNamePrefix(): string;
+  protected abstract getNamePrefix(): string
 
-  protected abstract getNameSuffix(): string;
+  protected abstract getNameSuffix(): string
 
   constructor(name: string) {
-    this.#name = name;
+    this.#name = name
   }
 
   get name() {
-    return this.#name;
+    return this.#name
   }
 
   getFullName() {
-    return `${this.getNamePrefix()}${this.name}${this.getNameSuffix()}`;
+    return `${this.getNamePrefix()}${this.name}${this.getNameSuffix()}`
   }
 
   help(help: string) {
-    this.#help = help;
-    return this;
+    this.#help = help
+    return this
   }
 
   getHelp() {
-    return this.#help;
+    return this.#help
   }
 
   preset(presetValue: any) {
-    this.#presetValue = presetValue;
-    return this;
+    this.#presetValue = presetValue
+    return this
   }
 
   getPresetValue() {
-    return this.#presetValue;
+    return this.#presetValue
   }
 }
 
 export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
-  #isRequired = false;
-  #defaultValue: any;
-  #isVModel: boolean;
+  #isRequired = false
+  #defaultValue: any
+  #isVModel: boolean
 
   constructor(name: string, isVModel = false) {
-    super(name);
-    this.#isVModel = isVModel;
+    super(name)
+    this.#isVModel = isVModel
   }
 
   isRequired() {
-    return this.#isRequired;
+    return this.#isRequired
   }
 
   isVModel() {
-    return this.#isVModel;
+    return this.#isVModel
   }
 
   getVModelDirective() {
-    return this.name === "modelValue" ? "v-model" : `v-model:${this.name}`;
+    return this.name === 'modelValue' ? 'v-model' : `v-model:${this.name}`
   }
 
   getNamePrefix() {
-    return this.getType() === "string" ? "" : ":";
+    return this.getType() === 'string' ? '' : ':'
   }
 
   getNameSuffix() {
-    return this.isRequired() ? "" : "?";
+    return this.isRequired() ? '' : '?'
   }
 
   getTypeLabel() {
-    const type = this.getType();
+    const type = this.getType()
 
     if (type !== undefined) {
-      return type;
+      return type
     }
 
     if (this.#isEnum) {
-      return this.#enumItems.map((item) => JSON.stringify(item)).join(" | ");
+      return this.#enumItems.map(item => JSON.stringify(item)).join(' | ')
     }
 
-    const presetValue = this.getPresetValue();
+    const presetValue = this.getPresetValue()
 
     if (presetValue !== undefined) {
-      return typeof presetValue;
+      return typeof presetValue
     }
 
-    return "unknown";
+    return 'unknown'
   }
 
   guessWidget() {
     if (this.#isEnum) {
-      return choice(...this.#enumItems);
+      return choice(...this.#enumItems)
     }
 
     if (this.#isObject) {
-      return object();
+      return object()
     }
 
     switch (this.getTypeLabel()) {
-      case "boolean":
-        return boolean();
-      case "number":
-        return number();
-      case "string":
-        return text();
+      case 'boolean':
+        return boolean()
+      case 'number':
+        return number()
+      case 'string':
+        return text()
     }
   }
 
   required() {
-    this.#isRequired = true;
-    return this;
+    this.#isRequired = true
+    return this
   }
 
   default(defaultValue: any) {
-    this.#defaultValue = defaultValue;
-    return this;
+    this.#defaultValue = defaultValue
+    return this
   }
 
   getDefaultValue() {
-    return this.#defaultValue;
+    return this.#defaultValue
   }
 
   bool() {
-    return this.default(false).type("boolean");
+    return this.default(false).type('boolean')
   }
 
   num() {
-    return this.type("number");
+    return this.type('number')
   }
 
   str() {
-    return this.type("string");
+    return this.type('string')
   }
 
-  arr(type = "any") {
-    return this.type(`${type}[]`);
+  arr(type = 'any') {
+    return this.type(`${type}[]`)
   }
 
-  #isEnum = false;
-  #enumItems: any[] = [];
+  #isEnum = false
+  #enumItems: any[] = []
 
   enum(...items: any[]) {
-    this.#isEnum = true;
-    this.#enumItems = items;
-    return this;
+    this.#isEnum = true
+    this.#enumItems = items
+    return this
   }
 
   any() {
-    return this.type("any");
+    return this.type('any')
   }
 
-  #isObject = false;
+  #isObject = false
 
-  obj(type = "object") {
-    this.#isObject = true;
-    return this.type(type);
+  obj(type = 'object') {
+    this.#isObject = true
+    return this.type(type)
   }
 
-  #isUsingContext = false;
+  #isUsingContext = false
 
   ctx() {
-    this.#isUsingContext = true;
-    return this;
+    this.#isUsingContext = true
+    return this
   }
 
   isUsingContext() {
-    return this.#isUsingContext;
+    return this.#isUsingContext
   }
 }
 
 export class EventParam extends mixin(BaseParam, WithType) {
-  #args: Record<string, string> = {};
-  #returnType: string | undefined;
-  readonly #isVModel: boolean;
+  #args: Record<string, string> = {}
+  #returnType: string | undefined
+  readonly #isVModel: boolean
 
   constructor(name: string, isVModel = false) {
-    super(name);
-    this.#isVModel = isVModel;
+    super(name)
+    this.#isVModel = isVModel
   }
 
   get name() {
     if (this.isVModel()) {
-      return `update:${super.name}`;
+      return `update:${super.name}`
     }
 
-    return super.name;
+    return super.name
   }
 
   get rawName() {
-    return super.name;
+    return super.name
   }
 
   isVModel() {
-    return this.#isVModel;
+    return this.#isVModel
   }
 
   getNamePrefix() {
-    return "@";
+    return '@'
   }
 
   getNameSuffix() {
-    return "";
+    return ''
   }
 
   args(args: Record<string, string>) {
-    this.#args = args;
-    return this;
+    this.#args = args
+    return this
   }
 
   getArguments() {
-    return this.#args;
+    return this.#args
   }
 
   return(returnType: string) {
-    this.#returnType = returnType;
-    return this;
+    this.#returnType = returnType
+    return this
   }
 
   getTypeLabel() {
-    const type = this.getType();
+    const type = this.getType()
 
     if (type !== undefined) {
-      return type;
+      return type
     }
 
-    const args: string[] = [];
+    const args: string[] = []
 
     Object.entries(this.#args).forEach(([name, type]) => {
-      args.push(`${name}: ${type}`);
-    });
+      args.push(`${name}: ${type}`)
+    })
 
-    return `(${args.join(", ")}) => ${this.#returnType ?? "void"}`;
+    return `(${args.join(', ')}) => ${this.#returnType ?? 'void'}`
   }
 }
 
 export class SlotParam extends BaseParam {
-  #props: { name: string; type: string }[] = [];
+  #props: { name: string; type: string }[] = []
 
   getNamePrefix() {
-    return "#";
+    return '#'
   }
 
   getNameSuffix() {
-    return "";
+    return ''
   }
 
   prop(name: string, type: string) {
-    this.#props.push({ name, type });
-    return this;
+    this.#props.push({ name, type })
+    return this
   }
 
   getPropsType() {
-    return `{ ${this.#props
-      .map((prop) => `${prop.name}: ${prop.type}`)
-      .join(", ")} }`;
+    return `{ ${this.#props.map(prop => `${prop.name}: ${prop.type}`).join(', ')} }`
   }
 
   hasProps() {
-    return this.#props.length > 0;
+    return this.#props.length > 0
   }
 
   get props() {
-    return this.#props;
+    return this.#props
   }
 
   preset(): never {
-    throw new Error("Cannot preset a slot");
+    throw new Error('Cannot preset a slot')
   }
 }
 
 export class SettingParam extends mixin(BaseParam, WithWidget) {
   getNamePrefix() {
-    return "";
+    return ''
   }
 
   getNameSuffix() {
-    return "";
+    return ''
   }
 
   guessWidget() {
-    const type = typeof this.getPresetValue();
+    const type = typeof this.getPresetValue()
 
     switch (type) {
-      case "string":
-        return text();
+      case 'string':
+        return text()
     }
   }
 }
 
 export class ModelParam extends BaseParam {
-  readonly #prop: PropParam;
-  readonly #event: EventParam;
+  readonly #prop: PropParam
+  readonly #event: EventParam
 
   protected getNameSuffix() {
-    return "";
+    return ''
   }
 
   protected getNamePrefix() {
-    return "";
+    return ''
   }
 
   constructor(name: string) {
-    super(name);
-    this.#prop = new PropParam(name, true);
+    super(name)
+    this.#prop = new PropParam(name, true)
     this.#event = new EventParam(name, true).args({
-      value: "unknown",
-    });
+      value: 'unknown',
+    })
   }
 
   prop(func: (param: PropParam) => void) {
-    func(this.#prop);
-    return this;
+    func(this.#prop)
+    return this
   }
 
   event(func: (param: EventParam) => void) {
-    func(this.#event);
-    return this;
+    func(this.#event)
+    return this
   }
 
   required() {
-    this.#prop.required();
-    return this;
+    this.#prop.required()
+    return this
   }
 
   type(type: string) {
-    this.#prop.type(type);
-    this.#event.args({ value: type });
-    return this;
+    this.#prop.type(type)
+    this.#event.args({ value: type })
+    return this
   }
 
   preset(presetValue: any) {
-    this.#prop.preset(presetValue);
-    return this;
+    this.#prop.preset(presetValue)
+    return this
   }
 
   help(help: string) {
-    this.#prop.help(help);
-    return this;
+    this.#prop.help(help)
+    return this
   }
 
   getPropParam() {
-    return this.#prop;
+    return this.#prop
   }
 
   getEventParam() {
-    return this.#event;
+    return this.#event
   }
 }
 
-export type Param =
-  | EventParam
-  | PropParam
-  | SlotParam
-  | ModelParam
-  | SettingParam;
+export type Param = EventParam | PropParam | SlotParam | ModelParam | SettingParam
 
-export const prop = (name: string) => new PropParam(name);
-export const event = (name: string) => new EventParam(name);
-export const slot = (name = "default") => new SlotParam(name);
-export const setting = (name: string) => new SettingParam(name);
-export const model = (name = "modelValue") => new ModelParam(name);
+export const prop = (name: string) => new PropParam(name)
+export const event = (name: string) => new EventParam(name)
+export const slot = (name = 'default') => new SlotParam(name)
+export const setting = (name: string) => new SettingParam(name)
+export const model = (name = 'modelValue') => new ModelParam(name)
 
-export const isPropParam = (param: any): param is PropParam =>
-  param instanceof PropParam;
-export const isSettingParam = (param: any): param is SettingParam =>
-  param instanceof SettingParam;
-export const isEventParam = (param: any): param is EventParam =>
-  param instanceof EventParam;
-export const isSlotParam = (param: any): param is SlotParam =>
-  param instanceof SlotParam;
-export const isModelParam = (param: any): param is ModelParam =>
-  param instanceof ModelParam;
+export const isPropParam = (param: any): param is PropParam => param instanceof PropParam
+export const isSettingParam = (param: any): param is SettingParam => param instanceof SettingParam
+export const isEventParam = (param: any): param is EventParam => param instanceof EventParam
+export const isSlotParam = (param: any): param is SlotParam => param instanceof SlotParam
+export const isModelParam = (param: any): param is ModelParam => param instanceof ModelParam
 
-export const colorProp = (name = "color") =>
+export const colorProp = (name = 'color') =>
+  prop(name).enum('info', 'success', 'warning', 'error').default('info').widget()
+
+export const iconProp = (name = 'icon') =>
   prop(name)
-    .enum("info", "success", "warning", "error")
-    .default("info")
-    .widget();
-
-export const iconProp = (name = "icon") =>
-  prop(name)
-    .type("IconDefinition")
+    .type('IconDefinition')
     .widget(
       choice(
-        { label: "Ship", value: faShip },
-        { label: "Rocket", value: faRocket },
-        { label: "Floppy", value: faFloppyDisk },
-        { label: "Trash", value: faTrash }
+        { label: 'Ship', value: faShip },
+        { label: 'Rocket', value: faRocket },
+        { label: 'Floppy', value: faFloppyDisk },
+        { label: 'Trash', value: faTrash }
       )
-    );
+    )

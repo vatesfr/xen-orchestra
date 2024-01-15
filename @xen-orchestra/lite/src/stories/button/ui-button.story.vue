@@ -38,10 +38,10 @@
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import { colorProp, iconProp, prop, setting } from "@/libs/story/story-param";
-import { faFloppyDisk, faTrash } from "@fortawesome/free-solid-svg-icons";
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import { colorProp, iconProp, prop, setting } from '@/libs/story/story-param'
+import { faFloppyDisk, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>
 
 <style lang="postcss" scoped></style>

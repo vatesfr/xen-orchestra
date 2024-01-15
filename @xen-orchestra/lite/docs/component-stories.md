@@ -85,9 +85,9 @@ In your `.story.vue` file, import and use the `ComponentStory` component.
 </template>
 
 <script lang="ts" setup>
-import MyComponent from "@/components/MyComponent.vue";
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import { prop, event, model, slot, setting } from "@/libs/story/story-param";
+import MyComponent from '@/components/MyComponent.vue'
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import { prop, event, model, slot, setting } from '@/libs/story/story-param'
 </script>
 ```
 
@@ -119,27 +119,27 @@ Let's take this Vue component:
 <script lang="ts" setup>
 withDefaults(
   defineProps<{
-    imString: string;
-    imNumber: number;
-    imOptional?: string;
-    imOptionalWithDefault?: string;
-    modelValue?: string;
-    customModel?: number;
+    imString: string
+    imNumber: number
+    imOptional?: string
+    imOptionalWithDefault?: string
+    modelValue?: string
+    customModel?: number
   }>(),
-  { imOptionalWithDefault: "Hi World" }
-);
+  { imOptionalWithDefault: 'Hi World' }
+)
 
 const emit = defineEmits<{
-  (event: "click"): void;
-  (event: "clickWithArg", id: string): void;
-  (event: "update:modelValue", value: string): void;
-  (event: "update:customModel", value: number): void;
-}>();
+  (event: 'click'): void
+  (event: 'clickWithArg', id: string): void
+  (event: 'update:modelValue', value: string): void
+  (event: 'update:customModel', value: number): void
+}>()
 
-const moonDistance = 384400;
+const moonDistance = 384400
 
-const handleClick = () => emit("click");
-const handleClickWithArg = (id: string) => emit("clickWithArg", id);
+const handleClick = () => emit('click')
+const handleClickWithArg = (id: string) => emit('clickWithArg', id)
 </script>
 ```
 
@@ -150,53 +150,33 @@ Here is how to document it with a Component Story:
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('imString')
-        .str()
-        .required()
-        .preset('Example')
-        .widget()
-        .help('This is a required string prop'),
-      prop('imNumber')
-        .num()
-        .required()
-        .preset(42)
-        .widget()
-        .help('This is a required number prop'),
+      prop('imString').str().required().preset('Example').widget().help('This is a required string prop'),
+      prop('imNumber').num().required().preset(42).widget().help('This is a required number prop'),
       prop('imOptional').str().widget().help('This is an optional string prop'),
-      prop('imOptionalWithDefault')
-        .str()
-        .default('Hi World')
-        .widget()
-        .default('My default value'),
-      model().prop((p) => p.str()),
-      model('customModel').prop((p) => p.num()),
+      prop('imOptionalWithDefault').str().default('Hi World').widget().default('My default value'),
+      model().prop(p => p.str()),
+      model('customModel').prop(p => p.num()),
       event('click').help('Emitted when the user clicks the first button'),
-      event('clickWithArg')
-        .args({ id: 'string' })
-        .help('Emitted when the user clicks the second button'),
+      event('clickWithArg').args({ id: 'string' }).help('Emitted when the user clicks the second button'),
       slot().help('This is the default slot'),
       slot('namedSlot').help('This is a named slot'),
-      slot('namedScopedSlot')
-        .prop('moon-distance', 'number')
-        .help('This is a named slot'),
+      slot('namedScopedSlot').prop('moon-distance', 'number').help('This is a named slot'),
       setting('contentExample').widget(text()).preset('Some content'),
     ]"
   >
     <MyComponent v-bind="properties">
       {{ settings.contentExample }}
       <template #named-slot>Named slot content</template>
-      <template #named-scoped-slot="{ moonDistance }">
-        Moon distance is {{ moonDistance }} meters.
-      </template>
+      <template #named-scoped-slot="{ moonDistance }"> Moon distance is {{ moonDistance }} meters. </template>
     </MyComponent>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import MyComponent from "@/components/MyComponent.vue";
-import { event, model, prop, setting, slot } from "@/libs/story/story-param";
-import { text } from "@/libs/story/story-widget";
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import MyComponent from '@/components/MyComponent.vue'
+import { event, model, prop, setting, slot } from '@/libs/story/story-param'
+import { text } from '@/libs/story/story-widget'
 </script>
 ```
 

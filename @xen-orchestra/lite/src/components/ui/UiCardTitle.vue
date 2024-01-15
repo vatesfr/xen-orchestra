@@ -2,7 +2,7 @@
   <div :class="['ui-section-title', tags.left]">
     <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
+      <UiCounter v-if="count > 0" class="count" :value="count" color="info" />
     </component>
     <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
@@ -11,30 +11,30 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import UiCounter from "@/components/ui/UiCounter.vue";
-import { UiCardTitleLevel } from "@/types/enums";
+import { computed } from 'vue'
+import UiCounter from '@/components/ui/UiCounter.vue'
+import { UiCardTitleLevel } from '@/types/enums'
 
 const props = withDefaults(
   defineProps<{
-    count?: number;
-    level?: UiCardTitleLevel;
-    left?: string;
-    right?: string;
+    count?: number
+    level?: UiCardTitleLevel
+    left?: string
+    right?: string
   }>(),
   { count: 0, level: UiCardTitleLevel.Title }
-);
+)
 
 const tags = computed(() => {
   switch (props.level) {
     case UiCardTitleLevel.Subtitle:
-      return { left: "h6", right: "h6" };
+      return { left: 'h6', right: 'h6' }
     case UiCardTitleLevel.SubtitleWithUnderline:
-      return { left: "h5", right: "h6" };
+      return { left: 'h5', right: 'h6' }
     default:
-      return { left: "h4", right: "h5" };
+      return { left: 'h4', right: 'h5' }
   }
-});
+})
 </script>
 
 <style lang="postcss" scoped>

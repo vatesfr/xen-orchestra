@@ -3,12 +3,11 @@
 ## Usage
 
 ```typescript
-const { filters, addFilter, removeFilter, predicate } =
-  useCollectionFilter(options);
+const { filters, addFilter, removeFilter, predicate } = useCollectionFilter(options)
 
-const filteredCollection = computed(() => myCollection.filter(predicate));
-addFilter("name:/^Foo/");
-addFilter("count:>3");
+const filteredCollection = computed(() => myCollection.filter(predicate))
+addFilter('name:/^Foo/')
+addFilter('count:>3')
 ```
 
 ## Options
@@ -18,8 +17,8 @@ addFilter("count:>3");
 This option allows to activate the URL Query String support.
 
 ```typescript
-const { addFilter } = useCollectionFilter({ queryStringParam: "filter" });
-addFilter("name:/^foo/i"); // Will update the URL with ?filter=name:/^foo/i
+const { addFilter } = useCollectionFilter({ queryStringParam: 'filter' })
+addFilter('name:/^foo/i') // Will update the URL with ?filter=name:/^foo/i
 ```
 
 ### Initial filters
@@ -29,7 +28,7 @@ This option allows to set some initial filters.
 ```typescript
 const {
   /* ... */
-} = useCollectionFilter({ initialFilters: ["!name_label:foobar"] });
+} = useCollectionFilter({ initialFilters: ['!name_label:foobar'] })
 ```
 
 When using the `initialFilters` option with the `queryStringParam` option,
@@ -50,27 +49,27 @@ When using the `initialFilters` option with the `queryStringParam` option,
 </template>
 
 <script lang="ts" setup>
-import CollectionFilter from "@/components/CollectionFilter.vue";
-import useCollectionFilter from "@/composables/collection-filter.composable";
-import { computed } from "vue";
+import CollectionFilter from '@/components/CollectionFilter.vue'
+import useCollectionFilter from '@/composables/collection-filter.composable'
+import { computed } from 'vue'
 
 const collection = [
-  { name: "Foo", age: 5, registered: true },
-  { name: "Bar", age: 12, registered: false },
-  { name: "Foo Bar", age: 2, registered: true },
-  { name: "Bar Baz", age: 45, registered: false },
-  { name: "Foo Baz", age: 32, registered: false },
-  { name: "Foo Bar Baz", age: 32, registered: true },
-];
+  { name: 'Foo', age: 5, registered: true },
+  { name: 'Bar', age: 12, registered: false },
+  { name: 'Foo Bar', age: 2, registered: true },
+  { name: 'Bar Baz', age: 45, registered: false },
+  { name: 'Foo Baz', age: 32, registered: false },
+  { name: 'Foo Bar Baz', age: 32, registered: true },
+]
 
 const availableFilters: AvailableFilter[] = [
-  { property: "name", label: "Name", type: "string" },
-  { property: "age", label: "Age", type: "number" },
-  { property: "registered", label: "Registered", type: "boolean", icon: faKey },
-];
+  { property: 'name', label: 'Name', type: 'string' },
+  { property: 'age', label: 'Age', type: 'number' },
+  { property: 'registered', label: 'Registered', type: 'boolean', icon: faKey },
+]
 
-const { filters, addFilter, removeFilter, predicate } = useCollectionFilter();
+const { filters, addFilter, removeFilter, predicate } = useCollectionFilter()
 
-const filteredCollection = computed(() => collection.filter(predicate));
+const filteredCollection = computed(() => collection.filter(predicate))
 </script>
 ```

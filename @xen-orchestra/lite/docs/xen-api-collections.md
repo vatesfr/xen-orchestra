@@ -36,7 +36,7 @@ They are stored in `src/composables/xen-api-collection/*-collection.composable.t
 ```typescript
 // src/composables/xen-api-collection/console-collection.composable.ts
 
-export const useConsoleCollection = () => useXenApiCollection("console");
+export const useConsoleCollection = () => useXenApiCollection('console')
 ```
 
 If you want to allow the user to defer the subscription, you can propagate the options to `useXenApiCollection`.
@@ -44,19 +44,16 @@ If you want to allow the user to defer the subscription, you can propagate the o
 ```typescript
 // console-collection.composable.ts
 
-export const useConsoleCollection = <
-  Immediate extends boolean = true,
->(options?: {
-  immediate?: Immediate;
-}) => useXenApiCollection("console", options);
+export const useConsoleCollection = <Immediate extends boolean = true>(options?: { immediate?: Immediate }) =>
+  useXenApiCollection('console', options)
 ```
 
 ```typescript
 // MyComponent.vue
 
-const collection = useConsoleCollection({ immediate: false });
+const collection = useConsoleCollection({ immediate: false })
 
-setTimeout(() => collection.start(), 10000);
+setTimeout(() => collection.start(), 10000)
 ```
 
 ## Alter the collection
@@ -68,10 +65,10 @@ You can alter the collection by overriding parts of it.
 ```typescript
 // xen-api.ts
 
-export interface XenApiConsole extends XenApiRecord<"console"> {
+export interface XenApiConsole extends XenApiRecord<'console'> {
   // ... existing props
-  someProp: string;
-  someOtherProp: number;
+  someProp: string
+  someOtherProp: number
 }
 ```
 
@@ -79,27 +76,27 @@ export interface XenApiConsole extends XenApiRecord<"console"> {
 // console-collection.composable.ts
 
 export const useConsoleCollection = () => {
-  const collection = useXenApiCollection("console");
+  const collection = useXenApiCollection('console')
 
   const records = computed(() => {
-    return collection.records.value.map((console) => ({
+    return collection.records.value.map(console => ({
       ...console,
-      someProp: "Some value",
+      someProp: 'Some value',
       someOtherProp: 42,
-    }));
-  });
+    }))
+  })
 
   return {
     ...collection,
     records,
-  };
-};
+  }
+}
 ```
 
 ```typescript
-const consoleCollection = useConsoleCollection();
+const consoleCollection = useConsoleCollection()
 
-consoleCollection.getByUuid("...").someProp; // "Some value"
+consoleCollection.getByUuid('...').someProp // "Some value"
 ```
 
 ### Example 2: Adding props to the collection
@@ -108,17 +105,13 @@ consoleCollection.getByUuid("...").someProp; // "Some value"
 // vm-collection.composable.ts
 
 export const useVmCollection = () => {
-  const collection = useXenApiCollection("VM");
+  const collection = useXenApiCollection('VM')
 
   return {
     ...collection,
-    runningVms: computed(() =>
-      collection.records.value.filter(
-        (vm) => vm.power_state === POWER_STATE.RUNNING
-      )
-    ),
-  };
-};
+    runningVms: computed(() => collection.records.value.filter(vm => vm.power_state === POWER_STATE.RUNNING)),
+  }
+}
 ```
 
 ### Example 3, filtering and sorting the collection
@@ -127,18 +120,15 @@ export const useVmCollection = () => {
 // vm-collection.composable.ts
 
 export const useVmCollection = () => {
-  const collection = useXenApiCollection("VM");
+  const collection = useXenApiCollection('VM')
 
   return {
     ...collection,
     records: computed(() =>
       collection.records.value
-        .filter(
-          (vm) =>
-            !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain
-        )
+        .filter(vm => !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain)
         .sort((vm1, vm2) => vm1.name_label.localeCompare(vm2.name_label))
     ),
-  };
-};
+  }
+}
 ```

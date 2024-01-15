@@ -11,12 +11,12 @@
 </template>
 
 <script lang="ts" setup>
-import ModalCloseIcon from "@/components/ui/modals/ModalCloseIcon.vue";
-import ModalContainer from "@/components/ui/modals/ModalContainer.vue";
+import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
+import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
 
 defineSlots<{
-  default: () => void;
-}>();
+  default: () => void
+}>()
 </script>
 
 <style lang="postcss" scoped>

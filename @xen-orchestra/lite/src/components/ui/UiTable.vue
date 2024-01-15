@@ -1,17 +1,14 @@
 <template>
-  <table
-    :class="{ 'vertical-border': verticalBorder, error: color === 'error' }"
-    class="ui-table"
-  >
+  <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table">
     <slot />
   </table>
 </template>
 
 <script lang="ts" setup>
 defineProps<{
-  color?: "error";
-  verticalBorder?: boolean;
-}>();
+  color?: 'error'
+  verticalBorder?: boolean
+}>()
 </script>
 
 <style lang="postcss" scoped>

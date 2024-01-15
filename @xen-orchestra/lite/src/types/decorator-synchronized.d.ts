@@ -1,3 +1,3 @@
-declare module "decorator-synchronized" {
-  export const synchronized: any;
+declare module 'decorator-synchronized' {
+  export const synchronized: any
 }

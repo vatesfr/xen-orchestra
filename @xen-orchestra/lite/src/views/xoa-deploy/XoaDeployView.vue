@@ -1,58 +1,53 @@
 <template>
-  <TitleBar :icon="faDownload">{{ $t("deploy-xoa") }}</TitleBar>
+  <TitleBar :icon="faDownload">{{ $t('deploy-xoa') }}</TitleBar>
   <div v-if="deploying" class="status">
     <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
     <!-- Error -->
     <template v-if="error !== undefined">
       <div>
-        <h2>{{ $t("xoa-deploy-failed") }}</h2>
+        <h2>{{ $t('xoa-deploy-failed') }}</h2>
         <UiIcon :icon="faExclamationCircle" class="danger" />
       </div>
       <div class="error">
-        <strong>{{ $t("check-errors") }}</strong>
+        <strong>{{ $t('check-errors') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
       <UiButton :icon="faDownload" @click="resetValues()">
-        {{ $t("xoa-deploy-retry") }}
+        {{ $t('xoa-deploy-retry') }}
       </UiButton>
     </template>
 
     <!-- Success -->
     <template v-else-if="url !== undefined">
       <div>
-        <h2>{{ $t("xoa-deploy-successful") }}</h2>
+        <h2>{{ $t('xoa-deploy-successful') }}</h2>
         <UiIcon :icon="faCircleCheck" class="success" />
       </div>
       <UiButton :icon="faArrowUpRightFromSquare" @click="openXoa">
-        {{ $t("access-xoa") }}
+        {{ $t('access-xoa') }}
       </UiButton>
     </template>
 
     <!-- Deploying -->
     <template v-else>
       <div>
-        <h2>{{ $t("xoa-deploy") }}</h2>
+        <h2>{{ $t('xoa-deploy') }}</h2>
         <!-- TODO: add progress bar -->
         <p>{{ status }}</p>
       </div>
       <p class="warning">
         <UiIcon :icon="faExclamationCircle" />
-        {{ $t("keep-page-open") }}
+        {{ $t('keep-page-open') }}
       </p>
-      <UiButton
-        :disabled="vmRef === undefined"
-        color="error"
-        outlined
-        @click="cancel()"
-      >
-        {{ $t("cancel") }}
+      <UiButton :disabled="vmRef === undefined" color="error" outlined @click="cancel()">
+        {{ $t('cancel') }}
       </UiButton>
     </template>
   </div>
 
   <div v-else-if="isMobile" class="not-available">
-    <p>{{ $t("deploy-xoa-available-on-desktop") }}</p>
+    <p>{{ $t('deploy-xoa-available-on-desktop') }}</p>
   </div>
 
   <div v-else class="card-view">
@@ -60,40 +55,24 @@
       <form @submit.prevent="deploy">
         <FormSection :label="$t('configuration')">
           <div class="row">
-            <FormInputWrapper
-              :label="$t('storage')"
-              :help="$t('n-gb-required', { n: REQUIRED_GB })"
-            >
+            <FormInputWrapper :label="$t('storage')" :help="$t('n-gb-required', { n: REQUIRED_GB })">
               <FormSelect v-model="selectedSr" required>
                 <option disabled :value="undefined">
-                  {{ $t("select.storage") }}
+                  {{ $t('select.storage') }}
                 </option>
                 <option
                   v-for="sr in filteredSrs"
-                  :value="sr"
                   :key="sr.uuid"
-                  :class="
-                    sr.physical_size - sr.physical_utilisation <
-                    REQUIRED_GB * 1024 ** 3
-                      ? 'warning'
-                      : 'success'
-                  "
+                  :value="sr"
+                  :class="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3 ? 'warning' : 'success'"
                 >
                   {{ sr.name_label }} -
                   {{
-                    $t("n-gb-left", {
-                      n: Math.round(
-                        (sr.physical_size - sr.physical_utilisation) / 1024 ** 3
-                      ),
+                    $t('n-gb-left', {
+                      n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
                     })
                   }}
-                  <span
-                    v-if="
-                      sr.physical_size - sr.physical_utilisation <
-                      REQUIRED_GB * 1024 ** 3
-                    "
-                    >⚠️</span
-                  >
+                  <span v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</span>
                 </option>
               </FormSelect>
             </FormInputWrapper>
@@ -102,13 +81,9 @@
             <FormInputWrapper :label="$t('network')" required>
               <FormSelect v-model="selectedNetwork" required>
                 <option disabled :value="undefined">
-                  {{ $t("select.network") }}
+                  {{ $t('select.network') }}
                 </option>
-                <option
-                  v-for="network in filteredNetworks"
-                  :value="network"
-                  :key="network.uuid"
-                >
+                <option v-for="network in filteredNetworks" :key="network.uuid" :value="network">
                   {{ network.name_label }}
                 </option>
               </FormSelect>
@@ -117,61 +92,37 @@
           <div class="row">
             <FormInputWrapper>
               <div class="radio-group">
-                <label
-                  ><FormRadio value="static" v-model="ipStrategy" />{{
-                    $t("static-ip")
-                  }}</label
-                >
-                <label
-                  ><FormRadio value="dhcp" v-model="ipStrategy" />{{
-                    $t("dhcp")
-                  }}</label
-                >
+                <label><FormRadio v-model="ipStrategy" value="static" />{{ $t('static-ip') }}</label>
+                <label><FormRadio v-model="ipStrategy" value="dhcp" />{{ $t('dhcp') }}</label>
               </div>
             </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper
               :label="$t('xoa-ip')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
-              <FormInput
-                v-model="ip"
-                :disabled="!requireIpConf"
-                placeholder="xxx.xxx.xxx.xxx"
-              />
+              <FormInput v-model="ip" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('netmask')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
-              <FormInput
-                v-model="netmask"
-                :disabled="!requireIpConf"
-                placeholder="255.255.255.0"
-              />
+              <FormInput v-model="netmask" :disabled="!requireIpConf" placeholder="255.255.255.0" />
             </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper
               :label="$t('dns')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
-              <FormInput
-                v-model="dns"
-                :disabled="!requireIpConf"
-                placeholder="8.8.8.8"
-              />
+              <FormInput v-model="dns" :disabled="!requireIpConf" placeholder="8.8.8.8" />
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('gateway')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
-              <FormInput
-                v-model="gateway"
-                :disabled="!requireIpConf"
-                placeholder="xxx.xxx.xxx.xxx"
-              />
+              <FormInput v-model="gateway" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
             </FormInputWrapper>
           </div>
         </FormSection>
@@ -180,37 +131,23 @@
           <div class="row">
             <FormInputWrapper
               :label="$t('admin-login')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
-              <FormInput
-                v-model="xoaUser"
-                required
-                placeholder="email@example.com"
-              />
+              <FormInput v-model="xoaUser" required placeholder="email@example.com" />
             </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper
               :label="$t('admin-password')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
-              <FormInput
-                type="password"
-                v-model="xoaPwd"
-                required
-                :placeholder="$t('password')"
-              />
+              <FormInput v-model="xoaPwd" type="password" required :placeholder="$t('password')" />
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('admin-password-confirm')"
-              learnMoreUrl="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
-              <FormInput
-                type="password"
-                v-model="xoaPwdConfirm"
-                required
-                :placeholder="$t('password')"
-              />
+              <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="$t('password')" />
             </FormInputWrapper>
           </div>
         </FormSection>
@@ -219,10 +156,8 @@
           <div class="row">
             <FormInputWrapper :label="$t('ssh-account')">
               <label
-                ><span>{{ $t("disabled") }}</span
-                ><FormToggle v-model="enableSshAccount" /><span>{{
-                  $t("enabled")
-                }}</span></label
+                ><span>{{ $t('disabled') }}</span
+                ><FormToggle v-model="enableSshAccount" /><span>{{ $t('enabled') }}</span></label
               >
             </FormInputWrapper>
           </div>
@@ -234,8 +169,8 @@
           <div class="row">
             <FormInputWrapper :label="$t('ssh-password')">
               <FormInput
-                type="password"
                 v-model="sshPwd"
+                type="password"
                 :placeholder="$t('password')"
                 :disabled="!enableSshAccount"
                 :required="enableSshAccount"
@@ -243,8 +178,8 @@
             </FormInputWrapper>
             <FormInputWrapper :label="$t('ssh-password-confirm')">
               <FormInput
-                type="password"
                 v-model="sshPwdConfirm"
+                type="password"
                 :placeholder="$t('password')"
                 :disabled="!enableSshAccount"
                 :required="enableSshAccount"
@@ -255,10 +190,10 @@
 
         <UiButtonGroup>
           <UiButton outlined @click="router.back()">
-            {{ $t("cancel") }}
+            {{ $t('cancel') }}
           </UiButton>
           <UiButton type="submit">
-            {{ $t("deploy") }}
+            {{ $t('deploy') }}
           </UiButton>
         </UiButtonGroup>
       </form>
@@ -267,317 +202,273 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
 import {
   faArrowUpRightFromSquare,
   faCircleCheck,
   faDownload,
   faExclamationCircle,
-} from "@fortawesome/free-solid-svg-icons";
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { useModal } from "@/composables/modal.composable";
-import { useNetworkCollection } from "@/stores/xen-api/network.store";
-import { usePageTitleStore } from "@/stores/page-title.store";
-import { useRouter } from "vue-router";
-import { useSrCollection } from "@/stores/xen-api/sr.store";
-import { useUiStore } from "@/stores/ui.store";
-import { useXenApiStore } from "@/stores/xen-api.store";
-import type { XenApiNetwork, XenApiSr } from "@/libs/xen-api/xen-api.types";
-import FormInput from "@/components/form/FormInput.vue";
-import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
-import FormRadio from "@/components/form/FormRadio.vue";
-import FormSection from "@/components/form/FormSection.vue";
-import FormSelect from "@/components/form/FormSelect.vue";
-import FormToggle from "@/components/form/FormToggle.vue";
-import TitleBar from "@/components/TitleBar.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import UiCard from "@/components/ui/UiCard.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import UiRaw from "@/components/ui/UiRaw.vue";
+} from '@fortawesome/free-solid-svg-icons'
+import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
+import { useModal } from '@/composables/modal.composable'
+import { useNetworkCollection } from '@/stores/xen-api/network.store'
+import { usePageTitleStore } from '@/stores/page-title.store'
+import { useRouter } from 'vue-router'
+import { useSrCollection } from '@/stores/xen-api/sr.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
+import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
+import FormInput from '@/components/form/FormInput.vue'
+import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
+import FormRadio from '@/components/form/FormRadio.vue'
+import FormSection from '@/components/form/FormSection.vue'
+import FormSelect from '@/components/form/FormSelect.vue'
+import FormToggle from '@/components/form/FormToggle.vue'
+import TitleBar from '@/components/TitleBar.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
+import UiCard from '@/components/ui/UiCard.vue'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiRaw from '@/components/ui/UiRaw.vue'
 
-const REQUIRED_GB = 20;
+const REQUIRED_GB = 20
 
-const { t } = useI18n();
-const router = useRouter();
+const { t } = useI18n()
+const router = useRouter()
 
-usePageTitleStore().setTitle(() => t("deploy-xoa"));
+usePageTitleStore().setTitle(() => t('deploy-xoa'))
 
 const invalidField = (message: string) =>
-  useModal(() => import("@/components/modals/InvalidFieldModal.vue"), {
+  useModal(() => import('@/components/modals/InvalidFieldModal.vue'), {
     message,
-  });
+  })
 
-const uiStore = useUiStore();
-const { isMobile } = storeToRefs(uiStore);
+const uiStore = useUiStore()
+const { isMobile } = storeToRefs(uiStore)
 
-const xapi = useXenApiStore().getXapi();
+const xapi = useXenApiStore().getXapi()
 
-const { records: srs } = useSrCollection();
+const { records: srs } = useSrCollection()
 const filteredSrs = computed(() =>
   srs.value
-    .filter((sr) => sr.content_type !== "iso" && sr.physical_size > 0)
+    .filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
     // Sort: shared first then largest free space first
     .sort((sr1, sr2) => {
       if (sr1.shared === sr2.shared) {
-        return (
-          sr2.physical_size -
-          sr2.physical_utilisation -
-          (sr1.physical_size - sr1.physical_utilisation)
-        );
+        return sr2.physical_size - sr2.physical_utilisation - (sr1.physical_size - sr1.physical_utilisation)
       } else {
-        return sr1.shared ? -1 : 1;
+        return sr1.shared ? -1 : 1
       }
     })
-);
+)
 
-const { records: networks } = useNetworkCollection();
+const { records: networks } = useNetworkCollection()
 const filteredNetworks = computed(() =>
-  [...networks.value].sort((network1, network2) =>
-    network1.name_label < network2.name_label ? -1 : 1
-  )
-);
+  [...networks.value].sort((network1, network2) => (network1.name_label < network2.name_label ? -1 : 1))
+)
 
-const deploying = ref(false);
-const status = ref<string | undefined>();
-const error = ref<string | undefined>();
-const url = ref<string | undefined>();
-const vmRef = ref<string | undefined>();
+const deploying = ref(false)
+const status = ref<string | undefined>()
+const error = ref<string | undefined>()
+const url = ref<string | undefined>()
+const vmRef = ref<string | undefined>()
 
 const resetValues = () => {
-  deploying.value = false;
-  status.value = undefined;
-  error.value = undefined;
-  url.value = undefined;
-  vmRef.value = undefined;
-};
+  deploying.value = false
+  status.value = undefined
+  error.value = undefined
+  url.value = undefined
+  vmRef.value = undefined
+}
 
 const openXoa = () => {
-  window.open(url.value, "_blank", "noopener");
-};
+  window.open(url.value, '_blank', 'noopener')
+}
 
-const selectedSr = ref<XenApiSr>();
-const selectedNetwork = ref<XenApiNetwork>();
-const ipStrategy = ref<"static" | "dhcp">("dhcp");
-const requireIpConf = computed(() => ipStrategy.value === "static");
+const selectedSr = ref<XenApiSr>()
+const selectedNetwork = ref<XenApiNetwork>()
+const ipStrategy = ref<'static' | 'dhcp'>('dhcp')
+const requireIpConf = computed(() => ipStrategy.value === 'static')
 
-const ip = ref("");
-const netmask = ref("");
-const dns = ref("");
-const gateway = ref("");
-const xoaUser = ref("");
-const xoaPwd = ref("");
-const xoaPwdConfirm = ref("");
-const enableSshAccount = ref(true);
-const sshPwd = ref("");
-const sshPwdConfirm = ref("");
+const ip = ref('')
+const netmask = ref('')
+const dns = ref('')
+const gateway = ref('')
+const xoaUser = ref('')
+const xoaPwd = ref('')
+const xoaPwdConfirm = ref('')
+const enableSshAccount = ref(true)
+const sshPwd = ref('')
+const sshPwdConfirm = ref('')
 
 async function deploy() {
   if (selectedSr.value === undefined || selectedNetwork.value === undefined) {
     // Should not happen
-    console.error("SR or network is undefined");
-    return;
+    console.error('SR or network is undefined')
+    return
   }
 
   if (
-    ipStrategy.value === "static" &&
-    (ip.value === "" ||
-      netmask.value === "" ||
-      dns.value === "" ||
-      gateway.value === "")
+    ipStrategy.value === 'static' &&
+    (ip.value === '' || netmask.value === '' || dns.value === '' || gateway.value === '')
   ) {
     // Should not happen
-    console.error("Missing IP config");
-    return;
+    console.error('Missing IP config')
+    return
   }
 
-  if (xoaUser.value === "" || xoaPwd.value === "") {
+  if (xoaUser.value === '' || xoaPwd.value === '') {
     // Should not happen
-    console.error("Missing XOA credentials");
-    return;
+    console.error('Missing XOA credentials')
+    return
   }
 
   if (xoaPwd.value !== xoaPwdConfirm.value) {
     // TODO: use formal validation system
-    invalidField(t("xoa-password-confirm-different"));
-    return;
+    invalidField(t('xoa-password-confirm-different'))
+    return
   }
 
-  if (enableSshAccount.value && sshPwd.value === "") {
+  if (enableSshAccount.value && sshPwd.value === '') {
     // Should not happen
-    console.error("Missing XOA credentials");
-    return;
+    console.error('Missing XOA credentials')
+    return
   }
 
   if (enableSshAccount.value && sshPwd.value !== sshPwdConfirm.value) {
     // TODO: use form validation system
-    invalidField(t("xoa-ssh-password-confirm-different"));
-    return;
+    invalidField(t('xoa-ssh-password-confirm-different'))
+    return
   }
 
-  deploying.value = true;
+  deploying.value = true
 
   try {
-    status.value = t("deploy-xoa-status.importing");
+    status.value = t('deploy-xoa-status.importing')
 
     vmRef.value = (
-      (await xapi.call("VM.import", [
-        "http://xoa.io:8888/",
+      (await xapi.call('VM.import', [
+        'http://xoa.io:8888/',
         selectedSr.value.$ref,
         false, // full_restore
         false, // force
       ])) as string[]
-    )[0];
+    )[0]
 
-    status.value = t("deploy-xoa-status.configuring");
+    status.value = t('deploy-xoa-status.configuring')
 
-    const [vifRef] = (await xapi.call("VM.get_VIFs", [
-      vmRef.value,
-    ])) as string[];
-    await xapi.call("VIF.destroy", [vifRef]);
+    const [vifRef] = (await xapi.call('VM.get_VIFs', [vmRef.value])) as string[]
+    await xapi.call('VIF.destroy', [vifRef])
 
     if (!deploying.value) {
-      return;
+      return
     }
 
-    const [device] = (await xapi.call("VM.get_allowed_VIF_devices", [
-      vmRef.value,
-    ])) as string[];
-    await xapi.call("VIF.create", [
+    const [device] = (await xapi.call('VM.get_allowed_VIF_devices', [vmRef.value])) as string[]
+    await xapi.call('VIF.create', [
       {
         device,
-        MAC: "",
+        MAC: '',
         MTU: selectedNetwork.value.MTU,
         network: selectedNetwork.value.$ref,
         other_config: {},
         qos_algorithm_params: {},
-        qos_algorithm_type: "",
+        qos_algorithm_type: '',
         VM: vmRef.value,
       },
-    ]);
+    ])
 
     if (!deploying.value) {
-      return;
+      return
     }
 
     const promises = [
-      xapi.call("VM.add_to_xenstore_data", [
+      xapi.call('VM.add_to_xenstore_data', [
         vmRef.value,
-        "vm-data/admin-account",
+        'vm-data/admin-account',
         JSON.stringify({ email: xoaUser.value, password: xoaPwd.value }),
       ]),
-    ];
+    ]
 
     // TODO: add host to servers with session token?
 
-    if (ipStrategy.value === "static") {
+    if (ipStrategy.value === 'static') {
       promises.push(
-        xapi.call("VM.add_to_xenstore_data", [
-          vmRef.value,
-          "vm-data/ip",
-          ip.value,
-        ]),
-        xapi.call("VM.add_to_xenstore_data", [
-          vmRef.value,
-          "vm-data/netmask",
-          netmask.value,
-        ]),
-        xapi.call("VM.add_to_xenstore_data", [
-          vmRef.value,
-          "vm-data/gateway",
-          gateway.value,
-        ]),
-        xapi.call("VM.add_to_xenstore_data", [
-          vmRef.value,
-          "vm-data/dns",
-          dns.value,
-        ])
-      );
+        xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/ip', ip.value]),
+        xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/netmask', netmask.value]),
+        xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/gateway', gateway.value]),
+        xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/dns', dns.value])
+      )
     }
 
     if (enableSshAccount.value) {
       promises.push(
-        xapi.call("VM.add_to_xenstore_data", [
-          vmRef.value,
-          "vm-data/system-account-xoa-password",
-          sshPwd.value,
-        ])
-      );
+        xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/system-account-xoa-password', sshPwd.value])
+      )
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises)
 
     if (!deploying.value) {
-      return;
+      return
     }
 
-    status.value = t("deploy-xoa-status.starting");
+    status.value = t('deploy-xoa-status.starting')
 
-    await xapi.call("VM.start", [
+    await xapi.call('VM.start', [
       vmRef.value,
       false, // start_paused
       false, // force
-    ]);
+    ])
 
     if (!deploying.value) {
-      return;
+      return
     }
 
-    status.value = t("deploy-xoa-status.waiting");
+    status.value = t('deploy-xoa-status.waiting')
 
-    const metricsRef = await xapi.call("VM.get_guest_metrics", [vmRef.value]);
-    let attempts = 120;
-    let networks: { "0/ip": string } | undefined;
-    await new Promise((resolve) => setTimeout(resolve, 10e3)); // Sleep 10s
+    const metricsRef = await xapi.call('VM.get_guest_metrics', [vmRef.value])
+    let attempts = 120
+    let networks: { '0/ip': string } | undefined
+    await new Promise(resolve => setTimeout(resolve, 10e3)) // Sleep 10s
     do {
-      await new Promise((resolve) => setTimeout(resolve, 1e3)); // Sleep 1s
-      networks = await xapi.call("VM_guest_metrics.get_networks", [metricsRef]);
+      await new Promise(resolve => setTimeout(resolve, 1e3)) // Sleep 1s
+      networks = await xapi.call('VM_guest_metrics.get_networks', [metricsRef])
       if (!deploying.value) {
-        return;
+        return
       }
-    } while (--attempts > 0 && networks?.["0/ip"] === undefined);
+    } while (--attempts > 0 && networks?.['0/ip'] === undefined)
 
     if (attempts === 0 || networks === undefined) {
-      status.value = t("deploy-xoa-status.not-responding");
-      return;
+      status.value = t('deploy-xoa-status.not-responding')
+      return
     }
 
     await Promise.all(
-      [
-        "admin-account",
-        "dns",
-        "gateway",
-        "ip",
-        "netmask",
-        "xoa-updater-credentials",
-      ].map((key) =>
-        xapi.call("VM.remove_from_xenstore_data", [
-          vmRef.value,
-          `vm-data/${key}`,
-        ])
+      ['admin-account', 'dns', 'gateway', 'ip', 'netmask', 'xoa-updater-credentials'].map(key =>
+        xapi.call('VM.remove_from_xenstore_data', [vmRef.value, `vm-data/${key}`])
       )
-    );
+    )
 
-    status.value = t("deploy-xoa-status.ready");
+    status.value = t('deploy-xoa-status.ready')
 
     // TODO: handle IPv6
-    url.value = `https://${networks["0/ip"]}`;
+    url.value = `https://${networks['0/ip']}`
   } catch (err: any) {
-    console.error(err);
-    error.value = err?.message ?? err?.code ?? "Unknown error";
+    console.error(err)
+    error.value = err?.message ?? err?.code ?? 'Unknown error'
   }
 }
 
 async function cancel() {
-  const _vmRef = vmRef.value;
-  console.log("_vmRef:", _vmRef);
-  resetValues();
+  const _vmRef = vmRef.value
+  resetValues()
   if (_vmRef !== undefined) {
     try {
-      await xapi.call("VM.destroy", [_vmRef]);
+      await xapi.call('VM.destroy', [_vmRef])
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
   }
 }

@@ -3,13 +3,13 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_MENU_HORIZONTAL } from "@/types/injection-keys";
-import { computed, inject } from "vue";
+import { IK_MENU_HORIZONTAL } from '@/types/injection-keys'
+import { computed, inject } from 'vue'
 
 const horizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
-);
+)
 </script>
 
 <style lang="postcss" scoped>
