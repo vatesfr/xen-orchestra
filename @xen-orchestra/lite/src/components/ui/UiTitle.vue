@@ -5,19 +5,19 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
-  type: "display" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-}>();
+  type: 'display' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}>()
 
 const tag = computed(() => {
-  if (props.type === "display") {
-    return "h1";
+  if (props.type === 'display') {
+    return 'h1'
   }
 
-  return props.type;
-});
+  return props.type
+})
 </script>
 
 <style lang="postcss" scoped>

@@ -3,30 +3,26 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { computed } from "vue";
-import {
-  faCheckCircle,
-  faInfoCircle,
-  faWarning,
-} from "@fortawesome/free-solid-svg-icons";
-import type { Color } from "@/types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { computed } from 'vue'
+import { faCheckCircle, faInfoCircle, faWarning } from '@fortawesome/free-solid-svg-icons'
+import type { Color } from '@/types'
 
 const props = defineProps<{
-  state: Color;
-}>();
+  state: Color
+}>()
 
 const icon = computed(() => {
   switch (props.state) {
-    case "error":
-    case "warning":
-      return faWarning;
-    case "info":
-      return faInfoCircle;
+    case 'error':
+    case 'warning':
+      return faWarning
+    case 'info':
+      return faInfoCircle
     default:
-      return faCheckCircle;
+      return faCheckCircle
   }
-});
+})
 </script>
 
 <style scoped lang="postcss">

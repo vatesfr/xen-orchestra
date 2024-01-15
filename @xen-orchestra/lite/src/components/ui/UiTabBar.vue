@@ -5,17 +5,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from "@/composables/context.composable";
-import { DisabledContext } from "@/context";
+import { useContext } from '@/composables/context.composable'
+import { DisabledContext } from '@/context'
 
 const props = withDefaults(
   defineProps<{
-    disabled?: boolean;
+    disabled?: boolean
   }>(),
   { disabled: undefined }
-);
+)
 
-useContext(DisabledContext, () => props.disabled);
+useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>

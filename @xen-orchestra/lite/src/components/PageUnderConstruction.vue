@@ -5,21 +5,21 @@
     :title="$t('xo-lite-under-construction')"
   >
     <p class="contact">
-      {{ $t("do-you-have-needs") }}
+      {{ $t('do-you-have-needs') }}
       <a
         href="https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng"
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ $t("here") }} →
+        {{ $t('here') }} →
       </a>
     </p>
   </UiStatusPanel>
 </template>
 
 <script lang="ts" setup>
-import underConstruction from "@/assets/under-construction.svg";
-import UiStatusPanel from "@/components/ui/UiStatusPanel.vue";
+import underConstruction from '@/assets/under-construction.svg'
+import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 </script>
 
 <style lang="postcss" scoped>

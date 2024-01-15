@@ -8,14 +8,14 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  icon: IconDefinition;
-  label: string;
-  count: string | number;
-}>();
+  icon: IconDefinition
+  label: string
+  count: string | number
+}>()
 </script>
 
 <style lang="postcss" scoped>

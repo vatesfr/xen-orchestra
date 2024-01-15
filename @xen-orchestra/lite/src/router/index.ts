@@ -1,49 +1,49 @@
-import pool from "@/router/pool";
-import story from "@/router/story";
-import vm from "@/router/vm";
-import sr from "@/router/sr";
-import HomeView from "@/views/HomeView.vue";
-import { createRouter, createWebHashHistory } from "vue-router";
+import pool from '@/router/pool'
+import story from '@/router/story'
+import vm from '@/router/vm'
+import sr from '@/router/sr'
+import HomeView from '@/views/HomeView.vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
-      path: "/",
-      name: "home",
+      path: '/',
+      name: 'home',
       component: HomeView,
     },
     {
-      path: "/xoa-deploy",
-      name: "xoa.deploy",
-      component: () => import("@/views/xoa-deploy/XoaDeployView.vue"),
+      path: '/xoa-deploy',
+      name: 'xoa.deploy',
+      component: () => import('@/views/xoa-deploy/XoaDeployView.vue'),
     },
     {
-      path: "/settings",
-      name: "settings",
-      component: () => import("@/views/settings/SettingsView.vue"),
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/settings/SettingsView.vue'),
     },
     story,
     pool,
     vm,
     sr,
     {
-      path: "/host/:uuid",
-      component: () => import("@/views/host/HostRootView.vue"),
+      path: '/host/:uuid',
+      component: () => import('@/views/host/HostRootView.vue'),
       children: [
         {
-          path: "",
-          name: "host.dashboard",
-          component: () => import("@/views/host/HostDashboardView.vue"),
+          path: '',
+          name: 'host.dashboard',
+          component: () => import('@/views/host/HostDashboardView.vue'),
         },
       ],
     },
     {
-      path: "/:pathMatch(.*)*",
-      name: "not-found",
-      component: () => import("@/views/PageNotFoundView.vue"),
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/PageNotFoundView.vue'),
     },
   ],
-});
+})
 
-export default router;
+export default router

@@ -1,11 +1,6 @@
 <template>
   <transition name="slide">
-    <nav
-      v-if="isDesktop || isOpen"
-      ref="navElement"
-      :class="{ collapsible: isMobile }"
-      class="app-navigation"
-    >
+    <nav v-if="isDesktop || isOpen" ref="navElement" :class="{ collapsible: isMobile }" class="app-navigation">
       <StoryMenu v-if="$route.meta.hasStoryNav" />
       <InfraNavigation v-else />
     </nav>
@@ -13,34 +8,34 @@
 </template>
 
 <script lang="ts" setup>
-import StoryMenu from "@/components/component-story/StoryMenu.vue";
-import InfraNavigation from "./infra/InfraNavigation.vue";
-import { useNavigationStore } from "@/stores/navigation.store";
-import { useUiStore } from "@/stores/ui.store";
-import { onClickOutside, whenever } from "@vueuse/core";
-import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import StoryMenu from '@/components/component-story/StoryMenu.vue'
+import InfraNavigation from './infra/InfraNavigation.vue'
+import { useNavigationStore } from '@/stores/navigation.store'
+import { useUiStore } from '@/stores/ui.store'
+import { onClickOutside, whenever } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 
-const uiStore = useUiStore();
-const { isMobile, isDesktop } = storeToRefs(uiStore);
+const uiStore = useUiStore()
+const { isMobile, isDesktop } = storeToRefs(uiStore)
 
-const navigationStore = useNavigationStore();
-const { isOpen, trigger } = storeToRefs(navigationStore);
+const navigationStore = useNavigationStore()
+const { isOpen, trigger } = storeToRefs(navigationStore)
 
-const navElement = ref();
+const navElement = ref()
 
 whenever(isOpen, () => {
   const unregisterEvent = onClickOutside(
     navElement,
     () => {
-      isOpen.value = false;
-      unregisterEvent?.();
+      isOpen.value = false
+      unregisterEvent?.()
     },
     {
       ignore: [trigger],
     }
-  );
-});
+  )
+})
 </script>
 
 <style lang="postcss" scoped>

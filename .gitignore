@@ -30,6 +30,7 @@ pnpm-debug.log.*
 yarn-error.log
 yarn-error.log.*
 .env
+*.tsbuildinfo
 
 # code coverage
 .nyc_output/

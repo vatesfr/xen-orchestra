@@ -26,65 +26,53 @@
       {{ warning }}
     </p>
 
-    <CodeHighlight
-      class="code-highlight"
-      v-if="componentPath"
-      :code="template"
-    />
+    <CodeHighlight v-if="componentPath" class="code-highlight" :code="template" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import CodeHighlight from "@/components/CodeHighlight.vue";
-import FormInput from "@/components/form/FormInput.vue";
-import FormSelect from "@/components/form/FormSelect.vue";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiCard from "@/components/ui/UiCard.vue";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { faWarning } from "@fortawesome/free-solid-svg-icons";
-import { castArray } from "lodash-es";
-import { type ComponentOptions, computed, ref, watch } from "vue";
+import CodeHighlight from '@/components/CodeHighlight.vue'
+import FormInput from '@/components/form/FormInput.vue'
+import FormSelect from '@/components/form/FormSelect.vue'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiCard from '@/components/ui/UiCard.vue'
+import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import { faWarning } from '@fortawesome/free-solid-svg-icons'
+import { castArray } from 'lodash-es'
+import { type ComponentOptions, computed, ref, watch } from 'vue'
 
-const componentPath = ref("");
+const componentPath = ref('')
 
-const components = import.meta.glob<{ default: ComponentOptions }>(
-  "/src/components/**/*.vue",
-  {
-    eager: true,
-  }
-);
+const components = import.meta.glob<{ default: ComponentOptions }>('/src/components/**/*.vue', {
+  eager: true,
+})
 
 const componentsWithProps = Object.fromEntries(
-  Object.entries(components).filter(
-    ([, component]) => component.default.props || component.default.emits
-  )
-);
+  Object.entries(components).filter(([, component]) => component.default.props || component.default.emits)
+)
 
-const componentPaths = Object.keys(componentsWithProps);
+const componentPaths = Object.keys(componentsWithProps)
 
-const lines = ref<string[]>([]);
-const slots = ref("");
+const lines = ref<string[]>([])
+const slots = ref('')
 
-const quote = (str: string) => `'${str}'`;
-const camel = (str: string) =>
-  str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-const paramsToImport = ref(new Set<string>());
-const widgetsToImport = ref(new Set<string>());
+const quote = (str: string) => `'${str}'`
+const camel = (str: string) => str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())
+const paramsToImport = ref(new Set<string>())
+const widgetsToImport = ref(new Set<string>())
 
 const template = computed(() => {
-  const componentName = componentPath.value.replace(/.*\/([^/]+)\.vue$/, "$1");
-  const path = componentPath.value.replace(/^\/src/, "@");
-  const paramsLines = [...lines.value];
+  const componentName = componentPath.value.replace(/.*\/([^/]+)\.vue$/, '$1')
+  const path = componentPath.value.replace(/^\/src/, '@')
+  const paramsLines = [...lines.value]
   const slotsNames = slots.value
-    .split(",")
-    .map((s) => s.trim())
-    .filter((name) => name !== "");
+    .split(',')
+    .map(s => s.trim())
+    .filter(name => name !== '')
 
   for (const slotName of slotsNames) {
-    paramsLines.push(
-      `slot(${slotName === "default" ? "" : quote(camel(slotName))})`
-    );
+    paramsLines.push(`slot(${slotName === 'default' ? '' : quote(camel(slotName))})`)
   }
 
   for (const slotName of slotsNames) {
@@ -92,16 +80,16 @@ const template = computed(() => {
       `setting(${quote(
         `${camel(slotName)}SlotContent`
       )}).preset('Example content for ${slotName} slot').widget(text()).help('Content for ${slotName} slot')`
-    );
+    )
   }
 
   if (slotsNames.length > 0) {
-    paramsToImport.value.add("slot").add("setting");
-    widgetsToImport.value.add("text");
+    paramsToImport.value.add('slot').add('setting')
+    widgetsToImport.value.add('text')
   }
 
-  const paramsStr = paramsLines.join(",\n      ");
-  const scriptEndTag = "</" + "script>";
+  const paramsStr = paramsLines.join(',\n      ')
+  const scriptEndTag = '</' + 'script>'
   return `<template>
   <ComponentStory
     v-slot="{ properties, settings }"
@@ -112,14 +100,12 @@ const template = computed(() => {
     <${componentName} v-bind="properties"${
       slotsNames.length > 0
         ? `>\n      ${slotsNames
-            .map((name) =>
-              name === "default"
+            .map(name =>
+              name === 'default'
                 ? `{{ settings.${camel(name)}SlotContent }}`
-                : `<template #${name}>{{ settings.${camel(
-                    name
-                  )}SlotContent }}</template>`
+                : `<template #${name}>{{ settings.${camel(name)}SlotContent }}</template>`
             )
-            .join("\n      ")}
+            .join('\n      ')}
     </${componentName}>`
         : ` />`
     }
@@ -131,113 +117,100 @@ import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import ${componentName} from "${path}";
 ${
   paramsToImport.value.size > 0
-    ? `import { ${Array.from(paramsToImport.value.values()).join(
-        ", "
-      )} } from "@/libs/story/story-param"`
-    : ""
+    ? `import { ${Array.from(paramsToImport.value.values()).join(', ')} } from "@/libs/story/story-param"`
+    : ''
 }
 ${
   widgetsToImport.value.size > 0
-    ? `import { ${Array.from(widgetsToImport.value.values()).join(
-        ", "
-      )} } from "@/libs/story/story-widget"`
-    : ""
+    ? `import { ${Array.from(widgetsToImport.value.values()).join(', ')} } from "@/libs/story/story-widget"`
+    : ''
 }
 ${scriptEndTag}
-`;
-});
+`
+})
 
-const warnings = ref(new Set<string>());
+const warnings = ref(new Set<string>())
 
-const extractTypeFromConstructor = (
-  ctor: null | (new () => unknown),
-  propName: string
-) => {
+const extractTypeFromConstructor = (ctor: null | (new () => unknown), propName: string) => {
   if (ctor == null) {
-    warnings.value.add(
-      `An unknown type has been detected for prop "${propName}"`
-    );
-    return "unknown";
+    warnings.value.add(`An unknown type has been detected for prop "${propName}"`)
+    return 'unknown'
   }
 
   if (ctor === Date) {
-    return "Date";
+    return 'Date'
   }
 
-  return ctor.name.toLocaleLowerCase();
-};
+  return ctor.name.toLocaleLowerCase()
+}
 
 watch(
   componentPath,
   (path: string) => {
     if (!(path in components)) {
-      return;
+      return
     }
-    const component = components[path].default;
+    const component = components[path].default
 
-    slots.value = "";
-    widgetsToImport.value = new Set();
-    paramsToImport.value = new Set();
-    warnings.value = new Set();
-    lines.value = [];
+    slots.value = ''
+    widgetsToImport.value = new Set()
+    paramsToImport.value = new Set()
+    warnings.value = new Set()
+    lines.value = []
 
     for (const propName in component.props) {
-      const current = [];
-      const prop = component.props[propName];
+      const current = []
+      const prop = component.props[propName]
 
       if (prop.required) {
-        current.push("required()");
+        current.push('required()')
       }
 
       if (prop.default) {
-        current.push(`default(${quote(prop.default)})`);
+        current.push(`default(${quote(prop.default)})`)
       }
 
       if (prop.type !== undefined) {
         const type = castArray(prop.type)
-          .map((ctor) => extractTypeFromConstructor(ctor, propName))
-          .join(" | ");
+          .map(ctor => extractTypeFromConstructor(ctor, propName))
+          .join(' | ')
 
-        if (type !== "unknown") {
-          current.push(`type(${quote(type)})`);
+        if (type !== 'unknown') {
+          current.push(`type(${quote(type)})`)
         }
       }
 
-      const isModel = component.emits?.includes(`update:${propName}`);
-      paramsToImport.value.add(isModel ? "model" : "prop");
+      const isModel = component.emits?.includes(`update:${propName}`)
+      paramsToImport.value.add(isModel ? 'model' : 'prop')
 
-      current.unshift(
-        `${isModel ? "model" : "prop"}(${
-          propName === "modelValue" ? "" : quote(propName)
-        })`
-      );
+      current.unshift(`${isModel ? 'model' : 'prop'}(${propName === 'modelValue' ? '' : quote(propName)})`)
 
       if (!isModel) {
-        current.push("widget()");
+        current.push('widget()')
       }
 
-      lines.value.push(current.join("."));
+      lines.value.push(current.join('.'))
     }
 
-    let shouldImportEvent = false;
+    let shouldImportEvent = false
 
     if (component.emits) {
       for (const eventName of component.emits) {
-        if (eventName.startsWith("update:")) {
-          continue;
+        if (eventName.startsWith('update:')) {
+          continue
         }
 
-        shouldImportEvent = true;
-        lines.value.push(`event(${quote(eventName)})`);
+        shouldImportEvent = true
+        lines.value.push(`event(${quote(eventName)})`)
       }
     }
 
     if (shouldImportEvent) {
-      paramsToImport.value.add("event");
+      paramsToImport.value.add('event')
     }
   },
   { immediate: true }
-);
+)
 </script>
 
 <style lang="postcss" scoped>

@@ -39,59 +39,52 @@
 </template>
 
 <script generic="T extends XenApiRecord<any>" lang="ts" setup>
-import CollectionFilter from "@/components/CollectionFilter.vue";
-import CollectionSorter from "@/components/CollectionSorter.vue";
-import UiTable from "@/components/ui/UiTable.vue";
-import useCollectionFilter from "@/composables/collection-filter.composable";
-import useCollectionSorter from "@/composables/collection-sorter.composable";
-import useFilteredCollection from "@/composables/filtered-collection.composable";
-import useMultiSelect from "@/composables/multi-select.composable";
-import useSortedCollection from "@/composables/sorted-collection.composable";
-import type { XenApiRecord } from "@/libs/xen-api/xen-api.types";
-import type { Filters } from "@/types/filter";
-import type { Sorts } from "@/types/sort";
-import { computed, toRef, watch } from "vue";
+import CollectionFilter from '@/components/CollectionFilter.vue'
+import CollectionSorter from '@/components/CollectionSorter.vue'
+import UiTable from '@/components/ui/UiTable.vue'
+import useCollectionFilter from '@/composables/collection-filter.composable'
+import useCollectionSorter from '@/composables/collection-sorter.composable'
+import useFilteredCollection from '@/composables/filtered-collection.composable'
+import useMultiSelect from '@/composables/multi-select.composable'
+import useSortedCollection from '@/composables/sorted-collection.composable'
+import type { XenApiRecord } from '@/libs/xen-api/xen-api.types'
+import type { Filters } from '@/types/filter'
+import type { Sorts } from '@/types/sort'
+import { computed, toRef, watch } from 'vue'
 
 const props = defineProps<{
-  modelValue?: T["$ref"][];
-  availableFilters?: Filters;
-  availableSorts?: Sorts;
-  collection: T[];
-}>();
+  modelValue?: T['$ref'][]
+  availableFilters?: Filters
+  availableSorts?: Sorts
+  collection: T[]
+}>()
 
 const emit = defineEmits<{
-  (event: "update:modelValue", selectedRefs: T["$ref"][]): void;
-}>();
+  (event: 'update:modelValue', selectedRefs: T['$ref'][]): void
+}>()
 
-const isSelectable = computed(() => props.modelValue !== undefined);
+const isSelectable = computed(() => props.modelValue !== undefined)
 
 const { filters, addFilter, removeFilter, predicate } = useCollectionFilter({
-  queryStringParam: "filter",
-});
-const { sorts, addSort, removeSort, toggleSortDirection, compareFn } =
-  useCollectionSorter<Record<string, any>>({ queryStringParam: "sort" });
+  queryStringParam: 'filter',
+})
+const { sorts, addSort, removeSort, toggleSortDirection, compareFn } = useCollectionSorter<Record<string, any>>({
+  queryStringParam: 'sort',
+})
 
-const filteredCollection = useFilteredCollection(
-  toRef(props, "collection"),
-  predicate
-);
+const filteredCollection = useFilteredCollection(toRef(props, 'collection'), predicate)
 
-const filteredAndSortedCollection = useSortedCollection(
-  filteredCollection,
-  compareFn
-);
+const filteredAndSortedCollection = useSortedCollection(filteredCollection, compareFn)
 
-const usableRefs = computed(() => props.collection.map((item) => item["$ref"]));
+const usableRefs = computed(() => props.collection.map(item => item.$ref))
 
-const selectableRefs = computed(() =>
-  filteredAndSortedCollection.value.map((item) => item["$ref"])
-);
+const selectableRefs = computed(() => filteredAndSortedCollection.value.map(item => item.$ref))
 
-const { selected, areAllSelected } = useMultiSelect(usableRefs, selectableRefs);
+const { selected, areAllSelected } = useMultiSelect(usableRefs, selectableRefs)
 
-watch(selected, (selected) => emit("update:modelValue", selected), {
+watch(selected, selected => emit('update:modelValue', selected), {
   immediate: true,
-});
+})
 </script>
 
 <style lang="postcss" scoped>

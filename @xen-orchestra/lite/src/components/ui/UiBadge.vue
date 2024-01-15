@@ -6,12 +6,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
 
 defineProps<{
-  icon?: IconDefinition;
-}>();
+  icon?: IconDefinition
+}>()
 </script>
 
 <style lang="postcss" scoped>

@@ -39,14 +39,8 @@ Tooltip can be placed on the following positions:
 ```vue
 <template>
   <!-- Boolean / Undefined -->
-  <span v-tooltip="true"
-    >This content will be ellipsized by CSS but displayed entirely in the
-    tooltip</span
-  >
-  <span v-tooltip
-    >This content will be ellipsized by CSS but displayed entirely in the
-    tooltip</span
-  >
+  <span v-tooltip="true">This content will be ellipsized by CSS but displayed entirely in the tooltip</span>
+  <span v-tooltip>This content will be ellipsized by CSS but displayed entirely in the tooltip</span>
 
   <!-- String -->
   <span v-tooltip="'Tooltip content'">Item</span>
@@ -62,10 +56,10 @@ Tooltip can be placed on the following positions:
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { vTooltip } from "@/directives/tooltip.directive";
+import { ref } from 'vue'
+import { vTooltip } from '@/directives/tooltip.directive'
 
-const myTooltip = ref("Content"); // or ref({ content: "Content", placement: "left-end" })
-const isTooltipEnabled = ref(true);
+const myTooltip = ref('Content') // or ref({ content: "Content", placement: "left-end" })
+const isTooltipEnabled = ref(true)
 </script>
 ```

@@ -26,8 +26,8 @@
 </template>
 
 <script lang="ts" setup>
-import useMultiSelect from "./multi-select.composable";
+import useMultiSelect from './multi-select.composable'
 
-const { selected, areAllSelected } = useMultiSelect();
+const { selected, areAllSelected } = useMultiSelect()
 </script>
 ```

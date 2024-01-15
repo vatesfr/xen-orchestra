@@ -1,10 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[
-      prop('disabled').bool().widget().ctx(),
-      slot().help('Contains <RouterTab> or <UiTab>'),
-    ]"
+    :params="[prop('disabled').bool().widget().ctx(), slot().help('Contains <RouterTab> or <UiTab>')]"
   >
     <UiTabBar v-bind="properties">
       <UiTab>Foo</UiTab>
@@ -15,10 +12,10 @@
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import UiTab from "@/components/ui/UiTab.vue";
-import UiTabBar from "@/components/ui/UiTabBar.vue";
-import { prop, slot } from "@/libs/story/story-param";
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import UiTab from '@/components/ui/UiTab.vue'
+import UiTabBar from '@/components/ui/UiTabBar.vue'
+import { prop, slot } from '@/libs/story/story-param'
 </script>
 
 <style lang="postcss" scoped></style>

@@ -2,11 +2,7 @@
   <FormInputGroup>
     <FormNumber v-model="sizeInput" :max-decimals="3" />
     <FormSelect v-model="prefixInput">
-      <option
-        v-for="currentPrefix in availablePrefixes"
-        :key="currentPrefix"
-        :value="currentPrefix"
-      >
+      <option v-for="currentPrefix in availablePrefixes" :key="currentPrefix" :value="currentPrefix">
         {{ currentPrefix }}B
       </option>
     </FormSelect>
@@ -14,67 +10,66 @@
 </template>
 
 <script lang="ts" setup>
-import FormInputGroup from "@/components/form/FormInputGroup.vue";
-import FormNumber from "@/components/form/FormNumber.vue";
-import FormSelect from "@/components/form/FormSelect.vue";
-import { useVModel } from "@vueuse/core";
-import humanFormat, { type Prefix } from "human-format";
-import { ref, watch } from "vue";
+import FormInputGroup from '@/components/form/FormInputGroup.vue'
+import FormNumber from '@/components/form/FormNumber.vue'
+import FormSelect from '@/components/form/FormSelect.vue'
+import { useVModel } from '@vueuse/core'
+import format, { type Prefix } from 'human-format'
+import { ref, watch } from 'vue'
 
 const props = defineProps<{
-  modelValue: number | undefined;
-}>();
+  modelValue: number | undefined
+}>()
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: number): number;
-}>();
+  (event: 'update:modelValue', value: number): number
+}>()
 
-const availablePrefixes: Prefix<"binary">[] = ["Ki", "Mi", "Gi"];
+const availablePrefixes: Prefix<'binary'>[] = ['Ki', 'Mi', 'Gi']
 
-const model = useVModel(props, "modelValue", emit, {
-  shouldEmit: (value) => value !== props.modelValue,
-});
+const model = useVModel(props, 'modelValue', emit, {
+  shouldEmit: value => value !== props.modelValue,
+})
 
-const sizeInput = ref();
-const prefixInput = ref();
+const sizeInput = ref()
+const prefixInput = ref()
 
-const scale = humanFormat.Scale.create(availablePrefixes, 1024, 1);
+const scale = format.Scale.create(availablePrefixes, 1024, 1)
 
 watch([sizeInput, prefixInput], ([newSize, newPrefix]) => {
-  if (newSize === "" || newSize === undefined) {
-    return;
+  if (newSize === '' || newSize === undefined) {
+    return
   }
 
-  model.value = humanFormat.parse(`${newSize || 0} ${newPrefix || "Ki"}`, {
+  model.value = format.parse(`${newSize || 0} ${newPrefix || 'Ki'}`, {
     scale,
-  });
-});
+  })
+})
 
 watch(
   () => props.modelValue,
-  (newValue) => {
+  newValue => {
     if (newValue === undefined) {
-      sizeInput.value = undefined;
+      sizeInput.value = undefined
 
       if (prefixInput.value === undefined) {
-        prefixInput.value = availablePrefixes[0];
+        prefixInput.value = availablePrefixes[0]
       }
 
-      return;
+      return
     }
 
-    const { value, prefix } = humanFormat.raw(newValue, {
+    const { value, prefix } = format.raw(newValue, {
       scale,
       prefix: prefixInput.value,
-    });
-    console.log(value);
+    })
 
-    sizeInput.value = value;
+    sizeInput.value = value
 
     if (value !== 0) {
-      prefixInput.value = prefix;
+      prefixInput.value = prefix
     }
   },
   { immediate: true }
-);
+)
 </script>

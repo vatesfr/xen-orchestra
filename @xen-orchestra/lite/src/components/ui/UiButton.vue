@@ -1,10 +1,5 @@
 <template>
-  <button
-    :class="className"
-    :disabled="busy || isDisabled"
-    :type="type || 'button'"
-    class="ui-button"
-  >
+  <button :class="className" :disabled="busy || isDisabled" :type="type || 'button'" class="ui-button">
     <UiSpinner v-if="busy" />
     <template v-else>
       <UiIcon :icon="icon" class="icon" />
@@ -14,49 +9,46 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useContext } from "@/composables/context.composable";
-import { ColorContext, DisabledContext } from "@/context";
-import {
-  IK_BUTTON_GROUP_OUTLINED,
-  IK_BUTTON_GROUP_TRANSPARENT,
-} from "@/types/injection-keys";
-import { computed, inject } from "vue";
-import type { Color } from "@/types";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import UiSpinner from '@/components/ui/UiSpinner.vue'
+import { useContext } from '@/composables/context.composable'
+import { ColorContext, DisabledContext } from '@/context'
+import { IK_BUTTON_GROUP_OUTLINED, IK_BUTTON_GROUP_TRANSPARENT } from '@/types/injection-keys'
+import { computed, inject } from 'vue'
+import type { Color } from '@/types'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
 
 const props = withDefaults(
   defineProps<{
-    type?: "button" | "reset" | "submit";
-    busy?: boolean;
-    disabled?: boolean;
-    icon?: IconDefinition;
-    color?: Color;
-    outlined?: boolean;
-    transparent?: boolean;
-    active?: boolean;
+    type?: 'button' | 'reset' | 'submit'
+    busy?: boolean
+    disabled?: boolean
+    icon?: IconDefinition
+    color?: Color
+    outlined?: boolean
+    transparent?: boolean
+    active?: boolean
   }>(),
   {
     disabled: undefined,
     outlined: undefined,
     transparent: undefined,
   }
-);
+)
 
-const isDisabled = useContext(DisabledContext, () => props.disabled);
+const isDisabled = useContext(DisabledContext, () => props.disabled)
 
 const isGroupOutlined = inject(
   IK_BUTTON_GROUP_OUTLINED,
   computed(() => false)
-);
+)
 
 const isGroupTransparent = inject(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => false)
-);
+)
 
-const { name: contextColor } = useContext(ColorContext, () => props.color);
+const { name: contextColor } = useContext(ColorContext, () => props.color)
 
 const className = computed(() => {
   return [
@@ -68,8 +60,8 @@ const className = computed(() => {
       outlined: props.outlined ?? isGroupOutlined.value,
       transparent: props.transparent ?? isGroupTransparent.value,
     },
-  ];
-});
+  ]
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -178,7 +170,7 @@ const className = computed(() => {
   &::after {
     width: 1.2em;
     height: 1.2em;
-    content: "";
+    content: '';
     border-radius: 0.6em;
     background-color: var(--button-background-color);
   }
