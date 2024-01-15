@@ -6,7 +6,7 @@
     "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
-    "release": "zx ./scripts/release.mjs",
+    "release": "./scripts/release.mjs",
     "build-only": "yarn release --build",
     "deploy": "yarn release --build --deploy",
     "gh-release": "yarn release --build --tarball --gh-release",

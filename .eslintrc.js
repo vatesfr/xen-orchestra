@@ -15,9 +15,10 @@ module.exports = {
 
   overrides: [
     {
-      files: ['cli.{,c,m}js', '*-cli.{,c,m}js', '**/*cli*/**/*.{,c,m}js'],
+      files: ['cli.{,c,m}js', '*-cli.{,c,m}js', '**/*cli*/**/*.{,c,m}js', '**/scripts/**.{,c,m}js'],
       rules: {
         'n/no-process-exit': 'off',
+        'n/shebang': 'off',
         'no-console': 'off',
       },
     },

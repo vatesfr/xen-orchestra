@@ -1,4 +1,4 @@
-/* eslint-disable no-console, n/no-process-exit, n/no-extraneous-import */
+#!/usr/bin/env node
 
 import argv from 'minimist'
 import { tmpdir } from 'os'
@@ -391,5 +391,3 @@ if (deploy) {
   \trsync -r --delete /home/${username}/xo-lite/ /home/xo-lite/public/latest
   `)
 }
-
-/* eslint-enable no-console, n/no-process-exit, n/no-extraneous-import */
