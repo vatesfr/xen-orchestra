@@ -319,6 +319,7 @@ class JobsTable extends React.Component {
             compression,
             concurrency,
             fullInterval,
+            nRetriesVmBackupFailures,
             offlineBackup,
             offlineSnapshot,
             proxyId,
@@ -348,6 +349,9 @@ class JobsTable extends React.Component {
               )}
               {compression !== undefined && (
                 <Li>{_.keyValue(_('compression'), compression === 'native' ? 'GZIP' : compression)}</Li>
+              )}
+              {nRetriesVmBackupFailures > 0 && (
+                <Li>{_.keyValue(_('nRetriesVmBackupFailures'), nRetriesVmBackupFailures)}</Li>
               )}
             </Ul>
           )

@@ -124,6 +124,8 @@ const NewMirrorBackup = decorate([
         setAdvancedSettings({ timeout: timeout !== undefined ? timeout * 3600e3 : undefined }),
       setMaxExportRate: ({ setAdvancedSettings }, rate) =>
         setAdvancedSettings({ maxExportRate: rate !== undefined ? rate * (1024 * 1024) : undefined }),
+      setNRetriesVmBackupFailures: ({ setAdvancedSettings }, nRetriesVmBackupFailures) =>
+        setAdvancedSettings({ nRetriesVmBackupFailures }),
       setSourceRemote: (_, obj) => () => ({
         sourceRemote: obj === null ? {} : obj.value,
       }),
@@ -204,6 +206,7 @@ const NewMirrorBackup = decorate([
       inputConcurrencyId: generateId,
       inputTimeoutId: generateId,
       inputMaxExportRateId: generateId,
+      inputNRetriesVmBackupFailures: generateId,
       isBackupInvalid: state =>
         state.isMissingName || state.isMissingBackupMode || state.isMissingSchedules || state.isMissingRetention,
       isFull: state => state.mode === 'full',
@@ -231,7 +234,7 @@ const NewMirrorBackup = decorate([
   }),
   injectState,
   ({ state, effects, intl: { formatMessage } }) => {
-    const { concurrency, timeout, maxExportRate } = state.advancedSettings
+    const { concurrency, timeout, maxExportRate, nRetriesVmBackupFailures = 0 } = state.advancedSettings
     return (
       <form id={state.formId}>
         <Container>
@@ -312,6 +315,17 @@ const NewMirrorBackup = decorate([
                           min={1}
                           onChange={effects.setConcurrency}
                           value={concurrency}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputNRetriesVmBackupFailures}>
+                          <strong>{_('nRetriesVmBackupFailures')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputNRetriesVmBackupFailures}
+                          min={0}
+                          onChange={effects.setNRetriesVmBackupFailures}
+                          value={nRetriesVmBackupFailures}
                         />
                       </FormGroup>
                       <FormGroup>
