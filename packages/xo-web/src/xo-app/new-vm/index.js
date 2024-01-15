@@ -470,7 +470,7 @@ export default class NewVm extends BaseComponent {
 
     const data = {
       affinityHost: state.affinityHost && state.affinityHost.id,
-      clone: !this.isDiskTemplate && state.fastClone,
+      clone: !this._isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,
