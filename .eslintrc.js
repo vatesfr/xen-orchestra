@@ -75,6 +75,7 @@ module.exports = {
       rules: {
         'no-void': 'off',
         'n/no-missing-import': 'off', // using 'import' plugin instead to support TS aliases
+        'n/no-unpublished-import': 'off', // allow importing devDependencies packages
         '@typescript-eslint/no-explicit-any': 'off',
         'vue/require-default-prop': 'off', // https://github.com/vuejs/eslint-plugin-vue/issues/2051
       },
