@@ -11,6 +11,8 @@ import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
 
+const noop = Function.prototype
+
 const DEFAULT_XAPI_VM_SETTINGS = {
   bypassVdiChainsCheck: false,
   checkpointSnapshot: false,
@@ -24,6 +26,7 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   healthCheckVmsWithTags: [],
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
+  nRetriesVmBackupFailures: 0,
   offlineBackup: false,
   offlineSnapshot: false,
   snapshotRetention: 0,
@@ -53,6 +56,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
+
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -89,48 +93,98 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
+        const queue = new Set(vmIds)
+        const taskByVmId = {}
+        const nTriesByVmId = {}
+
         const handleVm = vmUuid => {
+          const getVmTask = () => {
+            if (taskByVmId[vmUuid] === undefined) {
+              taskByVmId[vmUuid] = new Task(taskStart)
+            }
+            return taskByVmId[vmUuid]
+          }
+          const vmBackupFailed = error => {
+            if (isLastRun) {
+              throw error
+            } else {
+              Task.warning(`Retry the VM backup due to an error`, {
+                attempt: nTriesByVmId[vmUuid],
+                error: error.message,
+              })
+              queue.add(vmUuid)
+            }
+          }
+
+          if (nTriesByVmId[vmUuid] === undefined) {
+            nTriesByVmId[vmUuid] = 0
+          }
+          nTriesByVmId[vmUuid]++
+
+          const vmSettings = { ...settings, ...allSettings[vmUuid] }
           const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
 
           return this._getRecord('VM', vmUuid).then(
             disposableVm =>
-              Disposable.use(disposableVm, vm => {
-                taskStart.data.name_label = vm.name_label
-                return runTask(taskStart, () => {
-                  const opts = {
-                    baseSettings,
-                    config,
-                    getSnapshotNameLabel,
-                    healthCheckSr,
-                    job,
-                    remoteAdapters,
-                    schedule,
-                    settings: { ...settings, ...allSettings[vm.uuid] },
-                    srs,
-                    throttleStream,
-                    vm,
-                  }
-                  let vmBackup
-                  if (job.mode === 'delta') {
-                    vmBackup = new IncrementalXapi(opts)
-                  } else {
-                    if (job.mode === 'full') {
-                      vmBackup = new FullXapi(opts)
-                    } else {
-                      throw new Error(`Job mode ${job.mode} not implemented`)
+              Disposable.use(disposableVm, async vm => {
+                if (taskStart.data.name_label === undefined) {
+                  taskStart.data.name_label = vm.name_label
+                }
+
+                const task = getVmTask()
+                return task
+                  .run(async () => {
+                    const opts = {
+                      baseSettings,
+                      config,
+                      getSnapshotNameLabel,
+                      healthCheckSr,
+                      job,
+                      remoteAdapters,
+                      schedule,
+                      settings: vmSettings,
+                      srs,
+                      throttleStream,
+                      vm,
                     }
-                  }
-                  return vmBackup.run()
-                })
+
+                    let vmBackup
+                    if (job.mode === 'delta') {
+                      vmBackup = new IncrementalXapi(opts)
+                    } else {
+                      if (job.mode === 'full') {
+                        vmBackup = new FullXapi(opts)
+                      } else {
+                        throw new Error(`Job mode ${job.mode} not implemented`)
+                      }
+                    }
+
+                    try {
+                      const result = await vmBackup.run()
+                      task.success(result)
+                      return result
+                    } catch (error) {
+                      vmBackupFailed(error)
+                    }
+                  })
+                  .catch(noop) // errors are handled by logs
               }),
             error =>
-              runTask(taskStart, () => {
-                throw error
+              getVmTask().run(() => {
+                vmBackupFailed(error)
               })
           )
         }
         const { concurrency } = settings
-        await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        const _handleVm = concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
+
+        while (queue.size > 0) {
+          const vmIds = Array.from(queue)
+          queue.clear()
+
+          await asyncMapSettled(vmIds, _handleVm)
+        }
       }
     )
   }
