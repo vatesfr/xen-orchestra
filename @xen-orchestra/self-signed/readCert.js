@@ -40,7 +40,7 @@ exports.readCert = async function readCert(
     ...opts
   }
 ) {
-  let useError = false
+  let readingDone = false
 
   try {
     const cert = await readFile(certPath)
@@ -61,11 +61,11 @@ exports.readCert = async function readCert(
 
     const key = await readFile(keyPath)
 
-    useError = true
+    readingDone = true
     return await use({ cert, key })
   } catch (error) {
-    // only regen if not a use error or if the use error was ERR_SSL_EE_KEY_TOO_SMALL
-    if (!(autoCert && (!useError || error.code === 'ERR_SSL_EE_KEY_TOO_SMALL'))) {
+    // only regen if a reading error or if the use error was ERR_SSL_EE_KEY_TOO_SMALL
+    if (!(autoCert && (!readingDone || error.code === 'ERR_SSL_EE_KEY_TOO_SMALL'))) {
       throw error
     }
     warn(error)
