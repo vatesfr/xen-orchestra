@@ -11,7 +11,6 @@
 - [REST API] New pool action: `emergency_shutdown`, it suspends all the VMs and then shuts down all the host [#7277](https://github.com/vatesfr/xen-orchestra/issues/7277) (PR [#7279](https://github.com/vatesfr/xen-orchestra/pull/7279))
 - [Tasks] Hide `/rrd_updates` tasks by default
 - [Sign in] Support _Remember me_ feature with external providers (PR [#7298](https://github.com/vatesfr/xen-orchestra/pull/7298))
-- [Modal] Automatically close an opened modal when navigating to another route/URL (PR [#7301](https://github.com/vatesfr/xen-orchestra/pull/7301))
 
 ### Bug fixes
 
@@ -26,6 +25,7 @@
 - [Jobs] Reset parameters when editing method to avoid invalid parameters on execution [Forum#69299](https://xcp-ng.org/forum/post/69299)
 - [Metadata Backup] Fix `ENOENT` error when restoring an _XO Config_ backup [Forum#68999](https://xcp-ng.org/forum/post/68999)
 - [REST API] Fix `/backup/log/<id>` which was broken by the `/backups` to `/backup` renaming [Forum#69426](https://xcp-ng.org/forum/post/69426)
+- [Modal] Fix opened modal not closing when navigating to another route/URL (PR [#7301](https://github.com/vatesfr/xen-orchestra/pull/7301))
 
 ### Packages to release
 
