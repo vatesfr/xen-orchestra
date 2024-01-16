@@ -319,6 +319,7 @@ const TRANSFORMS = {
     // { taskRef → operation } map directly
     const currentOperations = {}
     const { $xapi } = obj
+    const { xenstore_data } = obj
     forEach(obj.current_operations, (operation, ref) => {
       const task = $xapi.getObjectByRef(ref, undefined)
       if (task !== undefined) {
@@ -429,6 +430,7 @@ const TRANSFORMS = {
       VGPUs: link(obj, 'VGPUs'),
       $VGPUs: link(obj, 'VGPUs'),
       nicType: obj.platform.nic_type,
+      xenStoreData: xenstore_data,
     }
 
     if (isHvm) {
