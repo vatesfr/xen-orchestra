@@ -405,7 +405,7 @@ async function findPluginsInPath(path, prefix) {
 
 async function registerPlugins(xo) {
   const pluginPaths = new Map()
-  for (const path of [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules']) {
+  for (const path of xo.config.get('plugins.lookupPaths')) {
     await findPluginsInPath.call(pluginPaths, `${path}/@xen-orchestra`, 'server-')
     await findPluginsInPath.call(pluginPaths, path, 'xo-server-')
   }
