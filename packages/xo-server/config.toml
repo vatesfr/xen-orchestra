@@ -155,7 +155,7 @@ level = 'info'
 [logs.transport.console]
 
 [plugins]
-lookupPaths = ['./node_modules', '/usr/local/lib/node_modules']
+lookupPaths = ['./node_modules', '../', '/usr/local/lib/node_modules']
 
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
