@@ -26,6 +26,7 @@
 - [Metadata Backup] Fix `ENOENT` error when restoring an _XO Config_ backup [Forum#68999](https://xcp-ng.org/forum/post/68999)
 - [REST API] Fix `/backup/log/<id>` which was broken by the `/backups` to `/backup` renaming [Forum#69426](https://xcp-ng.org/forum/post/69426)
 - [Backup/Restore] Fix unnecessary pool selector in XO config backup restore modal [Forum#8130](https://xcp-ng.org/forum/topic/8130/xo-configbackup-restore) (PR [#7287](https://github.com/vatesfr/xen-orchestra/pull/7287))
+- [File restore] Fix potential race condition in paritition mount/unmount (PR [#7298](https://github.com/vatesfr/xen-orchestra/pull/7298))
 
 ### Packages to release
 
@@ -45,6 +46,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi minor
+- @vates/fuse-vhd patch
 - xen-api patch
 - xo-server minor
 - xo-server-load-balancer patch
