@@ -2,14 +2,13 @@
 
 import fse from 'fs-extra'
 import getopts from 'getopts'
-import pRetry from 'promise-toolbox/retry'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { create as createServer } from 'http-server-plus'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureServer } from 'http2'
-import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { load as loadConfig } from 'app-conf'
+import { readCert } from '@xen-orchestra/self-signed/readCert'
 
 // -------------------------------------------------------------------
 
@@ -79,36 +78,17 @@ ${APP_NAME} v${APP_VERSION}
           }
         }
 
-        niceAddress = await pRetry(
-          async () => {
-            try {
-              opts.cert = fse.readFileSync(cert)
-              opts.key = fse.readFileSync(key)
-            } catch (error) {
-              if (!(autoCert && error.code === 'ENOENT')) {
-                throw error
-              }
-
-              const pems = await genSelfSignedCert()
-              fse.outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-              fse.outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
-              info('new certificate generated', { cert, key })
-              opts.cert = pems.cert
-              opts.key = pems.key
-            }
+        niceAddress = await readCert(cert, key, {
+          autoCert,
+          info,
+          warn,
+          use({ cert, key }) {
+            opts.cert = cert
+            opts.key = key
 
             return httpServer.listen(opts)
           },
-          {
-            tries: 2,
-            when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
-            onRetry: () => {
-              warn('deleting invalid certificate')
-              fse.unlinkSync(cert)
-              fse.unlinkSync(key)
-            },
-          }
-        )
+        })
       } else {
         niceAddress = await httpServer.listen(opts)
       }
