@@ -24,8 +24,8 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
-import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
+import { readCert } from '@xen-orchestra/self-signed/readCert'
 import { URL } from 'url'
 import { verifyTotp } from '@vates/otp'
 
@@ -385,30 +385,32 @@ function registerPluginWrapper(pluginPath, pluginName) {
   )
 }
 
-async function registerPluginsInPath(path, prefix) {
-  const files = await fse.readdir(path).catch(error => {
+async function findPluginsInPath(path, prefix) {
+  const entries = await fse.readdir(path).catch(error => {
     if (error.code === 'ENOENT') {
       return []
     }
     throw error
   })
 
-  await asyncMap(files, name => {
-    if (name.startsWith(prefix)) {
-      return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
+  for (const entry of entries) {
+    if (entry.startsWith(prefix)) {
+      const pluginName = entry.slice(prefix.length)
+      if (!this.has(pluginName)) {
+        this.set(pluginName, path + '/' + entry)
+      }
     }
-  })
+  }
 }
 
 async function registerPlugins(xo) {
-  await Promise.all(
-    [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules'].map(path =>
-      Promise.all([
-        registerPluginsInPath.call(xo, path, 'xo-server-'),
-        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
-      ])
-    )
-  )
+  const pluginPaths = new Map()
+  for (const path of xo.config.get('plugins.lookupPaths')) {
+    await findPluginsInPath.call(pluginPaths, `${path}/@xen-orchestra`, 'server-')
+    await findPluginsInPath.call(pluginPaths, path, 'xo-server-')
+  }
+
+  await Promise.all(Array.from(pluginPaths.entries(), ([name, path]) => registerPluginWrapper.call(xo, path, name)))
 }
 
 // ===================================================================
@@ -438,6 +440,7 @@ async function makeWebServerListen(
       delete opts[key]
     }
 
+    let niceAddress
     if (cert && key) {
       if (useAcme) {
         opts.SNICallback = async (serverName, callback) => {
@@ -452,32 +455,30 @@ async function makeWebServerListen(
         }
       }
 
-      try {
-        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
-        if (opts.key.includes('ENCRYPTED')) {
-          opts.passphrase = await new Promise(resolve => {
-            // eslint-disable-next-line no-console
-            console.log('Encrypted key %s', key)
-            process.stdout.write(`Enter pass phrase: `)
-            pw(resolve)
-          })
-        }
-      } catch (error) {
-        if (!(autoCert && error.code === 'ENOENT')) {
-          throw error
-        }
-        const pems = await genSelfSignedCert()
-        await Promise.all([
-          fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
-        ])
-        log.info('new certificate generated', { cert, key })
-        opts.cert = pems.cert
-        opts.key = pems.key
-      }
+      niceAddress = await readCert(cert, key, {
+        autoCert,
+        info: log.info,
+        warn: log.warn,
+        async use({ cert, key }) {
+          if (key.includes('ENCRYPTED')) {
+            opts.passphrase = await new Promise(resolve => {
+              // eslint-disable-next-line no-console
+              console.log('Encrypted key %s', key)
+              process.stdout.write(`Enter pass phrase: `)
+              pw(resolve)
+            })
+          }
+
+          opts.cert = cert
+          opts.key = key
+
+          return webServer.listen(opts)
+        },
+      })
+    } else {
+      niceAddress = await webServer.listen(opts)
     }
 
-    const niceAddress = await webServer.listen(opts)
     log.info(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
