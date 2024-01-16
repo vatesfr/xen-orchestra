@@ -385,30 +385,32 @@ function registerPluginWrapper(pluginPath, pluginName) {
   )
 }
 
-async function registerPluginsInPath(path, prefix) {
-  const files = await fse.readdir(path).catch(error => {
+async function findPluginsInPath(path, prefix) {
+  const entries = await fse.readdir(path).catch(error => {
     if (error.code === 'ENOENT') {
       return []
     }
     throw error
   })
 
-  await asyncMap(files, name => {
-    if (name.startsWith(prefix)) {
-      return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
+  for (const entry of entries) {
+    if (entry.startsWith(prefix)) {
+      const pluginName = entry.slice(prefix.length)
+      if (!this.has(pluginName)) {
+        this.set(pluginName, path + '/' + entry)
+      }
     }
-  })
+  }
 }
 
 async function registerPlugins(xo) {
-  await Promise.all(
-    [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules'].map(path =>
-      Promise.all([
-        registerPluginsInPath.call(xo, path, 'xo-server-'),
-        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
-      ])
-    )
-  )
+  const pluginPaths = new Map()
+  for (const path of [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules']) {
+    await findPluginsInPath.call(pluginPaths, `${path}/@xen-orchestra`, 'server-')
+    await findPluginsInPath.call(pluginPaths, path, 'xo-server-')
+  }
+
+  await Promise.all(Array.from(pluginPaths.entries(), ([name, path]) => registerPluginWrapper.call(xo, path, name)))
 }
 
 // ===================================================================
