@@ -402,7 +402,11 @@ async function registerPluginsInPath(path, prefix) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules'].map(path =>
+    [
+      new URL('../...', import.meta.url).pathname,
+      new URL('../node_modules', import.meta.url).pathname,
+      '/usr/local/lib/node_modules',
+    ].map(path =>
       Promise.all([
         registerPluginsInPath.call(xo, path, 'xo-server-'),
         registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
