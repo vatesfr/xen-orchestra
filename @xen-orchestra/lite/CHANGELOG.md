@@ -2,6 +2,7 @@
 
 ## **next**
 
+- Fix link path to the manifest in the html index file (PR [#7319](https://github.com/vatesfr/xen-orchestra/pull/7319))
 - Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
 - Introduce PWA Json Manifest (PR [#7291](https://github.com/vatesfr/xen-orchestra/pull/7291))
 
