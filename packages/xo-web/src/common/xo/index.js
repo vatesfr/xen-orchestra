@@ -3867,24 +3867,24 @@ export const getMasterCommit = () => _callGithubApi('/commits/master')
 export const compareCommits = (base, head) => _callGithubApi(`/compare/${base}...${head}`)
 
 export const uuidToLink = text => {
-  const regex = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/g
+  const regex = /\b(?:OpaqueRef:)?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/g
   const parts = text.split(regex)
-  const uuids = text.match(regex) || []
+  const ids = text.match(regex) || []
   const state = store.getState()
 
   return flatMap(parts, (part, index) => {
-    const uuid = uuids[index]
-    if (uuid) {
-      const object = getObject(state, uuid)
+    const id = ids[index]
+    if (id) {
+      const object = id.startsWith('OpaqueRef:') ? state.objects.byRef.get(id) : getObject(state, id)
       if (object && ['pool', 'host', 'VM', 'SR'].includes(object.type)) {
         return [
           part,
-          <Link key={index} to={`/${object.type.toLowerCase()}s/${uuid}`}>
-            {uuid}
+          <Link key={index} to={`/${object.type.toLowerCase()}s/${object.uuid}`}>
+            {id}
           </Link>,
         ]
       } else {
-        return [part, <Copiable key={index}>{uuid}</Copiable>]
+        return [part, <Copiable key={index}>{id}</Copiable>]
       }
     } else {
       return part
