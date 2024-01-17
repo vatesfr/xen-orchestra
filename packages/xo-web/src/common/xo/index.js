@@ -29,7 +29,7 @@ import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
 import RegisterProxyModal from './register-proxy-modal'
-import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
+import renderXoItem, { Host, renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
@@ -900,14 +900,17 @@ const _restartHost = async ({ host, ...opts }) => {
       return _restartHost({ ...opts, host, bypassBackupCheck: true })
     }
 
-    if (masterNeedUpdate(error)) {
+    if (masterNeedsUpdate(error)) {
+      const state = store.getState()
+      const master = getObject(state, getObject(state, host.$pool).master)
       await chooseAction({
         body: (
           <p>
-            <Icon icon='alarm' /> {_('slaveHostMoreUpToDateThanMasterAfterReboot')}
+            <Icon icon='alarm' />{' '}
+            {_('slaveHostMoreUpToDateThanMasterAfterRestart', { master: <Host id={master.id} link /> })}
           </p>
         ),
-        buttons: [{ label: _('rebootAnyway'), btnStyle: 'warning' }],
+        buttons: [{ label: _('restartAnyway'), btnStyle: 'danger' }],
         icon: 'alarm',
         title: _('restartHostModalTitle'),
       })
@@ -941,7 +944,7 @@ const backupIsRunning = (err, poolId) =>
     forbiddenOperation.is(err, {
       reason: `A backup is running on the pool: ${poolId}`,
     }))
-const masterNeedUpdate = err =>
+const masterNeedsUpdate = err =>
   err !== undefined &&
   incorrectState.is(err, {
     property: 'rebootRequired',
