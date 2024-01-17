@@ -216,9 +216,7 @@ export default class HostItem extends Component {
               </p>
               <ul>
                 {map(poolHosts, host => (
-                  <li>
-                    <Host id={host.id} />: {host.version}
-                  </li>
+                  <li>{_('keyValue', { key: <Host id={host.id} />, value: host.version })}</li>
                 ))}
               </ul>
             </div>
