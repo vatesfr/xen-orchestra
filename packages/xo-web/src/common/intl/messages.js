@@ -134,12 +134,11 @@ const messages = {
   addColor: 'Add color',
   addCustomField: 'Add custom field',
   advancedTagCreation: 'Advanced tag creation',
-  removeColor: 'Remove color',
-
   availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
 

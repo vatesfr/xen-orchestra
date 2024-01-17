@@ -30,6 +30,10 @@ const INPUT_STYLE = {
   margin: 'auto',
 }
 
+const MARGIN_AUTO = {
+  margin: 'auto',
+}
+
 const TEXT_ALIGN_RIGHT = {
   textAlign: 'right',
 }
@@ -79,7 +83,7 @@ class AdvancedTagCreation extends Component {
                 <li className='list-group-item' key={tag.id}>
                   <Container>
                     <Row className='d-flex'>
-                      <Col style={{ margin: 'auto' }}>{tag.value}</Col>
+                      <Col style={MARGIN_AUTO}>{tag.value}</Col>
                       {tagConfiguration?.color == null ? (
                         <Col style={TEXT_ALIGN_RIGHT}>
                           <Button onClick={_onAddTagColor} size='small'>
