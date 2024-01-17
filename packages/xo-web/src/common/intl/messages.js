@@ -4,7 +4,6 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
-  addTagColor: 'Add tag color',
   alpha: 'Alpha',
   alerts: 'Alerts',
   creation: 'Creation',
@@ -331,7 +330,6 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
-  selectExistingTags: 'Select from existing tags',
   sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----

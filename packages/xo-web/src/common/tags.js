@@ -154,7 +154,9 @@ export default class Tags extends Component {
 
   render() {
     const { labels, onAdd, onChange, onClick, onDelete } = this.props
+
     const deleteTag = (onDelete || onChange) && this._deleteTag
+
     return (
       <div style={{ color: '#999', display: 'inline-block' }}>
         <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
