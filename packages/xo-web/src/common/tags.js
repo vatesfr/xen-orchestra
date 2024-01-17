@@ -13,7 +13,9 @@ import { Col, Container, Row } from 'grid'
 import { isAdmin } from 'selectors'
 
 import ActionButton from './action-button'
+import Button from './button'
 import Component from './base-component'
+import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { confirm } from './modal'
@@ -25,10 +27,11 @@ const DEFAULT_TAG_COLOR = '#2598d9'
 
 const INPUT_STYLE = {
   maxWidth: '8em',
+  margin: 'auto',
 }
 
-const COL_INPUT_COLOR_STYLE = {
-  margin: 'auto',
+const TEXT_ALIGN_RIGHT = {
+  textAlign: 'right',
 }
 
 const ADD_TAG_STYLE = {
@@ -40,36 +43,78 @@ const ADD_TAG_STYLE = {
 }
 
 class AdvancedTagCreation extends Component {
-  state = { tags: [], color: this.props.isAdmin ? DEFAULT_TAG_COLOR : undefined }
+  state = {
+    tags: [],
+    tagConfigurations: this.props.tagConfigurations,
+  }
 
   get value() {
     return { ...this.state, tags: this.state.tags.map(_ => _.value) }
+  }
+
+  onChangeTagConfiguration(tagId, key, value) {
+    const tagConfiguration = { ...this.state.tagConfigurations[tagId], ...{ [key]: value } }
+    const { tagConfigurations } = this.state
+    tagConfigurations[tagId] = tagConfiguration
+    this.setState({ tagConfigurations: { ...tagConfigurations } })
   }
 
   render() {
     return (
       <Container>
         <Row className='d-flex'>
-          <Col size={6}>
+          <Col>
             <SelectTag multi onChange={this.linkState('tags')} value={this.state.tags} />
           </Col>
-          {this.props.isAdmin && (
-            <Col size={6} style={COL_INPUT_COLOR_STYLE}>
-              <input
-                className='form-control'
-                style={INPUT_STYLE}
-                type='color'
-                onChange={this.linkState('color')}
-                value={this.state.color}
-              />
-            </Col>
-          )}
         </Row>
+        {this.props.isAdmin && (
+          <ul className='list-group'>
+            {this.state.tags.map(tag => {
+              const _onAddTagColor = () => this.onChangeTagConfiguration(tag.id, 'color', DEFAULT_TAG_COLOR)
+              const _onRemoveTagColor = () => this.onChangeTagConfiguration(tag.id, 'color', null)
+              const _onChangeTagColor = event => this.onChangeTagConfiguration(tag.id, 'color', getEventValue(event))
+
+              const tagConfiguration = this.state.tagConfigurations[tag.id]
+              return (
+                <li className='list-group-item' key={tag.id}>
+                  <Container>
+                    <Row className='d-flex'>
+                      <Col style={{ margin: 'auto' }}>{tag.value}</Col>
+                      {tagConfiguration?.color == null ? (
+                        <Col style={TEXT_ALIGN_RIGHT}>
+                          <Button onClick={_onAddTagColor} size='small'>
+                            {_('addColor')}
+                          </Button>
+                        </Col>
+                      ) : (
+                        <Col className='d-flex' style={TEXT_ALIGN_RIGHT}>
+                          <input
+                            className='form-control'
+                            style={INPUT_STYLE}
+                            type='color'
+                            onChange={_onChangeTagColor}
+                            value={tagConfiguration.color}
+                          />
+                          <Button onClick={_onRemoveTagColor} size='small'>
+                            {_('removeColor')}
+                          </Button>
+                        </Col>
+                      )}
+                    </Row>
+                  </Container>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </Container>
     )
   }
 }
 
+@addSubscriptions({
+  configuredTags: cb => subscribeConfiguredTags(tags => cb(keyBy(tags, 'id'))),
+})
 @connectStore({
   isAdmin,
 })
@@ -127,16 +172,17 @@ export default class Tags extends Component {
 
   _advancedTagCreation = () =>
     confirm({
-      body: <AdvancedTagCreation isAdmin={this.props.isAdmin} />,
+      body: <AdvancedTagCreation isAdmin={this.props.isAdmin} tagConfigurations={this.props.configuredTags} />,
       icon: 'add',
       title: _('advancedTagCreation'),
     })
       ::pFinally(this._stopEdit)
-      .then(({ tags, color }) =>
+      .then(({ tags, tagConfigurations }) =>
         Promise.all(
           tags.map(async tag => {
             await this._addTag(tag)
-            return this.props.isAdmin ? setTag(tag, { color }) : noop()
+            const tagConfiguration = tagConfigurations[tag]
+            return this.props.isAdmin && tagConfiguration !== undefined ? setTag(tag, tagConfiguration) : noop()
           })
         )
       )

@@ -2459,8 +2459,7 @@ export const deleteMessages = logs =>
 
 export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
 
-export const setTag = (id, params) =>
-  _call('tag.set', { id, ...params })::tap(subscribeConfiguredTags.forceRefresh)
+export const setTag = (id, params) => _call('tag.set', { id, ...params })::tap(subscribeConfiguredTags.forceRefresh)
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
 
