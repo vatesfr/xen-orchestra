@@ -16,11 +16,11 @@
         {{ pool.name_label || "(Pool)" }}
       </InfraItemLabel>
 
+      <InfraSrList />
+
       <InfraHostList />
 
-      <InfraVmList />
-
-      <InfraSrList />
+      <InfraVmList v-show="currentNavigationTab == NAV_TAB.VMS" />
     </li>
   </ul>
 </template>
@@ -33,8 +33,14 @@ import InfraVmList from "@/components/infra/InfraVmList.vue";
 import InfraSrList from "@/components/infra/InfraSrList.vue";
 import { usePoolCollection } from "@/stores/xen-api/pool.store";
 import { faBuilding } from "@fortawesome/free-regular-svg-icons";
+import { NAV_TAB, useNavigationStore } from "@/stores/navigation.store";
+import { storeToRefs } from "pinia";
+
+const navigationStore = useNavigationStore();
+const { currentNavigationTab } = storeToRefs(navigationStore);
 
 const { isReady, hasError, pool } = usePoolCollection();
+
 </script>
 
 <style lang="postcss" scoped>

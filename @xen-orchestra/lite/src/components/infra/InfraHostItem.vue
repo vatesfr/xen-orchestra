@@ -27,7 +27,9 @@
       </template>
     </InfraItemLabel>
 
-    <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
+    <InfraVmList v-show="isExpanded && currentNavigationTab == NAV_TAB.VMS" :host-opaque-ref="hostOpaqueRef" />
+
+    <InfraSrList :host-opaque-ref="hostOpaqueRef"/>
   </li>
 </template>
 
@@ -49,6 +51,12 @@ import {
 import { useToggle } from "@vueuse/core";
 import { computed } from "vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
+import { NAV_TAB, useNavigationStore } from "@/stores/navigation.store";
+import { storeToRefs } from "pinia";
+import InfraSrList from "./InfraSrList.vue";
+
+const navigationStore = useNavigationStore();
+const { currentNavigationTab } = storeToRefs(navigationStore);
 
 const props = defineProps<{
   hostOpaqueRef: XenApiHost["$ref"];
