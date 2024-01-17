@@ -16,7 +16,7 @@ export const useNavigationStore = defineStore('navigation', () => {
 
   const trigger = ref()
   const isOpen = ref(false)
-  const currentNavigationTab = ref(NAV_TAB.VMS);
+  const currentNavigationTab = ref(NAV_TAB.VMS)
   const toggle = () => (isOpen.value = !isOpen.value)
 
   // Close the menu when the user navigates to a new page
@@ -35,5 +35,6 @@ export const useNavigationStore = defineStore('navigation', () => {
     trigger,
     toggle,
     isOpen,
+    currentNavigationTab,
   }
 })

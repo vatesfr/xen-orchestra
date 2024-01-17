@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import InfraHostItem from '@/components/infra/InfraHostItem.vue'
 import { useHostCollection } from '@/stores/xen-api/host.store'
-import { NAV_TAB, useNavigationStore } from "@/stores/navigation.store";
+import { NAV_TAB, useNavigationStore } from '@/stores/navigation.store'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
@@ -23,8 +23,8 @@ const { currentNavigationTab } = storeToRefs(navigationStore)
 const { records: hosts, isReady, hasError } = useHostCollection()
 
 const hostsSorted = computed(() => hosts.value.sort((h1, h2) => {
-  const name1 = h1.name_label.toLowerCase();
-  const name2 = h2.name_label.toLowerCase();
+  const name1 = h1.name_label.toLowerCase()
+  const name2 = h2.name_label.toLowerCase()
 
   if (name1 < name2) {
     return -1
