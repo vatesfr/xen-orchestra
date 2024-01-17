@@ -19,11 +19,18 @@ import Tooltip from './tooltip'
 import { confirm } from './modal'
 import { SelectTag } from './select-objects'
 
+const noop = Function.prototype
+
 const DEFAULT_TAG_COLOR = '#2598d9'
 
 const INPUT_STYLE = {
   maxWidth: '8em',
 }
+
+const COL_INPUT_COLOR_STYLE = {
+  margin: 'auto',
+}
+
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
   display: 'inline-block',
@@ -32,49 +39,31 @@ const ADD_TAG_STYLE = {
   verticalAlign: 'middle',
 }
 
-class SelectExistingTag extends Component {
-  state = { tags: [] }
+class AdvancedTagCreation extends Component {
+  state = { tags: [], color: this.props.isAdmin ? DEFAULT_TAG_COLOR : undefined }
 
   get value() {
-    return this.state.tags.map(_ => _.value)
-  }
-
-  render() {
-    return <SelectTag multi onChange={this.linkState('tags')} value={this.state.tags} />
-  }
-}
-
-class AddTagColors extends Component {
-  state = { tag: '', color: DEFAULT_TAG_COLOR }
-
-  get value() {
-    return this.state
+    return { ...this.state, tags: this.state.tags.map(_ => _.value) }
   }
 
   render() {
     return (
       <Container>
-        <Row>
+        <Row className='d-flex'>
           <Col size={6}>
-            <span className='input-group'>
+            <SelectTag multi onChange={this.linkState('tags')} value={this.state.tags} />
+          </Col>
+          {this.props.isAdmin && (
+            <Col size={6} style={COL_INPUT_COLOR_STYLE}>
               <input
-                autoFocus
                 className='form-control'
-                type='text'
-                onChange={this.linkState('tag')}
-                value={this.state.tag}
+                style={INPUT_STYLE}
+                type='color'
+                onChange={this.linkState('color')}
+                value={this.state.color}
               />
-            </span>
-          </Col>
-          <Col size={6}>
-            <input
-              className='form-control'
-              style={INPUT_STYLE}
-              type='color'
-              onChange={this.linkState('color')}
-              value={this.state.color}
-            />
-          </Col>
+            </Col>
+          )}
         </Row>
       </Container>
     )
@@ -136,26 +125,21 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _selectExistingTags = () =>
+  _advancedTagCreation = () =>
     confirm({
-      body: <SelectExistingTag />,
+      body: <AdvancedTagCreation isAdmin={this.props.isAdmin} />,
       icon: 'add',
-      title: _('selectExistingTags'),
+      title: _('advancedTagCreation'),
     })
       ::pFinally(this._stopEdit)
-      .then(tags => Promise.all(tags.map(this._addTag)))
-
-  _addTagColor = async () => {
-    const { tag, color } = await confirm({
-      body: <AddTagColors />,
-      icon: 'tag-color',
-      title: _('addTagColor'),
-    })
-    if (tag !== '') {
-      await this._addTag(tag)
-      await setTag(tag, { color })
-    }
-  }
+      .then(({ tags, color }) =>
+        Promise.all(
+          tags.map(async tag => {
+            await this._addTag(tag)
+            return this.props.isAdmin ? setTag(tag, { color }) : noop()
+          })
+        )
+      )
 
   _focus = () => {
     this._focused = true
@@ -169,7 +153,7 @@ export default class Tags extends Component {
   }
 
   render() {
-    const { isAdmin, labels, onAdd, onChange, onClick, onDelete } = this.props
+    const { labels, onAdd, onChange, onClick, onDelete } = this.props
     const deleteTag = (onDelete || onChange) && this._deleteTag
     return (
       <div style={{ color: '#999', display: 'inline-block' }}>
@@ -194,16 +178,9 @@ export default class Tags extends Component {
           >
             <span className='input-group'>
               <input autoFocus className='form-control' onKeyDown={this._onKeyDown} style={INPUT_STYLE} type='text' />
-              {isAdmin && (
-                <span className='input-group-btn'>
-                  <Tooltip content={_('addTagColor')}>
-                    <ActionButton handler={this._addTagColor} icon='tag-color' />
-                  </Tooltip>
-                </span>
-              )}
               <span className='input-group-btn'>
-                <Tooltip content={_('selectExistingTags')}>
-                  <ActionButton handler={this._selectExistingTags} icon='add' />
+                <Tooltip content={_('advancedTagCreation')}>
+                  <ActionButton handler={this._advancedTagCreation} icon='add' />
                 </Tooltip>
               </span>
             </span>
