@@ -72,6 +72,6 @@ defineSlots<{
 .subtitle {
   font-size: 1.6rem;
   font-weight: 400;
-  color: var(--color-blue-scale-200);
+  color: var(--color-grey-200);
 }
 </style>

@@ -37,7 +37,7 @@ const progress = computed(() => {
 .progress-circle-fill {
   animation: progress 1s ease-out forwards;
   fill: none;
-  stroke: var(--color-green-infra-base);
+  stroke: var(--color-green-base);
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: v-bind(progress), 100;
@@ -46,13 +46,13 @@ const progress = computed(() => {
 .progress-circle-background {
   fill: none;
   stroke-width: 1.2;
-  stroke: var(--color-blue-scale-400);
+  stroke: var(--color-grey-500);
 }
 
 .progress-circle-text {
   font-size: 0.7rem;
   font-weight: bold;
-  fill: var(--color-green-infra-base);
+  fill: var(--color-green-base);
   text-anchor: middle;
   alignment-baseline: middle;
 }

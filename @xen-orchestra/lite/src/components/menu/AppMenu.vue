@@ -87,9 +87,9 @@ const open = (event: MouseEvent) => {
   flex-direction: column;
   padding: 0.5rem;
   cursor: default;
-  color: var(--color-blue-scale-200);
+  color: var(--color-grey-200);
   border-radius: 0.8rem;
-  background-color: var(--color-blue-scale-500);
+  background-color: var(--color-grey-600);
   gap: 0.5rem;
 
   &.horizontal {

@@ -19,7 +19,7 @@ withDefaults(
 
 <style lang="postcss">
 .unit {
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
   display: flex;
   font-size: 12px;
   font-weight: 400;

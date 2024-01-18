@@ -33,7 +33,7 @@ const isRecordNotFound = computed(() => props.isReady && !props.uuidChecker(id.v
 }
 
 .spinner {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   display: flex;
   margin: auto;
   width: 10rem;

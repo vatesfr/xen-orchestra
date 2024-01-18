@@ -23,7 +23,7 @@ useContext(DisabledContext, () => props.disabled)
   display: flex;
   align-items: stretch;
   height: 5rem;
-  border-bottom: 1px solid var(--color-blue-scale-400);
+  border-bottom: 1px solid var(--color-grey-500);
   background-color: var(--background-color-primary);
   max-width: 100%;
   overflow: auto;

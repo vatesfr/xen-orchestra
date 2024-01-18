@@ -27,7 +27,7 @@ defineProps<{
 }
 
 .icon {
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
 }
 
 .link-placeholder {
@@ -41,7 +41,7 @@ defineProps<{
 .loader {
   flex: 1;
   animation: pulse alternate 1s infinite;
-  background-color: var(--background-color-extra-blue);
+  background-color: var(--background-color-purple-10);
 }
 
 @keyframes pulse {

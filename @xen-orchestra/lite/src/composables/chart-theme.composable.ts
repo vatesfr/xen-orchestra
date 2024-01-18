@@ -10,10 +10,10 @@ export const useChartTheme = () => {
 
   const getColors = () => ({
     background: style.getPropertyValue('--background-color-primary'),
-    text: style.getPropertyValue('--color-blue-scale-300'),
-    splitLine: style.getPropertyValue('--color-blue-scale-400'),
-    primary: style.getPropertyValue('--color-extra-blue-base'),
-    secondary: style.getPropertyValue('--color-orange-world-base'),
+    text: style.getPropertyValue('--color-grey-300'),
+    splitLine: style.getPropertyValue('--color-grey-500'),
+    primary: style.getPropertyValue('--color-purple-base'),
+    secondary: style.getPropertyValue('--color-orange-base'),
   })
 
   const colors = ref(getColors())

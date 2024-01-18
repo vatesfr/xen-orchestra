@@ -43,7 +43,7 @@ const hasTooltip = computed(() => hasEllipsis(descriptionElement.value))
   text-overflow: ellipsis;
 }
 .level {
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
   font-size: 1.4rem;
   font-weight: 700;
 }

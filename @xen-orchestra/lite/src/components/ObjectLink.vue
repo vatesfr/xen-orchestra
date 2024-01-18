@@ -85,7 +85,7 @@ const objectRoute = computed(() => {
 
 <style lang="postcss" scoped>
 .unknown {
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
   font-style: italic;
 }
 </style>

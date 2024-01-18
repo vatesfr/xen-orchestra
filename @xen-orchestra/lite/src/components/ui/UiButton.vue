@@ -86,27 +86,27 @@ const className = computed(() => {
   }
 
   &.color-info {
-    --button-accent-color: var(--color-extra-blue-base);
-    --button-accent-color-hover: var(--color-extra-blue-d20);
-    --button-accent-color-active: var(--color-extra-blue-d40);
+    --button-accent-color: var(--color-purple-base);
+    --button-accent-color-hover: var(--color-purple-d20);
+    --button-accent-color-active: var(--color-purple-d40);
   }
 
   &.color-success {
-    --button-accent-color: var(--color-green-infra-base);
-    --button-accent-color-hover: var(--color-green-infra-d20);
-    --button-accent-color-active: var(--color-green-infra-d40);
+    --button-accent-color: var(--color-green-base);
+    --button-accent-color-hover: var(--color-green-d20);
+    --button-accent-color-active: var(--color-green-d40);
   }
 
   &.color-warning {
-    --button-accent-color: var(--color-orange-world-base);
-    --button-accent-color-hover: var(--color-orange-world-d20);
-    --button-accent-color-active: var(--color-orange-world-d40);
+    --button-accent-color: var(--color-orange-base);
+    --button-accent-color-hover: var(--color-orange-d20);
+    --button-accent-color-active: var(--color-orange-d40);
   }
 
   &.color-error {
-    --button-accent-color: var(--color-red-vates-base);
-    --button-accent-color-hover: var(--color-red-vates-d20);
-    --button-accent-color-active: var(--color-red-vates-d40);
+    --button-accent-color: var(--color-red-base);
+    --button-accent-color-hover: var(--color-red-d20);
+    --button-accent-color-active: var(--color-red-d40);
   }
 
   &:hover {
@@ -119,7 +119,7 @@ const className = computed(() => {
     --button-accent-color: var(--button-accent-color-active);
   }
 
-  --button-color: var(--color-blue-scale-500);
+  --button-color: var(--color-grey-600);
   --button-border-color: transparent;
   --button-background-color: var(--button-accent-color);
 
@@ -141,7 +141,7 @@ const className = computed(() => {
 
   &.disabled {
     cursor: not-allowed;
-    --button-color: var(--color-blue-scale-400);
+    --button-color: var(--color-grey-500);
     --button-border-color: transparent;
     --button-background-color: var(--background-color-secondary);
   }

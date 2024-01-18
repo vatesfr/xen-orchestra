@@ -46,7 +46,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
   justify-content: space-between;
   height: 5.5rem;
   padding: 1rem;
-  border-bottom: 0.1rem solid var(--color-blue-scale-400);
+  border-bottom: 0.1rem solid var(--color-grey-500);
   background-color: var(--background-color-secondary);
 
   img {

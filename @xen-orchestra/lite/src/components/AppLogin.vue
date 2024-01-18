@@ -135,7 +135,7 @@ form {
   background-color: var(--background-color-secondary);
 
   .error {
-    color: var(--color-red-vates-base);
+    color: var(--color-red-base);
   }
 }
 
@@ -156,7 +156,7 @@ input {
   max-width: 100%;
   margin-bottom: 1rem;
   padding: 1rem 1.5rem;
-  border: 1px solid var(--color-blue-scale-400);
+  border: 1px solid var(--color-grey-500);
   border-radius: 0.8rem;
   background-color: white;
 }

@@ -40,18 +40,18 @@ const { stop } = useIntersectionObserver(rootElement, ([entry]) => {
 
 <style lang="postcss" scoped>
 .infra-action {
-  color: var(--color-extra-blue-d60);
+  color: var(--color-purple-d60);
 
   &.running {
-    color: var(--color-green-infra-base);
+    color: var(--color-green-base);
   }
 
   &.paused {
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
   }
 
   &.suspended {
-    color: var(--color-extra-blue-d20);
+    color: var(--color-purple-d20);
   }
 }
 </style>

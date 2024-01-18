@@ -16,11 +16,11 @@ const horizontal = inject(
 .ui-menu-separator {
   &.horizontal {
     margin: 0 0.5rem;
-    border-right: 1px solid var(--color-blue-scale-400);
+    border-right: 1px solid var(--color-grey-500);
   }
 
   &:not(.horizontal) {
-    border-bottom: 1px solid var(--color-blue-scale-400);
+    border-bottom: 1px solid var(--color-grey-500);
   }
 }
 </style>
