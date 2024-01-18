@@ -382,6 +382,11 @@ const methods = {
 
     nameLabel: true,
 
+    notes: {
+      get: vm => vm.other_config['xo:notes'],
+      set: (value, vm) => vm.update_other_config('xo:notes', value),
+    },
+
     PV_args: true,
 
     tags: true,

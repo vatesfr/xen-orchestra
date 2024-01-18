@@ -1524,6 +1524,18 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
+import EditVmNotesModalBody from './edit-vm-notes-modal' // eslint-disable-line import/first
+export const editVmNotes = async vm => {
+  const { notes } = await confirm({
+    icon: 'edit',
+    title: _('editVmNotes'),
+    body: <EditVmNotesModalBody vm={vm} />,
+  })
+
+  // Remove notes if `''` is passed
+  await _call('vm.set', { id: resolveId(vm), notes: notes || null })
+}
+
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
 export const deleteTemplates = templates =>

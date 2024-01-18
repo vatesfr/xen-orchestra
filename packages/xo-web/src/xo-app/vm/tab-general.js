@@ -1,15 +1,17 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import marked from 'marked'
 import React from 'react'
 import HomeTags from 'home-tags'
 import renderXoItem, { VmTemplate } from 'render-xo-item'
 import Tooltip from 'tooltip'
-import { addTag, editVm, removeTag, subscribeUsers } from 'xo'
+import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative, FormattedDate } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -29,6 +31,14 @@ import { find } from 'lodash'
 
 const CREATED_VM_STYLES = {
   whiteSpace: 'pre-line',
+}
+
+const NOTES_STYLE = {
+  maxWidth: '70%',
+  margin: 'auto',
+  border: 'dashed 1px #999',
+  padding: '1em',
+  borderRadius: '10px',
 }
 
 const GuestToolsDetection = ({ vm }) => {
@@ -276,6 +286,14 @@ const GeneralTab = decorate([
             </Col>
           </Row>
         )}
+        <Row className='mt-1'>
+          <div style={NOTES_STYLE}>
+            {vm.notes !== undefined && <p dangerouslySetInnerHTML={{ __html: marked(vm.notes) }} />}
+            <ActionButton icon='edit' handler={editVmNotes} handlerParam={vm}>
+              {_('editVmNotes')}
+            </ActionButton>
+          </div>
+        </Row>
       </Container>
     )
   },
