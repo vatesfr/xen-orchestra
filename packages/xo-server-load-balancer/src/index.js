@@ -15,11 +15,6 @@ const DENSITY_MODE = 1
 
 // ===================================================================
 
-// Maximum number of concurrent migrations
-const MAX_CONCURRENT_MIGRATIONS = 2
-
-// ===================================================================
-
 export const configurationSchema = {
   type: 'object',
 
@@ -110,6 +105,20 @@ export const configurationSchema = {
         $type: 'Tag',
       },
     },
+    advanced: {
+      title: 'Advanced',
+      type: 'object',
+      default: {},
+      properties: {
+        maxConcurrentMigrations: {
+          default: 2,
+          description: 'Limit maximum number of simultaneous migrations for faster migrations',
+          minimum: 1,
+          title: 'Maximum concurrent migrations',
+          type: 'integer',
+        },
+      },
+    },
   },
 
   additionalProperties: false,
@@ -121,7 +130,6 @@ class LoadBalancerPlugin {
   constructor(xo) {
     this.xo = xo
 
-    this._concurrentMigrationLimiter = limitConcurrency(MAX_CONCURRENT_MIGRATIONS)
     this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(async () => {
       try {
         await this._executePlans()
@@ -131,10 +139,11 @@ class LoadBalancerPlugin {
     })
   }
 
-  async configure({ plans, ignoredVmTags = [] }) {
+  async configure({ plans, advanced, ignoredVmTags = [] }) {
     this._plans = []
     this._poolIds = [] // Used pools.
     this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
+    this._concurrentMigrationLimiter = limitConcurrency(advanced.maxConcurrentMigrations)
 
     if (plans) {
       for (const plan of plans) {
