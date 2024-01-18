@@ -19,7 +19,7 @@
 - [Plugin/load-balancer] Limit concurrent VM migrations to 2 (configurable) to avoid long paused VMs [#7084](https://github.com/vatesfr/xen-orchestra/issues/7084) (PR [#7297](https://github.com/vatesfr/xen-orchestra/pull/7297))
 - [Tags] Admin can create colored tags (PR [#7262](https://github.com/vatesfr/xen-orchestra/pull/7262))
 - [Tags] Add tooltips on `xo:no-bak` and `xo:notify-on-snapshot` tags (PR [#7335](https://github.com/vatesfr/xen-orchestra/pull/7335))
-- [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792)
+- [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792) (PR [#7322](https://github.com/vatesfr/xen-orchestra/pull/7322))
 
 ### Bug fixes
 
