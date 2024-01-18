@@ -1,9 +1,11 @@
 import Component from 'base-component'
 import cookies from 'js-cookie'
 import DocumentTitle from 'react-document-title'
+import every from 'lodash/every'
 import Icon from 'icon'
 import Link from 'link'
 import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
@@ -172,7 +174,7 @@ export const ICON_POOL_LICENSE = {
     xcpngLicenseById: (_, { xcpLicenses }) => keyBy(xcpLicenses, 'id'),
     hostsByPoolId: createCollectionWrapper((_, { hosts }) =>
       groupBy(
-        map(hosts, host => pick(host, ['$poolId', 'id'])),
+        map(hosts, host => pick(host, ['$poolId', 'id', 'version'])),
         '$poolId'
       )
     ),
@@ -230,6 +232,8 @@ export const ICON_POOL_LICENSE = {
       placeholder: '',
     },
     isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
+    areHostsVersionsEqualByPool: ({ hostsByPoolId }) =>
+      mapValues(hostsByPoolId, hosts => every(hosts, host => host.version === hosts[0].version)),
   },
 })
 export default class XoApp extends Component {
