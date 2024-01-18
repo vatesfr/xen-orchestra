@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@xen-orchestra/web",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
@@ -21,5 +21,21 @@
     "vite": "^5.0.11",
     "vue": "^3.4.13",
     "vue-tsc": "^1.8.27"
+  },
+  "private": true,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/web",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=8.10"
   }
 }
