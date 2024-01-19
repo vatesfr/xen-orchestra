@@ -90,7 +90,13 @@ export async function reconfigureIp({ pif, mode, ip = '', netmask = '', gateway 
       )
     }
 
-    if (mode !== undefined && mode !== pif.mode) {
+    if (
+      (mode !== undefined && mode !== pif.mode) ||
+      ip !== pif.ip ||
+      netmask !== pif.netmask ||
+      gateway !== pif.gateway ||
+      dns !== pif.dns
+    ) {
       await Task.run(
         { properties: { name: 'reconfigure IPv4', mode, ip, netmask, gateway, dns, objectId: pif.uuid } },
         () => xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
