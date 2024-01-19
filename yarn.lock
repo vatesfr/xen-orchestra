@@ -14078,6 +14078,11 @@ limit-concurrency-decorator@^0.5.0:
   resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.5.0.tgz#7455fc7c8d12e93ce725cb98dc18b861397dd726"
   integrity sha512-s5HqdnTpRJhvK/vleMY3qJ3yEfIQ1BUCUqbBJwtXCKngMSc+qpS1Rl6/rxdhr1Z/oQz3keYho6G4XCFSHb7nbA==
 
+limit-concurrency-decorator@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.6.0.tgz#f356e543b5c4cec6b03948a68e6a57821b78866d"
+  integrity sha512-KYye2PB+skq7b6iv+k6Dwqs3AwFoMi75Zqoe3PJkGDwvt0ads215S+nJ68SPOlZNSMV6hOvz7M8Ddui67TTn+Q==
+
 limiter@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/limiter/-/limiter-2.1.0.tgz#d38d7c5b63729bb84fb0c4d8594b7e955a5182a2"

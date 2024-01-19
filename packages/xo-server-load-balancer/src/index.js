@@ -143,7 +143,7 @@ class LoadBalancerPlugin {
     this._plans = []
     this._poolIds = [] // Used pools.
     this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
-    this._concurrentMigrationLimiter = limitConcurrency(advanced.maxConcurrentMigrations)
+    this._concurrentMigrationLimiter = limitConcurrency(advanced.maxConcurrentMigrations)()
 
     if (plans) {
       for (const plan of plans) {

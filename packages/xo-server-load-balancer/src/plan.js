@@ -421,7 +421,9 @@ export default class Plan {
         // 4. Migrate.
         const sourceXapi = this.xo.getXapi(source)
         promises.push(
-          this._concurrentMigrationLimiter(sourceXapi.migrateVm.bind(sourceXapi))(
+          this._concurrentMigrationLimiter.call(
+            sourceXapi,
+            sourceXapi.migrateVm,
             vm._xapiId,
             this.xo.getXapi(destination),
             destination._xapiId
