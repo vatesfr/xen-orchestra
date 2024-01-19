@@ -34,8 +34,9 @@ const MARGIN_AUTO = {
   margin: 'auto',
 }
 
-const TEXT_ALIGN_RIGHT = {
-  textAlign: 'right',
+const INHERIT_STYLE = {
+  display: 'inherit',
+  width: 'inherit',
 }
 
 const ADD_TAG_STYLE = {
@@ -46,10 +47,12 @@ const ADD_TAG_STYLE = {
   verticalAlign: 'middle',
 }
 
+const Fragment = ({ children }) => <div style={INHERIT_STYLE}>{children}</div>
+
 class AdvancedTagCreation extends Component {
   state = {
     tags: [],
-    tagConfigurations: this.props.tagConfigurations,
+    tagConfigurations: this.props.tagConfigurations ?? {},
   }
 
   get value() {
@@ -57,10 +60,15 @@ class AdvancedTagCreation extends Component {
   }
 
   onChangeTagConfiguration(tagId, key, value) {
-    const tagConfiguration = { ...this.state.tagConfigurations[tagId], ...{ [key]: value } }
-    const { tagConfigurations } = this.state
-    tagConfigurations[tagId] = tagConfiguration
-    this.setState({ tagConfigurations: { ...tagConfigurations } })
+    this.setState({
+      tagConfigurations: {
+        ...this.state.tagConfigurations,
+        [tagId]: {
+          ...this.state.tagConfigurations[tagId],
+          [key]: value,
+        },
+      },
+    })
   }
 
   render() {
@@ -84,26 +92,26 @@ class AdvancedTagCreation extends Component {
                   <Container>
                     <Row className='d-flex'>
                       <Col style={MARGIN_AUTO}>{tag.value}</Col>
-                      {tagConfiguration?.color == null ? (
-                        <Col style={TEXT_ALIGN_RIGHT}>
+                      <Col className='d-flex justify-content-end'>
+                        {tagConfiguration?.color == null ? (
                           <Button onClick={_onAddTagColor} size='small'>
                             {_('addColor')}
                           </Button>
-                        </Col>
-                      ) : (
-                        <Col className='d-flex' style={TEXT_ALIGN_RIGHT}>
-                          <input
-                            className='form-control'
-                            style={INPUT_STYLE}
-                            type='color'
-                            onChange={_onChangeTagColor}
-                            value={tagConfiguration.color}
-                          />
-                          <Button onClick={_onRemoveTagColor} size='small'>
-                            {_('removeColor')}
-                          </Button>
-                        </Col>
-                      )}
+                        ) : (
+                          <Fragment>
+                            <input
+                              className='form-control mr-1'
+                              style={INPUT_STYLE}
+                              type='color'
+                              onChange={_onChangeTagColor}
+                              value={tagConfiguration.color}
+                            />
+                            <Button onClick={_onRemoveTagColor} size='small'>
+                              {_('removeColor')}
+                            </Button>
+                          </Fragment>
+                        )}
+                      </Col>
                     </Row>
                   </Container>
                 </li>
