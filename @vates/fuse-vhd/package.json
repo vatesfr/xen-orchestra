@@ -25,6 +25,9 @@
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.9.0"
   },
+  "bin": {
+    "xo-fuse-vhd": "./cli.mjs"
+  },
   "scripts": {
     "postversion": "npm publish --access public"
   }
