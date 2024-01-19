@@ -1427,6 +1427,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  selectUser: 'Select user',
   suspendSr: 'Suspend SR',
   viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
@@ -1454,6 +1455,7 @@ const messages = {
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
   vmBootFirmware: 'Boot firmware',
+  vmCreator: 'VM creator',
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
