@@ -26,18 +26,17 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  before?: IconDefinition | string | object; // "object" added as workaround
-  after?: IconDefinition | string | object; // See https://github.com/vuejs/core/issues/4294
-  label?: string;
-  inline?: boolean;
-}>();
+  before?: IconDefinition | string | object // "object" added as workaround
+  after?: IconDefinition | string | object // See https://github.com/vuejs/core/issues/4294
+  label?: string
+  inline?: boolean
+}>()
 
-const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
-  typeof maybeIcon === "object";
+const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon === 'object'
 </script>
 
 <style lang="postcss" scoped>
@@ -55,14 +54,14 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   align-items: stretch;
   overflow: hidden;
   padding: 0 0.7rem;
-  border: 1px solid var(--color-blue-scale-400);
+  border: 1px solid var(--color-grey-500);
   border-radius: 0.8rem;
-  background-color: var(--color-blue-scale-500);
+  background-color: var(--color-grey-600);
   box-shadow: var(--shadow-100);
   gap: 0.1rem;
 
   &:focus-within {
-    outline: 1px solid var(--color-extra-blue-l40);
+    outline: 1px solid var(--color-purple-l40);
   }
 }
 
@@ -72,7 +71,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 }
 
 .form-widget:hover .widget {
-  border-color: var(--color-extra-blue-l60);
+  border-color: var(--color-purple-l60);
 }
 
 .element {
@@ -94,8 +93,8 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   font-size: inherit;
   border: none;
   outline: none;
-  color: var(--color-blue-scale-100);
-  background-color: var(--color-blue-scale-500);
+  color: var(--color-grey-100);
+  background-color: var(--color-grey-600);
   flex: 1;
 
   &:disabled {
@@ -103,7 +102,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   }
 }
 
-:slotted(input[type="checkbox"]) {
+:slotted(input[type='checkbox']) {
   font: inherit;
   display: grid;
   flex: 1.5rem 0 0;
@@ -121,7 +120,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   &::before {
     width: 0.65em;
     height: 0.65em;
-    content: "";
+    content: '';
     transition: 120ms transform ease-in-out;
     transform: scale(0);
     transform-origin: center;
@@ -135,7 +134,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
   &:disabled {
     cursor: not-allowed;
-    color: var(--color-blue-scale-200);
+    color: var(--color-grey-200);
   }
 }
 </style>

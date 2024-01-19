@@ -5,25 +5,13 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      {{ host.name_label || "(Host)" }}
+      {{ host.name_label || '(Host)' }}
       <template #actions>
-        <InfraAction
-          v-if="isPoolMaster"
-          v-tooltip="'Master'"
-          :icon="faStar"
-          class="master-icon"
-        />
-        <p
-          class="vm-count"
-          v-tooltip="$t('vm-running', { count: vmCount })"
-          v-if="isReady"
-        >
+        <InfraAction v-if="isPoolMaster" v-tooltip="'Master'" :icon="faStar" class="master-icon" />
+        <p v-if="isReady" v-tooltip="$t('vm-running', { count: vmCount })" class="vm-count">
           {{ vmCount }}
         </p>
-        <InfraAction
-          :icon="isExpanded ? faAngleDown : faAngleUp"
-          @click="toggle()"
-        />
+        <InfraAction :icon="isExpanded ? faAngleDown : faAngleUp" @click="toggle()" />
       </template>
     </InfraItemLabel>
 
@@ -32,46 +20,37 @@
 </template>
 
 <script lang="ts" setup>
-import InfraAction from "@/components/infra/InfraAction.vue";
-import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
-import InfraVmList from "@/components/infra/InfraVmList.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { usePoolCollection } from "@/stores/xen-api/pool.store";
-import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiHost } from "@/libs/xen-api/xen-api.types";
-import { useUiStore } from "@/stores/ui.store";
-import {
-  faAngleDown,
-  faAngleUp,
-  faServer,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
-import { useToggle } from "@vueuse/core";
-import { computed } from "vue";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
+import InfraAction from '@/components/infra/InfraAction.vue'
+import InfraItemLabel from '@/components/infra/InfraItemLabel.vue'
+import InfraVmList from '@/components/infra/InfraVmList.vue'
+import { useHostCollection } from '@/stores/xen-api/host.store'
+import { usePoolCollection } from '@/stores/xen-api/pool.store'
+import { vTooltip } from '@/directives/tooltip.directive'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import { useUiStore } from '@/stores/ui.store'
+import { faAngleDown, faAngleUp, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
+import { useToggle } from '@vueuse/core'
+import { computed } from 'vue'
+import { useVmCollection } from '@/stores/xen-api/vm.store'
 
 const props = defineProps<{
-  hostOpaqueRef: XenApiHost["$ref"];
-}>();
+  hostOpaqueRef: XenApiHost['$ref']
+}>()
 
-const { getByOpaqueRef } = useHostCollection();
-const host = computed(() => getByOpaqueRef(props.hostOpaqueRef));
+const { getByOpaqueRef } = useHostCollection()
+const host = computed(() => getByOpaqueRef(props.hostOpaqueRef))
 
-const { pool } = usePoolCollection();
-const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef);
+const { pool } = usePoolCollection()
+const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef)
 
-const uiStore = useUiStore();
+const uiStore = useUiStore()
 
-const isCurrentHost = computed(
-  () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
-);
-const [isExpanded, toggle] = useToggle(true);
+const isCurrentHost = computed(() => props.hostOpaqueRef === uiStore.currentHostOpaqueRef)
+const [isExpanded, toggle] = useToggle(true)
 
-const { recordsByHostRef, isReady } = useVmCollection();
+const { recordsByHostRef, isReady } = useVmCollection()
 
-const vmCount = computed(
-  () => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0
-);
+const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0)
 </script>
 
 <style lang="postcss" scoped>
@@ -86,7 +65,7 @@ const vmCount = computed(
 }
 
 .master-icon {
-  color: var(--color-orange-world-base);
+  color: var(--color-orange-base);
 }
 
 .vm-count {
@@ -97,9 +76,9 @@ const vmCount = computed(
   justify-content: center;
   width: var(--size);
   height: var(--size);
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: calc(var(--size) / 2);
-  background-color: var(--color-extra-blue-base);
+  background-color: var(--color-purple-base);
   --size: 2.3rem;
 }
 </style>

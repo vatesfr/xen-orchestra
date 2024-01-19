@@ -7,16 +7,16 @@
 </template>
 
 <script lang="ts" setup>
-import useBusy from "@/composables/busy.composable";
+import useBusy from '@/composables/busy.composable'
 
 async function doSomething() {
   try {
     // Doing some async work
   } catch (e) {
-    throw "Something bad happened";
+    throw 'Something bad happened'
   }
 }
 
-const { isBusy, error, run } = useBusy(doSomething);
+const { isBusy, error, run } = useBusy(doSomething)
 </script>
 ```

@@ -23,9 +23,9 @@
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import ConfirmModalLayout from "@/components/ui/modals/layouts/ConfirmModalLayout.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import { iconProp, setting, slot } from "@/libs/story/story-param";
-import { faShip } from "@fortawesome/free-solid-svg-icons";
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import { iconProp, setting, slot } from '@/libs/story/story-param'
+import { faShip } from '@fortawesome/free-solid-svg-icons'
 </script>

@@ -328,6 +328,7 @@ const messages = {
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
+  notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
   selectExistingTags: 'Select from existing tags',
   sortByDisksUsage: 'Disks usage',
 

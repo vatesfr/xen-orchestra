@@ -18,51 +18,39 @@
     <div>Optional string prop: {{ imOptional }}</div>
     <div>Optional string prop with default: {{ imOptionalWithDefault }}</div>
     Input for default v-model:
-    <input
-      :value="modelValue"
-      @input="
-        emit('update:modelValue', ($event.target as HTMLInputElement)?.value)
-      "
-    />
+    <input :value="modelValue" @input="emit('update:modelValue', ($event.target as HTMLInputElement)?.value)" />
     Input for v-model:customModel:
-    <input
-      :value="customModel"
-      @input="
-        emit('update:customModel', ($event.target as HTMLInputElement)?.value)
-      "
-    />
+    <input :value="customModel" @input="emit('update:customModel', ($event.target as HTMLInputElement)?.value)" />
     Event with no arguments:
     <button type="button" @click="emit('click')">Click me</button>
     Event with argument:
-    <button type="button" @click="emit('clickWithArg', 'my-id')">
-      Click me
-    </button>
+    <button type="button" @click="emit('clickWithArg', 'my-id')">Click me</button>
   </div>
 </template>
 
 <script lang="ts" setup>
-const moonDistance = 384400;
+const moonDistance = 384400
 
 withDefaults(
   defineProps<{
-    imString: string;
-    imNumber: number;
-    imOptional?: string;
-    imOptionalWithDefault?: string;
-    modelValue?: string;
-    customModel?: string;
+    imString: string
+    imNumber: number
+    imOptional?: string
+    imOptionalWithDefault?: string
+    modelValue?: string
+    customModel?: string
   }>(),
   {
-    imOptionalWithDefault: "My default value",
+    imOptionalWithDefault: 'My default value',
   }
-);
+)
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: string): void;
-  (event: "update:customModel", value: string): void;
-  (event: "click"): void;
-  (event: "clickWithArg", id: string): void;
-}>();
+  (event: 'update:modelValue', value: string): void
+  (event: 'update:customModel', value: string): void
+  (event: 'click'): void
+  (event: 'clickWithArg', id: string): void
+}>()
 </script>
 
 <style lang="postcss" scoped>

@@ -13,26 +13,26 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from "@/composables/context.composable";
-import { ColorContext } from "@/context";
-import type { Color } from "@/types";
-import { IK_MODAL_NESTED } from "@/types/injection-keys";
-import { inject, provide } from "vue";
+import { useContext } from '@/composables/context.composable'
+import { ColorContext } from '@/context'
+import type { Color } from '@/types'
+import { IK_MODAL_NESTED } from '@/types/injection-keys'
+import { inject, provide } from 'vue'
 
 const props = defineProps<{
-  color?: Color;
-}>();
+  color?: Color
+}>()
 
 defineSlots<{
-  header: () => any;
-  default: () => any;
-  footer: () => any;
-}>();
+  header: () => any
+  default: () => any
+  footer: () => any
+}>()
 
-const { backgroundClass } = useContext(ColorContext, () => props.color);
+const { backgroundClass } = useContext(ColorContext, () => props.color)
 
-const isNested = inject(IK_MODAL_NESTED, false);
-provide(IK_MODAL_NESTED, true);
+const isNested = inject(IK_MODAL_NESTED, false)
+provide(IK_MODAL_NESTED, true)
 </script>
 
 <style lang="postcss" scoped>

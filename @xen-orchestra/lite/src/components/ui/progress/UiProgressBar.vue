@@ -5,22 +5,22 @@
 </template>
 
 <script lang="ts" setup>
-import type { Color } from "@/types";
-import { computed } from "vue";
+import type { Color } from '@/types'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    value: number;
-    color?: Color | "custom";
-    maxValue?: number;
+    value: number
+    color?: Color | 'custom'
+    maxValue?: number
   }>(),
-  { color: "info", maxValue: 100 }
-);
+  { color: 'info', maxValue: 100 }
+)
 
 const progressWithUnit = computed(() => {
-  const progress = (props.value / props.maxValue) * 100;
-  return `${progress}%`;
-});
+  const progress = (props.value / props.maxValue) * 100
+  return `${progress}%`
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -29,25 +29,22 @@ const progressWithUnit = computed(() => {
   height: var(--progress-bar-height, 0.4rem);
   margin: 1rem 0;
   border-radius: 0.4rem;
-  background-color: var(
-    --progress-bar-background-color,
-    var(--background-color-extra-blue)
-  );
+  background-color: var(--progress-bar-background-color, var(--background-color-purple-10));
 
   &.color-info {
-    --progress-bar-color: var(--color-extra-blue-base);
+    --progress-bar-color: var(--color-purple-base);
   }
 
   &.color-success {
-    --progress-bar-color: var(--color-green-infra-base);
+    --progress-bar-color: var(--color-green-base);
   }
 
   &.color-warning {
-    --progress-bar-color: var(--color-orange-world-base);
+    --progress-bar-color: var(--color-orange-base);
   }
 
   &.color-error {
-    --progress-bar-color: var(--color-red-vates-base);
+    --progress-bar-color: var(--color-red-base);
   }
 }
 

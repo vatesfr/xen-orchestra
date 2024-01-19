@@ -1,0 +1,14 @@
+{
+  "name": "XO Lite",
+  "short_name": "XOLite",
+  "start_url": "/",
+  "display": "standalone",
+  "description": "Integrated local and lightweight solution to manage a local XCP-ng pool.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

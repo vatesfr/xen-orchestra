@@ -10,13 +10,13 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { faRemove } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { faRemove } from '@fortawesome/free-solid-svg-icons'
 
 const emit = defineEmits<{
-  (event: "edit"): void;
-  (event: "remove"): void;
-}>();
+  (event: 'edit'): void
+  (event: 'remove'): void
+}>()
 </script>
 
 <style lang="postcss" scoped>
@@ -27,11 +27,11 @@ const emit = defineEmits<{
   align-items: stretch;
   justify-content: center;
   height: 3.4rem;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   border-radius: 1.7rem;
-  background-color: var(--background-color-extra-blue);
+  background-color: var(--background-color-purple-10);
   gap: 1rem;
-  border: 1px solid var(--color-extra-blue-base);
+  border: 1px solid var(--color-purple-base);
 }
 
 .label,
@@ -55,10 +55,10 @@ const emit = defineEmits<{
   border-radius: 1.4rem;
   width: 2.8rem;
   margin: 0.2rem;
-  background-color: var(--color-extra-blue-l40);
+  background-color: var(--color-purple-l40);
 
   &:hover {
-    background-color: var(--color-red-vates-l20);
+    background-color: var(--color-red-l20);
   }
 }
 </style>

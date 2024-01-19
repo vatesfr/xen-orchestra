@@ -1,38 +1,34 @@
 <template>
   <ComponentStory
+    v-slot="{ properties }"
     :params="[
-      prop('data')
-        .preset(data)
-        .required()
-        .obj('LinearChartData')
-        .help('See doc for typing')
-        .widget(),
+      prop('data').preset(data).required().obj('LinearChartData').help('See doc for typing').widget(),
       prop('value-formatter').type('(value: number) => string'),
       prop('max-value').type('number').widget().default(200),
     ]"
     :presets="presets"
-    v-slot="{ properties }"
   >
     <LinearChart v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import humanFormat from "human-format";
-import type { LinearChartData } from "@/types/chart";
-import LinearChart from "@/components/charts/LinearChart.vue";
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import { prop } from "@/libs/story/story-param";
+// eslint-disable-next-line import/no-named-as-default
+import humanFormat from 'human-format'
+import type { LinearChartData } from '@/types/chart'
+import LinearChart from '@/components/charts/LinearChart.vue'
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import { prop } from '@/libs/story/story-param'
 
-const byteFormatter = (value: number) => humanFormat.bytes(value);
+const byteFormatter = (value: number) => humanFormat.bytes(value)
 
-let time = 0;
-const firstDay = () => (time = 1640995200000);
-const nextDay = () => (time += 86400000);
+let time = 0
+const firstDay = () => (time = 1640995200000)
+const nextDay = () => (time += 86400000)
 
 const data: LinearChartData = [
   {
-    label: "Foo",
+    label: 'Foo',
     data: [
       { timestamp: firstDay(), value: 50 },
       { timestamp: nextDay(), value: 20 },
@@ -42,7 +38,7 @@ const data: LinearChartData = [
     ],
   },
   {
-    label: "Bar",
+    label: 'Bar',
     data: [
       { timestamp: firstDay(), value: 10 },
       { timestamp: nextDay(), value: 80 },
@@ -51,16 +47,16 @@ const data: LinearChartData = [
       { timestamp: nextDay(), value: 20 },
     ],
   },
-];
+]
 
 const presets = {
-  "Network bandwidth": {
+  'Network bandwidth': {
     props: {
-      "value-formatter": byteFormatter,
-      "max-value": 500000000,
+      'value-formatter': byteFormatter,
+      'max-value': 500000000,
       data: [
         {
-          label: "Download",
+          label: 'Download',
           data: [
             {
               timestamp: firstDay(),
@@ -93,7 +89,7 @@ const presets = {
           ],
         },
         {
-          label: "Upload",
+          label: 'Upload',
           data: [
             {
               timestamp: firstDay(),
@@ -128,7 +124,7 @@ const presets = {
       ],
     },
   },
-};
+}
 </script>
 
 <style lang="postcss" scoped></style>

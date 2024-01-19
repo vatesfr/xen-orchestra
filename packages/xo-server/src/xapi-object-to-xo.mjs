@@ -429,6 +429,7 @@ const TRANSFORMS = {
       VGPUs: link(obj, 'VGPUs'),
       $VGPUs: link(obj, 'VGPUs'),
       nicType: obj.platform.nic_type,
+      xenStoreData: obj.xenstore_data,
     }
 
     if (isHvm) {

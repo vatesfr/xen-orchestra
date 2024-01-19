@@ -30,8 +30,12 @@ pnpm-debug.log.*
 yarn-error.log
 yarn-error.log.*
 .env
+*.tsbuildinfo
 
 # code coverage
 .nyc_output/
 coverage/
 .turbo/
+
+# https://node-tap.org/dot-tap-folder/
+.tap/

@@ -1,39 +1,40 @@
 <template>
+  <!-- eslint-disable vue/no-v-html -->
   <div ref="rootElement" class="app-markdown" v-html="html" />
+  <!-- eslint-enable vue/no-v-html -->
 </template>
 
 <script lang="ts" setup>
-import markdown from "@/libs/markdown";
-import { useEventListener } from "@vueuse/core";
-import { computed, type Ref, ref } from "vue";
+import markdown from '@/libs/markdown'
+import { useEventListener } from '@vueuse/core'
+import { computed, type Ref, ref } from 'vue'
 
-const rootElement = ref() as Ref<HTMLElement>;
+const rootElement = ref() as Ref<HTMLElement>
 
 const props = defineProps<{
-  content: string;
-}>();
+  content: string
+}>()
 
-const html = computed(() => markdown.parse(props.content ?? ""));
+const html = computed(() => markdown.parse(props.content ?? ''))
 
 useEventListener(
   rootElement,
-  "click",
+  'click',
   (event: MouseEvent) => {
-    const target = event.target as HTMLElement;
+    const target = event.target as HTMLElement
 
-    if (!target.classList.contains("copy-button")) {
-      return;
+    if (!target.classList.contains('copy-button')) {
+      return
     }
 
-    const copyable =
-      target.parentElement!.querySelector<HTMLElement>(".copyable");
+    const copyable = target.parentElement!.querySelector<HTMLElement>('.copyable')
 
     if (copyable !== null) {
-      navigator.clipboard.writeText(copyable.innerText);
+      navigator.clipboard.writeText(copyable.innerText)
     }
   },
   { capture: true }
-);
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -59,7 +60,7 @@ useEventListener(
     }
 
     code:not(.hljs-code) {
-      background-color: var(--background-color-extra-blue);
+      background-color: var(--background-color-purple-10);
       padding: 0.3rem 0.6rem;
       border-radius: 0.6rem;
     }
@@ -80,12 +81,12 @@ useEventListener(
       }
 
       thead th {
-        border-bottom: 2px solid var(--color-blue-scale-400);
+        border-bottom: 2px solid var(--color-grey-500);
         background-color: var(--background-color-secondary);
       }
 
       tbody td {
-        border-bottom: 1px solid var(--color-blue-scale-400);
+        border-bottom: 1px solid var(--color-grey-500);
       }
     }
 
@@ -102,11 +103,11 @@ useEventListener(
       background-color: transparent;
 
       &:hover {
-        color: var(--color-extra-blue-base);
+        color: var(--color-purple-base);
       }
 
       &:active {
-        color: var(--color-extra-blue-d20);
+        color: var(--color-purple-d20);
       }
     }
   }

@@ -21,17 +21,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import ProgressCircle from "@/components/ProgressCircle.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import { computed } from 'vue'
+import ProgressCircle from '@/components/ProgressCircle.vue'
+import UiTitle from '@/components/ui/UiTitle.vue'
 
 const props = defineProps<{
-  label: string;
-  active: number;
-  total: number;
-}>();
+  label: string
+  active: number
+  total: number
+}>()
 
-const inactive = computed(() => props.total - props.active);
+const inactive = computed(() => props.total - props.active)
 </script>
 
 <style lang="postcss" scoped>
@@ -52,10 +52,10 @@ const inactive = computed(() => props.total - props.active);
   width: 1.3rem;
   height: 1.3rem;
   border-radius: 0.65rem;
-  background-color: var(--color-green-infra-base);
+  background-color: var(--color-green-base);
 
   &.inactive {
-    background-color: var(--color-blue-scale-400);
+    background-color: var(--color-grey-500);
   }
 }
 

@@ -12,8 +12,6 @@
 <script lang="ts" setup></script>
 
 <style lang="postcss" scoped>
-@import "@/assets/_responsive.pcss";
-
 .key,
 .value {
   padding-top: 0.5rem;
@@ -24,7 +22,7 @@
 .key {
   padding-right: 2rem;
   text-align: left;
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
 
   @media (--desktop) {
     min-width: 20rem;

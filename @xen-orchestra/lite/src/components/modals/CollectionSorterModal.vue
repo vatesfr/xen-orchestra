@@ -6,19 +6,15 @@
           <FormWidget :label="$t('sort-by')">
             <select v-model="newSortProperty">
               <option v-if="!newSortProperty"></option>
-              <option
-                v-for="(sort, property) in availableSorts"
-                :key="property"
-                :value="property"
-              >
+              <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
                 {{ sort.label ?? property }}
               </option>
             </select>
           </FormWidget>
           <FormWidget>
             <select v-model="newSortIsAscending">
-              <option :value="true">{{ $t("ascending") }}</option>
-              <option :value="false">{{ $t("descending") }}</option>
+              <option :value="true">{{ $t('ascending') }}</option>
+              <option :value="false">{{ $t('descending') }}</option>
             </select>
           </FormWidget>
         </div>
@@ -26,37 +22,37 @@
 
       <template #buttons>
         <ModalDeclineButton />
-        <ModalApproveButton>{{ $t("add") }}</ModalApproveButton>
+        <ModalApproveButton>{{ $t('add') }}</ModalApproveButton>
       </template>
     </ConfirmModalLayout>
   </UiModal>
 </template>
 
 <script lang="ts" setup>
-import FormWidget from "@/components/FormWidget.vue";
-import ConfirmModalLayout from "@/components/ui/modals/layouts/ConfirmModalLayout.vue";
-import ModalApproveButton from "@/components/ui/modals/ModalApproveButton.vue";
-import ModalDeclineButton from "@/components/ui/modals/ModalDeclineButton.vue";
-import UiModal from "@/components/ui/modals/UiModal.vue";
-import { IK_MODAL } from "@/types/injection-keys";
-import type { NewSort, Sorts } from "@/types/sort";
-import { inject, ref } from "vue";
+import FormWidget from '@/components/FormWidget.vue'
+import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
+import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
+import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
+import UiModal from '@/components/ui/modals/UiModal.vue'
+import { IK_MODAL } from '@/types/injection-keys'
+import type { NewSort, Sorts } from '@/types/sort'
+import { inject, ref } from 'vue'
 
 defineProps<{
-  availableSorts: Sorts;
-}>();
+  availableSorts: Sorts
+}>()
 
-const newSortProperty = ref();
-const newSortIsAscending = ref<boolean>(true);
+const newSortProperty = ref()
+const newSortIsAscending = ref<boolean>(true)
 
-const modal = inject(IK_MODAL)!;
+const modal = inject(IK_MODAL)!
 
 const handleSubmit = () => {
   modal.approve<NewSort>({
     property: newSortProperty.value,
     isAscending: newSortIsAscending.value,
-  });
-};
+  })
+}
 </script>
 
 <style lang="postcss" scoped>
