@@ -967,6 +967,8 @@ const messages = {
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
   enableMaintenanceMode: 'Enable maintenance mode',
+  slaveHostMoreUpToDateThanMasterAfterRestart:
+    'It appears that this host will be more up-to-date than the master ({master}) after the restart. This will result in the slave being unable to contact the pool master. Please update and restart your master node first.',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
@@ -979,6 +981,7 @@ const messages = {
   forceRebootHostLabel: 'Force reboot',
   forceSmartRebootHost:
     'Smart Reboot failed because {nVms, number} VM{nVms, plural, one {} other {s}} ha{nVms, plural, one {s} other {ve}} {nVms, plural, one {its} other {their}} Suspend operation blocked. Would you like to force?',
+  restartAnyway: 'Restart anyway',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
