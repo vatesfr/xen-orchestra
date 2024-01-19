@@ -419,11 +419,10 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         // 4. Migrate.
-        const sourceXapi = this.xo.getXapi(source)
         promises.push(
           this._concurrentMigrationLimiter.call(
-            sourceXapi,
-            sourceXapi.migrateVm,
+            this.xo.getXapi(source),
+            'migrateVm',
             vm._xapiId,
             this.xo.getXapi(destination),
             destination._xapiId

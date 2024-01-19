@@ -210,7 +210,7 @@ export default class DensityPlan extends Plan {
         )
         return this._concurrentMigrationLimiter.call(
           xapiDest,
-          xapiDest.migrateVm,
+          'migrateVm',
           vm._xapiId,
           this.xo.getXapi(destination),
           destination._xapiId

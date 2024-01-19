@@ -208,7 +208,7 @@ export default class PerformancePlan extends Plan {
       promises.push(
         this._concurrentMigrationLimiter.call(
           xapiSrc,
-          xapiSrc.migrateVm,
+          'migrateVm',
           vm._xapiId,
           this.xo.getXapi(destination),
           destination._xapiId
