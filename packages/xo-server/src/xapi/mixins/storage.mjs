@@ -1,10 +1,10 @@
 import filter from 'lodash/filter.js'
 import forEach from 'lodash/forEach.js'
 import groupBy from 'lodash/groupBy.js'
-import { decorateWith } from '@vates/decorate-with'
+import { decorateObject } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
-export default {
+const methods = {
   _connectAllSrPbds(sr) {
     return Promise.all(sr.$PBDs.map(pbd => this._plugPbd(pbd)))
   },
@@ -102,7 +102,6 @@ export default {
   },
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
-  @decorateWith(defer)
   async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {
     const srRef = await this.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
     $defer.onFailure(() => this.forgetSr(srRef))
@@ -125,3 +124,7 @@ export default {
     return sr.uuid
   },
 }
+
+export default decorateObject(methods, {
+  reattachSr: defer,
+})
