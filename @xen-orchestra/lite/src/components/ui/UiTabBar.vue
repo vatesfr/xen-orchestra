@@ -5,17 +5,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from "@/composables/context.composable";
-import { DisabledContext } from "@/context";
+import { useContext } from '@/composables/context.composable'
+import { DisabledContext } from '@/context'
 
 const props = withDefaults(
   defineProps<{
-    disabled?: boolean;
+    disabled?: boolean
   }>(),
   { disabled: undefined }
-);
+)
 
-useContext(DisabledContext, () => props.disabled);
+useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
@@ -23,7 +23,7 @@ useContext(DisabledContext, () => props.disabled);
   display: flex;
   align-items: stretch;
   height: 5rem;
-  border-bottom: 1px solid var(--color-blue-scale-400);
+  border-bottom: 1px solid var(--color-grey-500);
   background-color: var(--background-color-primary);
   max-width: 100%;
   overflow: auto;

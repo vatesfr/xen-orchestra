@@ -2,10 +2,13 @@ import { basename, join } from 'node:path'
 import { createWriteStream } from 'node:fs'
 import { normalize } from 'node:path/posix'
 import { parse as parseContentType } from 'content-type'
-import { pipeline } from 'node:stream/promises'
+import { pipeline } from 'node:stream'
+import { pipeline as pPipeline } from 'node:stream/promises'
+import { readChunk } from '@vates/read-chunk'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
+import split2 from 'split2'
 
 import * as config from './config.mjs'
 
@@ -18,6 +21,8 @@ function addPrefix(suffix) {
   }
   return path
 }
+
+const noop = Function.prototype
 
 function parseParams(args) {
   const params = {}
@@ -60,7 +65,7 @@ const COMMANDS = {
     const response = await this.exec(path, { query: parseParams(rest) })
 
     if (output !== '') {
-      return pipeline(
+      return pPipeline(
         response,
         output === '-'
           ? process.stdout
@@ -84,6 +89,13 @@ const COMMANDS = {
       }
 
       return this.json ? JSON.stringify(result, null, 2) : result
+    } else if (type === 'application/x-ndjson') {
+      const lines = pipeline(response, split2(), noop)
+      let line
+      while ((line = await readChunk(lines)) !== null) {
+        const data = JSON.parse(line)
+        console.log(this.json ? JSON.stringify(data, null, 2) : data)
+      }
     } else {
       throw new Error('unsupported content-type ' + type)
     }

@@ -30,7 +30,7 @@ Each descendant has the ability to change the context value, affecting itself an
 ```ts
 // context.ts
 
-const CounterContext = createContext(0);
+const CounterContext = createContext(0)
 ```
 
 ### 2. Use the context
@@ -40,9 +40,9 @@ const CounterContext = createContext(0);
 You can get the current Context value by using `useContext(CounterContext)`.
 
 ```ts
-const counter = useContext(CounterContext);
+const counter = useContext(CounterContext)
 
-console.log(counter.value); // 0
+console.log(counter.value) // 0
 ```
 
 #### 2.2. Update
@@ -53,16 +53,16 @@ You can pass a `MaybeRefOrGetter` as second argument to update the context value
 // MyComponent.vue
 
 const props = defineProps<{
-  counter?: number;
-}>();
+  counter?: number
+}>()
 
-const counter = useContext(CounterContext, () => props.counter);
+const counter = useContext(CounterContext, () => props.counter)
 
 // When calling <MyComponent />
-console.log(counter.value); // 0
+console.log(counter.value) // 0
 
 // When calling <MyComponent :counter="20" />
-console.log(counter.value); // 20
+console.log(counter.value) // 20
 ```
 
 ## Advanced Context
@@ -75,13 +75,13 @@ To customize the context output, you can pass a custom context builder as the se
 // context.ts
 
 // Example 1. Return a object
-const CounterContext = createContext(10, (counter) => ({
+const CounterContext = createContext(10, counter => ({
   counter,
   isEven: computed(() => counter.value % 2 === 0),
-}));
+}))
 
 // Example 2. Return a computed value
-const DoubleContext = createContext(10, (num) => computed(() => num.value * 2));
+const DoubleContext = createContext(10, num => computed(() => num.value * 2))
 ```
 
 ### 2. Use the context
@@ -91,12 +91,12 @@ const DoubleContext = createContext(10, (num) => computed(() => num.value * 2));
 When using the context, it will return your custom value.
 
 ```ts
-const { counter, isEven } = useContext(CounterContext);
-const double = useContext(DoubleContext);
+const { counter, isEven } = useContext(CounterContext)
+const double = useContext(DoubleContext)
 
-console.log(counter.value); // 10
-console.log(isEven.value); // true
-console.log(double.value); // 20
+console.log(counter.value) // 10
+console.log(isEven.value) // true
+console.log(double.value) // 20
 ```
 
 #### 2.2. Update
@@ -105,15 +105,15 @@ Same as with a simple context, you can pass a `MaybeRefOrGetter` as second argum
 
 ```ts
 // Parent.vue
-useContext(CounterContext, 99);
-useContext(DoubleContext, 99);
+useContext(CounterContext, 99)
+useContext(DoubleContext, 99)
 
 // Child.vue
-const { isEven } = useContext(CounterContext);
-const double = useContext(DoubleContext);
+const { isEven } = useContext(CounterContext)
+const double = useContext(DoubleContext)
 
-console.log(isEven.value); // false
-console.log(double.value); // 198
+console.log(isEven.value) // false
+console.log(double.value) // 198
 ```
 
 ## Caveats (boolean props)
@@ -126,10 +126,10 @@ This could be problematic if the value comes from a `boolean` prop.
 
 ```ts
 const props = defineProps<{
-  disabled?: boolean;
-}>();
+  disabled?: boolean
+}>()
 
-useContext(MyBooleanContext, () => props.disabled); // Update to `false` if `undefined`
+useContext(MyBooleanContext, () => props.disabled) // Update to `false` if `undefined`
 ```
 
 In that case, Vue will automatically set the default value for `disabled` prop to `false`.
@@ -143,10 +143,10 @@ to `undefined`:
 ```ts
 const props = withDefaults(
   defineProps<{
-    disabled?: boolean;
+    disabled?: boolean
   }>(),
   { disabled: undefined }
-);
+)
 
-useContext(MyBoolean, () => props.disabled); // Keep parent value if `undefined`
+useContext(MyBoolean, () => props.disabled) // Keep parent value if `undefined`
 ```

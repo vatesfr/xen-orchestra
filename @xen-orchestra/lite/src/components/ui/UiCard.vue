@@ -5,28 +5,25 @@
 </template>
 
 <script lang="ts" setup>
-import { ColorContext } from "@/context";
-import { useContext } from "@/composables/context.composable";
-import type { Color } from "@/types";
-import { computed } from "vue";
+import { ColorContext } from '@/context'
+import { useContext } from '@/composables/context.composable'
+import type { Color } from '@/types'
+import { computed } from 'vue'
 
 const props = defineProps<{
-  color?: Color;
-}>();
+  color?: Color
+}>()
 
-const { name: contextColor, backgroundClass } = useContext(
-  ColorContext,
-  () => props.color
-);
+const { name: contextColor, backgroundClass } = useContext(ColorContext, () => props.color)
 
 // We don't want to inherit "info" color
 const classProp = computed(() => {
-  if (props.color === undefined && contextColor.value === "info") {
-    return "bg-primary";
+  if (props.color === undefined && contextColor.value === 'info') {
+    return 'bg-primary'
   }
 
-  return backgroundClass.value;
-});
+  return backgroundClass.value
+})
 </script>
 
 <style lang="postcss" scoped>

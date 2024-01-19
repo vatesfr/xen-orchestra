@@ -51,57 +51,48 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useContext } from "@/composables/context.composable";
-import { ColorContext, DisabledContext } from "@/context";
-import type { Color } from "@/types";
-import { IK_INPUT_ID, IK_INPUT_TYPE } from "@/types/injection-keys";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import { useTextareaAutosize, useVModel } from "@vueuse/core";
-import {
-  computed,
-  type HTMLAttributes,
-  inject,
-  nextTick,
-  ref,
-  watch,
-} from "vue";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useContext } from '@/composables/context.composable'
+import { ColorContext, DisabledContext } from '@/context'
+import type { Color } from '@/types'
+import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
+import { useTextareaAutosize, useVModel } from '@vueuse/core'
+import { computed, type HTMLAttributes, inject, nextTick, ref, watch } from 'vue'
 
-defineOptions({ inheritAttrs: false });
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
-    id?: string;
-    modelValue?: any;
-    color?: Color;
-    before?: IconDefinition | string;
-    after?: IconDefinition | string;
-    beforeWidth?: string;
-    afterWidth?: string;
-    disabled?: boolean;
-    required?: boolean;
-    right?: boolean;
-    wrapperAttrs?: HTMLAttributes;
+    id?: string
+    modelValue?: any
+    color?: Color
+    before?: IconDefinition | string
+    after?: IconDefinition | string
+    beforeWidth?: string
+    afterWidth?: string
+    disabled?: boolean
+    required?: boolean
+    right?: boolean
+    wrapperAttrs?: HTMLAttributes
   }>(),
   { disabled: undefined }
-);
+)
 
-const { name: contextColor } = useContext(ColorContext, () => props.color);
+const { name: contextColor } = useContext(ColorContext, () => props.color)
 
-const inputElement = ref();
+const inputElement = ref()
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: any): void;
-}>();
+  (event: 'update:modelValue', value: any): void
+}>()
 
-const value = useVModel(props, "modelValue", emit);
-const isEmpty = computed(
-  () => props.modelValue == null || String(props.modelValue).trim() === ""
-);
-const inputType = inject(IK_INPUT_TYPE, "input");
+const value = useVModel(props, 'modelValue', emit)
+const isEmpty = computed(() => props.modelValue == null || String(props.modelValue).trim() === '')
+const inputType = inject(IK_INPUT_TYPE, 'input')
 
-const isDisabled = useContext(DisabledContext, () => props.disabled);
+const isDisabled = useContext(DisabledContext, () => props.disabled)
 
 const wrapperClass = computed(() => [
   `form-${inputType}`,
@@ -109,32 +100,32 @@ const wrapperClass = computed(() => [
     disabled: isDisabled.value,
     empty: isEmpty.value,
   },
-]);
+])
 
 const inputClass = computed(() => [
   contextColor.value,
   {
     right: props.right,
-    "has-before": props.before !== undefined,
-    "has-after": props.after !== undefined,
+    'has-before': props.before !== undefined,
+    'has-after': props.after !== undefined,
   },
-]);
+])
 
-const parentId = inject(IK_INPUT_ID, undefined);
+const parentId = inject(IK_INPUT_ID, undefined)
 
-const id = computed(() => props.id ?? parentId?.value);
+const id = computed(() => props.id ?? parentId?.value)
 
-const { textarea, triggerResize } = useTextareaAutosize();
+const { textarea, triggerResize } = useTextareaAutosize()
 
 watch(value, () => nextTick(() => triggerResize()), {
   immediate: true,
-});
+})
 
-const focus = () => inputElement.value.focus();
+const focus = () => inputElement.value.focus()
 
 defineExpose({
   focus,
-});
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -153,14 +144,14 @@ defineExpose({
   --after-width: v-bind('afterWidth || "1.625em"');
   --caret-width: 1.5em;
 
-  --text-color: var(--color-blue-scale-100);
+  --text-color: var(--color-grey-100);
 
   &.empty {
-    --text-color: var(--color-blue-scale-300);
+    --text-color: var(--color-grey-300);
   }
 
   &.disabled {
-    --text-color: var(--color-blue-scale-400);
+    --text-color: var(--color-grey-500);
   }
 }
 
@@ -198,7 +189,7 @@ defineExpose({
   }
 
   --background-color: var(--background-color-primary);
-  --border-color: var(--color-blue-scale-400);
+  --border-color: var(--color-grey-500);
 
   &:disabled {
     cursor: not-allowed;
@@ -208,63 +199,63 @@ defineExpose({
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-extra-blue-l60);
+        --border-color: var(--color-purple-l60);
       }
 
       &:active {
-        --border-color: var(--color-extra-blue-l40);
+        --border-color: var(--color-purple-l40);
       }
 
       &:focus {
-        --border-color: var(--color-extra-blue-base);
+        --border-color: var(--color-purple-base);
       }
     }
 
     &.success {
-      --border-color: var(--color-green-infra-base);
+      --border-color: var(--color-green-base);
 
       &:hover {
-        --border-color: var(--color-green-infra-l60);
+        --border-color: var(--color-green-l60);
       }
 
       &:active {
-        --border-color: var(--color-green-infra-l40);
+        --border-color: var(--color-green-l40);
       }
 
       &:focus {
-        --border-color: var(--color-green-infra-base);
+        --border-color: var(--color-green-base);
       }
     }
 
     &.warning {
-      --border-color: var(--color-orange-world-base);
+      --border-color: var(--color-orange-base);
 
       &:hover {
-        --border-color: var(--color-orange-world-l60);
+        --border-color: var(--color-orange-l60);
       }
 
       &:active {
-        --border-color: var(--color-orange-world-l40);
+        --border-color: var(--color-orange-l40);
       }
 
       &:focus {
-        --border-color: var(--color-orange-world-base);
+        --border-color: var(--color-orange-base);
       }
     }
 
     &.error {
-      --border-color: var(--color-red-vates-base);
+      --border-color: var(--color-red-base);
 
       &:hover {
-        --border-color: var(--color-red-vates-l60);
+        --border-color: var(--color-red-l60);
       }
 
       &:active {
-        --border-color: var(--color-red-vates-l40);
+        --border-color: var(--color-red-l40);
       }
 
       &:focus-within {
-        --border-color: var(--color-red-vates-base);
+        --border-color: var(--color-red-base);
       }
     }
   }

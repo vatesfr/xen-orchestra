@@ -55,10 +55,12 @@ export default class RestoreMetadataBackupModalBody extends Component {
             />
           </Col>
         </Row>
-        <Row className='mt-1'>
-          <SelectPool onChange={this.linkState('pool')} required value={this.state.pool} />
-        </Row>
-        {this.props.type !== 'XO' && <SingleLineRow>{restorationWarning}</SingleLineRow>}
+        {this.props.type !== 'XO' && [
+          <Row className='mt-1' key='select'>
+            <SelectPool onChange={this.linkState('pool')} required value={this.state.pool} />
+          </Row>,
+          <SingleLineRow key='message'>{restorationWarning}</SingleLineRow>,
+        ]}
       </Container>
     )
   }

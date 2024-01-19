@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from "@/components/ui/UiSpinner.vue";
+import UiSpinner from '@/components/ui/UiSpinner.vue'
 </script>
 
 <style lang="postcss" scoped>
@@ -17,7 +17,7 @@ import UiSpinner from "@/components/ui/UiSpinner.vue";
 }
 
 .spinner {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   font-size: 4rem;
 }
 </style>
