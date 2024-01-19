@@ -404,7 +404,9 @@ const methods = {
   async function_poolWideInstall($defer, patches, xsCredentials) {
     // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
     if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
-      throw new Error('XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates')
+      throw new Error(
+        'XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates'
+      )
     }
 
     // Legacy XS patches
