@@ -9,7 +9,6 @@ async function* main([remoteUrl, vhdPathInRemote, mountPoint]) {
   if (mountPoint === undefined) {
     throw new TypeError('missing arg: cli <remoteUrl> <vhdPathInRemote> <mountPoint>')
   }
-  console.log({ remoteUrl, vhdPathInRemote, mountPoint })
   const handler = yield getSyncedHandler({ url: remoteUrl })
   const mounted = await mount(handler, vhdPathInRemote, mountPoint)
 
