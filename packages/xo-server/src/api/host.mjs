@@ -141,7 +141,7 @@ export async function restart({
       throw incorrectState({
         actual: hostRebootRequired,
         expected: false,
-        object: host.id,
+        object: master.id,
         property: 'rebootRequired',
       })
     }
