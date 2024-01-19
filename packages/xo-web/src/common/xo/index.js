@@ -10,7 +10,7 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
-import { filter, flatMap, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
+import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
 import {
   forbiddenOperation,
   incorrectState,
@@ -23,11 +23,9 @@ import {
 
 import _ from '../intl'
 import ActionButton from '../action-button'
-import Copiable from 'copiable'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
-import Link from 'link'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
 import RegisterProxyModal from './register-proxy-modal'
@@ -3865,29 +3863,3 @@ const _callGithubApi = async (endpoint = '') => {
 export const getMasterCommit = () => _callGithubApi('/commits/master')
 
 export const compareCommits = (base, head) => _callGithubApi(`/compare/${base}...${head}`)
-
-export const uuidToLink = text => {
-  const regex = /\b(?:OpaqueRef:)?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/g
-  const parts = text.split(regex)
-  const ids = text.match(regex) || []
-  const state = store.getState()
-
-  return flatMap(parts, (part, index) => {
-    const id = ids[index]
-    if (id) {
-      const object = id.startsWith('OpaqueRef:') ? state.objects.byRef.get(id) : getObject(state, id)
-      if (object && ['pool', 'host', 'VM', 'SR'].includes(object.type)) {
-        return [
-          part,
-          <Link key={index} to={`/${object.type.toLowerCase()}s/${object.uuid}`}>
-            {id}
-          </Link>,
-        ]
-      } else {
-        return [part, <Copiable key={index}>{id}</Copiable>]
-      }
-    } else {
-      return part
-    }
-  })
-}
