@@ -1,24 +1,24 @@
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 interface Sort {
-  label?: string;
-  icon?: IconDefinition;
+  label?: string
+  icon?: IconDefinition
 }
 
 export interface Sorts {
-  [key: string]: Sort;
+  [key: string]: Sort
 }
 
-export type ActiveSorts<T> = Map<keyof T, boolean>;
+export type ActiveSorts<T> = Map<keyof T, boolean>
 
-export type InitialSorts<T> = `${"-" | ""}${Extract<keyof T, string>}`[];
+export type InitialSorts<T> = `${'-' | ''}${Extract<keyof T, string>}`[]
 
 export interface SortConfig<T> {
-  queryStringParam?: string;
-  initialSorts?: InitialSorts<T>;
+  queryStringParam?: string
+  initialSorts?: InitialSorts<T>
 }
 
 export type NewSort = {
-  property: string;
-  isAscending: boolean;
-};
+  property: string
+  isAscending: boolean
+}

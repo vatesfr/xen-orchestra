@@ -33,9 +33,19 @@ html
                 i.fa.fa-sign-in
                 |  Sign in
       else
-        div.mb-2
-        each label, id in strategies
-          div: a(href = 'signin/' + id).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
+        if Object.keys(strategies).length !== 0
+          form(action = 'signin/dispatch' method = 'post')
+            .checkbox
+              label
+                input(
+                  name = 'remember-me'
+                  type = 'checkbox'
+                )
+                | &nbsp;
+                | Remember me
+            each label, id in strategies
+              div: button(type = 'submit' name = 'provider' value = id).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
+          hr
         form(action = 'signin/local' method = 'post')
           fieldset
             .input-group.mb-1
@@ -66,9 +76,8 @@ html
                 | &nbsp;
                 | Remember me
             div
-              button.btn.btn-block.btn-info
-                i.fa.fa-sign-in
-                |  Sign in
+              button.btn.btn-block.btn-primary
+                |  Sign in with password
     script.
       (function () {
         var d = document

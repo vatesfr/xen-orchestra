@@ -26,92 +26,85 @@
   </div>
 </template>
 
-<script lang="ts">
-export const N_ITEMS = 5;
-</script>
-
 <script lang="ts" setup>
-import PoolDashboardAlarms from "@/components/pool/dashboard/PoolDashboardAlarms.vue";
-import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
-import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
-import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
-import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
-import PoolDashboardHostsPatches from "@/components/pool/dashboard/PoolDashboardHostsPatches.vue";
-import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
-import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
-import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
-import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
-import UiCardGroup from "@/components/ui/UiCardGroup.vue";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
-import useFetchStats from "@/composables/fetch-stats.composable";
-import { GRANULARITY } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { usePageTitleStore } from "@/stores/page-title.store";
-import {
-  IK_HOST_LAST_WEEK_STATS,
-  IK_HOST_STATS,
-  IK_VM_STATS,
-} from "@/types/injection-keys";
-import { differenceBy } from "lodash-es";
-import { provide, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import PoolDashboardAlarms from '@/components/pool/dashboard/PoolDashboardAlarms.vue'
+import PoolDashboardTasks from '@/components/pool/dashboard/PoolDashboardTasks.vue'
+import PoolCpuUsageChart from '@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue'
+import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
+import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
+import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
+import PoolDashboardNetworkChart from '@/components/pool/dashboard/PoolDashboardNetworkChart.vue'
+import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
+import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
+import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
+import PoolDashboardRamUsageChart from '@/components/pool/dashboard/ramUsage/PoolRamUsage.vue'
+import UiCardGroup from '@/components/ui/UiCardGroup.vue'
+import { useHostCollection } from '@/stores/xen-api/host.store'
+import { useVmCollection } from '@/stores/xen-api/vm.store'
+import useFetchStats from '@/composables/fetch-stats.composable'
+import { GRANULARITY } from '@/libs/xapi-stats'
+import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { usePageTitleStore } from '@/stores/page-title.store'
+import { IK_HOST_LAST_WEEK_STATS, IK_HOST_STATS, IK_VM_STATS } from '@/types/injection-keys'
+import { differenceBy } from 'lodash-es'
+import { provide, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-usePageTitleStore().setTitle(useI18n().t("dashboard"));
+usePageTitleStore().setTitle(useI18n().t('dashboard'))
 
-const { getStats: getHostStats, runningHosts } = useHostCollection();
-const { getStats: getVmStats, runningVms } = useVmCollection();
+const { getStats: getHostStats, runningHosts } = useHostCollection()
+const { getStats: getVmStats, runningVms } = useVmCollection()
 
 const {
   register: hostRegister,
   unregister: hostUnregister,
   stats: hostStats,
-} = useFetchStats<XenApiHost>(getHostStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiHost>(getHostStats, GRANULARITY.Seconds)
 
 const {
   register: vmRegister,
   unregister: vmUnregister,
   stats: vmStats,
-} = useFetchStats<XenApiVm>(getVmStats, GRANULARITY.Seconds);
+} = useFetchStats<XenApiVm>(getVmStats, GRANULARITY.Seconds)
 
-const hostLastWeekStats = useFetchStats<XenApiHost>(
-  getHostStats,
-  GRANULARITY.Hours
-);
+const hostLastWeekStats = useFetchStats<XenApiHost>(getHostStats, GRANULARITY.Hours)
 
-provide(IK_HOST_STATS, hostStats);
-provide(IK_VM_STATS, vmStats);
-provide(IK_HOST_LAST_WEEK_STATS, hostLastWeekStats);
+provide(IK_HOST_STATS, hostStats)
+provide(IK_VM_STATS, vmStats)
+provide(IK_HOST_LAST_WEEK_STATS, hostLastWeekStats)
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On
-  differenceBy(hosts, previousHosts ?? [], "uuid").forEach((host) => {
-    hostRegister(host);
-    hostLastWeekStats.register(host);
-  });
+  differenceBy(hosts, previousHosts ?? [], 'uuid').forEach(host => {
+    hostRegister(host)
+    hostLastWeekStats.register(host)
+  })
 
   // turned Off
-  differenceBy(previousHosts, hosts, "uuid").forEach((host) => {
-    hostUnregister(host);
-    hostLastWeekStats.unregister(host);
-  });
-});
+  differenceBy(previousHosts, hosts, 'uuid').forEach(host => {
+    hostUnregister(host)
+    hostLastWeekStats.unregister(host)
+  })
+})
 
 watch(runningVms, (vms, previousVms) => {
   // turned On
-  differenceBy(vms, previousVms ?? [], "uuid").forEach((vm) => vmRegister(vm));
+  differenceBy(vms, previousVms ?? [], 'uuid').forEach(vm => vmRegister(vm))
 
   // turned Off
-  differenceBy(previousVms, vms, "uuid").forEach((vm) => vmUnregister(vm));
-});
+  differenceBy(previousVms, vms, 'uuid').forEach(vm => vmUnregister(vm))
+})
 
-runningHosts.value.forEach((host) => {
-  hostRegister(host);
-  hostLastWeekStats.register(host);
-});
+runningHosts.value.forEach(host => {
+  hostRegister(host)
+  hostLastWeekStats.register(host)
+})
 
-runningVms.value.forEach((vm) => vmRegister(vm));
+runningVms.value.forEach(vm => vmRegister(vm))
+</script>
+
+<script lang="ts">
+export const N_ITEMS = 5
 </script>
 
 <style lang="postcss" scoped>

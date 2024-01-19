@@ -13,7 +13,7 @@
 
 <style lang="postcss" scoped>
 .footer {
-  color: var(--color-blue-scale-200);
+  color: var(--color-grey-200);
   display: flex;
   font-size: 14px;
   justify-content: space-between;

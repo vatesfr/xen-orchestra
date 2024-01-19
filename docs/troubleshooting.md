@@ -32,7 +32,9 @@ Then you need to restart the VM.
 
 If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:
 
-`xo-server-recover-account youremail@here.com`
+```sh
+sudo xo-server-recover-account youremail@here.com
+```
 
 It will prompt you to set a new password. If you provide an email here that does not exist in XOA yet, it will create a new account using it, with admin permissions - you can use that new account to log in as well.
 

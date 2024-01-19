@@ -1,31 +1,21 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">{{ $t("or") }}</span>
+    <span class="or">{{ $t('or') }}</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
     <template v-else>
       <FormWidget :before="currentFilterIcon">
         <select v-model="newFilter.builder.property">
-          <option v-if="!newFilter.builder.property" value="">
-            - {{ $t("property") }} -
-          </option>
-          <option
-            v-for="(filter, property) in availableFilters"
-            :key="property"
-            :value="property"
-          >
+          <option v-if="!newFilter.builder.property" value="">- {{ $t('property') }} -</option>
+          <option v-for="(filter, property) in availableFilters" :key="property" :value="property">
             {{ filter.label ?? property }}
           </option>
         </select>
       </FormWidget>
       <FormWidget v-if="hasComparisonSelect">
         <select v-model="newFilter.builder.comparison">
-          <option
-            v-for="(label, type) in comparisons"
-            :key="type"
-            :value="type"
-          >
+          <option v-for="(label, type) in comparisons" :key="type" :value="type">
             {{ label }}
           </option>
         </select>
@@ -38,112 +28,88 @@
           </option>
         </select>
       </FormWidget>
-      <FormWidget
-        v-else-if="hasValueInput"
-        :after="valueInputAfter"
-        :before="valueInputBefore"
-      >
+      <FormWidget v-else-if="hasValueInput" :after="valueInputAfter" :before="valueInputBefore">
         <input v-model="newFilter.builder.value" />
       </FormWidget>
     </template>
-    <UiActionButton
-      v-if="!newFilter.isAdvanced"
-      :icon="faPencil"
-      @click="enableAdvancedMode"
-    />
+    <UiActionButton v-if="!newFilter.isAdvanced" :icon="faPencil" @click="enableAdvancedMode" />
     <UiActionButton :icon="faRemove" @click="emit('remove', newFilter.id)" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import FormWidget from "@/components/FormWidget.vue";
-import UiActionButton from "@/components/ui/UiActionButton.vue";
-import { buildComplexMatcherNode } from "@/libs/complex-matcher.utils";
-import { getFilterIcon } from "@/libs/utils";
-import type {
-  Filter,
-  FilterComparisons,
-  FilterComparisonType,
-  Filters,
-  FilterType,
-  NewFilter,
-} from "@/types/filter";
-import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
-import { computed, type Ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import FormWidget from '@/components/FormWidget.vue'
+import UiActionButton from '@/components/ui/UiActionButton.vue'
+import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils'
+import { getFilterIcon } from '@/libs/utils'
+import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter'
+import { faPencil, faRemove } from '@fortawesome/free-solid-svg-icons'
+import { useVModel } from '@vueuse/core'
+import { computed, type Ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
-  availableFilters: Filters;
-  modelValue: NewFilter;
-}>();
+  availableFilters: Filters
+  modelValue: NewFilter
+}>()
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: NewFilter): void;
-  (event: "remove", filterId: number): void;
-}>();
+  (event: 'update:modelValue', value: NewFilter): void
+  (event: 'remove', filterId: number): void
+}>()
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const newFilter: Ref<NewFilter> = useVModel(props, "modelValue", emit);
+const newFilter: Ref<NewFilter> = useVModel(props, 'modelValue', emit)
 
 const getDefaultComparisonType = () => {
   const defaultTypes: { [key in FilterType]: FilterComparisonType } = {
-    string: "stringContains",
-    boolean: "booleanTrue",
-    number: "numberEquals",
-    enum: "enumIs",
-  };
+    string: 'stringContains',
+    boolean: 'booleanTrue',
+    number: 'numberEquals',
+    enum: 'enumIs',
+  }
 
-  return defaultTypes[
-    props.availableFilters[newFilter.value.builder.property].type
-  ];
-};
+  return defaultTypes[props.availableFilters[newFilter.value.builder.property].type]
+}
 
 watch(
   () => newFilter.value.builder.property,
   () => {
-    newFilter.value.builder.comparison = getDefaultComparisonType();
-    newFilter.value.builder.value = "";
+    newFilter.value.builder.comparison = getDefaultComparisonType()
+    newFilter.value.builder.value = ''
   }
-);
+)
 
-const currentFilter = computed<Filter>(
-  () => props.availableFilters[newFilter.value.builder.property]
-);
+const currentFilter = computed<Filter>(() => props.availableFilters[newFilter.value.builder.property])
 
-const currentFilterIcon = computed(() => getFilterIcon(currentFilter.value));
+const currentFilterIcon = computed(() => getFilterIcon(currentFilter.value))
 
-const hasValueInput = computed(() =>
-  ["string", "number"].includes(currentFilter.value?.type)
-);
+const hasValueInput = computed(() => ['string', 'number'].includes(currentFilter.value?.type))
 
-const hasComparisonSelect = computed(
-  () => newFilter.value.builder.property !== ""
-);
+const hasComparisonSelect = computed(() => newFilter.value.builder.property !== '')
 
 const enumChoices = computed(() => {
   if (!newFilter.value.builder.property) {
-    return [];
+    return []
   }
 
-  const availableFilter =
-    props.availableFilters[newFilter.value.builder.property];
+  const availableFilter = props.availableFilters[newFilter.value.builder.property]
 
-  if (availableFilter.type !== "enum") {
-    return [];
+  if (availableFilter.type !== 'enum') {
+    return []
   }
 
-  return availableFilter.choices;
-});
+  return availableFilter.choices
+})
 
 const generatedFilter = computed(() => {
   if (newFilter.value.isAdvanced) {
-    return newFilter.value.content;
+    return newFilter.value.content
   }
 
   if (!newFilter.value.builder.comparison) {
-    return "";
+    return ''
   }
 
   try {
@@ -151,68 +117,64 @@ const generatedFilter = computed(() => {
       newFilter.value.builder.comparison,
       newFilter.value.builder.property,
       newFilter.value.builder.value
-    );
+    )
 
     if (node) {
-      return node.toString();
+      return node.toString()
     }
 
-    return "";
+    return ''
   } catch (e) {
-    return "";
+    return ''
   }
-});
+})
 
 const enableAdvancedMode = () => {
-  newFilter.value.content = generatedFilter.value;
-  newFilter.value.isAdvanced = true;
-};
+  newFilter.value.content = generatedFilter.value
+  newFilter.value.isAdvanced = true
+}
 
-watch(generatedFilter, (value) => {
-  newFilter.value.content = value;
-});
+watch(generatedFilter, value => {
+  newFilter.value.content = value
+})
 
 const comparisons = computed<FilterComparisons>(() => {
   const comparisonsByType = {
     string: {
-      stringContains: t("filter.comparison.contains"),
-      stringEquals: t("filter.comparison.equals"),
-      stringStartsWith: t("filter.comparison.starts-with"),
-      stringEndsWith: t("filter.comparison.ends-with"),
-      stringMatchesRegex: t("filter.comparison.matches-regex"),
-      stringDoesNotContain: t("filter.comparison.not-contain"),
-      stringDoesNotEqual: t("filter.comparison.not-equal"),
-      stringDoesNotStartWith: t("filter.comparison.not-start-with"),
-      stringDoesNotEndWith: t("filter.comparison.not-end-with"),
-      stringDoesNotMatchRegex: t("filter.comparison.not-match-regex"),
+      stringContains: t('filter.comparison.contains'),
+      stringEquals: t('filter.comparison.equals'),
+      stringStartsWith: t('filter.comparison.starts-with'),
+      stringEndsWith: t('filter.comparison.ends-with'),
+      stringMatchesRegex: t('filter.comparison.matches-regex'),
+      stringDoesNotContain: t('filter.comparison.not-contain'),
+      stringDoesNotEqual: t('filter.comparison.not-equal'),
+      stringDoesNotStartWith: t('filter.comparison.not-start-with'),
+      stringDoesNotEndWith: t('filter.comparison.not-end-with'),
+      stringDoesNotMatchRegex: t('filter.comparison.not-match-regex'),
     },
     boolean: {
-      booleanTrue: t("filter.comparison.is-true"),
-      booleanFalse: t("filter.comparison.is-false"),
+      booleanTrue: t('filter.comparison.is-true'),
+      booleanFalse: t('filter.comparison.is-false'),
     },
     number: {
-      numberLessThan: "<",
-      numberLessThanOrEquals: "<=",
-      numberEquals: "=",
-      numberGreaterThanOrEquals: ">=",
-      numberGreaterThan: ">",
+      numberLessThan: '<',
+      numberLessThanOrEquals: '<=',
+      numberEquals: '=',
+      numberGreaterThanOrEquals: '>=',
+      numberGreaterThan: '>',
     },
     enum: {
-      enumIs: t("filter.comparison.is"),
-      enumIsNot: t("filter.comparison.is-not"),
+      enumIs: t('filter.comparison.is'),
+      enumIsNot: t('filter.comparison.is-not'),
     },
-  };
+  }
 
-  return comparisonsByType[currentFilter.value.type];
-});
+  return comparisonsByType[currentFilter.value.type]
+})
 
-const valueInputBefore = computed(() =>
-  newFilter.value.builder.comparison === "stringMatchesRegex" ? "/" : undefined
-);
+const valueInputBefore = computed(() => (newFilter.value.builder.comparison === 'stringMatchesRegex' ? '/' : undefined))
 
-const valueInputAfter = computed(() =>
-  newFilter.value.builder.comparison === "stringMatchesRegex" ? "/i" : undefined
-);
+const valueInputAfter = computed(() => (newFilter.value.builder.comparison === 'stringMatchesRegex' ? '/i' : undefined))
 </script>
 
 <style lang="postcss" scoped>

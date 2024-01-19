@@ -657,6 +657,7 @@ const xoItemToRender = {
           {backup.dynamicVhds} {_('backupisKey')}{' '}
         </span>
       )}
+      {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}

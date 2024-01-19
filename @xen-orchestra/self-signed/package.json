@@ -11,7 +11,7 @@
   },
   "version": "0.1.3",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=15.6"
   },
   "scripts": {
     "postversion": "npm publish --access public"
@@ -20,5 +20,9 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./readCert": "./readCert.js"
   }
 }

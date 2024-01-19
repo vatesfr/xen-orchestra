@@ -6,33 +6,31 @@
 </template>
 
 <script lang="ts" setup>
-import type { TooltipOptions } from "@/stores/tooltip.store";
-import { isString } from "lodash-es";
-import place from "placement.js";
-import { computed, ref, watchEffect } from "vue";
+import type { TooltipOptions } from '@/stores/tooltip.store'
+import { isString } from 'lodash-es'
+import place from 'placement.js'
+import { computed, ref, watchEffect } from 'vue'
 
 const props = defineProps<{
-  target: HTMLElement;
-  options: TooltipOptions;
-}>();
+  target: HTMLElement
+  options: TooltipOptions
+}>()
 
-const tooltipElement = ref<HTMLElement>();
+const tooltipElement = ref<HTMLElement>()
 
 const isDisabled = computed(() =>
-  isString(props.options.content)
-    ? props.options.content.trim() === ""
-    : props.options.content === false
-);
+  isString(props.options.content) ? props.options.content.trim() === '' : props.options.content === false
+)
 
-const placement = computed(() => props.options.placement ?? "top");
+const placement = computed(() => props.options.placement ?? 'top')
 
 watchEffect(() => {
   if (tooltipElement.value) {
     place(props.target, tooltipElement.value, {
       placement: placement.value,
-    });
+    })
   }
-});
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -43,9 +41,9 @@ watchEffect(() => {
   display: inline-flex;
   padding: 0.3125em 0.5em;
   pointer-events: none;
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: 0.5em;
-  background-color: var(--color-blue-scale-100);
+  background-color: var(--color-grey-100);
   z-index: 2;
 }
 
@@ -56,7 +54,7 @@ watchEffect(() => {
   height: 1.875em;
 }
 
-[data-placement^="top"] {
+[data-placement^='top'] {
   margin-bottom: 0.625em;
 
   .triangle {
@@ -65,7 +63,7 @@ watchEffect(() => {
   }
 }
 
-[data-placement^="right"] {
+[data-placement^='right'] {
   margin-left: 0.625em;
 
   .triangle {
@@ -74,7 +72,7 @@ watchEffect(() => {
   }
 }
 
-[data-placement^="bottom"] {
+[data-placement^='bottom'] {
   margin-top: 0.625em;
 
   .triangle {
@@ -82,7 +80,7 @@ watchEffect(() => {
   }
 }
 
-[data-placement^="left"] {
+[data-placement^='left'] {
   margin-right: 0.625em;
 
   .triangle {
@@ -91,51 +89,51 @@ watchEffect(() => {
   }
 }
 
-[data-placement="top-start"] .triangle {
+[data-placement='top-start'] .triangle {
   left: 0;
 }
 
-[data-placement="top-center"] .triangle {
+[data-placement='top-center'] .triangle {
   left: 50%;
   margin-left: -0.9375em;
 }
 
-[data-placement="top-end"] .triangle {
+[data-placement='top-end'] .triangle {
   right: 0;
 }
 
-[data-placement="left-start"] .triangle {
+[data-placement='left-start'] .triangle {
   top: -0.25em;
 }
 
-[data-placement="left-center"] .triangle {
+[data-placement='left-center'] .triangle {
   top: 50%;
   margin-top: -0.9375em;
 }
 
-[data-placement="left-end"] .triangle {
+[data-placement='left-end'] .triangle {
   bottom: -0.25em;
 }
 
-[data-placement="right-start"] .triangle {
+[data-placement='right-start'] .triangle {
   top: -0.25em;
 }
 
-[data-placement="right-center"] .triangle {
+[data-placement='right-center'] .triangle {
   top: 50%;
   margin-top: -0.9375em;
 }
 
-[data-placement="right-end"] .triangle {
+[data-placement='right-end'] .triangle {
   bottom: -0.25em;
 }
 
-[data-placement="bottom-center"] .triangle {
+[data-placement='bottom-center'] .triangle {
   left: 50%;
   margin-left: -0.9375em;
 }
 
-[data-placement="bottom-end"] .triangle {
+[data-placement='bottom-end'] .triangle {
   right: 0;
 }
 
@@ -144,9 +142,9 @@ watchEffect(() => {
   width: 100%;
   height: 100%;
   margin-top: 1.875em;
-  content: "";
+  content: '';
   transform: rotate(45deg) skew(20deg, 20deg);
   border-radius: 0.3125em;
-  background-color: var(--color-blue-scale-100);
+  background-color: var(--color-grey-100);
 }
 </style>
