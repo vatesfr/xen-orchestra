@@ -36,7 +36,7 @@ img {
 }
 
 .text {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   font-size: 36px;
   font-weight: 400;
   line-height: 150%;

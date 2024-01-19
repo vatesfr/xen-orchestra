@@ -16,7 +16,6 @@
 </template>
 
 <script lang="ts" setup>
-import favicon from '@/assets/favicon.svg'
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
@@ -31,14 +30,6 @@ import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
-if (link == null) {
-  link = document.createElement('link')
-  link.rel = 'icon'
-  document.getElementsByTagName('head')[0].appendChild(link)
-}
-link.href = favicon
 
 const xenApiStore = useXenApiStore()
 
@@ -74,10 +65,6 @@ whenever(
 
 useUnreachableHosts()
 </script>
-
-<style lang="postcss">
-@import '@/assets/base.css';
-</style>
 
 <style lang="postcss" scoped>
 .main {

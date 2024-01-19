@@ -83,12 +83,12 @@ const hasError = computed(() => hostStoreHasError.value || vmStoreHasError.value
 .progress-item {
   margin-top: 2.6rem;
   --progress-bar-height: 1.2rem;
-  --progress-bar-color: var(--color-extra-blue-base);
-  --progress-bar-background-color: var(--color-blue-scale-400);
+  --progress-bar-color: var(--color-purple-base);
+  --progress-bar-background-color: var(--color-grey-500);
 
   &.warning {
-    --progress-bar-color: var(--color-orange-world-base);
-    --footer-value-color: var(--color-orange-world-base);
+    --progress-bar-color: var(--color-orange-base);
+    --footer-value-color: var(--color-orange-base);
   }
 
   & .footer-value {

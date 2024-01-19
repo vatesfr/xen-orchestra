@@ -53,7 +53,7 @@ const { isMobile } = storeToRefs(useUiStore())
 <style lang="postcss" scoped>
 .vms-actions-bar {
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-blue-scale-400);
+  border-bottom: 1px solid var(--color-grey-500);
   background-color: var(--background-color-primary);
 }
 </style>

@@ -44,7 +44,7 @@ const masterSessionStorage = useSessionStorage('master', null)
 
 <style lang="postcss" scoped>
 .warning-not-current-pool {
-  color: var(--color-orange-world-base);
+  color: var(--color-orange-base);
   cursor: pointer;
 
   .wrapper {

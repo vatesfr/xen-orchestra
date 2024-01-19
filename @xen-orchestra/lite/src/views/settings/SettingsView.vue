@@ -145,8 +145,6 @@ const { colorMode } = storeToRefs(useUiStore())
 </script>
 
 <style lang="postcss" scoped>
-@import '@/assets/_responsive.pcss';
-
 .card-view {
   flex-direction: column;
 }
@@ -176,9 +174,9 @@ h5 {
     flex-direction: column;
     gap: 1.6em;
     &.selected {
-      color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
       img {
-        outline: solid 2px var(--color-extra-blue-base);
+        outline: solid 2px var(--color-purple-base);
       }
     }
     &:not(.selected) {

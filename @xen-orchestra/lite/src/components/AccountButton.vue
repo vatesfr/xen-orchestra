@@ -51,14 +51,14 @@ const openSettings = () => router.push({ name: 'settings' })
   display: flex;
   align-items: center;
   padding: 1rem;
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
   border: none;
   border-radius: 0.8rem;
   background-color: var(--background-color-secondary);
   gap: 0.8rem;
 
   &:disabled {
-    color: var(--color-blue-scale-400);
+    color: var(--color-grey-500);
   }
 
   &:not(:disabled) {
@@ -72,7 +72,7 @@ const openSettings = () => router.push({ name: 'settings' })
 
     &:active,
     &.active {
-      color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
     }
   }
 }
@@ -86,6 +86,6 @@ const openSettings = () => router.push({ name: 'settings' })
 }
 
 .menu-item-logout {
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 }
 </style>

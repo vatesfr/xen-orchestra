@@ -31,7 +31,7 @@ const { count, patches, areSomeLoaded, areAllLoaded } = useHostPatches(hosts)
 
 <style lang="postcss" scoped>
 .patches-title {
-  --section-title-right-color: var(--color-red-vates-base);
+  --section-title-right-color: var(--color-red-base);
 }
 
 .table-container {

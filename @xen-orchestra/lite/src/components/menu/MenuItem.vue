@@ -72,7 +72,7 @@ const handleClick = async () => {
 
 <style lang="postcss" scoped>
 .menu-item {
-  color: var(--color-blue-scale-200);
+  color: var(--color-grey-200);
 }
 
 .submenu-icon {

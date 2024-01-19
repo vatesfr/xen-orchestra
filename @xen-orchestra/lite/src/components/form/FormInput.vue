@@ -144,14 +144,14 @@ defineExpose({
   --after-width: v-bind('afterWidth || "1.625em"');
   --caret-width: 1.5em;
 
-  --text-color: var(--color-blue-scale-100);
+  --text-color: var(--color-grey-100);
 
   &.empty {
-    --text-color: var(--color-blue-scale-300);
+    --text-color: var(--color-grey-300);
   }
 
   &.disabled {
-    --text-color: var(--color-blue-scale-400);
+    --text-color: var(--color-grey-500);
   }
 }
 
@@ -189,7 +189,7 @@ defineExpose({
   }
 
   --background-color: var(--background-color-primary);
-  --border-color: var(--color-blue-scale-400);
+  --border-color: var(--color-grey-500);
 
   &:disabled {
     cursor: not-allowed;
@@ -199,63 +199,63 @@ defineExpose({
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-extra-blue-l60);
+        --border-color: var(--color-purple-l60);
       }
 
       &:active {
-        --border-color: var(--color-extra-blue-l40);
+        --border-color: var(--color-purple-l40);
       }
 
       &:focus {
-        --border-color: var(--color-extra-blue-base);
+        --border-color: var(--color-purple-base);
       }
     }
 
     &.success {
-      --border-color: var(--color-green-infra-base);
+      --border-color: var(--color-green-base);
 
       &:hover {
-        --border-color: var(--color-green-infra-l60);
+        --border-color: var(--color-green-l60);
       }
 
       &:active {
-        --border-color: var(--color-green-infra-l40);
+        --border-color: var(--color-green-l40);
       }
 
       &:focus {
-        --border-color: var(--color-green-infra-base);
+        --border-color: var(--color-green-base);
       }
     }
 
     &.warning {
-      --border-color: var(--color-orange-world-base);
+      --border-color: var(--color-orange-base);
 
       &:hover {
-        --border-color: var(--color-orange-world-l60);
+        --border-color: var(--color-orange-l60);
       }
 
       &:active {
-        --border-color: var(--color-orange-world-l40);
+        --border-color: var(--color-orange-l40);
       }
 
       &:focus {
-        --border-color: var(--color-orange-world-base);
+        --border-color: var(--color-orange-base);
       }
     }
 
     &.error {
-      --border-color: var(--color-red-vates-base);
+      --border-color: var(--color-red-base);
 
       &:hover {
-        --border-color: var(--color-red-vates-l60);
+        --border-color: var(--color-red-l60);
       }
 
       &:active {
-        --border-color: var(--color-red-vates-l40);
+        --border-color: var(--color-red-l40);
       }
 
       &:focus-within {
-        --border-color: var(--color-red-vates-base);
+        --border-color: var(--color-red-base);
       }
     }
   }

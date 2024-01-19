@@ -25,12 +25,12 @@
     th,
     td {
       padding: 0.3rem 0.6rem;
-      border-bottom: 0.1rem solid var(--color-blue-scale-400);
+      border-bottom: 0.1rem solid var(--color-grey-500);
       vertical-align: center;
     }
 
     &:nth-child(odd) {
-      background-color: var(--background-color-extra-blue);
+      background-color: var(--background-color-purple-10);
     }
   }
 

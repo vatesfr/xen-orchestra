@@ -23,6 +23,6 @@ const { records: hosts, isReady, hasError } = useHostCollection()
   font-weight: 700;
   font-size: 16px;
   line-height: 150%;
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 }
 </style>

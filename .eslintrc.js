@@ -48,7 +48,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/lite/**/*.{vue,ts}'],
+      files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
       parserOptions: {
         sourceType: 'module',
       },

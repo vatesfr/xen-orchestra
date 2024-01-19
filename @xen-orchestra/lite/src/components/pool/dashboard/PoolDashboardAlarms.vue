@@ -70,7 +70,7 @@ const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollect
     margin-bottom: 2rem;
   }
   .no-alarm & {
-    color: var(--color-green-infra-base);
+    color: var(--color-green-base);
   }
 }
 .table-container {

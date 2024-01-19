@@ -60,7 +60,7 @@ useEventListener(
     }
 
     code:not(.hljs-code) {
-      background-color: var(--background-color-extra-blue);
+      background-color: var(--background-color-purple-10);
       padding: 0.3rem 0.6rem;
       border-radius: 0.6rem;
     }
@@ -81,12 +81,12 @@ useEventListener(
       }
 
       thead th {
-        border-bottom: 2px solid var(--color-blue-scale-400);
+        border-bottom: 2px solid var(--color-grey-500);
         background-color: var(--background-color-secondary);
       }
 
       tbody td {
-        border-bottom: 1px solid var(--color-blue-scale-400);
+        border-bottom: 1px solid var(--color-grey-500);
       }
     }
 
@@ -103,11 +103,11 @@ useEventListener(
       background-color: transparent;
 
       &:hover {
-        color: var(--color-extra-blue-base);
+        color: var(--color-purple-base);
       }
 
       &:active {
-        color: var(--color-extra-blue-d20);
+        color: var(--color-purple-d20);
       }
     }
   }
