@@ -401,7 +401,7 @@ const methods = {
     return vdi
   },
 
-  async function_poolWideInstall($defer, patches, xsCredentials) {
+  async _poolWideInstall($defer, patches, xsCredentials) {
     // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
     if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
       throw new Error(
