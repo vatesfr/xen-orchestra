@@ -2978,6 +2978,20 @@ export const createSrNfs = (
   return _call('sr.createNfs', params)
 }
 
+export const createSrSmb = (
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  serverPath,
+  domain,
+  srUuid
+) => {
+  const params = { host, nameLabel, nameDescription, server, serverPath, domain }
+  srUuid && (params.srUuid = srUuid)
+  return _call('sr.createSmb', params)
+}
+
 export const createSrIscsi = (
   host,
   nameLabel,

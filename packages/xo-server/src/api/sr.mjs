@@ -278,6 +278,70 @@ createNfs.resolve = {
 }
 
 // -------------------------------------------------------------------
+// SMB SR
+
+// This functions creates an SMB SR
+
+export async function createSmb({
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  serverPath,
+  domain,
+  srUuid,
+}) {
+  const xapi = this.getXapi(host);
+
+  const deviceConfig = {
+    server,
+    serverpath: serverPath,
+  };
+
+  const options = `domain=${domain}`;
+
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type: 'smb',
+      deviceConfig,
+      options
+    });
+  }
+
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: true,
+    type: 'smb',
+    options
+  });
+
+  const sr = await xapi.call('SR.get_record', srRef);
+  return sr.uuid;
+}
+
+createSmb.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
+  server: { type: 'string' },
+  serverPath: { type: 'string' },
+  domain: { type: 'string', optional: true },
+  username: { type: 'string', optional: true },
+  password: { type: 'string', optional: true },
+  srUuid: { type: 'string', optional: true },
+};
+
+createSmb.resolve = {
+  host: ['host', 'host', 'administrate'],
+};
+
+// -------------------------------------------------------------------
 // HBA SR
 
 // This functions creates an HBA SR

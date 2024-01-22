@@ -27,6 +27,7 @@ import {
   createSrLvm,
   createSrNfs,
   createSrHba,
+  createSrSmb,
   createSrZfs,
   probeSrIscsiExists,
   probeSrIscsiIqns,
@@ -176,6 +177,7 @@ const SR_TYPE_TO_LABEL = {
   nfs: 'NFS',
   nfsiso: 'NFS ISO',
   smb: 'SMB',
+  smbiso: 'SMB ISO',
   zfs: 'ZFS (local)',
 }
 
@@ -187,8 +189,8 @@ const SR_GROUP_TO_LABEL = {
 const SR_TYPE_REQUIRE_DISK_FORMATTING = ['ext', 'lvm']
 
 const typeGroups = {
-  vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs', 'zfs'],
-  isosr: ['local', 'nfsiso', 'smb'],
+  vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs', 'smb', 'zfs'],
+  isosr: ['local', 'nfsiso', 'smbiso'],
 }
 
 const getSrPath = id => (id !== undefined ? `/srs/${id}` : undefined)
@@ -263,7 +265,7 @@ export default class New extends Component {
   )
 
   _handleSubmit = async srUuid => {
-    const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
+    const { description, device, domain, localPath, name, password, port, server, username, zfsLocation } = this.refs
     const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
 
     const createMethodFactories = {
@@ -278,6 +280,7 @@ export default class New extends Component {
           nfsOptions,
           srUuid
         ),
+      smb: () => createSrSmb(host.id, name.value, description.value, server.value, path.value, domain.value, srUuid),
       hba: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrHbaExists(host.id, scsiId)
@@ -346,13 +349,13 @@ export default class New extends Component {
           nfsOptions,
           srUuid
         ),
-      smb: () =>
+      smbiso: () =>
         createSrIso(
           host.id,
           name.value,
           description.value,
           server.value,
-          'smb',
+          'smbiso',
           username && username.value,
           password && password.value,
           undefined,
@@ -803,7 +806,7 @@ export default class New extends Component {
                       <SelectLun options={luns} onChange={this._handleSrLunSelection} />
                     </fieldset>
                   )}
-                  {type === 'smb' && (
+                  {type === 'smbiso' && (
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <input
