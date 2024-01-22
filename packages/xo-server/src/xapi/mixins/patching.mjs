@@ -7,7 +7,7 @@ import some from 'lodash/some.js'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { decorateWith } from '@vates/decorate-with'
+import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { extractOpaqueRef, parseDateTime } from '@xen-orchestra/xapi'
@@ -58,12 +58,9 @@ const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE
 
 // =============================================================================
 
-export default {
+const methods = {
   // raw { uuid: patch } map translated from updates.ops.xenserver.com/xenserver/updates.xml
   // FIXME: should be static
-  @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function () {
-    return this
-  })
   async _getXenUpdates() {
     const response = await this.xo.httpRequest('https://updates.ops.xenserver.com/xenserver/updates.xml')
 
@@ -404,10 +401,12 @@ export default {
     return vdi
   },
 
-  _poolWideInstall: deferrable(async function ($defer, patches, xsCredentials) {
+  async _poolWideInstall($defer, patches, xsCredentials) {
     // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
     if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
-      throw new Error('XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates')
+      throw new Error(
+        'XenServer credentials not found. See https://xen-orchestra.com/docs/updater.html#xenserver-updates'
+      )
     }
 
     // Legacy XS patches
@@ -435,14 +434,14 @@ export default {
       const updateRef = await this.call('pool_update.introduce', vdi.$ref)
 
       // Checks for license restrictions (and other conditions?)
-      await Promise.all(filter(this.objects.all, { $type: 'host' }).map(host =>
-        this.call('pool_update.precheck', updateRef, host.$ref)
-      ))
+      await Promise.all(
+        filter(this.objects.all, { $type: 'host' }).map(host => this.call('pool_update.precheck', updateRef, host.$ref))
+      )
 
       log.debug(`installing patch ${p.uuid}`)
       await this.call('pool_update.pool_apply', updateRef)
     }
-  }),
+  },
 
   async _hostInstall(patches, host) {
     throw new Error('single host install not implemented')
@@ -492,7 +491,6 @@ export default {
     throw new Error('non pool-wide install not implemented')
   },
 
-  @decorateWith(deferrable)
   async rollingPoolUpdate($defer, { xsCredentials } = {}) {
     const isXcp = _isXcp(this.pool.$master)
 
@@ -655,3 +653,17 @@ export default {
     }
   },
 }
+
+export default decorateObject(methods, {
+  _getXenUpdates: [
+    debounceWithKey,
+    24 * 60 * 60 * 1000,
+    function () {
+      return this
+    },
+  ],
+
+  _poolWideInstall: deferrable,
+
+  rollingPoolUpdate: deferrable,
+})

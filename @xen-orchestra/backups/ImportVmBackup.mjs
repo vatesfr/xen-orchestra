@@ -191,7 +191,7 @@ export class ImportVmBackup {
 
   async #decorateIncrementalVmMetadata() {
     const { additionnalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
-    
+
     const ignoredVdis = new Set(
       Object.entries(mapVdisSrs)
         .filter(([_, srUuid]) => srUuid === null)

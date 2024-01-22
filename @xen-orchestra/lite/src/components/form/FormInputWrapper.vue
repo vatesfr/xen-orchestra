@@ -1,21 +1,13 @@
 <template>
   <div class="form-input-wrapper">
-    <div
-      v-if="label !== undefined || learnMoreUrl !== undefined"
-      class="label-container"
-    >
+    <div v-if="label !== undefined || learnMoreUrl !== undefined" class="label-container">
       <label :class="{ light }" :for="id" class="label">
         <UiIcon :icon="icon" />
         {{ label }}
       </label>
-      <a
-        v-if="learnMoreUrl !== undefined"
-        :href="learnMoreUrl"
-        class="learn-more-url"
-        target="_blank"
-      >
+      <a v-if="learnMoreUrl !== undefined" :href="learnMoreUrl" class="learn-more-url" target="_blank">
         <UiIcon :icon="faInfoCircle" />
-        <span>{{ $t("learn-more") }}</span>
+        <span>{{ $t('learn-more') }}</span>
       </a>
     </div>
     <div class="input-container">
@@ -36,55 +28,55 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useContext } from "@/composables/context.composable";
-import { ColorContext, DisabledContext } from "@/context";
-import type { Color } from "@/types";
-import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from "@/types/injection-keys";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
-import { uniqueId } from "lodash-es";
-import { computed, provide, useSlots } from "vue";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useContext } from '@/composables/context.composable'
+import { ColorContext, DisabledContext } from '@/context'
+import type { Color } from '@/types'
+import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from '@/types/injection-keys'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { uniqueId } from 'lodash-es'
+import { computed, provide, useSlots } from 'vue'
 
-const slots = useSlots();
+const slots = useSlots()
 
 const props = withDefaults(
   defineProps<{
-    label?: string;
-    id?: string;
-    icon?: IconDefinition;
-    learnMoreUrl?: string;
-    warning?: string;
-    error?: string;
-    help?: string;
-    disabled?: boolean;
-    light?: boolean;
+    label?: string
+    id?: string
+    icon?: IconDefinition
+    learnMoreUrl?: string
+    warning?: string
+    error?: string
+    help?: string
+    disabled?: boolean
+    light?: boolean
   }>(),
   { disabled: undefined }
-);
+)
 
-const id = computed(() => props.id ?? uniqueId("form-input-"));
-provide(IK_INPUT_ID, id);
+const id = computed(() => props.id ?? uniqueId('form-input-'))
+provide(IK_INPUT_ID, id)
 
 const color = computed<Color | undefined>(() => {
-  if (props.error !== undefined && props.error.trim() !== "") {
-    return "error";
+  if (props.error !== undefined && props.error.trim() !== '') {
+    return 'error'
   }
 
-  if (props.warning !== undefined && props.warning.trim() !== "") {
-    return "warning";
+  if (props.warning !== undefined && props.warning.trim() !== '') {
+    return 'warning'
   }
 
-  return undefined;
-});
+  return undefined
+})
 
 provide(
   IK_FORM_HAS_LABEL,
   computed(() => slots.label !== undefined)
-);
+)
 
-useContext(ColorContext, color);
-useContext(DisabledContext, () => props.disabled);
+useContext(ColorContext, color)
+useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
@@ -104,7 +96,7 @@ useContext(DisabledContext, () => props.disabled);
 
   &.light {
     font-size: 1.6rem;
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
     font-weight: 400;
   }
 
@@ -112,7 +104,7 @@ useContext(DisabledContext, () => props.disabled);
     font-size: 1.4rem;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--color-blue-scale-100);
+    color: var(--color-grey-100);
   }
 }
 
@@ -134,7 +126,7 @@ useContext(DisabledContext, () => props.disabled);
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
 
   & > span {
     text-decoration: underline;
@@ -142,14 +134,14 @@ useContext(DisabledContext, () => props.disabled);
 }
 
 .warning {
-  color: var(--color-orange-world-base);
+  color: var(--color-orange-base);
 }
 
 .error {
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 }
 
 .help {
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
 }
 </style>

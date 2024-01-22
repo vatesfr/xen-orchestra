@@ -1,9 +1,9 @@
 export type LinearChartData = {
-  label: string;
+  label: string
   data: {
-    timestamp: number;
-    value: number;
-  }[];
-}[];
+    timestamp: number
+    value: number
+  }[]
+}[]
 
-export type ValueFormatter = (value: number) => string;
+export type ValueFormatter = (value: number) => string

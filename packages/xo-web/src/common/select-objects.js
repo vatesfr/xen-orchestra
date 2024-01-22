@@ -691,6 +691,19 @@ export const SelectSubject = makeSubscriptionSelect(
   { placeholder: _('selectSubjects') }
 )
 
+export const SelectUser = makeSubscriptionSelect(
+  subscriber => {
+    const unsubscribeUsers = subscribeUsers(users => {
+      subscriber({
+        xoObjects: users,
+      })
+    })
+
+    return unsubscribeUsers
+  },
+  { placeholder: _('selectUser') }
+)
+
 // ===================================================================
 
 export const SelectRole = makeSubscriptionSelect(

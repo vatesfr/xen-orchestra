@@ -1,5 +1,6 @@
 import { createSchedule } from '@xen-orchestra/cron'
 import { intersection, uniq } from 'lodash'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
@@ -104,6 +105,20 @@ export const configurationSchema = {
         $type: 'Tag',
       },
     },
+    advanced: {
+      title: 'Advanced',
+      type: 'object',
+      default: {},
+      properties: {
+        maxConcurrentMigrations: {
+          default: 2,
+          description: 'Limit maximum number of simultaneous migrations for faster migrations',
+          minimum: 1,
+          title: 'Maximum concurrent migrations',
+          type: 'integer',
+        },
+      },
+    },
   },
 
   additionalProperties: false,
@@ -124,10 +139,11 @@ class LoadBalancerPlugin {
     })
   }
 
-  async configure({ plans, ignoredVmTags = [] }) {
+  async configure({ plans, advanced, ignoredVmTags = [] }) {
     this._plans = []
     this._poolIds = [] // Used pools.
     this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
+    this._concurrentMigrationLimiter = limitConcurrency(advanced.maxConcurrentMigrations)()
 
     if (plans) {
       for (const plan of plans) {
@@ -155,11 +171,11 @@ class LoadBalancerPlugin {
     this._poolIds = this._poolIds.concat(pools)
     let plan
     if (mode === PERFORMANCE_MODE) {
-      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     } else if (mode === DENSITY_MODE) {
-      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     } else {
-      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions)
+      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions, this._concurrentMigrationLimiter)
     }
     this._plans.push(plan)
   }

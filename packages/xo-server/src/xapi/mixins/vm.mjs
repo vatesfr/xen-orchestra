@@ -7,7 +7,7 @@ import lte from 'lodash/lte.js'
 import mapToArray from 'lodash/map.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
-import { decorateWith } from '@vates/decorate-with'
+import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
@@ -23,9 +23,8 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 // handle MEMORY_CONSTRAINT_VIOLATION and derivatives like MEMORY_CONSTRAINT_VIOLATION_MAXPIN
 const isMemoryConstraintError = e => e.code.startsWith('MEMORY_CONSTRAINT_VIOLATION')
 
-export default {
+const methods = {
   // TODO: clean up on error.
-  @decorateWith(deferrable)
   async createVm(
     $defer,
     templateId,
@@ -468,3 +467,7 @@ export default {
     return this.callAsync(`VM.${hard ? 'hard' : 'clean'}_shutdown`, this.getObject(vmId).$ref).then(noop)
   },
 }
+
+export default decorateObject(methods, {
+  createVm: deferrable,
+})

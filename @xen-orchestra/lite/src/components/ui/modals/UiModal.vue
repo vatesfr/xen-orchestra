@@ -7,30 +7,30 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from "@/composables/context.composable";
-import { ColorContext, DisabledContext } from "@/context";
-import type { Color } from "@/types";
-import { IK_MODAL } from "@/types/injection-keys";
-import { useMagicKeys, whenever } from "@vueuse/core";
-import { inject } from "vue";
+import { useContext } from '@/composables/context.composable'
+import { ColorContext, DisabledContext } from '@/context'
+import type { Color } from '@/types'
+import { IK_MODAL } from '@/types/injection-keys'
+import { useMagicKeys, whenever } from '@vueuse/core'
+import { inject } from 'vue'
 
 const props = defineProps<{
-  color?: Color;
-  disabled?: boolean;
-}>();
+  color?: Color
+  disabled?: boolean
+}>()
 
 defineOptions({
   inheritAttrs: false,
-});
+})
 
-const modal = inject(IK_MODAL)!;
+const modal = inject(IK_MODAL)!
 
-useContext(ColorContext, () => props.color);
-useContext(DisabledContext, () => props.disabled || modal.isBusy);
+useContext(ColorContext, () => props.color)
+useContext(DisabledContext, () => props.disabled || modal.isBusy)
 
-const { escape } = useMagicKeys();
+const { escape } = useMagicKeys()
 
-whenever(escape, () => modal.decline());
+whenever(escape, () => modal.decline())
 </script>
 
 <style lang="postcss" scoped>

@@ -3,13 +3,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { ModalController } from "@/types";
-import { IK_MODAL } from "@/types/injection-keys";
-import { provide } from "vue";
+import type { ModalController } from '@/types'
+import { IK_MODAL } from '@/types/injection-keys'
+import { provide } from 'vue'
 
 const props = defineProps<{
-  modal: ModalController;
-}>();
+  modal: ModalController
+}>()
 
-provide(IK_MODAL, props.modal);
+provide(IK_MODAL, props.modal)
 </script>

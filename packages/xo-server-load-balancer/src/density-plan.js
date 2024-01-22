@@ -208,7 +208,13 @@ export default class DensityPlan extends Plan {
         debug(
           `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
         )
-        return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+        return this._concurrentMigrationLimiter.call(
+          xapiDest,
+          'migrateVm',
+          vm._xapiId,
+          this.xo.getXapi(destination),
+          destination._xapiId
+        )
       })
     )
 

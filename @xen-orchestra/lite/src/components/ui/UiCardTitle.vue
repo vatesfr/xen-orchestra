@@ -2,7 +2,7 @@
   <div :class="['ui-section-title', tags.left]">
     <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
+      <UiCounter v-if="count > 0" class="count" :value="count" color="info" />
     </component>
     <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
@@ -11,30 +11,30 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import UiCounter from "@/components/ui/UiCounter.vue";
-import { UiCardTitleLevel } from "@/types/enums";
+import { computed } from 'vue'
+import UiCounter from '@/components/ui/UiCounter.vue'
+import { UiCardTitleLevel } from '@/types/enums'
 
 const props = withDefaults(
   defineProps<{
-    count?: number;
-    level?: UiCardTitleLevel;
-    left?: string;
-    right?: string;
+    count?: number
+    level?: UiCardTitleLevel
+    left?: string
+    right?: string
   }>(),
   { count: 0, level: UiCardTitleLevel.Title }
-);
+)
 
 const tags = computed(() => {
   switch (props.level) {
     case UiCardTitleLevel.Subtitle:
-      return { left: "h6", right: "h6" };
+      return { left: 'h6', right: 'h6' }
     case UiCardTitleLevel.SubtitleWithUnderline:
-      return { left: "h5", right: "h6" };
+      return { left: 'h5', right: 'h6' }
     default:
-      return { left: "h4", right: "h5" };
+      return { left: 'h4', right: 'h5' }
   }
-});
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -44,28 +44,28 @@ const tags = computed(() => {
   justify-content: space-between;
 
   --section-title-left-size: 2rem;
-  --section-title-left-color: var(--color-blue-scale-100);
+  --section-title-left-color: var(--color-grey-100);
   --section-title-left-weight: 500;
   --section-title-right-size: 1.6rem;
-  --section-title-right-color: var(--color-extra-blue-base);
+  --section-title-right-color: var(--color-purple-base);
   --section-title-right-weight: 700;
 
   &.h6 {
     margin-bottom: 1rem;
     --section-title-left-size: 1.5rem;
-    --section-title-left-color: var(--color-blue-scale-300);
+    --section-title-left-color: var(--color-grey-300);
     --section-title-left-weight: 400;
   }
 
   &.h5 {
     margin-top: 2rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-extra-blue-base);
+    border-bottom: 1px solid var(--color-purple-base);
     --section-title-left-size: 1.6rem;
-    --section-title-left-color: var(--color-extra-blue-base);
+    --section-title-left-color: var(--color-purple-base);
     --section-title-left-weight: 700;
     --section-title-right-size: 1.4rem;
-    --section-title-right-color: var(--color-extra-blue-base);
+    --section-title-right-color: var(--color-purple-base);
     --section-title-right-weight: 400;
   }
 }

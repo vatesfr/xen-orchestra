@@ -13,46 +13,39 @@
     </UiFilter>
 
     <UiActionButton :icon="faPlus" class="add-sort" @click="openModal()">
-      {{ $t("add-sort") }}
+      {{ $t('add-sort') }}
     </UiActionButton>
   </UiFilterGroup>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import UiActionButton from "@/components/ui/UiActionButton.vue";
-import UiFilter from "@/components/ui/UiFilter.vue";
-import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
-import { useModal } from "@/composables/modal.composable";
-import type { ActiveSorts, NewSort, Sorts } from "@/types/sort";
-import {
-  faCaretDown,
-  faCaretUp,
-  faPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import { computed } from "vue";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiActionButton from '@/components/ui/UiActionButton.vue'
+import UiFilter from '@/components/ui/UiFilter.vue'
+import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
+import { useModal } from '@/composables/modal.composable'
+import type { ActiveSorts, NewSort, Sorts } from '@/types/sort'
+import { faCaretDown, faCaretUp, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 
 const props = defineProps<{
-  availableSorts: Sorts;
-  activeSorts: ActiveSorts<Record<string, any>>;
-}>();
+  availableSorts: Sorts
+  activeSorts: ActiveSorts<Record<string, any>>
+}>()
 
 const emit = defineEmits<{
-  (event: "toggleSortDirection", property: string): void;
-  (event: "addSort", property: string, isAscending: boolean): void;
-  (event: "removeSort", property: string): void;
-}>();
+  (event: 'toggleSortDirection', property: string): void
+  (event: 'addSort', property: string, isAscending: boolean): void
+  (event: 'removeSort', property: string): void
+}>()
 
 const openModal = () => {
-  const { onApprove } = useModal<NewSort>(
-    () => import("@/components/modals/CollectionSorterModal.vue"),
-    { availableSorts: computed(() => props.availableSorts) }
-  );
+  const { onApprove } = useModal<NewSort>(() => import('@/components/modals/CollectionSorterModal.vue'), {
+    availableSorts: computed(() => props.availableSorts),
+  })
 
-  onApprove(({ property, isAscending }) =>
-    emit("addSort", property, isAscending)
-  );
-};
+  onApprove(({ property, isAscending }) => emit('addSort', property, isAscending))
+}
 </script>
 
 <style lang="postcss" scoped>

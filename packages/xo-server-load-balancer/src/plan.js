@@ -97,7 +97,14 @@ function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
 // ===================================================================
 
 export default class Plan {
-  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags = [] }, globalOptions) {
+  constructor(
+    xo,
+    name,
+    poolIds,
+    { excludedHosts, thresholds, antiAffinityTags = [] },
+    globalOptions,
+    concurrentMigrationLimiter
+  ) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
@@ -113,6 +120,7 @@ export default class Plan {
     }
     this._antiAffinityTags = antiAffinityTags
     this._globalOptions = globalOptions
+    this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
     for (const key in this._thresholds) {
       const attr = this._thresholds[key]
@@ -295,7 +303,6 @@ export default class Plan {
         tagsDiff[watchedTag] = diff - 1
       }
     }
-
     if (isEmpty(tagsDiff)) {
       return
     }
@@ -412,7 +419,15 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         // 4. Migrate.
-        promises.push(this.xo.getXapi(source).migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
+        promises.push(
+          this._concurrentMigrationLimiter.call(
+            this.xo.getXapi(source),
+            'migrateVm',
+            vm._xapiId,
+            this.xo.getXapi(destination),
+            destination._xapiId
+          )
+        )
 
         break // Continue with the same tag, the source can be different.
       }

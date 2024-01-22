@@ -1,1 +1,1 @@
-declare module "iterable-backoff";
+declare module 'iterable-backoff'

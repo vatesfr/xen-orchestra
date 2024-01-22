@@ -1,52 +1,45 @@
-import type { ModalController } from "@/types";
-import { createEventHook } from "@vueuse/core";
-import { defineStore } from "pinia";
-import {
-  type AsyncComponentLoader,
-  computed,
-  defineAsyncComponent,
-  markRaw,
-  reactive,
-  ref,
-} from "vue";
+import type { ModalController } from '@/types'
+import { createEventHook } from '@vueuse/core'
+import { defineStore } from 'pinia'
+import { type AsyncComponentLoader, computed, defineAsyncComponent, markRaw, reactive, ref } from 'vue'
 
-export const useModalStore = defineStore("modal", () => {
-  const modals = ref(new Map<symbol, ModalController>());
+export const useModalStore = defineStore('modal', () => {
+  const modals = ref(new Map<symbol, ModalController>())
 
   const open = <T>(loader: AsyncComponentLoader, props: object) => {
-    const id = Symbol();
-    const isBusy = ref(false);
-    const component = defineAsyncComponent(loader);
+    const id = Symbol('MODAL_ID')
+    const isBusy = ref(false)
+    const component = defineAsyncComponent(loader)
 
-    const approveEvent = createEventHook<T>();
-    const declineEvent = createEventHook();
-    const closeEvent = createEventHook();
+    const approveEvent = createEventHook<T>()
+    const declineEvent = createEventHook()
+    const closeEvent = createEventHook()
 
     const close = async () => {
-      await closeEvent.trigger(undefined);
-      modals.value.delete(id);
-    };
+      await closeEvent.trigger(undefined)
+      modals.value.delete(id)
+    }
 
     const approve = async (payload: any) => {
       try {
-        isBusy.value = true;
-        const result = await payload;
-        await approveEvent.trigger(result);
-        void close();
+        isBusy.value = true
+        const result = await payload
+        await approveEvent.trigger(result)
+        await close()
       } finally {
-        isBusy.value = false;
+        isBusy.value = false
       }
-    };
+    }
 
     const decline = async () => {
       try {
-        isBusy.value = true;
-        await declineEvent.trigger(undefined);
-        void close();
+        isBusy.value = true
+        await declineEvent.trigger(undefined)
+        await close()
       } finally {
-        isBusy.value = false;
+        isBusy.value = false
       }
-    };
+    }
 
     modals.value.set(
       id,
@@ -58,18 +51,18 @@ export const useModalStore = defineStore("modal", () => {
         decline,
         isBusy,
       })
-    );
+    )
 
     return {
       onApprove: approveEvent.on,
       onDecline: declineEvent.on,
       onClose: closeEvent.on,
       id,
-    };
-  };
+    }
+  }
 
   return {
     open,
     modals: computed(() => modals.value.values()),
-  };
-});
+  }
+})

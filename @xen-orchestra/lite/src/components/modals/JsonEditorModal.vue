@@ -1,8 +1,5 @@
 <template>
-  <UiModal
-    :color="isJsonValid ? 'success' : 'error'"
-    @submit.prevent="handleSubmit()"
-  >
+  <UiModal :color="isJsonValid ? 'success' : 'error'" @submit.prevent="handleSubmit()">
     <FormModalLayout :icon="faCode" class="layout">
       <template #default>
         <FormTextarea v-model="editedJson" class="modal-textarea" />
@@ -10,11 +7,11 @@
 
       <template #buttons>
         <UiButton transparent @click="formatJson()">
-          {{ $t("reformat") }}
+          {{ $t('reformat') }}
         </UiButton>
         <ModalDeclineButton />
         <ModalApproveButton :disabled="!isJsonValid">
-          {{ $t("save") }}
+          {{ $t('save') }}
         </ModalApproveButton>
       </template>
     </FormModalLayout>
@@ -22,49 +19,49 @@
 </template>
 
 <script lang="ts" setup>
-import FormTextarea from "@/components/form/FormTextarea.vue";
-import FormModalLayout from "@/components/ui/modals/layouts/FormModalLayout.vue";
-import ModalApproveButton from "@/components/ui/modals/ModalApproveButton.vue";
-import ModalDeclineButton from "@/components/ui/modals/ModalDeclineButton.vue";
-import UiModal from "@/components/ui/modals/UiModal.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import { IK_MODAL } from "@/types/injection-keys";
-import { faCode } from "@fortawesome/free-solid-svg-icons";
-import { computed, inject, ref } from "vue";
+import FormTextarea from '@/components/form/FormTextarea.vue'
+import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
+import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
+import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
+import UiModal from '@/components/ui/modals/UiModal.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import { IK_MODAL } from '@/types/injection-keys'
+import { faCode } from '@fortawesome/free-solid-svg-icons'
+import { computed, inject, ref } from 'vue'
 
 const props = defineProps<{
-  initialValue?: string;
-}>();
+  initialValue?: string
+}>()
 
-const editedJson = ref<string>(props.initialValue ?? "");
-const modal = inject(IK_MODAL)!;
+const editedJson = ref<string>(props.initialValue ?? '')
+const modal = inject(IK_MODAL)!
 
 const isJsonValid = computed(() => {
   try {
-    JSON.parse(editedJson.value);
-    return true;
+    JSON.parse(editedJson.value)
+    return true
   } catch {
-    return false;
+    return false
   }
-});
+})
 
 const formatJson = () => {
   if (!isJsonValid.value) {
-    return;
+    return
   }
 
-  editedJson.value = JSON.stringify(JSON.parse(editedJson.value), undefined, 2);
-};
+  editedJson.value = JSON.stringify(JSON.parse(editedJson.value), undefined, 2)
+}
 
 const handleSubmit = () => {
   if (!isJsonValid.value) {
-    return;
+    return
   }
 
-  formatJson();
+  formatJson()
 
-  modal.approve(editedJson.value);
-};
+  modal.approve(editedJson.value)
+}
 </script>
 
 <style lang="postcss" scoped>
