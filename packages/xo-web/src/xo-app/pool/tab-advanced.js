@@ -4,6 +4,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
@@ -446,7 +447,9 @@ export default class TabAdvanced extends Component {
                           <Network id={migrationNetwork.id} />
                         ) : (
                           <span className='text-danger'>
-                            {_('networkIdDeleted', { networkID: pool.otherConfig['xo:migrationNetwork'] })}
+                            {_('networkIdMissing', {
+                              networkID: <Copiable>{pool.otherConfig['xo:migrationNetwork']}</Copiable>,
+                            })}
                           </span>
                         )}
                       </XoSelect>{' '}
@@ -472,7 +475,9 @@ export default class TabAdvanced extends Component {
                           <Network id={backupNetwork.id} />
                         ) : (
                           <span className='text-danger'>
-                            {_('networkIdDeleted', { networkID: pool.otherConfig['xo:backupNetwork'] })}
+                            {_('networkIdMissing', {
+                              networkID: <Copiable>{pool.otherConfig['xo:backupNetwork']}</Copiable>,
+                            })}
                           </span>
                         )}
                       </XoSelect>{' '}

@@ -900,7 +900,7 @@ const messages = {
   // ----- Pool advanced tab -----
   backupNetwork: 'Backup network',
   crashDumpSr: 'Crash dump SR',
-  networkIdDeleted: '{networkID} has been deleted, please select a new one',
+  networkIdMissing: '{networkID} no longer exists, please select a new one',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
