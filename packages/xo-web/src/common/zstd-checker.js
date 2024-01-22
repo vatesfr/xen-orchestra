@@ -3,7 +3,7 @@ import React from 'react'
 
 import _ from './intl'
 import Component from './base-component'
-import constructQueryString from './construct-query-string'
+import constructQueryString from './smartModeToComplexMatcher'
 import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
