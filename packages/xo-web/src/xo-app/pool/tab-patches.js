@@ -6,7 +6,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
 import {
@@ -17,6 +17,7 @@ import {
   subscribeHostMissingPatches,
 } from 'xo'
 import isEmpty from 'lodash/isEmpty.js'
+import size from 'lodash/size.js'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 
@@ -166,6 +167,12 @@ const INSTALLED_PATCH_COLUMNS = [
 }))
 @connectStore({
   hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
+  poolHosts: createGetObjectsOfType('host').filter(
+    createSelector(
+      (_, props) => props.pool.id,
+      poolId => host => host.$pool === poolId
+    )
+  ),
 })
 export default class TabPatches extends Component {
   render() {
@@ -174,10 +181,13 @@ export default class TabPatches extends Component {
       master: { productBrand },
       missingPatches = [],
       pool,
+      poolHosts,
       userPreferences,
     } = this.props
 
     const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
+
+    const isSingleHost = size(poolHosts) < 2
 
     return (
       <Upgrade place='poolPatches' required={2}>
@@ -187,11 +197,12 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches)}
+                  disabled={isEmpty(missingPatches) || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
+                  tooltip={isSingleHost ? _('multiHostPoolUpdate') : undefined}
                 />
               )}
               <TabButton
