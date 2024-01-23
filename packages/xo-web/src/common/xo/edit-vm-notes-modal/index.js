@@ -4,7 +4,7 @@ import clamp from 'lodash/clamp'
 import Component from 'base-component'
 import React from 'react'
 
-export default class ExportConfigModalBody extends Component {
+export default class EditVmNotesModalBody extends Component {
   get value() {
     return { notes: this.state.notes ?? this.props.vm.notes ?? '' }
   }
