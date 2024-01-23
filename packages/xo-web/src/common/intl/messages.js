@@ -1853,6 +1853,8 @@ const messages = {
   remoteLoadBackupsFailure: 'Loading backups failed',
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
   vmsTags: 'VMs tags',
+  tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
+  tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
 
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',

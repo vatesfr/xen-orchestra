@@ -17,7 +17,7 @@ import Button from './button'
 import Component from './base-component'
 import getEventValue from './get-event-value'
 import Icon from './icon'
-import Tooltip from './tooltip'
+import Tooltip, { conditionalTooltip } from './tooltip'
 import { confirm } from './modal'
 import { SelectTag } from './select-objects'
 
@@ -251,6 +251,11 @@ export default class Tags extends Component {
   }
 }
 
+const TAG_TO_MESSAGE_ID = {
+  'xo:no-bak': 'tagNoBak',
+  'xo:notify-on-snapshot': 'tagNotifyOnSnapshot',
+}
+
 @addSubscriptions({
   configuredTags: cb => subscribeConfiguredTags(tags => cb(keyBy(tags, 'id'))),
 })
@@ -272,7 +277,13 @@ export class Tag extends Component {
     const i = label.indexOf('=')
     const isScoped = i !== -1
 
-    return (
+    const scope = isScoped ? label.slice(0, i) : label
+    const reason = isScoped ? label.slice(i + 1) : null
+
+    const messageId = TAG_TO_MESSAGE_ID[scope]
+    const tooltip = messageId && _(messageId, { reason })
+
+    return conditionalTooltip(
       <div
         style={{
           background: color,
@@ -299,7 +310,7 @@ export class Tag extends Component {
               padding,
             }}
           >
-            {isScoped ? label.slice(0, i) : label}
+            {scope}
           </div>
           {isScoped && (
             <div
@@ -310,7 +321,7 @@ export class Tag extends Component {
                 padding,
               }}
             >
-              {label.slice(i + 1) || <i>N/A</i>}
+              {reason || <i>N/A</i>}
             </div>
           )}
         </div>
@@ -330,7 +341,8 @@ export class Tag extends Component {
             <Icon icon='remove-tag' />
           </div>
         )}
-      </div>
+      </div>,
+      tooltip
     )
   }
 }
