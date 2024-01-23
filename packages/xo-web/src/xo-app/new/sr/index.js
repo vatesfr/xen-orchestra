@@ -280,7 +280,18 @@ export default class New extends Component {
           nfsOptions,
           srUuid
         ),
-      smb: () => createSrSmb(host.id, name.value, description.value, server.value, path.value, domain.value, srUuid),
+      smb: () =>
+        createSrSmb(
+          host.id,
+          name.value,
+          description.value,
+          server.value,
+          username && username.value,
+          password && password.value,
+          path,
+          domain,
+          srUuid
+        ),
       hba: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrHbaExists(host.id, scsiId)
@@ -806,7 +817,7 @@ export default class New extends Component {
                       <SelectLun options={luns} onChange={this._handleSrLunSelection} />
                     </fieldset>
                   )}
-                  {type === 'smbiso' && (
+                  {(type === 'smb' || type === 'smbiso') && (
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <input

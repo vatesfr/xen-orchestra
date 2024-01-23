@@ -288,17 +288,22 @@ export async function createSmb({
   nameDescription,
   server,
   serverPath,
-  domain,
+  domain = 'WORKGROUP',
+  username,
+  password,
   srUuid,
 }) {
-  const xapi = this.getXapi(host);
+  const xapi = this.getXapi(host)
 
   const deviceConfig = {
     server,
     serverpath: serverPath,
-  };
-
-  const options = `domain=${domain}`;
+    options: `domain=${domain}`,
+    env: {
+      USER: username,
+      PASSWD: password,
+    },
+  }
 
   if (srUuid !== undefined) {
     return xapi.reattachSr({
@@ -307,8 +312,7 @@ export async function createSmb({
       nameDescription,
       type: 'smb',
       deviceConfig,
-      options
-    });
+    })
   }
 
   const srRef = await xapi.SR_create({
@@ -318,11 +322,10 @@ export async function createSmb({
     name_label: nameLabel,
     shared: true,
     type: 'smb',
-    options
-  });
+  })
 
-  const sr = await xapi.call('SR.get_record', srRef);
-  return sr.uuid;
+  const sr = await xapi.call('SR.get_record', srRef)
+  return sr.uuid
 }
 
 createSmb.params = {
@@ -335,12 +338,11 @@ createSmb.params = {
   username: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
-};
+}
 
 createSmb.resolve = {
   host: ['host', 'host', 'administrate'],
-};
-
+}
 // -------------------------------------------------------------------
 // HBA SR
 
