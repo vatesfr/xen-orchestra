@@ -10,6 +10,7 @@ import marked from 'marked'
 import React from 'react'
 import HomeTags from 'home-tags'
 import renderXoItem, { VmTemplate } from 'render-xo-item'
+import sanitizeHtml from 'sanitize-html'
 import Tooltip from 'tooltip'
 import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
@@ -39,6 +40,10 @@ const NOTES_STYLE = {
   border: 'dashed 1px #999',
   padding: '1em',
   borderRadius: '10px',
+}
+
+const SANITIZE_OPTIONS = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
 }
 
 const GuestToolsDetection = ({ vm }) => {
@@ -288,7 +293,13 @@ const GeneralTab = decorate([
         )}
         <Row className='mt-1'>
           <div style={NOTES_STYLE}>
-            {vm.notes !== undefined && <p dangerouslySetInnerHTML={{ __html: marked(vm.notes) }} />}
+            {vm.notes !== undefined && (
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(marked(vm.notes), SANITIZE_OPTIONS),
+                }}
+              />
+            )}
             <ActionButton icon='edit' handler={editVmNotes} handlerParam={vm}>
               {_('editVmNotes')}
             </ActionButton>
