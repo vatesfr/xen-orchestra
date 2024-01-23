@@ -131,11 +131,14 @@ const messages = {
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
+  addColor: 'Add color',
   addCustomField: 'Add custom field',
+  advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
 
@@ -329,7 +332,6 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
-  selectExistingTags: 'Select from existing tags',
   sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----

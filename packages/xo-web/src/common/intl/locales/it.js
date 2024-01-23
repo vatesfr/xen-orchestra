@@ -704,9 +704,6 @@ export default {
   // Original text: 'Host time and XOA time are not consistent with each other'
   warningHostTimeTooltip: "L'ora dello host e l'ora XOA non sono coerenti tra loro",
 
-  // Original text: 'Select from existing tags'
-  selectExistingTags: 'Seleziona da etichette esistenti',
-
   // Original text: 'Name'
   snapshotVmsName: 'Nome',
 
