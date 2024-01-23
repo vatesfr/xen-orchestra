@@ -56,7 +56,7 @@
 <!--packages-start-->
 
 - @vates/decorate-with minor
-- @vates/fuse-vhd patch
+- @vates/fuse-vhd minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/self-signed minor
 - @xen-orchestra/xapi minor
