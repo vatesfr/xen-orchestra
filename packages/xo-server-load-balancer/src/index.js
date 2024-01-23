@@ -90,6 +90,12 @@ export const configurationSchema = {
               $type: 'Tag',
             },
           },
+
+          balanceVcpu: {
+            type: 'boolean',
+            title: 'Balance VCPUs',
+            description: 'pre-position VMs on hosts to balance VCPU/CPU ratio (performance plan only)',
+          },
         },
 
         required: ['name', 'mode', 'pools'],

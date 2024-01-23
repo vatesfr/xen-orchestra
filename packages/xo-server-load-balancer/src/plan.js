@@ -21,6 +21,7 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
 export const debugAffinity = str => debug(`anti-affinity: ${str}`)
+export const debugVcpuBalancing = str => debug(`vCPU balancing : ${str}`)
 
 // ===================================================================
 // Averages.
@@ -101,7 +102,7 @@ export default class Plan {
     xo,
     name,
     poolIds,
-    { excludedHosts, thresholds, antiAffinityTags = [] },
+    { excludedHosts, thresholds, balanceVcpu, antiAffinityTags = [] },
     globalOptions,
     concurrentMigrationLimiter
   ) {
@@ -119,6 +120,7 @@ export default class Plan {
       },
     }
     this._antiAffinityTags = antiAffinityTags
+    this._balanceVcpu = balanceVcpu
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
@@ -274,6 +276,189 @@ export default class Plan {
     }
 
     return vmsAverages
+  }
+
+  // ===================================================================
+  // VCPU pre-positionning helpers
+  // ===================================================================
+
+  async _processVcpuPrepositionning() {
+    const promises = []
+
+    const allHosts = await this._getHosts()
+    if (allHosts.length <= 1) {
+      return
+    }
+    const idToHost = keyBy(allHosts, 'id')
+    const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
+    const hostList = this._getVCPUHosts(allHosts, allVms)
+    const idealVcpuPerCpuRatio =
+      hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
+
+    debugVcpuBalancing('Try to apply VCPU prepositionning.')
+    debugVcpuBalancing(`VCPU count per host: ${inspect(hostList, { depth: null })}`)
+    debugVcpuBalancing(`Average vCPU per CPU : ${idealVcpuPerCpuRatio}`)
+
+    const vmsAverages = await this._getVmsAverages(allVms, idToHost)
+    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
+
+    // 1. Find source host from which to migrate.
+    const sources = sortBy(
+      filter(hostList, host => (host.vcpuCount - 1) / host.cpuCount >= idealVcpuPerCpuRatio),
+      [
+        host => -host.vcpuCount / host.cpuCount,
+        // Find host with the most memory used
+        host => hostsAverages[host.id].memoryFree,
+      ]
+    )
+    debugVcpuBalancing(`Sources : ${inspect(sources, { depth: null })}`)
+
+    for (const sourceHost of sources) {
+      let deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
+      if (deltaSource < 1) {
+        continue
+      }
+
+      // 2. Find destination host.
+      const destinations = sortBy(
+        filter(hostList, host => host.id !== sourceHost.id && host.vcpuCount < host.cpuCount * idealVcpuPerCpuRatio),
+        [
+          // trying to avoid migrations between pools
+          host => host.poolId === sourceHost.poolId,
+          host => host.vcpuCount / host.cpuCount,
+          host => -hostsAverages[host.id].memoryFree,
+        ]
+      )
+      debugVcpuBalancing(`Destinations : ${inspect(destinations, { depth: null })}`)
+
+      if (!destinations.length) {
+        continue // Cannot find a valid destination.
+      }
+
+      // Build VM list to migrate.
+      const sourceVms = Object.values(sourceHost.vms)
+
+      // eslint-disable-next-line no-labels
+      destinationLoop: for (const destinationHost of destinations) {
+        debugVcpuBalancing(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}`)
+
+        // calculating how many vcpu source should give and how many destination should accept
+        let deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
+
+        if (
+          deltaDestination >= 0 ||
+          hostsAverages[destinationHost.id].cpu >= this._thresholds.cpu.low ||
+          hostsAverages[destinationHost.id].memoryFree <= this._thresholds.memoryFree.low
+        ) {
+          continue
+        }
+
+        // avoiding to migrate too much vCPUs for source or destination
+        let delta =
+          Math.abs(deltaSource) > Math.abs(deltaDestination)
+            ? Math.ceil(Math.abs(deltaDestination))
+            : Math.ceil(Math.abs(deltaSource))
+        const vms = sortBy(
+          filter(
+            sourceVms,
+            vm => hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory && vm.CPUs.number <= delta
+          ),
+          [vm => -vm.CPUs.number]
+        )
+
+        for (const vm of vms) {
+          // migrate only if destination is vCPU-underloaded and if this does not cause performance issues
+          if (
+            vm &&
+            vm.CPUs.number <= delta &&
+            hostsAverages[destinationHost.id].cpu + vmsAverages[vm.id].cpu < this._thresholds.cpu.low &&
+            hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory > this._thresholds.memoryFree.low
+          ) {
+            const source = idToHost[sourceHost.id]
+            const destination = idToHost[destinationHost.id]
+            debugVcpuBalancing(
+              `Migrate VM (${vm.id} "${vm.name_label}") with ${vm.CPUs.number} vCPU to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
+            )
+            // 3. Update tags and averages.
+            // This update can change the source host for the next migration.
+            sourceHost.vcpuCount -= vm.CPUs.number
+            destinationHost.vcpuCount += vm.CPUs.number
+
+            const destinationAverages = hostsAverages[destinationHost.id]
+            const vmAverages = vmsAverages[vm.id]
+
+            destinationAverages.cpu += vmAverages.cpu
+            destinationAverages.memoryFree -= vmAverages.memory
+
+            delete sourceHost.vms[vm.id]
+
+            // 4. Migrate.
+            const sourceXapi = this.xo.getXapi(source)
+            promises.push(
+              this._concurrentMigrationLimiter.call(
+                sourceXapi,
+                'migrateVm',
+                vm._xapiId,
+                this.xo.getXapi(destination),
+                destination._xapiId
+              )
+            )
+            debugVcpuBalancing(`VCPU count per host: ${inspect(hostList, { depth: null })}`)
+
+            // 5. Check if source host is still overloaded and if destination host is still underloaded
+            deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
+            deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
+            if (deltaSource < 1) {
+              // eslint-disable-next-line no-labels
+              break destinationLoop
+            }
+            if (deltaDestination >= 0) {
+              break
+            }
+            delta =
+              Math.abs(deltaSource) > Math.abs(deltaDestination)
+                ? Math.ceil(Math.abs(deltaDestination))
+                : Math.ceil(Math.abs(deltaSource))
+          }
+        }
+      }
+    }
+    return Promise.allSettled(promises)
+  }
+
+  _getVCPUHosts(hosts, vms) {
+    const idToHost = {}
+    for (const host of hosts) {
+      const taggedHost = (idToHost[host.id] = {
+        id: host.id,
+        poolId: host.$poolId,
+        cpuCount: parseInt(host.CPUs.cpu_count),
+        vcpuCount: 0,
+        vms: {},
+      })
+
+      // Hide properties when util.inspect is used.
+      Object.defineProperties(taggedHost, {
+        poolId: { enumerable: false },
+        vms: { enumerable: false },
+      })
+    }
+
+    for (const vm of vms) {
+      const hostId = vm.$container
+      if (!(hostId in idToHost)) {
+        continue
+      }
+
+      const host = idToHost[hostId]
+      host.vcpuCount += vm.CPUs.number
+
+      if (vm.xenTools && vm.tags.every(tag => !this._antiAffinityTags.includes(tag))) {
+        host.vms[vm.id] = vm
+      }
+    }
+
+    return Object.values(idToHost)
   }
 
   // ===================================================================

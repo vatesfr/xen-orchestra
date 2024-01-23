@@ -45,25 +45,27 @@ export default class PerformancePlan extends Plan {
       toOptimizeOnly: true,
     })
 
-    if (!results) {
-      return
+    if (results) {
+      const { averages, toOptimize } = results
+      toOptimize.sort((a, b) => -this._sortHosts(a, b))
+      for (const exceededHost of toOptimize) {
+        const { id } = exceededHost
+
+        debug(`Try to optimize Host (${exceededHost.id}).`)
+        const availableHosts = filter(hosts, host => host.id !== id)
+        debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
+
+        // Search bests combinations for the worst host.
+        await this._optimize({
+          exceededHost,
+          hosts: availableHosts,
+          hostsAverages: averages,
+        })
+      }
     }
 
-    const { averages, toOptimize } = results
-    toOptimize.sort((a, b) => -this._sortHosts(a, b))
-    for (const exceededHost of toOptimize) {
-      const { id } = exceededHost
-
-      debug(`Try to optimize Host (${exceededHost.id}).`)
-      const availableHosts = filter(hosts, host => host.id !== id)
-      debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
-
-      // Search bests combinations for the worst host.
-      await this._optimize({
-        exceededHost,
-        hosts: availableHosts,
-        hostsAverages: averages,
-      })
+    if (this._balanceVcpu) {
+      await this._processVcpuPrepositionning()
     }
   }
 
