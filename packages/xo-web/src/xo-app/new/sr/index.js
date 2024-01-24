@@ -286,8 +286,6 @@ export default class New extends Component {
           name.value,
           description.value,
           server.value,
-          username && username.value,
-          password && password.value,
           path,
           domain,
           srUuid

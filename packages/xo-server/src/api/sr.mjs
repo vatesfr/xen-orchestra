@@ -289,8 +289,6 @@ export async function createSmb({
   server,
   serverPath,
   domain = 'WORKGROUP',
-  username,
-  password,
   srUuid,
 }) {
   const xapi = this.getXapi(host)
@@ -298,11 +296,6 @@ export async function createSmb({
   const deviceConfig = {
     server,
     serverpath: serverPath,
-    options: `domain=${domain}`,
-    env: {
-      USER: username,
-      PASSWD: password,
-    },
   }
 
   if (srUuid !== undefined) {
@@ -334,9 +327,7 @@ createSmb.params = {
   nameDescription: { type: 'string', minLength: 0 },
   server: { type: 'string' },
   serverPath: { type: 'string' },
-  domain: { type: 'string', optional: true },
-  username: { type: 'string', optional: true },
-  password: { type: 'string', optional: true },
+  domain: { type: 'string' },
   srUuid: { type: 'string', optional: true },
 }
 
