@@ -265,7 +265,7 @@ export default class New extends Component {
   )
 
   _handleSubmit = async srUuid => {
-    const { description, device, domain, localPath, name, password, port, server, username, zfsLocation } = this.refs
+    const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
     const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
 
     const createMethodFactories = {
@@ -280,7 +280,7 @@ export default class New extends Component {
           nfsOptions,
           srUuid
         ),
-      smb: () => createSrSmb(host.id, name.value, description.value, server.value, path, domain, srUuid),
+      smb: () => createSrSmb(host.id, name.value, description.value, server.value, username.value, password.value),
       hba: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrHbaExists(host.id, scsiId)

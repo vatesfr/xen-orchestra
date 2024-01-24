@@ -282,21 +282,13 @@ createNfs.resolve = {
 
 // This functions creates an SMB SR
 
-export async function createSmb({
-  host,
-  nameLabel,
-  nameDescription,
-  server,
-  serverPath,
-  domain = 'WORKGROUP',
-  srUuid,
-}) {
+export async function createSmb({ host, nameLabel, nameDescription, server, user, password, srUuid }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     server,
-    serverpath: serverPath,
-    domain,
+    user,
+    password,
   }
 
   if (srUuid !== undefined) {
@@ -327,9 +319,9 @@ createSmb.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string', minLength: 0 },
   server: { type: 'string' },
-  serverPath: { type: 'string' },
-  domain: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
+  user: { type: 'string', optional: true },
+  password: { type: 'string', optional: true },
 }
 
 createSmb.resolve = {
