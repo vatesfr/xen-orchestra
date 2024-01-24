@@ -84,6 +84,9 @@ exports.VhdAbstract = class VhdAbstract {
   readBlockAllocationTable() {
     throw new Error(`reading block allocation table is not implemented`)
   }
+  readBlockHashes() {
+    throw new Error(`reading block hashes table is not implemented`)
+  }
 
   /**
    * @typedef {Object} BitmapBlock
@@ -102,6 +105,10 @@ exports.VhdAbstract = class VhdAbstract {
    */
   readBlock(blockId, onlyBitmap = false) {
     throw new Error(`reading  ${onlyBitmap ? 'bitmap of block' : 'block'} ${blockId} is not implemented`)
+  }
+
+  getBlockHash(blockId){
+    throw new Error(`reading block hash ${blockId} is not implemented`)
   }
 
   /**

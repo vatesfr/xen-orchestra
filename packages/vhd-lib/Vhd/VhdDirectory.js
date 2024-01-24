@@ -4,6 +4,7 @@ const { unpackHeader, unpackFooter, sectorsToBytes } = require('./_utils')
 const { createLogger } = require('@xen-orchestra/log')
 const { fuFooter, fuHeader, checksumStruct } = require('../_structs')
 const { test, set: setBitmap } = require('../_bitmap')
+const { hashBlock } = require('../hashBlock')
 const { VhdAbstract } = require('./VhdAbstract')
 const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
@@ -75,6 +76,7 @@ function getCompressor(compressorType) {
 
 exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   #uncheckedBlockTable
+  #blockHashes
   #header
   footer
   #compressor
@@ -140,6 +142,17 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#blockTable = buffer
   }
 
+  async readBlockHashes() {
+    try {
+      const { buffer } = await this._readChunk('hashes')
+      this.#blockHashes = JSON.parse(buffer)
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err
+      }
+    }
+  }
+
   containsBlock(blockId) {
     return test(this.#blockTable, blockId)
   }
@@ -177,6 +190,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     const blockSuffix = blockId - blockPrefix * 1e3
     return `blocks/${blockPrefix}/${blockSuffix}`
   }
+  getBlockHash(blockId) {
+    if (this.#blockHashes !== undefined) {
+      return this.#blockHashes[blockId]
+    }
+  }
 
   _getFullBlockPath(blockId) {
     return this.#getChunkPath(this.#getBlockPath(blockId))
@@ -209,6 +227,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDirectory is not implemented`)
     }
     const { buffer } = await this._readChunk(this.#getBlockPath(blockId))
+    const hash = this.getBlockHash(blockId)
+    if (hash) {
+      assert.strictEqual(hash, hash(buffer))
+    }
     return {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
@@ -244,7 +266,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     assert.notStrictEqual(this.#blockTable, undefined, 'Block allocation table has not been read')
     assert.notStrictEqual(this.#blockTable.length, 0, 'Block allocation table is empty')
 
-    return this._writeChunk('bat', this.#blockTable)
+    return Promise.all([this._writeChunk('bat', this.#blockTable), this._writeChunk('hashes', this.#blockHashes)])
   }
 
   // only works if data are in the same handler
@@ -265,8 +287,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
+        this.#blockHashes[blockId] = child.getBlockHash(blockId)
         await this.writeBlockAllocationTable()
       }
+      // @todo block hashes changs may be lost if the vhd merging fail
+      // should migrate to writing bat from time to time, sync with the metadata
     } catch (error) {
       if (error.code === 'ENOENT' && isResumingMerge === true) {
         // when resuming, the blocks moved since the last merge state write are
@@ -287,6 +312,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   async writeEntireBlock(block) {
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+    this.#blockHashes[block.id] = hashBlock(block.buffer)
   }
 
   async _readParentLocatorData(id) {

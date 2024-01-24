@@ -3,7 +3,7 @@ import mapValues from 'lodash/mapValues.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { chainVhd, checkVhdChain, openVhd, VhdAbstract } from 'vhd-lib'
+import { chainVhd, checkVhdChain, openVhd, VhdAbstract, VhdSynthetic } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
@@ -183,6 +183,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
           const isDifferencing = isVhdDifferencing[`${id}.vhd`]
           let parentPath
+          let parentVhd
           if (isDifferencing) {
             const vdiDir = dirname(path)
             parentPath = (
@@ -204,6 +205,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
+            if(settings.deltaComputationMode === 'AGAINST_PARENT_VHD'){
+              const {dispose, value } =  await VhdSynthetic.fromVhdChain(handler, parentPath)
+              parentVhd = value
+              $defer(()=>dispose())
+            }
           }
 
           // don't write it as transferSize += await async function
@@ -213,6 +219,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
+            parentVhd,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })

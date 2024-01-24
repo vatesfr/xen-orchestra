@@ -1,6 +1,7 @@
 'use strict'
 
 const { createLogger } = require('@xen-orchestra/log')
+const { hashBlock } = require('./hashBlock.js')
 const { parseVhdStream } = require('./parseVhdStream.js')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')
@@ -8,7 +9,7 @@ const { asyncEach } = require('@vates/async-each')
 
 const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
+const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression, parentVhd }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
   await asyncEach(
     parseVhdStream(inputStream),
@@ -24,6 +25,10 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
           await vhd.writeParentLocator({ ...item, data: item.buffer })
           break
         case 'block':
+          if (parentVhd !== undefined && hashBlock(item.buffer) === parentVhd.getBlockHash(item.id)) {
+            // already in parent
+            return
+          }
           await vhd.writeEntireBlock(item)
           break
         case 'bat':
@@ -45,10 +50,10 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
   handler,
   path,
   inputStream,
-  { validator, concurrency = 16, compression } = {}
+  { validator, concurrency = 16, compression, parentVhd } = {}
 ) {
   try {
-    const size = await buildVhd(handler, path, inputStream, { concurrency, compression })
+    const size = await buildVhd(handler, path, inputStream, { concurrency, compression, parentVhd })
     if (validator !== undefined) {
       await validator.call(this, path)
     }
