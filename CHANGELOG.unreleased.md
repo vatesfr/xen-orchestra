@@ -61,6 +61,7 @@
 - @xen-orchestra/self-signed minor
 - @xen-orchestra/xapi minor
 - xen-api patch
+- xo-cli minor
 - xo-server minor
 - xo-server-load-balancer minor
 - xo-web minor
