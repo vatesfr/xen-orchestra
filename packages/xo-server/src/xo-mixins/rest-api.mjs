@@ -5,12 +5,14 @@ import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
+import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 import { getUserPublicProperties } from '../utils.mjs'
+import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -227,6 +229,11 @@ export default class RestApi {
       },
     }
 
+    const withParams = (fn, paramsSchema) => {
+      fn.validateParams = compileXoJsonSchema({ type: 'object', properties: cloneDeep(paramsSchema) })
+      return fn
+    }
+
     collections.pools.actions = {
       __proto__: null,
 
@@ -248,10 +255,13 @@ export default class RestApi {
       clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
       hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
       hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
-      snapshot: async ({ xapiObject: vm }, { name_label }) => {
-        const ref = await vm.$snapshot({ name_label })
-        return vm.$xapi.getField('VM', ref, 'uuid')
-      },
+      snapshot: withParams(
+        async ({ xapiObject: vm }, { name_label }) => {
+          const ref = await vm.$snapshot({ name_label })
+          return vm.$xapi.getField('VM', ref, 'uuid')
+        },
+        { name_label: { type: 'string', optional: true } }
+      ),
       start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
     }
 
@@ -594,9 +604,19 @@ export default class RestApi {
         return next()
       }
 
+      const params = req.body
+
+      const { validateParams } = fn
+      if (validateParams !== undefined) {
+        if (!validateParams(params)) {
+          res.statusCode = 400
+          return res.json(validateParams.errors)
+        }
+      }
+
       const { xapiObject, xoObject } = req
       const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
-      const pResult = task.run(() => fn({ xapiObject, xoObject }, req.body))
+      const pResult = task.run(() => fn({ xapiObject, xoObject }, params))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {
