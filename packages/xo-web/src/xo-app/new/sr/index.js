@@ -280,16 +280,7 @@ export default class New extends Component {
           nfsOptions,
           srUuid
         ),
-      smb: () =>
-        createSrSmb(
-          host.id,
-          name.value,
-          description.value,
-          server.value,
-          path,
-          domain,
-          srUuid
-        ),
+      smb: () => createSrSmb(host.id, name.value, description.value, server.value, path, domain, srUuid),
       hba: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrHbaExists(host.id, scsiId)
