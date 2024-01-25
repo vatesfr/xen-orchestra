@@ -500,7 +500,7 @@ const methods = {
 
     await this.rollingPoolReboot({
       xsCredentials,
-      beforeEvacuateAny: async () => {
+      beforeEvacuateVms: async () => {
         if (!isXcp) {
           log.debug('Install patches')
           await this.installPatches({ xsCredentials })

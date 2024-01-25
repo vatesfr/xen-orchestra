@@ -31,7 +31,7 @@ const methods = {
     })
   },
 
-  async rollingPoolReboot($defer, { beforeEvacuateAny, beforeRebootHost, ignoreHost } = {}) {
+  async rollingPoolReboot($defer, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -56,8 +56,8 @@ const methods = {
 
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
-    if (beforeEvacuateAny) {
-      await beforeEvacuateAny()
+    if (beforeEvacuateVms) {
+      await beforeEvacuateVms()
     }
     // Remember on which hosts the running VMs are
     const vmRefsByHost = mapValues(
