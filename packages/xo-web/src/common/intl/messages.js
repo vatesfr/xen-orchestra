@@ -900,7 +900,7 @@ const messages = {
   // ----- Pool advanced tab -----
   backupNetwork: 'Backup network',
   crashDumpSr: 'Crash dump SR',
-  networkIdMissing: '{networkID} no longer exists, please select a new one',
+  defaultMigrationNetwork: 'Default migration network',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
@@ -912,9 +912,9 @@ const messages = {
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
-  defaultMigrationNetwork: 'Default migration network',
   syncNetbox: 'Synchronize with Netbox',
   syncNetboxWarning: 'Are you sure you want to synchronize with Netbox?',
+  updateMissingNetwork: '{networkID} not found, please select a new one',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',

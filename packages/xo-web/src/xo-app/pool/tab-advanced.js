@@ -448,7 +448,11 @@ export default class TabAdvanced extends Component {
                         ) : (
                           <span className='text-danger'>
                             {_('networkIdMissing', {
-                              networkID: <Copiable>{pool.otherConfig['xo:migrationNetwork']}</Copiable>,
+                              networkID: (
+                                <Copiable>
+                                  <strong>{pool.otherConfig['xo:migrationNetwork']}</strong>
+                                </Copiable>
+                              ),
                             })}
                           </span>
                         )}
@@ -476,7 +480,11 @@ export default class TabAdvanced extends Component {
                         ) : (
                           <span className='text-danger'>
                             {_('networkIdMissing', {
-                              networkID: <Copiable>{pool.otherConfig['xo:backupNetwork']}</Copiable>,
+                              networkID: (
+                                <Copiable>
+                                  <strong>{pool.otherConfig['xo:backupNetwork']}</strong>
+                                </Copiable>
+                              ),
                             })}
                           </span>
                         )}
