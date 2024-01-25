@@ -31,7 +31,7 @@ const methods = {
     })
   },
 
-  async rollingPoolReboot($defer, { xsCredentials, beforeEvacuateAny, beforeRebootHost, ignoreHost } = {}) {
+  async rollingPoolReboot($defer, { beforeEvacuateAny, beforeRebootHost, ignoreHost } = {}) {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
