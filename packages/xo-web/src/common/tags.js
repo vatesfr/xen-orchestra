@@ -251,6 +251,11 @@ export default class Tags extends Component {
   }
 }
 
+const TAG_TO_MESSAGE_ID = {
+  'xo:no-bak': 'tagNoBak',
+  'xo:notify-on-snapshot': 'tagNotifyOnSnapshot',
+}
+
 @addSubscriptions({
   configuredTags: cb => subscribeConfiguredTags(tags => cb(keyBy(tags, 'id'))),
 })
@@ -272,6 +277,11 @@ export class Tag extends Component {
     const i = label.indexOf('=')
     const isScoped = i !== -1
 
+    const scope = isScoped ? label.slice(0, i) : label
+    const reason = isScoped ? label.slice(i + 1) : null
+
+    const messageId = TAG_TO_MESSAGE_ID[scope]
+
     return (
       <div
         style={{
@@ -286,6 +296,19 @@ export class Tag extends Component {
           overflow: 'clip',
         }}
       >
+        {messageId && (
+          <div
+            style={{
+              cursor: 'help',
+              display: 'inline-block',
+              padding,
+            }}
+          >
+            <Tooltip content={_(messageId, { reason })}>
+              <Icon icon='info' />
+            </Tooltip>
+          </div>
+        )}
         <div
           onClick={onClick && (() => onClick(label))}
           style={{
@@ -299,7 +322,7 @@ export class Tag extends Component {
               padding,
             }}
           >
-            {isScoped ? label.slice(0, i) : label}
+            {scope}
           </div>
           {isScoped && (
             <div
@@ -310,7 +333,7 @@ export class Tag extends Component {
                 padding,
               }}
             >
-              {label.slice(i + 1) || <i>N/A</i>}
+              {reason || <i>N/A</i>}
             </div>
           )}
         </div>
