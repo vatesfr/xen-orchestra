@@ -2525,6 +2525,7 @@ const messages = {
   fieldRequired: '{field} is required',
   fieldsMissing: 'Some fields are missing',
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
+  ignoreFileSystems: 'Ignore file systems',
   isTapdevsDisk: 'This is "tapdevs" disk',
   licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
   licenseNotBoundXostor: 'No XOSTOR attached',

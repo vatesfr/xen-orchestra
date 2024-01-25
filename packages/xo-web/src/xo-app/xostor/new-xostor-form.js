@@ -388,6 +388,34 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   )
 }
 
+const AdvancedSettings = decorate([
+  injectState,
+  ({ onIgnoreFileSystemsChange, ignoreFileSystems }) => (
+    <Card>
+      <CardHeader>{_('advancedSettings')}</CardHeader>
+      <CardBlock>
+        <Row>
+          <Col size={6}>
+            <Row className={styles.disksSelectors}>
+              <Col size={6}>
+                <label>
+                  <input
+                    checked={ignoreFileSystems}
+                    onChange={onIgnoreFileSystemsChange}
+                    name='ignoreFileSystems'
+                    type='checkbox'
+                  />
+                  {_('ignoreFileSystems')}
+                </label>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </CardBlock>
+    </Card>
+  ),
+])
+
 const SummaryCard = decorate([
   provideState({
     computed: {
@@ -472,6 +500,7 @@ const NewXostorForm = decorate([
       _networkId: undefined,
       _createdSrUuid: undefined, // used for redirection when the storage has been created
       disksByHost: {},
+      ignoreFileSystems: false,
       provisioning: PROVISIONING_OPTIONS[0], // default value 'thin'
       poolId: undefined,
       hostId: undefined,
@@ -483,6 +512,9 @@ const NewXostorForm = decorate([
       linkState,
       onHostChange(_, host) {
         this.state.hostId = host?.id
+      },
+      onIgnoreFileSystemsChange(_) {
+        this.state.ignoreFileSystems = !this.state.ignoreFileSystems
       },
       onPoolChange(_, pool) {
         this.state.disksByHost = {}
@@ -514,11 +546,12 @@ const NewXostorForm = decorate([
         }
       },
       async createXostorSr() {
-        const { disksByHost, srDescription, srName, provisioning, replication } = this.state
+        const { disksByHost, ignoreFileSystems, srDescription, srName, provisioning, replication } = this.state
 
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
           disksByHost: mapValues(disksByHost, disks => disks.map(disk => formatDiskName(disk.name))),
+          ignoreFileSystems: ignoreFileSystems,
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
@@ -568,6 +601,12 @@ const NewXostorForm = decorate([
       </Row>
       <Row>
         <DisksCard />
+      </Row>
+      <Row>
+        <AdvancedSettings
+          ignoreFileSystems={state.ignoreFileSystems}
+          onIgnoreFileSystemsChange={effects.onIgnoreFileSystemsChange}
+        />
       </Row>
       <Row>
         <SummaryCard />
