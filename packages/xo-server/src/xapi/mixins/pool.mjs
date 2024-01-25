@@ -105,9 +105,12 @@ const methods = {
       const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
       log.debug(`Evacuate host ${hostId}`)
       await this.clearHost(host)
+
       if (beforeRebootHost) {
         await beforeRebootHost(host)
       }
+
+      log.debug(`Restart host ${hostId}`)
       const rebootTime = await getServerTime()
       await this.callAsync('host.reboot', host.$ref)
 

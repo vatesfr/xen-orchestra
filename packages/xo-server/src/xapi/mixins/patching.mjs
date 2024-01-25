@@ -501,6 +501,7 @@ const methods = {
     await this.rollingPoolReboot({
       xsCredentials,
       beforeEvacuateVms: async () => {
+        // On XS/CH, start by installing patches on all hosts
         if (!isXcp) {
           log.debug('Install patches')
           await this.installPatches({ xsCredentials })
