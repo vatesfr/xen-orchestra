@@ -1198,6 +1198,7 @@ const messages = {
   windowsToolsModalWarning:
     'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
   editVmNotes: 'Edit VM notes',
+  supportsMarkdown: 'Supports Markdown syntax',
   vmNotesTooLong: 'VM notes cannot be longer than 2048 characters',
 
   // ----- VM stat tab -----

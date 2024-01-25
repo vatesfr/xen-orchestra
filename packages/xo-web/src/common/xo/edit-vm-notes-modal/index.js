@@ -24,6 +24,12 @@ export default class EditVmNotesModalBody extends Component {
             <Icon icon='alarm' /> {_('vmNotesTooLong')}
           </em>
         )}
+        <em>
+          <Icon icon='info' />{' '}
+          <a href='https://commonmark.org/help/' target='_blank' rel='noreferrer'>
+            {_('supportsMarkdown')}
+          </a>
+        </em>
       </div>
     )
   }
