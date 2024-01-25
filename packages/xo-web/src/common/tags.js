@@ -17,7 +17,7 @@ import Button from './button'
 import Component from './base-component'
 import getEventValue from './get-event-value'
 import Icon from './icon'
-import Tooltip, { conditionalTooltip } from './tooltip'
+import Tooltip from './tooltip'
 import { confirm } from './modal'
 import { SelectTag } from './select-objects'
 
@@ -281,9 +281,8 @@ export class Tag extends Component {
     const reason = isScoped ? label.slice(i + 1) : null
 
     const messageId = TAG_TO_MESSAGE_ID[scope]
-    const tooltip = messageId && _(messageId, { reason })
 
-    return conditionalTooltip(
+    return (
       <div
         style={{
           background: color,
@@ -297,6 +296,19 @@ export class Tag extends Component {
           overflow: 'clip',
         }}
       >
+        {messageId && (
+          <div
+            style={{
+              cursor: 'help',
+              display: 'inline-block',
+              padding,
+            }}
+          >
+            <Tooltip content={_(messageId, { reason })}>
+              <Icon icon='info' />
+            </Tooltip>
+          </div>
+        )}
         <div
           onClick={onClick && (() => onClick(label))}
           style={{
@@ -341,8 +353,7 @@ export class Tag extends Component {
             <Icon icon='remove-tag' />
           </div>
         )}
-      </div>,
-      tooltip
+      </div>
     )
   }
 }
