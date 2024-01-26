@@ -694,6 +694,8 @@ set.params = {
 
   name_description: { type: 'string', minLength: 0, optional: true },
 
+  notes: { type: ['string', 'null'], maxLength: 2048, optional: true },
+
   high_availability: {
     optional: true,
     enum: getHaValues(),
