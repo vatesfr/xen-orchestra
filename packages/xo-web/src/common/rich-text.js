@@ -9,6 +9,9 @@ import { flatMap } from 'lodash'
 import Link from 'link'
 import store from 'store'
 
+/**
+ * TODO : check user permissions on objects retrieved by refs, if using the component in non-admin pages
+ */
 const RichText = decorate([
   connectStore({
     vms: createGetObjectsOfType('VM'),
@@ -18,7 +21,7 @@ const RichText = decorate([
   }),
   provideState({
     computed: {
-      uuidToLink: (_, props) => {
+      idToLink: (_, props) => {
         const regex = /\b(?:OpaqueRef:)?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/g
         const parts = props.message.split(regex)
         const ids = props.message.match(regex) || []
@@ -34,7 +37,6 @@ const RichText = decorate([
           let _object
 
           for (const collection of [props.vms, props.hosts, props.pools, props.srs]) {
-            // TODO : check permissions for objects retrieved by refs
             _object = id.startsWith('OpaqueRef:') ? objects.byRef.get(id) : collection[id]
 
             if (_object !== undefined) break
@@ -55,13 +57,13 @@ const RichText = decorate([
     },
   }),
   injectState,
-  ({ state: { uuidToLink }, copiable, message }) =>
+  ({ state: { idToLink }, copiable, message }) =>
     copiable ? (
       <Copiable tagName='pre' data={message}>
-        {uuidToLink}
+        {idToLink}
       </Copiable>
     ) : (
-      <pre>{uuidToLink}</pre>
+      <pre>{idToLink}</pre>
     ),
 ])
 

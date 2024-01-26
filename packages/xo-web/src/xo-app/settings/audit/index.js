@@ -26,6 +26,7 @@ import {
   generateAuditFingerprint,
   getPlugin,
 } from 'xo'
+import RichText from 'rich-text'
 
 const getIntegrityErrorRender = ({ nValid, error }) => (
   <p className='text-danger'>
@@ -166,7 +167,7 @@ const displayRecord = record =>
     <span>
       <Icon icon='audit' /> {_('auditRecord')}
     </span>,
-    <Copiable tagName='pre'>{JSON.stringify(record, null, 2)}</Copiable>
+    <RichText copiable message={JSON.stringify(record, null, 2)} />
   )
 
 const INDIVIDUAL_ACTIONS = [
