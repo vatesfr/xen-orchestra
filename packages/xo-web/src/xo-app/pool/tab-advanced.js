@@ -447,9 +447,9 @@ export default class TabAdvanced extends Component {
                           <Network id={migrationNetwork.id} />
                         ) : (
                           <span className='text-danger'>
-                            {_('networkIdMissing', {
+                            {_('updateMissingNetwork', {
                               networkID: (
-                                <Copiable>
+                                <Copiable onClick={e => e.stopPropagation()}>
                                   <strong>{pool.otherConfig['xo:migrationNetwork']}</strong>
                                 </Copiable>
                               ),
@@ -457,11 +457,6 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
-                      {migrationNetwork !== undefined && (
-                        <a role='button' onClick={this._removeMigrationNetwork}>
-                          <Icon icon='remove' />
-                        </a>
-                      )}
                     </td>
                   </tr>
                   <tr>
@@ -479,9 +474,9 @@ export default class TabAdvanced extends Component {
                           <Network id={backupNetwork.id} />
                         ) : (
                           <span className='text-danger'>
-                            {_('networkIdMissing', {
+                            {_('updateMissingNetwork', {
                               networkID: (
-                                <Copiable>
+                                <Copiable onClick={e => e.stopPropagation()}>
                                   <strong>{pool.otherConfig['xo:backupNetwork']}</strong>
                                 </Copiable>
                               ),
@@ -489,11 +484,6 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
-                      {backupNetwork !== undefined && (
-                        <a role='button' onClick={this._removeBackupNetwork}>
-                          <Icon icon='remove' />
-                        </a>
-                      )}
                     </td>
                   </tr>
                 </tbody>
