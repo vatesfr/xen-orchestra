@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
-    "@vates/decorate-with": "^2.0.0",
+    "@vates/decorate-with": "^2.1.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",

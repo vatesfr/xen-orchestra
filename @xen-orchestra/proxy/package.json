@@ -29,7 +29,7 @@
     "@koa/router": "^12.0.0",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
-    "@vates/decorate-with": "^2.0.0",
+    "@vates/decorate-with": "^2.1.0",
     "@vates/disposable": "^0.1.5",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.44.3",
