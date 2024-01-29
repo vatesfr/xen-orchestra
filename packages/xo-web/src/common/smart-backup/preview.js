@@ -1,17 +1,16 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { createPredicate } from 'value-matcher'
 import { createSelector } from 'reselect'
-import { filter, map, pickBy } from 'lodash'
+import { filter, map } from 'lodash'
 
 import Component from './../base-component'
-import constructQueryString from '../construct-query-string'
 import Icon from './../icon'
 import Link from './../link'
 import renderXoItem from './../render-xo-item'
 import Tooltip from './../tooltip'
 import { Card, CardBlock, CardHeader } from './../card'
+import { smartModeToComplexMatcher } from '../smartModeToComplexMatcher'
 
 const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 
@@ -21,18 +20,26 @@ export default class SmartBackupPreview extends Component {
     vms: PropTypes.object.isRequired,
   }
 
+  // user pattern completed with support for `xo:no-bak` tag automatically
+  // ignored by xo-server
+  _getComplexMatcher = createSelector(() => this.props.pattern, smartModeToComplexMatcher)
+
   _getMatchingVms = createSelector(
     () => this.props.vms,
-    createSelector(
-      () => this.props.pattern,
-      pattern => createPredicate(pickBy(pattern, val => val != null))
-    ),
+    createSelector(this._getComplexMatcher, cm => cm.createPredicate()),
     (vms, predicate) => filter(vms, predicate)
   )
 
   _getSampleOfMatchingVms = createSelector(this._getMatchingVms, vms => vms.slice(0, SAMPLE_SIZE_OF_MATCHING_VMS))
 
-  _getQueryString = createSelector(() => this.props.pattern, constructQueryString)
+  _getQueryString = createSelector(this._getComplexMatcher, cm => {
+    try {
+      return cm.toString()
+    } catch (error) {
+      console.error(error)
+      return ''
+    }
+  })
 
   render() {
     const nMatchingVms = this._getMatchingVms().length

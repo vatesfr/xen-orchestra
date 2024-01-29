@@ -42,6 +42,7 @@
 - [Backup/Restore] Don't count memory as a key (i.e. complete) disk [Forum#8212](https://xcp-ng.org/forum/post/69591) (PR [#7315](https://github.com/vatesfr/xen-orchestra/pull/7315))
 - [Pool/patches] Disable Rolling Pool Update button if host is alone in its pool [#6415](https://github.com/vatesfr/xen-orchestra/issues/6415) (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 - [PIF] Fix IPv4 reconfiguration only worked when the IPv4 mode was updated (PR [#7324](https://github.com/vatesfr/xen-orchestra/pull/7324))
+- [Backup/Smart mode] Make preview correctly ignoring `xo:no-bak` tags [Forum#69797](https://xcp-ng.org/forum/post/69797) (PR [#7331](https://github.com/vatesfr/xen-orchestra/pull/7331))
 
 ### Packages to release
 
