@@ -83,7 +83,7 @@ async function sendObjects(iterable, req, res, path = req.path) {
       ...object,
       href: makeUrl(object),
     })
-  } else if (fields) {
+  } else {
     fields = fields.split(',')
     makeResult = object => {
       const url = makeUrl(object)
