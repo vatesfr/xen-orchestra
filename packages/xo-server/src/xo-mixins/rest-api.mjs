@@ -230,6 +230,7 @@ export default class RestApi {
     }
 
     const withParams = (fn, paramsSchema) => {
+      fn.params = paramsSchema
       fn.validateParams = compileXoJsonSchema({ type: 'object', properties: cloneDeep(paramsSchema) })
       return fn
     }
@@ -594,7 +595,11 @@ export default class RestApi {
       '/:collection/:object/actions',
       wrap((req, res) => {
         const { actions } = req.collection
-        return sendObjects(actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ id })), req, res)
+        return sendObjects(
+          actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ ...actions[id], id })),
+          req,
+          res
+        )
       })
     )
     api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
