@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [SR] Possibility to create SMB shared SR [#991](https://github.com/vatesfr/xen-orchestra/issues/991) (PR [#7330](https://github.com/vatesfr/xen-orchestra/pull/7330))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
