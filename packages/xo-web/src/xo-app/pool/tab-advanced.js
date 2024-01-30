@@ -449,7 +449,7 @@ export default class TabAdvanced extends Component {
                           <span className='text-danger'>
                             {_('updateMissingNetwork', {
                               networkID: (
-                                <Copiable onClick={e => e.stopPropagation()}>
+                                <Copiable data={pool.otherConfig['xo:migrationNetwork']}>
                                   <strong>{pool.otherConfig['xo:migrationNetwork']}</strong>
                                 </Copiable>
                               ),
@@ -476,7 +476,7 @@ export default class TabAdvanced extends Component {
                           <span className='text-danger'>
                             {_('updateMissingNetwork', {
                               networkID: (
-                                <Copiable onClick={e => e.stopPropagation()}>
+                                <Copiable data={pool.otherConfig['xo:backupNetwork']}>
                                   <strong>{pool.otherConfig['xo:backupNetwork']}</strong>
                                 </Copiable>
                               ),
