@@ -225,7 +225,7 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || this.nVmsRunningOnLocalStorage() > 0}
+                  disabled={isEmpty(missingPatches) || this.nVmsRunningOnLocalStorage() > 0 || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
@@ -235,7 +235,9 @@ export default class TabPatches extends Component {
                       ? _('nVmsRunningOnLocalStorage', {
                           nVms: this.nVmsRunningOnLocalStorage(),
                         })
-                      : undefined
+                      : isSingleHost
+                        ? _('multiHostPoolUpdate')
+                        : undefined
                   }
                 />
               )}
