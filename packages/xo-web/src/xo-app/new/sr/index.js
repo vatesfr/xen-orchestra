@@ -821,15 +821,10 @@ export default class New extends Component {
                         className='form-control'
                         placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
                         ref='username'
-                        required
                         type='text'
                       />
                       <label>{_('newSrPassword')}</label>
-                      <Password
-                        placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
-                        ref='password'
-                        required
-                      />
+                      <Password placeholder={formatMessage(messages.newSrPasswordPlaceHolder)} ref='password' />
                     </fieldset>
                   )}
                   {(type === 'lvm' || type === 'ext') && (
