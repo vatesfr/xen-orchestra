@@ -2980,7 +2980,9 @@ export const createSrNfs = (
 
 export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid) => {
   const params = { host, nameLabel, nameDescription, server, user, password }
-  srUuid && (params.srUuid = srUuid)
+  if (srUuid !== undefined) {
+    params.srUuid = srUuid
+  }
   return _call('sr.createSmb', params)
 }
 

@@ -277,11 +277,6 @@ createNfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-// -------------------------------------------------------------------
-// SMB SR
-
-// This functions creates an SMB SR
-
 export async function createSmb({ host, nameLabel, nameDescription, server, user, password, srUuid }) {
   const xapi = this.getXapi(host)
 
@@ -310,14 +305,13 @@ export async function createSmb({ host, nameLabel, nameDescription, server, user
     type: 'smb',
   })
 
-  const sr = await xapi.call('SR.get_record', srRef)
-  return sr.uuid
+  return xapi.getField('SR', srRef, 'uuid')
 }
 
 createSmb.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string', minLength: 0 },
+  nameDescription: { type: 'string', default: '' },
   server: { type: 'string' },
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
