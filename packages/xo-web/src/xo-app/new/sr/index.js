@@ -358,9 +358,7 @@ export default class New extends Component {
           'smbiso',
           username && username.value,
           password && password.value,
-          undefined,
-          undefined,
-          srUuid
+          undefined
         ),
     }
 
