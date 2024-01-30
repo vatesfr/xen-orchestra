@@ -76,12 +76,15 @@ class Plugin extends Component {
 
   _updateLoad = () => {
     const { props } = this
+    const { id } = props
 
     if (!props.loaded) {
-      return loadPlugin(props.id)
+      enablePluginAutoload(id).catch(console.warn)
+      return loadPlugin(id)
     }
     if (props.unloadable !== false) {
-      return unloadPlugin(props.id)
+      disablePluginAutoload(id).catch(console.warn)
+      return unloadPlugin(id)
     }
   }
 

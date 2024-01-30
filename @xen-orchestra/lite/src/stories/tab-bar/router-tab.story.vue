@@ -15,11 +15,11 @@
 </template>
 
 <script lang="ts" setup>
-import RouterTab from "@/components/RouterTab.vue";
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import UiTabBar from "@/components/ui/UiTabBar.vue";
-import { prop, setting, slot } from "@/libs/story/story-param";
-import { text } from "@/libs/story/story-widget";
+import RouterTab from '@/components/RouterTab.vue'
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import UiTabBar from '@/components/ui/UiTabBar.vue'
+import { prop, setting, slot } from '@/libs/story/story-param'
+import { text } from '@/libs/story/story-widget'
 </script>
 
 <style lang="postcss" scoped></style>

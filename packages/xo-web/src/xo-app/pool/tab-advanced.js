@@ -27,6 +27,7 @@ import {
   editPool,
   installSupplementalPackOnAllHosts,
   isSrWritable,
+  rollingPoolReboot,
   setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -46,7 +47,7 @@ import { confirm } from '../../common/modal'
 import { error } from '../../common/notification'
 import { Host, Pool } from '../../common/render-xo-item'
 import { isAdmin } from '../../common/selectors'
-import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
+import { ENTERPRISE, SOURCES, getXoaPlan } from '../../common/xoa-plans'
 
 const BindLicensesButton = decorate([
   addSubscriptions({
@@ -267,12 +268,23 @@ export default class TabAdvanced extends Component {
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
+    const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
+
     return (
       <div>
         <Container>
-          {this._isNetboxPluginLoaded() && (
-            <Row>
-              <Col className='text-xs-right'>
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle='warning'
+                handler={rollingPoolReboot}
+                handlerParam={pool}
+                icon='pool-rolling-reboot'
+                labelId='rollingPoolReboot'
+                disabled={!isEnterprisePlan}
+                tooltip={!isEnterprisePlan ? _('onlyAvailableToEnterprise') : undefined}
+              />
+              {this._isNetboxPluginLoaded() && (
                 <TabButton
                   btnStyle='primary'
                   handler={synchronizeNetbox}
@@ -280,9 +292,9 @@ export default class TabAdvanced extends Component {
                   icon='refresh'
                   labelId='syncNetbox'
                 />
-              </Col>
-            </Row>
-          )}
+              )}
+            </Col>
+          </Row>
           <Row>
             <Col>
               <h3>{_('xenSettingsLabel')}</h3>

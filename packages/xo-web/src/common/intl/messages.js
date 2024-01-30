@@ -131,11 +131,14 @@ const messages = {
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
+  addColor: 'Add color',
   addCustomField: 'Add custom field',
+  advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
 
@@ -328,7 +331,7 @@ const messages = {
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
-  selectExistingTags: 'Select from existing tags',
+  notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
   sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
@@ -910,6 +913,13 @@ const messages = {
   poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
+  rollingPoolReboot: 'Rolling Pool Reboot',
+  rollingPoolRebootHaWarning: 'High Availability is enabled. This will automatically disable it during the reboot.',
+  rollingPoolRebootLoadBalancerWarning:
+    'Load Balancer plugin is running. This will automatically pause it during the reboot.',
+  rollingPoolRebootMessage:
+    'Are you sure you want to start a Rolling Pool Reboot? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
+
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   syncNetbox: 'Synchronize with Netbox',
@@ -938,6 +948,8 @@ const messages = {
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
   insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  // ----- Pool patches tab -----
+  multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
@@ -967,6 +979,8 @@ const messages = {
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
   enableMaintenanceMode: 'Enable maintenance mode',
+  slaveHostMoreUpToDateThanMasterAfterRestart:
+    'It appears that this host will be more up-to-date than the master ({master}) after the restart. This will result in the slave being unable to contact the pool master. Please update and restart your master node first.',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
@@ -979,6 +993,7 @@ const messages = {
   forceRebootHostLabel: 'Force reboot',
   forceSmartRebootHost:
     'Smart Reboot failed because {nVms, number} VM{nVms, plural, one {} other {s}} ha{nVms, plural, one {s} other {ve}} {nVms, plural, one {its} other {their}} Suspend operation blocked. Would you like to force?',
+  restartAnyway: 'Restart anyway',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
@@ -1190,6 +1205,9 @@ const messages = {
     'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
   windowsToolsModalWarning:
     'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
+  editVmNotes: 'Edit VM notes',
+  supportsMarkdown: 'Supports Markdown syntax',
+  vmNotesTooLong: 'VM notes cannot be longer than 2048 characters',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1427,6 +1445,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  selectUser: 'Select user',
   suspendSr: 'Suspend SR',
   viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
@@ -1454,6 +1473,7 @@ const messages = {
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
   vmBootFirmware: 'Boot firmware',
+  vmCreator: 'VM creator',
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
@@ -1844,6 +1864,8 @@ const messages = {
   remoteLoadBackupsFailure: 'Loading backups failed',
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
   vmsTags: 'VMs tags',
+  tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
+  tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
 
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',
@@ -2669,6 +2691,9 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
   proxyUnknownVm: 'Unknown proxy VM.',
+
+  // ----- plan -----
+  onlyAvailableToEnterprise: 'Only available to Enterprise users',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',

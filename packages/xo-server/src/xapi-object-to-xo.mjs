@@ -401,6 +401,7 @@ const TRANSFORMS = {
       installTime: metrics && toTimestamp(metrics.install_time),
       name_description: obj.name_description,
       name_label: obj.name_label,
+      notes: otherConfig['xo:notes'],
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,
       parent: link(obj, 'parent'),
@@ -429,6 +430,7 @@ const TRANSFORMS = {
       VGPUs: link(obj, 'VGPUs'),
       $VGPUs: link(obj, 'VGPUs'),
       nicType: obj.platform.nic_type,
+      xenStoreData: obj.xenstore_data,
     }
 
     if (isHvm) {

@@ -166,7 +166,7 @@ export async function rest(args) {
 
   return COMMANDS[command].call(
     {
-      exec(path, { query = {}, ...opts } = {}) {
+      async exec(path, { query = {}, ...opts } = {}) {
         const url = new URL(baseUrl)
 
         const i = path.indexOf('?')
@@ -185,7 +185,17 @@ export async function rest(args) {
           }
         }
 
-        return hrp(url, merge({}, baseOpts, opts))
+        try {
+          return await hrp(url, merge({}, baseOpts, opts))
+        } catch (error) {
+          const { response } = error
+          if (response === undefined) {
+            throw error
+          }
+
+          console.error(response.statusCode, response.statusMessage)
+          throw await response.text()
+        }
       },
       json,
     },

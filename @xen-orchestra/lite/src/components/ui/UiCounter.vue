@@ -7,12 +7,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { Color } from "@/types";
+import type { Color } from '@/types'
 
 defineProps<{
-  value: number;
-  color?: Color;
-}>();
+  value: number
+  color?: Color
+}>()
 </script>
 
 <style lang="postcss" scoped>
@@ -23,9 +23,9 @@ defineProps<{
   justify-content: center;
   width: var(--size);
   height: var(--size);
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
   border-radius: calc(var(--size) / 2);
-  background-color: var(--color-blue-scale-300);
+  background-color: var(--color-grey-300);
   --size: 1.75em;
 
   .overflow {
@@ -33,19 +33,19 @@ defineProps<{
   }
 
   &.info {
-    background-color: var(--color-extra-blue-base);
+    background-color: var(--color-purple-base);
   }
 
   &.success {
-    background-color: var(--color-green-infra-base);
+    background-color: var(--color-green-base);
   }
 
   &.warning {
-    background-color: var(--color-orange-world-base);
+    background-color: var(--color-orange-base);
   }
 
   &.error {
-    background-color: var(--color-red-vates-base);
+    background-color: var(--color-red-base);
   }
 }
 </style>

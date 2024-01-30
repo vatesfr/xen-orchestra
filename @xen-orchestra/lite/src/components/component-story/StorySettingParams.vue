@@ -35,22 +35,22 @@
 </template>
 
 <script lang="ts" setup>
-import { useVModel } from "@vueuse/core";
-import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
-import StoryWidget from "@/components/component-story/StoryWidget.vue";
-import type { SettingParam } from "@/libs/story/story-param";
+import { useVModel } from '@vueuse/core'
+import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
+import StoryWidget from '@/components/component-story/StoryWidget.vue'
+import type { SettingParam } from '@/libs/story/story-param'
 
 const props = defineProps<{
-  params: SettingParam[];
-  modelValue?: Record<string, any>;
-}>();
+  params: SettingParam[]
+  modelValue?: Record<string, any>
+}>()
 
 const emit = defineEmits<{
-  (event: "reset"): void;
-  (event: "update:modelValue", value: any): void;
-}>();
+  (event: 'reset'): void
+  (event: 'update:modelValue', value: any): void
+}>()
 
-const model = useVModel(props, "modelValue", emit);
+const model = useVModel(props, 'modelValue', emit)
 </script>
 
 <style lang="postcss">

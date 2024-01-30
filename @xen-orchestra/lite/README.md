@@ -48,18 +48,16 @@ Note: When reading Vue official doc, don't forget to set "API Preference" toggle
 
 ```vue
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  greetings: string;
-}>();
+  greetings: string
+}>()
 
-const firstName = ref("");
-const lastName = ref("");
+const firstName = ref('')
+const lastName = ref('')
 
-const fullName = computed(
-  () => `${props.greetings} ${firstName.value} ${lastName.value}`
-);
+const fullName = computed(() => `${props.greetings} ${firstName.value} ${lastName.value}`)
 </script>
 ```
 
@@ -73,9 +71,9 @@ Vue variables can be interpolated with `v-bind`.
 
 ```vue
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref } from 'vue'
 
-const fontSize = ref("2rem");
+const fontSize = ref('2rem')
 </script>
 
 <style scoped>
@@ -105,8 +103,8 @@ Use the `busy` prop to display a loader icon.
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { faDisplay } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 </script>
 ```
 
@@ -140,21 +138,21 @@ For a `foobar` store, create a `store/foobar.store.ts` then use `defineStore('fo
 #### Example
 
 ```typescript
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
 
-export const useFoobarStore = defineStore("foobar", () => {
-  const aStateVar = ref(0);
-  const otherStateVar = ref(0);
-  const aGetter = computed(() => aStateVar.value * 2);
-  const anAction = () => (otherStateVar.value += 10);
+export const useFoobarStore = defineStore('foobar', () => {
+  const aStateVar = ref(0)
+  const otherStateVar = ref(0)
+  const aGetter = computed(() => aStateVar.value * 2)
+  const anAction = () => (otherStateVar.value += 10)
 
   return {
     aStateVar,
     otherStateVar,
     aGetter,
     anAction,
-  };
-});
+  }
+})
 ```
 
 ### I18n

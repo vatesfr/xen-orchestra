@@ -20,45 +20,45 @@ This will return an object with the following methods:
 ### Static modal
 
 ```ts
-useModal(MyModal);
+useModal(MyModal)
 ```
 
 ### Modal with props
 
 ```ts
-useModal(MyModal, { message: "Hello world!" });
+useModal(MyModal, { message: 'Hello world!' })
 ```
 
 ### Handle modal approval
 
 ```ts
-const { onApprove } = useModal(MyModal, { message: "Hello world!" });
+const { onApprove } = useModal(MyModal, { message: 'Hello world!' })
 
-onApprove(() => console.log("Modal approved"));
+onApprove(() => console.log('Modal approved'))
 ```
 
 ### Handle modal approval with payload
 
 ```ts
-const { onApprove } = useModal(MyModal, { message: "Hello world!" });
+const { onApprove } = useModal(MyModal, { message: 'Hello world!' })
 
-onApprove((payload) => console.log("Modal approved with payload", payload));
+onApprove(payload => console.log('Modal approved with payload', payload))
 ```
 
 ### Handle modal decline
 
 ```ts
-const { onDecline } = useModal(MyModal, { message: "Hello world!" });
+const { onDecline } = useModal(MyModal, { message: 'Hello world!' })
 
-onDecline(() => console.log("Modal declined"));
+onDecline(() => console.log('Modal declined'))
 ```
 
 ### Handle modal close
 
 ```ts
-const { onClose } = useModal(MyModal, { message: "Hello world!" });
+const { onClose } = useModal(MyModal, { message: 'Hello world!' })
 
-onClose(() => console.log("Modal closed"));
+onClose(() => console.log('Modal closed'))
 ```
 
 ## Modal controller
@@ -66,7 +66,7 @@ onClose(() => console.log("Modal closed"));
 Inside the modal component, you can inject the modal controller with `inject(IK_MODAL)!`.
 
 ```ts
-const modal = inject(IK_MODAL)!;
+const modal = inject(IK_MODAL)!
 ```
 
 You can then use the following properties and methods on the `modal` object:

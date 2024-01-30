@@ -104,8 +104,16 @@ $select-input-height: 40px; // Bootstrap input height
   display: inline-flex;
 }
 
+.d-flex {
+  display: flex;
+}
+
 .align-self-center {
   align-self: center;
+}
+
+.justify-content-end {
+  justify-content: flex-end;
 }
 
 // COLORS ======================================================================

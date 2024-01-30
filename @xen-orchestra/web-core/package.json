@@ -1,0 +1,30 @@
+{
+  "name": "@xen-orchestra/web-core",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./*": {
+      "types": "./lib/*",
+      "import": "./lib/*"
+    }
+  },
+  "devDependencies": {
+    "vue": "^3.4.13"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/web-core",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=8.10"
+  }
+}

@@ -119,11 +119,12 @@ export default {
   objects: combineActionHandlers(
     {
       all: {}, // Mutable for performance!
+      byRef: new Map(), // Mutable for performance!
       byType: {},
       fetched: false,
     },
     {
-      [actions.updateObjects]: ({ all, byType: prevByType, fetched }, updates) => {
+      [actions.updateObjects]: ({ all, byRef, byType: prevByType, fetched }, updates) => {
         const byType = { ...prevByType }
         const get = type => {
           const curr = byType[type]
@@ -139,6 +140,7 @@ export default {
             const { type } = object
 
             all[id] = object
+            byRef.set(object._xapiRef, object)
             get(type)[id] = object
 
             if (previous && previous.type !== type) {
@@ -147,10 +149,11 @@ export default {
           } else if (previous) {
             delete all[id]
             delete get(previous.type)[id]
+            byRef.delete(previous._xapiRef)
           }
         }
 
-        return { all, byType, fetched }
+        return { all, byRef, byType, fetched }
       },
       [actions.markObjectsFetched]: state => ({
         ...state,

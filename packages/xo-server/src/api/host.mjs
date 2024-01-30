@@ -128,7 +128,24 @@ export async function restart({
 
   bypassBlockedSuspend = force,
   bypassCurrentVmCheck = force,
+  bypassVersionCheck = force,
 }) {
+  if (bypassVersionCheck) {
+    log.warn('host.restart with argument "bypassVersionCheck" set to true', { hostId: host.id })
+  } else {
+    const pool = this.getObject(host.$poolId, 'pool')
+    const master = this.getObject(pool.master, 'host')
+    const hostRebootRequired = host.rebootRequired
+    if (hostRebootRequired && host.id !== master.id && host.version === master.version) {
+      throw incorrectState({
+        actual: hostRebootRequired,
+        expected: false,
+        object: master.id,
+        property: 'rebootRequired',
+      })
+    }
+  }
+
   if (bypassBackupCheck) {
     log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
@@ -164,6 +181,10 @@ restart.params = {
   suspendResidentVms: {
     type: 'boolean',
     default: false,
+  },
+  bypassVersionCheck: {
+    type: 'boolean',
+    optional: true,
   },
 }
 
