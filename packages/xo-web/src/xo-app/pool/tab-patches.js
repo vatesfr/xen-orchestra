@@ -217,7 +217,7 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
-    const hasMultipleVmsRunningOnLocalStorage = size(this.getNVmsRunningOnLocalStorage()) > 0
+    const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
     return (
       <Upgrade place='poolPatches' required={2}>
