@@ -30,7 +30,6 @@ class EsxiImport extends Component {
     hostIp: '',
     isConnected: false,
     password: '',
-    thin: false,
     skipSslVerify: false,
     stopSource: false,
     stopOnError: true,
@@ -65,8 +64,7 @@ class EsxiImport extends Component {
   )
 
   _importVms = () => {
-    const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, thin, user, vms } =
-      this.state
+    const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, vms } = this.state
     return importVmsFromEsxi({
       concurrency: +concurrency,
       host: hostIp,
@@ -76,7 +74,6 @@ class EsxiImport extends Component {
       sslVerify: !skipSslVerify,
       stopOnError,
       stopSource,
-      thin,
       user,
       vms: vms.map(vm => vm.value),
     })
@@ -114,7 +111,6 @@ class EsxiImport extends Component {
       sr: undefined,
       stopSource: false,
       stopOnError: true,
-      thin: false,
       vms: undefined,
     })
   }
@@ -132,7 +128,6 @@ class EsxiImport extends Component {
       sr,
       stopSource,
       stopOnError,
-      thin,
       user,
       vms,
       vmsById,
@@ -246,13 +241,6 @@ class EsxiImport extends Component {
               required
               value={network}
             />
-          </InputCol>
-        </Row>
-        <Row>
-          <LabelCol>{_('esxiImportThin')}</LabelCol>
-          <InputCol>
-            <Toggle onChange={this.toggleState('thin')} value={thin} />
-            <small className='form-text text-muted'>{_('esxiImportThinDescription')}</small>
           </InputCol>
         </Row>
         <Row>
