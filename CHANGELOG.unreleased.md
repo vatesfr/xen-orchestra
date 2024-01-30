@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SR] Possibility to create SMB shared SR [#991](https://github.com/vatesfr/xen-orchestra/issues/991) (PR [#7330](https://github.com/vatesfr/xen-orchestra/pull/7330))
+- [Import/VMWare] Speed up import and make all imports thin [#7323](https://github.com/vatesfr/xen-orchestra/issues/7323)
 
 ### Bug fixes
 
@@ -35,6 +36,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/xva major
 - xo-server minor
 - xo-web minor
 
