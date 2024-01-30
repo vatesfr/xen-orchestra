@@ -399,6 +399,16 @@ class Vm {
     return ref
   }
 
+  async createFull($defer, { clone = true, boot = false, name_label, name_description, template: templateRef }) {
+    // Clones the template.
+    const vmRef = await (
+      clone
+        ? this.callAsync('VM.clone', templateRef, name_label)
+        : this.callAsync('VM.copy', templateRef, name_label, '')
+    ).then(extractOpaqueRef)
+    $defer.onFailure(() => this.VM_destroy(vmRef))
+  }
+
   async destroy(
     vmRef,
     { deleteDisks = true, force = false, bypassBlockedOperation = force, forceDeleteDefaultTemplate = force } = {}
@@ -699,6 +709,7 @@ export default Vm
 decorateClass(Vm, {
   checkpoint: defer,
   create: defer,
+  createFull: defer,
   export: defer,
   snapshot: defer,
 })

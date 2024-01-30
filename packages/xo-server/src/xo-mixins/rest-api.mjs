@@ -297,6 +297,15 @@ export default class RestApi {
             auto_poweron: { type: 'boolean', optional: true },
             boot: { type: 'boolean', default: false },
             clone: { type: 'boolean', default: true },
+            cloud_init: {
+              type: 'object',
+              default: {},
+              properties: {
+                cloud_config: { type: 'string', optional: true },
+                destroy_after_boot: { type: 'boolean', default: false },
+                network_config: { type: 'string', optional: true },
+              },
+            },
             install: {
               type: 'object',
               optional: true,
