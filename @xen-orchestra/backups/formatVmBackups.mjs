@@ -6,7 +6,8 @@ function formatVmBackup(backup) {
 
   let differencingVhds
   let dynamicVhds
-  const withMemory = vmSnapshot.suspend_VDI !== 'OpaqueRef:NULL'
+  // some backups don't use snapshots, therefore cannot be with memory
+  const withMemory = vmSnapshot !== undefined && vmSnapshot.suspend_VDI !== 'OpaqueRef:NULL'
   // isVhdDifferencing is either undefined or an object
   if (isVhdDifferencing !== undefined) {
     differencingVhds = Object.values(isVhdDifferencing).filter(t => t).length
