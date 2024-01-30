@@ -114,7 +114,7 @@ const SettingsCard = decorate([
           iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
           size='small'
         >
-          {_('newBackupAdvancedSettings')}
+          {_('advancedSettings')}
         </ActionButton>
       </CardHeader>
       <CardBlock>
@@ -136,15 +136,11 @@ const SettingsCard = decorate([
           </Col>
         </Row>
         {state.displayAdvancedSettings && (
-          <Row size={10}>
-            <table className='table'>
-              <tr>
-                <td style={{ marginRight: '60%' }}>{_('ignoreFileSystems')}</td>
-                <th>
-                  <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
-                </th>
-              </tr>
-            </table>
+          <Row>
+            <Col style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <label>{_('ignoreFileSystems')}</label>
+              <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
+            </Col>
           </Row>
         )}
       </CardBlock>
@@ -516,8 +512,8 @@ const NewXostorForm = decorate([
       onHostChange(_, host) {
         this.state.hostId = host?.id
       },
-      onIgnoreFileSystemsChange(_) {
-        this.state.ignoreFileSystems = !this.state.ignoreFileSystems
+      onIgnoreFileSystemsChange(_, value) {
+        this.state.ignoreFileSystems = value
       },
       onPoolChange(_, pool) {
         this.state.disksByHost = {}
