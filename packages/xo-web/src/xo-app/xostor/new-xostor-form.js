@@ -37,6 +37,11 @@ const REPLICATION_OPTIONS = [
   { value: 3, label: '3' },
 ]
 
+const SPACE_BETWEEN = {
+  display: 'flex',
+  justifyContent: 'space-between',
+}
+
 const hasXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
 const formatDiskName = name => '/dev/' + name
 const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.length > 0
@@ -137,7 +142,7 @@ const SettingsCard = decorate([
         </Row>
         {state.displayAdvancedSettings && (
           <Row>
-            <Col style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Col style={SPACE_BETWEEN}>
               <label>{_('ignoreFileSystems')}</label>
               <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
             </Col>
