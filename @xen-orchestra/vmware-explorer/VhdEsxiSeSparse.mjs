@@ -250,15 +250,28 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
 
   async readBlock(blockId) {
     let changed = false
-    const parentBlock = await this.#parentVhd.readBlock(blockId)
-    const parentBuffer = parentBlock.buffer
     const grainOffsets = this.#grainIndex.get(blockId) // may be undefined if the child contains block and lookMissingBlockInParent=true
+
+    // negative value indicate that it's not an offset
+    // SE_SPARSE_GRAIN_NON_ALLOCATED means we have to look into the parent data
+    const isLocallyFull = !grainOffsets.some(value => value === -SE_SPARSE_GRAIN_NON_ALLOCATED)
+
+    let parentBuffer, parentBlock
+    // don't read from parent is current block is already completly described
+    if (isLocallyFull) {
+      parentBuffer = Buffer.alloc(512 /* bitmap */ + 2 * 1024 * 1024 /* data */, 0)
+      parentBuffer.fill(255, 0, 512) // bitmap is full  of bit 1
+    } else {
+      parentBlock = await this.#parentVhd.readBlock(blockId)
+      parentBuffer = parentBlock.buffer
+    }
     const EMPTY_GRAIN = Buffer.alloc(GRAIN_SIZE_BYTES, 0)
     for (const index in grainOffsets) {
       const value = grainOffsets[index]
       let data
       if (value > 0) {
         // it's the offset in byte of a grain type SE_SPARSE_GRAIN_ALLOCATED
+        // @todo this part can be quite slow when grain are not sorted
         data = await this.#read(value, GRAIN_SIZE_BYTES)
       } else {
         // back to the real grain type
@@ -281,7 +294,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
       }
     }
     // no need to copy if data all come from parent
-    return changed
+    return changed || !parentBlock
       ? {
           id: blockId,
           bitmap: parentBuffer.slice(0, 512),
