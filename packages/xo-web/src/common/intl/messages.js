@@ -949,6 +949,7 @@ const messages = {
   nbdConnection: 'NBD Connection',
   insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
   // ----- Pool patches tab -----
+  multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   nVmsRunningOnLocalStorage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {is} other {are}} currently running and using at least one local storage. A shared storage for all your VMs is needed to start a rolling pool update',
   // ----- Pool stats tab -----

@@ -217,6 +217,8 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
+    const hasMultipleVmsRunningOnLocalStorage = size(this.nVmsRunningOnLocalStorage()) > 1
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
@@ -225,13 +227,13 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || this.nVmsRunningOnLocalStorage() > 0 || isSingleHost}
+                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
                   tooltip={
-                    this.nVmsRunningOnLocalStorage() > 0
+                    hasMultipleVmsRunningOnLocalStorage
                       ? _('nVmsRunningOnLocalStorage', {
                           nVms: this.nVmsRunningOnLocalStorage(),
                         })
