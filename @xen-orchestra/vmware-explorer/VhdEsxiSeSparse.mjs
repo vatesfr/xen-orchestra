@@ -1,3 +1,4 @@
+import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
@@ -68,6 +69,10 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   #grainTableOffsetBytes
   #grainOffsetBytes
 
+  #reading = false
+  #stream
+  #streamOffset = 0
+
   static async open(esxi, datastore, path, parentVhd, opts) {
     const vhd = new VhdEsxiSeSparse(esxi, datastore, path, parentVhd, opts)
     await vhd.readHeaderAndFooter()
@@ -102,12 +107,58 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     )
   }
 
+  // since most of the data are writtent sequentially we always open a stream from start to the end of the file
+  // If we have to rewind it, we destroy the stream and recreate with the right "start"
+  // We also recreate the stream if there is too much distance between current position and the wanted position
+
   async #read(start, length) {
-    const buffer = await (
-      await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)
-    ).buffer()
-    strictEqual(buffer.length, length)
-    return buffer
+    if (!this.#footer) {
+      // we need to be able before the footer is loaded, to read the header and footer
+      return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
+    }
+    if (this.#reading) {
+      throw new Error('reading must be done sequentially')
+    }
+    try {
+      const MAX_SKIPPABLE_LENGTH = 2 * 1024 * 1024
+      this.#reading = true
+      if (this.#stream !== undefined) {
+        // stream is already ahead or to far behind
+        if (this.#streamOffset > start || this.#streamOffset + MAX_SKIPPABLE_LENGTH < start) {
+          this.#stream.destroy()
+          this.#stream = undefined
+          this.#streamOffset = 0
+        }
+      }
+      // no stream
+      if (this.#stream === undefined) {
+        const end = this.footer.currentSize - 1
+        const res = await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)
+        this.#stream = res.body
+        this.#streamOffset = start
+      }
+
+      // stream a little behind
+      if (this.#streamOffset < start) {
+        await skipStrict(this.#stream, start - this.#streamOffset)
+        this.#streamOffset = start
+      }
+
+      // really read data
+      this.#streamOffset += length
+      const data = await readChunkStrict(this.#stream, length)
+      return data
+    } catch (error) {
+      error.start = start
+      error.length = length
+      error.streamLength = this.footer.currentSize
+      this.#stream?.destroy()
+      this.#stream = undefined
+      this.#streamOffset = 0
+      throw error
+    } finally {
+      this.#reading = false
+    }
   }
 
   async readHeaderAndFooter() {
