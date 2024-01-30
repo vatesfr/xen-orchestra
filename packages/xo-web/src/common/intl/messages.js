@@ -116,7 +116,6 @@ const messages = {
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
-  advancedSettings: 'Advanced settings',
   forceUpgrade: 'Force upgrade',
   txChecksumming: 'TX checksumming',
   thick: 'Thick',
@@ -2532,6 +2531,7 @@ const messages = {
   licenseExpiredXostorWarning:
     'The license {licenseId} has expired. You can still use the SR but cannot administrate it anymore.',
   networks: 'Networks',
+  advancedSettings: 'Advanced settings',
   notXcpPool: 'Not an XCP-ng pool',
   noXostorFound: 'No XOSTOR found',
   numberOfHosts: 'Number of hosts',

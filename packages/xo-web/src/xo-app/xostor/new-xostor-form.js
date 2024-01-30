@@ -17,6 +17,7 @@ import { Input as DebounceInput } from 'debounce-input-decorator'
 import { Pool as PoolRenderItem, Network as NetworkRenderItem } from 'render-xo-item'
 import { SelectHost, SelectPool, SelectNetwork } from 'select-objects'
 import { toggleState, linkState } from 'reaclette-utils'
+import { Toggle } from 'form'
 
 import styles from './index.css'
 
@@ -90,14 +91,32 @@ const StorageCard = decorate([
 
 const SettingsCard = decorate([
   provideState({
+    initialState: () => ({ displayAdvancedSettings: false }),
     computed: {
       showWarningReplication: state => state.replication?.value === 1,
     },
+    effects: {
+      toggleDisplayAdvancedSettings: () => state => ({
+        displayAdvancedSettings: !state.displayAdvancedSettings,
+      }),
+    },
   }),
   injectState,
-  ({ effects, state }) => (
+  ({ effects, state, onIgnoreFileSystemsChange, ignoreFileSystems }) => (
     <Card>
-      <CardHeader>{_('settings')}</CardHeader>
+      <CardHeader>
+        {_('settings')}
+        <ActionButton
+          className='pull-right'
+          data-mode='_displayAdvancedSettings'
+          handler={effects.toggleDisplayAdvancedSettings}
+          icon={state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+          iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
+          size='small'
+        >
+          {_('newBackupAdvancedSettings')}
+        </ActionButton>
+      </CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -116,6 +135,18 @@ const SettingsCard = decorate([
             <Select onChange={effects.onProvisioningChange} options={PROVISIONING_OPTIONS} value={state.provisioning} />
           </Col>
         </Row>
+        {state.displayAdvancedSettings && (
+          <Row size={10}>
+            <table className='table'>
+              <tr>
+                <td style={{ marginRight: '60%' }}>{_('ignoreFileSystems')}</td>
+                <th>
+                  <Toggle value={ignoreFileSystems} onChange={onIgnoreFileSystemsChange} size='small' />
+                </th>
+              </tr>
+            </table>
+          </Row>
+        )}
       </CardBlock>
     </Card>
   ),
@@ -388,34 +419,6 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   )
 }
 
-const AdvancedSettings = decorate([
-  injectState,
-  ({ onIgnoreFileSystemsChange, ignoreFileSystems }) => (
-    <Card>
-      <CardHeader>{_('advancedSettings')}</CardHeader>
-      <CardBlock>
-        <Row>
-          <Col size={6}>
-            <Row className={styles.disksSelectors}>
-              <Col size={6}>
-                <label>
-                  <input
-                    checked={ignoreFileSystems}
-                    onChange={onIgnoreFileSystemsChange}
-                    name='ignoreFileSystems'
-                    type='checkbox'
-                  />
-                  {_('ignoreFileSystems')}
-                </label>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </CardBlock>
-    </Card>
-  ),
-])
-
 const SummaryCard = decorate([
   provideState({
     computed: {
@@ -551,7 +554,7 @@ const NewXostorForm = decorate([
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
           disksByHost: mapValues(disksByHost, disks => disks.map(disk => formatDiskName(disk.name))),
-          ignoreFileSystems: ignoreFileSystems,
+          ignoreFileSystems,
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
@@ -587,7 +590,10 @@ const NewXostorForm = decorate([
           <StorageCard />
         </Col>
         <Col size={6}>
-          <SettingsCard />
+          <SettingsCard
+            ignoreFileSystems={state.ignoreFileSystems}
+            onIgnoreFileSystemsChange={effects.onIgnoreFileSystemsChange}
+          />
         </Col>
       </Row>
       <Row>
@@ -601,12 +607,6 @@ const NewXostorForm = decorate([
       </Row>
       <Row>
         <DisksCard />
-      </Row>
-      <Row>
-        <AdvancedSettings
-          ignoreFileSystems={state.ignoreFileSystems}
-          onIgnoreFileSystemsChange={effects.onIgnoreFileSystemsChange}
-        />
       </Row>
       <Row>
         <SummaryCard />
