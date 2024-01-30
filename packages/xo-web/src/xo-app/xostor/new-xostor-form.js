@@ -107,7 +107,7 @@ const SettingsCard = decorate([
     },
   }),
   injectState,
-  ({ effects, state, onIgnoreFileSystemsChange, ignoreFileSystems }) => (
+  ({ effects, state }) => (
     <Card>
       <CardHeader>
         {_('settings')}
