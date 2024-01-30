@@ -34,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/vmware-explorer minor
 - xo-server minor
 - xo-web minor
 
