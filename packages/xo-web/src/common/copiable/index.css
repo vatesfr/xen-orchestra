@@ -7,3 +7,9 @@
 .container:hover .button {
   visibility: visible;
 }
+
+:global(.modal-body) .container .button {
+  position: relative;
+  margin-left: -4ex;
+  left: 3.5em;
+}

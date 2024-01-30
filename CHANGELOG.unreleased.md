@@ -7,17 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
-- [REST API] New pool action: `emergency_shutdown`, it suspends all the VMs and then shuts down all the host [#7277](https://github.com/vatesfr/xen-orchestra/issues/7277) (PR [#7279](https://github.com/vatesfr/xen-orchestra/pull/7279))
-- [Tasks] Hide `/rrd_updates` tasks by default
-- [Sign in] Support _Remember me_ feature with external providers (PR [#7298](https://github.com/vatesfr/xen-orchestra/pull/7298))
-- [Pool/Host] Add a warning if hosts do not have the same version within a pool [#7059](https://github.com/vatesfr/xen-orchestra/issues/7059) (PR [#7280](https://github.com/vatesfr/xen-orchestra/pull/7280))
-- [Plugins] Loading, or unloading, will respectively enable, or disable, _Auto-load at server start_, this should lead to least surprising behaviors (PR [#7317](https://github.com/vatesfr/xen-orchestra/pull/7317))
-- [VM/Advanced] Admin can change VM creator [Forum#7313](https://xcp-ng.org/forum/topic/7313/change-created-by-and-date-information) (PR [#7276](https://github.com/vatesfr/xen-orchestra/pull/7276))
-- [Host/Reboot] Confirmation modal to reboot an updated slave host if the master is not [#7059](https://github.com/vatesfr/xen-orchestra/issues/7059) (PR [#7293](https://github.com/vatesfr/xen-orchestra/pull/7293))
-- [Backup/Restore] Show whether the memory was backed up (PR [#7315](https://github.com/vatesfr/xen-orchestra/pull/7315))
-- [Plugin/load-balancer] Limit concurrent VM migrations to 2 (configurable) to avoid long paused VMs [#7084](https://github.com/vatesfr/xen-orchestra/issues/7084) (PR [#7297](https://github.com/vatesfr/xen-orchestra/pull/7297))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -53,15 +42,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/decorate-with minor
-- @vates/fuse-vhd patch
-- @xen-orchestra/backups patch
-- @xen-orchestra/self-signed minor
-- @xen-orchestra/xapi minor
-- xen-api patch
-- xo-server minor
-- xo-server-load-balancer minor
-- xo-web minor
 
 <!--packages-end-->

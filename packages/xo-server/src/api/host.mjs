@@ -130,7 +130,6 @@ export async function restart({
   bypassCurrentVmCheck = force,
   bypassVersionCheck = force,
 }) {
-
   if (bypassVersionCheck) {
     log.warn('host.restart with argument "bypassVersionCheck" set to true', { hostId: host.id })
   } else {

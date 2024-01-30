@@ -48,6 +48,7 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+import RollingPoolRebootModal from './rolling-pool-reboot-modal'
 
 // ===================================================================
 
@@ -373,6 +374,8 @@ export const subscribeSchedules = createSubscription(() => _call('schedule.getAl
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
 )
+
+export const subscribeConfiguredTags = createSubscription(() => _call('tag.getAllConfigured'))
 
 export const subscribeUsers = createSubscription(() =>
   _call('user.getAll').then(users => {
@@ -813,6 +816,32 @@ export const setPoolMaster = host =>
       host: <strong>{host.name_label}</strong>,
     }),
   }).then(() => _call('pool.setPoolMaster', { host: resolveId(host) }), noop)
+
+export const rollingPoolReboot = async pool => {
+  const poolId = resolveId(pool)
+  await confirm({
+    body: <RollingPoolRebootModal pool={poolId} />,
+    title: _('rollingPoolReboot'),
+    icon: 'pool-rolling-reboot',
+  })
+  try {
+    return await _call('pool.rollingReboot', { pool: poolId })
+  } catch (error) {
+    if (!forbiddenOperation.is(error)) {
+      throw error
+    }
+    await confirm({
+      body: (
+        <p className='text-warning'>
+          <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+        </p>
+      ),
+      title: _('rollingPoolReboot'),
+      icon: 'pool-rolling-reboot',
+    })
+    return _call('pool.rollingReboot', { pool: poolId, bypassBackupCheck: true })
+  }
+}
 
 // Host --------------------------------------------------------------
 
@@ -1521,6 +1550,18 @@ export const changeVirtualizationMode = vm =>
       virtualizationMode: vm.virtualizationMode === 'hvm' ? 'pv' : 'hvm',
     })
   )
+
+import EditVmNotesModalBody from './edit-vm-notes-modal' // eslint-disable-line import/first
+export const editVmNotes = async vm => {
+  const { notes } = await confirm({
+    icon: 'edit',
+    title: _('editVmNotes'),
+    body: <EditVmNotesModalBody vm={vm} />,
+  })
+
+  // Remove notes if `''` is passed
+  await _call('vm.set', { id: resolveId(vm), notes: notes || null })
+}
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
@@ -2456,6 +2497,8 @@ export const deleteMessages = logs =>
 // Tags --------------------------------------------------------------
 
 export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
+
+export const setTag = (id, params) => _call('tag.set', { id, ...params })::tap(subscribeConfiguredTags.forceRefresh)
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
 

@@ -1,0 +1,41 @@
+{
+  "name": "@xen-orchestra/web",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
+    "@types/node": "^18.19.7",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "@vue/tsconfig": "^0.5.1",
+    "@xen-orchestra/web-core": "*",
+    "npm-run-all2": "^6.1.1",
+    "pinia": "^2.1.7",
+    "typescript": "~5.3.3",
+    "vite": "^5.0.11",
+    "vue": "^3.4.13",
+    "vue-tsc": "^1.8.27"
+  },
+  "private": true,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/web",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=18"
+  }
+}

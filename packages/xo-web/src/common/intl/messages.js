@@ -131,11 +131,14 @@ const messages = {
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
+  addColor: 'Add color',
   addCustomField: 'Add custom field',
+  advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
 
@@ -329,7 +332,6 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
-  selectExistingTags: 'Select from existing tags',
   sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
@@ -910,6 +912,13 @@ const messages = {
   poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
+  rollingPoolReboot: 'Rolling Pool Reboot',
+  rollingPoolRebootHaWarning: 'High Availability is enabled. This will automatically disable it during the reboot.',
+  rollingPoolRebootLoadBalancerWarning:
+    'Load Balancer plugin is running. This will automatically pause it during the reboot.',
+  rollingPoolRebootMessage:
+    'Are you sure you want to start a Rolling Pool Reboot? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
+
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
@@ -1195,6 +1204,9 @@ const messages = {
     'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
   windowsToolsModalWarning:
     'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
+  editVmNotes: 'Edit VM notes',
+  supportsMarkdown: 'Supports Markdown syntax',
+  vmNotesTooLong: 'VM notes cannot be longer than 2048 characters',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1851,6 +1863,8 @@ const messages = {
   remoteLoadBackupsFailure: 'Loading backups failed',
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
   vmsTags: 'VMs tags',
+  tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
+  tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
 
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',
@@ -2676,6 +2690,9 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
   proxyUnknownVm: 'Unknown proxy VM.',
+
+  // ----- plan -----
+  onlyAvailableToEnterprise: 'Only available to Enterprise users',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
