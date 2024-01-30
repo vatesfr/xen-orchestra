@@ -141,7 +141,7 @@ const SettingsCard = decorate([
               <tr>
                 <td style={{ marginRight: '60%' }}>{_('ignoreFileSystems')}</td>
                 <th>
-                  <Toggle value={ignoreFileSystems} onChange={onIgnoreFileSystemsChange} size='small' />
+                  <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
                 </th>
               </tr>
             </table>
@@ -590,10 +590,7 @@ const NewXostorForm = decorate([
           <StorageCard />
         </Col>
         <Col size={6}>
-          <SettingsCard
-            ignoreFileSystems={state.ignoreFileSystems}
-            onIgnoreFileSystemsChange={effects.onIgnoreFileSystemsChange}
-          />
+          <SettingsCard />
         </Col>
       </Row>
       <Row>
