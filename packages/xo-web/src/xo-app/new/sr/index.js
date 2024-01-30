@@ -358,7 +358,9 @@ export default class New extends Component {
           'smb',
           username && username.value,
           password && password.value,
-          undefined
+          undefined,
+          undefined,
+          srUuid
         ),
     }
 
