@@ -311,7 +311,7 @@ export async function createSmb({ host, nameLabel, nameDescription, server, user
 createSmb.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string', default: '' },
+  nameDescription: { type: 'string', minLength: 0, default: '' },
   server: { type: 'string' },
   srUuid: { type: 'string', optional: true },
   user: { type: 'string', optional: true },
