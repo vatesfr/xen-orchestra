@@ -188,7 +188,7 @@ const INSTALLED_PATCH_COLUMNS = [
   srs: createGetObjectsOfType('SR'),
 })
 export default class TabPatches extends Component {
-  nVmsRunningOnLocalStorage = createSelector(
+  getNVmsRunningOnLocalStorage = createSelector(
     () => this.props.runningVms,
     () => this.props.vbds,
     () => this.props.vdis,
@@ -217,7 +217,7 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
-    const hasMultipleVmsRunningOnLocalStorage = size(this.nVmsRunningOnLocalStorage()) > 1
+    const hasMultipleVmsRunningOnLocalStorage = size(this.getNVmsRunningOnLocalStorage()) > 0
 
     return (
       <Upgrade place='poolPatches' required={2}>
@@ -235,7 +235,7 @@ export default class TabPatches extends Component {
                   tooltip={
                     hasMultipleVmsRunningOnLocalStorage
                       ? _('nVmsRunningOnLocalStorage', {
-                          nVms: this.nVmsRunningOnLocalStorage(),
+                          nVms: this.getNVmsRunningOnLocalStorage(),
                         })
                       : isSingleHost
                         ? _('multiHostPoolUpdate')
