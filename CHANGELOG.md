@@ -53,7 +53,6 @@
 - xen-api 2.0.1
 - @xen-orchestra/xapi 4.2.0
 - @xen-orchestra/self-signed 0.2.0
-- xo-cli 0.25.0
 - xo-server-load-balancer 0.8.0
 - @xen-orchestra/vmware-explorer 0.4.0
 - @xen-orchestra/xva 1.0.0
@@ -63,6 +62,7 @@
 - @xen-orchestra/backups 0.44.6
 - @xen-orchestra/immutable-backups 1.0.0
 - @xen-orchestra/proxy 0.26.45
+- xo-cli 0.26.0
 
 ## **5.90.0** (2023-12-29)
 
