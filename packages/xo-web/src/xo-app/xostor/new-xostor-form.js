@@ -17,6 +17,7 @@ import { Input as DebounceInput } from 'debounce-input-decorator'
 import { Pool as PoolRenderItem, Network as NetworkRenderItem } from 'render-xo-item'
 import { SelectHost, SelectPool, SelectNetwork } from 'select-objects'
 import { toggleState, linkState } from 'reaclette-utils'
+import { Toggle } from 'form'
 
 import styles from './index.css'
 
@@ -35,6 +36,11 @@ const REPLICATION_OPTIONS = [
   { value: 2, label: '2' },
   { value: 3, label: '3' },
 ]
+
+const SPACE_BETWEEN = {
+  display: 'flex',
+  justifyContent: 'space-between',
+}
 
 const hasXostor = srs => some(srs, sr => sr.SR_type === 'linstor')
 const formatDiskName = name => '/dev/' + name
@@ -90,14 +96,32 @@ const StorageCard = decorate([
 
 const SettingsCard = decorate([
   provideState({
+    initialState: () => ({ displayAdvancedSettings: false }),
     computed: {
       showWarningReplication: state => state.replication?.value === 1,
+    },
+    effects: {
+      toggleDisplayAdvancedSettings: () => state => ({
+        displayAdvancedSettings: !state.displayAdvancedSettings,
+      }),
     },
   }),
   injectState,
   ({ effects, state }) => (
     <Card>
-      <CardHeader>{_('settings')}</CardHeader>
+      <CardHeader>
+        {_('settings')}
+        <ActionButton
+          className='pull-right'
+          data-mode='_displayAdvancedSettings'
+          handler={effects.toggleDisplayAdvancedSettings}
+          icon={state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+          iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
+          size='small'
+        >
+          {_('advancedSettings')}
+        </ActionButton>
+      </CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -116,6 +140,14 @@ const SettingsCard = decorate([
             <Select onChange={effects.onProvisioningChange} options={PROVISIONING_OPTIONS} value={state.provisioning} />
           </Col>
         </Row>
+        {state.displayAdvancedSettings && (
+          <Row>
+            <Col style={SPACE_BETWEEN}>
+              <label>{_('ignoreFileSystems')}</label>
+              <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
+            </Col>
+          </Row>
+        )}
       </CardBlock>
     </Card>
   ),
@@ -472,6 +504,7 @@ const NewXostorForm = decorate([
       _networkId: undefined,
       _createdSrUuid: undefined, // used for redirection when the storage has been created
       disksByHost: {},
+      ignoreFileSystems: false,
       provisioning: PROVISIONING_OPTIONS[0], // default value 'thin'
       poolId: undefined,
       hostId: undefined,
@@ -483,6 +516,9 @@ const NewXostorForm = decorate([
       linkState,
       onHostChange(_, host) {
         this.state.hostId = host?.id
+      },
+      onIgnoreFileSystemsChange(_, value) {
+        this.state.ignoreFileSystems = value
       },
       onPoolChange(_, pool) {
         this.state.disksByHost = {}
@@ -514,11 +550,12 @@ const NewXostorForm = decorate([
         }
       },
       async createXostorSr() {
-        const { disksByHost, srDescription, srName, provisioning, replication } = this.state
+        const { disksByHost, ignoreFileSystems, srDescription, srName, provisioning, replication } = this.state
 
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
           disksByHost: mapValues(disksByHost, disks => disks.map(disk => formatDiskName(disk.name))),
+          ignoreFileSystems,
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
