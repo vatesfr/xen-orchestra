@@ -16,7 +16,6 @@ async function usageToReadme(...args) {
   }
 
   for (const usagePath of args) {
-    console.error(usagePath)
     const dir = dirname(usagePath)
 
     const [usage, pkg] = await Promise.all([
