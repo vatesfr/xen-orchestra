@@ -171,7 +171,12 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _readFile(file, options) {
+  async _readFile(file, { flags, ...options } = {}) {
+    // contrary to createReadStream, readFile expect singular `flag`
+    if (flags !== undefined) {
+      options.flag = flags
+    }
+
     const filePath = this.getFilePath(file)
     return await this.#addSyncStackTrace(retry, () => fs.readFile(filePath, options), this.#retriesOnEagain)
   }
