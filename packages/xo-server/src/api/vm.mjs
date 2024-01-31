@@ -694,6 +694,8 @@ set.params = {
 
   name_description: { type: 'string', minLength: 0, optional: true },
 
+  notes: { type: ['string', 'null'], maxLength: 2048, optional: true },
+
   high_availability: {
     optional: true,
     enum: getHaValues(),
@@ -1380,19 +1382,9 @@ import_.resolve = {
 
 export { import_ as import }
 
-export async function importFromEsxi({
-  host,
-  network,
-  password,
-  sr,
-  sslVerify = true,
-  stopSource = false,
-  thin = false,
-  user,
-  vm,
-}) {
+export async function importFromEsxi({ host, network, password, sr, sslVerify = true, stopSource = false, user, vm }) {
   const task = await this.tasks.create({ name: `importing vm ${vm}` })
-  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, thin, vm, sr, network, stopSource }))
+  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, vm, sr, network, stopSource }))
 }
 
 importFromEsxi.params = {
@@ -1402,7 +1394,6 @@ importFromEsxi.params = {
   sr: { type: 'string' },
   sslVerify: { type: 'boolean', optional: true },
   stopSource: { type: 'boolean', optional: true },
-  thin: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
 }

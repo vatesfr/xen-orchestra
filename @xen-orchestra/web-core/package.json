@@ -10,7 +10,7 @@
     }
   },
   "devDependencies": {
-    "vue": "^3.4.7"
+    "vue": "^3.4.13"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",

@@ -12,12 +12,16 @@ import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
 import {
   installAllPatchesOnPool,
   installPatches,
+  isSrShared,
+  isSrWritable,
   rollingPoolUpdate,
   subscribeCurrentUser,
   subscribeHostMissingPatches,
 } from 'xo'
+import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import size from 'lodash/size.js'
+import some from 'lodash/some.js'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 
@@ -173,8 +177,32 @@ const INSTALLED_PATCH_COLUMNS = [
       poolId => host => host.$pool === poolId
     )
   ),
+  runningVms: createGetObjectsOfType('VM').filter(
+    createSelector(
+      (_, props) => props.pool.id,
+      poolId => vm => vm.$pool === poolId && vm.power_state === 'Running'
+    )
+  ),
+  vbds: createGetObjectsOfType('VBD'),
+  vdis: createGetObjectsOfType('VDI'),
+  srs: createGetObjectsOfType('SR'),
 })
 export default class TabPatches extends Component {
+  getNVmsRunningOnLocalStorage = createSelector(
+    () => this.props.runningVms,
+    () => this.props.vbds,
+    () => this.props.vdis,
+    () => this.props.srs,
+    (runningVms, vbds, vdis, srs) =>
+      filter(runningVms, vm =>
+        some(vm.$VBDs, vbdId => {
+          const vbd = vbds[vbdId]
+          const vdi = vdis[vbd?.VDI]
+          const sr = srs[vdi?.$SR]
+          return !isSrShared(sr) && isSrWritable(sr)
+        })
+      ).length
+  )
   render() {
     const {
       hostPatches,
@@ -189,6 +217,8 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
+    const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
@@ -197,12 +227,20 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || isSingleHost}
+                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
-                  tooltip={isSingleHost ? _('multiHostPoolUpdate') : undefined}
+                  tooltip={
+                    hasMultipleVmsRunningOnLocalStorage
+                      ? _('nVmsRunningOnLocalStorage', {
+                          nVms: this.getNVmsRunningOnLocalStorage(),
+                        })
+                      : isSingleHost
+                        ? _('multiHostPoolUpdate')
+                        : undefined
+                  }
                 />
               )}
               <TabButton

@@ -4,6 +4,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
@@ -26,6 +27,7 @@ import {
   editPool,
   installSupplementalPackOnAllHosts,
   isSrWritable,
+  rollingPoolReboot,
   setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -45,7 +47,7 @@ import { confirm } from '../../common/modal'
 import { error } from '../../common/notification'
 import { Host, Pool } from '../../common/render-xo-item'
 import { isAdmin } from '../../common/selectors'
-import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
+import { ENTERPRISE, SOURCES, getXoaPlan } from '../../common/xoa-plans'
 
 const BindLicensesButton = decorate([
   addSubscriptions({
@@ -266,12 +268,23 @@ export default class TabAdvanced extends Component {
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
+    const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
+
     return (
       <div>
         <Container>
-          {this._isNetboxPluginLoaded() && (
-            <Row>
-              <Col className='text-xs-right'>
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle='warning'
+                handler={rollingPoolReboot}
+                handlerParam={pool}
+                icon='pool-rolling-reboot'
+                labelId='rollingPoolReboot'
+                disabled={!isEnterprisePlan}
+                tooltip={!isEnterprisePlan ? _('onlyAvailableToEnterprise') : undefined}
+              />
+              {this._isNetboxPluginLoaded() && (
                 <TabButton
                   btnStyle='primary'
                   handler={synchronizeNetbox}
@@ -279,9 +292,9 @@ export default class TabAdvanced extends Component {
                   icon='refresh'
                   labelId='syncNetbox'
                 />
-              </Col>
-            </Row>
-          )}
+              )}
+            </Col>
+          </Row>
           <Row>
             <Col>
               <h3>{_('xenSettingsLabel')}</h3>
@@ -440,13 +453,22 @@ export default class TabAdvanced extends Component {
                         value={migrationNetwork}
                         xoType='network'
                       >
-                        {migrationNetwork !== undefined ? <Network id={migrationNetwork.id} /> : _('noValue')}
+                        {pool.otherConfig['xo:migrationNetwork'] === undefined ? (
+                          _('noValue')
+                        ) : migrationNetwork !== undefined ? (
+                          <Network id={migrationNetwork.id} />
+                        ) : (
+                          <span className='text-danger'>
+                            {_('updateMissingNetwork', {
+                              networkID: (
+                                <Copiable data={pool.otherConfig['xo:migrationNetwork']}>
+                                  <strong>{pool.otherConfig['xo:migrationNetwork']}</strong>
+                                </Copiable>
+                              ),
+                            })}
+                          </span>
+                        )}
                       </XoSelect>{' '}
-                      {migrationNetwork !== undefined && (
-                        <a role='button' onClick={this._removeMigrationNetwork}>
-                          <Icon icon='remove' />
-                        </a>
-                      )}
                     </td>
                   </tr>
                   <tr>
@@ -458,13 +480,22 @@ export default class TabAdvanced extends Component {
                         value={backupNetwork}
                         xoType='network'
                       >
-                        {backupNetwork !== undefined ? <Network id={backupNetwork.id} /> : _('noValue')}
+                        {pool.otherConfig['xo:backupNetwork'] === undefined ? (
+                          _('noValue')
+                        ) : backupNetwork !== undefined ? (
+                          <Network id={backupNetwork.id} />
+                        ) : (
+                          <span className='text-danger'>
+                            {_('updateMissingNetwork', {
+                              networkID: (
+                                <Copiable data={pool.otherConfig['xo:backupNetwork']}>
+                                  <strong>{pool.otherConfig['xo:backupNetwork']}</strong>
+                                </Copiable>
+                              ),
+                            })}
+                          </span>
+                        )}
                       </XoSelect>{' '}
-                      {backupNetwork !== undefined && (
-                        <a role='button' onClick={this._removeBackupNetwork}>
-                          <Icon icon='remove' />
-                        </a>
-                      )}
                     </td>
                   </tr>
                 </tbody>
