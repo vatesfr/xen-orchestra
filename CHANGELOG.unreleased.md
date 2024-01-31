@@ -8,6 +8,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SR] Possibility to create SMB shared SR [#991](https://github.com/vatesfr/xen-orchestra/issues/991) (PR [#7330](https://github.com/vatesfr/xen-orchestra/pull/7330))
+- [Import/VMWare] Speed up import and make all imports thin [#7323](https://github.com/vatesfr/xen-orchestra/issues/7323)
+- [XOSTOR] Allow user to ignore file systems at storage creation (PR[#7338](https://github.com/vatesfr/xen-orchestra/pull/7338))
 
 ### Bug fixes
 
