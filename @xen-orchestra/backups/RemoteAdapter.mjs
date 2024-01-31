@@ -35,6 +35,8 @@ export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
+const IMMUTABILTY_METADATA_FILENAME = '/immutability.json'
+
 const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
@@ -749,10 +751,37 @@ export class RemoteAdapter {
   }
 
   async readVmBackupMetadata(path) {
+    let json
+    let isImmutable = false
+    let remoteIsImmutable = false
+    // if the remote is immutable, check if this metadatas are also immutables
+    try {
+      // this file is not encrypted
+      await this._handler._readFile(IMMUTABILTY_METADATA_FILENAME)
+      remoteIsImmutable = true
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    try {
+      // this will trigger an EPERM error if the file is immutable
+      json = await this.handler.readFile(path, { flag: 'r+' })
+      // s3 handler don't respect flags
+    } catch (err) {
+      // retry without triggerring immutbaility check ,only on immutable remote
+      if (err.code === 'EPERM' && remoteIsImmutable) {
+        isImmutable = true
+        json = await this._handler.readFile(path, { flag: 'r' })
+      } else {
+        throw err
+      }
+    }
     // _filename is a private field used to compute the backup id
     //
     // it's enumerable to make it cacheable
-    const metadata = { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
+    const metadata = { ...JSON.parse(json), _filename: path, isImmutable }
 
     // backups created on XenServer < 7.1 via JSON in XML-RPC transports have boolean values encoded as integers, which make them unusable with more recent XAPIs
     if (typeof metadata.vm.is_a_template === 'number') {

@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] New pool action: `create_vm` [#6749](https://github.com/vatesfr/xen-orchestra/issues/6749)
+- [Backup] Implement Backup Repository immutability (PR [#6928](https://github.com/vatesfr/xen-orchestra/pull/6928))
 
 ### Bug fixes
 
@@ -29,8 +30,11 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
+- @xen-orchestra/immutable-backups major
 - xo-cli minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
