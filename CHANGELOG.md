@@ -55,13 +55,13 @@
 - @xen-orchestra/self-signed 0.2.0
 - xo-cli 0.25.0
 - xo-server-load-balancer 0.8.0
-- @xen-orchestra/backups 0.44.5
 - @xen-orchestra/proxy 0.26.44
 - @xen-orchestra/vmware-explorer 0.4.0
 - @xen-orchestra/xva 1.0.0
 - xo-server 5.134.0
 - xo-web 5.135.0
 - @xen-orchestra/fs 4.1.4
+- @xen-orchestra/backups 0.44.6
 
 ## **5.90.0** (2023-12-29)
 
