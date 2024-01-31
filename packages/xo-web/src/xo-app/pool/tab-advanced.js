@@ -469,7 +469,7 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
-                      {migrationNetwork !== undefined && (
+                      {pool.otherConfig['xo:migrationNetwork'] !== undefined && (
                         <a role='button' onClick={this._removeMigrationNetwork}>
                           <Icon icon='remove' />
                         </a>
