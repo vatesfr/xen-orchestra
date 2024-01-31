@@ -110,7 +110,7 @@ declare module 'vue-router/auto' {
   export function defineLoader<
     P extends Promise<any>,
     Name extends keyof RouteNamedMap = keyof RouteNamedMap,
-    isLazy extends boolean = false
+    isLazy extends boolean = false,
   >(
     name: Name,
     loader: (route: RouteLocationNormalizedLoaded<Name>) => P,
