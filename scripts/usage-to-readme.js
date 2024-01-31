@@ -10,8 +10,6 @@ const { execFile } = require('node:child_process')
 const generateReadme = readFile(join(__dirname, 'README.md.tpl'), 'utf8').then(compile)
 
 async function usageToReadme(...args) {
-  console.error(process.argv, args)
-
   const gitAdd = args[0] === '--git-add'
   if (gitAdd) {
     args.shift()
