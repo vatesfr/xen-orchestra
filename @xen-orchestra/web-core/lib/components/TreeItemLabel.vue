@@ -23,10 +23,15 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util'
-import { IK_LIST_ITEM_EXPANDED, IK_LIST_ITEM_HAS_CHILDREN, IK_LIST_ITEM_TOGGLE } from '@core/utils/injection-keys.util'
+import {
+  IK_TREE_ITEM_EXPANDED,
+  IK_TREE_ITEM_HAS_CHILDREN,
+  IK_TREE_ITEM_TOGGLE,
+  IK_TREE_LIST_DEPTH,
+} from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
@@ -42,14 +47,14 @@ const textElement = ref<HTMLElement>()
 const hasTooltip = computed(() => hasEllipsis(textElement.value))
 
 const hasToggle = inject(
-  IK_LIST_ITEM_HAS_CHILDREN,
+  IK_TREE_ITEM_HAS_CHILDREN,
   computed(() => false)
 )
 
-const toggle = inject(IK_LIST_ITEM_TOGGLE, () => undefined)
-const isExpanded = inject(IK_LIST_ITEM_EXPANDED, ref(true))
+const toggle = inject(IK_TREE_ITEM_TOGGLE, () => undefined)
+const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
 
-const depth = inject('depth', 0)
+const depth = inject(IK_TREE_LIST_DEPTH, 0)
 </script>
 
 <style lang="postcss" scoped>

@@ -3,20 +3,20 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/ui/icon/UiIcon.vue'
-import { VM_POWER_STATE } from '@core/utils/xen-api/xen-api.enums'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import type { POWER_STATE } from '@core/types/power-state.type'
 import { faMoon, faPause, faPlay, faQuestion, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  state: VM_POWER_STATE
+  state: POWER_STATE
 }>()
 
 const icons = {
-  [VM_POWER_STATE.RUNNING]: faPlay,
-  [VM_POWER_STATE.PAUSED]: faPause,
-  [VM_POWER_STATE.SUSPENDED]: faMoon,
-  [VM_POWER_STATE.HALTED]: faStop,
+  running: faPlay,
+  paused: faPause,
+  suspended: faMoon,
+  halted: faStop,
 }
 
 const icon = computed(() => icons[props.state] ?? faQuestion)

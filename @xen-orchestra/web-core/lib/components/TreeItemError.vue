@@ -8,7 +8,7 @@
 .text-error {
   padding-left: 3rem;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1.6rem;
   line-height: 150%;
   color: var(--color-red-base);
 }

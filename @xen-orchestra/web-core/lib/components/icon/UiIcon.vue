@@ -4,7 +4,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from '@core/components/ui/UiSpinner.vue'
+import UiSpinner from '@core/components/UiSpinner.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 

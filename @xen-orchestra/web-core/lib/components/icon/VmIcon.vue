@@ -7,13 +7,13 @@
 
 <script lang="ts" setup>
 import PowerStateIcon from '@core/components/PowerStateIcon.vue'
-import UiIcon from '@core/components/ui/icon/UiIcon.vue'
-import type { VM_POWER_STATE } from '@core/utils/xen-api/xen-api.enums'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import type { POWER_STATE } from '@core/types/power-state.type'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeLayers } from '@fortawesome/vue-fontawesome'
 
 defineProps<{
-  state: VM_POWER_STATE
+  state: POWER_STATE
 }>()
 </script>
 
