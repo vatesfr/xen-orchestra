@@ -468,12 +468,12 @@ export default class TabAdvanced extends Component {
                             })}
                           </span>
                         )}
-                        {migrationNetwork !== undefined && (
-                          <a role='button' onClick={this._removeMigrationNetwork}>
-                            <Icon icon='remove' />
-                          </a>
-                        )}
                       </XoSelect>{' '}
+                      {migrationNetwork !== undefined && (
+                        <a role='button' onClick={this._removeMigrationNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
                     </td>
                   </tr>
                   <tr>
@@ -500,12 +500,12 @@ export default class TabAdvanced extends Component {
                             })}
                           </span>
                         )}
-                        {backupNetwork !== undefined && (
-                          <a role='button' onClick={this._removeBackupNetwork}>
-                            <Icon icon='remove' />
-                          </a>
-                        )}
                       </XoSelect>{' '}
+                      {backupNetwork !== undefined && (
+                        <a role='button' onClick={this._removeBackupNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
                     </td>
                   </tr>
                 </tbody>
