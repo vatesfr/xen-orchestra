@@ -646,6 +646,11 @@ const xoItemToRender = {
       <span className='tag tag-info' style={{ textTransform: 'capitalize' }}>
         {backup.mode === 'delta' ? _('backupIsIncremental') : backup.mode}
       </span>{' '}
+      {backup.isImmutable && (
+        <span className='tag tag-info'>
+          <Icon icon='lock' />
+        </span>
+      )}{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
       {backup.differencingVhds > 0 && (
         <span className='tag tag-info'>
