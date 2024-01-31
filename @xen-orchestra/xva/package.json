@@ -1,14 +1,14 @@
 {
-  "name": "@xen-orchestra/xva-generator",
-  "version": "1.0.0",
+  "name": "@xen-orchestra/xva",
+  "version": "0.0.1",
   "main": "index.js",
   "author": "",
   "license": "ISC",
   "private": false,
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xva-generator",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xva",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@xen-orchestra/xva-generator",
+    "directory": "@xen-orchestra/xva",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
