@@ -24,6 +24,7 @@
 - [Import/VMWare] Speed up import and make all imports thin [#7323](https://github.com/vatesfr/xen-orchestra/issues/7323)
 - [XOSTOR] Allow user to ignore file systems at storage creation (PR[#7338](https://github.com/vatesfr/xen-orchestra/pull/7338))
 - [REST API] New pool action: `create_vm` [#6749](https://github.com/vatesfr/xen-orchestra/issues/6749)
+- [Backup] Implement Backup Repository immutability (PR [#6928](https://github.com/vatesfr/xen-orchestra/pull/6928))
 
 ### Bug fixes
 
@@ -57,13 +58,13 @@
 - xo-server-load-balancer 0.8.0
 - @xen-orchestra/vmware-explorer 0.4.0
 - @xen-orchestra/xva 1.0.0
-- xo-web 5.135.0
 - @xen-orchestra/fs 4.1.4
 - @xen-orchestra/backups 0.44.6
 - @xen-orchestra/immutable-backups 1.0.0
 - @xen-orchestra/proxy 0.26.45
 - xo-cli 0.26.0
 - xo-server 5.135.0
+- xo-web 5.136.0
 
 ## **5.90.0** (2023-12-29)
 
