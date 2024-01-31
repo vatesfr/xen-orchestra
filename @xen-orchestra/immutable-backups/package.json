@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "name": "@xen-orchestra/immutable-backups",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/immutable-backups",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -36,6 +36,7 @@
     "tap": "^18.6.1"
   },
   "scripts": {
+    "postversion": "npm publish --access public",
     "test-integration": "tap  *.integ.mjs"
   }
 }

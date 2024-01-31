@@ -2,6 +2,16 @@
 
 # @xen-orchestra/immutable-backups
 
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/immutable-backups)](https://npmjs.org/package/@xen-orchestra/immutable-backups) ![License](https://badgen.net/npm/license/@xen-orchestra/immutable-backups) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/immutable-backups)](https://bundlephobia.com/result?p=@xen-orchestra/immutable-backups) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/immutable-backups)](https://npmjs.org/package/@xen-orchestra/immutable-backups)
+
+## Install
+
+Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/immutable-backups):
+
+```sh
+npm install --save @xen-orchestra/immutable-backups
+```
+
 ## Usage
 
 ### make a remote immutable
