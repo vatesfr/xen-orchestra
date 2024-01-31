@@ -21,7 +21,7 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
 export const debugAffinity = str => debug(`anti-affinity: ${str}`)
-export const debugVcpuBalancing = str => debug(`vCPU balancing : ${str}`)
+export const debugVcpuBalancing = str => debug(`vCPU balancing: ${str}`)
 
 // ===================================================================
 // Averages.
@@ -102,7 +102,7 @@ export default class Plan {
     xo,
     name,
     poolIds,
-    { excludedHosts, thresholds, balanceVcpu, antiAffinityTags = [] },
+    { excludedHosts, thresholds, balanceVcpus, antiAffinityTags = [] },
     globalOptions,
     concurrentMigrationLimiter
   ) {
@@ -120,7 +120,7 @@ export default class Plan {
       },
     }
     this._antiAffinityTags = antiAffinityTags
-    this._balanceVcpu = balanceVcpu
+    this._balanceVcpus = balanceVcpus
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
@@ -279,7 +279,7 @@ export default class Plan {
   }
 
   // ===================================================================
-  // VCPU pre-positionning helpers
+  // vCPU pre-positionning helpers
   // ===================================================================
 
   async _processVcpuPrepositionning() {
@@ -295,9 +295,9 @@ export default class Plan {
     const idealVcpuPerCpuRatio =
       hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
 
-    debugVcpuBalancing('Try to apply VCPU prepositionning.')
-    debugVcpuBalancing(`VCPU count per host: ${inspect(hostList, { depth: null })}`)
-    debugVcpuBalancing(`Average vCPU per CPU : ${idealVcpuPerCpuRatio}`)
+    debugVcpuBalancing('Try to apply vCPU prepositionning.')
+    debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
+    debugVcpuBalancing(`Average vCPU per CPU: ${idealVcpuPerCpuRatio}`)
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
@@ -311,10 +311,11 @@ export default class Plan {
         host => hostsAverages[host.id].memoryFree,
       ]
     )
-    debugVcpuBalancing(`Sources : ${inspect(sources, { depth: null })}`)
+    debugVcpuBalancing(`Sources: ${inspect(sources, { depth: null })}`)
 
     for (const sourceHost of sources) {
       let deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
+      // deltaSource = 0 has no guaranatee to be reachable, its value can be non-integer
       if (deltaSource < 1) {
         continue
       }
@@ -342,7 +343,7 @@ export default class Plan {
       destinationLoop: for (const destinationHost of destinations) {
         debugVcpuBalancing(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}`)
 
-        // calculating how many vcpu source should give and how many destination should accept
+        // calculating how many vCPUs source should give and how many destination should accept
         let deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
 
         if (
@@ -354,10 +355,8 @@ export default class Plan {
         }
 
         // avoiding to migrate too much vCPUs for source or destination
-        let delta =
-          Math.abs(deltaSource) > Math.abs(deltaDestination)
-            ? Math.ceil(Math.abs(deltaDestination))
-            : Math.ceil(Math.abs(deltaSource))
+        // deltaSource is positive, deltaDestination is negative, we check which one has greater absolute value
+        let delta = deltaSource > -deltaDestination ? Math.ceil(-deltaDestination) : Math.ceil(deltaSource)
         const vms = sortBy(
           filter(
             sourceVms,
@@ -369,7 +368,6 @@ export default class Plan {
         for (const vm of vms) {
           // migrate only if destination is vCPU-underloaded and if this does not cause performance issues
           if (
-            vm &&
             vm.CPUs.number <= delta &&
             hostsAverages[destinationHost.id].cpu + vmsAverages[vm.id].cpu < this._thresholds.cpu.low &&
             hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory > this._thresholds.memoryFree.low
@@ -403,7 +401,7 @@ export default class Plan {
                 destination._xapiId
               )
             )
-            debugVcpuBalancing(`VCPU count per host: ${inspect(hostList, { depth: null })}`)
+            debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
             // 5. Check if source host is still overloaded and if destination host is still underloaded
             deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
@@ -415,10 +413,7 @@ export default class Plan {
             if (deltaDestination >= 0) {
               break
             }
-            delta =
-              Math.abs(deltaSource) > Math.abs(deltaDestination)
-                ? Math.ceil(Math.abs(deltaDestination))
-                : Math.ceil(Math.abs(deltaSource))
+            delta = deltaSource > -deltaDestination ? Math.ceil(-deltaDestination) : Math.ceil(deltaSource)
           }
         }
       }

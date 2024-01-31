@@ -91,14 +91,19 @@ export const configurationSchema = {
             },
           },
 
-          balanceVcpu: {
+          balanceVcpus: {
             type: 'boolean',
-            title: 'Balance VCPUs',
-            description: 'pre-position VMs on hosts to balance VCPU/CPU ratio (performance plan only)',
+            title: 'Balance vCPUs',
+            description: 'pre-position VMs on hosts to balance vCPU/CPU ratio (performance plan only)',
           },
         },
 
         required: ['name', 'mode', 'pools'],
+        // when UI will allow it, remove this anyOf and hide balanceVcpu option outside performance mode
+        anyOf: [
+          { properties: { mode: { const: 'Performance mode' } } },
+          { properties: { balanceVcpus: { const: false } } },
+        ],
       },
 
       minItems: 1,

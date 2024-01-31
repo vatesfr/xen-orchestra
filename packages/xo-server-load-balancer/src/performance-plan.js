@@ -64,7 +64,7 @@ export default class PerformancePlan extends Plan {
       }
     }
 
-    if (this._balanceVcpu) {
+    if (this._balanceVcpus) {
       await this._processVcpuPrepositionning()
     }
   }
