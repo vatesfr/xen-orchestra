@@ -469,6 +469,11 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
+                      {pool.otherConfig['xo:migrationNetwork'] !== undefined && (
+                        <a role='button' onClick={this._removeMigrationNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
                     </td>
                   </tr>
                   <tr>
@@ -496,6 +501,11 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
+                      {pool.otherConfig['xo:backupNetwork'] !== undefined && (
+                        <a role='button' onClick={this._removeBackupNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
                     </td>
                   </tr>
                 </tbody>
