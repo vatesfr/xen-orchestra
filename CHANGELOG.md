@@ -20,6 +20,9 @@
 - [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792) (PR [#7322](https://github.com/vatesfr/xen-orchestra/pull/7322))
 - [Pool/Advanced] Ability to do a `Rolling Pool Reboot` (Enterprise plans) [#6885](https://github.com/vatesfr/xen-orchestra/issues/6885) (PRs [#7243](https://github.com/vatesfr/xen-orchestra/pull/7243), [#7242](https://github.com/vatesfr/xen-orchestra/pull/7242))
 - [Settings/Logs] Transform objects UUIDs and OpaqueRefs into clickable links, leading to the corresponding object page (PR [#7300](https://github.com/vatesfr/xen-orchestra/pull/7300))
+- [SR] Possibility to create SMB shared SR [#991](https://github.com/vatesfr/xen-orchestra/issues/991) (PR [#7330](https://github.com/vatesfr/xen-orchestra/pull/7330))
+- [Import/VMWare] Speed up import and make all imports thin [#7323](https://github.com/vatesfr/xen-orchestra/issues/7323)
+- [XOSTOR] Allow user to ignore file systems at storage creation (PR[#7338](https://github.com/vatesfr/xen-orchestra/pull/7338))
 
 ### Bug fixes
 
@@ -39,6 +42,9 @@
 - [Pool/patches] Disable Rolling Pool Update button if host is alone in its pool [#6415](https://github.com/vatesfr/xen-orchestra/issues/6415) (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 - [PIF] Fix IPv4 reconfiguration only worked when the IPv4 mode was updated (PR [#7324](https://github.com/vatesfr/xen-orchestra/pull/7324))
 - [Backup/Smart mode] Make preview correctly ignoring `xo:no-bak` tags [Forum#69797](https://xcp-ng.org/forum/post/69797) (PR [#7331](https://github.com/vatesfr/xen-orchestra/pull/7331))
+- [Pool/Advanced] Show pool backup/migration network even if they no longer exist (PR [#7303](https://github.com/vatesfr/xen-orchestra/pull/7303))
+- [Import/disk] Couldn't update 'name' field when importing from a URL [#7326](https://github.com/vatesfr/xen-orchestra/issues/7326) (PR [#7332](https://github.com/vatesfr/xen-orchestra/pull/7332))
+- [Pool/patches] Disable Rolling Pool Update button if some powered up VMs are using a non-shared storage [#6415](https://github.com/vatesfr/xen-orchestra/issues/6415) (PR [#7294](https://github.com/vatesfr/xen-orchestra/pull/7294))
 
 ## Released packages
 
@@ -46,13 +52,15 @@
 - @vates/fuse-vhd 2.1.0
 - xen-api 2.0.1
 - @xen-orchestra/xapi 4.2.0
-- @xen-orchestra/backups 0.44.4
 - @xen-orchestra/self-signed 0.2.0
-- @xen-orchestra/proxy 0.26.43
 - xo-cli 0.25.0
-- xo-server 5.133.0
 - xo-server-load-balancer 0.8.0
-- xo-web 5.134.0
+- @xen-orchestra/backups 0.44.5
+- @xen-orchestra/proxy 0.26.44
+- @xen-orchestra/vmware-explorer 0.4.0
+- @xen-orchestra/xva 1.0.0
+- xo-server 5.134.0
+- xo-web 5.135.0
 
 ## **5.90.0** (2023-12-29)
 
