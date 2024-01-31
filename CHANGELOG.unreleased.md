@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- xo-cli minor
+
 <!--packages-end-->
