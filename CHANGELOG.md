@@ -62,6 +62,7 @@
 - xo-web 5.135.0
 - @xen-orchestra/fs 4.1.4
 - @xen-orchestra/backups 0.44.6
+- @xen-orchestra/immutable-backups 1.0.0
 
 ## **5.90.0** (2023-12-29)
 

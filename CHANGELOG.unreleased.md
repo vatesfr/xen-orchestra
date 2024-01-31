@@ -30,7 +30,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/immutable-backups major
 - xo-cli minor
 - xo-server minor
 - xo-web minor
