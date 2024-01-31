@@ -31,7 +31,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/fs patch
 - @xen-orchestra/immutable-backups major
 - xo-cli minor
 - xo-server minor

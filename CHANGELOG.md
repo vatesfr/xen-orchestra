@@ -61,6 +61,7 @@
 - @xen-orchestra/xva 1.0.0
 - xo-server 5.134.0
 - xo-web 5.135.0
+- @xen-orchestra/fs 4.1.4
 
 ## **5.90.0** (2023-12-29)
 
