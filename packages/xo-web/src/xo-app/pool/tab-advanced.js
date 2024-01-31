@@ -501,7 +501,7 @@ export default class TabAdvanced extends Component {
                           </span>
                         )}
                       </XoSelect>{' '}
-                      {backupNetwork !== undefined && (
+                      {pool.otherConfig['xo:backupNetwork'] !== undefined && (
                         <a role='button' onClick={this._removeBackupNetwork}>
                           <Icon icon='remove' />
                         </a>
