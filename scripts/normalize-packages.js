@@ -126,7 +126,7 @@ require('exec-promise')(() =>
 
     return Promise.all([
       forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
-      usageToReadme(`${dir}/.USAGE.md`).catch(error => {
+      usageToReadme(`${dir}/.USAGE.md`, dir, pkg).catch(error => {
         if (error.code !== 'ENOENT') {
           console.error('Error while handling README', error)
         }
