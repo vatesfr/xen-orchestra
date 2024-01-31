@@ -468,6 +468,11 @@ export default class TabAdvanced extends Component {
                             })}
                           </span>
                         )}
+                        {migrationNetwork !== undefined && (
+                          <a role='button' onClick={this._removeMigrationNetwork}>
+                            <Icon icon='remove' />
+                          </a>
+                        )}
                       </XoSelect>{' '}
                     </td>
                   </tr>
@@ -494,6 +499,11 @@ export default class TabAdvanced extends Component {
                               ),
                             })}
                           </span>
+                        )}
+                        {backupNetwork !== undefined && (
+                          <a role='button' onClick={this._removeBackupNetwork}>
+                            <Icon icon='remove' />
+                          </a>
                         )}
                       </XoSelect>{' '}
                     </td>
