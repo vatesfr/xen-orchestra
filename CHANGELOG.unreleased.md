@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] New pool action: `create_vm` [#6749](https://github.com/vatesfr/xen-orchestra/issues/6749)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,5 +30,6 @@
 <!--packages-start-->
 
 - xo-cli minor
+- xo-server minor
 
 <!--packages-end-->

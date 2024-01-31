@@ -1,5 +1,6 @@
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
+import { defer } from 'golike-defer'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
@@ -138,10 +139,12 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
 
-    api.use(({ cookies }, res, next) => {
+    api.use((req, res, next) => {
+      const { cookies } = req
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
+            req.user = user
             return next()
           }
 
@@ -238,6 +241,39 @@ export default class RestApi {
     collections.pools.actions = {
       __proto__: null,
 
+      create_vm: withParams(
+        defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
+          params.affinityHost = affinity
+          params.installRepository = install?.repository
+
+          const vm = await $xapi.createVm(template, params, undefined, req.user.id)
+          $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+
+          if (boot) {
+            await $xapi.callAsync('VM.start', vm.$ref, false, false)
+          }
+
+          return vm.uuid
+        }),
+        {
+          affinity: { type: 'string', optional: true },
+          auto_poweron: { type: 'boolean', optional: true },
+          boot: { type: 'boolean', default: false },
+          clone: { type: 'boolean', default: true },
+          install: {
+            type: 'object',
+            optional: true,
+            properties: {
+              method: { enum: ['cdrom', 'network'] },
+              repository: { type: 'string' },
+            },
+          },
+          memory: { type: 'integer', optional: true },
+          name_description: { type: 'string', minLength: 0, optional: true },
+          name_label: { type: 'string' },
+          template: { type: 'string' },
+        }
+      ),
       emergency_shutdown: async ({ xapiObject }) => {
         await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
 
@@ -621,7 +657,7 @@ export default class RestApi {
 
       const { xapiObject, xoObject } = req
       const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
-      const pResult = task.run(() => fn({ xapiObject, xoObject }, params))
+      const pResult = task.run(() => fn({ xapiObject, xoObject }, params, req))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {
