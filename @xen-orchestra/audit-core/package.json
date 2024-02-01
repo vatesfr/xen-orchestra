@@ -13,7 +13,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "tap --lines 67 --functions 92 --branches 52 --statements 67"
+    "test": "node--test"
   },
   "dependencies": {
     "@vates/decorate-with": "^2.1.0",
@@ -28,6 +28,6 @@
     "url": "https://vates.fr"
   },
   "devDependencies": {
-    "tap": "^16.0.1"
+    "test": "^3.3.0"
   }
 }

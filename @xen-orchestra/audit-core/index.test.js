@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert/strict')
-const { afterEach, describe, it } = require('tap').mocha
+const { afterEach, describe, it } = require('test')
 
 const { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } = require('.')
 

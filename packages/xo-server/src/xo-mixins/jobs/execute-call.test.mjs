@@ -1,9 +1,9 @@
 import assert from 'assert/strict'
 import forEach from 'lodash/forEach.js'
-import tap from 'tap'
+import test from 'node:test'
 import { resolveParamsVector } from './execute-call.mjs'
 
-const { describe, it } = tap.mocha
+const { describe, it } = test
 
 describe('resolveParamsVector', function () {
   forEach(

@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { describe, it } from 'tap/mocha'
+import test from 'test'
 
 import {
   generateHotp,
@@ -10,6 +10,8 @@ import {
   verifyHotp,
   verifyTotp,
 } from './index.mjs'
+
+const { describe, it } = test
 
 describe('generateSecret', function () {
   it('generates a string of 32 chars', async function () {

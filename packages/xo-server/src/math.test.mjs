@@ -1,10 +1,10 @@
 import assert from 'assert/strict'
 import forEach from 'lodash/forEach.js'
-import tap from 'tap'
+import test from 'test'
 import { thunkToArray } from './utils.mjs'
 import { crossProduct, mergeObjects } from './math.mjs'
 
-const { describe, it } = tap.mocha
+const { describe, it } = test
 
 describe('mergeObjects', function () {
   forEach(

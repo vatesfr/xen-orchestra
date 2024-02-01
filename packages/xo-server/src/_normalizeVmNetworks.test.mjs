@@ -1,9 +1,10 @@
-import tap from 'tap'
+import assert from 'node:assert'
+import test from 'test'
 
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
 
-tap.test('normalizeVmNetworks', async t => {
-  t.strictSame(
+test('normalizeVmNetworks', async t => {
+  assert.deepStrictEqual(
     normalizeVmNetworks({
       // legacy protocol
       '0/ip': '127.0.0.1 127.0.0.2',

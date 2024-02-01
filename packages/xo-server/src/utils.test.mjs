@@ -1,9 +1,9 @@
 import assert from 'assert/strict'
-import tap from 'tap'
+import test from 'test'
 
 import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils.mjs'
 
-const { describe, it } = tap.mocha
+const { describe, it } = test
 
 // ===================================================================
 

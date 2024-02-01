@@ -1,9 +1,9 @@
 import assert from 'assert/strict'
-import tap from 'tap'
+import test from 'test'
 
 import ensureArray from './_ensureArray.mjs'
 
-const { describe, it } = tap.mocha
+const { describe, it } = test
 
 describe('ensureArray()', function () {
   it('wrap the value in an array', function () {

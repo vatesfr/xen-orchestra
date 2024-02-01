@@ -31,9 +31,9 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "tap"
+    "test": "node--test"
   },
   "devDependencies": {
-    "tap": "^16.3.0"
+    "test": "^3.3.0"
   }
 }

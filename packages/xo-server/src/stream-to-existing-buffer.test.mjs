@@ -1,11 +1,11 @@
 import assert from 'assert/strict'
-import tap from 'tap'
+import test from 'test'
 import { createReadStream, readFile } from 'fs'
 import { fromCallback } from 'promise-toolbox'
 
 import streamToExistingBuffer from './stream-to-existing-buffer.mjs'
 
-const { describe, it } = tap.mocha
+const { describe, it } = test
 
 describe('streamToExistingBuffer()', () => {
   it('read the content of a stream in a buffer', async () => {
