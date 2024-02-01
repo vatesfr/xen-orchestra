@@ -1,13 +1,11 @@
 import { fromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
-import { XXHash64 } from 'xxhash'
+import { xxhash64 } from 'hash-wasm'
 
 async function writeBlock(pack, data, name) {
   await fromCallback.call(pack, pack.entry, { name }, data)
-  const hasher = new XXHash64(0)
-  hasher.update(data)
   // weirdly, ocaml and xxhash return the bytes in reverse order to each other
-  const hash = hasher.digest().reverse().toString('hex').toUpperCase()
+  const hash = (await xxhash64(data)).toString('hex').toUpperCase()
   await fromCallback.call(pack, pack.entry, { name: `${name}.xxhash` }, Buffer.from(hash, 'utf8'))
 }
 export default async function addDisk(pack, vhd, basePath) {
