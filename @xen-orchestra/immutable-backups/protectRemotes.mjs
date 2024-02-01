@@ -55,7 +55,7 @@ async function handleExistingFile(root, indexPath, path) {
       }
     }
   } catch (err) {
-    if (err.code !== 'EEXIST' && err.code !== 'EPERM') {
+    if (err.code !== 'EEXIST') {
       // there can be a symbolic link in the tree
       warn('handleExistingFile', err)
     }
