@@ -52,7 +52,7 @@
     "xo-collection": "^0.5.0"
   },
   "devDependencies": {
-    "tap": "^16.1.0"
+    "tap": "^18.7.0"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",
