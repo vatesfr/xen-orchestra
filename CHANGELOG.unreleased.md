@@ -27,6 +27,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/xva patch
 
 <!--packages-end-->
