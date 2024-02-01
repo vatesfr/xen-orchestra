@@ -57,4 +57,25 @@ describe('immutable-backups/fileIndex', async () => {
     await Directory.liftImmutability(immutDir)
     await rimraf(dir)
   })
+
+  it('handles bomb index files', async () => {
+    const dir = await fs.mkdtemp(path.join(tmpdir(), 'immutable-backups-tests'))
+    const immutDir = path.join(dir, '.immutable')
+    await fs.mkdir(immutDir)
+    const placeholderFile = path.join(dir, 'test.ext')
+    await fs.writeFile(placeholderFile, 'data')
+    await FileIndex.indexFile(placeholderFile, immutDir)
+
+    const indexDayDir = path.join(immutDir, '1980,11-28')
+    await fs.mkdir(indexDayDir)
+    await fs.writeFile(path.join(indexDayDir, 'big'), Buffer.alloc(2 * 1024 * 1024))
+    assert.rejects(async () => {
+      let index, target
+      for await ({ index, target } of FileIndex.listOlderTargets(immutDir, 0)) {
+        // should remove the empty dir
+        assert.strictEqual(true, false, `Nothing should have stayed here, got ${index} ${target}`)
+      }
+    })
+    await rimraf(dir)
+  })
 })

@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
 import { dirname } from 'path'
+const MAX_INDEX_FILE_SIZE = 1024 * 1024
 function sha256(content) {
   return createHash('sha256').update(content).digest('hex')
 }
@@ -68,6 +69,10 @@ export async function* listOlderTargets(immutabilityCachePath, immutabilityDurat
     let nb = 0
     for await (const hashFileEntry of subdir) {
       const entryFullPath = join(subDirPath, hashFileEntry.name)
+      const { size } = await fs.stat(entryFullPath)
+      if (size > MAX_INDEX_FILE_SIZE) {
+        throw new Error(`Index file at ${entryFullPath} is too big, ${size} bytes `)
+      }
       const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
       yield {
         index: entryFullPath,
