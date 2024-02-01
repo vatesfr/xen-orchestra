@@ -31,11 +31,12 @@ export default class ResourceSetQuotas extends Component {
 
       forEach(RESOURCES, resource => {
         if (limits[resource] != null) {
-          const { available, total } = limits[resource]
+          const { available, total, usage } = limits[resource]
+          const _usage = usage === undefined ? total - available : usage
           quotas[resource] = {
             available,
             total,
-            usage: total - available,
+            usage: _usage,
           }
         }
       })
@@ -103,8 +104,12 @@ export default class ResourceSetQuotas extends Component {
                       />
                       <p className='text-xs-center'>
                         {_('resourceSetQuota', {
-                          total: validFormat ? quota.total.toString() : formatSize(quota.total),
-                          usage: validFormat ? quota.usage.toString() : formatSize(quota.usage),
+                          total: !Number.isFinite(quota.total)
+                            ? Infinity
+                            : validFormat
+                              ? quota.total.toString()
+                              : formatSize(quota.total),
+                          usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
                         })}
                       </p>
                     </div>

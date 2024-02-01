@@ -2,6 +2,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import difference from 'lodash/difference.js'
 import every from 'lodash/every.js'
 import forEach from 'lodash/forEach.js'
+import isEmpty from 'lodash/isEmpty.js'
 import isObject from 'lodash/isObject.js'
 import keyBy from 'lodash/keyBy.js'
 import mapToArray from 'lodash/map.js'
@@ -17,6 +18,8 @@ import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils.mj
 // ===================================================================
 
 const synchronizedResourceSets = synchronized()
+
+const LIMITS_RESOURCES = ['cpus', 'disk', 'memory']
 
 const VM_RESOURCES = {
   cpus: true,
@@ -59,6 +62,7 @@ const normalize = set => ({
           : {
               available: limit,
               total: limit,
+              usage: 0,
             }
       )
     : {},
@@ -174,6 +178,28 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
+  _createLimit(set, key, quantity) {
+    const previousLimit = set.limits?.[key]
+    if (previousLimit === undefined) {
+      return {
+        available: quantity,
+        total: quantity,
+        usage: 0,
+      }
+    }
+
+    const { available, total, usage = 0 } = previousLimit // usage can be undefined if the resourceSet was created before this implementation
+    return {
+      available: available - total + quantity || quantity,
+      usage,
+      total: quantity,
+    }
+  }
+
+  _createInfiniteLimit(set, key) {
+    return this._createLimit(set, key)
+  }
+
   @decorateWith(deferrable)
   async updateResourceSet(
     $defer,
@@ -217,23 +243,19 @@ export default class {
     if (objects) {
       set.objects = objects
     }
-    if (limits) {
-      const previousLimits = set.limits
-      set.limits = map(limits, (quantity, id) => {
-        const previous = previousLimits[id]
-        if (!previous) {
-          return {
-            available: quantity,
-            total: quantity,
-          }
-        }
 
-        const { available, total } = previous
-
-        return {
-          available: available - total + quantity,
-          total: quantity,
-        }
+    if (isEmpty(limits)) {
+      LIMITS_RESOURCES.forEach(key => {
+        set.limits[key] = this._createInfiniteLimit(set, key)
+      })
+    } else {
+      const definedLimits = []
+      forEach(limits, (quantity, id) => {
+        definedLimits.push(id)
+        set.limits[id] = this._createLimit(set, id, quantity)
+      })
+      LIMITS_RESOURCES.filter(k => !definedLimits.includes(k)).forEach(key => {
+        set.limits[key] = this._createInfiniteLimit(set, key)
       })
     }
     if (ipPools) {
@@ -372,6 +394,7 @@ export default class {
         if (VM_RESOURCES[id] || id.startsWith('ipPool:')) {
           // only reset VMs related limits
           limit.available = limit.total
+          limit.usage = 0
         }
       })
     })
@@ -397,7 +420,13 @@ export default class {
             forEach(await this.computeResourcesUsage(this._app.getObject(object.$id)), (usage, resource) => {
               const limit = limits[resource]
               if (limit) {
-                limit.available -= usage
+                const available = limit.available - usage
+                limit.usage += usage
+                limit.available = isNaN(available) ? undefined : available
+              } else {
+                limits[resource] = {
+                  usage,
+                }
               }
             })
           })
