@@ -18,6 +18,8 @@ const LOW_THRESHOLD_FACTOR = 0.65
 const HIGH_THRESHOLD_MEMORY_FREE_FACTOR = 1.2
 const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 
+const THRESHOLD_VCPU_RATIO = 0.9
+
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
 export const debugAffinity = str => debug(`anti-affinity: ${str}`)
@@ -93,6 +95,12 @@ function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
     const averages = vmsAverages[vm.id]
     averages.cpu *= averages.nCpus / nCpus
   }
+}
+
+// ===================================================================
+
+function vcpuPerCpuRatio(host) {
+  return host.vcpuCount / host.cpuCount
 }
 
 // ===================================================================
@@ -297,7 +305,14 @@ export default class Plan {
 
     debugVcpuBalancing('Try to apply vCPU prepositionning.')
     debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
-    debugVcpuBalancing(`Average vCPU per CPU: ${idealVcpuPerCpuRatio}`)
+    debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
+
+    // execute prepositionning only if vCPU/CPU ratios are different enough, to prevent executing too often
+    const ratio = vcpuPerCpuRatio(minBy(hostList, vcpuPerCpuRatio)) / vcpuPerCpuRatio(maxBy(hostList, vcpuPerCpuRatio))
+    if (ratio > THRESHOLD_VCPU_RATIO) {
+      debugVcpuBalancing(`vCPU ratios not different enough : ${ratio}`)
+      return
+    }
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
@@ -306,7 +321,7 @@ export default class Plan {
     const sources = sortBy(
       filter(hostList, host => (host.vcpuCount - 1) / host.cpuCount >= idealVcpuPerCpuRatio),
       [
-        host => -host.vcpuCount / host.cpuCount,
+        host => -vcpuPerCpuRatio(host),
         // Find host with the most memory used
         host => hostsAverages[host.id].memoryFree,
       ]
@@ -326,7 +341,7 @@ export default class Plan {
         [
           // trying to avoid migrations between pools
           host => host.poolId === sourceHost.poolId,
-          host => host.vcpuCount / host.cpuCount,
+          vcpuPerCpuRatio,
           host => -hostsAverages[host.id].memoryFree,
         ]
       )
@@ -405,11 +420,11 @@ export default class Plan {
 
             // 5. Check if source host is still overloaded and if destination host is still underloaded
             deltaSource = sourceHost.vcpuCount - sourceHost.cpuCount * idealVcpuPerCpuRatio
-            deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
             if (deltaSource < 1) {
               // eslint-disable-next-line no-labels
               break destinationLoop
             }
+            deltaDestination = destinationHost.vcpuCount - destinationHost.cpuCount * idealVcpuPerCpuRatio
             if (deltaDestination >= 0) {
               break
             }
