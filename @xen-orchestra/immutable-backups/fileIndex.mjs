@@ -60,13 +60,13 @@ export async function* listOlderTargets(immutabilityCachePath, immutabilityDurat
       continue
     }
     // recent enough to be kept
-    if (dir.name >= limitDay) {
+    if (dirent.name >= limitDay) {
       continue
     }
-    const subDirPath = join(immutabilityDuration, dirent.name)
+    const subDirPath = join(immutabilityCachePath, dirent.name)
     const subdir = await fs.opendir(subDirPath)
     let nb = 0
-    for await (const hashFileEntry of dir) {
+    for await (const hashFileEntry of subdir) {
       const entryFullPath = join(subDirPath, hashFileEntry.name)
       const targetPath = await fs.readFile(entryFullPath, { encoding: 'utf8' })
       yield {
@@ -77,7 +77,7 @@ export async function* listOlderTargets(immutabilityCachePath, immutabilityDurat
     }
     // cleanup older folder
     if (nb === 0) {
-      await fs.rmdir(subdir)
+      await fs.rmdir(subDirPath)
     }
   }
 }
