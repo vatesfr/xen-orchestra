@@ -27,17 +27,6 @@ export async function indexFile(path, immutabilityIndexPath) {
     if (err.code === 'ENOENT') {
       await fs.mkdir(dirname(indexFilePath), { recursive: true })
       await fs.writeFile(indexFilePath, path)
-    } else if (err.code === 'EPERM') {
-      // an immutable file alreay exist : not a problem if it contains the right target
-      const { size } = await fs.stat(indexFilePath)
-      if (size.length > 1024 * 1024) {
-        throw new Error(`Index file at ${indexFilePath} is too big, ${size} bytes `)
-      }
-      const existingContent = await fs.readFile(indexFilePath, { encoding: 'utf8' })
-      if (existingContent !== path) {
-        throw new Error(`Index file at ${indexFilePath}, should contains ${path}, but contains ${existingContent}`)
-      }
-      throw err
     } else {
       throw err
     }
