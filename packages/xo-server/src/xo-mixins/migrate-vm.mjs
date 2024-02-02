@@ -249,7 +249,7 @@ export default class MigrateVm {
             const disk = chainByNode[diskIndex]
             const { capacity, descriptionLabel, fileName, nameLabel, path, datastore, isFull } = disk
             if (isFull) {
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName)
+              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin: false })
               // we don't need to read the BAT with the importVdiThroughXva process
               const vdiMetadata = {
                 name_description: 'fromESXI' + descriptionLabel,
