@@ -11,6 +11,8 @@ async function writeBlock(pack, data, name) {
 export default async function addDisk(pack, vhd, basePath) {
   let counter = 0
   let written
+  let lastBlockWrittenAt = Date.now()
+  const MAX_INTERVAL_BETWEEN_BLOCKS = 60 * 1000
   const chunk_length = 1024 * 1024
   const empty = Buffer.alloc(chunk_length, 0)
   const stream = await vhd.rawContent()
@@ -21,10 +23,18 @@ export default async function addDisk(pack, vhd, basePath) {
     const data = await readChunkStrict(stream, Math.min(chunk_length, remaining))
     lastBlockLength = data.length
     remaining -= lastBlockLength
-
-    if (counter === 0 || !data.equals(empty)) {
+    if (
+      // write first block
+      counter === 0 ||
+      // write all non empty blocks
+      !data.equals(empty) ||
+      // write one block from time to time to ensure there is no timeout
+      // occurring while passing empty blocks
+      Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS
+    ) {
       written = true
       await writeBlock(pack, data, `${basePath}/${('' + counter).padStart(8, '0')}`)
+      lastBlockWrittenAt = Date.now()
     } else {
       written = false
     }
