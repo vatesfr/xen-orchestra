@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,5 +31,6 @@
 
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/xva patch
+- xo-server patch
 
 <!--packages-end-->

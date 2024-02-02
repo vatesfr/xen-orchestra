@@ -1326,7 +1326,7 @@ async function import_({ data, sr, type = 'xva', url }) {
     }
 
     const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
-    return xapi.call('VM.get_by_uuid', ref)
+    return xapi.call('VM.get_uuid', ref)
   }
 
   return {
