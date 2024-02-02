@@ -1,3 +1,4 @@
+import { formatBlockPath } from './_formatBlockPath.mjs'
 import { fromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { xxhash64 } from 'hash-wasm'
@@ -33,7 +34,7 @@ export default async function addDisk(pack, vhd, basePath) {
       Date.now() - lastBlockWrittenAt > MAX_INTERVAL_BETWEEN_BLOCKS
     ) {
       written = true
-      await writeBlock(pack, data, `${basePath}/${('' + counter).padStart(8, '0')}`)
+      await writeBlock(pack, data, formatBlockPath(basePath, counter))
       lastBlockWrittenAt = Date.now()
     } else {
       written = false
@@ -42,6 +43,6 @@ export default async function addDisk(pack, vhd, basePath) {
   }
   if (!written) {
     // last block must be present
-    writeBlock(pack, empty.slice(0, lastBlockLength), `${basePath}/${counter}`)
+    writeBlock(pack, empty.slice(0, lastBlockLength), `${basePath}/${('' + counter).padStart(8, '0')}`)
   }
 }
