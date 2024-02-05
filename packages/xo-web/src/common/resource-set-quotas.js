@@ -90,18 +90,22 @@ export default class ResourceSetQuotas extends Component {
                 <CardBlock className='text-center'>
                   {quota !== undefined ? (
                     <div>
-                      <ChartistGraph
-                        data={{
-                          labels,
-                          series: [quota.available, quota.usage],
-                        }}
-                        options={{
-                          donut: true,
-                          donutWidth: 40,
-                          showLabel: false,
-                        }}
-                        type='Pie'
-                      />
+                      {Number.isFinite(quota.total) && quota.total !== Infinity ? (
+                        <ChartistGraph
+                          data={{
+                            labels,
+                            series: [quota.available, quota.usage],
+                          }}
+                          options={{
+                            donut: true,
+                            donutWidth: 40,
+                            showLabel: false,
+                          }}
+                          type='Pie'
+                        />
+                      ) : (
+                        <p className='text-xs-center display-1'>&infin;</p>
+                      )}
                       <p className='text-xs-center'>
                         {_('resourceSetQuota', {
                           total: !Number.isFinite(quota.total)
