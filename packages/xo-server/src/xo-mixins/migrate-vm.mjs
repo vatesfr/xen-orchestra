@@ -258,11 +258,14 @@ export default class MigrateVm {
                 virtual_size: capacity,
               }
               vdi = await importVdiThroughXva(vdiMetadata, vhd, xapi, sr)
+
               // it can fail before the vdi is connected to the vm
               $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
               await xapi.VBD_create({
                 VDI: vdi.$ref,
                 VM: vm.$ref,
+                device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+                userdevice: userdevice < 3 ? userdevice : userdevice + 1,
               })
             } else {
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
@@ -312,6 +315,8 @@ export default class MigrateVm {
               await xapi.VBD_create({
                 VDI: vdi.$ref,
                 VM: vm.$ref,
+                device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+                userdevice: userdevice < 3 ? userdevice : userdevice + 1,
               })
             } else {
               if (parentVhd === undefined) {
