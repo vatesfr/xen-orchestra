@@ -626,7 +626,7 @@ export default class RestApi {
           ),
           limit: ifDef(query.limit, Number),
         })
-        await sendObjects(tasks, req, res, req.baseUrl + '/tasks')
+        await sendObjects(tasks, req, res, '/tasks')
       })
     )
 
