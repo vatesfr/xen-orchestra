@@ -90,7 +90,7 @@ export default class ResourceSetQuotas extends Component {
                 <CardBlock className='text-center'>
                   {quota !== undefined ? (
                     <div>
-                      {Number.isFinite(quota.total) && quota.total !== Infinity ? (
+                      {Number.isFinite(quota.total) ? (
                         <ChartistGraph
                           data={{
                             labels,
