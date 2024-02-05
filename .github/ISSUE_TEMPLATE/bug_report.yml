@@ -64,7 +64,7 @@ body:
     id: error-message
     attributes:
       label: Error message
-      render: Markdown
+      render: Text
     validations:
       required: false
   - type: textarea
