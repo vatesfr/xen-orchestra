@@ -52,6 +52,6 @@ export default async function addDisk(pack, vhd, basePath) {
   }
   if (!written) {
     // last block must be present
-    await writeBlock(pack, empty, formatBlockPath(basePath, counter))
+    await writeBlock(pack, empty, formatBlockPath(basePath, counter - 1))
   }
 }
