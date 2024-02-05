@@ -3,7 +3,12 @@ import { fromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 import { xxhash64 } from 'hash-wasm'
 
+export const XVA_DISK_CHUNK_LENGTH = 1024 * 1024
+
 async function writeBlock(pack, data, name) {
+  if (data.length < XVA_DISK_CHUNK_LENGTH) {
+    data = Buffer.concat([data, Buffer.alloc(XVA_DISK_CHUNK_LENGTH - data.length, 0)])
+  }
   await fromCallback.call(pack, pack.entry, { name }, data)
   // weirdly, ocaml and xxhash return the bytes in reverse order to each other
   const hash = (await xxhash64(data)).toString('hex').toUpperCase()
@@ -14,15 +19,14 @@ export default async function addDisk(pack, vhd, basePath) {
   let written
   let lastBlockWrittenAt = Date.now()
   const MAX_INTERVAL_BETWEEN_BLOCKS = 60 * 1000
-  const chunk_length = 1024 * 1024
-  const empty = Buffer.alloc(chunk_length, 0)
+  const empty = Buffer.alloc(XVA_DISK_CHUNK_LENGTH, 0)
   const stream = await vhd.rawContent()
   let lastBlockLength
   const diskSize = vhd.footer.currentSize
   let remaining = diskSize
   while (remaining > 0) {
-    const data = await readChunkStrict(stream, Math.min(chunk_length, remaining))
-    lastBlockLength = data.length
+    lastBlockLength = Math.min(XVA_DISK_CHUNK_LENGTH, remaining)
+    const data = await readChunkStrict(stream, lastBlockLength)
     remaining -= lastBlockLength
     if (
       // write first block
@@ -43,6 +47,6 @@ export default async function addDisk(pack, vhd, basePath) {
   }
   if (!written) {
     // last block must be present
-    writeBlock(pack, empty.slice(0, lastBlockLength), `${basePath}/${('' + counter).padStart(8, '0')}`)
+    writeBlock(pack, empty, `${basePath}/${('' + counter).padStart(8, '0')}`)
   }
 }

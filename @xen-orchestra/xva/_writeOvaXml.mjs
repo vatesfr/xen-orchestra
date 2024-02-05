@@ -9,6 +9,7 @@ import { DEFAULT_VDI } from './templates/vdi.mjs'
 import { DEFAULT_VIF } from './templates/vif.mjs'
 import { DEFAULT_VM } from './templates/vm.mjs'
 import toOvaXml from './_toOvaXml.mjs'
+import { XVA_DISK_CHUNK_LENGTH } from './_writeDisk.mjs'
 
 export default async function writeOvaXml(
   pack,
@@ -79,11 +80,12 @@ export default async function writeOvaXml(
   for (let index = 0; index < vhds.length; index++) {
     const userdevice = index + 1
     const vhd = vhds[index]
+    const alignedSize = Math.ceil(vdis[index].virtual_size / XVA_DISK_CHUNK_LENGTH) * XVA_DISK_CHUNK_LENGTH
     const vdi = defaultsDeep(
       {
         id: nextRef(),
-        // overwrite SR from an opaqref to a ref:
-        snapshot: { ...vdis[index], SR: srObj.id },
+        // overwrite SR from an opaque ref to a ref:
+        snapshot: { ...vdis[index], SR: srObj.id, virtual_size: alignedSize },
       },
       {
         snapshot: {
