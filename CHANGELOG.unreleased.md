@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+[Self service] From user POV, show used resources even when they are unlimited (PR [7353](https://github.com/vatesfr/xen-orchestra/pull/7353))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
