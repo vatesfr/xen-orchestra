@@ -160,77 +160,7 @@ export default class RestApi {
       )
     })
 
-    const types = [
-      'host',
-      'network',
-      'pool',
-      'SR',
-      'VBD',
-      'VDI-snapshot',
-      'VDI',
-      'VIF',
-      'VM-snapshot',
-      'VM-template',
-      'VM',
-    ]
-    const collections = Object.fromEntries(
-      types.map(type => {
-        const id = type.toLocaleLowerCase() + 's'
-        return [id, { id, isCorrectType: _ => _.type === type, type }]
-      })
-    )
-
-    collections.backup = { id: 'backup' }
-    collections.restore = { id: 'restore' }
-    collections.tasks = { id: 'tasks' }
-    collections.users = { id: 'users' }
-
-    collections.hosts.routes = {
-      __proto__: null,
-
-      async 'audit.txt'(req, res) {
-        const host = req.xapiObject
-
-        res.setHeader('content-type', 'text/plain')
-        await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
-      },
-
-      async 'logs.tar'(req, res) {
-        const host = req.xapiObject
-
-        res.setHeader('content-type', 'application/x-tar')
-        await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
-      },
-
-      async missing_patches(req, res) {
-        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
-
-        const host = req.xapiObject
-        res.json(await host.$xapi.listMissingPatches(host))
-      },
-    }
-
-    collections.pools.routes = {
-      __proto__: null,
-
-      async missing_patches(req, res) {
-        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
-
-        const xapi = req.xapiObject.$xapi
-        const missingPatches = new Map()
-        await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
-          try {
-            for (const patch of await xapi.listMissingPatches(host)) {
-              const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
-              missingPatches.set(key, patch)
-            }
-          } catch (error) {
-            console.warn(host.uuid, error)
-          }
-        })
-        res.json(Array.from(missingPatches.values()))
-      },
-    }
+    const collections = { __proto__: null }
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -238,68 +168,151 @@ export default class RestApi {
       return fn
     }
 
-    collections.pools.actions = {
-      __proto__: null,
+    {
+      const types = [
+        'host',
+        'network',
+        'pool',
+        'SR',
+        'VBD',
+        'VDI-snapshot',
+        'VDI',
+        'VIF',
+        'VM-snapshot',
+        'VM-template',
+        'VM',
+      ]
+      for (const type of types) {
+        const id = type.toLocaleLowerCase() + 's'
 
-      create_vm: withParams(
-        defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
-          params.affinityHost = affinity
-          params.installRepository = install?.repository
+        collections[id] = { isCorrectType: _ => _.type === type, type }
+      }
 
-          const vm = await $xapi.createVm(template, params, undefined, req.user.id)
-          $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+      collections.hosts.routes = {
+        async 'audit.txt'(req, res) {
+          const host = req.xapiObject
 
-          if (boot) {
-            await $xapi.callAsync('VM.start', vm.$ref, false, false)
-          }
-
-          return vm.uuid
-        }),
-        {
-          affinity: { type: 'string', optional: true },
-          auto_poweron: { type: 'boolean', optional: true },
-          boot: { type: 'boolean', default: false },
-          clone: { type: 'boolean', default: true },
-          install: {
-            type: 'object',
-            optional: true,
-            properties: {
-              method: { enum: ['cdrom', 'network'] },
-              repository: { type: 'string' },
-            },
-          },
-          memory: { type: 'integer', optional: true },
-          name_description: { type: 'string', minLength: 0, optional: true },
-          name_label: { type: 'string' },
-          template: { type: 'string' },
-        }
-      ),
-      emergency_shutdown: async ({ xapiObject }) => {
-        await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
-
-        await xapiObject.$xapi.pool_emergencyShutdown()
-      },
-      rolling_update: async ({ xoObject }) => {
-        await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
-
-        await app.rollingPoolUpdate(xoObject)
-      },
-    }
-    collections.vms.actions = {
-      __proto__: null,
-
-      clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
-      clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
-      hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
-      hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
-      snapshot: withParams(
-        async ({ xapiObject: vm }, { name_label }) => {
-          const ref = await vm.$snapshot({ name_label })
-          return vm.$xapi.getField('VM', ref, 'uuid')
+          res.setHeader('content-type', 'text/plain')
+          await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
         },
-        { name_label: { type: 'string', optional: true } }
-      ),
-      start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
+
+        async 'logs.tar'(req, res) {
+          const host = req.xapiObject
+
+          res.setHeader('content-type', 'application/x-tar')
+          await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
+        },
+
+        async missing_patches(req, res) {
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
+          const host = req.xapiObject
+          res.json(await host.$xapi.listMissingPatches(host))
+        },
+      }
+
+      collections.pools.routes = {
+        async missing_patches(req, res) {
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
+          const xapi = req.xapiObject.$xapi
+          const missingPatches = new Map()
+          await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
+            try {
+              for (const patch of await xapi.listMissingPatches(host)) {
+                const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
+                missingPatches.set(key, patch)
+              }
+            } catch (error) {
+              console.warn(host.uuid, error)
+            }
+          })
+          res.json(Array.from(missingPatches.values()))
+        },
+      }
+
+      collections.pools.actions = {
+        create_vm: withParams(
+          defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
+            params.affinityHost = affinity
+            params.installRepository = install?.repository
+
+            const vm = await $xapi.createVm(template, params, undefined, req.user.id)
+            $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+
+            if (boot) {
+              await $xapi.callAsync('VM.start', vm.$ref, false, false)
+            }
+
+            return vm.uuid
+          }),
+          {
+            affinity: { type: 'string', optional: true },
+            auto_poweron: { type: 'boolean', optional: true },
+            boot: { type: 'boolean', default: false },
+            clone: { type: 'boolean', default: true },
+            install: {
+              type: 'object',
+              optional: true,
+              properties: {
+                method: { enum: ['cdrom', 'network'] },
+                repository: { type: 'string' },
+              },
+            },
+            memory: { type: 'integer', optional: true },
+            name_description: { type: 'string', minLength: 0, optional: true },
+            name_label: { type: 'string' },
+            template: { type: 'string' },
+          }
+        ),
+        emergency_shutdown: async ({ xapiObject }) => {
+          await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
+
+          await xapiObject.$xapi.pool_emergencyShutdown()
+        },
+        rolling_update: async ({ xoObject }) => {
+          await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+
+          await app.rollingPoolUpdate(xoObject)
+        },
+      }
+      collections.vms.actions = {
+        clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
+        clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
+        hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
+        hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
+        snapshot: withParams(
+          async ({ xapiObject: vm }, { name_label }) => {
+            const ref = await vm.$snapshot({ name_label })
+            return vm.$xapi.getField('VM', ref, 'uuid')
+          },
+          { name_label: { type: 'string', optional: true } }
+        ),
+        start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
+      }
+    }
+
+    collections.backup = {}
+    collections.restore = {}
+    collections.tasks = {}
+    collections.users = {}
+
+    // normalize collections
+    for (const id of Object.keys(collections)) {
+      const collection = collections[id]
+
+      // inject id into the collection
+      collection.id = id
+
+      // set null as prototypes to speed-up look-ups
+      Object.setPrototypeOf(collection, null)
+      const { actions, routes } = collection
+      if (actions !== undefined) {
+        Object.setPrototypeOf(actions, null)
+      }
+      if (routes !== undefined) {
+        Object.setPrototypeOf(routes, null)
+      }
     }
 
     api.param('collection', (req, res, next) => {
