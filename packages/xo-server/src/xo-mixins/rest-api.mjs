@@ -182,6 +182,7 @@ export default class RestApi {
     {
       const types = [
         'host',
+        'message',
         'network',
         'pool',
         'SR',
@@ -208,13 +209,30 @@ export default class RestApi {
           limit,
         })
       }
+      async function messages(req, res) {
+        const {
+          object: { id },
+          query,
+        } = req
+        await sendObjects(
+          app.getObjects({
+            filter: every(_ => _.type === 'message' && _.$object === id, handleOptionalUserFilter(query.filter)),
+            limit: ifDef(query.limit, Number),
+          }),
+          req,
+          res,
+          '/messages'
+        )
+      }
       for (const type of types) {
         const id = type.toLocaleLowerCase() + 's'
 
-        collections[id] = { getObject, getObjects, isCorrectType: _ => _.type === type, type }
+        collections[id] = { getObject, getObjects, routes: { messages }, isCorrectType: _ => _.type === type, type }
       }
 
       collections.hosts.routes = {
+        ...collections.hosts.routes,
+
         async 'audit.txt'(req, res) {
           const host = req.xapiObject
 
@@ -238,6 +256,8 @@ export default class RestApi {
       }
 
       collections.pools.routes = {
+        ...collections.pools.routes,
+
         async missing_patches(req, res) {
           await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 

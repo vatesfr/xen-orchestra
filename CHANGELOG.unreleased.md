@@ -9,6 +9,7 @@
 
 - [REST API] Add `/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
 - [REST API] Add `/groups/:id/users` and `/users/:id/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Expose messages associated to XAPI objects at `/:collection/:object/messages`
 
 ### Bug fixes
 
