@@ -13,6 +13,7 @@
 
 - [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
 - [Proxies] Fix `xapi.getOrWaitObject is not a function` is not a function during deployment
+- [REST API] Fix empty object's tasks list
 
 ### Packages to release
 

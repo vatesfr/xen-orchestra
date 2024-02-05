@@ -620,7 +620,10 @@ export default class RestApi {
         const { query } = req
         const objectId = req.xoObject.id
         const tasks = app.tasks.list({
-          filter: every(_ => _.status === 'pending' && _.objectId === objectId, handleOptionalUserFilter(query.filter)),
+          filter: every(
+            _ => _.status === 'pending' && _.properties.objectId === objectId,
+            handleOptionalUserFilter(query.filter)
+          ),
           limit: ifDef(query.limit, Number),
         })
         await sendObjects(tasks, req, res, req.baseUrl + '/tasks')
