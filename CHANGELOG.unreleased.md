@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
+- [Proxies] Fix `xapi.getOrWaitObject is not a function` is not a function during deployment
 
 ### Packages to release
 

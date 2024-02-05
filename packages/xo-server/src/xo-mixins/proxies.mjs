@@ -271,7 +271,7 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    const vm = await xapi.getOrWaitObject(
+    const vm = await xapi._getOrWaitObject(
       await xapi.VM_import(
         await app.requestResource({
           id: xva.id,
