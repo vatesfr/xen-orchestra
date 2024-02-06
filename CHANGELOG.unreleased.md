@@ -33,7 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/xva patch
 - xo-server patch
 
