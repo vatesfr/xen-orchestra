@@ -11,12 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Import/VMWare] Fix `Error: task has been destroyed before completion` with XVA import [Forum#70513](https://xcp-ng.org/forum/post/70513)
-- [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
-- [Proxies] Fix `xapi.getOrWaitObject is not a function` is not a function during deployment
-- [REST API] Fix empty object's tasks list
-- [REST API] Fix incorrect `href` in `/:collection/:object/tasks`
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,7 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- xo-server patch
 
 <!--packages-end-->

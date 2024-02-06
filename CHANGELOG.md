@@ -2,10 +2,19 @@
 
 ## **next**
 
+### Bug fixes
+
+- [Import/VMWare] Fix `Error: task has been destroyed before completion` with XVA import [Forum#70513](https://xcp-ng.org/forum/post/70513)
+- [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
+- [Proxies] Fix `xapi.getOrWaitObject is not a function` is not a function during deployment
+- [REST API] Fix empty object's tasks list
+- [REST API] Fix incorrect `href` in `/:collection/:object/tasks`
+
 ### Released packages
 
 - @xen-orchestra/immutable-backups 1.0.1
 - @xen-orchestra/xva 1.0.2
+- xo-server 5.135.1
 
 ## **5.91.0** (2024-01-31)
 
