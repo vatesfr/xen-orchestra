@@ -33,7 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xva patch
 - xo-server patch
 
 <!--packages-end-->

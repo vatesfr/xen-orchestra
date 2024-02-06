@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/immutable-backups 1.0.1
+- @xen-orchestra/xva 1.0.2
 
 ## **5.91.0** (2024-01-31)
 
