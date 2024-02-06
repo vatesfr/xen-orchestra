@@ -182,10 +182,19 @@ export default class RestApi {
         'VM-template',
         'VM',
       ]
+      function getObject(id, req) {
+        const { type } = this
+        const object = app.getObject(id, type)
+
+        // add also the XAPI version of the object
+        req.xapiObject = app.getXapiObject(object)
+
+        return object
+      }
       for (const type of types) {
         const id = type.toLocaleLowerCase() + 's'
 
-        collections[id] = { isCorrectType: _ => _.type === type, type }
+        collections[id] = { getObject, isCorrectType: _ => _.type === type, type }
       }
 
       collections.hosts.routes = {
@@ -270,10 +279,10 @@ export default class RestApi {
 
           await xapiObject.$xapi.pool_emergencyShutdown()
         },
-        rolling_update: async ({ xoObject }) => {
+        rolling_update: async ({ object }) => {
           await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
 
-          await app.rollingPoolUpdate(xoObject)
+          await app.rollingPoolUpdate(object)
         },
       }
       collections.vms.actions = {
@@ -295,7 +304,11 @@ export default class RestApi {
     collections.backup = {}
     collections.restore = {}
     collections.tasks = {}
-    collections.users = {}
+    collections.users = {
+      getObject(id) {
+        return app.getUser(id).then(getUserPublicProperties)
+      },
+    }
 
     // normalize collections
     for (const id of Object.keys(collections)) {
@@ -325,14 +338,14 @@ export default class RestApi {
         next()
       }
     })
-    api.param('object', (req, res, next) => {
+    api.param('object', async (req, res, next) => {
       const id = req.params.object
-      const { type } = req.collection
       try {
-        req.xapiObject = app.getXapiObject((req.xoObject = app.getObject(id, type)))
-        next()
+        // eslint-disable-next-line require-atomic-updates
+        req.object = await req.collection.getObject(id, req)
+        return next()
       } catch (error) {
-        if (noSuchObject.is(error, { id, type })) {
+        if (noSuchObject.is(error, { id })) {
           next('route')
         } else {
           next(error)
@@ -491,29 +504,22 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/users',
-        wrap(async (req, res) => {
-          let users = await app.getAllUsers()
+    api.get(
+      '/users',
+      wrap(async (req, res) => {
+        let users = await app.getAllUsers()
 
-          const { filter, limit } = req.query
-          if (filter !== undefined) {
-            users = users.filter(CM.parse(filter).createPredicate())
-          }
-          if (limit < users.length) {
-            users.length = limit
-          }
+        const { filter, limit } = req.query
+        if (filter !== undefined) {
+          users = users.filter(CM.parse(filter).createPredicate())
+        }
+        if (limit < users.length) {
+          users.length = limit
+        }
 
-          sendObjects(users.map(getUserPublicProperties), req, res)
-        })
-      )
-      .get(
-        '/users/:id',
-        wrap(async (req, res) => {
-          res.json(getUserPublicProperties(await app.getUser(req.params.id)))
-        })
-      )
+        sendObjects(users.map(getUserPublicProperties), req, res)
+      })
+    )
 
     api.get(
       '/:collection',
@@ -576,7 +582,7 @@ export default class RestApi {
     )
 
     api.get('/:collection/:object', (req, res) => {
-      let result = req.xoObject
+      let result = req.object
 
       // add locations of sub-routes for discoverability
       const { routes } = req.collection
@@ -631,7 +637,7 @@ export default class RestApi {
       '/:collection/:object/tasks',
       wrap(async (req, res) => {
         const { query } = req
-        const objectId = req.xoObject.id
+        const objectId = req.object.id
         const tasks = app.tasks.list({
           filter: every(
             _ => _.status === 'pending' && _.properties.objectId === objectId,
@@ -671,9 +677,9 @@ export default class RestApi {
         }
       }
 
-      const { xapiObject, xoObject } = req
-      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
-      const pResult = task.run(() => fn({ xapiObject, xoObject }, params, req))
+      const { object, xapiObject } = req
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: object.id })
+      const pResult = task.run(() => fn({ object, xapiObject }, params, req))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {
