@@ -48,15 +48,18 @@ const getLogs = (db, args) => {
 
 const deleteLogs = (db, args) =>
   new Promise(resolve => {
-    let count = 1
+    let nDeleted = 0
+    let nRunning = 1
     const cb = () => {
-      if (--count === 0) {
+      if (--nRunning === 0) {
+        console.log(nDeleted.toLocaleString(), 'deleted entries')
         resolve()
       }
     }
 
     const deleteEntry = key => {
-      ++count
+      ++nDeleted
+      ++nRunning
       db.del(key, cb)
     }
 
