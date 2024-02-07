@@ -555,6 +555,11 @@ export default class Home extends Component {
   _setNItemsPerPage(nItems) {
     this.setState({ homeItemsPerPage: nItems })
     cookies.set('homeItemsPerPage', nItems)
+
+    // changing the number of items per page should send back to the first page
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/7350
+    this._onPageSelection(1)
   }
 
   _getPage() {

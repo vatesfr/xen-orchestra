@@ -13,6 +13,7 @@
 
 - [Import/VMWare] Fix `(Failure \"Expected string, got 'I(0)'\")` (PR [#7361](https://github.com/vatesfr/xen-orchestra/issues/7361))
 - [Plugin/load-balancer] Fixing `TypeError: Cannot read properties of undefined (reading 'high')` happening when trying to optimize a host with performance plan [#7359](https://github.com/vatesfr/xen-orchestra/issues/7359) (PR [#7362](https://github.com/vatesfr/xen-orchestra/pull/7362))
+- Changing the number of displayed items per page should send back to the first page [#7350](https://github.com/vatesfr/xen-orchestra/issues/7350)
 
 ### Packages to release
 
@@ -32,5 +33,6 @@
 
 - xo-server patch
 - xo-server-load-balancer patch
+- xo-web patch
 
 <!--packages-end-->

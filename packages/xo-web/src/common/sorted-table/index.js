@@ -752,6 +752,11 @@ class SortedTable extends Component {
     const { location, stateUrlParam } = this.props
     this.setState({ itemsPerPage })
     cookies.set(`${location.pathname}-${stateUrlParam}`, itemsPerPage)
+
+    // changing the number of items per page should send back to the first page
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/7350
+    this._setPage(1)
   }
 
   render() {
