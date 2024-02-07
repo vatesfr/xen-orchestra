@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import/VMWare] Fix `(Failure \"Expected string, got 'I(0)'\")` (PR [#7361](https://github.com/vatesfr/xen-orchestra/issues/7361))
+- [Plugin/load-balancer] Fixing `TypeError: Cannot read properties of undefined (reading 'high')` happening when trying to optimize a host with performance plan [#7359](https://github.com/vatesfr/xen-orchestra/issues/7359) (PR [#7362](https://github.com/vatesfr/xen-orchestra/pull/7362))
 
 ### Packages to release
 
@@ -30,5 +31,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-server-load-balancer patch
 
 <!--packages-end-->
