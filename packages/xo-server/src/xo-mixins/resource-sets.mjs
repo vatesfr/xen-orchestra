@@ -339,7 +339,7 @@ export default class {
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
       if (!limit) {
-        set.limits[id] = quantity
+        set.limits[id] = { usage: quantity }
         return
       }
 
@@ -363,6 +363,7 @@ export default class {
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
       if (!limit) {
+        set.limits[id] = { usage: 0 }
         return
       }
 
