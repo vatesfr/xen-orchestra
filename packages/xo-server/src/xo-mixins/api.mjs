@@ -410,7 +410,9 @@ export default class Api {
       // 2021-02-11: Work-around: ECONNREFUSED error can be triggered by
       // 'host.stats' method because there is no connection to the host during a
       // toolstack restart and xo-web may call it often
-      if (name !== 'pool.listMissingPatches' && name !== 'host.stats') {
+      // 2024-02-05: Work-around: in case of XO Proxy errors, `proxy.getApplianceUpdaterState` will
+      // flood the logs.
+      if (name !== 'pool.listMissingPatches' && name !== 'host.stats' && name !== 'proxy.getApplianceUpdaterState') {
         this._logger.error(message, {
           ...data,
           duration: Date.now() - startTime,
