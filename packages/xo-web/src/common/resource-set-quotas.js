@@ -31,12 +31,10 @@ export default class ResourceSetQuotas extends Component {
 
       forEach(RESOURCES, resource => {
         if (limits[resource] != null) {
-          const { available, total, usage } = limits[resource]
-          const _usage = usage === undefined ? total - available : usage
+          const { total, usage } = limits[resource]
           quotas[resource] = {
-            available,
             total,
-            usage: _usage,
+            usage,
           }
         }
       })
@@ -94,7 +92,7 @@ export default class ResourceSetQuotas extends Component {
                         <ChartistGraph
                           data={{
                             labels,
-                            series: [quota.available, quota.usage],
+                            series: [quota.total - quota.usage, quota.usage],
                           }}
                           options={{
                             donut: true,
