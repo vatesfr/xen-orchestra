@@ -12,6 +12,8 @@ import { EXECUTION_DELAY, debug } from './utils'
 
 const PERFORMANCE_MODE = 0
 const DENSITY_MODE = 1
+const SIMPLE_MODE = 2
+const MODES = { 'Performance mode': PERFORMANCE_MODE, 'Density mode': DENSITY_MODE, 'Simple mode': SIMPLE_MODE }
 
 // ===================================================================
 
@@ -35,7 +37,7 @@ export const configurationSchema = {
           },
 
           mode: {
-            enum: ['Performance mode', 'Density mode', 'Simple mode'],
+            enum: Object.keys(MODES),
             title: 'Mode',
           },
 
@@ -147,7 +149,7 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        this._addPlan(plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE, plan)
+        this._addPlan(MODES[plan.mode], plan)
       }
     }
   }
