@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Add `/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,7 +33,7 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-server minor
 - xo-server-load-balancer patch
 - xo-web patch
 
