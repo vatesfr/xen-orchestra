@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Add `/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Add `/groups/:id/users` and `/users/:id/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
 
 ### Bug fixes
 

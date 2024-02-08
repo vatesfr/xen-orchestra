@@ -326,6 +326,21 @@ export default class RestApi {
       async getObjects(filter, limit) {
         return handleArray(await app.getAllGroups(), filter, limit)
       },
+      routes: {
+        async users(req, res) {
+          const { filter, limit } = req.query
+          await sendObjects(
+            handleArray(
+              await Promise.all(req.object.users.map(id => app.getUser(id).then(getUserPublicProperties))),
+              handleOptionalUserFilter(filter),
+              ifDef(limit, Number)
+            ),
+            req,
+            res,
+            '/users'
+          )
+        },
+      },
     }
     collections.restore = {}
     collections.tasks = {}
@@ -335,6 +350,21 @@ export default class RestApi {
       },
       async getObjects(filter, limit) {
         return handleArray(await app.getAllUsers(), filter, limit)
+      },
+      routes: {
+        async groups(req, res) {
+          const { filter, limit } = req.query
+          await sendObjects(
+            handleArray(
+              await Promise.all(req.object.groups.map(id => app.getGroup(id))),
+              handleOptionalUserFilter(filter),
+              ifDef(limit, Number)
+            ),
+            req,
+            res,
+            '/groups'
+          )
+        },
       },
     }
 
