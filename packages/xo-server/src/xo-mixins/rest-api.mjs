@@ -100,6 +100,17 @@ async function sendObjects(iterable, req, res, path = req.path) {
   return pipeline(makeObjectsStream(iterable, makeResult, json, res), res)
 }
 
+function handleArray(array, filter, limit) {
+  if (filter !== undefined) {
+    array = array.filter(filter)
+  }
+  if (limit < array.length) {
+    array.length = limit
+  }
+
+  return array
+}
+
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
 
 const subRouter = (app, path) => {
@@ -191,10 +202,16 @@ export default class RestApi {
 
         return object
       }
+      function getObjects(filter, limit) {
+        return app.getObjects({
+          filter: every(this.isCorrectType, filter),
+          limit,
+        })
+      }
       for (const type of types) {
         const id = type.toLocaleLowerCase() + 's'
 
-        collections[id] = { getObject, isCorrectType: _ => _.type === type, type }
+        collections[id] = { getObject, getObjects, isCorrectType: _ => _.type === type, type }
       }
 
       collections.hosts.routes = {
@@ -307,6 +324,9 @@ export default class RestApi {
     collections.users = {
       getObject(id) {
         return app.getUser(id).then(getUserPublicProperties)
+      },
+      async getObjects(filter, limit) {
+        return handleArray(await app.getAllUsers(), filter, limit)
       },
     }
 
@@ -505,31 +525,11 @@ export default class RestApi {
       )
 
     api.get(
-      '/users',
-      wrap(async (req, res) => {
-        let users = await app.getAllUsers()
-
-        const { filter, limit } = req.query
-        if (filter !== undefined) {
-          users = users.filter(CM.parse(filter).createPredicate())
-        }
-        if (limit < users.length) {
-          users.length = limit
-        }
-
-        sendObjects(users.map(getUserPublicProperties), req, res)
-      })
-    )
-
-    api.get(
       '/:collection',
       wrap(async (req, res) => {
         const { query } = req
         await sendObjects(
-          await app.getObjects({
-            filter: every(req.collection.isCorrectType, handleOptionalUserFilter(query.filter)),
-            limit: ifDef(query.limit, Number),
-          }),
+          await req.collection.getObjects(handleOptionalUserFilter(query.filter), ifDef(query.limit, Number)),
           req,
           res
         )
