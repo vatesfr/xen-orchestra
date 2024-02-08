@@ -37,7 +37,7 @@ export const configurationSchema = {
           },
 
           mode: {
-            enum: ['Performance mode', 'Density mode', 'Simple mode'],
+            enum: Object.keys(MODES),
             title: 'Mode',
           },
 
