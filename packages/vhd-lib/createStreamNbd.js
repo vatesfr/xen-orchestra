@@ -13,6 +13,7 @@ const {
 } = require('./_constants')
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
+const { NBD_DEFAULT_BLOCK_SIZE } = require('@vates/nbd-client/constants.mjs')
 
 const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
 const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 1
@@ -34,10 +35,42 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
   return stream
 }
 
+
+function batContainsBlock(bat, blockId){
+  const entry = bat.readUInt32BE(blockId * 4)
+  if(entry !== BLOCK_UNUSED){
+    return [{blockId, size: DEFAULT_BLOCK_SIZE} ]
+  }
+  
+}
+// one 2MB VHD block is in 32 blocks of 64KB
+// 32 bits are written in 8 4bytes uint32 
+const EMPTY_NBD_BUFFER = Buffer.alloc(NBD_DEFAULT_BLOCK_SIZE, 0)
+function cbtContainsBlock(cbt, blockId){ 
+  let subBlocks = []
+  let hasOne = false
+  for(let i=0; i < 32; i ++){
+    let position = blockId * 32 + i
+    const bitOffset = position & 7; // in byte
+    const byteIndex = position >> 3; // in buffer
+    const bit = (buffer[byteIndex] >> bitOffset) & 1;
+    if(bit ===1){
+      subBlocks.push({blockId: position, size: NBD_DEFAULT_BLOCK_SIZE})
+      hasOne = true
+    } else {
+      // don't read empty blocks
+      subBlocks.push({buffer:EMPTY_NBD_BUFFER })
+    }
+  }
+  if(hasOne){
+    return subBlocks
+  }
+}
 exports.createNbdVhdStream = async function createVhdStream(
   nbdClient,
   sourceStream,
   {
+    changedBlocks,
     maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
     minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
   } = {}
@@ -51,7 +84,10 @@ exports.createNbdVhdStream = async function createVhdStream(
   await skipStrict(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
   // new table offset
   header.tableOffset = FOOTER_SIZE + HEADER_SIZE
-  const streamBat = await readChunkStrict(sourceStream, batSize)
+  let  streamBat 
+  if(changedBlocks === undefined){
+    streamBat = await readChunkStrict(sourceStream, batSize)
+  }
   let offset = FOOTER_SIZE + HEADER_SIZE + batSize
   // check if parentlocator are ordered
   let precLocator = 0
@@ -79,14 +115,14 @@ exports.createNbdVhdStream = async function createVhdStream(
   // compute a BAT with the position that the block will have in the resulting stream
   // blocks starts directly after parent locator entries
   const entries = []
-  for (let i = 0; i < header.maxTableEntries; i++) {
-    const entry = streamBat.readUInt32BE(i * 4)
-    if (entry !== BLOCK_UNUSED) {
-      bat.writeUInt32BE(offsetSector, i * 4)
-      entries.push(i)
+  for (let blockId = 0; blockId < header.maxTableEntries; blockId++) {
+    const subBlocks = changedBlocks ? cbtContainsBlock(changedBlocks, blockId) :  batContainsBlock(streamBat, blockId)
+    if (subBlocks !== undefined) {
+      bat.writeUInt32BE(offsetSector, blockId * 4)
+      entries.push({blockId, subBlocks})
       offsetSector += blockSizeInSectors
     } else {
-      bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
+      bat.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
     }
   }
 
@@ -137,8 +173,10 @@ exports.createNbdVhdStream = async function createVhdStream(
 
     // yield  blocks from nbd
     const nbdIterator = nbdClient.readBlocks(function* () {
-      for (const entry of entries) {
-        yield { index: entry, size: DEFAULT_BLOCK_SIZE }
+      for (const {subBlocks} of entries) {
+        for(const {blockId, buffer, size} of subBlocks){
+          yield { index: blockId, buffer, size }
+        } 
       }
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)

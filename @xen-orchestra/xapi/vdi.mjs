@@ -100,7 +100,7 @@ class Vdi {
 
   async exportContent(
     ref,
-    { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
+    { baseRef, cancelToken = CancelToken.none, changedBlocks, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
   ) {
     const query = {
       format,
@@ -131,7 +131,7 @@ class Vdi {
         ).body
         if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
           const taskRef = await this.task_create(`Exporting content of VDI ${vdiName} using NBD`)
-          stream = await createNbdVhdStream(nbdClient, stream)
+          stream = await createNbdVhdStream(nbdClient, stream, {changedBlocks})
           stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
           finished(stream, () => this.task_destroy(taskRef))
         }
