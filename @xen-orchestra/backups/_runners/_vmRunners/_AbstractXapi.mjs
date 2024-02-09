@@ -208,6 +208,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+
+    if (this._settings.deltaComputationMode === 'CBT') {
+      // @todo: ensure it is really the snapshot
+      await xapi.VDI_dataDestroy(this._exportedVm.$ref)
+    }
   }
 
   async copy() {
@@ -224,6 +229,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   async _selectBaseVm() {
     throw new Error('Not implemented')
+  }
+
+  async enableCbt() {
+    // for each disk of the VM , enable CBT
+    if (this._settings.deltaComputationMode !== 'CBT') {
+      return
+    }
+    const vm = this._vm
+    const xapi = this._xapi
+    console.log(vm.VBDs)
+    const vdiRefs = await vm.$getDisks(vm.VBDs)
+    for (const vdiRef of vdiRefs) {
+      // @todo handle error
+      await xapi.VDI_enableChangeBlockTracking(vdiRef)
+    }
+    // @todo : when do we disable CBT ?
   }
 
   async run($defer) {
@@ -246,7 +267,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
-
+    await this.enableCbt()
     const vm = this._vm
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
@@ -267,7 +288,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         await this._exportedVm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
         try {
           await this._copy()
-          // @todo if CBT is enabled : should call vdi.datadestroy on snapshot here 
+          // @todo if CBT is enabled : should call vdi.datadestroy on snapshot here
         } finally {
           await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
         }

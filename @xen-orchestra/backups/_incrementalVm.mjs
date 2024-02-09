@@ -80,8 +80,10 @@ export async function exportIncrementalVm(
     }
 
     let changedBlocks
+    console.log('CBT ? ', vdi.cbt_enabled,vdiRef,baseVdi?.$ref)
     if (vdi.cbt_enabled && baseVdi?.$ref) {
-      changedBlocks = await vdi.$listChangedBlock(vdiRef, baseVdi?.$ref)
+      // @todo  log errors and fallback to default mode
+      changedBlocks = await vdi.$listChangedBlock(baseVdi?.$ref)
     }
     streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
       baseRef: baseVdi?.$ref,

@@ -53,6 +53,8 @@ function cbtContainsBlock(cbt, blockId) {
     const byteIndex = position >> 3 // in buffer
     const bit = (cbt[byteIndex] >> bitOffset) & 1
     if (bit === 1) {
+      console.log('CBT contains block', blockId)
+      console.log({position,bitOffset,byteIndex, cbt:cbt[byteIndex],bit})
       subBlocks.push({ blockId: position, size: NBD_DEFAULT_BLOCK_SIZE })
       hasOne = true
     } else {
