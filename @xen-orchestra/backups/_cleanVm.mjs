@@ -432,6 +432,13 @@ export async function cleanVm(
       if (child !== undefined) {
         const chain = getUsedChildChainOrDelete(child)
         if (chain !== undefined) {
+          if (chain.includes(vhd)) {
+            logWarn('loop vhd chain', { path: vhd })
+            // keep  the current chain
+            // note that a VHD can't have two children, that means that
+            // a looped one is always the last of a chain
+            return chain
+          }
           chain.unshift(vhd)
           return chain
         }

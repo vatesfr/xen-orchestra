@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-server patch
 
 <!--packages-end-->
