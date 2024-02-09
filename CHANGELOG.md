@@ -1,5 +1,26 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [REST API] Add `/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Add `/groups/:id/users` and `/users/:id/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Expose messages associated to XAPI objects at `/:collection/:object/messages`
+
+### Bug fixes
+
+- [Import/VMWare] Fix `(Failure \"Expected string, got 'I(0)'\")` (PR [#7361](https://github.com/vatesfr/xen-orchestra/issues/7361))
+- [Plugin/load-balancer] Fixing `TypeError: Cannot read properties of undefined (reading 'high')` happening when trying to optimize a host with performance plan [#7359](https://github.com/vatesfr/xen-orchestra/issues/7359) (PR [#7362](https://github.com/vatesfr/xen-orchestra/pull/7362))
+- Changing the number of displayed items per page should send back to the first page [#7350](https://github.com/vatesfr/xen-orchestra/issues/7350)
+- [Plugin/load-balancer] Correctly create a _simple_ instead of a _density_ plan when it is selected (PR [#7358](https://github.com/vatesfr/xen-orchestra/pull/7358))
+
+### Released packages
+
+- xo-server 5.136.0
+- xo-server-load-balancer 0.8.1
+- xo-web 5.136.1
+
 ## **5.91.1** (2024-02-06)
 
 ### Bug fixes
