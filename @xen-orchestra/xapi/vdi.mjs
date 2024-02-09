@@ -83,6 +83,21 @@ class Vdi {
     }
   }
 
+  // return an buffer with 0/1 bit, showing if the 64KB block corresponding 
+  // in the raw vdi has changed
+  async listChangedBlock(ref, baseRef){
+    const encoded =  await  this.call('VDI.list_changed_blocks', ref, baseRef)
+    const buf = Buffer.from(encoded, 'base64')
+    return buf
+  }
+
+  async enableChangeBlockTracking(ref){
+    return this.call('VDI. enable_cbt ', ref)
+  }
+  async disableChangeBlockTracking(ref){
+    return this.call('VDI. disable_cbt ', ref)
+  }
+
   async exportContent(
     ref,
     { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
