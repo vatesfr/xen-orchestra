@@ -267,6 +267,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         await this._exportedVm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
         try {
           await this._copy()
+          // @todo if CBT is enabled : should call vdi.datadestroy on snapshot here 
         } finally {
           await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
         }
