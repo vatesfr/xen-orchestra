@@ -22,6 +22,7 @@
 - [Plugins/audit] Don't log `tag.getAllConfigured` calls
 - [Remotes] Correctly clear error when the remote is tested with success
 - [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
+- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
 
 ### Packages to release
 
