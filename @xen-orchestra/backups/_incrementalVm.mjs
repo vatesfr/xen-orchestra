@@ -79,9 +79,14 @@ export async function exportIncrementalVm(
       $SR$uuid: vdi.$SR.uuid,
     }
 
+    let changedBlocks
+    if (vdi.cbt_enabled && baseVdi?.$ref) {
+      changedBlocks = await vdi.$listChangedBlock(vdiRef, baseVdi?.$ref)
+    }
     streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
       baseRef: baseVdi?.$ref,
       cancelToken,
+      changedBlocks,
       format: 'vhd',
       nbdConcurrency,
       preferNbd,
