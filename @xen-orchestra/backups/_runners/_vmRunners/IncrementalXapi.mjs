@@ -33,7 +33,8 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       settings.unconditionalSnapshot ||
       (!settings.offlineBackup && vm.power_state === 'Running') ||
       settings.snapshotRetention !== 0 ||
-      settings.fullInterval !== 1
+      settings.fullInterval !== 1 ||
+      settings.deltaComputationMode === 'AGAINST_PARENT_VHD'
     )
   }
 
