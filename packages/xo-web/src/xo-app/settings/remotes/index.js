@@ -33,7 +33,7 @@ const formatError = error => (typeof error === 'string' ? error : JSON.stringify
 
 const _changeUrlElement = (value, { remote, element }) =>
   editRemote(remote, {
-    url: format({ ...remote, [element]: value === null ? undefined : value }),
+    url: format({ ...parse(remote.url), [element]: value === null ? undefined : value }),
   })
 const _showError = remote => alert(_('remoteConnectionFailed'), <pre>{formatError(remote.error)}</pre>)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })

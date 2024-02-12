@@ -15,6 +15,7 @@
 
 - [Settings/XO Config] Sort backups from newest to oldest
 - [Plugins/audit] Don't log `tag.getAllConfigured` calls
+- [Remotes] Correctly clear error when the remote is tested with success
 
 ### Packages to release
 
