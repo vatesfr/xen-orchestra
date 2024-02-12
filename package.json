@@ -1,4 +1,6 @@
 {
+  "name": "xen-orchestra",
+  "version": "0.0.0",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
