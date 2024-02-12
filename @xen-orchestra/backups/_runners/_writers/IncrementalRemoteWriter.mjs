@@ -218,16 +218,16 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           })
           transferSize += transferSizeOneDisk
 
-          if (isDifferencing) {
-            await chainVhd(handler, parentPath, handler, path)
-          }
-
           // set the correct UUID in the VHD
           await Disposable.use(openVhd(handler, path), async vhd => {
             vhd.footer.uuid = packUuid(vdi.uuid)
             await vhd.readBlockAllocationTable() // required by writeFooter()
             await vhd.writeFooter()
           })
+
+          if (isDifferencing) {
+            await chainVhd(handler, parentPath, handler, path)
+          }
         },
         {
           concurrency: settings.diskPerVmConcurrency,
