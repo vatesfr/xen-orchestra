@@ -1099,7 +1099,9 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
   subscriber =>
     subscribeCloudXoConfigBackups(configs => {
       const xoObjects = groupBy(
-        map(configs, config => ({ ...config, type: 'xoConfig' })),
+        map(configs, config => ({ ...config, type: 'xoConfig' }))
+          // from newest to oldest
+          .sort((a, b) => b.createdAt - a.createdAt),
         'xoaId'
       )
       subscriber({

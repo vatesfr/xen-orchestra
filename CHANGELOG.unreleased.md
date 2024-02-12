@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Settings/XO Config] Sort backups from newest to oldest
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
