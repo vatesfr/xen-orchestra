@@ -72,6 +72,7 @@ const DEFAULT_BLOCKED_LIST = {
   'system.getServerTimezone': true,
   'system.getServerVersion': true,
   'system.getVersion': true,
+  'tag.getAllConfigured': true,
   'test.getPermissionsForUser': true,
   'user.getAll': true,
   'user.getAuthenticationTokens': true,
