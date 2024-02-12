@@ -2,7 +2,6 @@
 
 import https from 'node:https'
 import tls from 'node:tls'
-import { X509Certificate } from 'node:crypto'
 
 const [, , host, port = 443] = process.argv
 
@@ -21,9 +20,7 @@ function getCertificate(options) {
   return new Promise((resolve, reject) => {
     tls
       .connect(options, function () {
-        resolve(this.getPeerCertificate())
-        // we could also use directly this.getPeerX509Certificate() but then we can't show certificate informations
-        // pubkey = this.getPeerCertificate().pubkey may be usefull too
+        resolve(this.getPeerX509Certificate())
         this.end()
       })
       .on('error', function (error) {
@@ -39,18 +36,18 @@ console.log('\n-> Request with no certificate')
 tryRequest(options)
 
 // Asking for certificate
-const peerCertificate = await getCertificate({ ...options, rejectUnauthorized: false })
-// console.log(peerCertificate)
+const certificate = await getCertificate({ ...options, rejectUnauthorized: false })
 
-const certificate = new X509Certificate(peerCertificate.raw)
-// certificate.verify(publicKey: KeyObject) may be usefull too
+console.log('=> Certificate acquired')
+// console.log(certificate.subject, certificate.issuer, certificate.validFrom, certificate.validTo)
+// console.log(certificate.verify(certificate.publicKey))
 
 // Trying again with certificate
 console.log('\n-> Request using acquired certificate')
 tryRequest({
   ...options,
-  ca: certificate.toString(), // ca can be a certificate or a list of certificates
-  checkServerIdentity: () => {
-    return null
-  }, // maybe usefull only for localhost
+  cert: certificate.toString(),
+  ca: [...tls.rootCertificates, certificate.toString()],
+  // adding default ca with ...tls.rootCertificates avoids failing requests with other valid certificates, but it looks likes it also makes succeeding requests we want to fail (like https://pinning-test.badssl.com/)
+  // checkServerIdentity: () => {return undefined}, // for localhost
 })
