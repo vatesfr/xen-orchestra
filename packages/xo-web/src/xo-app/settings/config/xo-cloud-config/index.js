@@ -5,10 +5,9 @@ import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import { confirm } from 'modal'
-import { getApiApplianceInfo, subscribeCloudXoConfig, subscribeCloudXoConfigBackups } from 'xo'
-import { groupBy, sortBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { SelectXoCloudConfig } from 'select-objects'
+import { subscribeCloudXoConfig, subscribeCloudXoConfigBackups } from 'xo'
 
 import BackupXoConfigModal from './backup-xo-config-modal'
 import RestoreXoConfigModal from './restore-xo-config-modal'
@@ -88,15 +87,7 @@ const CloudConfig = decorate([
         },
     },
     computed: {
-      applianceId: async () => {
-        const { id } = await getApiApplianceInfo()
-        return id
-      },
-      groupedConfigs: ({ applianceId, sortedConfigs }) =>
-        sortBy(groupBy(sortedConfigs, 'xoaId'), config => (config[0].xoaId === applianceId ? -1 : 1)),
       isConfigDefined: ({ config }) => config != null,
-      sortedConfigs: (_, { cloudXoConfigBackups }) =>
-        cloudXoConfigBackups?.sort((config, nextConfig) => config.createdAt - nextConfig.createdAt),
     },
   }),
   injectState,
