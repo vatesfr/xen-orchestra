@@ -143,8 +143,10 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
     let metadataContent = await this._isAlreadyTransferred(timestamp)
     if (metadataContent !== undefined) {
-      // @todo : should skip backup while being vigilant to not stuck the forked stream
+      // skip backup while being vigilant to not stuck the forked stream
       Task.info('This backup has already been transfered')
+      Object.values(deltaExport.streams).forEach(stream => stream.destroy())
+      return { size: 0 }
     }
 
     const basename = formatFilenameDate(timestamp)
