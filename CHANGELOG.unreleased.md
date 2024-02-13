@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xo-server patch
 - xo-server-audit patch
 - xo-web patch

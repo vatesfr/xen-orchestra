@@ -7,7 +7,7 @@ import { chainVhd, checkVhdChain, openVhd, VhdAbstract } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
-import { dirname } from 'node:path'
+import { dirname, basename as pathBasename } from 'node:path'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
@@ -199,7 +199,10 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
               undefined,
               `missing parent of ${id} in ${dirname(path)}, looking for ${vdi.other_config[TAG_BASE_DELTA]}`
             )
-
+            assert.ok(
+              pathBasename(parentPath).localeCompare(pathBasename(path)) < 0,
+              `vhd must be sorted to be chained`
+            )
             parentPath = parentPath.slice(1) // remove leading slash
 
             // TODO remove when this has been done before the export
