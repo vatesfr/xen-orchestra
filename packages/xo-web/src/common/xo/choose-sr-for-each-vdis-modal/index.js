@@ -59,6 +59,7 @@ export default class ChooseSrForEachVdisModal extends Component {
       ignorableVdis = false,
       mainSrPredicate = isSrWritable,
       placeholder,
+      required,
       srPredicate = mainSrPredicate,
       value: { mainSr, mapVdisSrs },
       vdis,
@@ -66,15 +67,21 @@ export default class ChooseSrForEachVdisModal extends Component {
 
     return (
       <div>
-        <SelectSr
-          onChange={this._onChangeMainSr}
-          placeholder={placeholder !== undefined ? placeholder : _('chooseSrForEachVdisModalMainSr')}
-          predicate={mainSrPredicate}
-          required
-          value={mainSr}
-        />
+        <SingleLineRow>
+          <Col size={6}>{_('selectDestinationSr')}</Col>
+          <Col size={6}>
+            <SelectSr
+              onChange={this._onChangeMainSr}
+              placeholder={placeholder !== undefined ? placeholder : _('chooseSrForEachVdisModalMainSr')}
+              predicate={mainSrPredicate}
+              required={required}
+              value={mainSr}
+            />
+          </Col>
+        </SingleLineRow>
+        {!required && <i>{_('optionalEntry')}</i>}
         <br />
-        {!isEmpty(vdis) && mainSr != null && (
+        {!isEmpty(vdis) && (
           <Collapsible buttonText={_('chooseSrForEachVdisModalSelectSr')} collapsible size='small'>
             <br />
             <Container>
