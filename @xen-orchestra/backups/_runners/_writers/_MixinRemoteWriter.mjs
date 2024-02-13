@@ -113,13 +113,13 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       )
     }
 
-    _isAlreadyTransferred(timestamp) {
+    async _isAlreadyTransferred(timestamp) {
       const vmUuid = this._vmUuid
       const adapter = this._adapter
       const backupDir = getVmBackupDir(vmUuid)
       try {
         const actualMetadata = JSON.parse(
-          adapter._handler.readFile(`${backupDir}/${formatFilenameDate(timestamp)}.json`)
+          await adapter._handler.readFile(`${backupDir}/${formatFilenameDate(timestamp)}.json`)
         )
         return actualMetadata
       } catch (error) {}
