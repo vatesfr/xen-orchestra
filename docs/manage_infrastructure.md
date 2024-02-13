@@ -447,7 +447,7 @@ VM migration with storage motion allows you to move a VM from one host to anothe
 
 ### Expected Behavior
 
-- Migrating a VM that has VDIs on a shared SR from host A to host B should trigger a "Simple VM Migration".
+- Migrating a VM that has VDIs on a shared SR from host A to host B must trigger a "Simple VM Migration".
 - Migrating a VM that has VDIs on a shared SR from host A to host B using a particular network must trigger a "VM Migration with Storage Motion" without moving its VDIs.
 - Migrating a VM from host A to host B with a destination SR must trigger a "VM Migration with Storage Motion" and move VDIs to the destination SR, regardless of where the VDIs were stored.
 
@@ -578,10 +578,9 @@ As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#po
 :::
 
 :::warning
-
 - Even with matching CPU vendors, in the case of different CPU models, XCP-ng/Citrix Hypervisor will "level" down to use the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
-  :::
+:::
 
 ### Creating a pool
 
@@ -611,10 +610,9 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 ![](./assets/detach-host.png)
 
 :::warning
-
 - Detaching a host will remove all the VM disks stored on the Local Storage of this host, and reboot the host.
 - The host you want to remove must be a slave, not the master!
-  :::
+:::
 
 ## Visualizations
 
