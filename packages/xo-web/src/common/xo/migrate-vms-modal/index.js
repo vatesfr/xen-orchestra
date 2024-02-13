@@ -108,7 +108,15 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return { vms }
     }
     const { networks, pifs, vbdsByVm, vifsByVm } = this.props
-    const { doNotMigrateVdi, doNotMigrateVmVdis, migrationNetworkId, networkId, smartVifMapping, srId } = this.state
+    const {
+      doNotMigrateVdi,
+      doNotMigrateVmVdis,
+      migrationNetworkId,
+      noVdisMigration,
+      networkId,
+      smartVifMapping,
+      srId,
+    } = this.state
 
     // Map VM --> ( Map VDI --> SR )
     // - Intra-pool: a VDI will only be migrated to the selected SR if the VDI was on a local SR or if an SR was explicitly selected.
@@ -159,6 +167,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVifsNetworks,
       migrationNetwork: migrationNetworkId,
       sr: srId,
+      srRequired: !noVdisMigration,
       targetHost: host.id,
       vms,
     }
@@ -253,27 +262,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host !== undefined && (
-          <div style={LINE_STYLE}>
-            <SingleLineRow>
-              <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
-              <Col size={6}>
-                <SelectNetwork
-                  onChange={this._selectMigrationNetwork}
-                  predicate={this._getMigrationNetworkPredicate()}
-                  required={!intraPool}
-                  value={migrationNetworkId}
-                />
-              </Col>
-            </SingleLineRow>
-            {intraPool && <i>{_('optionalEntry')}</i>}
-          </div>
-        )}
-        {host && (!noVdisMigration || migrationNetworkId != null) && (
+        {host !== undefined && [
           <div key='sr' style={LINE_STYLE}>
             <SingleLineRow>
               <Col size={6}>
-                {!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}{' '}
+                {_('selectDestinationSr')}{' '}
                 {(defaultSrId === undefined || !defaultSrConnectedToHost) && (
                   <Tooltip
                     content={
@@ -291,11 +284,31 @@ export default class MigrateVmsModalBody extends BaseComponent {
                 )}
               </Col>
               <Col size={6}>
-                <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} required value={srId} />
+                <SelectSr
+                  onChange={this._selectSr}
+                  predicate={this._getSrPredicate()}
+                  required={!noVdisMigration}
+                  value={srId}
+                />
               </Col>
             </SingleLineRow>
-          </div>
-        )}
+            {noVdisMigration && <i>{_('optionalEntry')}</i>}
+          </div>,
+          <div style={LINE_STYLE} key='network'>
+            <SingleLineRow>
+              <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+              <Col size={6}>
+                <SelectNetwork
+                  onChange={this._selectMigrationNetwork}
+                  predicate={this._getMigrationNetworkPredicate()}
+                  required={!intraPool}
+                  value={migrationNetworkId}
+                />
+              </Col>
+            </SingleLineRow>
+            {intraPool && <i>{_('optionalEntry')}</i>}
+          </div>,
+        ]}
         {host && !intraPool && (
           <div key='network' style={LINE_STYLE}>
             <SingleLineRow>
