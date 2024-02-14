@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - Disable search engine indexing via a `robots.txt`
+- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
 
 ### Bug fixes
 
@@ -36,6 +37,6 @@
 - @xen-orchestra/backups patch
 - xo-server patch
 - xo-server-audit patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
