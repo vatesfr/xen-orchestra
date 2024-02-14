@@ -889,6 +889,17 @@ const TRANSFORMS = {
       vm: link(obj, 'VM'),
     }
   },
+
+  pusb(obj) {
+    return {
+      type: 'PUSB',
+
+      description: obj.description,
+      host: link(obj, 'host'),
+      passthroughEnabled: obj.passthrough_enabled,
+      usbGroup: link(obj, 'USB_group'),
+    }
+  },
 }
 
 // ===================================================================
