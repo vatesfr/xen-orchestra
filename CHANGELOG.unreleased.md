@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - Disable search engine indexing via a `robots.txt`
+- [Stats] Support format used by XAPI 23.31
 
 ### Bug fixes
 
@@ -35,7 +36,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi patch
-- xo-server patch
+- xo-server minor
 - xo-server-audit patch
 - xo-web patch
 
