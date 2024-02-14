@@ -200,7 +200,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
               `missing parent of ${id} in ${dirname(path)}, looking for ${vdi.other_config[TAG_BASE_DELTA]}`
             )
             assert.ok(
-              pathBasename(parentPath).localeCompare(pathBasename(path)) < 0,
+              pathBasename(parentPath) < pathBasename(path),
               `vhd must be sorted to be chained`
             )
             parentPath = parentPath.slice(1) // remove leading slash
