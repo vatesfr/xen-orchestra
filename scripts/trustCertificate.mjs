@@ -46,7 +46,6 @@ console.log('=> Certificate acquired')
 console.log('\n-> Request using acquired certificate')
 tryRequest({
   ...options,
-  cert: certificate.toString(),
   ca: [...tls.rootCertificates, certificate.toString()],
   // adding default ca with ...tls.rootCertificates avoids failing requests with other valid certificates, but it looks likes it also makes succeeding requests we want to fail (like https://pinning-test.badssl.com/)
   // checkServerIdentity: () => {return undefined}, // for localhost
