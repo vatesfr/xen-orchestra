@@ -10,7 +10,8 @@
     }
   },
   "devDependencies": {
-    "vue": "^3.4.13"
+    "vue": "^3.4.13",
+    "@vue/tsconfig": "^0.5.1"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -25,6 +26,6 @@
   },
   "license": "AGPL-3.0-or-later",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=18"
   }
 }
