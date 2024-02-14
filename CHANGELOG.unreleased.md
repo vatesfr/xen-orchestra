@@ -34,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/xapi patch
 - xo-server patch
 - xo-server-audit patch
 - xo-web patch

@@ -21,9 +21,20 @@ export default class Vif {
       MAC = '',
     } = {}
   ) {
+    if (device === undefined) {
+      const allowedDevices = await this.call('VM.get_allowed_VIF_devices', VM)
+      if (allowedDevices.length === 0) {
+        const error = new Error('could not find an allowed VIF device')
+        error.poolUuid = this.pool.uuid
+        error.vmRef = VM
+        throw error
+      }
+
+      device = allowedDevices[0]
+    }
+
     const [powerState, ...rest] = await Promise.all([
       this.getField('VM', VM, 'power_state'),
-      device ?? (await this.call('VM.get_allowed_VIF_devices', VM))[0],
       MTU ?? (await this.getField('network', network, 'MTU')),
     ])
     ;[device, MTU] = rest
