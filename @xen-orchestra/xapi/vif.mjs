@@ -35,9 +35,9 @@ export default class Vif {
 
     const [powerState, ...rest] = await Promise.all([
       this.getField('VM', VM, 'power_state'),
-      MTU ?? (await this.getField('network', network, 'MTU')),
+      MTU ?? this.getField('network', network, 'MTU'),
     ])
-    ;[device, MTU] = rest
+    ;[MTU] = rest
 
     const vifRef = await this.call('VIF.create', {
       currently_attached: powerState === 'Suspended' ? currently_attached : undefined,
