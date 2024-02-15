@@ -37,6 +37,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server minor
 - xo-server-audit patch
 - xo-web patch
