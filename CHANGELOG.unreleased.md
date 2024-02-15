@@ -35,6 +35,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/xapi patch
 - xo-server minor
 - xo-server-audit patch
