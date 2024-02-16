@@ -1,0 +1,63 @@
+<template>
+  <li class="tree-loading-item">
+    <div class="tree-loading-item-label-placeholder">
+      <div class="link-placeholder">
+        <template v-if="depth > 1">
+          <TreeLine v-for="i in depth - 1" :key="i" full-height :right="i === depth - 1" />
+        </template>
+        <UiIcon :icon="icon" class="icon" />
+        <div class="loader">&nbsp;</div>
+      </div>
+    </div>
+  </li>
+</template>
+
+<script lang="ts" setup>
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import TreeLine from '@core/components/tree-view/TreeLine.vue'
+import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { inject } from 'vue'
+
+defineProps<{
+  icon: IconDefinition
+}>()
+
+const depth = inject(IK_TREE_LIST_DEPTH, 0)
+</script>
+
+<style lang="postcss" scoped>
+.tree-loading-item-label-placeholder {
+  display: flex;
+  height: 4rem;
+  background-color: var(--background-color-primary);
+}
+
+.icon {
+  color: var(--color-grey-100);
+}
+
+.link-placeholder {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 0.8rem;
+  gap: 0.4rem;
+}
+
+.loader {
+  flex: 1;
+  animation: pulse alternate 1s infinite;
+  background-color: var(--background-color-purple-10);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+</style>

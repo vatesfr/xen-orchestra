@@ -2,11 +2,20 @@
   <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div
       :class="isExactActive ? 'exact-active' : $props.active ? 'active' : undefined"
-      :style="{ paddingLeft: `${depth * 20}px` }"
       class="tree-item-label"
       v-bind="$attrs"
     >
-      <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" @click="toggle()" />
+      <template v-if="depth > 1">
+        <TreeLine
+          v-for="i in depth - 1"
+          :key="i"
+          full-height
+          :half-height="(!hasToggle && i === depth - 1) || !isExpanded"
+          :right="i === depth - 1"
+        />
+      </template>
+      <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" fixed-width @click="toggle()" />
+      <TreeLine v-else-if="!noIndent" />
       <a v-tooltip="{ selector: '.text' }" :href="href" class="link" @click="navigate">
         <slot name="icon">
           <UiIcon :icon="icon" class="icon" />
@@ -15,15 +24,14 @@
           <slot />
         </div>
       </a>
-      <div class="actions">
-        <slot name="actions" />
-      </div>
+      <slot name="addons" />
     </div>
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import TreeLine from '@core/components/tree-view/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   IK_TREE_ITEM_EXPANDED,
@@ -40,6 +48,7 @@ defineProps<{
   icon?: IconDefinition
   route: RouteLocationRaw
   active?: boolean
+  noIndent?: boolean
 }>()
 
 const hasToggle = inject(
@@ -60,27 +69,24 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   color: var(--color-grey-100);
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);
-  column-gap: 0.4rem;
+  gap: 0.4rem;
   padding: 0 0.8rem;
+  margin-bottom: 0.2rem;
 
-  &:hover {
+  &:hover:not(:has(.ui-button-icon:hover)) {
     color: var(--color-grey-100);
     background-color: var(--background-color-purple-20);
   }
 
-  &:active {
+  &:active:not(:has(.ui-button-icon:hover)) {
     background-color: var(--background-color-purple-30);
   }
 
-  &.exact-active {
+  &.exact-active:not(:has(.ui-button-icon:hover)) {
     background-color: var(--background-color-purple-10);
 
     &:hover {
       background-color: var(--background-color-purple-20);
-    }
-
-    > .ui-icon {
-      color: var(--color-purple-base);
     }
 
     &:active {
@@ -90,6 +96,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
   > .ui-icon {
     cursor: pointer;
+    color: var(--color-purple-base);
   }
 }
 
@@ -117,13 +124,5 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   text-overflow: ellipsis;
   font-size: 1.4rem;
   padding-inline-end: 0.4rem;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  gap: 0.8rem;
 }
 </style>
