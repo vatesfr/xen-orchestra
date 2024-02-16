@@ -93,6 +93,21 @@ Follow the instructions:
 
 You can also download XOA from xen-orchestra.com in an XVA file. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
+If you want to use static IP address for your appliance:
+
+```sh
+xe vm-param-set uuid="$uuid" \
+  xenstore-data:vm-data/ip="$ip" \
+  xenstore-data:vm-data/netmask="$netmask" \
+  xenstore-data:vm-data/gateway="$gateway"
+```
+
+If you want to replace the default DNS server:
+
+```sh
+xe vm-param-set uuid="$uuid" xenstore-data:vm-data/dns="$dns"
+```
+
 After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` or with XenCenter.
 
 ## First console connection
