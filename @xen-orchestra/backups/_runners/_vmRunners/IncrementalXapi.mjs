@@ -133,7 +133,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       ])
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
-        baseUuidToSrcVdi.set(baseUuid, srcVdi)
+        baseUuidToSrcVdi.set(baseUuid, srcVdi.uuid)
       } else {
         debug('ignore snapshot VDI because no longer present on VM', {
           vdi: baseUuid,
@@ -154,18 +154,18 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     }
 
     const fullVdisRequired = new Set()
-    baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
+    baseUuidToSrcVdi.forEach((srcVdiUuid, baseUuid) => {
       if (presentBaseVdis.has(baseUuid)) {
         debug('found base VDI', {
           base: baseUuid,
-          vdi: srcVdi.uuid,
+          vdi: srcVdiUuid,
         })
       } else {
         debug('missing base VDI', {
           base: baseUuid,
-          vdi: srcVdi.uuid,
+          vdi: srcVdiUuid,
         })
-        fullVdisRequired.add(srcVdi.uuid)
+        fullVdisRequired.add(srcVdiUuid)
       }
     })
 
