@@ -46,9 +46,9 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   }
 
   get compressionType() {
-    const compressionType = this.vhds[0].compressionType
-    for (let i = 0; i < this.vhds.length; i++) {
-      if (compressionType !== this.vhds[i].compressionType) {
+    const compressionType = this.#vhds[0].compressionType
+    for (let i = 0; i < this.#vhds.length; i++) {
+      if (compressionType !== this.#vhds[i].compressionType) {
         return 'MIXED'
       }
     }
