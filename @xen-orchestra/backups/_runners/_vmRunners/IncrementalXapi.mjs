@@ -78,6 +78,18 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       'writer.transfer()'
     )
 
+    // we want to control the uuid of the vhd in the chain
+    // and ensure they are correctly chained
+    await this._callWriters(
+      writer =>
+        writer.updateUuidAndChain({
+          isVhdDifferencing,
+          timestamp,
+          vdis: deltaExport.vdis,
+        }),
+      'writer.updateUuidAndChain()'
+    )
+
     this._baseVm = exportedVm
 
     if (baseVm !== undefined) {
