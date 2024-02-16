@@ -1,9 +1,8 @@
 import assert from 'node:assert'
 import mapValues from 'lodash/mapValues.js'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { chainVhd, checkVhdChain, openVhd, VhdAbstract } from 'vhd-lib'
+import { chainVhd, openVhd } from 'vhd-lib'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
@@ -23,42 +22,45 @@ import { Disposable } from 'promise-toolbox'
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
+  #parentVdiPaths
+  #vhds
   async checkBaseVdis(baseUuidToSrcVdi) {
+    this.#parentVdiPaths = {}
     const { handler } = this._adapter
     const adapter = this._adapter
 
     const vdisDir = `${this._vmBackupDir}/vdis/${this._job.id}`
 
-    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
-      let found = false
+    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdiUuid]) => {
+      let parentDestPath
+      const vhdDir = `${vdisDir}/${srcVdiUuid}`
       try {
-        const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
+        const vhds = await handler.list(vhdDir, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
           ignoreMissing: true,
           prependDir: true,
         })
         const packedBaseUuid = packUuid(baseUuid)
-        await asyncMap(vhds, async path => {
-          try {
-            await checkVhdChain(handler, path)
-            // Warning, this should not be written as found = found || await adapter.isMergeableParent(packedBaseUuid, path)
-            //
-            // since all the checks of a path are done in parallel, found would be containing
-            // only the last answer of isMergeableParent which is probably not the right one
-            // this led to the support tickets  https://help.vates.fr/#ticket/zoom/4751 , 4729, 4665 and 4300
+        // the last one is probably the right one
 
-            const isMergeable = await adapter.isMergeableParent(packedBaseUuid, path)
-            found = found || isMergeable
+        for (let i = vhds.length - 1; i >= 0 && parentDestPath === undefined; i--) {
+          const path = vhds[i]
+          try {
+            if (await adapter.isMergeableParent(packedBaseUuid, path)) {
+              parentDestPath = path
+            }
           } catch (error) {
             warn('checkBaseVdis', { error })
-            await ignoreErrors.call(VhdAbstract.unlink(handler, path))
           }
-        })
+        }
       } catch (error) {
         warn('checkBaseVdis', { error })
       }
-      if (!found) {
+      // no usable parent => the runner will have to decide to fall back to a full or stop backup
+      if (parentDestPath === undefined) {
         baseUuidToSrcVdi.delete(baseUuid)
+      } else {
+        this.#parentVdiPaths[vhdDir] = parentDestPath
       }
     })
   }
