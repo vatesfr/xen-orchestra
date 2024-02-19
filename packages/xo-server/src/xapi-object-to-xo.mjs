@@ -413,6 +413,7 @@ const TRANSFORMS = {
       startTime: metrics && toTimestamp(metrics.start_time),
       secureBoot: obj.platform.secureboot === 'true',
       suspendSr: link(obj, 'suspend_SR'),
+      suspendVdi: link(obj, 'suspend_VDI'),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
       VTPMs: link(obj, 'VTPMs'),
@@ -449,7 +450,6 @@ const TRANSFORMS = {
 
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
-      vm.suspendVdi = link(obj, 'suspend_VDI')
     } else if (obj.is_a_template) {
       const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'
