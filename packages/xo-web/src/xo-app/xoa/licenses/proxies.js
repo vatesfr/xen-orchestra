@@ -1,10 +1,8 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
@@ -12,6 +10,8 @@ import groupBy from 'lodash/groupBy.js'
 import { injectState, provideState } from 'reaclette'
 import { Proxy, Vm } from 'render-xo-item'
 import { subscribeProxies, bindLicense } from 'xo'
+
+import LicenseForm from './license-form'
 
 class ProxyLicensesForm extends Component {
   state = {
@@ -29,7 +29,6 @@ class ProxyLicensesForm extends Component {
 
   render() {
     const { item, userData } = this.props
-    const { licenseId } = this.state
     const licenses = userData.licensesByVmUuid[item.vmUuid]
 
     if (item.vmUuid === undefined) {
@@ -53,23 +52,7 @@ class ProxyLicensesForm extends Component {
     }
 
     const license = licenses?.[0]
-    return license !== undefined ? (
-      <span>{license.id.slice(-4)}</span>
-    ) : (
-      <form className='form-inline'>
-        <SelectLicense onChange={this.onChangeLicense} productType='xoproxy' />
-        <ActionButton
-          btnStyle='primary'
-          className='ml-1'
-          disabled={licenseId === 'none'}
-          handler={this.bind}
-          handlerParam={licenseId}
-          icon='connect'
-        >
-          {_('bindLicense')}
-        </ActionButton>
-      </form>
-    )
+    return <LicenseForm userData={userData} item={item} productType='xoproxy' license={license} itemUuidPath='vmUuid' />
   }
 }
 

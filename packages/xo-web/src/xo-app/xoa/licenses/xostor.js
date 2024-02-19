@@ -1,30 +1,17 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
-import Icon from 'icon'
 import React from 'react'
-import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
-import { bindLicense } from 'xo'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { groupBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { Pool, Sr } from 'render-xo-item'
 
-import BulkIcons from '../../../common/bulk-icons'
+import LicenseForm from './license-form'
 
 class XostorLicensesForm extends Component {
-  state = {
-    licenseId: 'none',
-  }
-
-  bind = () => {
-    const { item, userData } = this.props
-    return bindLicense(this.state.licenseId, item.uuid).then(userData.updateLicenses)
-  }
-
   getAlerts = createSelector(
     () => this.props.item,
     () => this.props.userData,
@@ -59,39 +46,12 @@ class XostorLicensesForm extends Component {
 
   render() {
     const alerts = this.getAlerts()
-    if (alerts.length > 0) {
-      return <BulkIcons alerts={alerts} />
-    }
 
     const { item, userData } = this.props
-    const { licenseId } = this.state
     const licenses = userData.licensesByXostorUuid[item.id]
     const license = licenses?.[0]
 
-    return license !== undefined ? (
-      <span>{license?.id.slice(-4)}</span>
-    ) : (
-      <div>
-        {license !== undefined && (
-          <div className='text-danger mb-1'>
-            <Icon icon='alarm' /> {_('licenseHasExpired')}
-          </div>
-        )}
-        <form className='form-inline'>
-          <SelectLicense onChange={this.linkState('licenseId')} productType='xostor' />
-          <ActionButton
-            btnStyle='primary'
-            className='ml-1'
-            disabled={licenseId === 'none'}
-            handler={this.bind}
-            handlerParam={licenseId}
-            icon='connect'
-          >
-            {_('bindLicense')}
-          </ActionButton>
-        </form>
-      </div>
-    )
+    return <LicenseForm userData={userData} item={item} productType='xostor' alerts={alerts} license={license} />
   }
 }
 
