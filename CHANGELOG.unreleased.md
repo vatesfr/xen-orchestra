@@ -19,6 +19,7 @@
 - [Settings/XO Config] Sort backups from newest to oldest
 - [Plugins/audit] Don't log `tag.getAllConfigured` calls
 - [Remotes] Correctly clear error when the remote is tested with success
+- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
 
 ### Packages to release
 
