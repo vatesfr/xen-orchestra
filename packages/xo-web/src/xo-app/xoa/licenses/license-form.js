@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import React from 'react'
 import SelectLicense from 'select-license'
-import { bindLicense, rebindItemLicense } from 'xo'
+import { bindLicense, rebindObjectLicense } from 'xo'
 
 import BulkIcons from '../../../common/bulk-icons'
 
@@ -12,14 +12,15 @@ export default class LicenseForm extends Component {
     licenseId: 'none',
   }
 
-  bind = () => {
+  bind = async () => {
     const { userData, item, itemUuidPath = 'uuid', license } = this.props
     if (license !== undefined) {
-      // item uuid, old license id, new license id
-      return rebindItemLicense(item.uuid, license.id, this.sate.licenseId)
+      await rebindObjectLicense(item[itemUuidPath], this.state.licenseId, license.productId)
+    } else {
+      await bindLicense(this.state.licenseId, item[itemUuidPath])
     }
-
-    return bindLicense(this.state.licenseId, item[itemUuidPath]).then(userData.updateLicenses)
+    userData.updateLicenses()
+    this.setState({ licenseId: 'none' })
   }
 
   render() {
@@ -31,7 +32,11 @@ export default class LicenseForm extends Component {
           <BulkIcons alerts={this.props.alerts} />
         </div>
         <form className='form-inline ml-1'>
-          <SelectLicense onChange={this.linkState('licenseId')} productType={this.props.productType} />
+          <SelectLicense
+            onChange={this.linkState('licenseId')}
+            productType={this.props.productType}
+            value={this.state.licenseId}
+          />
           <ActionButton
             btnStyle='primary'
             className='ml-1'

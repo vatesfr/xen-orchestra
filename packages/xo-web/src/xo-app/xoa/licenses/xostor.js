@@ -51,7 +51,7 @@ class XostorLicensesForm extends Component {
     const licenses = userData.licensesByXostorUuid[item.id]
     const license = licenses?.[0]
 
-    return <LicenseForm userData={userData} item={item} productType='xostor' alerts={alerts} license={license} />
+    return <LicenseForm alerts={alerts} item={item} license={license} productType='xostor' userData={userData} />
   }
 }
 
