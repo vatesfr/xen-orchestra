@@ -8,7 +8,11 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - Disable search engine indexing via a `robots.txt`
+- [Stats] Support format used by XAPI 23.31
+- [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
+- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
 - [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
+
 
 ### Bug fixes
 
@@ -17,6 +21,7 @@
 - [Settings/XO Config] Sort backups from newest to oldest
 - [Plugins/audit] Don't log `tag.getAllConfigured` calls
 - [Remotes] Correctly clear error when the remote is tested with success
+- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
 
 ### Packages to release
 
@@ -35,7 +40,10 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- xo-server patch
+- @xen-orchestra/fs patch
+- @xen-orchestra/xapi patch
+- vhd-lib patch
+- xo-server minor
 - xo-server-audit patch
 - xo-web minor
 

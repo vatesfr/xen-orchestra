@@ -328,6 +328,34 @@ const TRANSFORMS = {
 
     const { creation } = xoData.extract(obj) ?? {}
 
+    let $container
+    if (obj.resident_on !== 'OpaqueRef:NULL') {
+      // resident_on is set when the VM is running (or paused or suspended on a host)
+      $container = link(obj, 'resident_on')
+    } else {
+      // if the VM is halted, the $container is the pool
+      $container = link(obj, 'pool')
+
+      // unless one of its VDI is on a non shared SR
+      //
+      // linked objects may not be there when this code run, and it will only be
+      // refreshed when the VM XAPI record change, this value is not guaranteed
+      // to be up-to-date, but it practice it appears to work fine thanks to
+      // `VBDs` and `current_operations` changing when a VDI is
+      // added/removed/migrated
+      for (const vbd of obj.$VBDs) {
+        const sr = vbd?.$VDI?.$SR
+        if (sr !== undefined && !sr.shared) {
+          const pbd = sr.$PBDs[0]
+          const hostId = pbd && link(pbd, 'host')
+          if (hostId !== undefined) {
+            $container = hostId
+            break
+          }
+        }
+      }
+    }
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
@@ -422,8 +450,7 @@ const TRANSFORMS = {
       xenTools,
       ...getVmGuestToolsProps(obj),
 
-      // TODO: handle local VMs (`VM.get_possible_hosts()`).
-      $container: isRunning ? link(obj, 'resident_on') : link(obj, 'pool'),
+      $container,
       $VBDs: link(obj, 'VBDs'),
 
       // TODO: dedupe

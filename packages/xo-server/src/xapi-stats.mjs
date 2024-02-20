@@ -45,7 +45,17 @@ const RRD_POINTS_PER_STEP = {
 // Utils
 // -------------------------------------------------------------------
 
-function convertNanToNull(value) {
+function parseNumber(value) {
+  // Starting from XAPI 23.31, numbers in the JSON payload are encoded as
+  // strings to support NaN, Infinity and -Infinity
+  if (typeof value === 'string') {
+    const asNumber = +value
+    if (isNaN(asNumber) && value !== 'NaN') {
+      throw new Error('cannot parse number: ' + value)
+    }
+    value = asNumber
+  }
+
   return isNaN(value) ? null : value
 }
 
@@ -58,7 +68,7 @@ async function getServerTimestamp(xapi, hostRef) {
 // -------------------------------------------------------------------
 
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(convertNanToNull(values[legendIndex])))
+  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
 
 const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
 
@@ -245,7 +255,15 @@ export default class XapiStats {
           start: timestamp,
         },
       })
-      .then(response => response.text().then(JSON5.parse))
+      .then(response => response.text())
+      .then(data => {
+        try {
+          // starting from XAPI 23.31, the response is valid JSON
+          return JSON.parse(data)
+        } catch (_) {
+          return JSON5.parse(data)
+        }
+      })
       .catch(err => {
         delete this.#hostCache[hostUuid][step]
         throw err
@@ -299,7 +317,7 @@ export default class XapiStats {
     // To avoid crossing over the boundary, we ask for one less step
     const optimumTimestamp = currentTimeStamp - maxDuration + step
     const json = await this._getJson(xapi, host, optimumTimestamp, step)
-    const actualStep = json.meta.step
+    const actualStep = parseNumber(json.meta.step)
 
     if (actualStep !== step) {
       throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
@@ -326,9 +344,10 @@ export default class XapiStats {
           return
         }
 
-        if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
+        const endTimestamp = parseNumber(json.meta.end)
+        if (stepStats === undefined || stepStats.endTimestamp !== endTimestamp) {
           stepStats = {
-            endTimestamp: json.meta.end,
+            endTimestamp,
             interval: actualStep,
             stats: {},
           }

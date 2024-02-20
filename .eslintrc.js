@@ -65,10 +65,11 @@ module.exports = {
           typescript: true,
           'eslint-import-resolver-custom-alias': {
             alias: {
+              '@core': '../web-core/lib',
               '@': './src',
             },
             extensions: ['.ts'],
-            packages: ['@xen-orchestra/lite'],
+            packages: ['@xen-orchestra/lite', '@xen-orchestra/web'],
           },
         },
       },

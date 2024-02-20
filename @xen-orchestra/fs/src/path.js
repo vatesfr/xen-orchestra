@@ -20,5 +20,7 @@ export function split(path) {
   return parts
 }
 
-export const relativeFromFile = (file, path) => relative(dirname(file), path)
+// paths are made absolute otherwise fs.relative() would resolve them against working directory
+export const relativeFromFile = (file, path) => relative(dirname(normalize(file)), normalize(path))
+
 export const resolveFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)

@@ -1,0 +1,12 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "lib/**/*", "lib/**/*.vue"],
+  "exclude": ["lib/**/__tests__/*"],
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["./lib/*"]
+    }
+  }
+}
