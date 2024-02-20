@@ -26,7 +26,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
   }
 
   _mustDoSnapshot() {
-    return true
+    const vm = this._vm
+
+    const settings = this._settings
+    return (
+      settings.unconditionalSnapshot ||
+      (!settings.offlineBackup && vm.power_state === 'Running') ||
+      settings.snapshotRetention !== 0 ||
+      settings.fullInterval !== 1 ||
+      settings.deltaComputationMode === 'AGAINST_PARENT_VHD'
+    )
   }
 
   async _copy() {

@@ -96,6 +96,10 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     assert(false, `no such block ${blockId}`)
   }
 
+  async getBlockHash(blockId){
+    return this.#getVhdWithBlock(blockId).getBlockHash(blockId)
+  }
+
   async readBlock(blockId, onlyBitmap = false) {
     // only read the content of the first vhd containing this block
     return await this.#getVhdWithBlock(blockId).readBlock(blockId, onlyBitmap)
