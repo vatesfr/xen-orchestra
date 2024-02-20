@@ -253,6 +253,10 @@ export default class RestApi {
           const host = req.xapiObject
           res.json(await host.$xapi.listMissingPatches(host))
         },
+
+        async smt({ xapiObject }, res) {
+          res.json({ enabled: await xapiObject.$xapi.isHyperThreadingEnabled(xapiObject.$id) })
+        },
       }
 
       collections.pools.routes = {
