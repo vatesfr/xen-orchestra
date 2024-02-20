@@ -10,6 +10,7 @@
 - Disable search engine indexing via a `robots.txt`
 - [Stats] Support format used by XAPI 23.31
 - [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
+- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
 
 ### Bug fixes
 
