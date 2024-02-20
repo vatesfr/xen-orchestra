@@ -426,14 +426,15 @@ export default class XapiStats {
 
           let stepStats = xoObjectStats[actualStep]
           let cacheStepStats = cacheXoObjectStats[actualStep]
-          if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
+          const endTimestamp = parseNumber(json.meta.end)
+          if (stepStats === undefined || stepStats.endTimestamp !== endTimestamp) {
             stepStats = xoObjectStats[actualStep] = {
-              endTimestamp: json.meta.end,
+              endTimestamp,
               interval: actualStep,
               canBeExpired: false,
             }
             cacheStepStats = cacheXoObjectStats[actualStep] = {
-              endTimestamp: json.meta.end,
+              endTimestamp,
               interval: actualStep,
               canBeExpired: true,
             }
