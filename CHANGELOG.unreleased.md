@@ -18,6 +18,7 @@
 - [New/SR] Fix create button never appearing for `smb iso` SR [#7355](https://github.com/vatesfr/xen-orchestra/issues/7355), [Forum#8417](https://xcp-ng.org/forum/topic/8417) (PR [#7405](https://github.com/vatesfr/xen-orchestra/pull/7405))
 - [Pool/Network] Don't allow MTU values that are too small to work (<68) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393)
 - [Import/VMWare] Correctly handle IDE disks
+- [Backups/Full] Fix `Cannot read properties of undefined (reading 'healthCheckVmsWithTags')` (PR [#7396](https://github.com/vatesfr/xen-orchestra/pull/7396))
 
 ### Packages to release
 
