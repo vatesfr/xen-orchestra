@@ -282,20 +282,33 @@ export default class Esxi extends EventEmitter {
     const networks = []
 
     for (const key of Object.keys(vmx)) {
-      if (key.match('^scsi([0-9]+)$') !== null) {
-        const scsiChannel = vmx[key]
-        for (const diskIndex in Object.values(scsiChannel)) {
-          const disk = scsiChannel[diskIndex]
-          if (typeof disk !== 'object' || disk.deviceType !== 'scsi-hardDisk') {
+      const matches = key.match(/^(scsi|ide|ethernet)[0-9]+$/)
+      if (matches === null) {
+        continue
+      }
+      const channelType = matches[1]
+      if (channelType === 'ide' || channelType === 'scsi') {
+        const diskChannel = vmx[key]
+        for (const diskIndex in Object.values(diskChannel)) {
+          const disk = diskChannel[diskIndex]
+          if (typeof disk !== 'object') {
             continue
           }
+          // can be something other than a disk, like a controller card
+          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+            continue
+          }
+          // ide hard disk don't have deviceType, but cdroms have one
+          if (channelType === 'ide' && disk.deviceType === 'atapi-cdrom') {
+            continue
+          }
+
           disks.push({
             ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), disk.fileName)),
             node: `${key}:${diskIndex}`,
           })
         }
-      }
-      if (key.match('^ethernet([0-9]+)$') !== null) {
+      } else if (channelType === 'ethernet') {
         const ethernet = vmx[key]
 
         networks.push({
@@ -315,7 +328,7 @@ export default class Esxi extends EventEmitter {
         for (const diskIndex in snapshot.disks) {
           const fileName = snapshot.disks[diskIndex].fileName
           snapshot.disks[diskIndex] = {
-            node: snapshot.disks[diskIndex]?.node, // 'scsi0:0',
+            node: snapshot.disks[diskIndex]?.node, // 'scsi0:0' , 'ide0:0', ...,
             ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
           }
         }
