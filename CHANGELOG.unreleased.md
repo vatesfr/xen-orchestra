@@ -11,6 +11,8 @@
 - [Stats] Support format used by XAPI 23.31
 - [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
 - [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
+- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
+
 
 ### Bug fixes
 
@@ -43,6 +45,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-audit patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
