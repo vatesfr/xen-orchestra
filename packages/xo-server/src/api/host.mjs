@@ -140,6 +140,9 @@ export async function restart({
 
     // we are currently in an host upgrade process
     if (hostRebootRequired && host.id !== master.id) {
+      // this error is not ideal but it means that the pool master must be fully upgraded/rebooted before the current host can be rebooted.
+      //
+      // there is a single error for the 3 cases because the client must handle them the same way
       const throwError = () =>
         incorrectState({
           actual: hostRebootRequired,
