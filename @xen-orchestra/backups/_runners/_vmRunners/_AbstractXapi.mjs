@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import groupBy from 'lodash/groupBy.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { formatDateTime } from '@xen-orchestra/xapi'
@@ -9,6 +10,8 @@ import { formatDateTime } from '@xen-orchestra/xapi'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
+
+const { info, warn } = createLogger('xo:backups:AbstractXapi')
 
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
@@ -171,6 +174,20 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     }
   }
 
+  // this will delete current snapshot in case of failure
+  // to ensure any retry will start with a clean state, especially in the case of rolling snapshots
+  #removeCurrentSnapshotOnFailure() {
+    if (this._mustDoSnapshot() && this._exportedVm !== undefined) {
+      info('will delete snapshot on failure', { vm: this._vm, snapshot: this._exportedVm })
+      assert.notStrictEqual(
+        this._vm.$ref,
+        this._exportedVm.$ref,
+        'there should have a snapshot, but vm and snapshot have the same ref'
+      )
+      return this._xapi.VM_destroy(this._exportedVm.$ref)
+    }
+  }
+
   async _fetchJobSnapshots() {
     const jobId = this._jobId
     const vmRef = this._vm.$ref
@@ -271,6 +288,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
         }
       }
+    } catch (error) {
+      try {
+        await this.#removeCurrentSnapshotOnFailure()
+      } catch (removeSnapshotError) {
+        warn('fail removing current snapshot', { error: removeSnapshotError })
+      }
+      throw error
     } finally {
       if (startAfter) {
         ignoreErrors.call(vm.$callAsync('start', false, false))
