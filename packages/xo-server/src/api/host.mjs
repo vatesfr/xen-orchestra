@@ -138,6 +138,7 @@ export async function restart({
     const master = this.getObject(pool.master, 'host')
     const hostRebootRequired = host.rebootRequired
 
+    // we are currently in an host upgrade process
     if (hostRebootRequired && host.id !== master.id) {
       const throwError = () =>
         incorrectState({
