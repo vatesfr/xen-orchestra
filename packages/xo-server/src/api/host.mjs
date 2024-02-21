@@ -159,14 +159,15 @@ export async function restart({
         throwError()
       }
 
-      const isMasterVersionEqual = semver.eq(master.version, host.version)
-      if (isMasterVersionEqual && (await this.getXapi(host).listMissingPatches(master._xapiId)).length > 0) {
-        log.error('master has missing patches', { masterId: master.id })
-        throwError()
-      }
-      if (isMasterVersionEqual && master.rebootRequired) {
-        log.error('master needs to reboot')
-        throwError()
+      if (semver.eq(master.version, host.version)) {
+        if ((await this.getXapi(host).listMissingPatches(master._xapiId)).length > 0) {
+          log.error('master has missing patches', { masterId: master.id })
+          throwError()
+        }
+        if (master.rebootRequired) {
+          log.error('master needs to reboot')
+          throwError()
+        }
       }
     }
   }
