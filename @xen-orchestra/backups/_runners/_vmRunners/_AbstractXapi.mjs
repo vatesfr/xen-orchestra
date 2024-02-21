@@ -193,6 +193,17 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
+    if (this._settings.deltaComputeMode === 'CBT' && this._exportedVm?.$ref && this._exportedVm?.$ref != this._vm.$ref) {
+      console.log('WILL PURGE',this._exportedVm?.$ref)
+      const xapi = this._xapi 
+      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
+      await xapi.call('VM.destroy',this._exportedVm.$ref)
+      // @todo: ensure it is really the snapshot
+      for (const vdiRef of vdiRefs) {
+        // @todo handle error
+        await xapi.VDI_dataDestroy(vdiRef) 
+      }
+    }
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
@@ -209,10 +220,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       })
     })
 
-    if (this._settings.deltaComputationMode === 'CBT') {
-      // @todo: ensure it is really the snapshot
-      await xapi.VDI_dataDestroy(this._exportedVm.$ref)
-    }
+
   }
 
   async copy() {
