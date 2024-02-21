@@ -141,6 +141,7 @@ export class Task {
   }
 
   #log(event, props) {
+    console.log({taskId: this.#id,event})
     this.#onLog({
       ...props,
       event,

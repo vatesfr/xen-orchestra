@@ -64,6 +64,11 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
     }
 
     await Task.run({ name: 'transfer' }, async () => {
+      console.log('run ')
+      if(Math.random() < 0.8){
+        throw new Error('NOPE')
+      }
+      console.log('OK ')
       await adapter.outputStream(dataFilename, stream, {
         maxStreamLength,
         streamLength,
