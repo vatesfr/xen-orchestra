@@ -1,5 +1,7 @@
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 
+const RFC_MINIMUM_MTU = 68 // see RFC 791
+
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
@@ -26,7 +28,7 @@ create.params = {
   nbd: { type: 'boolean', optional: true },
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
-  mtu: { type: 'integer', optional: true },
+  mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
   vlan: { type: 'integer', optional: true },
 }
 
@@ -56,7 +58,7 @@ createBonded.params = {
       type: 'string',
     },
   },
-  mtu: { type: 'integer', optional: true },
+  mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
   bondMode: { enum: getBondModes() },
 }
 
@@ -107,7 +109,7 @@ set.params = {
   },
   mtu: {
     type: 'integer',
-    minimum: 68, // see RFC 791
+    minimum: RFC_MINIMUM_MTU,
     optional: true,
   },
   name_description: {
