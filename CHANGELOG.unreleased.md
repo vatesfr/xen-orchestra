@@ -13,7 +13,6 @@
 - [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
 - [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
 
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -24,6 +23,7 @@
 - [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
 - [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
 - [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
+- [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
 
 ### Packages to release
 
