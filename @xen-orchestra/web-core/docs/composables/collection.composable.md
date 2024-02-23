@@ -179,7 +179,7 @@ defineCollection(entries, options, getChildren)
 Let's take this `families` example:
 
 ```ts
-const familiesData = [
+const families = [
   {
     id: 'does',
     name: 'The Does',
@@ -241,7 +241,7 @@ const familiesData = [
 You can use the `defineCollection` helper:
 
 ```ts
-const definitions = defineCollection(familiesData, family =>
+const definitions = defineCollection(families, family =>
   defineCollection(family.members, person => defineCollection(person.animals))
 )
 ```
@@ -249,7 +249,7 @@ const definitions = defineCollection(familiesData, family =>
 This is the equivalent of the following code:
 
 ```ts
-const definitions = familiesData.map(
+const definitions = families.map(
   family =>
     new GroupDefinition(
       family.id,
@@ -279,9 +279,20 @@ const definitions = familiesData.map(
 | `depth`         | `number`                    | depth of the item in the collection                               |
 | `isSelected`    | `boolean`                   | whether the item is selected                                      |
 | `isActive`      | `boolean`                   | whether the item is active                                        |
-| `isVisible`     | `boolean`                   | whether the item is visible (see below)                           |
+| `isVisible`     | `boolean`                   | whether the item is visible (see Item Visibility below)           |
 | `activate`      | `() => void`                | function to activate the item                                     |
 | `toggleSelect`  | `(force?: boolean) => void` | function to toggle the selection of the item                      |
+| `labelClasses`  | `{ [name]: boolean }`       | object of classes to be used in the template (see below)          |
+
+### `labelClasses`
+
+The `labelClasses` properties are classes to be used in the template `:class`.
+
+For a `Leaf` instance, it contains the following properties:
+
+- `selected`: whether the leaf is selected
+- `active`: whether the leaf is active
+- `matches`: whether the leaf matches the filter
 
 ## `Group` instances
 
@@ -295,11 +306,22 @@ Additionally, `Group` instances have the following properties:
 | `rawChildren`                  | `Item[]`  | array of all children instances                 |
 | `children`                     | `Item[]`  | array of visible children instances (see below) |
 
+### `labelClasses`
+
+For a `Group` instance, it contains the following properties:
+
+- `selected`: whether the group is selected
+- `selected-partial`: whether the group is partially selected (i.e., some children are selected)
+- `selected-full`: whether the group is fully selected (i.e., all children are selected)
+- `expanded`: whether the group is expanded
+- `active`: whether the group is active
+- `matches`: whether the group matches the filter
+
 ## Item Visibility
 
 Here are the rules to determine whether an item is visible or not.
 
-If a rule applies, other rules are not evaluated.
+**Note**: Only the first matching rule determines an item's visibility. Subsequent rules are not evaluated.
 
 1. If `passesFilter` returns `true` => _visible_
 2. If any of its ancestors `passesFilter` returns `true` => _visible_
@@ -311,36 +333,163 @@ If a rule applies, other rules are not evaluated.
 
 ## Example 1: Tree View
 
-```ts
-const definitions = defineCollection(familiesData, family =>
-  defineCollection(family.members, person => defineCollection(person.animals))
-)
-
-const { items: families } = useCollection(definitions)
-```
-
 ```html
-
 <template>
   <ul>
-    <li v-for="family in families" :key="family.id">
-      <button @click="family.toggleExpand()">
-        {{ family.isExpanded ? '↓' : '→' }}
-      </button>
-      {{ family.data.name }}
-      <ul v-if="family.isExpanded">
+    <li v-for="family in items" :key="family.id">
+      <div class="label" @click="family.toggleExpand()">{{ family.isExpanded ? '↓' : '→' }} {{ family.data.name }}</div>
+      <ul v-if="family.isExpanded" class="persons">
         <li v-for="person in family.children" :key="person.id">
-          <button @click="person.toggleExpand()">
-            {{ person.isExpanded ? '↓' : '→' }}
-          </button>
-          {{ person.data.name }} ({{ person.data.age }})
-          <ul v-if="person.isExpanded">
-            <li v-for="animal in person.children" :key="animal.id">
-              {{ animal.data.name }}
-            </li>
+          <div class="label" @click="person.toggleExpand()">
+            {{ person.isExpanded ? '↓' : '→' }} {{ person.data.name }} ({{ person.data.age }})
+          </div>
+          <ul v-if="person.isExpanded" class="animals">
+            <li v-for="animal in person.children" :key="animal.id">{{ animal.data.name }}</li>
+          </ul>
         </li>
       </ul>
     </li>
   </ul>
 </template>
+
+<script lang="ts" setup>
+  const definitions = defineCollection(families, ({ members }) =>
+    defineCollection(members, ({ animals }) => defineCollection(animals))
+  )
+
+  const { items } = useCollection(definitions)
+</script>
+
+<style lang="postcss" scoped>
+  .persons,
+  .animals {
+    padding-left: 20px;
+  }
+
+  .animals li {
+    padding-left: 10px;
+  }
+
+  .label {
+    cursor: pointer;
+  }
+</style>
+```
+
+## Example 2: Multi-select
+
+```html
+<template>
+  <ul>
+    <li v-for="family in items" :key="family.id">
+      <div
+        class="label family"
+        :class="family.labelClasses"
+        @mouseenter="family.activate()"
+        @click="family.toggleChildrenSelect()"
+      >
+        {{ family.data.name }}
+      </div>
+      <ul class="persons">
+        <li v-for="person in family.children" :key="person.id">
+          <div
+            class="label person"
+            :class="person.labelClasses"
+            @mouseenter="person.activate()"
+            @click="person.toggleSelect()"
+          >
+            {{ person.data.name }} ({{ person.data.age }})
+          </div>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</template>
+
+<script lang="ts" setup>
+  const definitions = defineCollection(families, ({ members }) => defineCollection(members))
+
+  const { items } = useCollection(definitions, { allowMultiSelect: true })
+</script>
+
+<style lang="postcss" scoped>
+  .persons {
+    padding-left: 20px;
+  }
+
+  .family {
+    background-color: #eaeaea;
+
+    &.selected-full {
+      background-color: #add8e6;
+    }
+
+    &.active {
+      filter: brightness(1.1);
+    }
+  }
+
+  .person {
+    background-color: #f5f5f5;
+
+    &.selected {
+      background-color: #b5e2f1;
+    }
+
+    &.active {
+      filter: brightness(1.07);
+    }
+  }
+</style>
+```
+
+### Example 3: Filtering
+
+```html
+<template>
+  <div>
+    <input v-model="filter" placeholder="Filter" />
+  </div>
+  <ul>
+    <li v-for="family in items" :key="family.id">
+      <div :class="family.labelClasses">{{ family.data.name }}</div>
+      <ul class="sub">
+        <li v-for="person in family.children" :key="person.id">
+          <div :class="person.labelClasses">{{ person.data.name }} ({{ person.data.age }})</div>
+          <ul class="sub">
+            <li v-for="animal in person.children" :key="animal.id">
+              <div :class="animal.labelClasses">{{ animal.data.name }}</div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</template>
+
+<script lang="ts" setup>
+  const filter = ref<string>()
+
+  const predicate = ({ name }: { name: string }) => {
+    const filterValue = filter.value?.trim().toLocaleLowerCase() ?? false
+
+    return !filterValue ? undefined : name.toLocaleLowerCase().includes(filterValue)
+  }
+
+  const definitions = defineCollection(families, { predicate }, ({ members }) =>
+    defineCollection(members, { predicate }, ({ animals }) => defineCollection(animals, { predicate }))
+  )
+
+  const { items } = useCollection(definitions, { expand: false })
+</script>
+
+<style lang="postcss" scoped>
+  .sub {
+    padding-left: 20px;
+  }
+
+  .matches {
+    font-weight: bold;
+  }
+</style>
 ```
