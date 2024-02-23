@@ -460,7 +460,7 @@ export const SelectHostVm = makeStoreSelect(
 
 export const SelectVmTemplate = makeStoreSelect(
   () => {
-    const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(getPredicate).sort().groupBy('$container')
+    const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(getPredicate).sort().groupBy('$pool')
     const getPools = createGetObjectsOfType('pool')
       .pick(createSelector(getVmTemplatesByPool, vmTemplatesByPool => keys(vmTemplatesByPool)))
       .sort()
