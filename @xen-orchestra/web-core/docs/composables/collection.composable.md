@@ -30,11 +30,8 @@ useCollection(definitions, options)
 |                 | Type                                      |                                                                           |
 | --------------- | ----------------------------------------- | ------------------------------------------------------------------------- |
 | `items`         | `(Leaf \| Group)[]`                       | Array of visible `Leaf` and `Group` instances (See Item Visibility below) |
-| `activeId`      | `ComputedRef<string \| undefined>`        | The id of the active item                                                 |
 | `activeItem`    | `ComputedRef<Leaf \| Group \| undefined>` | The active item instance                                                  |
-| `selectedIds`   | `ComputedRef<string[]>`                   | Array of selected item ids                                                |
 | `selectedItems` | `ComputedRef<(Leaf \| Group)[]>`          | Array of selected item instances                                          |
-| `expandedIds`   | `ComputedRef<string[]>`                   | Array of expanded group ids                                               |
 | `expandedItems` | `ComputedRef<Group[]>`                    | Array of expanded group instances                                         |
 
 ## `LeafDefinition`
