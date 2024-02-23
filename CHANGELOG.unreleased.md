@@ -9,7 +9,7 @@
 
 - Disable search engine indexing via a `robots.txt`
 - [Stats] Support format used by XAPI 23.31
-- [Storage/Disks] Handle link to VM for suspended VDIs (PR [7391](https://github.com/vatesfr/xen-orchestra/pull/7391))
+- [Storage/Disks] Handle link to VM for suspended VDIs (PR [#7391](https://github.com/vatesfr/xen-orchestra/pull/7391))
 
 ### Bug fixes
 
@@ -41,7 +41,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-audit patch
-- xo-web patch
 - xo-web minor
 
 <!--packages-end-->

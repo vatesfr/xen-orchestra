@@ -123,9 +123,9 @@ const COLUMNS = [
         vms: getAllVms(state, props),
         vbds: getVbds(state, props),
       })
-    })(({ item: vdi, vbds, vms, userData: { vmsSnapshotsBySuspendedVdi } }) => {
-      const vmSnapshot = vmsSnapshotsBySuspendedVdi[vdi.uuid]?.[0]
-      if (isEmpty(vms) && vmSnapshot === undefined) {
+    })(({ item: vdi, vbds, vms, userData: { vmsSnapshotsBySuspendVdi } }) => {
+      const vmSnapshot = vmsSnapshotsBySuspendVdi[vdi.uuid]?.[0]
+      if (isEmpty(vms)) {
         return null
       }
 
@@ -313,7 +313,7 @@ class NewDisk extends Component {
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   vbds: createGetObjectsOfType('VBD'),
-  vmsSnapshotsBySuspendedVdi: createGetObjectsOfType('VM-snapshot').groupBy('suspendVdi'),
+  vmsSnapshotsBySuspendVdi: createGetObjectsOfType('VM-snapshot').groupBy('suspendVdi'),
 }))
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
@@ -444,7 +444,7 @@ export default class SrDisks extends Component {
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
                 data-vdisByBaseCopy={this._getVdisByBaseCopy()}
-                data-vmsSnapshotsBySuspendedVdi={this.props.vmsSnapshotsBySuspendedVdi}
+                data-vmsSnapshotsBySuspendVdi={this.props.vmsSnapshotsBySuspendVdi}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
