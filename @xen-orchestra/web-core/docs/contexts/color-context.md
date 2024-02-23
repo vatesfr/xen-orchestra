@@ -69,7 +69,7 @@ Color contexts rely on the type `Color` defined in `/lib/types/color.type.ts`:
 
 ## Usage
 
-To get and set the color context in a component, you can use the `useContext` composable, which takes a `ColorContext` (defined in `context.ts`) as first parameter and returns the `colorContextClass`:
+To get and set the color context in a component, you can pass the `ColorContext` to `useContext` and apply the `colorContextClass` to the root component:
 
 ```ts
 // ParentComponent.vue

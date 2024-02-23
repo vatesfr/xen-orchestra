@@ -82,6 +82,12 @@ const CounterContext = createContext(10, counter => ({
 
 // Example 2. Return a computed value
 const DoubleContext = createContext(10, num => computed(() => num.value * 2))
+
+// Example 3. Use a previous value
+const ColorContext = createContext('info' as Color, (color, previousColor) => ({
+  name: color,
+  colorContextClass: computed(() => (previousColor.value === color.value ? undefined : `color-context-${color.value}`)),
+}))
 ```
 
 ### 2. Use the context
