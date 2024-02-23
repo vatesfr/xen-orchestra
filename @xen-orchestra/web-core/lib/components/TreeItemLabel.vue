@@ -3,7 +3,7 @@
     <div
       :class="isExactActive ? 'exact-active' : $props.active ? 'active' : undefined"
       :style="{ paddingLeft: `${depth * 20}px` }"
-      class="ui-tree-item-label"
+      class="tree-item-label"
       v-bind="$attrs"
     >
       <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" @click="toggle()" />
@@ -58,7 +58,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 </script>
 
 <style lang="postcss" scoped>
-.ui-tree-item-label {
+.tree-item-label {
   display: flex;
   align-items: center;
   color: var(--color-grey-100);

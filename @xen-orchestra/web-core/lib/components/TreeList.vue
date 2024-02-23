@@ -1,5 +1,5 @@
 <template>
-  <ul class="ui-tree-list">
+  <ul class="tree-list">
     <slot />
   </ul>
 </template>

@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { POWER_STATE } from '@core/types/power-state.type'
-import { faMoon, faPause, faPlay, faQuestion, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faMoon, faPause, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -19,14 +19,16 @@ const icons = {
   halted: faStop,
 }
 
-const icon = computed(() => icons[props.state] ?? faQuestion)
+const icon = computed(() => icons[props.state])
 
-const className = computed(() => `state-${props.state.toLocaleLowerCase()}`)
+const className = computed(() => `state-${props.state}`)
 </script>
 
 <style lang="postcss" scoped>
 .power-state-icon {
-  color: var(--color-purple-d60);
+  &.state-suspended {
+    color: var(--color-purple-d60);
+  }
 
   &.state-running {
     color: var(--color-green-base);

@@ -1,5 +1,5 @@
 <template>
-  <FontAwesomeLayers>
+  <FontAwesomeLayers class="vm-icon">
     <UiIcon :icon="faDisplay" />
     <PowerStateIcon :state="state" />
   </FontAwesomeLayers>
@@ -18,7 +18,7 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.fa-layers {
+.vm-icon {
   flex-shrink: 0;
 }
 

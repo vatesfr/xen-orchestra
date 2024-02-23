@@ -1,5 +1,5 @@
 <template>
-  <li class="ui-tree-item">
+  <li class="tree-item">
     <slot />
     <slot v-if="isExpanded" name="sublist" />
   </li>
