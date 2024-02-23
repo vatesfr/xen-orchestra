@@ -106,11 +106,7 @@ export default class ResourceSetQuotas extends Component {
                       )}
                       <p className='text-xs-center'>
                         {_('resourceSetQuota', {
-                          total: !Number.isFinite(quota.total)
-                            ? Infinity
-                            : validFormat
-                              ? quota.total.toString()
-                              : formatSize(quota.total),
+                          total: !Number.isFinite(quota.total) ? Infinity : formatSize(quota.total),
                           usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
                         })}
                       </p>
