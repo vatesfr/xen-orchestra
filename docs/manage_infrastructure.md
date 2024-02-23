@@ -429,15 +429,15 @@ In the VM "Snapshots" tab, you can also export a snapshot like you export a VM.
 
 ### Simple VM Migration (VM.pool_migrate)
 
-Simple migration involves moving the VM without moving its disks. This feature is only possible when the VM's disks are on a shared SR by both hosts.
+In simple migration, the VM's active state is transferred from host A to host B while its disks remains in its original location. This feature is only possible when the VM's disks are on a shared SR by both hosts and if the VM is running.
 
 #### Use Case
 
-- Move a VM within the same pool from host A to host B without moving the VM's VDIs.
+- Migrate a VM within the same pool from host A to host B without moving the VM's VDIs.
 
 ### VM Migration with Storage Motion (VM.migrate_send)
 
-VM migration with storage motion allows you to move a VM from one host to another when the VM's disks are not on a shared SR between the two hosts or if a specific network is chosen for the migration.
+VM migration with storage motion allows you to migrate a VM from one host to another when the VM's disks are not on a shared SR between the two hosts or if a specific network is chosen for the migration. VDIs will be migrated to the destination SR if one is provided.
 
 #### Use Cases
 
