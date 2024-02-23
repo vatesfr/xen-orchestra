@@ -156,10 +156,13 @@ MultipathableSrs.propTypes = {
 
   const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
+  const getPusbs = createGetObjectsOfType('PUSB').pick((_, { host }) => host.$PUSBs)
+
   return {
     controlDomain: getControlDomain,
     pcis: getPcis,
     pgpus: getPgpus,
+    pusbs: getPusbs,
   }
 })
 export default class extends Component {
@@ -254,7 +257,7 @@ export default class extends Component {
   }
 
   render() {
-    const { controlDomain, host, pcis, pgpus, schedGran } = this.props
+    const { controlDomain, host, pcis, pgpus, pusbs, schedGran } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -518,6 +521,10 @@ export default class extends Component {
                   <td>
                     {host.cpus.cores} ({host.cpus.sockets})
                   </td>
+                </tr>
+                <tr>
+                  <th>{_('hostUsbs')}</th>
+                  <td>{host.pusbs}</td>
                 </tr>
                 <tr>
                   <th>{_('hyperThreading')}</th>

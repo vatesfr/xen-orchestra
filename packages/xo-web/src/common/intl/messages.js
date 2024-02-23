@@ -1055,6 +1055,7 @@ const messages = {
   hostCpusNumber: 'Core (socket)',
   hostManufacturerinfo: 'Manufacturer info',
   hostBiosinfo: 'BIOS info',
+  hostUsbs: 'USBs',
   licenseHostSettingsLabel: 'License',
   hostLicenseType: 'Type',
   hostLicenseSocket: 'Socket',
