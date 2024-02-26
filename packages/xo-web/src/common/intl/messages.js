@@ -1063,6 +1063,8 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  passthroughEnabled: 'Enable passthrough',
+  pusbList: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
@@ -1076,6 +1078,7 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
+  usbVendorId: 'Vendor ID',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',

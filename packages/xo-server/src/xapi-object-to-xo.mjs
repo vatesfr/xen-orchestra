@@ -898,6 +898,8 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       passthroughEnabled: obj.passthrough_enabled,
       usbGroup: link(obj, 'USB_group'),
+      vendorId : obj.vendor_id,
+      version : obj.version,
     }
   },
 }

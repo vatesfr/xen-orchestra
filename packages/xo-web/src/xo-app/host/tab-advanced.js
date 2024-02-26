@@ -45,10 +45,31 @@ import {
   toggleMaintenanceMode,
 } from 'xo'
 
+import SortedTable from 'sorted-table'
 import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 const ALLOW_SMART_REBOOT = xoaPlans.CURRENT.value >= xoaPlans.PREMIUM.value
+const PUSBS_COLUMNS = [
+  {
+    name: _('usbVendorId'),
+    itemRenderer: pusb => pusb.vendorId,
+  },
+  {
+    name: _('description'),
+    itemRenderer: pusb => pusb.description,
+  },
+  {
+    name: _('version'),
+    itemRenderer: pusb => pusb.version,
+  },
+  {
+    name: _('passthroughEnabled'),
+    itemRenderer: pusb => {
+      return String(pusb.passthroughEnabled)
+    },
+  },
+]
 
 const SCHED_GRAN_TYPE_OPTIONS = [
   {
@@ -156,7 +177,11 @@ MultipathableSrs.propTypes = {
 
   const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
-  const getPusbs = createGetObjectsOfType('PUSB').pick((_, { host }) => host.$PUSBs)
+  const getPusbs = createGetObjectsOfType('PUSB').filter(
+    (_, { host }) =>
+      pusb =>
+        pusb.host === host.id
+  )
 
   return {
     controlDomain: getControlDomain,
@@ -523,10 +548,6 @@ export default class extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <th>{_('hostUsbs')}</th>
-                  <td>{host.pusbs}</td>
-                </tr>
-                <tr>
                   <th>{_('hyperThreading')}</th>
                   <td>
                     {isHtEnabled === null
@@ -565,6 +586,9 @@ export default class extends Component {
                 </tr>
               </tbody>
             </table>
+            <br />
+            <h3>{_('pusbList')}</h3>
+            <SortedTable collection={pusbs} columns={PUSBS_COLUMNS} />
             <br />
             <h3>{_('licenseHostSettingsLabel')}</h3>
             <table className='table'>
