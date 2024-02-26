@@ -86,7 +86,12 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             throw new Error(`Job mode ${job.mode} not implemented for mirror backup`)
           }
 
-          return runTask(taskStart, () => vmBackup.run())
+          return sourceRemoteAdapter
+            .listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
+            .then(vmBackups => {
+              // avoiding to create tasks for empty directories
+              if (vmBackups.length > 0) return runTask(taskStart, () => vmBackup.run())
+            })
         }
         const { concurrency } = settings
         await asyncMapSettled(vmsUuids, !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm))
