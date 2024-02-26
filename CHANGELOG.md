@@ -1,5 +1,38 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- Disable search engine indexing via a `robots.txt`
+- [Stats] Support format used by XAPI 23.31
+- [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
+- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
+- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
+- [Pool/Advanced] _Auto power on_ can be disabled at pool level (PR [#7401](https://github.com/vatesfr/xen-orchestra/pull/7401))
+
+### Bug fixes
+
+- [Settings/XO Config] Sort backups from newest to oldest
+- [Plugins/audit] Don't log `tag.getAllConfigured` calls
+- [Remotes] Correctly clear error when the remote is tested with success
+- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
+- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
+- [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
+- [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
+- [Backup] Remove display of empty directories for mirror backups (PR [#7340](https://github.com/vatesfr/xen-orchestra/pull/7340))
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.5
+- vhd-lib 4.9.1
+- @xen-orchestra/xapi 4.2.1
+- @xen-orchestra/backups 0.44.7
+- @xen-orchestra/proxy 0.26.46
+- xo-server 5.137.0
+- xo-server-audit 0.10.6
+- xo-web 5.137.0
+
 ## **5.91.2** (2024-02-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
