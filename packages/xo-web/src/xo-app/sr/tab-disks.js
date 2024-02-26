@@ -125,7 +125,7 @@ const COLUMNS = [
       })
     })(({ item: vdi, vbds, vms, userData: { vmsSnapshotsBySuspendVdi } }) => {
       const vmSnapshot = vmsSnapshotsBySuspendVdi[vdi.uuid]?.[0]
-      if (isEmpty(vms)) {
+      if (vmSnapshot === undefined) {
         return null
       }
 
