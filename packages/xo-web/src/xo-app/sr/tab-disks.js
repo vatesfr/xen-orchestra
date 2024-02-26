@@ -19,7 +19,7 @@ import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, every, groupBy, isEmpty, map, mapValues, pick, some, sortBy } from 'lodash'
+import { concat, every, groupBy, isEmpty, keyBy, map, mapValues, pick, some, sortBy } from 'lodash'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
   connectVbd,
@@ -124,7 +124,8 @@ const COLUMNS = [
         vbds: getVbds(state, props),
       })
     })(({ item: vdi, vbds, vms, userData: { vmsSnapshotsBySuspendVdi } }) => {
-      const vmSnapshot = vmsSnapshotsBySuspendVdi[vdi.uuid]?.[0]
+      const vmSnapshot = vmsSnapshotsBySuspendVdi[vdi.uuid]
+
       if (vmSnapshot === undefined) {
         return null
       }
@@ -310,11 +311,13 @@ class NewDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  vbds: createGetObjectsOfType('VBD'),
-  vmsSnapshotsBySuspendVdi: createGetObjectsOfType('VM-snapshot').groupBy('suspendVdi'),
-}))
+@connectStore(() => {
+  return (state, props) => ({
+    checkPermissions: getCheckPermissions(state, props),
+    vbds: createGetObjectsOfType('VBD')(state, props),
+    vmsSnapshotsBySuspendVdi: keyBy(createGetObjectsOfType('VM-snapshot')(state, props), 'suspendVdi'),
+  })
+})
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
 
