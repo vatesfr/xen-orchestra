@@ -926,9 +926,6 @@ const TRANSFORMS = {
 
       PUSB: link(obj, 'PUSBs'),
       VUSB: link(obj, 'VUSBs'),
-      nameDescription: obj.name_description,
-      nameLabel: obj.name_label,
-      otherConfig: obj.other_config,
     }
   },
 }

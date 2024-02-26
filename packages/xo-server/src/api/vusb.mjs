@@ -2,23 +2,23 @@
 // Only one VUSB can be attached to a given USB_group, and up to six VUSB can be attached to a VM.
 export async function create({ vm, usbGroup }) {
   const xapi = this.getXapi(vm)
-  const vusbRef = await xapi.VUSB_create(vm._xapiRef, usbGroup._xapiRef)
+  const vusbRef = await xapi.call('VUSB.create', vm._xapiRef, usbGroup._xapiRef)
   return xapi.getField('VUSB', vusbRef, 'uuid')
 }
 
 create.params = {
-  vmId: { type: 'string' },
-  usbGroupId: { type: 'string' },
+  vm: { type: 'string' },
+  usbGroup: { type: 'string' },
 }
 
 create.resolve = {
-  vm: ['vmId', 'VM', 'administrate'],
-  usbGroup: ['usbGroupId', 'USB_group', 'administrate'],
+  vm: ['vm', 'VM', 'administrate'],
+  usbGroup: ['usbGroup', 'USB_group', 'administrate'],
 }
 
 // Unplug VUSB until next VM restart
 export async function unplug({ vusb }) {
-  await this.getXapi(vusb).VUSB_unplug(vusb._xapiRef)
+  await this.getXapi(vusb).call('VUSB.unplug', vusb._xapiRef)
 }
 
 unplug.params = {
