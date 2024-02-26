@@ -19,11 +19,11 @@
   },
   "main": "./index.mjs",
   "dependencies": {
-    "@xen-orchestra/fs": "^4.1.4",
+    "@xen-orchestra/fs": "^4.1.5",
     "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.9.0"
+    "vhd-lib": "^4.9.1"
   },
   "bin": {
     "xo-fuse-vhd": "./cli.mjs"

@@ -7,24 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Disable search engine indexing via a `robots.txt`
-- [Stats] Support format used by XAPI 23.31
-- [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
-- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
-- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
-- [Pool/Advanced] _Auto power on_ can be disabled at pool level (PR [#7401](https://github.com/vatesfr/xen-orchestra/pull/7401))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Settings/XO Config] Sort backups from newest to oldest
-- [Plugins/audit] Don't log `tag.getAllConfigured` calls
-- [Remotes] Correctly clear error when the remote is tested with success
-- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
-- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
-- [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
-- [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
-- [Backup] Remove display of empty directories for mirror backups (PR [#7340](https://github.com/vatesfr/xen-orchestra/pull/7340))
 
 ### Packages to release
 
@@ -41,13 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs patch
-- @xen-orchestra/xapi patch
-- vhd-lib patch
-- xo-server minor
-- xo-server-audit patch
-- xo-web minor
 
 <!--packages-end-->
