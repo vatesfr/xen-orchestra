@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [API/backupNg.getLogs] Fix `after` parameter handling when `limit` parameter is not provided
+- [New/SR] Fix create button never appearing for `smb iso` SR [#7355](https://github.com/vatesfr/xen-orchestra/issues/7355), [Forum#8417](https://xcp-ng.org/forum/topic/8417) (PR [#7405](https://github.com/vatesfr/xen-orchestra/pull/7405))
 
 ### Packages to release
 
@@ -30,5 +31,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
