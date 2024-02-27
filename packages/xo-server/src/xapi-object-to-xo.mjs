@@ -883,6 +883,8 @@ const TRANSFORMS = {
     }
   },
 
+  // -----------------------------------------------------------------
+
   vtpm(obj) {
     return {
       type: 'VTPM',
@@ -890,6 +892,8 @@ const TRANSFORMS = {
       vm: link(obj, 'VM'),
     }
   },
+
+  // -----------------------------------------------------------------
 
   pusb(obj) {
     return {
@@ -899,6 +903,29 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       passthroughEnabled: obj.passthrough_enabled,
       usbGroup: link(obj, 'USB_group'),
+    }
+  },
+
+  // -----------------------------------------------------------------
+
+  vusb(obj) {
+    return {
+      type: 'VUSB',
+
+      vm: link(obj, 'VM'),
+      currentlyAttached: obj.currently_attached,
+      usbGroup: link(obj, 'USB_group'),
+    }
+  },
+
+  // -----------------------------------------------------------------
+
+  usb_group(obj) {
+    return {
+      type: 'USB_group',
+
+      PUSB: link(obj, 'PUSBs'),
+      VUSB: link(obj, 'VUSBs'),
     }
   },
 }
