@@ -300,7 +300,7 @@ export default class NewVm extends BaseComponent {
 
   get _isDiskTemplate() {
     const { template } = this.props
-    return template && template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
+    return template && template.$VBDs.length !== 0 && template.name_label !== 'Other install media'
   }
   _setState = (newValues, callback) => {
     this.setState(
@@ -470,7 +470,7 @@ export default class NewVm extends BaseComponent {
 
     const data = {
       affinityHost: state.affinityHost && state.affinityHost.id,
-      clone: !this._isDiskTemplate && state.fastClone,
+      clone: this._isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,

@@ -10,7 +10,7 @@
     "@xen-orchestra/log": "^0.6.0",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
-    "vhd-lib": "^4.9.0"
+    "vhd-lib": "^4.9.1"
   },
   "engines": {
     "node": ">=14"

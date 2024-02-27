@@ -16,6 +16,7 @@ import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, map, values } from 'lodash'
 import { Text, XoSelect } from 'editable'
+import { Toggle } from 'form'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -239,6 +240,8 @@ export default class TabAdvanced extends Component {
     plugins => plugins !== undefined && plugins.some(plugin => plugin.name === 'netbox' && plugin.loaded)
   )
 
+  _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
+
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
@@ -300,6 +303,12 @@ export default class TabAdvanced extends Component {
               <h3>{_('xenSettingsLabel')}</h3>
               <table className='table'>
                 <tbody>
+                  <tr>
+                    <th>{_('autoPowerOn')}</th>
+                    <td>
+                      <Toggle value={pool.auto_poweron} onChange={this._onChangeAutoPoweron} />
+                    </td>
+                  </tr>
                   <tr>
                     <th>{_('poolHaStatus')}</th>
                     <td>{pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}</td>
