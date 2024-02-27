@@ -11,6 +11,8 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SelectBootFirmware from 'select-boot-firmware'
 import SelectCoresPerSocket from 'select-cores-per-socket'
+import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { error } from 'notification'
@@ -30,9 +32,11 @@ import {
   convertVmToTemplate,
   createVgpu,
   createVtpm,
+  createVusb,
   deleteVgpu,
   deleteVm,
   deleteVtpm,
+  deleteVusb,
   editVm,
   getVmsHaValues,
   isVmRunning,
@@ -48,6 +52,7 @@ import {
   subscribeResourceSets,
   subscribeUsers,
   suspendVm,
+  unplugVusb,
   vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -58,6 +63,7 @@ import { getXoaPlan, PREMIUM } from 'xoa-plans'
 import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
+import VusbCreateModal from './vusb-create-modal'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -78,6 +84,56 @@ const STOP_OPERATIONS = [
 
   // Even though it's not recognized by `xe (as of 2021-08), it's a valid operation
   'shutdown',
+]
+
+const VUSB_COLUMNS = [
+  {
+    name: _('id'),
+    itemRenderer: vusb => {
+      const { uuid } = vusb
+      return (
+        <Copiable data={uuid} tagName='p'>
+          {uuid.slice(4, 8)}
+        </Copiable>
+      )
+    },
+  },
+  {
+    name: _('pusbDescription'),
+    itemRenderer: (vusb, { pusbsByUsbGroup }) => pusbsByUsbGroup[vusb.usbGroup].description,
+  },
+  {
+    name: _('pusbVersion'),
+    itemRenderer: (vusb, { pusbsByUsbGroup }) => pusbsByUsbGroup[vusb.usbGroup].version,
+  },
+  {
+    name: _('pusbSpeed'),
+    itemRenderer: (vusb, { pusbsByUsbGroup }) => pusbsByUsbGroup[vusb.usbGroup].speed,
+  },
+  {
+    name: _('status'),
+    itemRenderer: ({ currentlyAttached, uuid }) => (
+      <StateButton
+        disabled={!currentlyAttached}
+        disabledLabel={_('statusDisconnected')}
+        disabledTooltip={_('vusbRemainUnplugged')}
+        enabledLabel={_('connected')}
+        enabledHandler={unplugVusb}
+        enabledTooltip={_('vusbUnplugTooltip')}
+        state={currentlyAttached}
+        handlerParam={uuid}
+      />
+    ),
+  },
+]
+
+const VUSB_INDIVIDUAL_ACTIONS = [
+  {
+    handler: deleteVusb,
+    icon: 'delete',
+    label: _('delete'),
+    level: 'danger',
+  },
 ]
 
 const forceReboot = vm => restartVm(vm, true)
@@ -402,13 +458,32 @@ const NIC_TYPE_OPTIONS = [
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup')))
+  const getVusbs = createGetObjectsOfType('VUSB').filter(
+    (_, { vm }) =>
+      vusb =>
+        vusb.vm === vm.id
+  )
+  const getPusbs = createGetObjectsOfType('PUSB')
+  const getAvailablePusbs = getPusbs
+    .pick(
+      createSelector(createGetObjectsOfType('USB_group'), usbGroups =>
+        map(
+          filter(usbGroups, usbGroup => usbGroup.VUSB[0] === undefined),
+          usbGroup => usbGroup.PUSB
+        )
+      )
+    )
+    .sort()
 
-  return {
-    gpuGroup: getGpuGroup,
-    isAdmin,
-    vgpus: getVgpus,
-    vmPool: createGetObject((_, props) => get(() => props.vm.$pool)),
-  }
+  return (state, props) => ({
+    availablePusbs: getAvailablePusbs(state, props),
+    gpuGroup: getGpuGroup(state, props),
+    isAdmin: isAdmin(state, props),
+    vgpus: getVgpus(state, props),
+    vmPool: createGetObject((_, props) => get(() => props.vm.$pool))(state, props),
+    pusbByUsbGroup: keyBy(getPusbs(state, props), 'usbGroup'),
+    vusbs: getVusbs(state, props),
+  })
 })
 export default class TabAdvanced extends Component {
   componentDidMount() {
@@ -489,8 +564,17 @@ export default class TabAdvanced extends Component {
 
   _updateUser = user => editVm(this.props.vm, { creation: { user: user.id } })
 
+  _createVusb = async () => {
+    const pusb = await confirm({
+      title: _('createVusb'),
+      body: <VusbCreateModal pusbs={this.props.availablePusbs} />,
+      icon: 'add',
+    })
+    return createVusb(this.props.vm, pusb.usbGroup)
+  }
+
   render() {
-    const { container, isAdmin, vgpus, vm, vmPool } = this.props
+    const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
@@ -1043,6 +1127,16 @@ export default class TabAdvanced extends Component {
                 </tr>
               </tbody>
             </table>
+            <h3>{_('vusbs')}</h3>
+            <ActionButton btnStyle='primary' handler={this._createVusb} icon='add'>
+              {_('createVusb')}
+            </ActionButton>
+            <SortedTable
+              collection={vusbs}
+              columns={VUSB_COLUMNS}
+              data-pusbsByUsbGroup={pusbByUsbGroup}
+              individualActions={VUSB_INDIVIDUAL_ACTIONS}
+            />
           </Col>
         </Row>
       </Container>
