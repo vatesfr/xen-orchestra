@@ -27,6 +27,7 @@ import {
   detachHost,
   disableHost,
   editHost,
+  editPusb,
   enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
@@ -45,10 +46,36 @@ import {
   toggleMaintenanceMode,
 } from 'xo'
 
+import SortedTable from 'sorted-table'
 import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 const ALLOW_SMART_REBOOT = xoaPlans.CURRENT.value >= xoaPlans.PREMIUM.value
+const PUSBS_COLUMNS = [
+  {
+    name: _('vendorId'),
+    itemRenderer: pusb => pusb.vendorId,
+  },
+  {
+    name: _('description'),
+    itemRenderer: pusb => pusb.description,
+  },
+  {
+    name: _('version'),
+    itemRenderer: pusb => pusb.version,
+  },
+  {
+    name: _('labelSpeed'),
+    itemRenderer: pusb => pusb.speed,
+  },
+  {
+    name: _('enabled'),
+    itemRenderer: pusb => {
+      const _editPusb = value => editPusb(pusb, { enabled: value })
+      return <Toggle value={pusb.passthroughEnabled} onChange={_editPusb} />
+    },
+  },
+]
 
 const SCHED_GRAN_TYPE_OPTIONS = [
   {
@@ -156,10 +183,17 @@ MultipathableSrs.propTypes = {
 
   const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
+  const getPusbs = createGetObjectsOfType('PUSB').filter(
+    (_, { host }) =>
+      pusb =>
+        pusb.host === host.id
+  )
+
   return {
     controlDomain: getControlDomain,
     pcis: getPcis,
     pgpus: getPgpus,
+    pusbs: getPusbs,
   }
 })
 export default class extends Component {
@@ -254,7 +288,7 @@ export default class extends Component {
   }
 
   render() {
-    const { controlDomain, host, pcis, pgpus, schedGran } = this.props
+    const { controlDomain, host, pcis, pgpus, pusbs, schedGran } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -558,6 +592,9 @@ export default class extends Component {
                 </tr>
               </tbody>
             </table>
+            <br />
+            <h3>{_('pusbDevices')}</h3>
+            <SortedTable collection={pusbs} columns={PUSBS_COLUMNS} />
             <br />
             <h3>{_('licenseHostSettingsLabel')}</h3>
             <table className='table'>
