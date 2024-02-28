@@ -193,15 +193,20 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
-    if (this._settings.deltaComputeMode === 'CBT' && this._exportedVm?.$ref && this._exportedVm?.$ref != this._vm.$ref) {
-      console.log('WILL PURGE',this._exportedVm?.$ref)
-      const xapi = this._xapi 
+    if (
+      this._settings.deltaComputeMode === 'CBT' &&
+      this._exportedVm?.$ref &&
+      this._exportedVm?.$ref !== this._vm.$ref
+    ) {
+      const xapi = this._xapi
       const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
-      await xapi.call('VM.destroy',this._exportedVm.$ref)
-      // @todo: ensure it is really the snapshot
+      await xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
-        // @todo handle error
-        await xapi.VDI_dataDestroy(vdiRef) 
+        try {
+          await xapi.VDI_dataDestroy(vdiRef)
+        } catch (error) {
+          Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
+        }
       }
     }
 
@@ -219,8 +224,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
-
-
   }
 
   async copy() {
@@ -246,13 +249,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     }
     const vm = this._vm
     const xapi = this._xapi
-    console.log(vm.VBDs)
     const vdiRefs = await vm.$getDisks(vm.VBDs)
     for (const vdiRef of vdiRefs) {
-      // @todo handle error
-      await xapi.VDI_enableChangeBlockTracking(vdiRef)
+      try {
+        await xapi.VDI_enableChangeBlockTracking(vdiRef)
+      } catch (error) {
+        Task.warning(`Couldn't enable CBT on this VDI`, { error, vdiRef })
+      }
     }
-    // @todo : when do we disable CBT ?
   }
 
   async run($defer) {
@@ -296,7 +300,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         await this._exportedVm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
         try {
           await this._copy()
-          // @todo if CBT is enabled : should call vdi.datadestroy on snapshot here
         } finally {
           await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
         }
