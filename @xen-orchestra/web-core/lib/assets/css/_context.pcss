@@ -46,7 +46,8 @@
   border-color: var(--color-purple-base);
 }
 
-.color-context-info {
+.color-context-info,
+.color-context-info-alt {
   --color-context-primary: var(--color-purple-base);
   --color-context-primary-hover: var(--color-purple-d20);
   --color-context-primary-active: var(--color-purple-d40);
@@ -59,7 +60,8 @@
   --color-context-tertiary: var(--background-color-primary);
 }
 
-.color-context-success {
+.color-context-success,
+.color-context-success-alt {
   --color-context-primary: var(--color-green-base);
   --color-context-primary-hover: var(--color-green-d20);
   --color-context-primary-active: var(--color-green-d40);
@@ -72,7 +74,8 @@
   --color-context-tertiary: var(--background-color-primary);
 }
 
-.color-context-warning {
+.color-context-warning,
+.color-context-warning-alt {
   --color-context-primary: var(--color-orange-base);
   --color-context-primary-hover: var(--color-orange-d20);
   --color-context-primary-active: var(--color-orange-d40);
@@ -85,7 +88,8 @@
   --color-context-tertiary: var(--background-color-primary);
 }
 
-.color-context-error {
+.color-context-error,
+.color-context-error-alt {
   --color-context-primary: var(--color-red-base);
   --color-context-primary-hover: var(--color-red-d20);
   --color-context-primary-active: var(--color-red-d40);
@@ -96,4 +100,11 @@
   --color-context-secondary-active: var(--background-color-red-30);
 
   --color-context-tertiary: var(--background-color-primary);
+}
+
+.color-context-info-alt,
+.color-context-success-alt,
+.color-context-warning-alt,
+.color-context-error-alt {
+  --color-context-primary: var(--color-grey-100);
 }
