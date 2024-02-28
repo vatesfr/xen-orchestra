@@ -282,7 +282,7 @@ export async function createSmb({ host, nameLabel, nameDescription, server, user
 
   const deviceConfig = {
     server,
-    user,
+    username: user,
     password,
   }
 
