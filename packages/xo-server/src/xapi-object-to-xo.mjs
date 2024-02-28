@@ -895,17 +895,14 @@ const TRANSFORMS = {
     if (obj.product_desc.trim() !== '') {
       description += ` - ${obj.product_desc.trim()}`
     }
-    description += ` (${obj.version})`
     return {
       type: 'PUSB',
 
       description,
       host: link(obj, 'host'),
       passthroughEnabled: obj.passthrough_enabled,
-      productDescription: obj.product_desc,
       speed: obj.speed,
       usbGroup: link(obj, 'USB_group'),
-      vendorDescription: obj.vendor_desc,
       vendorId: obj.vendor_id,
       version: obj.version,
     }
