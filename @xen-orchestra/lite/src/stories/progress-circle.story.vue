@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[prop('value').num().preset(25).required().widget(), prop('max-value').num().default(100).widget()]"
-    :presets="presets"
+    :presets
   >
     <ProgressCircle v-bind="properties" />
   </ComponentStory>

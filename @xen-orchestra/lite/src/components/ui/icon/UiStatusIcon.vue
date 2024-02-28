@@ -1,5 +1,5 @@
 <template>
-  <UiIcon :icon="icon" class="icon" :class="props.state" />
+  <UiIcon :icon class="icon" :class="props.state" />
 </template>
 
 <script lang="ts" setup>

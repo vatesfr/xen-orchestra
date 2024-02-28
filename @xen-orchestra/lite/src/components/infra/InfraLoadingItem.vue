@@ -2,7 +2,7 @@
   <li class="infra-loading-item">
     <div class="infra-item-label-placeholder">
       <div class="link-placeholder">
-        <UiIcon :icon="icon" class="icon" />
+        <UiIcon :icon class="icon" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>

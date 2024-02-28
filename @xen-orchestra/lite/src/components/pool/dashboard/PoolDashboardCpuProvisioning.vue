@@ -9,13 +9,13 @@
             content: $t('cpu-provisioning-warning'),
             placement: 'left',
           }"
-          :state="state"
+          :state
         />
       </template>
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <div v-else-if="isReady" :class="state" class="progress-item">
-      <UiProgressBar :max-value="maxValue" :value="value" color="custom" />
+      <UiProgressBar :max-value="maxValue" :value color="custom" />
       <UiProgressScale :max-value="maxValue" :steps="1" unit="%" />
       <UiProgressLegend :label="$t('vcpus')" :value="`${value}%`" />
       <UiCardFooter class="ui-card-footer">

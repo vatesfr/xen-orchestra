@@ -1,6 +1,6 @@
 <template>
   <span class="ui-badge">
-    <UiIcon :icon="icon" />
+    <UiIcon :icon />
     <slot />
   </span>
 </template>

@@ -6,7 +6,7 @@
       prop('value-formatter').type('(value: number) => string'),
       prop('max-value').type('number').widget().default(200),
     ]"
-    :presets="presets"
+    :presets
   >
     <LinearChart v-bind="properties" />
   </ComponentStory>

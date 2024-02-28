@@ -11,7 +11,7 @@
         :are-all-loaded="areAllLoaded"
         :are-some-loaded="areSomeLoaded"
         :has-multiple-hosts="hosts.length > 1"
-        :patches="patches"
+        :patches
       />
     </div>
   </UiCard>

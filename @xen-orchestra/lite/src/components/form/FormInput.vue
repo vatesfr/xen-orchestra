@@ -2,12 +2,12 @@
   <span :class="wrapperClass" class="container" v-bind="wrapperAttrs">
     <template v-if="inputType === 'select'">
       <select
-        :id="id"
+        :id
         ref="inputElement"
         v-model="value"
         :class="inputClass"
         :disabled="isDisabled"
-        :required="required"
+        :required
         class="select"
         v-bind="$attrs"
       >
@@ -19,23 +19,23 @@
     </template>
     <textarea
       v-else-if="inputType === 'textarea'"
-      :id="id"
+      :id
       ref="textarea"
       v-model="value"
       :class="inputClass"
       :disabled="isDisabled"
-      :required="required"
+      :required
       class="textarea"
       v-bind="$attrs"
     />
     <input
       v-else
-      :id="id"
+      :id
       ref="inputElement"
       v-model="value"
       :class="inputClass"
       :disabled="isDisabled"
-      :required="required"
+      :required
       class="input"
       v-bind="$attrs"
     />

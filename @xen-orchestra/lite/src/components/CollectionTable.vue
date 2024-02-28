@@ -32,7 +32,7 @@
         <td v-if="isSelectable">
           <input v-model="selected" :value="item.$ref" type="checkbox" />
         </td>
-        <slot :item="item" name="body-row" />
+        <slot :item name="body-row" />
       </tr>
     </tbody>
   </UiTable>

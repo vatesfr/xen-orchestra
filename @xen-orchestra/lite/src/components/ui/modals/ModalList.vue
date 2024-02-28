@@ -1,5 +1,5 @@
 <template>
-  <ModalListItem v-for="modal in modalStore.modals" :key="modal.id" :modal="modal" />
+  <ModalListItem v-for="modal in modalStore.modals" :key="modal.id" :modal />
 </template>
 
 <script lang="ts" setup>

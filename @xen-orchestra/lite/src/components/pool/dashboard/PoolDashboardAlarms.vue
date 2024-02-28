@@ -30,7 +30,7 @@
     <div v-else class="table-container">
       <UiTable>
         <tbody>
-          <AlarmRow v-for="alarm in alarms" :key="alarm.uuid" :alarm="alarm" />
+          <AlarmRow v-for="alarm in alarms" :key="alarm.uuid" :alarm />
         </tbody>
       </UiTable>
     </div>

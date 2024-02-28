@@ -2,7 +2,7 @@
   <ModalContainer tag="form">
     <template #header>
       <div :class="borderClass" class="title-bar">
-        <UiIcon :class="textClass" :icon="icon" />
+        <UiIcon :class="textClass" :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
       </div>
