@@ -1,4 +1,6 @@
 {
+  "name": "xen-orchestra",
+  "version": "0.0.0",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
@@ -94,7 +96,7 @@
   },
   "private": true,
   "scripts": {
-    "build": "turbo run build --scope xo-server --scope xo-server-'*' --scope xo-web",
+    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build --scope xo-server --scope xo-server-'*' --scope xo-web",
     "build:xo-lite": "turbo run build --scope @xen-orchestra/lite",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",

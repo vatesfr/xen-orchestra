@@ -143,6 +143,7 @@ port = 80
 requestTimeout = 0
 
 [http.mounts]
+'/robots.txt' = './robots.txt'
 '/' = '../xo-web/dist/'
 '/v6' = '../../@xen-orchestra/web/dist/'
 

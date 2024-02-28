@@ -715,7 +715,17 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <th>{_('autoPowerOn')}</th>
+                  <th>
+                    {_('autoPowerOn')}
+                    {vm.auto_poweron && !vmPool.auto_poweron && (
+                      <Tooltip content={_('poolAutoPoweronDisabled')}>
+                        <a className='btn btn-link btn-sm' onClick={() => editVm(vm, { auto_poweron: true })}>
+                          {' '}
+                          <Icon icon='alarm' className='text-warning' />
+                        </a>
+                      </Tooltip>
+                    )}
+                  </th>
                   <td>
                     <Toggle value={Boolean(vm.auto_poweron)} onChange={value => editVm(vm, { auto_poweron: value })} />
                   </td>

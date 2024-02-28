@@ -27,7 +27,7 @@ async function sendToNagios(app, jobName, vmBackupInfo) {
       jobName
     )
   } catch (error) {
-    warn('sendToNagios:', error)
+    warn('sendToNagios:', { error })
   }
 }
 

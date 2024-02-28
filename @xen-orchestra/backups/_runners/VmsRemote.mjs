@@ -6,10 +6,11 @@ import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
 import { Task } from '../Task.mjs'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
-import { runTask } from './_runTask.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { FullRemote } from './_vmRunners/FullRemote.mjs'
 import { IncrementalRemote } from './_vmRunners/IncrementalRemote.mjs'
+
+const noop = Function.prototype
 
 const DEFAULT_REMOTE_VM_SETTINGS = {
   concurrency: 2,
@@ -20,6 +21,7 @@ const DEFAULT_REMOTE_VM_SETTINGS = {
   healthCheckVmsWithTags: [],
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
+  nRetriesVmBackupFailures: 0,
   timeout: 0,
   validateVhdStreams: false,
   vmTimeout: 0,
@@ -41,6 +43,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
     const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
+
     await Disposable.use(
       () => this._getAdapter(job.sourceRemote),
       () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
@@ -62,8 +65,19 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
+        const queue = new Set(vmsUuids)
+        const taskByVmId = {}
+        const nTriesByVmId = {}
+
         const handleVm = vmUuid => {
+          if (nTriesByVmId[vmUuid] === undefined) {
+            nTriesByVmId[vmUuid] = 0
+          }
+          nTriesByVmId[vmUuid]++
+
           const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const vmSettings = { ...settings, ...allSettings[vmUuid] }
+          const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
 
           const opts = {
             baseSettings,
@@ -72,7 +86,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             healthCheckSr,
             remoteAdapters,
             schedule,
-            settings: { ...settings, ...allSettings[vmUuid] },
+            settings: vmSettings,
             sourceRemoteAdapter,
             throttleStream,
             vmUuid,
@@ -86,10 +100,46 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             throw new Error(`Job mode ${job.mode} not implemented for mirror backup`)
           }
 
-          return runTask(taskStart, () => vmBackup.run())
+          return sourceRemoteAdapter
+            .listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
+            .then(vmBackups => {
+              // avoiding to create tasks for empty directories
+              if (vmBackups.length > 0) {
+                if (taskByVmId[vmUuid] === undefined) {
+                  taskByVmId[vmUuid] = new Task(taskStart)
+                }
+                const task = taskByVmId[vmUuid]
+                return task
+                  .run(async () => {
+                    try {
+                      const result = await vmBackup.run()
+                      task.success(result)
+                      return result
+                    } catch (error) {
+                      if (isLastRun) {
+                        throw error
+                      } else {
+                        Task.warning(`Retry the VM mirror backup due to an error`, {
+                          attempt: nTriesByVmId[vmUuid],
+                          error: error.message,
+                        })
+                        queue.add(vmUuid)
+                      }
+                    }
+                  })
+                  .catch(noop)
+              }
+            })
         }
         const { concurrency } = settings
-        await asyncMapSettled(vmsUuids, !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm))
+        const _handleVm = !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm)
+
+        while (queue.size > 0) {
+          const vmIds = Array.from(queue)
+          queue.clear()
+
+          await asyncMapSettled(vmIds, _handleVm)
+        }
       }
     )
   }

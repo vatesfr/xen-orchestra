@@ -138,7 +138,7 @@ export class Range extends Component {
 
 export Toggle from './toggle'
 
-const UNITS = ['kiB', 'MiB', 'GiB']
+const UNITS = ['kiB', 'MiB', 'GiB', 'TiB', 'PiB']
 const DEFAULT_UNIT = 'GiB'
 
 export class SizeInput extends BaseComponent {

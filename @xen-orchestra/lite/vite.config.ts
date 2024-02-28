@@ -23,6 +23,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@core': fileURLToPath(new URL('../web-core/lib', import.meta.url)),
     },
   },
 

@@ -160,10 +160,10 @@ export class ImportVmBackup {
           // update the stream with the negative vhd stream
           stream = await negativeVhd.stream()
           vdis[vdiRef].baseVdi = snapshotCandidate
-        } catch (err) {
+        } catch (error) {
           // can be a broken VHD chain, a vhd chain with a key backup, ....
           // not an irrecuperable error, don't dispose parentVhd, and fallback to full restore
-          warn(`can't use differential restore`, err)
+          warn(`can't use differential restore`, { error })
           disposableDescendants?.dispose()
         }
       }

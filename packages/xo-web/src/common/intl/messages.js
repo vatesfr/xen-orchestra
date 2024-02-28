@@ -141,6 +141,7 @@ const messages = {
   removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
+  nRetriesVmBackupFailures: 'Number of retries if VM backup fails',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -589,7 +590,7 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD protocol to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
-  nbdConcurrency: 'Number of NBD connexion per disk',
+  nbdConcurrency: 'Number of NBD connection per disk',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -1404,6 +1405,7 @@ const messages = {
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',

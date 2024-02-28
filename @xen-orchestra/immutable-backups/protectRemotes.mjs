@@ -54,10 +54,10 @@ async function handleExistingFile(root, indexPath, path) {
         await indexFile(fullPath, indexPath)
       }
     }
-  } catch (err) {
-    if (err.code !== 'EEXIST') {
+  } catch (error) {
+    if (error.code !== 'EEXIST') {
       // there can be a symbolic link in the tree
-      warn('handleExistingFile', err)
+      warn('handleExistingFile', { error })
     }
   }
 }
@@ -106,7 +106,7 @@ export async function watchRemote(remoteId, { root, immutabilityDuration, rebuil
     await File.liftImmutability(settingPath)
   } catch (error) {
     // file may not exists, and it's not really a problem
-    info('lifting immutability on current settings', error)
+    info('lifting immutability on current settings', { error })
   }
   await fs.writeFile(
     settingPath,

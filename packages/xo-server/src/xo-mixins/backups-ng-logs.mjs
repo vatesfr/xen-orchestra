@@ -220,7 +220,7 @@ export default {
             'start'
           )
 
-    logs = logs.slice(Math.max(i, j - limit), j)
+    logs = logs.slice(limit === undefined ? i : Math.max(i, j - limit), j)
 
     return logs
   },

@@ -15,6 +15,7 @@ const log = createLogger('xo:api:pool')
 export async function set({
   pool,
 
+  auto_poweron,
   name_description: nameDescription,
   name_label: nameLabel,
   backupNetwork,
@@ -25,6 +26,7 @@ export async function set({
   pool = this.getXapiObject(pool)
 
   await Promise.all([
+    auto_poweron !== undefined && pool.update_other_config('auto_poweron', String(auto_poweron)),
     nameDescription !== undefined && pool.set_name_description(nameDescription),
     nameLabel !== undefined && pool.set_name_label(nameLabel),
     migrationNetwork !== undefined && pool.update_other_config('xo:migrationNetwork', migrationNetwork),
@@ -38,6 +40,10 @@ export async function set({
 set.params = {
   id: {
     type: 'string',
+  },
+  auto_poweron: {
+    type: 'boolean',
+    optional: true,
   },
   name_label: {
     type: 'string',

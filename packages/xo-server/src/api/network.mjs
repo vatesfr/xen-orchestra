@@ -1,5 +1,7 @@
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 
+const RFC_MINIMUM_MTU = 68 // see RFC 791
+
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
@@ -26,7 +28,7 @@ create.params = {
   nbd: { type: 'boolean', optional: true },
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
-  mtu: { type: 'integer', optional: true },
+  mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
   vlan: { type: 'integer', optional: true },
 }
 
@@ -56,7 +58,7 @@ createBonded.params = {
       type: 'string',
     },
   },
-  mtu: { type: 'integer', optional: true },
+  mtu: { type: 'integer', optional: true, minimum: RFC_MINIMUM_MTU },
   bondMode: { enum: getBondModes() },
 }
 
@@ -72,6 +74,7 @@ export async function set({
 
   automatic,
   defaultIsLocked,
+  mtu,
   name_description: nameDescription,
   name_label: nameLabel,
   nbd,
@@ -81,6 +84,7 @@ export async function set({
   await Promise.all([
     automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
+    mtu !== undefined && network.set_MTU(mtu),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
     nbd !== undefined &&
@@ -102,6 +106,11 @@ set.params = {
   },
   id: {
     type: 'string',
+  },
+  mtu: {
+    type: 'integer',
+    minimum: RFC_MINIMUM_MTU,
+    optional: true,
   },
   name_description: {
     type: 'string',

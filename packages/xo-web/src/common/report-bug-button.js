@@ -75,7 +75,7 @@ export const reportOnSupportPanel = async ({ files = [], formatMessage = identit
     ADDITIONAL_FILES.map(({ fetch, name }) =>
       timeout.call(fetch(), ADDITIONAL_FILES_FETCH_TIMEOUT).then(
         file => formData.append('attachments', createBlobFromString(file), name),
-        error => logger.warn(`cannot get ${name}`, error)
+        error => logger.warn(`cannot get ${name}`, { error })
       )
     )
   )
