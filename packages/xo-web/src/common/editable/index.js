@@ -239,7 +239,7 @@ export class Text extends Editable {
     const { children, value } = this.props
 
     if (children || value) {
-      return <span> {children || value} </span>
+      return <span>{children || value.replace(/ /g, '\u00A0')}</span>
     }
 
     const { placeholder, useLongClick } = this.props
