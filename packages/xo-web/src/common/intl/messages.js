@@ -1734,6 +1734,7 @@ const messages = {
   shareVmsByDefault: 'Share VMs by default',
   nVmsInResourceSet:
     '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
+  unlimitedResourceSetUsage: 'Used: {usage}',
 
   // ---- VM import ---
   fileType: 'File type:',
