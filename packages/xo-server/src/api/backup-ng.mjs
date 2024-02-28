@@ -27,6 +27,11 @@ const SCHEMA_SETTINGS = {
           minimum: 1,
           optional: true,
         },
+        nRetriesVmBackupFailures: {
+          minimum: 0,
+          optional: true,
+          type: 'number',
+        },
         preferNbd: {
           type: 'boolean',
           optional: true,

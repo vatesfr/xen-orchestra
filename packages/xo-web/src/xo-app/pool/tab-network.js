@@ -84,6 +84,16 @@ class Description extends Component {
 
 // -----------------------------------------------------------------------------
 
+class Mtu extends Component {
+  _editMtu = value => editNetwork(this.props.network, { mtu: value })
+
+  render() {
+    const { network } = this.props
+
+    return <Number value={network.MTU} onChange={this._editMtu} />
+  }
+}
+
 @connectStore(() => ({
   defaultPif: _createGetDefaultPif(),
 }))
@@ -330,7 +340,7 @@ const NETWORKS_COLUMNS = [
   },
   {
     name: _('poolNetworkMTU'),
-    itemRenderer: network => network.MTU,
+    itemRenderer: network => <Mtu network={network} />,
   },
 
   {
