@@ -1,7 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties, settings }"
-    :presets="presets"
+    :presets
     :params="[
       prop('imString').str().required().preset('Example').widget().help('This is a required string prop'),
       prop('imNumber').num().required().preset(42).widget().help('This is a required number prop'),

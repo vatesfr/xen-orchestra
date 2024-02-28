@@ -6,7 +6,7 @@
       prop('label').required().str().widget().preset('Rockets'),
       prop('count').required().type('string | number').widget(text()).preset('175'),
     ]"
-    :presets="presets"
+    :presets
   >
     <UiResource v-bind="properties" />
   </ComponentStory>

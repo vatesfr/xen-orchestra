@@ -9,7 +9,7 @@
       v-bind="$attrs"
     />
     <span class="fake-checkbox">
-      <UiIcon :fixed-width="false" :icon="icon" class="icon" />
+      <UiIcon :fixed-width="false" :icon class="icon" />
     </span>
   </component>
 </template>

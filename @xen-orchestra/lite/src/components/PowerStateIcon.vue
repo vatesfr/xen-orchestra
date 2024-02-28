@@ -1,5 +1,5 @@
 <template>
-  <UiIcon :class="className" :icon="icon" class="power-state-icon" />
+  <UiIcon :class="className" :icon class="power-state-icon" />
 </template>
 
 <script lang="ts" setup>

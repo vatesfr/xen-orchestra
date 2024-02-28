@@ -1,6 +1,6 @@
 <template>
   <div class="title-bar">
-    <UiIcon :icon="icon" class="icon" />
+    <UiIcon :icon class="icon" />
     <div class="title">
       <slot />
     </div>

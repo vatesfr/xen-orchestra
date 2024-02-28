@@ -5,14 +5,14 @@
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
-      :icon="icon"
+      :icon
       @click="handleClick"
     >
       <slot />
     </MenuTrigger>
     <AppMenu v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon="icon" @click="open">
+        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
           <UiIcon :fixed-width="false" :icon="submenuIcon" class="submenu-icon" />
         </MenuTrigger>
