@@ -891,10 +891,15 @@ const TRANSFORMS = {
   },
 
   pusb(obj) {
+    let description = obj.vendor_desc
+    if (obj.product_desc.trim() !== '') {
+      description += ` - ${obj.product_desc.trim()}`
+    }
+    description += ` (${obj.version})`
     return {
       type: 'PUSB',
 
-      description: obj.description,
+      description,
       host: link(obj, 'host'),
       passthroughEnabled: obj.passthrough_enabled,
       productDescription: obj.product_desc,

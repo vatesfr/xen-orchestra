@@ -58,14 +58,7 @@ const PUSBS_COLUMNS = [
   },
   {
     name: _('description'),
-    itemRenderer: pusb => {
-      let description = pusb.vendorDescription
-      if (pusb.productDescription.trim() !== '') {
-        description += ` - ${pusb.productDescription}`
-      }
-      description += ` (${pusb.version})`
-      return description
-    },
+    itemRenderer: pusb => pusb.description,
   },
   {
     name: _('version'),
