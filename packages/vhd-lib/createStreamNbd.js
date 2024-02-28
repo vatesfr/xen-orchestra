@@ -14,7 +14,6 @@ const {
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
-const NBD_DEFAULT_BLOCK_SIZE = 64 * 1024
 const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
 const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 1
 
@@ -37,35 +36,21 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
 
 function batContainsBlock(bat, blockId) {
   const entry = bat.readUInt32BE(blockId * 4)
-  if (entry !== BLOCK_UNUSED) {
-    return [{ blockId, size: DEFAULT_BLOCK_SIZE }]
-  }
+  return entry !== BLOCK_UNUSED
 }
-// one 2MB VHD block is in 32 blocks of 64KB
-// 32 bits are written in 8 4bytes uint32
-const EMPTY_NBD_BUFFER = Buffer.alloc(NBD_DEFAULT_BLOCK_SIZE, 0)
+
 function cbtContainsBlock(cbt, blockId) {
-  const subBlocks = []
-  let hasOne = false
-  for (let i = 0; i < 32; i++) {
-    const position = blockId * 32 + i
-    const bitOffset = position & 7 // in byte
-    const byteIndex = position >> 3 // in buffer
-    const bit = (cbt[byteIndex] >> bitOffset) & 1
-    if (bit === 1) {
-      console.log('CBT contains block', blockId)
-      console.log({position,bitOffset,byteIndex, cbt:cbt[byteIndex],bit})
-      subBlocks.push({ blockId: position, size: NBD_DEFAULT_BLOCK_SIZE })
-      hasOne = true
-    } else {
-      // don't read empty blocks
-      subBlocks.push({ buffer: EMPTY_NBD_BUFFER })
-    }
-  }
-  if (hasOne) {
-    return subBlocks
-  }
+  // block are aligned, we could probably compare the bytes to 255
+  // each CBT block is 64KB
+  // each VHD block is 2MB
+  // => 32 CBT blocks per VHD block
+  // each CBT block used flag is stored in 1 bit
+  // => 4 bytes per VHD block => UINT32
+  // if any sublock i used => download the full block
+  const position = blockId * 4
+  return cbt.readUInt32BE(position) === 0
 }
+
 exports.createNbdVhdStream = async function createVhdStream(
   nbdClient,
   sourceStream,
@@ -116,10 +101,10 @@ exports.createNbdVhdStream = async function createVhdStream(
   // blocks starts directly after parent locator entries
   const entries = []
   for (let blockId = 0; blockId < header.maxTableEntries; blockId++) {
-    const subBlocks = changedBlocks ? cbtContainsBlock(changedBlocks, blockId) : batContainsBlock(streamBat, blockId)
-    if (subBlocks !== undefined) {
+    const hasBlock = changedBlocks ? cbtContainsBlock(changedBlocks, blockId) : batContainsBlock(streamBat, blockId)
+    if (hasBlock) {
       bat.writeUInt32BE(offsetSector, blockId * 4)
-      entries.push({ blockId, subBlocks })
+      entries.push(blockId)
       offsetSector += blockSizeInSectors
     } else {
       bat.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
@@ -173,10 +158,8 @@ exports.createNbdVhdStream = async function createVhdStream(
 
     // yield  blocks from nbd
     const nbdIterator = nbdClient.readBlocks(function* () {
-      for (const { subBlocks } of entries) {
-        for (const { blockId, buffer, size } of subBlocks) {
-          yield { index: blockId, buffer, size }
-        }
+      for (const entry of entries) {
+        yield { index: entry, size: DEFAULT_BLOCK_SIZE }
       }
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)

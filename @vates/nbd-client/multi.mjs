@@ -61,23 +61,22 @@ export default class MultiNbdClient {
   async *readBlocks(indexGenerator) {
     // default : read all blocks
     const readAhead = []
-    const makeReadBlockPromise = (index, buffer, size) => {
-      // pass through any pre loaded buffer
-      const promise = buffer ? Promise.resolve(buffer) : this.readBlock(index, size)
+    const makeReadBlockPromise = (index, size) => {
+      const promise = this.readBlock(index, size)
       // error is handled during unshift
       promise.catch(() => {})
       return promise
     }
 
     // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
-    for (const { index, buffer, size } of indexGenerator()) {
+    for (const { index, size } of indexGenerator()) {
       // stack readAheadMaxLength promises before starting to handle the results
       if (readAhead.length === this.#readAhead) {
         // any error will stop reading blocks
         yield readAhead.shift()
       }
 
-      readAhead.push(makeReadBlockPromise(index, buffer, size))
+      readAhead.push(makeReadBlockPromise(index, size))
     }
     while (readAhead.length > 0) {
       yield readAhead.shift()
