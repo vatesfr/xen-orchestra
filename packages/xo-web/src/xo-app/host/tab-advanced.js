@@ -27,6 +27,7 @@ import {
   detachHost,
   disableHost,
   editHost,
+  editPusb,
   enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
@@ -52,21 +53,33 @@ const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 const ALLOW_SMART_REBOOT = xoaPlans.CURRENT.value >= xoaPlans.PREMIUM.value
 const PUSBS_COLUMNS = [
   {
-    name: _('usbVendorId'),
+    name: _('vendorId'),
     itemRenderer: pusb => pusb.vendorId,
   },
   {
     name: _('description'),
-    itemRenderer: pusb => pusb.description,
+    itemRenderer: pusb => {
+      let description = pusb.vendorDescription
+      if (pusb.productDescription.trim() !== '') {
+        description += ` - ${pusb.productDescription}`
+      }
+      description += ` (${pusb.version})`
+      return description
+    },
   },
   {
     name: _('version'),
     itemRenderer: pusb => pusb.version,
   },
   {
-    name: _('passthroughEnabled'),
+    name: _('labelSpeed'),
+    itemRenderer: pusb => pusb.speed,
+  },
+  {
+    name: _('enabled'),
     itemRenderer: pusb => {
-      return String(pusb.passthroughEnabled)
+      const _editPusb = value => editPusb(pusb, { enabled: value })
+      return <Toggle value={pusb.passthroughEnabled} onChange={_editPusb} />
     },
   },
 ]
@@ -587,7 +600,7 @@ export default class extends Component {
               </tbody>
             </table>
             <br />
-            <h3>{_('pusbList')}</h3>
+            <h3>{_('pusbDevices')}</h3>
             <SortedTable collection={pusbs} columns={PUSBS_COLUMNS} />
             <br />
             <h3>{_('licenseHostSettingsLabel')}</h3>

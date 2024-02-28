@@ -1011,6 +1011,7 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
   editHostIscsiIqnTitle: 'Edit iSCSI IQN',
   editHostIscsiIqnMessage:
@@ -1055,7 +1056,6 @@ const messages = {
   hostCpusNumber: 'Core (socket)',
   hostManufacturerinfo: 'Manufacturer info',
   hostBiosinfo: 'BIOS info',
-  hostUsbs: 'USBs',
   licenseHostSettingsLabel: 'License',
   hostLicenseType: 'Type',
   hostLicenseSocket: 'Socket',
@@ -1063,8 +1063,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
-  passthroughEnabled: 'Enable passthrough',
-  pusbList: 'PUSB Devices',
+  pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
@@ -1078,7 +1077,8 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
-  usbVendorId: 'Vendor ID',
+  usbs: 'USBs',
+  vendorId: 'Vendor ID',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',

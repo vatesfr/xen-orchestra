@@ -897,9 +897,12 @@ const TRANSFORMS = {
       description: obj.description,
       host: link(obj, 'host'),
       passthroughEnabled: obj.passthrough_enabled,
+      productDescription: obj.product_desc,
+      speed: obj.speed,
       usbGroup: link(obj, 'USB_group'),
-      vendorId : obj.vendor_id,
-      version : obj.version,
+      vendorDescription: obj.vendor_desc,
+      vendorId: obj.vendor_id,
+      version: obj.version,
     }
   },
 }
