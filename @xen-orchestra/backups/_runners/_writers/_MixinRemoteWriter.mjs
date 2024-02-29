@@ -77,11 +77,11 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
     healthCheck() {
       const sr = this._healthCheckSr
       assert.notStrictEqual(sr, undefined, 'SR should be defined before making a health check')
-      assert.notStrictEqual(
-        this._metadataFileName,
-        undefined,
-        'Metadata file name should be defined before making a health check'
-      )
+      if (this._metadataFileName === undefined) {
+        // this can happen when making a mirror backup with nothing to transfer
+        Task.info('no health check, since no backup have been transferred')
+        return
+      }
       return Task.run(
         {
           name: 'health check',

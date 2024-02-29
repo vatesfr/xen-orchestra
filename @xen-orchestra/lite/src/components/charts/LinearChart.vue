@@ -1,5 +1,5 @@
 <template>
-  <VueCharts :option="option" autoresize class="chart" />
+  <VueCharts :option autoresize class="chart" />
 </template>
 
 <script lang="ts" setup>

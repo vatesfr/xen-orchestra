@@ -12,7 +12,7 @@
       prop('before-width').str().widget(),
       prop('after-width').str().widget(),
     ]"
-    :presets="presets"
+    :presets
   >
     <FormInput v-bind="properties" />
   </ComponentStory>

@@ -1,6 +1,6 @@
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
-    <UiIcon :busy="busy" :icon="icon" />
+    <UiIcon :busy :icon />
     <slot />
   </div>
 </template>

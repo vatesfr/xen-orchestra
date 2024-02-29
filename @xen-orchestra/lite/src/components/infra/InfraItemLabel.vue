@@ -5,8 +5,8 @@
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a v-tooltip="hasTooltip" :href="href" class="link" @click="navigate">
-        <UiIcon :icon="icon" class="icon" />
+      <a v-tooltip="hasTooltip" :href class="link" @click="navigate">
+        <UiIcon :icon class="icon" />
         <div ref="textElement" class="text">
           <slot />
         </div>

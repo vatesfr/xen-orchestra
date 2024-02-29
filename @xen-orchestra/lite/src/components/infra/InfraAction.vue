@@ -1,7 +1,7 @@
 <template>
   <div class="infra-action">
     <slot>
-      <UiIcon :icon="icon" fixed-width />
+      <UiIcon :icon fixed-width />
     </slot>
   </div>
 </template>

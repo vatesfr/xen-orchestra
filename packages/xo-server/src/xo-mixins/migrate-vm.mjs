@@ -280,7 +280,7 @@ export default class MigrateVm {
             const stream = vhd.stream()
             await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
           }
-          return vhd
+          return { vdi, vhd }
         })
       )
     )

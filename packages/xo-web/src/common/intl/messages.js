@@ -141,6 +141,7 @@ const messages = {
   removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
+  nRetriesVmBackupFailures: 'Number of retries if VM backup fails',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -589,7 +590,7 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD protocol to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
-  nbdConcurrency: 'Number of NBD connexion per disk',
+  nbdConcurrency: 'Number of NBD connection per disk',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -1011,6 +1012,7 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
   editHostIscsiIqnTitle: 'Edit iSCSI IQN',
   editHostIscsiIqnMessage:
@@ -1062,6 +1064,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
@@ -1075,6 +1078,7 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
+  vendorId: 'Vendor ID',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -1404,6 +1408,7 @@ const messages = {
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1732,6 +1737,7 @@ const messages = {
   shareVmsByDefault: 'Share VMs by default',
   nVmsInResourceSet:
     '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
+  unlimitedResourceSetUsage: 'Used: {usage}',
 
   // ---- VM import ---
   fileType: 'File type:',

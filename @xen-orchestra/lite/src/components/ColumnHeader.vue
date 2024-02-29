@@ -2,7 +2,7 @@
   <th>
     <div class="content">
       <span class="label">
-        <UiIcon :icon="icon" />
+        <UiIcon :icon />
         <slot />
       </span>
     </div>

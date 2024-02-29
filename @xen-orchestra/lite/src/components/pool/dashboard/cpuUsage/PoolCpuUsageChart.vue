@@ -6,7 +6,7 @@
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
-    <LinearChart v-else :data="data" :max-value="customMaxValue" :value-formatter="customValueFormatter" />
+    <LinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 

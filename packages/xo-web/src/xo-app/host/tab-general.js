@@ -3,7 +3,6 @@ import _ from 'intl'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import map from 'lodash/map'
 import React from 'react'
 import store from 'store'
 import HomeTags from 'home-tags'
@@ -24,10 +23,21 @@ export default decorate([
   provideState({
     computed: {
       areHostsVersionsEqual: ({ areHostsVersionsEqualByPool }, { host }) => areHostsVersionsEqualByPool[host.$pool],
+      inMemoryVms: (_, { vms }) => {
+        const result = []
+        for (const key of Object.keys(vms)) {
+          const vm = vms[key]
+          const { power_state } = vm
+          if (power_state === 'Running' || power_state === 'Paused') {
+            result.push(vm)
+          }
+        }
+        return result
+      },
     },
   }),
   injectState,
-  ({ statsOverview, host, nVms, vmController, vms, state: { areHostsVersionsEqual } }) => {
+  ({ statsOverview, host, nVms, vmController, state: { areHostsVersionsEqual, inMemoryVms } }) => {
     const pool = getObject(store.getState(), host.$pool)
     const vmsFilter = encodeURIComponent(new CM.Property('$container', new CM.String(host.id)).toString())
     return (
@@ -120,7 +130,7 @@ export default decorate([
                 tooltip={`${host.productBrand} (${formatSize(vmController.memory.size)})`}
                 value={vmController.memory.size}
               />
-              {map(vms, vm => (
+              {inMemoryVms.map(vm => (
                 <UsageElement
                   tooltip={`${vm.name_label} (${formatSize(vm.memory.size)})`}
                   key={vm.id}

@@ -2293,6 +2293,8 @@ export const createVtpm = async vm => {
 }
 export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
 
+export const editPusb = (pusb, props) => _call('pusb.set', { id: resolveId(pusb), ...props })
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = (network, props) => _call('network.set', { ...props, id: resolveId(network) })

@@ -13,7 +13,7 @@
         <FormSelect v-model="compressionType">
           <option
             v-for="key in Object.keys(VM_COMPRESSION_TYPE)"
-            :key="key"
+            :key
             :value="VM_COMPRESSION_TYPE[key as keyof typeof VM_COMPRESSION_TYPE]"
           >
             {{ $t(key.toLowerCase()) }}

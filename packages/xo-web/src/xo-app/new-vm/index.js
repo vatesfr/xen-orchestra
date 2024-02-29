@@ -300,7 +300,7 @@ export default class NewVm extends BaseComponent {
 
   get _isDiskTemplate() {
     const { template } = this.props
-    return template && template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
+    return template && template.$VBDs.length !== 0 && template.name_label !== 'Other install media'
   }
   _setState = (newValues, callback) => {
     this.setState(
@@ -470,7 +470,7 @@ export default class NewVm extends BaseComponent {
 
     const data = {
       affinityHost: state.affinityHost && state.affinityHost.id,
-      clone: !this._isDiskTemplate && state.fastClone,
+      clone: this._isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,
@@ -1870,29 +1870,21 @@ export default class NewVm extends BaseComponent {
           {limits && (
             <Row>
               <Col size={3}>
-                {cpusLimits && (
-                  <Limits
-                    limit={cpusLimits.total}
-                    toBeUsed={CPUs * factor}
-                    used={cpusLimits.total - cpusLimits.available}
-                  />
+                {cpusLimits?.total !== undefined && (
+                  <Limits limit={cpusLimits.total} toBeUsed={CPUs * factor} used={cpusLimits.usage} />
                 )}
               </Col>
               <Col size={3}>
-                {memoryLimits && (
-                  <Limits
-                    limit={memoryLimits.total}
-                    toBeUsed={_memory * factor}
-                    used={memoryLimits.total - memoryLimits.available}
-                  />
+                {memoryLimits?.total !== undefined && (
+                  <Limits limit={memoryLimits.total} toBeUsed={_memory * factor} used={memoryLimits.usage} />
                 )}
               </Col>
               <Col size={3}>
-                {diskLimits && (
+                {diskLimits?.total !== undefined && (
                   <Limits
                     limit={diskLimits.total}
                     toBeUsed={(sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor}
-                    used={diskLimits.total - diskLimits.available}
+                    used={diskLimits.usage}
                   />
                 )}
               </Col>
@@ -1923,10 +1915,10 @@ export default class NewVm extends BaseComponent {
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
-      CPUs * factor > get(() => resourceSet.limits.cpus.available) ||
-      _memory * factor > get(() => resourceSet.limits.memory.available) ||
+      CPUs * factor > get(() => resourceSet.limits.cpus.total - resourceSet.limits.cpus.usage) ||
+      _memory * factor > get(() => resourceSet.limits.memory.total - resourceSet.limits.memory.usage) ||
       (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor >
-        get(() => resourceSet.limits.disk.available)
+        get(() => resourceSet.limits.disk.total - resourceSet.limits.disk.usage)
     )
   }
 }

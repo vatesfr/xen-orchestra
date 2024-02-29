@@ -50,7 +50,17 @@ const RRD_POINTS_PER_STEP: { [key in RRD_STEP]: number } = {
 // Utils
 // -------------------------------------------------------------------
 
-function convertNanToNull(value: number) {
+function parseNumber(value: number | string) {
+  // Starting from XAPI 23.31, numbers in the JSON payload are encoded as
+  // strings to support NaN, Infinity and -Infinity
+  if (typeof value === 'string') {
+    const asNumber = +value
+    if (isNaN(asNumber) && value !== 'NaN') {
+      throw new Error('cannot parse number: ' + value)
+    }
+    value = asNumber
+  }
+
   return isNaN(value) ? null : value
 }
 
@@ -59,7 +69,7 @@ function convertNanToNull(value: number) {
 // -------------------------------------------------------------------
 
 const computeValues = (dataRow: any, legendIndex: number, transformValue = identity) =>
-  map(dataRow, ({ values }) => transformValue(convertNanToNull(values[legendIndex])))
+  map(dataRow, ({ values }) => transformValue(parseNumber(values[legendIndex])))
 
 const createGetProperty = (obj: object, property: string, defaultValue: unknown) =>
   defaults(obj, { [property]: defaultValue })[property] as any
@@ -319,8 +329,14 @@ export default class XapiStats {
       },
       abortSignal,
     })
-    // eslint-disable-next-line import/no-named-as-default-member -- https://github.com/json5/json5/issues/287
-    return JSON5.parse(await resp.text())
+    const text = await resp.text()
+    try {
+      // starting from XAPI 23.31, the response is valid JSON
+      return JSON.parse(text)
+    } catch (error) {
+      // eslint-disable-next-line import/no-named-as-default-member -- https://github.com/json5/json5/issues/287
+      return JSON5.parse(text)
+    }
   }
 
   // To avoid multiple requests, we keep a cache for the stats and
@@ -383,7 +399,10 @@ export default class XapiStats {
         abortSignal,
       })
 
-      const actualStep = json.meta.step as number
+      const actualStep = parseNumber(json.meta.step)
+      if (actualStep !== step) {
+        throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
+      }
 
       if (json.data.length > 0) {
         // fetched data is organized from the newest to the oldest
@@ -407,14 +426,15 @@ export default class XapiStats {
 
           let stepStats = xoObjectStats[actualStep]
           let cacheStepStats = cacheXoObjectStats[actualStep]
-          if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
+          const endTimestamp = parseNumber(json.meta.end)
+          if (stepStats === undefined || stepStats.endTimestamp !== endTimestamp) {
             stepStats = xoObjectStats[actualStep] = {
-              endTimestamp: json.meta.end,
+              endTimestamp,
               interval: actualStep,
               canBeExpired: false,
             }
             cacheStepStats = cacheXoObjectStats[actualStep] = {
-              endTimestamp: json.meta.end,
+              endTimestamp,
               interval: actualStep,
               canBeExpired: true,
             }
@@ -437,10 +457,6 @@ export default class XapiStats {
             cacheMetricStats = createGetProperty(cacheMetricStats, property, {})
           })
         })
-      }
-
-      if (actualStep !== step) {
-        throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {

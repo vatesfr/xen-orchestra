@@ -2,7 +2,7 @@
   <div v-if="!isReady" class="wrapper-spinner">
     <UiSpinner class="spinner" />
   </div>
-  <ObjectNotFoundView v-else-if="isRecordNotFound" :id="id" />
+  <ObjectNotFoundView v-else-if="isRecordNotFound" :id />
   <slot v-else />
 </template>
 

@@ -425,6 +425,32 @@ It works even if the VM is running, because we'll automatically export a snapsho
 
 In the VM "Snapshots" tab, you can also export a snapshot like you export a VM.
 
+## VM migration
+
+### Simple VM Migration (VM.pool_migrate)
+
+In simple migration, the VM's active state is transferred from host A to host B while its disks remains in its original location. This feature is only possible when the VM's disks are on a shared SR by both hosts and if the VM is running.
+
+#### Use Case
+
+- Migrate a VM within the same pool from host A to host B without moving the VM's VDIs.
+
+### VM Migration with Storage Motion (VM.migrate_send)
+
+VM migration with storage motion allows you to migrate a VM from one host to another when the VM's disks are not on a shared SR between the two hosts or if a specific network is chosen for the migration. VDIs will be migrated to the destination SR if one is provided.
+
+#### Use Cases
+
+- Migrate a VM to another pool.
+- Migrate a VM within the same pool from host A to host B by selecting a network for the migration.
+- Migrate a VM within the same pool from host A to host B by moving the VM's VDIs to another storage.
+
+### Expected Behavior
+
+- Migrating a VM that has VDIs on a shared SR from host A to host B must trigger a "Simple VM Migration".
+- Migrating a VM that has VDIs on a shared SR from host A to host B using a particular network must trigger a "VM Migration with Storage Motion" without moving its VDIs.
+- Migrating a VM from host A to host B with a destination SR must trigger a "VM Migration with Storage Motion" and move VDIs to the destination SR, regardless of where the VDIs were stored.
+
 ## Hosts management
 
 Outside updates (see next section), you can also do host management via Xen Orchestra. Basic operations are supported, like reboot, shutdown and so on.

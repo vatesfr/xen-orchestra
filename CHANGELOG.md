@@ -1,5 +1,52 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- Disable search engine indexing via a `robots.txt`
+- [Stats] Support format used by XAPI 23.31
+- [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
+- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
+- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
+- [Pool/Advanced] _Auto power on_ can be disabled at pool level (PR [#7401](https://github.com/vatesfr/xen-orchestra/pull/7401))
+- [Pool/Network] Ability to edit MTU [#7039](https://github.com/vatesfr/xen-orchestra/issues/7039) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393))
+- [Backup] Ability to set a number of retries for VM backup failures [#2139](https://github.com/vatesfr/xen-orchestra/issues/2139) (PR [#7308](https://github.com/vatesfr/xen-orchestra/pull/7308))
+- [Self service] From user POV, show used resources even when they are unlimited (PR [#7353](https://github.com/vatesfr/xen-orchestra/pull/7353))
+
+### Bug fixes
+
+- [Settings/XO Config] Sort backups from newest to oldest
+- [Plugins/audit] Don't log `tag.getAllConfigured` calls
+- [Remotes] Correctly clear error when the remote is tested with success
+- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
+- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
+- [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
+- [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
+- [Backup] Remove display of empty directories for mirror backups (PR [#7340](https://github.com/vatesfr/xen-orchestra/pull/7340))
+- [API/backupNg.getLogs] Fix `after` parameter handling when `limit` parameter is not provided
+- [New/SR] Fix create button never appearing for `smb iso` SR [#7355](https://github.com/vatesfr/xen-orchestra/issues/7355), [Forum#8417](https://xcp-ng.org/forum/topic/8417) (PR [#7405](https://github.com/vatesfr/xen-orchestra/pull/7405))
+- [Pool/Network] Don't allow MTU values that are too small to work (<68) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393)
+- [Import/VMWare] Correctly handle IDE disks
+- [Backups/Full] Fix `Cannot read properties of undefined (reading 'healthCheckVmsWithTags')` (PR [#7396](https://github.com/vatesfr/xen-orchestra/pull/7396))
+- [Backups/Healthcheck] Don't run health checks after empty mirror backups (PR [#7396](https://github.com/vatesfr/xen-orchestra/pull/7396))
+- [SR/SMB] Fix `SR_BACKEND_FAILURE_111` during SMB storage creation [#7356](https://github.com/vatesfr/xen-orchestra/issues/7356) (PR [#7407](https://github.com/vatesfr/xen-orchestra/pull/7407))
+- [Editable text] Make sure the text is still clickable/editable if the content is a single white space [Forum#8466](https://xcp-ng.org/forum/topic/8466) (PR [#7411](https://github.com/vatesfr/xen-orchestra/pull/7411))
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.5
+- vhd-lib 4.9.1
+- xo-server-audit 0.10.6
+- @xen-orchestra/xapi 4.3.0
+- @xen-orchestra/backups 0.45.0
+- @xen-orchestra/backups-cli 1.0.15
+- @xen-orchestra/immutable-backups 1.0.2
+- @xen-orchestra/proxy 0.26.47
+- @xen-orchestra/vmware-explorer 0.4.1
+- xo-server 5.138.0
+- xo-web 5.138.0
+
 ## **5.91.2** (2024-02-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
