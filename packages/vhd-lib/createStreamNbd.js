@@ -48,7 +48,7 @@ function cbtContainsBlock(cbt, blockId) {
   // => 4 bytes per VHD block => UINT32
   // if any sublock i used => download the full block
   const position = blockId * 4
-  return cbt.readUInt32BE(position) === 0
+  return cbt.readUInt32BE(position) !== 0
 }
 
 exports.createNbdVhdStream = async function createVhdStream(
@@ -71,6 +71,7 @@ exports.createNbdVhdStream = async function createVhdStream(
   header.tableOffset = FOOTER_SIZE + HEADER_SIZE
   let streamBat
   if (changedBlocks === undefined) {
+    console.log('fall back to read bay from source')
     streamBat = await readChunkStrict(sourceStream, batSize)
   }
   let offset = FOOTER_SIZE + HEADER_SIZE + batSize
@@ -106,6 +107,7 @@ exports.createNbdVhdStream = async function createVhdStream(
       bat.writeUInt32BE(offsetSector, blockId * 4)
       entries.push(blockId)
       offsetSector += blockSizeInSectors
+      console.log('contains',blockId,  offsetSector)
     } else {
       bat.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
     }
@@ -113,6 +115,7 @@ exports.createNbdVhdStream = async function createVhdStream(
 
   const totalLength = (offsetSector + 1) /* end footer */ * SECTOR_SIZE
 
+  console.log('contains',{totalLength})
   let lengthRead = 0
   let lastUpdate = 0
   let lastLengthRead = 0
@@ -154,6 +157,7 @@ exports.createNbdVhdStream = async function createVhdStream(
     }
 
     // close export stream we won't use it anymore
+    console.log('destroy source stream')
     sourceStream.destroy()
 
     // yield  blocks from nbd

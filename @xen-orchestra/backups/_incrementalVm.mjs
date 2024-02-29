@@ -80,23 +80,23 @@ export async function exportIncrementalVm(
     }
 
     let changedBlocks
+    // @todo : move this to @Xo/xapi/vdi.mjs
     if (vdi.cbt_enabled && baseVdi?.$ref && baseVdi?.cbt_enabled) {
       // if listChangedBlock fails we can't export any data
       // since the previous snapshot is probably a metadata only snapshot
       // not usable for delta comparison
       changedBlocks = await vdi.$listChangedBlock(baseVdi?.$ref)
       Task.info('Export using CBT')
-    }
-    if (changedBlocks === undefined) {
-      streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-        baseRef: baseVdi?.$ref,
-        cancelToken,
-        changedBlocks,
-        format: 'vhd',
-        nbdConcurrency,
-        preferNbd,
-      })
-    }
+    } 
+
+    streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
+      baseRef: baseVdi?.$ref,
+      cancelToken,
+      changedBlocks,
+      format: 'vhd',
+      nbdConcurrency,
+      preferNbd,
+    }) 
   })
 
   const suspendVdi = vm.$suspend_VDI

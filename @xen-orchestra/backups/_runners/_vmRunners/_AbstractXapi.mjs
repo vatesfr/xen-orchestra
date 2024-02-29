@@ -204,20 +204,23 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _removeUnusedSnapshots() {
+    console.log(this._settings.deltaComputeMode)
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
     if (this._settings.deltaComputeMode === 'CBT' && this._exportedVm?.is_a_snapshot) {
+      console.log('WILL CLEAN')
       const xapi = this._xapi
       const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
-      await xapi.call('VM.destroy', this._exportedVm.$ref)
+     // await xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
         try {
           // list the snapshot of this VDI for this job
           // if it's the snapshot for this job
           //  if it's most recent one : destroy data
           //  if it's an older one : delete it
-          await xapi.VDI_dataDestroy(vdiRef)
+          console.log('DELETE ', vdiRef)
+          //await xapi.VDI_dataDestroy(vdiRef)
         } catch (error) {
           Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
         }
