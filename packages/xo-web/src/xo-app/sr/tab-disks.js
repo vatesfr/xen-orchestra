@@ -19,7 +19,7 @@ import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, every, groupBy, isEmpty, keyBy, map, mapValues, pick, some, sortBy } from 'lodash'
+import { concat, every, groupBy, isEmpty, map, mapValues, pick, some, sortBy } from 'lodash'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
   connectVbd,
@@ -123,16 +123,12 @@ const COLUMNS = [
         vms: getAllVms(state, props),
         vbds: getVbds(state, props),
       })
-    })(({ item: vdi, vbds, vms, userData: { vmsSnapshotsBySuspendVdi } }) => {
-      const vmSnapshot = vmsSnapshotsBySuspendVdi[vdi.uuid]
-
-      if (vmSnapshot === undefined) {
-        return null
-      }
+    })(({ item: vdi, vbds, vms, userData: { vmSnapshotsBySuspendVdi } }) => {
+      const vmSnapshot = vmSnapshotsBySuspendVdi[vdi.uuid]?.[0]
 
       return (
         <Container>
-          {vbds.length > 0 ? (
+          {vmSnapshot === undefined ? (
             map(vbds, (vbd, index) => {
               const vm = vms[vbd.VM]
 
@@ -312,10 +308,13 @@ class NewDisk extends Component {
 }
 
 @connectStore(() => {
+  const getVbds = createGetObjectsOfType('VBD')
+  const getVmSnapshotsBySuspendVdi = createGetObjectsOfType('VM-snapshot').groupBy('suspendVdi')
+
   return (state, props) => ({
     checkPermissions: getCheckPermissions(state, props),
-    vbds: createGetObjectsOfType('VBD')(state, props),
-    vmsSnapshotsBySuspendVdi: keyBy(createGetObjectsOfType('VM-snapshot')(state, props), 'suspendVdi'),
+    vbds: getVbds(state, props),
+    vmSnapshotsBySuspendVdi: getVmSnapshotsBySuspendVdi(state, props),
   })
 })
 export default class SrDisks extends Component {
@@ -447,7 +446,7 @@ export default class SrDisks extends Component {
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
                 data-vdisByBaseCopy={this._getVdisByBaseCopy()}
-                data-vmsSnapshotsBySuspendVdi={this.props.vmsSnapshotsBySuspendVdi}
+                data-vmSnapshotsBySuspendVdi={this.props.vmSnapshotsBySuspendVdi}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
