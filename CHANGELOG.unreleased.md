@@ -7,9 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Advanced] Ability to create VUSB (PR [#7412](https://github.com/vatesfr/xen-orchestra/pull/7412))
-- [Storage/Disks] Handle link to VM for suspended VDIs (PR [#7391](https://github.com/vatesfr/xen-orchestra/pull/7391))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -29,7 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- xo-web minor
 
 <!--packages-end-->

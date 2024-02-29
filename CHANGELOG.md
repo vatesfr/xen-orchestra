@@ -13,6 +13,8 @@
 - [Pool/Network] Ability to edit MTU [#7039](https://github.com/vatesfr/xen-orchestra/issues/7039) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393))
 - [Backup] Ability to set a number of retries for VM backup failures [#2139](https://github.com/vatesfr/xen-orchestra/issues/2139) (PR [#7308](https://github.com/vatesfr/xen-orchestra/pull/7308))
 - [Self service] From user POV, show used resources even when they are unlimited (PR [#7353](https://github.com/vatesfr/xen-orchestra/pull/7353))
+- [VM/Advanced] Ability to create VUSB (PR [#7412](https://github.com/vatesfr/xen-orchestra/pull/7412))
+- [Storage/Disks] Handle link to VM for suspended VDIs (PR [#7391](https://github.com/vatesfr/xen-orchestra/pull/7391))
 
 ### Bug fixes
 
@@ -45,7 +47,7 @@
 - @xen-orchestra/proxy 0.26.47
 - @xen-orchestra/vmware-explorer 0.4.1
 - xo-server 5.138.0
-- xo-web 5.138.0
+- xo-web 5.139.0
 
 ## **5.91.2** (2024-02-09)
 
