@@ -197,17 +197,21 @@ export const create = defer(async function (
 
     const boundInstallDependencies = installDependencies.bind(this)
     await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
+
+    const host = hosts[0]
+    const xapi = this.getXapi(host)
+
     const boundFormatDisks = formatDisks.bind(this)
     await asyncEach(
       hosts,
-      host => boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning }),
+      async host => {
+        await boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning })
+        $defer.onFailure(() => destroyVolumeGroup(xapi, host, true))
+      },
       {
         stopOnError: false,
       }
     )
-
-    const host = hosts[0]
-    const xapi = this.getXapi(host)
 
     const srUuid = await Task.run({ properties: { name: 'creation of the storage' } }, async () => {
       const srRef = await xapi.SR_create({

@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
