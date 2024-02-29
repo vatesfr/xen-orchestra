@@ -1102,6 +1102,17 @@ export default class TabAdvanced extends Component {
               </tbody>
             </table>
             <br />
+            <h3>{_('vusbs')}</h3>
+            <ActionButton btnStyle='primary' handler={this._createVusb} icon='add'>
+              {_('createVusb')}
+            </ActionButton>
+            <SortedTable
+              collection={vusbs}
+              columns={VUSB_COLUMNS}
+              data-pusbsByUsbGroup={pusbByUsbGroup}
+              individualActions={VUSB_INDIVIDUAL_ACTIONS}
+            />
+            <br />
             <h3>{_('miscLabel')}</h3>
             <table className='table table-hover'>
               <tbody>
@@ -1127,16 +1138,6 @@ export default class TabAdvanced extends Component {
                 </tr>
               </tbody>
             </table>
-            <h3>{_('vusbs')}</h3>
-            <ActionButton btnStyle='primary' handler={this._createVusb} icon='add'>
-              {_('createVusb')}
-            </ActionButton>
-            <SortedTable
-              collection={vusbs}
-              columns={VUSB_COLUMNS}
-              data-pusbsByUsbGroup={pusbByUsbGroup}
-              individualActions={VUSB_INDIVIDUAL_ACTIONS}
-            />
           </Col>
         </Row>
       </Container>

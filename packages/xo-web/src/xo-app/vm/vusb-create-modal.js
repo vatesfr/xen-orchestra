@@ -3,7 +3,7 @@ import Component from 'base-component'
 import React from 'react'
 import { Select } from 'form'
 
-const USB_GROUP_RENDERER = pusb => `${pusb.description} (${pusb.version})`
+const PUSB_RENDERER = pusb => `${pusb.description} (${pusb.version})`
 
 export default class VusbCreateModal extends Component {
   state = {
@@ -17,7 +17,7 @@ export default class VusbCreateModal extends Component {
     return (
       <Select
         options={this.props.pusbs}
-        optionRenderer={USB_GROUP_RENDERER}
+        optionRenderer={PUSB_RENDERER}
         placeholder={_('selectPusb')}
         onChange={this.linkState('pusb')}
         value={this.state.pusb}
