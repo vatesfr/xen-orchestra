@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation)
+- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation) (PR [#7426](https://github.com/vatesfr/xen-orchestra/pull/7426))
 
 ### Packages to release
 
