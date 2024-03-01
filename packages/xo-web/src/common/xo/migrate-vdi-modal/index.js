@@ -33,7 +33,8 @@ export default class MigrateVdiModalBody extends Component {
 
   _getSrPredicate = createSelector(
     () => this.props.pool,
-    pool => sr => isSrWritable(sr) && sr.$pool === pool
+    () => this.props.isoSr,
+    (pool, isoSr) => sr => (isoSr ? sr.SR_type === 'iso' : isSrWritable(sr)) && sr.$pool === pool
   )
 
   render() {
