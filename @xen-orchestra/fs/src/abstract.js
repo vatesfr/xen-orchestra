@@ -3,6 +3,7 @@ import getStream from 'get-stream'
 import { asyncEach } from '@vates/async-each'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
+import { createXXHash64 } from 'hash-wasm'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
@@ -400,27 +401,63 @@ export default class RemoteHandlerAbstract {
   }
 
   async test() {
-    const SIZE = 1024 * 1024 * 10
+    // use this fast non-cryptographic function to avoid impacting perf
+    // and give results as accurate as possible
+    const xxhash64 = await createXXHash64()
+
+    // compute the time used by `randomBytes` to subtract it from the
+    // writeDuration and give a `writeRate` as accurate as possible
+    let randomDuration = 0n
+
+    let writeSize = 0
+
+    const hrtime = process.hrtime.bigint
+
+    // generate a random readable stream for which last for a give duration
+    const DURATION = 5e3
+    const CHUNK_SIZE = 1024 * 512
+    const dataStream = (async function* () {
+      const end = Date.now() + DURATION
+      do {
+        const start = hrtime()
+        const chunk = await randomBytes(CHUNK_SIZE)
+        randomDuration += hrtime() - start
+
+        writeSize += CHUNK_SIZE
+        xxhash64.update(chunk)
+        yield chunk
+      } while (Date.now() < end)
+    })()
+
     const testFileName = normalizePath(`${Date.now()}.test`)
-    const data = await fromCallback(randomBytes, SIZE)
+
     let step = 'write'
     try {
-      const writeStart = process.hrtime()
-      await this._outputFile(testFileName, data, { flags: 'wx' })
-      const writeDuration = process.hrtime(writeStart)
+      xxhash64.init()
+      const writeStart = hrtime()
+      await this._outputStream(testFileName, dataStream, { flags: 'wx' })
+      const writeDuration = Number(hrtime() - writeStart - randomDuration) / 1e9
+      const writeHash = xxhash64.digest('hex')
 
       step = 'read'
-      const readStart = process.hrtime()
-      const read = await this._readFile(testFileName, { flags: 'r' })
-      const readDuration = process.hrtime(readStart)
+      xxhash64.init()
+      const readStart = hrtime()
+      for await (const chunk of await this._createReadStream(testFileName, { flags: 'r' })) {
+        xxhash64.update(chunk)
+      }
+      const readDuration = Number(hrtime() - readStart) / 1e9
 
-      if (!data.equals(read)) {
+      if (xxhash64.digest('hex') !== writeHash) {
         throw new Error('output and input did not match')
       }
+
+      console.log(writeSize, writeDuration, readDuration)
+
       return {
         success: true,
-        writeRate: computeRate(writeDuration, SIZE),
-        readRate: computeRate(readDuration, SIZE),
+        writeRate: writeSize / writeDuration,
+        writeSize,
+        readRate: writeSize / readDuration,
       }
     } catch (error) {
       warn(`error while testing the remote at step ${step}`, { error })

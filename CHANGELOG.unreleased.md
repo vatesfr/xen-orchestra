@@ -30,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - xo-web minor
 
 <!--packages-end-->
