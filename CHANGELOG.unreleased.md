@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Jobs] Fix `t.value is undefined` when saving a new job (broken in XO 5.91)
-- [XOSTOR] Move `ignore file sytems` outside of advanced settings
+- [XOSTOR] Move `ignore file sytems` outside of advanced settings (PR [#7429](https://github.com/vatesfr/xen-orchestra/pull/7429))
 
 ### Packages to release
 
