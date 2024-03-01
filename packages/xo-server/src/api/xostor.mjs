@@ -104,6 +104,7 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
           error.params = error.params.concat([
             "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
             '[XO] This error can be triggered if one of the disks have children',
+            '[XO] This error can be triggered if one of the disks have file systems.',
           ])
         }
         throw error
