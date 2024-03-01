@@ -188,37 +188,20 @@
           </div>
         </FormSection>
 
-        <UiButtonGroup>
+        <ButtonGroup>
           <UiButton outlined @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
           <UiButton type="submit">
             {{ $t('deploy') }}
           </UiButton>
-        </UiButtonGroup>
+        </ButtonGroup>
       </form>
     </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
-import {
-  faArrowUpRightFromSquare,
-  faCircleCheck,
-  faDownload,
-  faExclamationCircle,
-} from '@fortawesome/free-solid-svg-icons'
-import { storeToRefs } from 'pinia'
-import { useI18n } from 'vue-i18n'
-import { useModal } from '@/composables/modal.composable'
-import { useNetworkCollection } from '@/stores/xen-api/network.store'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useRouter } from 'vue-router'
-import { useSrCollection } from '@/stores/xen-api/sr.store'
-import { useUiStore } from '@/stores/ui.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormRadio from '@/components/form/FormRadio.vue'
@@ -226,11 +209,28 @@ import FormSection from '@/components/form/FormSection.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 import FormToggle from '@/components/form/FormToggle.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiButton from '@/components/ui/UiButton.vue'
-import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiRaw from '@/components/ui/UiRaw.vue'
+import { useModal } from '@/composables/modal.composable'
+import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
+import { usePageTitleStore } from '@/stores/page-title.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
+import { useNetworkCollection } from '@/stores/xen-api/network.store'
+import { useSrCollection } from '@/stores/xen-api/sr.store'
+import ButtonGroup from '@core/components/button/ButtonGroup.vue'
+import UiButton from '@core/components/button/UiButton.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import {
+  faArrowUpRightFromSquare,
+  faCircleCheck,
+  faDownload,
+  faExclamationCircle,
+} from '@fortawesome/free-solid-svg-icons'
+import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const REQUIRED_GB = 20
 

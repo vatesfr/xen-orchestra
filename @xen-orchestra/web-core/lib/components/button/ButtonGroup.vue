@@ -1,14 +1,18 @@
 <template>
-  <div :class="{ merge }" class="ui-button-group">
+  <div :class="[colorContextClass, { merge }]" class="ui-button-group">
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
-import type { Color } from '@/types'
-import { IK_BUTTON_GROUP_OUTLINED, IK_BUTTON_GROUP_TRANSPARENT } from '@/types/injection-keys'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext, DisabledContext } from '@core/context'
+import type { Color } from '@core/types/color.type'
+import {
+  IK_BUTTON_GROUP_OUTLINED,
+  IK_BUTTON_GROUP_TRANSPARENT,
+  IK_BUTTON_GROUP_UNDERLINED,
+} from '@core/utils/injection-keys.util'
 import { computed, provide } from 'vue'
 
 const props = withDefaults(
@@ -18,6 +22,7 @@ const props = withDefaults(
     color?: Color
     outlined?: boolean
     transparent?: boolean
+    underlined?: boolean
     merge?: boolean
   }>(),
   { disabled: undefined }
@@ -30,8 +35,12 @@ provide(
   IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => props.transparent ?? false)
 )
+provide(
+  IK_BUTTON_GROUP_UNDERLINED,
+  computed(() => props.underlined ?? false)
+)
 
-useContext(ColorContext, () => props.color)
+const { colorContextClass } = useContext(ColorContext, () => props.color)
 useContext(DisabledContext, () => props.disabled)
 </script>
 

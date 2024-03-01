@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import AppMenu from '@/components/menu/AppMenu.vue'
 import MenuTrigger from '@/components/menu/MenuTrigger.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
 import { DisabledContext } from '@/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@/types/injection-keys'

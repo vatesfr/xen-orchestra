@@ -16,12 +16,12 @@ import { useVmCollection } from '@/stores/xen-api/vm.store'
 import { vTooltip } from '@/directives/tooltip.directive'
 import HostsCpuUsage from '@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue'
 import VmsCpuUsage from '@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue'
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { computed, inject, type ComputedRef } from 'vue'
 import type { Stat } from '@/composables/fetch-stats.composable'
 import type { HostStats, VmStats } from '@/libs/xapi-stats'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
+import UiSpinner from '@core/components/UiSpinner.vue'
 
 const { hasError: hasVmError } = useVmCollection()
 const { hasError: hasHostError } = useHostCollection()

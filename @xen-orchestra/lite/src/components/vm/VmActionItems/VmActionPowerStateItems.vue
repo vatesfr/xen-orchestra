@@ -67,7 +67,7 @@
 <script lang="ts" setup>
 import MenuItem from '@/components/menu/MenuItem.vue'
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { useHostCollection } from '@/stores/xen-api/host.store'
 import { useHostMetricsCollection } from '@/stores/xen-api/host-metrics.store'
 import { usePoolCollection } from '@/stores/xen-api/pool.store'

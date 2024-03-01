@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { faMoon, faPause, faPlay, faQuestion, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

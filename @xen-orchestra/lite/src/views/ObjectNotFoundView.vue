@@ -10,7 +10,7 @@
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import UiButton from '@/components/ui/UiButton.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 
 defineProps<{
   id: string

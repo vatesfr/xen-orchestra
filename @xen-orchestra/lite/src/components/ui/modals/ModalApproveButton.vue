@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@/components/ui/UiButton.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import { IK_MODAL } from '@/types/injection-keys'
 import { inject } from 'vue'
 

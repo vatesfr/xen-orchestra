@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import AppMenu from '@/components/menu/AppMenu.vue'
 import MenuItem from '@/components/menu/MenuItem.vue'
-import UiButton from '@/components/ui/UiButton.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionDeleteItem from '@/components/vm/VmActionItems/VmActionDeleteItem.vue'
 import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportItems.vue'

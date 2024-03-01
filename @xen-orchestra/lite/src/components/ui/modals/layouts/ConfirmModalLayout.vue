@@ -7,43 +7,35 @@
     </template>
 
     <template #default>
-      <UiIcon :class="textClass" :icon="icon" class="main-icon" />
-      <div v-if="$slots.title || $slots.subtitle" class="titles">
-        <UiTitle v-if="$slots.title" type="h4">
-          <slot name="title" />
-        </UiTitle>
-        <div v-if="$slots.subtitle" class="subtitle">
-          <slot name="subtitle" />
-        </div>
-      </div>
-      <div v-if="$slots.default">
+      <UiIcon :icon :color class="main-icon" />
+      <h4 v-if="$slots.title" class="title h4 semi-bold">
+        <slot name="title" />
+      </h4>
+      <div v-if="$slots.default" class="content">
         <slot name="default" />
       </div>
     </template>
 
     <template #footer>
-      <UiButtonGroup>
+      <ButtonGroup>
         <slot name="buttons" />
-      </UiButtonGroup>
+      </ButtonGroup>
     </template>
   </ModalContainer>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
-import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
-import UiTitle from '@/components/ui/UiTitle.vue'
-import { useContext } from '@/composables/context.composable'
-import { ColorContext } from '@/context'
+import ButtonGroup from '@core/components/button/ButtonGroup.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext } from '@core/context'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
   icon?: IconDefinition
 }>()
-
-const { textClass } = useContext(ColorContext)
 
 defineSlots<{
   title: () => void
@@ -51,6 +43,8 @@ defineSlots<{
   default: () => void
   buttons: () => void
 }>()
+
+const color = useContext(ColorContext)
 </script>
 
 <style lang="postcss" scoped>
@@ -73,5 +67,15 @@ defineSlots<{
   font-size: 1.6rem;
   font-weight: 400;
   color: var(--color-grey-200);
+}
+
+.title {
+  color: var(--color-grey-100);
+}
+
+.content {
+  color: var(--color-grey-200);
+  font-size: 1.6rem;
+  font-weight: 400;
 }
 </style>

@@ -2,7 +2,7 @@
 <UiModal @submit.prevent="approve()">
   <ConfirmModalLayout :icon="faShip">
     <template #title>Do you confirm?</template>
-    <template #subtitle>You should be sure about this</template>
+    <template #default>You should be sure about this</template>
     <template #buttons>
       <ModalDeclineButton>I prefer not</UiButton>
       <ModalApproveButton>Yes, I'm sure!</UiButton>

@@ -28,7 +28,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import AppMenu from '@/components/menu/AppMenu.vue'
 import MenuItem from '@/components/menu/MenuItem.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
 
 const router = useRouter()
