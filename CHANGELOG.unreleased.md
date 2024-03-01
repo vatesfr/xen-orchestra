@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Jobs] Fix `t.value is undefined` when saving a new job (broken in XO 5.91)
+- [XOSTOR] Move `ignore file sytems` outside of advanced settings
 
 ### Packages to release
 
@@ -29,6 +30,6 @@
 
 <!--packages-start-->
 
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
