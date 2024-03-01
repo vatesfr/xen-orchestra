@@ -103,8 +103,8 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
         if (error.code === 'LVM_ERROR(5)') {
           error.params = error.params.concat([
             "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
-            '[XO] This error can be triggered if one of the disks have children',
-            '[XO] This error can be triggered if one of the disks have file systems.',
+            '[XO] This error can be triggered if at least one the disks has a children.',
+            '[XO] This error can be triggered if at least one the disks has a file system.',
           ])
         }
         throw error
