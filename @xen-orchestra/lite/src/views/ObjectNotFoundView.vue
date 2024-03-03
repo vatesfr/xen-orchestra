@@ -1,26 +1,24 @@
 <template>
   <div>
     <img alt="Not found" src="../assets/object-not-found.svg" />
-    <p class="text">{{ $t("object-not-found", { id }) }}</p>
-    <UiButton @click="router.push({ name: 'home' })">{{
-      $t("back-pool-dashboard")
-    }}</UiButton>
+    <p class="text">{{ $t('object-not-found', { id }) }}</p>
+    <UiButton @click="router.push({ name: 'home' })">{{ $t('back-pool-dashboard') }}</UiButton>
   </div>
 </template>
 
 <script setup lang="ts">
-import { usePageTitleStore } from "@/stores/page-title.store";
-import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
-import UiButton from "@/components/ui/UiButton.vue";
+import { usePageTitleStore } from '@/stores/page-title.store'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import UiButton from '@/components/ui/UiButton.vue'
 
 defineProps<{
-  id: string;
-}>();
+  id: string
+}>()
 
-usePageTitleStore().setTitle(useI18n().t("not-found"));
+usePageTitleStore().setTitle(useI18n().t('not-found'))
 
-const router = useRouter();
+const router = useRouter()
 </script>
 
 <style lang="postcss" scoped>
@@ -38,7 +36,7 @@ img {
 }
 
 .text {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   font-size: 36px;
   font-weight: 400;
   line-height: 150%;

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
-    "@vates/decorate-with": "^2.0.0",
+    "@vates/decorate-with": "^2.1.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
@@ -52,7 +52,7 @@
     "xo-collection": "^0.5.0"
   },
   "devDependencies": {
-    "tap": "^16.1.0"
+    "tap": "^18.7.0"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",

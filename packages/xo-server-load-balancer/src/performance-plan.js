@@ -178,7 +178,7 @@ export default class PerformancePlan extends Plan {
       const state = this._getThresholdState(exceededAverages)
       if (
         destinationAverages.cpu + vmAverages.cpu >= this._thresholds.cpu.low ||
-        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.memory.high ||
+        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.memoryFree.high ||
         (!state.cpu &&
           !state.memory &&
           (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
@@ -205,7 +205,15 @@ export default class PerformancePlan extends Plan {
       )
       optimizationCount++
 
-      promises.push(xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
+      promises.push(
+        this._concurrentMigrationLimiter.call(
+          xapiSrc,
+          'migrateVm',
+          vm._xapiId,
+          this.xo.getXapi(destination),
+          destination._xapiId
+        )
+      )
     }
 
     await Promise.all(promises)

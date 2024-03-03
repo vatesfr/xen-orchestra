@@ -2,7 +2,7 @@
   <ModalContainer tag="form">
     <template #header>
       <div :class="borderClass" class="title-bar">
-        <UiIcon :class="textClass" :icon="icon" />
+        <UiIcon :class="textClass" :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
       </div>
@@ -21,25 +21,25 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import ModalCloseIcon from "@/components/ui/modals/ModalCloseIcon.vue";
-import ModalContainer from "@/components/ui/modals/ModalContainer.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import { useContext } from "@/composables/context.composable";
-import { ColorContext } from "@/context";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
+import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
+import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
+import { useContext } from '@/composables/context.composable'
+import { ColorContext } from '@/context'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  icon?: IconDefinition;
-}>();
+  icon?: IconDefinition
+}>()
 
 defineSlots<{
-  title: () => void;
-  default: () => void;
-  buttons: () => void;
-}>();
+  title: () => void
+  default: () => void
+  buttons: () => void
+}>()
 
-const { textClass, borderClass } = useContext(ColorContext);
+const { textClass, borderClass } = useContext(ColorContext)
 </script>
 
 <style lang="postcss" scoped>

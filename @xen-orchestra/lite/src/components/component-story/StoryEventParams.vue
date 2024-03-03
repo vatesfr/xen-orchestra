@@ -24,11 +24,11 @@
 </template>
 
 <script lang="ts" setup>
-import CodeHighlight from "@/components/CodeHighlight.vue";
-import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
-import type { EventParam } from "@/libs/story/story-param";
+import CodeHighlight from '@/components/CodeHighlight.vue'
+import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
+import type { EventParam } from '@/libs/story/story-param'
 
 defineProps<{
-  params: EventParam[];
-}>();
+  params: EventParam[]
+}>()
 </script>

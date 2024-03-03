@@ -20,6 +20,9 @@ function assertListeners(t, event, listeners) {
 }
 
 t.beforeEach(function (t) {
+  // work around https://github.com/tapjs/tapjs/issues/998
+  t.context = {}
+
   t.context.ee = new EventEmitter()
   t.context.em = new EventListenersManager(t.context.ee)
 })

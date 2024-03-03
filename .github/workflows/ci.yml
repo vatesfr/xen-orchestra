@@ -24,8 +24,12 @@ jobs:
           cache: 'yarn'
       - name: Install project dependencies
         run: yarn
+      - name: Ensure yarn.lock is up-to-date
+        run: git diff --exit-code yarn.lock
       - name: Build the project
         run: yarn build
+      - name: Unit tests
+        run: yarn test-unit
       - name: Lint tests
         run: yarn test-lint
       - name: Integration tests

@@ -1,20 +1,20 @@
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
-    <UiIcon :busy="busy" :icon="icon" />
+    <UiIcon :busy :icon />
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
 
 defineProps<{
-  active?: boolean;
-  busy?: boolean;
-  disabled?: boolean;
-  icon?: IconDefinition;
-}>();
+  active?: boolean
+  busy?: boolean
+  disabled?: boolean
+  icon?: IconDefinition
+}>()
 </script>
 
 <style lang="postcss" scoped>
@@ -29,10 +29,10 @@ defineProps<{
   white-space: nowrap;
   border-radius: 0.8rem;
   gap: 1rem;
-  background-color: var(--color-blue-scale-500);
+  background-color: var(--color-grey-600);
 
   &.disabled {
-    color: var(--color-blue-scale-400);
+    color: var(--color-grey-500);
   }
 
   &:not(.disabled) {
@@ -44,8 +44,8 @@ defineProps<{
 
     &:active,
     &.active {
-      color: var(--color-extra-blue-base);
-      background-color: var(--background-color-extra-blue);
+      color: var(--color-purple-base);
+      background-color: var(--background-color-purple-10);
     }
   }
 }

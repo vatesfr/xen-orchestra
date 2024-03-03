@@ -38,9 +38,9 @@
   "version": "1.0.1",
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "tap --branches=72"
+    "test": "tap --allow-incomplete-coverage"
   },
   "devDependencies": {
-    "tap": "^16.2.0"
+    "tap": "^18.7.0"
   }
 }

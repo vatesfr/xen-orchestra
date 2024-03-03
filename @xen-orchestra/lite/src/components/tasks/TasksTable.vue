@@ -2,17 +2,17 @@
   <UiTable :color="hasError ? 'error' : undefined" class="tasks-table">
     <thead>
       <tr>
-        <th>{{ $t("name") }}</th>
-        <th>{{ $t("object") }}</th>
-        <th>{{ $t("task.progress") }}</th>
-        <th>{{ $t("task.started") }}</th>
-        <th>{{ $t("task.estimated-end") }}</th>
+        <th>{{ $t('name') }}</th>
+        <th>{{ $t('object') }}</th>
+        <th>{{ $t('task.progress') }}</th>
+        <th>{{ $t('task.started') }}</th>
+        <th>{{ $t('task.estimated-end') }}</th>
       </tr>
     </thead>
     <tbody>
       <tr v-if="hasError">
         <td colspan="5">
-          <span class="text-error">{{ $t("error-no-data") }}</span>
+          <span class="text-error">{{ $t('error-no-data') }}</span>
         </td>
       </tr>
       <tr v-else-if="isFetching">
@@ -21,39 +21,32 @@
         </td>
       </tr>
       <tr v-else-if="!hasTasks">
-        <td class="no-tasks" colspan="5">{{ $t("no-tasks") }}</td>
+        <td class="no-tasks" colspan="5">{{ $t('no-tasks') }}</td>
       </tr>
       <template v-else>
-        <TaskRow
-          v-for="task in pendingTasks"
-          :key="task.uuid"
-          :task="task"
-          is-pending
-        />
-        <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task="task" />
+        <TaskRow v-for="task in pendingTasks" :key="task.uuid" :task is-pending />
+        <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task />
       </template>
     </tbody>
   </UiTable>
 </template>
 
 <script lang="ts" setup>
-import TaskRow from "@/components/tasks/TaskRow.vue";
-import UiSpinner from "@/components/ui/UiSpinner.vue";
-import UiTable from "@/components/ui/UiTable.vue";
-import { useTaskCollection } from "@/stores/xen-api/task.store";
-import type { XenApiTask } from "@/libs/xen-api/xen-api.types";
-import { computed } from "vue";
+import TaskRow from '@/components/tasks/TaskRow.vue'
+import UiSpinner from '@/components/ui/UiSpinner.vue'
+import UiTable from '@/components/ui/UiTable.vue'
+import { useTaskCollection } from '@/stores/xen-api/task.store'
+import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
+import { computed } from 'vue'
 
 const props = defineProps<{
-  pendingTasks: XenApiTask[];
-  finishedTasks?: XenApiTask[];
-}>();
+  pendingTasks: XenApiTask[]
+  finishedTasks?: XenApiTask[]
+}>()
 
-const { hasError, isFetching } = useTaskCollection();
+const { hasError, isFetching } = useTaskCollection()
 
-const hasTasks = computed(
-  () => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0
-);
+const hasTasks = computed(() => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0)
 </script>
 
 <style lang="postcss" scoped>
@@ -63,11 +56,11 @@ const hasTasks = computed(
 
 .no-tasks {
   text-align: center;
-  color: var(--color-blue-scale-300);
+  color: var(--color-grey-300);
   font-style: italic;
 }
 
-td[colspan="5"] {
+td[colspan='5'] {
   text-align: center;
 }
 
@@ -75,11 +68,11 @@ td[colspan="5"] {
   font-weight: 700;
   font-size: 16px;
   line-height: 150%;
-  color: var(--color-red-vates-base);
+  color: var(--color-red-base);
 }
 
 .loader {
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
   display: block;
   font-size: 4rem;
   margin: 2rem auto 0;

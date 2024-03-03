@@ -4,12 +4,13 @@ import { fromEvent } from 'promise-toolbox'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { v4 as generateUuid } from 'uuid'
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
+import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 
 export default class MigrateVm {
   constructor(app) {
@@ -169,7 +170,7 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin, stopSource }
+    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource }
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -220,7 +221,7 @@ export default class MigrateVm {
           xapi.VIF_create(
             {
               device: vifDevices[i],
-              network: xapi.getObject(networkId).$ref,
+              network: app.getXapiObject(networkId).$ref,
               VM: vm.$ref,
             },
             {
@@ -231,29 +232,13 @@ export default class MigrateVm {
       )
       return vm
     })
-
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
 
     const vhds = await Promise.all(
       Object.keys(chainsByNodes).map(async (node, userdevice) =>
         Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
           const chainByNode = chainsByNodes[node]
-          const vdi = await xapi._getOrWaitObject(
-            await xapi.VDI_create({
-              name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
-              name_label: '[ESXI]' + chainByNode[0].nameLabel,
-              SR: sr.$ref,
-              virtual_size: chainByNode[0].capacity,
-            })
-          )
-          // it can fail before the vdi is connected to the vm
-
-          $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
-
-          await xapi.VBD_create({
-            VDI: vdi.$ref,
-            VM: vm.$ref,
-          })
+          let vdi
           let parentVhd, vhd
           // if the VM is running we'll transfer everything before the last , which is an active disk
           //  the esxi api does not allow us to read an active disk
@@ -262,25 +247,38 @@ export default class MigrateVm {
           for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex++) {
             // the first one  is a RAW disk ( full )
             const disk = chainByNode[diskIndex]
-            const { fileName, path, datastore, isFull } = disk
+            const { capacity, descriptionLabel, fileName, nameLabel, path, datastore, isFull } = disk
             if (isFull) {
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
-              await vhd.readBlockAllocationTable()
+              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin: false })
+              // we don't need to read the BAT with the importVdiThroughXva process
+              const vdiMetadata = {
+                name_description: 'fromESXI' + descriptionLabel,
+                name_label: '[ESXI]' + nameLabel,
+                SR: sr.$ref,
+                virtual_size: capacity,
+              }
+              vdi = await importVdiThroughXva(vdiMetadata, vhd, xapi, sr)
+
+              // it can fail before the vdi is connected to the vm
+              $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
+              await xapi.VBD_create({
+                VDI: vdi.$ref,
+                VM: vm.$ref,
+                device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+                userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
+              })
             } else {
-              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
+              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
+                lookMissingBlockInParent: false,
+              })
             }
+            vhd.label = fileName
             parentVhd = vhd
           }
-          // it can be empty if the VM don't have a snapshot and is running
-          if (vhd !== undefined) {
-            if (thin) {
-              const stream = vhd.stream()
-              await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-            } else {
-              // no transformation when there is no snapshot in thick mode
-              const stream = await vhd.rawContent()
-              await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
-            }
+          if (nbColdDisks > 1 /* got a cold snapshot chain */) {
+            // it can be empty if the VM don't have a snapshot and is running
+            const stream = vhd.stream()
+            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
           }
           return { vdi, vhd }
         })
@@ -296,15 +294,30 @@ export default class MigrateVm {
           await Task.run({ properties: { name: `Transfering deltas of ${userdevice}` } }, async () => {
             const chainByNode = chainsByNodes[node]
             const disk = chainByNode[chainByNode.length - 1]
-            const { fileName, path, datastore, isFull } = disk
-            const { vdi, vhd: parentVhd } = vhds[userdevice]
+            const { capacity, descriptionLabel, fileName, nameLabel, path, datastore, isFull } = disk
+            let { vdi, vhd: parentVhd } = vhds[userdevice]
             let vhd
             if (vdi === undefined) {
               throw new Error(`Can't import delta of a running VM without its parent vdi`)
             }
             if (isFull) {
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
-              await vhd.readBlockAllocationTable()
+              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin: false })
+              // we don't need to read the BAT with the importVdiThroughXva process
+              const vdiMetadata = {
+                name_description: 'fromESXI' + descriptionLabel,
+                name_label: '[ESXI]' + nameLabel,
+                SR: sr.$ref,
+                virtual_size: capacity,
+              }
+              vdi = await importVdiThroughXva(vdiMetadata, vhd, xapi, sr)
+              // it can fail before the vdi is connected to the vm
+              $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
+              await xapi.VBD_create({
+                VDI: vdi.$ref,
+                VM: vm.$ref,
+                device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+                userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
+              })
             } else {
               if (parentVhd === undefined) {
                 throw new Error(`Can't import delta of a running VM without its parent VHD`)

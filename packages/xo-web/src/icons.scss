@@ -695,6 +695,10 @@
       @extend .fa;
       @extend .fa-angle-double-down;
     }
+    &-rolling-reboot {
+      @extend .fa;
+      @extend .fa-circle-o-notch;
+    }
   }
 
   &-vif {

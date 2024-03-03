@@ -143,7 +143,9 @@ port = 80
 requestTimeout = 0
 
 [http.mounts]
-'/' = '../xo-web/dist'
+'/robots.txt' = './robots.txt'
+'/' = '../xo-web/dist/'
+'/v6' = '../../@xen-orchestra/web/dist/'
 
 [logs]
 # Display all logs matching this filter, regardless of their level
@@ -155,6 +157,7 @@ level = 'info'
 [logs.transport.console]
 
 [plugins]
+lookupPaths = ['./node_modules', '../', '/usr/local/lib/node_modules']
 
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'

@@ -31,11 +31,10 @@ export default class ResourceSetQuotas extends Component {
 
       forEach(RESOURCES, resource => {
         if (limits[resource] != null) {
-          const { available, total } = limits[resource]
+          const { total, usage } = limits[resource]
           quotas[resource] = {
-            available,
             total,
-            usage: total - available,
+            usage,
           }
         }
       })
@@ -89,23 +88,31 @@ export default class ResourceSetQuotas extends Component {
                 <CardBlock className='text-center'>
                   {quota !== undefined ? (
                     <div>
-                      <ChartistGraph
-                        data={{
-                          labels,
-                          series: [quota.available, quota.usage],
-                        }}
-                        options={{
-                          donut: true,
-                          donutWidth: 40,
-                          showLabel: false,
-                        }}
-                        type='Pie'
-                      />
+                      {Number.isFinite(quota.total) ? (
+                        <ChartistGraph
+                          data={{
+                            labels,
+                            series: [quota.total - quota.usage, quota.usage],
+                          }}
+                          options={{
+                            donut: true,
+                            donutWidth: 40,
+                            showLabel: false,
+                          }}
+                          type='Pie'
+                        />
+                      ) : (
+                        <p className='text-xs-center display-1'>&infin;</p>
+                      )}
                       <p className='text-xs-center'>
-                        {_('resourceSetQuota', {
-                          total: validFormat ? quota.total.toString() : formatSize(quota.total),
-                          usage: validFormat ? quota.usage.toString() : formatSize(quota.usage),
-                        })}
+                        {!Number.isFinite(quota.total)
+                          ? _('unlimitedResourceSetUsage', {
+                              usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
+                            })
+                          : _('resourceSetQuota', {
+                              total: formatSize(quota.total),
+                              usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
+                            })}
                       </p>
                     </div>
                   ) : (

@@ -1,27 +1,23 @@
 <template>
-  <component
-    :is="tag"
-    :class="{ active, disabled: disabled || isTabBarDisabled }"
-    class="ui-tab"
-  >
+  <component :is="tag" :class="{ active, disabled: disabled || isTabBarDisabled }" class="ui-tab">
     <slot />
   </component>
 </template>
 
 <script lang="ts" setup>
-import { useContext } from "@/composables/context.composable";
-import { DisabledContext } from "@/context";
+import { useContext } from '@/composables/context.composable'
+import { DisabledContext } from '@/context'
 
 const props = withDefaults(
   defineProps<{
-    disabled?: boolean;
-    active?: boolean;
-    tag?: string;
+    disabled?: boolean
+    active?: boolean
+    tag?: string
   }>(),
-  { tag: "span", disabled: undefined }
-);
+  { tag: 'span', disabled: undefined }
+)
 
-const isTabBarDisabled = useContext(DisabledContext, () => props.disabled);
+const isTabBarDisabled = useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
@@ -33,12 +29,12 @@ const isTabBarDisabled = useContext(DisabledContext, () => props.disabled);
   padding: 0 1.5rem;
   text-decoration: none;
   text-transform: uppercase;
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
   border-bottom: 2px solid transparent;
 
   &.disabled {
     pointer-events: none;
-    color: var(--color-blue-scale-400);
+    color: var(--color-grey-500);
   }
 
   &:not(.disabled) {
@@ -46,19 +42,19 @@ const isTabBarDisabled = useContext(DisabledContext, () => props.disabled);
 
     &:hover {
       cursor: pointer;
-      border-bottom-color: var(--color-extra-blue-base);
+      border-bottom-color: var(--color-purple-base);
       background-color: var(--background-color-secondary);
     }
 
     &:active {
-      color: var(--color-extra-blue-base);
-      border-bottom-color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
+      border-bottom-color: var(--color-purple-base);
       background-color: var(--background-color-secondary);
     }
 
     &.active {
-      color: var(--color-extra-blue-base);
-      border-bottom-color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
+      border-bottom-color: var(--color-purple-base);
       background-color: var(--background-color-primary);
     }
   }

@@ -1,9 +1,5 @@
 <template>
-  <component
-    :is="hasLabel ? 'span' : 'label'"
-    :class="`form-${type}`"
-    v-bind="wrapperAttrs"
-  >
+  <component :is="hasLabel ? 'span' : 'label'" :class="`form-${type}`" v-bind="wrapperAttrs">
     <input
       v-model="value"
       :class="{ indeterminate: isIndeterminate }"
@@ -13,57 +9,55 @@
       v-bind="$attrs"
     />
     <span class="fake-checkbox">
-      <UiIcon :fixed-width="false" :icon="icon" class="icon" />
+      <UiIcon :fixed-width="false" :icon class="icon" />
     </span>
   </component>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { useContext } from "@/composables/context.composable";
-import { DisabledContext } from "@/context";
-import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from "@/types/injection-keys";
-import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
-import { computed, type HTMLAttributes, inject } from "vue";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useContext } from '@/composables/context.composable'
+import { DisabledContext } from '@/context'
+import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from '@/types/injection-keys'
+import { faCheck, faCircle, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { useVModel } from '@vueuse/core'
+import { computed, type HTMLAttributes, inject } from 'vue'
 
-defineOptions({ inheritAttrs: false });
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: unknown;
-    disabled?: boolean;
-    wrapperAttrs?: HTMLAttributes;
+    modelValue?: unknown
+    disabled?: boolean
+    wrapperAttrs?: HTMLAttributes
   }>(),
   { disabled: undefined }
-);
+)
 
 const emit = defineEmits<{
-  (event: "update:modelValue", value: boolean): void;
-}>();
+  (event: 'update:modelValue', value: boolean): void
+}>()
 
-const value = useVModel(props, "modelValue", emit);
-const type = inject(IK_CHECKBOX_TYPE, "checkbox");
+const value = useVModel(props, 'modelValue', emit)
+const type = inject(IK_CHECKBOX_TYPE, 'checkbox')
 const hasLabel = inject(
   IK_FORM_HAS_LABEL,
   computed(() => false)
-);
-const isDisabled = useContext(DisabledContext, () => props.disabled);
+)
+const isDisabled = useContext(DisabledContext, () => props.disabled)
 const icon = computed(() => {
-  if (type !== "checkbox") {
-    return faCircle;
+  if (type !== 'checkbox') {
+    return faCircle
   }
 
   if (value.value === undefined) {
-    return faMinus;
+    return faMinus
   }
 
-  return faCheck;
-});
+  return faCheck
+})
 
-const isIndeterminate = computed(
-  () => (type === "checkbox" || type === "toggle") && value.value === undefined
-);
+const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle') && value.value === undefined)
 </script>
 
 <style lang="postcss" scoped>
@@ -87,7 +81,7 @@ const isIndeterminate = computed(
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
   }
 }
 
@@ -120,7 +114,7 @@ const isIndeterminate = computed(
 
   .fake-checkbox {
     width: 2.5em;
-    --background-color: var(--color-blue-scale-400);
+    --background-color: var(--color-grey-500);
   }
 
   .icon {
@@ -134,7 +128,7 @@ const isIndeterminate = computed(
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-blue-scale-300);
+    color: var(--color-grey-300);
     transform: translateX(0);
   }
 }
@@ -149,10 +143,9 @@ const isIndeterminate = computed(
 .icon {
   font-size: var(--checkbox-icon-size);
   position: absolute;
-  color: var(--color-blue-scale-500);
+  color: var(--color-grey-600);
 
-  filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1))
-    drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
+  filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1)) drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
     drop-shadow(0 0.1875em 0.25em rgba(0, 0, 0, 0.08));
 }
 
@@ -169,44 +162,44 @@ const isIndeterminate = computed(
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
 
-  --border-color: var(--color-blue-scale-400);
+  --border-color: var(--color-grey-500);
 }
 
 .input:disabled {
   & + .fake-checkbox {
     cursor: not-allowed;
     --background-color: var(--background-color-secondary);
-    --border-color: var(--color-blue-scale-400);
+    --border-color: var(--color-grey-500);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-extra-blue-l60);
+    --background-color: var(--color-purple-l60);
   }
 }
 
 .input:not(:disabled) {
   &:hover + .fake-checkbox,
   &:focus + .fake-checkbox {
-    --border-color: var(--color-extra-blue-l40);
+    --border-color: var(--color-purple-l40);
   }
 
   &:active + .fake-checkbox {
-    --border-color: var(--color-extra-blue-l20);
+    --border-color: var(--color-purple-l20);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-extra-blue-base);
+    --background-color: var(--color-purple-base);
   }
 
   &:checked:hover + .fake-checkbox,
   &:checked:focus + .fake-checkbox {
-    --background-color: var(--color-extra-blue-d20);
+    --background-color: var(--color-purple-d20);
   }
 
   &:checked:active + .fake-checkbox {
-    --background-color: var(--color-extra-blue-d40);
+    --background-color: var(--color-purple-d40);
   }
 }
 </style>

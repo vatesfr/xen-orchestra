@@ -2,80 +2,73 @@
   <RouterLink :to="{ name: 'story' }">
     <UiTitle type="h4">Stories</UiTitle>
   </RouterLink>
-  <StoryMenuTree
-    :tree="tree"
-    @toggle-directory="toggleDirectory"
-    :opened-directories="openedDirectories"
-  />
+  <StoryMenuTree :tree :opened-directories="openedDirectories" @toggle-directory="toggleDirectory" />
 </template>
 
 <script lang="ts" setup>
-import StoryMenuTree from "@/components/component-story/StoryMenuTree.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
-import { type RouteRecordNormalized, useRoute, useRouter } from "vue-router";
-import { ref } from "vue";
+import StoryMenuTree from '@/components/component-story/StoryMenuTree.vue'
+import UiTitle from '@/components/ui/UiTitle.vue'
+import { type RouteRecordNormalized, useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
 
-const { getRoutes } = useRouter();
+const { getRoutes } = useRouter()
 
-const routes = getRoutes().filter((route) => route.meta.isStory);
+const routes = getRoutes().filter(route => route.meta.isStory)
 
-export type StoryTree = Map<
-  string,
-  { path: string; directory: string; children: StoryTree }
->;
+export type StoryTree = Map<string, { path: string; directory: string; children: StoryTree }>
 
 function createTree(routes: RouteRecordNormalized[]) {
-  const tree: StoryTree = new Map();
+  const tree: StoryTree = new Map()
 
   for (const route of routes) {
-    const parts = route.path.slice(7).split("/");
-    let currentNode = tree;
-    let currentPath = "";
+    const parts = route.path.slice(7).split('/')
+    let currentNode = tree
+    let currentPath = ''
 
     for (const part of parts) {
-      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      currentPath = currentPath ? `${currentPath}/${part}` : part
       if (!currentNode.has(part)) {
         currentNode.set(part, {
           children: new Map(),
           path: route.path,
           directory: currentPath,
-        });
+        })
       }
-      currentNode = currentNode.get(part)!.children;
+      currentNode = currentNode.get(part)!.children
     }
   }
 
-  return tree;
+  return tree
 }
 
-const tree = createTree(routes);
+const tree = createTree(routes)
 
-const currentRoute = useRoute();
+const currentRoute = useRoute()
 
 const getDefaultOpenedDirectories = (): Set<string> => {
   if (!currentRoute.meta.isStory) {
-    return new Set<string>();
+    return new Set<string>()
   }
 
-  const openedDirectories = new Set<string>();
-  const parts = currentRoute.path.split("/").slice(2);
-  let currentPath = "";
+  const openedDirectories = new Set<string>()
+  const parts = currentRoute.path.split('/').slice(2)
+  let currentPath = ''
 
   for (const part of parts) {
-    currentPath = currentPath ? `${currentPath}/${part}` : part;
-    openedDirectories.add(currentPath);
+    currentPath = currentPath ? `${currentPath}/${part}` : part
+    openedDirectories.add(currentPath)
   }
 
-  return openedDirectories;
-};
+  return openedDirectories
+}
 
-const openedDirectories = ref(getDefaultOpenedDirectories());
+const openedDirectories = ref(getDefaultOpenedDirectories())
 
 const toggleDirectory = (directory: string) => {
   if (openedDirectories.value.has(directory)) {
-    openedDirectories.value.delete(directory);
+    openedDirectories.value.delete(directory)
   } else {
-    openedDirectories.value.add(directory);
+    openedDirectories.value.add(directory)
   }
-};
+}
 </script>

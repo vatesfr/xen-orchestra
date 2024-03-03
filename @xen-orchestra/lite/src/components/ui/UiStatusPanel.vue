@@ -9,10 +9,10 @@
 
 <script lang="ts" setup>
 defineProps<{
-  imageSource: string;
-  title?: string;
-  subtitle?: string;
-}>();
+  imageSource: string
+  title?: string
+  subtitle?: string
+}>()
 </script>
 
 <style lang="postcss" scoped>
@@ -24,7 +24,7 @@ defineProps<{
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--color-extra-blue-base);
+  color: var(--color-purple-base);
 }
 
 .title {

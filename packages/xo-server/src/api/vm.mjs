@@ -1,4 +1,5 @@
 import * as multiparty from 'multiparty'
+import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import assignWith from 'lodash/assignWith.js'
 import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
@@ -655,6 +656,12 @@ export const set = defer(async function ($defer, params) {
     await this.getXapiObject(VM).update_xenstore_data(mapKeys(xenStoreData, (v, k) => autoPrefix('vm-data/', k)))
   }
 
+  const creation = extract(params, 'creation')
+  if (creation !== undefined) {
+    const xapiVm = await this.getXapiObject(VM)
+    await xoData.set(xapiVm, { creation: { ...VM.creation, ...creation } })
+  }
+
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
@@ -686,6 +693,8 @@ set.params = {
   name_label: { type: 'string', optional: true },
 
   name_description: { type: 'string', minLength: 0, optional: true },
+
+  notes: { type: ['string', 'null'], maxLength: 2048, optional: true },
 
   high_availability: {
     optional: true,
@@ -754,6 +763,14 @@ set.params = {
   viridian: { type: 'boolean', optional: true },
 
   blockedOperations: { type: 'object', optional: true, properties: { '*': { type: ['boolean', 'null', 'string'] } } },
+
+  creation: {
+    type: 'object',
+    optional: true,
+    properties: {
+      user: { type: 'string', optional: true },
+    },
+  },
 
   suspendSr: { type: ['string', 'null'], optional: true },
 
@@ -1309,7 +1326,7 @@ async function import_({ data, sr, type = 'xva', url }) {
     }
 
     const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
-    return xapi.call('VM.get_by_uuid', ref)
+    return xapi.call('VM.get_uuid', ref)
   }
 
   return {
@@ -1365,19 +1382,9 @@ import_.resolve = {
 
 export { import_ as import }
 
-export async function importFromEsxi({
-  host,
-  network,
-  password,
-  sr,
-  sslVerify = true,
-  stopSource = false,
-  thin = false,
-  user,
-  vm,
-}) {
+export async function importFromEsxi({ host, network, password, sr, sslVerify = true, stopSource = false, user, vm }) {
   const task = await this.tasks.create({ name: `importing vm ${vm}` })
-  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, thin, vm, sr, network, stopSource }))
+  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, vm, sr, network, stopSource }))
 }
 
 importFromEsxi.params = {
@@ -1387,7 +1394,6 @@ importFromEsxi.params = {
   sr: { type: 'string' },
   sslVerify: { type: 'boolean', optional: true },
   stopSource: { type: 'boolean', optional: true },
-  thin: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
 }

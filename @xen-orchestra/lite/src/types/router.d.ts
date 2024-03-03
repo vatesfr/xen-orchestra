@@ -1,9 +1,9 @@
-declare module "vue-router" {
+declare module 'vue-router' {
   interface RouteMeta {
-    hasStoryNav?: boolean;
-    isStory?: boolean;
-    storyTitle?: string;
-    storyMdLoader?: () => Promise<string>;
+    hasStoryNav?: boolean
+    isStory?: boolean
+    storyTitle?: string
+    storyMdLoader?: () => Promise<string>
   }
 }
-export {};
+export {}

@@ -129,10 +129,9 @@ const DiskImport = decorate([
       onChangeFileType: (_, fileType) => ({ fileType }),
       onChangeName:
         (_, { target: { name, value } }) =>
-        ({ mapNames }) => {
-          mapNames[name] = value
-          return { mapNames }
-        },
+        ({ mapNames }) => ({
+          mapNames: { ...mapNames, [name]: value },
+        }),
       onChangeSr: (_, sr) => ({ sr }),
       onChangeUrl:
         (_, { target: { value } }) =>

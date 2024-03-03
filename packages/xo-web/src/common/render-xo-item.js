@@ -646,6 +646,11 @@ const xoItemToRender = {
       <span className='tag tag-info' style={{ textTransform: 'capitalize' }}>
         {backup.mode === 'delta' ? _('backupIsIncremental') : backup.mode}
       </span>{' '}
+      {backup.isImmutable && (
+        <span className='tag tag-info'>
+          <Icon icon='lock' />
+        </span>
+      )}{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
       {backup.differencingVhds > 0 && (
         <span className='tag tag-info'>
@@ -657,6 +662,7 @@ const xoItemToRender = {
           {backup.dynamicVhds} {_('backupisKey')}{' '}
         </span>
       )}
+      {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}

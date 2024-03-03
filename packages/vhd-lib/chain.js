@@ -1,6 +1,6 @@
 'use strict'
 
-const { dirname, relative } = require('path')
+const { relativeFromFile } = require('@xen-orchestra/fs/path')
 
 const { openVhd } = require('./openVhd')
 const { DISK_TYPES } = require('./_constants')
@@ -21,7 +21,7 @@ module.exports = async function chain(parentHandler, parentPath, childHandler, c
       }
       await childVhd.readBlockAllocationTable()
 
-      const parentName = relative(dirname(childPath), parentPath)
+      const parentName = relativeFromFile(childPath, parentPath)
       header.parentUuid = parentVhd.footer.uuid
       header.parentUnicodeName = parentName
       await childVhd.setUniqueParentLocator(parentName)

@@ -289,7 +289,11 @@ export default class Jobs extends Component {
     // reset parameters
     //
     // see https://xcp-ng.org/forum/post/69299
-    this.refs.params.value = undefined
+    const { params } = this.refs
+    // params is undefined if no method was previously selected
+    if (params !== undefined) {
+      this.refs.params.value = undefined
+    }
   }
 
   _handleSubmit = () => {

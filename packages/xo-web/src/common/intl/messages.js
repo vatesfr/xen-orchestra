@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   creation: 'Creation',
+  connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
@@ -99,6 +100,7 @@ const messages = {
   destinationSR: 'Destination SR',
   destinationNetwork: 'Destination network',
   dhcp: 'DHCP',
+  id: 'ID',
   ip: 'IP',
   static: 'Static',
   user: 'User',
@@ -131,13 +133,17 @@ const messages = {
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
+  addColor: 'Add color',
   addCustomField: 'Add custom field',
+  advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
+  nRetriesVmBackupFailures: 'Number of retries if VM backup fails',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -328,7 +334,7 @@ const messages = {
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
-  selectExistingTags: 'Select from existing tags',
+  notAllHostsHaveTheSameVersion: 'Not all hosts within {pool} have the same version',
   sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
@@ -586,7 +592,7 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD protocol to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
-  nbdConcurrency: 'Number of NBD connexion per disk',
+  nbdConcurrency: 'Number of NBD connection per disk',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -900,6 +906,7 @@ const messages = {
   // ----- Pool advanced tab -----
   backupNetwork: 'Backup network',
   crashDumpSr: 'Crash dump SR',
+  defaultMigrationNetwork: 'Default migration network',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
@@ -909,11 +916,18 @@ const messages = {
   poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
+  rollingPoolReboot: 'Rolling Pool Reboot',
+  rollingPoolRebootHaWarning: 'High Availability is enabled. This will automatically disable it during the reboot.',
+  rollingPoolRebootLoadBalancerWarning:
+    'Load Balancer plugin is running. This will automatically pause it during the reboot.',
+  rollingPoolRebootMessage:
+    'Are you sure you want to start a Rolling Pool Reboot? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
+
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
-  defaultMigrationNetwork: 'Default migration network',
   syncNetbox: 'Synchronize with Netbox',
   syncNetboxWarning: 'Are you sure you want to synchronize with Netbox?',
+  updateMissingNetwork: '{networkID} not found, please select a new one',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -937,6 +951,10 @@ const messages = {
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
   insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  // ----- Pool patches tab -----
+  multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
+  nVmsRunningOnLocalStorage:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {is} other {are}} currently running and using at least one local storage. A shared storage for all your VMs is needed to start a rolling pool update',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
@@ -966,6 +984,8 @@ const messages = {
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
   enableMaintenanceMode: 'Enable maintenance mode',
+  slaveHostMoreUpToDateThanMasterAfterRestart:
+    'It appears that this host will be more up-to-date than the master ({master}) after the restart. This will result in the slave being unable to contact the pool master. Please update and restart your master node first.',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
@@ -978,6 +998,7 @@ const messages = {
   forceRebootHostLabel: 'Force reboot',
   forceSmartRebootHost:
     'Smart Reboot failed because {nVms, number} VM{nVms, plural, one {} other {s}} ha{nVms, plural, one {s} other {ve}} {nVms, plural, one {its} other {their}} Suspend operation blocked. Would you like to force?',
+  restartAnyway: 'Restart anyway',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
@@ -993,6 +1014,7 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
   editHostIscsiIqnTitle: 'Edit iSCSI IQN',
   editHostIscsiIqnMessage:
@@ -1044,6 +1066,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
@@ -1057,6 +1080,7 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
+  vendorId: 'Vendor ID',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -1189,6 +1213,9 @@ const messages = {
     'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
   windowsToolsModalWarning:
     'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
+  editVmNotes: 'Edit VM notes',
+  supportsMarkdown: 'Supports Markdown syntax',
+  vmNotesTooLong: 'VM notes cannot be longer than 2048 characters',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1383,6 +1410,7 @@ const messages = {
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1426,6 +1454,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  selectUser: 'Select user',
   suspendSr: 'Suspend SR',
   viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
@@ -1450,9 +1479,15 @@ const messages = {
   vmAddAcls: 'Add ACLs',
   addAclsErrorTitle: 'Failed to add ACL(s)',
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  createVusb: 'Create VUSB',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
+  pusbDescription: 'PUSB description',
+  pusbSpeed: 'PUSB speed',
+  pusbVersion: 'PUSB version',
+  selectPusb: 'Select PUSB',
   vmBootFirmware: 'Boot firmware',
+  vmCreator: 'VM creator',
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
@@ -1461,6 +1496,9 @@ const messages = {
   vmEditAndRestartModalMessage:
     'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
 
+  vusbs: 'VUSBs',
+  vusbRemainUnplugged: 'The VUSB remain unplugged until the next shutdown/start',
+  vusbUnplugTooltip: 'Unplug until the next shutdown/start',
   // ----- VM placeholders -----
 
   vmHomeNamePlaceholder: 'Long click to add a name',
@@ -1709,6 +1747,7 @@ const messages = {
   shareVmsByDefault: 'Share VMs by default',
   nVmsInResourceSet:
     '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
+  unlimitedResourceSetUsage: 'Used: {usage}',
 
   // ---- VM import ---
   fileType: 'File type:',
@@ -1843,6 +1882,8 @@ const messages = {
   remoteLoadBackupsFailure: 'Loading backups failed',
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
   vmsTags: 'VMs tags',
+  tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
+  tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
 
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',
@@ -2517,6 +2558,7 @@ const messages = {
   fieldRequired: '{field} is required',
   fieldsMissing: 'Some fields are missing',
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
+  ignoreFileSystems: 'Ignore file systems',
   isTapdevsDisk: 'This is "tapdevs" disk',
   licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
   licenseNotBoundXostor: 'No XOSTOR attached',
@@ -2668,6 +2710,9 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
   proxyUnknownVm: 'Unknown proxy VM.',
+
+  // ----- plan -----
+  onlyAvailableToEnterprise: 'Only available to Enterprise users',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',

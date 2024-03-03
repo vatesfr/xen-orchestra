@@ -15,9 +15,10 @@ module.exports = {
 
   overrides: [
     {
-      files: ['cli.{,c,m}js', '*-cli.{,c,m}js', '**/*cli*/**/*.{,c,m}js'],
+      files: ['cli.{,c,m}js', '*-cli.{,c,m}js', '**/*cli*/**/*.{,c,m}js', '**/scripts/**.{,c,m}js'],
       rules: {
         'n/no-process-exit': 'off',
+        'n/shebang': 'off',
         'no-console': 'off',
       },
     },
@@ -44,6 +45,58 @@ module.exports = {
             version: '>=16',
           },
         ],
+      },
+    },
+    {
+      files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      plugins: ['import'],
+      extends: [
+        'plugin:import/recommended',
+        'plugin:import/typescript',
+        'plugin:vue/vue3-recommended',
+        '@vue/eslint-config-typescript/recommended',
+        '@vue/eslint-config-prettier',
+      ],
+      settings: {
+        'import/resolver': {
+          typescript: true,
+          'eslint-import-resolver-custom-alias': {
+            alias: {
+              '@core': '../web-core/lib',
+              '@': './src',
+            },
+            extensions: ['.ts'],
+            packages: ['@xen-orchestra/lite', '@xen-orchestra/web'],
+          },
+        },
+      },
+      rules: {
+        'no-void': 'off',
+        'n/no-missing-import': 'off', // using 'import' plugin instead to support TS aliases
+        '@typescript-eslint/no-explicit-any': 'off',
+        'vue/require-default-prop': 'off', // https://github.com/vuejs/eslint-plugin-vue/issues/2051
+      },
+    },
+    {
+      files: ['@xen-orchestra/{web-core,lite,web}/src/pages/**/*.vue'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'vue/multi-word-component-names': 'off',
+      },
+    },
+    {
+      files: ['@xen-orchestra/{web-core,lite,web}/typed-router.d.ts'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'eslint-comments/disable-enable-pair': 'off',
+        'eslint-comments/no-unlimited-disable': 'off',
       },
     },
   ],

@@ -1,108 +1,92 @@
 <template>
   <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
-    <UiCardTitle>{{ $t("pool-cpu-usage") }}</UiCardTitle>
+    <UiCardTitle>{{ $t('pool-cpu-usage') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
-      {{ $t("last-week") }}
+      {{ $t('last-week') }}
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
-    <LinearChart
-      v-else
-      :data="data"
-      :max-value="customMaxValue"
-      :value-formatter="customValueFormatter"
-    />
+    <LinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, inject } from "vue";
-import type { HostStats } from "@/libs/xapi-stats";
-import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
-import type { LinearChartData, ValueFormatter } from "@/types/chart";
-import NoDataError from "@/components/NoDataError.vue";
-import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import { sumBy } from "lodash-es";
-import UiCard from "@/components/ui/UiCard.vue";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
-import { UiCardTitleLevel } from "@/types/enums";
-import { useHostCollection } from "@/stores/xen-api/host.store";
-import { useI18n } from "vue-i18n";
+import { computed, defineAsyncComponent, inject } from 'vue'
+import type { HostStats } from '@/libs/xapi-stats'
+import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
+import type { LinearChartData, ValueFormatter } from '@/types/chart'
+import NoDataError from '@/components/NoDataError.vue'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
+import { sumBy } from 'lodash-es'
+import UiCard from '@/components/ui/UiCard.vue'
+import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
+import { UiCardTitleLevel } from '@/types/enums'
+import { useHostCollection } from '@/stores/xen-api/host.store'
+import { useI18n } from 'vue-i18n'
 
-const LinearChart = defineAsyncComponent(
-  () => import("@/components/charts/LinearChart.vue")
-);
+const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
+const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS)
 
-const { records: hosts, isFetching, hasError } = useHostCollection();
-const customMaxValue = computed(
-  () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)
-);
+const { records: hosts, isFetching, hasError } = useHostCollection()
+const customMaxValue = computed(() => 100 * sumBy(hosts.value, host => +host.cpu_info.cpu_count))
 
 const data = computed<LinearChartData>(() => {
-  const timestampStart = hostLastWeekStats?.timestampStart?.value;
-  const stats = hostLastWeekStats?.stats?.value;
+  const timestampStart = hostLastWeekStats?.timestampStart?.value
+  const stats = hostLastWeekStats?.stats?.value
 
   if (timestampStart === undefined || stats == null) {
-    return [];
+    return []
   }
 
-  const result = new Map<number, { timestamp: number; value: number }>();
+  const result = new Map<number, { timestamp: number; value: number }>()
 
   const addResult = (stats: HostStats) => {
-    const cpus = Object.values(stats.cpus);
+    const cpus = Object.values(stats.cpus)
 
     for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
-      const timestamp =
-        (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
+      const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
 
-      const cpuUsageSum = cpus.reduce(
-        (total, cpu) => total + cpu[hourIndex],
-        0
-      );
+      const cpuUsageSum = cpus.reduce((total, cpu) => total + cpu[hourIndex], 0)
 
       result.set(timestamp, {
-        timestamp: timestamp,
+        timestamp,
         value: Math.round((result.get(timestamp)?.value ?? 0) + cpuUsageSum),
-      });
+      })
     }
-  };
+  }
 
-  stats.forEach((host) => {
+  stats.forEach(host => {
     if (!host.stats) {
-      return;
+      return
     }
 
-    addResult(host.stats);
-  });
+    addResult(host.stats)
+  })
 
   return [
     {
-      label: t("stacked-cpu-usage"),
+      label: t('stacked-cpu-usage'),
       data: Array.from(result.values()),
     },
-  ];
-});
+  ]
+})
 const isStatFetched = computed(() => {
-  const stats = hostLastWeekStats?.stats?.value;
+  const stats = hostLastWeekStats?.stats?.value
   if (stats === undefined) {
-    return false;
+    return false
   }
 
-  return stats.every((host) => {
-    const hostStats = host.stats;
-    return (
-      hostStats != null &&
-      Object.values(hostStats.cpus)[0].length === data.value[0].data.length
-    );
-  });
-});
+  return stats.every(host => {
+    const hostStats = host.stats
+    return hostStats != null && Object.values(hostStats.cpus)[0].length === data.value[0].data.length
+  })
+})
 
-const isLoading = computed(() => isFetching.value || !isStatFetched.value);
+const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
-const customValueFormatter: ValueFormatter = (value) => `${value}%`;
+const customValueFormatter: ValueFormatter = value => `${value}%`
 </script>

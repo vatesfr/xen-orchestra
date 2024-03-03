@@ -1,14 +1,166 @@
 # ChangeLog
 
-## **next**
+## **5.92.0** (2024-02-29)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- Disable search engine indexing via a `robots.txt`
+- [Stats] Support format used by XAPI 23.31
+- [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
+- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
+- [Pool/Advanced] _Auto power on_ can be disabled at pool level (PR [#7401](https://github.com/vatesfr/xen-orchestra/pull/7401))
+- [Pool/Network] Ability to edit MTU [#7039](https://github.com/vatesfr/xen-orchestra/issues/7039) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393))
+- [Backup] Ability to set a number of retries for VM backup failures [#2139](https://github.com/vatesfr/xen-orchestra/issues/2139) (PR [#7308](https://github.com/vatesfr/xen-orchestra/pull/7308))
+- [VM/Advanced] Ability to create VUSB (PR [#7412](https://github.com/vatesfr/xen-orchestra/pull/7412))
+
+### Enhancements
+
+- [Size Input] Ability to select two new units in the dropdown (`TiB`, `PiB`) (PR [#7382](https://github.com/vatesfr/xen-orchestra/pull/7382))
+- [Self service] From user POV, show used resources even when they are unlimited (PR [#7353](https://github.com/vatesfr/xen-orchestra/pull/7353))
+- [Storage/Disks] Handle link to VM for suspended VDIs (PR [#7391](https://github.com/vatesfr/xen-orchestra/pull/7391))
+
+### Bug fixes
+
+- [Settings/XO Config] Sort backups from newest to oldest
+- [Plugins/audit] Don't log `tag.getAllConfigured` calls
+- [Remotes] Correctly clear error when the remote is tested with success
+- [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
+- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
+- [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
+- [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
+- [Backup] Remove display of empty directories for mirror backups (PR [#7340](https://github.com/vatesfr/xen-orchestra/pull/7340))
+- [API/backupNg.getLogs] Fix `after` parameter handling when `limit` parameter is not provided
+- [New/SR] Fix create button never appearing for `smb iso` SR [#7355](https://github.com/vatesfr/xen-orchestra/issues/7355), [Forum#8417](https://xcp-ng.org/forum/topic/8417) (PR [#7405](https://github.com/vatesfr/xen-orchestra/pull/7405))
+- [Pool/Network] Don't allow MTU values that are too small to work (<68) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393)
+- [Import/VMWare] Correctly handle IDE disks
+- [Backups/Full] Fix `Cannot read properties of undefined (reading 'healthCheckVmsWithTags')` (PR [#7396](https://github.com/vatesfr/xen-orchestra/pull/7396))
+- [Backups/Healthcheck] Don't run health checks after empty mirror backups (PR [#7396](https://github.com/vatesfr/xen-orchestra/pull/7396))
+- [SR/SMB] Fix `SR_BACKEND_FAILURE_111` during SMB storage creation [#7356](https://github.com/vatesfr/xen-orchestra/issues/7356) (PR [#7407](https://github.com/vatesfr/xen-orchestra/pull/7407))
+- [Editable text] Make sure the text is still clickable/editable if the content is a single white space [Forum#8466](https://xcp-ng.org/forum/topic/8466) (PR [#7411](https://github.com/vatesfr/xen-orchestra/pull/7411))
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.5
+- vhd-lib 4.9.1
+- xo-server-audit 0.10.6
+- @xen-orchestra/xapi 4.3.0
+- @xen-orchestra/backups 0.45.0
+- @xen-orchestra/backups-cli 1.0.15
+- @xen-orchestra/immutable-backups 1.0.2
+- @xen-orchestra/proxy 0.26.47
+- @xen-orchestra/vmware-explorer 0.4.1
+- xo-server 5.138.0
+- xo-web 5.139.0
+
+## **5.91.2** (2024-02-09)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Enhancements
+
+- [REST API] Add `/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Add `/groups/:id/users` and `/users/:id/groups` collection [Forum#70500](https://xcp-ng.org/forum/post/70500)
+- [REST API] Expose messages associated to XAPI objects at `/:collection/:object/messages`
+
+### Bug fixes
+
+- [Import/VMWare] Fix `(Failure \"Expected string, got 'I(0)'\")` (PR [#7361](https://github.com/vatesfr/xen-orchestra/issues/7361))
+- [Plugin/load-balancer] Fixing `TypeError: Cannot read properties of undefined (reading 'high')` happening when trying to optimize a host with performance plan [#7359](https://github.com/vatesfr/xen-orchestra/issues/7359) (PR [#7362](https://github.com/vatesfr/xen-orchestra/pull/7362))
+- Changing the number of displayed items per page should send back to the first page [#7350](https://github.com/vatesfr/xen-orchestra/issues/7350)
+- [Plugin/load-balancer] Correctly create a _simple_ instead of a _density_ plan when it is selected (PR [#7358](https://github.com/vatesfr/xen-orchestra/pull/7358))
+
+### Released packages
+
+- xo-server 5.136.0
+- xo-server-load-balancer 0.8.1
+- xo-web 5.136.1
+
+## **5.91.1** (2024-02-06)
+
+### Bug fixes
+
+- [Import/VMWare] Fix `Error: task has been destroyed before completion` with XVA import [Forum#70513](https://xcp-ng.org/forum/post/70513)
+- [Import/VM] Fix `UUID_INVALID(VM, OpaqueRef:...)` error when importing from URL
+- [Proxies] Fix `xapi.getOrWaitObject is not a function` is not a function during deployment
+- [REST API] Fix empty object's tasks list
+- [REST API] Fix incorrect `href` in `/:collection/:object/tasks`
+
+### Released packages
+
+- @xen-orchestra/immutable-backups 1.0.1
+- @xen-orchestra/xva 1.0.2
+- xo-server 5.135.1
+
+## **5.91.0** (2024-01-31)
+
+### Highlights
+
+- [Import/VMWare] Speed up import and make all imports thin [#7323](https://github.com/vatesfr/xen-orchestra/issues/7323)
+- [Backup] Implement Backup Repository immutability (PR [#6928](https://github.com/vatesfr/xen-orchestra/pull/6928))
+- [REST API] New pool action: `emergency_shutdown`, it suspends all the VMs and then shuts down all the host [#7277](https://github.com/vatesfr/xen-orchestra/issues/7277) (PR [#7279](https://github.com/vatesfr/xen-orchestra/pull/7279))
+- [REST API] New pool action: `create_vm` [#6749](https://github.com/vatesfr/xen-orchestra/issues/6749)
+- [Pool/Advanced] Ability to do a `Rolling Pool Reboot` (Enterprise plans) [#6885](https://github.com/vatesfr/xen-orchestra/issues/6885)
+- [Tags] Admins can create colored tags (PR [#7262](https://github.com/vatesfr/xen-orchestra/pull/7262))
+- [VM] Custom notes [#5792](https://github.com/vatesfr/xen-orchestra/issues/5792) (PR [#7322](https://github.com/vatesfr/xen-orchestra/pull/7322))(PRs [#7243](https://github.com/vatesfr/xen-orchestra/pull/7243), [#7242](https://github.com/vatesfr/xen-orchestra/pull/7242))
+- [Plugin/load-balancer] Limit concurrent VM migrations to 2 (configurable) to avoid long paused VMs [#7084](https://github.com/vatesfr/xen-orchestra/issues/7084) (PR [#7297](https://github.com/vatesfr/xen-orchestra/pull/7297))
+- [SR] Possibility to create SMB shared SR [#991](https://github.com/vatesfr/xen-orchestra/issues/991) (PR [#7330](https://github.com/vatesfr/xen-orchestra/pull/7330))
+- [Tags] Add tooltips on `xo:no-bak` and `xo:notify-on-snapshot` tags (PR [#7335](https://github.com/vatesfr/xen-orchestra/pull/7335))
+- [Host/Reboot] Confirmation modal to reboot an updated slave host if the master is not [#7059](https://github.com/vatesfr/xen-orchestra/issues/7059) (PR [#7293](https://github.com/vatesfr/xen-orchestra/pull/7293))
+- [Pool/Host] Add a warning if hosts do not have the same version within a pool [#7059](https://github.com/vatesfr/xen-orchestra/issues/7059) (PR [#7280](https://github.com/vatesfr/xen-orchestra/pull/7280))
+- [VM/Advanced] Admins can change VM creator [Forum#7313](https://xcp-ng.org/forum/topic/7313/change-created-by-and-date-information) (PR [#7276](https://github.com/vatesfr/xen-orchestra/pull/7276))
+- [XOSTOR] Allow user to ignore file systems at storage creation (PR[#7338](https://github.com/vatesfr/xen-orchestra/pull/7338))
+- [Settings/Logs] Transform objects UUIDs and OpaqueRefs into clickable links, leading to the corresponding object page (PR [#7300](https://github.com/vatesfr/xen-orchestra/pull/7300))
+- [Pool/patches] Disable Rolling Pool Update button if host is alone in its pool [#6415](https://github.com/vatesfr/xen-orchestra/issues/6415) (PR [#7286](https://github.com/vatesfr/xen-orchestra/pull/7286))
 
 ### Enhancements
 
 - [xo-cli] Supports NDJSON response for the `rest get` command (it also respects the `--json` flag) [Forum#69326](https://xcp-ng.org/forum/post/69326)
+- [Settings/Logs] Use GitHub issue form with pre-filled fields when reporting a bug [#7142](https://github.com/vatesfr/xen-orchestra/issues/7142) (PR [#7274](https://github.com/vatesfr/xen-orchestra/pull/7274))
+- [Tasks] Hide `/rrd_updates` tasks by default
+- [Sign in] Support _Remember me_ feature with external providers (PR [#7298](https://github.com/vatesfr/xen-orchestra/pull/7298))
+- [Plugins] Loading, or unloading, will respectively enable, or disable, _Auto-load at server start_, this should lead to least surprising behaviors (PR [#7317](https://github.com/vatesfr/xen-orchestra/pull/7317))
+- [Backup/Restore] Show whether the memory was backed up (PR [#7315](https://github.com/vatesfr/xen-orchestra/pull/7315))
+
+### Bug fixes
+
+- [Proxies] Fix `this.getObject` is not a function during deployment
+- [Settings/Logs] Fix `sr.getAllUnhealthyVdiChainsLength: not enough permissions` error with non-admin users (PR [#7265](https://github.com/vatesfr/xen-orchestra/pull/7265))
+- [Settings/Logs] Fix `proxy.getAll: not enough permissions` error with non-admin users (PR [#7249](https://github.com/vatesfr/xen-orchestra/pull/7249))
+- [Replication/Health Check] Fix `healthCheckVm.add_tag is not a function` error [Forum#69156](https://xcp-ng.org/forum/post/69156)
+- [Plugin/load-balancer] Prevent unwanted migrations to hosts with low free memory (PR [#7288](https://github.com/vatesfr/xen-orchestra/pull/7288))
+- Avoid unnecessary `pool.add_to_other_config: Duplicate key` error in XAPI log [Forum#68761](https://xcp-ng.org/forum/post/68761)
+- [Jobs] Reset parameters when editing method to avoid invalid parameters on execution [Forum#69299](https://xcp-ng.org/forum/post/69299)
+- [Metadata Backup] Fix `ENOENT` error when restoring an _XO Config_ backup [Forum#68999](https://xcp-ng.org/forum/post/68999)
+- [REST API] Fix `/backup/log/<id>` which was broken by the `/backups` to `/backup` renaming [Forum#69426](https://xcp-ng.org/forum/post/69426)
+- [Backup/Restore] Fix unnecessary pool selector in XO config backup restore modal [Forum#8130](https://xcp-ng.org/forum/topic/8130/xo-configbackup-restore) (PR [#7287](https://github.com/vatesfr/xen-orchestra/pull/7287))
+- [File restore] Fix potential race condition in partition mount/unmount (PR [#7312](https://github.com/vatesfr/xen-orchestra/pull/7312))
+- [Modal] Fix opened modal not closing when navigating to another route/URL (PR [#7301](https://github.com/vatesfr/xen-orchestra/pull/7301))
+- [Backup/Restore] Don't count memory as a key (i.e. complete) disk [Forum#8212](https://xcp-ng.org/forum/post/69591) (PR [#7315](https://github.com/vatesfr/xen-orchestra/pull/7315))
+- [PIF] Fix IPv4 reconfiguration only worked when the IPv4 mode was updated (PR [#7324](https://github.com/vatesfr/xen-orchestra/pull/7324))
+- [Backup/Smart mode] Make preview correctly ignoring `xo:no-bak` tags [Forum#69797](https://xcp-ng.org/forum/post/69797) (PR [#7331](https://github.com/vatesfr/xen-orchestra/pull/7331))
+- [Pool/Advanced] Show pool backup/migration network even if they no longer exist (PR [#7303](https://github.com/vatesfr/xen-orchestra/pull/7303))
+- [Import/disk] Couldn't update 'name' field when importing from a URL [#7326](https://github.com/vatesfr/xen-orchestra/issues/7326) (PR [#7332](https://github.com/vatesfr/xen-orchestra/pull/7332))
+- [Pool/patches] Disable Rolling Pool Update button if some powered up VMs are using a non-shared storage [#6415](https://github.com/vatesfr/xen-orchestra/issues/6415) (PR [#7294](https://github.com/vatesfr/xen-orchestra/pull/7294))
 
 ## Released packages
 
-- xo-cli 0.24.0
+- @vates/decorate-with 2.1.0
+- @vates/fuse-vhd 2.1.0
+- xen-api 2.0.1
+- @xen-orchestra/xapi 4.2.0
+- @xen-orchestra/self-signed 0.2.0
+- xo-server-load-balancer 0.8.0
+- @xen-orchestra/vmware-explorer 0.4.0
+- @xen-orchestra/xva 1.0.0
+- @xen-orchestra/fs 4.1.4
+- @xen-orchestra/backups 0.44.6
+- @xen-orchestra/immutable-backups 1.0.0
+- @xen-orchestra/proxy 0.26.45
+- xo-cli 0.26.0
+- xo-server 5.135.0
+- xo-web 5.136.0
 
 ## **5.90.0** (2023-12-29)
 
@@ -62,8 +214,6 @@
 
 ## **5.89.0** (2023-11-30)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
-
 ### Highlights
 
 - [Restore] Show source remote and restoration time on a restored VM (PR [#7186](https://github.com/vatesfr/xen-orchestra/pull/7186))
@@ -113,8 +263,6 @@
 - xo-web 5.130.0
 
 ## **5.88.2** (2023-11-13)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancement
 

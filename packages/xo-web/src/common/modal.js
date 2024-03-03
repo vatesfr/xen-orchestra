@@ -378,6 +378,12 @@ export default class Modal extends Component {
     this.state = { showModal: false }
   }
 
+  static close() {
+    if (instance.state.showModal) {
+      instance.setState({ showModal: false })
+    }
+  }
+
   componentDidMount() {
     if (instance) {
       throw new Error('Modal is a singleton!')

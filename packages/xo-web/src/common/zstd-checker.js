@@ -3,12 +3,12 @@ import React from 'react'
 
 import _ from './intl'
 import Component from './base-component'
-import constructQueryString from './construct-query-string'
 import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
 import { connectStore } from './utils'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector } from './selectors'
+import { smartModeToComplexMatcher } from './smartModeToComplexMatcher'
 
 @connectStore({
   containers: createSelector(createGetObjectsOfType('pool'), createGetObjectsOfType('host'), (pools, hosts) => ({
@@ -41,11 +41,11 @@ export default class ZstdChecker extends Component {
     pathname: '/home',
     query: {
       t: 'VM',
-      s: constructQueryString({
+      s: smartModeToComplexMatcher({
         id: {
           __or: vms,
         },
-      }),
+      }).toString(),
     },
   }))
 

@@ -8,14 +8,14 @@
 </template>
 
 <script lang="ts" setup>
-import PoolHeader from "@/components/pool/PoolHeader.vue";
-import PoolTabBar from "@/components/pool/PoolTabBar.vue";
-import { usePoolCollection } from "@/stores/xen-api/pool.store";
-import { usePageTitleStore } from "@/stores/page-title.store";
+import PoolHeader from '@/components/pool/PoolHeader.vue'
+import PoolTabBar from '@/components/pool/PoolTabBar.vue'
+import { usePoolCollection } from '@/stores/xen-api/pool.store'
+import { usePageTitleStore } from '@/stores/page-title.store'
 
-const { pool } = usePoolCollection();
+const { pool } = usePoolCollection()
 
-usePageTitleStore().setObject(pool);
+usePageTitleStore().setObject(pool)
 </script>
 
 <style lang="postcss" scoped></style>

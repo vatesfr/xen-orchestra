@@ -29,7 +29,7 @@ import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
 import RegisterProxyModal from './register-proxy-modal'
-import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
+import renderXoItem, { Host, renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
@@ -48,6 +48,7 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+import RollingPoolRebootModal from './rolling-pool-reboot-modal'
 
 // ===================================================================
 
@@ -373,6 +374,8 @@ export const subscribeSchedules = createSubscription(() => _call('schedule.getAl
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
 )
+
+export const subscribeConfiguredTags = createSubscription(() => _call('tag.getAllConfigured'))
 
 export const subscribeUsers = createSubscription(() =>
   _call('user.getAll').then(users => {
@@ -814,6 +817,32 @@ export const setPoolMaster = host =>
     }),
   }).then(() => _call('pool.setPoolMaster', { host: resolveId(host) }), noop)
 
+export const rollingPoolReboot = async pool => {
+  const poolId = resolveId(pool)
+  await confirm({
+    body: <RollingPoolRebootModal pool={poolId} />,
+    title: _('rollingPoolReboot'),
+    icon: 'pool-rolling-reboot',
+  })
+  try {
+    return await _call('pool.rollingReboot', { pool: poolId })
+  } catch (error) {
+    if (!forbiddenOperation.is(error)) {
+      throw error
+    }
+    await confirm({
+      body: (
+        <p className='text-warning'>
+          <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+        </p>
+      ),
+      title: _('rollingPoolReboot'),
+      icon: 'pool-rolling-reboot',
+    })
+    return _call('pool.rollingReboot', { pool: poolId, bypassBackupCheck: true })
+  }
+}
+
 // Host --------------------------------------------------------------
 
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
@@ -900,6 +929,24 @@ const _restartHost = async ({ host, ...opts }) => {
       return _restartHost({ ...opts, host, bypassBackupCheck: true })
     }
 
+    if (masterNeedsUpdate(error)) {
+      const state = store.getState()
+      const master = getObject(state, getObject(state, host.$pool).master)
+      await chooseAction({
+        body: (
+          <p>
+            <Icon icon='alarm' />{' '}
+            {_('slaveHostMoreUpToDateThanMasterAfterRestart', { master: <Host id={master.id} link /> })}
+          </p>
+        ),
+        buttons: [{ label: _('restartAnyway'), btnStyle: 'danger' }],
+        icon: 'alarm',
+        title: _('restartHostModalTitle'),
+      })
+
+      return _restartHost({ ...opts, host, bypassVersionCheck: true })
+    }
+
     if (noHostsAvailableErrCheck(error)) {
       alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
     }
@@ -926,6 +973,12 @@ const backupIsRunning = (err, poolId) =>
     forbiddenOperation.is(err, {
       reason: `A backup is running on the pool: ${poolId}`,
     }))
+const masterNeedsUpdate = err =>
+  err !== undefined &&
+  incorrectState.is(err, {
+    property: 'rebootRequired',
+  })
+
 const noHostsAvailableErrCheck = err => err !== undefined && noHostsAvailable.is(err)
 
 export const restartHosts = (hosts, force = false) => {
@@ -1497,6 +1550,18 @@ export const changeVirtualizationMode = vm =>
       virtualizationMode: vm.virtualizationMode === 'hvm' ? 'pv' : 'hvm',
     })
   )
+
+import EditVmNotesModalBody from './edit-vm-notes-modal' // eslint-disable-line import/first
+export const editVmNotes = async vm => {
+  const { notes } = await confirm({
+    icon: 'edit',
+    title: _('editVmNotes'),
+    body: <EditVmNotesModalBody vm={vm} />,
+  })
+
+  // Remove notes if `''` is passed
+  await _call('vm.set', { id: resolveId(vm), notes: notes || null })
+}
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
@@ -2228,6 +2293,14 @@ export const createVtpm = async vm => {
 }
 export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
 
+export const editPusb = (pusb, props) => _call('pusb.set', { id: resolveId(pusb), ...props })
+
+export const createVusb = (vm, usbGroup) => _call('vusb.create', { vm: resolveId(vm), usbGroup: resolveId(usbGroup) })
+
+export const unplugVusb = vusb => _call('vusb.unplug', { id: resolveId(vusb) })
+
+export const deleteVusb = vusb => _call('vusb.destroy', { id: resolveId(vusb) })
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = (network, props) => _call('network.set', { ...props, id: resolveId(network) })
@@ -2432,6 +2505,8 @@ export const deleteMessages = logs =>
 // Tags --------------------------------------------------------------
 
 export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
+
+export const setTag = (id, params) => _call('tag.set', { id, ...params })::tap(subscribeConfiguredTags.forceRefresh)
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
 
@@ -2909,6 +2984,14 @@ export const createSrNfs = (
   nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
   return _call('sr.createNfs', params)
+}
+
+export const createSrSmb = (host, nameLabel, nameDescription, server, user, password, srUuid) => {
+  const params = { host, nameLabel, nameDescription, server, user, password }
+  if (srUuid !== undefined) {
+    params.srUuid = srUuid
+  }
+  return _call('sr.createSmb', params)
 }
 
 export const createSrIscsi = (

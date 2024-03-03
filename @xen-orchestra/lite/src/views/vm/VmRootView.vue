@@ -9,21 +9,21 @@
 </template>
 
 <script lang="ts" setup>
-import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
-import VmHeader from "@/components/vm/VmHeader.vue";
-import VmTabBar from "@/components/vm/VmTabBar.vue";
-import { useVmCollection } from "@/stores/xen-api/vm.store";
-import type { XenApiVm } from "@/libs/xen-api/xen-api.types";
-import { usePageTitleStore } from "@/stores/page-title.store";
-import { useUiStore } from "@/stores/ui.store";
-import { whenever } from "@vueuse/core";
-import { computed } from "vue";
-import { useRoute } from "vue-router";
+import ObjectNotFoundWrapper from '@/components/ObjectNotFoundWrapper.vue'
+import VmHeader from '@/components/vm/VmHeader.vue'
+import VmTabBar from '@/components/vm/VmTabBar.vue'
+import { useVmCollection } from '@/stores/xen-api/vm.store'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { usePageTitleStore } from '@/stores/page-title.store'
+import { useUiStore } from '@/stores/ui.store'
+import { whenever } from '@vueuse/core'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const { getByUuid, hasUuid, isReady } = useVmCollection();
-const uiStore = useUiStore();
-const vm = computed(() => getByUuid(route.params.uuid as XenApiVm["uuid"]));
-whenever(vm, (vm) => (uiStore.currentHostOpaqueRef = vm.resident_on));
-usePageTitleStore().setObject(vm);
+const route = useRoute()
+const { getByUuid, hasUuid, isReady } = useVmCollection()
+const uiStore = useUiStore()
+const vm = computed(() => getByUuid(route.params.uuid as XenApiVm['uuid']))
+whenever(vm, vm => (uiStore.currentHostOpaqueRef = vm.resident_on))
+usePageTitleStore().setObject(vm)
 </script>

@@ -1,19 +1,19 @@
-import vueI18n from "@intlify/unplugin-vue-i18n/vite";
-import vue from "@vitejs/plugin-vue";
-import { resolve } from "path";
-import { fileURLToPath, URL } from "url";
-import { defineConfig } from "vite";
+import vueI18n from '@intlify/unplugin-vue-i18n/vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
+import { fileURLToPath, URL } from 'url'
+import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    host: "127.0.0.1",
+    host: '127.0.0.1',
     port: 3000,
   },
   plugins: [
     vue(),
     vueI18n({
-      include: resolve(__dirname, "src/locales/**"),
+      include: resolve(__dirname, 'src/locales/**'),
     }),
   ],
   define: {
@@ -22,7 +22,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@core': fileURLToPath(new URL('../web-core/lib', import.meta.url)),
     },
   },
 
@@ -30,18 +31,18 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("vue") || id.includes("pinia")) {
-              return "vue";
+        manualChunks: id => {
+          if (id.includes('node_modules')) {
+            if (id.includes('vue') || id.includes('pinia')) {
+              return 'vue'
             }
 
-            if (id.includes("lodash-es")) {
-              return "lodash-es";
+            if (id.includes('lodash-es')) {
+              return 'lodash-es'
             }
 
-            if (id.includes("echarts")) {
-              return "charts";
+            if (id.includes('echarts')) {
+              return 'charts'
             }
           }
         },
@@ -50,12 +51,26 @@ export default defineConfig({
     commonjsOptions: {
       include: [/complex-matcher/, /node_modules/],
     },
-    target: "es2020",
+    target: 'es2020',
   },
   optimizeDeps: {
-    include: ["complex-matcher"],
+    include: ['complex-matcher'],
     esbuildOptions: {
-      target: "es2020",
+      target: 'es2020',
+      tsconfigRaw: {
+        // https://github.com/vitejs/vite/issues/15201#issuecomment-1875543124
+        compilerOptions: {
+          experimentalDecorators: true,
+        },
+      },
     },
   },
-});
+  esbuild: {
+    tsconfigRaw: {
+      // https://github.com/vitejs/vite/issues/15201#issuecomment-1875543124
+      compilerOptions: {
+        experimentalDecorators: true,
+      },
+    },
+  },
+})

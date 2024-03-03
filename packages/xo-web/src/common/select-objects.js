@@ -460,7 +460,7 @@ export const SelectHostVm = makeStoreSelect(
 
 export const SelectVmTemplate = makeStoreSelect(
   () => {
-    const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(getPredicate).sort().groupBy('$container')
+    const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(getPredicate).sort().groupBy('$pool')
     const getPools = createGetObjectsOfType('pool')
       .pick(createSelector(getVmTemplatesByPool, vmTemplatesByPool => keys(vmTemplatesByPool)))
       .sort()
@@ -689,6 +689,19 @@ export const SelectSubject = makeSubscriptionSelect(
     }
   },
   { placeholder: _('selectSubjects') }
+)
+
+export const SelectUser = makeSubscriptionSelect(
+  subscriber => {
+    const unsubscribeUsers = subscribeUsers(users => {
+      subscriber({
+        xoObjects: users,
+      })
+    })
+
+    return unsubscribeUsers
+  },
+  { placeholder: _('selectUser') }
 )
 
 // ===================================================================
@@ -1086,7 +1099,9 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
   subscriber =>
     subscribeCloudXoConfigBackups(configs => {
       const xoObjects = groupBy(
-        map(configs, config => ({ ...config, type: 'xoConfig' })),
+        map(configs, config => ({ ...config, type: 'xoConfig' }))
+          // from newest to oldest
+          .sort((a, b) => b.createdAt - a.createdAt),
         'xoaId'
       )
       subscriber({

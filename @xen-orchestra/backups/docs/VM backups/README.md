@@ -230,6 +230,7 @@ Settings are described in [`@xen-orchestra/backups/\_runners/VmsXapi.mjs``](http
     - `checkBaseVdis(baseUuidToSrcVdi, baseVm)`
     - `prepare({ isFull })`
     - `transfer({ timestamp, deltaExport, sizeContainers })`
+    - `updateUuidAndChain({ isVhdDifferencing, vdis })`
     - `cleanup()`
     - `healthCheck()` // is not executed if no health check sr or tag doesn't match
   - **Full**

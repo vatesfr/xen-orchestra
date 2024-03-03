@@ -1,14 +1,12 @@
 <template>
   <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div
-      :class="
-        isExactActive ? 'exact-active' : $props.active ? 'active' : undefined
-      "
+      :class="isExactActive ? 'exact-active' : $props.active ? 'active' : undefined"
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a :href="href" class="link" @click="navigate" v-tooltip="hasTooltip">
-        <UiIcon :icon="icon" class="icon" />
+      <a v-tooltip="hasTooltip" :href class="link" @click="navigate">
+        <UiIcon :icon class="icon" />
         <div ref="textElement" class="text">
           <slot />
         </div>
@@ -21,48 +19,48 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { vTooltip } from "@/directives/tooltip.directive";
-import { hasEllipsis } from "@/libs/utils";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { computed, ref } from "vue";
-import type { RouteLocationRaw } from "vue-router";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { vTooltip } from '@/directives/tooltip.directive'
+import { hasEllipsis } from '@/libs/utils'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { computed, ref } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 defineProps<{
-  icon: IconDefinition;
-  route: RouteLocationRaw;
-  active?: boolean;
-}>();
+  icon: IconDefinition
+  route: RouteLocationRaw
+  active?: boolean
+}>()
 
-const textElement = ref<HTMLElement>();
-const hasTooltip = computed(() => hasEllipsis(textElement.value));
+const textElement = ref<HTMLElement>()
+const hasTooltip = computed(() => hasEllipsis(textElement.value))
 </script>
 
 <style lang="postcss" scoped>
 .infra-item-label {
   display: flex;
   align-items: stretch;
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);
 
   &:hover {
-    color: var(--color-blue-scale-100);
+    color: var(--color-grey-100);
     background-color: var(--background-color-secondary);
   }
 
   &:active,
   &.active {
-    color: var(--color-extra-blue-base);
+    color: var(--color-purple-base);
     background-color: var(--background-color-primary);
   }
 
   &.exact-active {
-    color: var(--color-blue-scale-100);
-    background-color: var(--background-color-extra-blue);
+    color: var(--color-grey-100);
+    background-color: var(--background-color-purple-10);
 
     .icon {
-      color: var(--color-extra-blue-base);
+      color: var(--color-purple-base);
     }
   }
 }

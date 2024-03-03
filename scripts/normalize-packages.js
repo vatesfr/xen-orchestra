@@ -5,7 +5,9 @@
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
 const { dirname, join, relative } = require('path')
-const { getPackages, noop, readFile, symlink, writeFile, unlink } = require('./utils')
+
+const usageToReadme = require('./usage-to-readme.js')
+const { getPackages, noop, symlink, writeFile, unlink } = require('./utils')
 
 const BABEL_ESLINTRC_PATH = join(__dirname, 'babel-eslintrc.js')
 const NPMIGNORE_PATH = join(__dirname, 'npmignore')
@@ -26,10 +28,6 @@ const deleteProperties = (object, property, properties) => {
   })
   deleteIfEmpty(object, property)
 }
-
-const generateReadme = require('handlebars').compile(
-  require('fs').readFileSync(join(__dirname, 'README.md.tpl'), 'utf8')
-)
 
 const forceRelativeSymlink = async (target, path) => {
   await unlink(path).catch(noop)
@@ -128,21 +126,11 @@ require('exec-promise')(() =>
 
     return Promise.all([
       forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
-      readFile(`${dir}/.USAGE.md`, 'utf8')
-        .then(content =>
-          writeFile(
-            `${dir}/README.md`,
-            generateReadme({
-              pkg,
-              usage: content.trim(),
-            })
-          )
-        )
-        .catch(error => {
-          if (error.code !== 'ENOENT') {
-            console.error('Error while handling README', error)
-          }
-        }),
+      usageToReadme(`${dir}/.USAGE.md`, dir, pkg).catch(error => {
+        if (error.code !== 'ENOENT') {
+          console.error('Error while handling README', error)
+        }
+      }),
       useBabel ? forceRelativeSymlink(BABEL_ESLINTRC_PATH, `${dir}/.eslintrc.js`) : unlink(`${dir}/.eslintrc.js`),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       useBabel || unlink(`${dir}/.babelrc.js`),

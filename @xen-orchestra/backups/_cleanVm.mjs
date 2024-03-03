@@ -437,7 +437,8 @@ export async function cleanVm(
         }
       }
 
-      logWarn('unused VHD', { path: vhd })
+      // no warning because a VHD can be unused for perfectly good reasons,
+      // e.g. the corresponding backup (metadata file) has been deleted
       if (remove) {
         logInfo('deleting unused VHD', { path: vhd })
         unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))

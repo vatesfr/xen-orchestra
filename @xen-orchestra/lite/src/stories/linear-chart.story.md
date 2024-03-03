@@ -4,12 +4,12 @@
 
 ```typescript
 type LinearChartData = {
-  label: string;
+  label: string
   data: {
-    timestamp: number;
-    value: number;
-  }[];
-}[];
+    timestamp: number
+    value: number
+  }[]
+}[]
 ```
 
 ### Example

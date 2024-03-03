@@ -2,7 +2,7 @@
   <li class="infra-loading-item">
     <div class="infra-item-label-placeholder">
       <div class="link-placeholder">
-        <UiIcon :icon="icon" class="icon" />
+        <UiIcon :icon class="icon" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>
@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  icon: IconDefinition;
-}>();
+  icon: IconDefinition
+}>()
 </script>
 
 <style lang="postcss" scoped>
@@ -27,7 +27,7 @@ defineProps<{
 }
 
 .icon {
-  color: var(--color-blue-scale-100);
+  color: var(--color-grey-100);
 }
 
 .link-placeholder {
@@ -41,7 +41,7 @@ defineProps<{
 .loader {
   flex: 1;
   animation: pulse alternate 1s infinite;
-  background-color: var(--background-color-extra-blue);
+  background-color: var(--background-color-purple-10);
 }
 
 @keyframes pulse {

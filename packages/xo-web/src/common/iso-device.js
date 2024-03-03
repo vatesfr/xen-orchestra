@@ -54,13 +54,9 @@ export default class IsoDevice extends Component {
     () => this.props.vm.$pool,
     () => this.props.vm.$container,
     (vmPool, vmContainer) => sr => {
-      const vmRunning = vmContainer !== vmPool
-      const sameHost = vmContainer === sr.$container
-      const samePool = vmPool === sr.$pool
-
       return (
-        samePool &&
-        (vmRunning ? sr.shared || sameHost : true) &&
+        vmPool === sr.$pool &&
+        (sr.shared || vmContainer === sr.$container) &&
         (sr.SR_type === 'iso' || (sr.SR_type === 'udev' && sr.size))
       )
     }

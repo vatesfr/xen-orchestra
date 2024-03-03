@@ -1,5 +1,6 @@
 <template>
   <ComponentStory
+    v-slot="{ properties }"
     :params="[
       prop('busy').type('boolean').widget(),
       prop('disabled').type('boolean').widget().ctx(),
@@ -9,7 +10,6 @@
       prop('merge').type('boolean').widget(),
       slot().help('Meant to receive UiButton components'),
     ]"
-    v-slot="{ properties }"
   >
     <UiButtonGroup v-bind="properties">
       <UiButton>Button 1</UiButton>
@@ -20,10 +20,10 @@
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import { colorProp, prop, slot } from "@/libs/story/story-param";
+import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
+import { colorProp, prop, slot } from '@/libs/story/story-param'
 </script>
 
 <style lang="postcss" scoped></style>

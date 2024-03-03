@@ -1,16 +1,19 @@
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
+import { defer } from 'golike-defer'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
+import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 import { getUserPublicProperties } from '../utils.mjs'
+import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -81,7 +84,7 @@ async function sendObjects(iterable, req, res, path = req.path) {
       ...object,
       href: makeUrl(object),
     })
-  } else if (fields) {
+  } else {
     fields = fields.split(',')
     makeResult = object => {
       const url = makeUrl(object)
@@ -95,6 +98,17 @@ async function sendObjects(iterable, req, res, path = req.path) {
 
   res.setHeader('content-type', json ? 'application/json' : 'application/x-ndjson')
   return pipeline(makeObjectsStream(iterable, makeResult, json, res), res)
+}
+
+function handleArray(array, filter, limit) {
+  if (filter !== undefined) {
+    array = array.filter(filter)
+  }
+  if (limit < array.length) {
+    array.length = limit
+  }
+
+  return array
 }
 
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
@@ -136,10 +150,12 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
 
-    api.use(({ cookies }, res, next) => {
+    api.use((req, res, next) => {
+      const { cookies } = req
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
+            req.user = user
             return next()
           }
 
@@ -155,104 +171,243 @@ export default class RestApi {
       )
     })
 
-    const types = [
-      'host',
-      'network',
-      'pool',
-      'SR',
-      'VBD',
-      'VDI-snapshot',
-      'VDI',
-      'VIF',
-      'VM-snapshot',
-      'VM-template',
-      'VM',
-    ]
-    const collections = Object.fromEntries(
-      types.map(type => {
-        const id = type.toLocaleLowerCase() + 's'
-        return [id, { id, isCorrectType: _ => _.type === type, type }]
-      })
-    )
+    const collections = { __proto__: null }
 
-    collections.backup = { id: 'backup' }
-    collections.restore = { id: 'restore' }
-    collections.tasks = { id: 'tasks' }
-    collections.users = { id: 'users' }
-
-    collections.hosts.routes = {
-      __proto__: null,
-
-      async 'audit.txt'(req, res) {
-        const host = req.xapiObject
-
-        res.setHeader('content-type', 'text/plain')
-        await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
-      },
-
-      async 'logs.tar'(req, res) {
-        const host = req.xapiObject
-
-        res.setHeader('content-type', 'application/x-tar')
-        await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
-      },
-
-      async missing_patches(req, res) {
-        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
-
-        const host = req.xapiObject
-        res.json(await host.$xapi.listMissingPatches(host))
-      },
+    const withParams = (fn, paramsSchema) => {
+      fn.params = paramsSchema
+      fn.validateParams = compileXoJsonSchema({ type: 'object', properties: cloneDeep(paramsSchema) })
+      return fn
     }
 
-    collections.pools.routes = {
-      __proto__: null,
+    {
+      const types = [
+        'host',
+        'message',
+        'network',
+        'pool',
+        'SR',
+        'VBD',
+        'VDI-snapshot',
+        'VDI',
+        'VIF',
+        'VM-snapshot',
+        'VM-template',
+        'VM',
+      ]
+      function getObject(id, req) {
+        const { type } = this
+        const object = app.getObject(id, type)
 
-      async missing_patches(req, res) {
-        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+        // add also the XAPI version of the object
+        req.xapiObject = app.getXapiObject(object)
 
-        const xapi = req.xapiObject.$xapi
-        const missingPatches = new Map()
-        await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
-          try {
-            for (const patch of await xapi.listMissingPatches(host)) {
-              const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
-              missingPatches.set(key, patch)
-            }
-          } catch (error) {
-            console.warn(host.uuid, error)
-          }
+        return object
+      }
+      function getObjects(filter, limit) {
+        return app.getObjects({
+          filter: every(this.isCorrectType, filter),
+          limit,
         })
-        res.json(Array.from(missingPatches.values()))
+      }
+      async function messages(req, res) {
+        const {
+          object: { id },
+          query,
+        } = req
+        await sendObjects(
+          app.getObjects({
+            filter: every(_ => _.type === 'message' && _.$object === id, handleOptionalUserFilter(query.filter)),
+            limit: ifDef(query.limit, Number),
+          }),
+          req,
+          res,
+          '/messages'
+        )
+      }
+      for (const type of types) {
+        const id = type.toLocaleLowerCase() + 's'
+
+        collections[id] = { getObject, getObjects, routes: { messages }, isCorrectType: _ => _.type === type, type }
+      }
+
+      collections.hosts.routes = {
+        ...collections.hosts.routes,
+
+        async 'audit.txt'(req, res) {
+          const host = req.xapiObject
+
+          res.setHeader('content-type', 'text/plain')
+          await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
+        },
+
+        async 'logs.tar'(req, res) {
+          const host = req.xapiObject
+
+          res.setHeader('content-type', 'application/x-tar')
+          await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
+        },
+
+        async missing_patches(req, res) {
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
+          const host = req.xapiObject
+          res.json(await host.$xapi.listMissingPatches(host))
+        },
+
+        async smt({ xapiObject }, res) {
+          res.json({ enabled: await xapiObject.$xapi.isHyperThreadingEnabled(xapiObject.$id) })
+        },
+      }
+
+      collections.pools.routes = {
+        ...collections.pools.routes,
+
+        async missing_patches(req, res) {
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
+          const xapi = req.xapiObject.$xapi
+          const missingPatches = new Map()
+          await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
+            try {
+              for (const patch of await xapi.listMissingPatches(host)) {
+                const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
+                missingPatches.set(key, patch)
+              }
+            } catch (error) {
+              console.warn(host.uuid, error)
+            }
+          })
+          res.json(Array.from(missingPatches.values()))
+        },
+      }
+
+      collections.pools.actions = {
+        create_vm: withParams(
+          defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
+            params.affinityHost = affinity
+            params.installRepository = install?.repository
+
+            const vm = await $xapi.createVm(template, params, undefined, req.user.id)
+            $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+
+            if (boot) {
+              await $xapi.callAsync('VM.start', vm.$ref, false, false)
+            }
+
+            return vm.uuid
+          }),
+          {
+            affinity: { type: 'string', optional: true },
+            auto_poweron: { type: 'boolean', optional: true },
+            boot: { type: 'boolean', default: false },
+            clone: { type: 'boolean', default: true },
+            install: {
+              type: 'object',
+              optional: true,
+              properties: {
+                method: { enum: ['cdrom', 'network'] },
+                repository: { type: 'string' },
+              },
+            },
+            memory: { type: 'integer', optional: true },
+            name_description: { type: 'string', minLength: 0, optional: true },
+            name_label: { type: 'string' },
+            template: { type: 'string' },
+          }
+        ),
+        emergency_shutdown: async ({ xapiObject }) => {
+          await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
+
+          await xapiObject.$xapi.pool_emergencyShutdown()
+        },
+        rolling_update: async ({ object }) => {
+          await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+
+          await app.rollingPoolUpdate(object)
+        },
+      }
+      collections.vms.actions = {
+        clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
+        clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
+        hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
+        hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
+        snapshot: withParams(
+          async ({ xapiObject: vm }, { name_label }) => {
+            const ref = await vm.$snapshot({ name_label })
+            return vm.$xapi.getField('VM', ref, 'uuid')
+          },
+          { name_label: { type: 'string', optional: true } }
+        ),
+        start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
+      }
+    }
+
+    collections.backup = {}
+    collections.groups = {
+      getObject(id) {
+        return app.getGroup(id)
+      },
+      async getObjects(filter, limit) {
+        return handleArray(await app.getAllGroups(), filter, limit)
+      },
+      routes: {
+        async users(req, res) {
+          const { filter, limit } = req.query
+          await sendObjects(
+            handleArray(
+              await Promise.all(req.object.users.map(id => app.getUser(id).then(getUserPublicProperties))),
+              handleOptionalUserFilter(filter),
+              ifDef(limit, Number)
+            ),
+            req,
+            res,
+            '/users'
+          )
+        },
+      },
+    }
+    collections.restore = {}
+    collections.tasks = {}
+    collections.users = {
+      getObject(id) {
+        return app.getUser(id).then(getUserPublicProperties)
+      },
+      async getObjects(filter, limit) {
+        return handleArray(await app.getAllUsers(), filter, limit)
+      },
+      routes: {
+        async groups(req, res) {
+          const { filter, limit } = req.query
+          await sendObjects(
+            handleArray(
+              await Promise.all(req.object.groups.map(id => app.getGroup(id))),
+              handleOptionalUserFilter(filter),
+              ifDef(limit, Number)
+            ),
+            req,
+            res,
+            '/groups'
+          )
+        },
       },
     }
 
-    collections.pools.actions = {
-      __proto__: null,
+    // normalize collections
+    for (const id of Object.keys(collections)) {
+      const collection = collections[id]
 
-      emergency_shutdown: async ({ xapiObject }) => {
-        await app.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
+      // inject id into the collection
+      collection.id = id
 
-        await xapiObject.$xapi.pool_emergencyShutdown()
-      },
-      rolling_update: async ({ xoObject }) => {
-        await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
-
-        await app.rollingPoolUpdate(xoObject)
-      },
-    }
-    collections.vms.actions = {
-      __proto__: null,
-
-      clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
-      clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
-      hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
-      hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
-      snapshot: async ({ xapiObject: vm }, { name_label }) => {
-        const ref = await vm.$snapshot({ name_label })
-        return vm.$xapi.getField('VM', ref, 'uuid')
-      },
-      start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
+      // set null as prototypes to speed-up look-ups
+      Object.setPrototypeOf(collection, null)
+      const { actions, routes } = collection
+      if (actions !== undefined) {
+        Object.setPrototypeOf(actions, null)
+      }
+      if (routes !== undefined) {
+        Object.setPrototypeOf(routes, null)
+      }
     }
 
     api.param('collection', (req, res, next) => {
@@ -265,14 +420,14 @@ export default class RestApi {
         next()
       }
     })
-    api.param('object', (req, res, next) => {
+    api.param('object', async (req, res, next) => {
       const id = req.params.object
-      const { type } = req.collection
       try {
-        req.xapiObject = app.getXapiObject((req.xoObject = app.getObject(id, type)))
-        next()
+        // eslint-disable-next-line require-atomic-updates
+        req.object = await req.collection.getObject(id, req)
+        return next()
       } catch (error) {
-        if (noSuchObject.is(error, { id, type })) {
+        if (noSuchObject.is(error, { id })) {
           next('route')
         } else {
           next(error)
@@ -431,39 +586,12 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/users',
-        wrap(async (req, res) => {
-          let users = await app.getAllUsers()
-
-          const { filter, limit } = req.query
-          if (filter !== undefined) {
-            users = users.filter(CM.parse(filter).createPredicate())
-          }
-          if (limit < users.length) {
-            users.length = limit
-          }
-
-          sendObjects(users.map(getUserPublicProperties), req, res)
-        })
-      )
-      .get(
-        '/users/:id',
-        wrap(async (req, res) => {
-          res.json(getUserPublicProperties(await app.getUser(req.params.id)))
-        })
-      )
-
     api.get(
       '/:collection',
       wrap(async (req, res) => {
         const { query } = req
         await sendObjects(
-          await app.getObjects({
-            filter: every(req.collection.isCorrectType, handleOptionalUserFilter(query.filter)),
-            limit: ifDef(query.limit, Number),
-          }),
+          await req.collection.getObjects(handleOptionalUserFilter(query.filter), ifDef(query.limit, Number)),
           req,
           res
         )
@@ -516,7 +644,7 @@ export default class RestApi {
     )
 
     api.get('/:collection/:object', (req, res) => {
-      let result = req.xoObject
+      let result = req.object
 
       // add locations of sub-routes for discoverability
       const { routes } = req.collection
@@ -571,12 +699,15 @@ export default class RestApi {
       '/:collection/:object/tasks',
       wrap(async (req, res) => {
         const { query } = req
-        const objectId = req.xoObject.id
+        const objectId = req.object.id
         const tasks = app.tasks.list({
-          filter: every(_ => _.status === 'pending' && _.objectId === objectId, handleOptionalUserFilter(query.filter)),
+          filter: every(
+            _ => _.status === 'pending' && _.properties.objectId === objectId,
+            handleOptionalUserFilter(query.filter)
+          ),
           limit: ifDef(query.limit, Number),
         })
-        await sendObjects(tasks, req, res, req.baseUrl + '/tasks')
+        await sendObjects(tasks, req, res, '/tasks')
       })
     )
 
@@ -584,7 +715,11 @@ export default class RestApi {
       '/:collection/:object/actions',
       wrap((req, res) => {
         const { actions } = req.collection
-        return sendObjects(actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ id })), req, res)
+        return sendObjects(
+          actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ ...actions[id], id })),
+          req,
+          res
+        )
       })
     )
     api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
@@ -594,9 +729,19 @@ export default class RestApi {
         return next()
       }
 
-      const { xapiObject, xoObject } = req
-      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
-      const pResult = task.run(() => fn({ xapiObject, xoObject }, req.body))
+      const params = req.body
+
+      const { validateParams } = fn
+      if (validateParams !== undefined) {
+        if (!validateParams(params)) {
+          res.statusCode = 400
+          return res.json(validateParams.errors)
+        }
+      }
+
+      const { object, xapiObject } = req
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: object.id })
+      const pResult = task.run(() => fn({ object, xapiObject }, params, req))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {

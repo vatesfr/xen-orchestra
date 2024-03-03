@@ -14,10 +14,13 @@ function applyDecorator(decorator, value) {
 }
 
 exports.decorateClass = exports.decorateMethodsWith = function decorateClass(klass, map) {
-  const { prototype } = klass
+  return decorateObject(klass.prototype, map)
+}
+
+function decorateObject(object, map) {
   for (const name of Object.keys(map)) {
     const decorator = map[name]
-    const descriptor = getOwnPropertyDescriptor(prototype, name)
+    const descriptor = getOwnPropertyDescriptor(object, name)
     if (typeof decorator === 'function' || Array.isArray(decorator)) {
       descriptor.value = applyDecorator(decorator, descriptor.value)
     } else {
@@ -30,10 +33,11 @@ exports.decorateClass = exports.decorateMethodsWith = function decorateClass(kla
       }
     }
 
-    defineProperty(prototype, name, descriptor)
+    defineProperty(object, name, descriptor)
   }
-  return klass
+  return object
 }
+exports.decorateObject = decorateObject
 
 exports.perInstance = function perInstance(fn, decorator, ...args) {
   const map = new WeakMap()

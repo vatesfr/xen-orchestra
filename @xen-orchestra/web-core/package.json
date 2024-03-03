@@ -1,0 +1,41 @@
+{
+  "name": "@xen-orchestra/web-core",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./*": {
+      "types": "./lib/*",
+      "import": "./lib/*"
+    }
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-regular-svg-icons": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/vue-fontawesome": "^3.0.5",
+    "@types/lodash-es": "^4.17.12",
+    "@vue/tsconfig": "^0.5.1",
+    "@vueuse/core": "^10.7.1",
+    "lodash-es": "^4.17.21",
+    "pinia": "^2.1.7",
+    "placement.js": "^1.0.0-beta.5",
+    "vue": "^3.4.13",
+    "vue-router": "^4.2.5"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/web-core",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=18"
+  }
+}

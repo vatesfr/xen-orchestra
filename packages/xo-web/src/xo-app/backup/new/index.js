@@ -189,6 +189,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     drMode: false,
     name: '',
     nbdConcurrency: 1,
+    nRetriesVmBackupFailures: 0,
     preferNbd: false,
     remotes: [],
     schedules: {},
@@ -635,6 +636,11 @@ const New = decorate([
           nbdConcurrency,
         })
       },
+      setNRetriesVmBackupFailures({ setGlobalSettings }, nRetries) {
+        setGlobalSettings({
+          nRetriesVmBackupFailures: nRetries,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -644,6 +650,7 @@ const New = decorate([
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,
+      inputNRetriesVmBackupFailures: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -756,6 +763,7 @@ const New = decorate([
       fullInterval,
       maxExportRate,
       nbdConcurrency = 1,
+      nRetriesVmBackupFailures = 0,
       offlineBackup,
       offlineSnapshot,
       preferNbd,
@@ -988,6 +996,17 @@ const New = decorate([
                           min={1}
                           onChange={effects.setConcurrency}
                           value={concurrency}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputNRetriesVmBackupFailures}>
+                          <strong>{_('nRetriesVmBackupFailures')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputNRetriesVmBackupFailures}
+                          min={0}
+                          onChange={effects.setNRetriesVmBackupFailures}
+                          value={nRetriesVmBackupFailures}
                         />
                       </FormGroup>
                       <FormGroup>

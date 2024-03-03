@@ -2,8 +2,21 @@ import mapValues from 'lodash/mapValues.js'
 import { dirname } from 'node:path'
 
 function formatVmBackup(backup) {
-  const { isVhdDifferencing } = backup
+  const { isVhdDifferencing, vmSnapshot } = backup
 
+  let differencingVhds
+  let dynamicVhds
+  // some backups don't use snapshots, therefore cannot be with memory
+  const withMemory = vmSnapshot !== undefined && vmSnapshot.suspend_VDI !== 'OpaqueRef:NULL'
+  // isVhdDifferencing is either undefined or an object
+  if (isVhdDifferencing !== undefined) {
+    differencingVhds = Object.values(isVhdDifferencing).filter(t => t).length
+    dynamicVhds = Object.values(isVhdDifferencing).filter(t => !t).length
+    if (withMemory) {
+      // the suspend VDI (memory) is always a dynamic
+      dynamicVhds -= 1
+    }
+  }
   return {
     disks:
       backup.vhds === undefined
@@ -18,6 +31,7 @@ function formatVmBackup(backup) {
           }),
 
     id: backup.id,
+    isImmutable: backup.isImmutable,
     jobId: backup.jobId,
     mode: backup.mode,
     scheduleId: backup.scheduleId,
@@ -28,9 +42,9 @@ function formatVmBackup(backup) {
       name_label: backup.vm.name_label,
     },
 
-    // isVhdDifferencing is either undefined or an object
-    differencingVhds: isVhdDifferencing && Object.values(isVhdDifferencing).filter(t => t).length,
-    dynamicVhds: isVhdDifferencing && Object.values(isVhdDifferencing).filter(t => !t).length,
+    differencingVhds,
+    dynamicVhds,
+    withMemory,
   }
 }
 

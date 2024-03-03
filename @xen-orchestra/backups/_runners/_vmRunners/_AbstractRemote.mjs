@@ -22,6 +22,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this.config = config
     this.job = job
     this.remoteAdapters = remoteAdapters
+    this._settings = settings
     this.scheduleId = schedule.id
     this.timestamp = undefined
 

@@ -6,17 +6,22 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
 import {
   installAllPatchesOnPool,
   installPatches,
+  isSrShared,
+  isSrWritable,
   rollingPoolUpdate,
   subscribeCurrentUser,
   subscribeHostMissingPatches,
 } from 'xo'
+import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
+import size from 'lodash/size.js'
+import some from 'lodash/some.js'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 
@@ -166,18 +171,53 @@ const INSTALLED_PATCH_COLUMNS = [
 }))
 @connectStore({
   hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
+  poolHosts: createGetObjectsOfType('host').filter(
+    createSelector(
+      (_, props) => props.pool.id,
+      poolId => host => host.$pool === poolId
+    )
+  ),
+  runningVms: createGetObjectsOfType('VM').filter(
+    createSelector(
+      (_, props) => props.pool.id,
+      poolId => vm => vm.$pool === poolId && vm.power_state === 'Running'
+    )
+  ),
+  vbds: createGetObjectsOfType('VBD'),
+  vdis: createGetObjectsOfType('VDI'),
+  srs: createGetObjectsOfType('SR'),
 })
 export default class TabPatches extends Component {
+  getNVmsRunningOnLocalStorage = createSelector(
+    () => this.props.runningVms,
+    () => this.props.vbds,
+    () => this.props.vdis,
+    () => this.props.srs,
+    (runningVms, vbds, vdis, srs) =>
+      filter(runningVms, vm =>
+        some(vm.$VBDs, vbdId => {
+          const vbd = vbds[vbdId]
+          const vdi = vdis[vbd?.VDI]
+          const sr = srs[vdi?.$SR]
+          return !isSrShared(sr) && isSrWritable(sr)
+        })
+      ).length
+  )
   render() {
     const {
       hostPatches,
       master: { productBrand },
       missingPatches = [],
       pool,
+      poolHosts,
       userPreferences,
     } = this.props
 
     const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
+
+    const isSingleHost = size(poolHosts) < 2
+
+    const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
     return (
       <Upgrade place='poolPatches' required={2}>
@@ -187,11 +227,20 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches)}
+                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
+                  tooltip={
+                    hasMultipleVmsRunningOnLocalStorage
+                      ? _('nVmsRunningOnLocalStorage', {
+                          nVms: this.getNVmsRunningOnLocalStorage(),
+                        })
+                      : isSingleHost
+                        ? _('multiHostPoolUpdate')
+                        : undefined
+                  }
                 />
               )}
               <TabButton

@@ -8,6 +8,7 @@ import { readChunk } from '@vates/read-chunk'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
+import set from 'lodash/set.js'
 import split2 from 'split2'
 
 import * as config from './config.mjs'
@@ -29,10 +30,10 @@ function parseParams(args) {
   for (const arg of args) {
     const i = arg.indexOf('=')
     if (i === -1) {
-      params[arg] = ''
+      set(params, arg, '')
     } else {
       const value = arg.slice(i + 1)
-      params[arg.slice(0, i)] = value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
+      set(params, arg.slice(0, i), value.startsWith('json:') ? JSON.parse(value.slice(5)) : value)
     }
   }
   return params
@@ -166,7 +167,7 @@ export async function rest(args) {
 
   return COMMANDS[command].call(
     {
-      exec(path, { query = {}, ...opts } = {}) {
+      async exec(path, { query = {}, ...opts } = {}) {
         const url = new URL(baseUrl)
 
         const i = path.indexOf('?')
@@ -185,7 +186,17 @@ export async function rest(args) {
           }
         }
 
-        return hrp(url, merge({}, baseOpts, opts))
+        try {
+          return await hrp(url, merge({}, baseOpts, opts))
+        } catch (error) {
+          const { response } = error
+          if (response === undefined) {
+            throw error
+          }
+
+          console.error(response.statusCode, response.statusMessage)
+          throw await response.text()
+        }
       },
       json,
     },

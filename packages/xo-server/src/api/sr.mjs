@@ -277,6 +277,50 @@ createNfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
+export async function createSmb({ host, nameLabel, nameDescription, server, user, password, srUuid }) {
+  const xapi = this.getXapi(host)
+
+  const deviceConfig = {
+    server,
+    username: user,
+    password,
+  }
+
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type: 'smb',
+      deviceConfig,
+    })
+  }
+
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: true,
+    type: 'smb',
+  })
+
+  return xapi.getField('SR', srRef, 'uuid')
+}
+
+createSmb.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0, default: '' },
+  server: { type: 'string' },
+  srUuid: { type: 'string', optional: true },
+  user: { type: 'string', optional: true },
+  password: { type: 'string', optional: true },
+}
+
+createSmb.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
 // -------------------------------------------------------------------
 // HBA SR
 

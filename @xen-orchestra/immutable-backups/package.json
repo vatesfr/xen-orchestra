@@ -1,0 +1,42 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/immutable-backups",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/immutable-backups",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/immutable-backups",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "bin": {
+    "xo-immutable-remote": "./protectRemotes.mjs",
+    "xo-lift-remote-immutability": "./liftProtection.mjs"
+  },
+  "license": "AGPL-3.0-or-later",
+  "version": "1.0.2",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@vates/async-each": "^1.0.0",
+    "@xen-orchestra/backups": "^0.45.0",
+    "@xen-orchestra/log": "^0.6.0",
+    "app-conf": "^2.3.0",
+    "chokidar": "^3.5.3",
+    "execa": "^5.0.0",
+    "ms": "^2.1.3",
+    "vhd-lib": "^4.9.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "tap": "^18.6.1"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test-integration": "tap  *.integ.mjs"
+  }
+}
