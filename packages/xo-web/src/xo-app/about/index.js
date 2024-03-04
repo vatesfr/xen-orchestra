@@ -85,7 +85,11 @@ export default class About extends Component {
                     <Icon icon='git' size={4} />
                     <h4>
                       Xen Orchestra, commit{' '}
-                      <a href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}>
+                      <a
+                        href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}
+                        target='_blank'
+                        rel='noreferrer'
+                      >
                         {COMMIT_ID.slice(0, 5)}
                       </a>
                     </h4>
@@ -97,7 +101,10 @@ export default class About extends Component {
                         _('statusLoading')
                       ) : commit.fetched ? (
                         <span>
-                          Master, commit <a href={commit.master.html_url}>{commit.master.sha.slice(0, 5)}</a>
+                          Master, commit{' '}
+                          <a href={commit.master.html_url} target='_blank' rel='noreferrer'>
+                            {commit.master.sha.slice(0, 5)}
+                          </a>
                         </span>
                       ) : (
                         _('failedToFetchLatestMasterCommit')
