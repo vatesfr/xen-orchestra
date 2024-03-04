@@ -2295,6 +2295,12 @@ export const deleteVtpm = vtpm => _call('vtpm.destroy', { id: resolveId(vtpm) })
 
 export const editPusb = (pusb, props) => _call('pusb.set', { id: resolveId(pusb), ...props })
 
+export const createVusb = (vm, usbGroup) => _call('vusb.create', { vm: resolveId(vm), usbGroup: resolveId(usbGroup) })
+
+export const unplugVusb = vusb => _call('vusb.unplug', { id: resolveId(vusb) })
+
+export const deleteVusb = vusb => _call('vusb.destroy', { id: resolveId(vusb) })
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = (network, props) => _call('network.set', { ...props, id: resolveId(network) })

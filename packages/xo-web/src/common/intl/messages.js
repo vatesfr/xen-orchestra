@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   creation: 'Creation',
+  connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
@@ -99,6 +100,7 @@ const messages = {
   destinationSR: 'Destination SR',
   destinationNetwork: 'Destination network',
   dhcp: 'DHCP',
+  id: 'ID',
   ip: 'IP',
   static: 'Static',
   user: 'User',
@@ -1477,8 +1479,13 @@ const messages = {
   vmAddAcls: 'Add ACLs',
   addAclsErrorTitle: 'Failed to add ACL(s)',
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  createVusb: 'Create VUSB',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
+  pusbDescription: 'PUSB description',
+  pusbSpeed: 'PUSB speed',
+  pusbVersion: 'PUSB version',
+  selectPusb: 'Select PUSB',
   vmBootFirmware: 'Boot firmware',
   vmCreator: 'VM creator',
   vmDefaultBootFirmwareLabel: 'default (bios)',
@@ -1489,6 +1496,9 @@ const messages = {
   vmEditAndRestartModalMessage:
     'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
 
+  vusbs: 'VUSBs',
+  vusbRemainUnplugged: 'The VUSB remain unplugged until the next shutdown/start',
+  vusbUnplugTooltip: 'Unplug until the next shutdown/start',
   // ----- VM placeholders -----
 
   vmHomeNamePlaceholder: 'Long click to add a name',

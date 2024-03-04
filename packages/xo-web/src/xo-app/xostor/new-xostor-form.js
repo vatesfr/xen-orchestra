@@ -111,7 +111,8 @@ const SettingsCard = decorate([
     <Card>
       <CardHeader>
         {_('settings')}
-        <ActionButton
+        {/* Uncomment when some advanced settings need to be added  */}
+        {/* <ActionButton
           className='pull-right'
           data-mode='_displayAdvancedSettings'
           handler={effects.toggleDisplayAdvancedSettings}
@@ -120,7 +121,7 @@ const SettingsCard = decorate([
           size='small'
         >
           {_('advancedSettings')}
-        </ActionButton>
+        </ActionButton> */}
       </CardHeader>
       <CardBlock>
         <Row>
@@ -140,14 +141,13 @@ const SettingsCard = decorate([
             <Select onChange={effects.onProvisioningChange} options={PROVISIONING_OPTIONS} value={state.provisioning} />
           </Col>
         </Row>
-        {state.displayAdvancedSettings && (
-          <Row>
-            <Col style={SPACE_BETWEEN}>
-              <label>{_('ignoreFileSystems')}</label>
-              <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
-            </Col>
-          </Row>
-        )}
+        <Row className='form-group mt-1'>
+          <Col style={SPACE_BETWEEN}>
+            <label>{_('ignoreFileSystems')}</label>
+            <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
+          </Col>
+        </Row>
+        {/* {state.displayAdvancedSettings && ( Advanced settings section )} */}
       </CardBlock>
     </Card>
   ),
