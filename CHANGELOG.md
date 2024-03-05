@@ -1,5 +1,12 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- Allow unauthenticated access to `robots.txt`
+- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation) (PR [#7426](https://github.com/vatesfr/xen-orchestra/pull/7426))
+
 ## **5.92.0** (2024-02-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

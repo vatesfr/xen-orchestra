@@ -15,7 +15,6 @@
 
 - [Jobs] Fix `t.value is undefined` when saving a new job (broken in XO 5.91)
 - [XOSTOR] Move `ignore file sytems` outside of advanced settings (PR [#7429](https://github.com/vatesfr/xen-orchestra/pull/7429))
-- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation) (PR [#7426](https://github.com/vatesfr/xen-orchestra/pull/7426))
 
 ### Packages to release
 
@@ -33,7 +32,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
 - xo-web minor
 
 <!--packages-end-->
