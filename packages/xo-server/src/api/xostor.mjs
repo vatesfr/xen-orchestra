@@ -223,8 +223,8 @@ export const create = defer(async function (
 
           if (needInstallPackages) {
             if (host._xapiRef === pool.master) {
-              // Defer packages installation on master
-              // to avoid `ECONNRESET` on slave hosts due to master restarting his toolstack
+              // Defer packages installation on master to prevent 'ECONNRESET' errors
+              // on slaves caused by the master restarting its toolstack.
               return $defer(() => boundInstallDependencies({ host }))
             }
             return boundInstallDependencies({ host })
