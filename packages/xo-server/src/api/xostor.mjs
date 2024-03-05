@@ -53,8 +53,9 @@ async function installOrUpdateDependencies(host, method = 'install') {
   )
 }
 
-export function installDependencies({ host }) {
-  return installOrUpdateDependencies.call(this, host)
+export async function installDependencies({ host }) {
+  await installOrUpdateDependencies.call(this, host)
+  await this.getXapiObject(host).$restartAgent()
 }
 installDependencies.description = 'Install XOSTOR dependencies'
 installDependencies.permission = 'admin'
@@ -191,16 +192,51 @@ export const create = defer(async function (
     })
 
     const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
+
     if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
       // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
       throw new Error('All hosts must be in the same pool')
     }
 
-    const boundInstallDependencies = installDependencies.bind(this)
-    await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
-
     const host = hosts[0]
     const xapi = this.getXapi(host)
+
+    const handleHostsDependencies = defer(async ($defer, hosts) => {
+      const boundInstallDependencies = installDependencies.bind(this)
+      const boundUpdateDependencies = updateDependencies.bind(this)
+      const pool = Object.values(xapi.objects.indexes.type.pool)[0]
+
+      await asyncEach(
+        hosts,
+        async host => {
+          let needInstallPackages = true
+
+          try {
+            needInstallPackages = Object.values(
+              JSON.parse(
+                await pluginCall(xapi, host, 'updater.py', 'query_installed', {
+                  packages: XOSTOR_DEPENDENCIES.join(),
+                })
+              )
+            ).some(pkg => pkg === '')
+          } catch (_) {}
+
+          if (needInstallPackages) {
+            if (host._xapiRef === pool.master) {
+              // Defer packages installation on master
+              // to avoid `ECONNRESET` on slave hosts due to master restarting his toolstack
+              return $defer(() => boundInstallDependencies({ host }))
+            }
+            return boundInstallDependencies({ host })
+          }
+          return boundUpdateDependencies({ host })
+        },
+        {
+          stopOnError: false,
+        }
+      )
+    })
+    await handleHostsDependencies(hosts)
 
     const boundFormatDisks = formatDisks.bind(this)
     await asyncEach(
