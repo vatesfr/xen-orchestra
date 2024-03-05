@@ -38,7 +38,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
 
     await this._callWriters(writer => writer.prepare({ isFull }), 'writer.prepare()')
-
+// @todo : no base vm with CBT
     const deltaExport = await exportIncrementalVm(exportedVm, baseVm, {
       fullVdisRequired,
       nbdConcurrency: this._settings.nbdConcurrency,
@@ -89,7 +89,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         }),
       'writer.updateUuidAndChain()'
     )
-
     this._baseVm = exportedVm
 
     if (baseVm !== undefined) {
@@ -101,6 +100,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
 
     // not the case if offlineBackup
     if (exportedVm.is_a_snapshot) {
+      // @todo : set it in each exported disk 
       await exportedVm.update_other_config('xo:backup:exported', 'true')
     }
 
@@ -117,45 +117,68 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
   }
 
   async _selectBaseVm() {
-    const xapi = this._xapi
-
-    let baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
-    if (baseVm === undefined) {
-      debug('no base VM found')
-      return
-    }
+    const xapi = this._xapi 
+    const vm =   this._vm
+    const jobId = this._jobId
+    console.log('SELECT BASE VM')
 
     const fullInterval = this._settings.fullInterval
-    const deltaChainLength = +(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
+    // this is stored directly on the VM side 
+    const deltaChainLength = +(vm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
     if (!(fullInterval === 0 || fullInterval > deltaChainLength)) {
-      debug('not using base VM because fullInterval reached',deltaChainLength)
+      console.log('not using base VM because fullInterval reached',deltaChainLength)
       return
     }
 
     const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
     // resolve full record
-    baseVm = await xapi.getRecord('VM', baseVm.$ref)
 
     const baseUuidToSrcVdi = new Map()
-    await asyncMap(await baseVm.$getDisks(), async baseRef => {
-      const [baseUuid, snapshotOf] = await Promise.all([
-        xapi.getField('VDI', baseRef, 'uuid'),
-        xapi.getField('VDI', baseRef, 'snapshot_of'),
-      ])
-      const srcVdi = srcVdis[snapshotOf]
-      if (srcVdi !== undefined) {
-        baseUuidToSrcVdi.set(baseUuid, srcVdi.uuid)
-      } else {
-        debug('ignore snapshot VDI because no longer present on VM', {
-          vdi: baseUuid,
-        })
+    await asyncMap(await vm.$getDisks(), async vdiRef => {
+      // @todo list the snapshots and look for a disk  snapshot of current one  ( exportedVM ? )
+      // the uuid will be baseUuid
+      console.log('LOOKING FOR THE RIGHT VDI SNAPSHOT', vdiRef)
+      const vdiSnapshotRefs = await xapi.getField('VDI', vdiRef, 'snapshots')
+      console.log({vdiSnapshots: vdiSnapshotRefs})
+      // if CBT Enabled, search for a CBT snapshot only
+      const snapshots = []
+      for(const vdiSnapshotRef of vdiSnapshotRefs){
+        const [other_config, type,baseUuid, snapshotOf] = await Promise.all([
+          xapi.getField('VDI', vdiSnapshotRef, 'other_config'),
+          xapi.getField('VDI', vdiSnapshotRef, 'type'),
+          xapi.getField('VDI', vdiSnapshotRef, 'uuid'),
+          xapi.getField('VDI', vdiSnapshotRef, 'snapshot_of'),
+
+        ])
+        console.log({other_config, type})
+        if(type === 'cbt_metadata'){
+          console.log('GOT META')
+        }
+        if (other_config['xo:backup:job'] === jobId) {
+          // found backup of same job
+          console.log('SAME JOB')
+          snapshots.push({ other_config, $ref: vdiSnapshotRef,baseUuid, snapshotOf })
+        }
       }
+      snapshots.sort((a, b) => (a.other_config['xo:backup:datetime'] < b.other_config['xo:backup:datetime'] ? -1 : 1))
+      if(snapshots.length > 0 ){
+        const {baseUuid, snapshotOf} = snapshots.pop()
+        const srcVdi = srcVdis[snapshotOf]
+        baseUuidToSrcVdi.set(baseUuid, srcVdi.uuid)
+      }
+      console.log(snapshots)
+      // take the last snapshot (most recent on the same job)
+
+      /*
+      const srcVdi = srcVdis[snapshotOf]
+      baseUuidToSrcVdi.set(baseUuid, srcVdi.uuid)*/
     })
+    console.log({baseUuidToSrcVdi}) 
 
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
     await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseVm),
+      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, vm.uuid),
       'writer.checkBaseVdis()',
       false
     )
@@ -181,7 +204,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       }
     })
 
-    this._baseVm = baseVm
+    this._baseVm = vm
     this._fullVdisRequired = fullVdisRequired
   }
 }

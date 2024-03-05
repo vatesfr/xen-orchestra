@@ -35,13 +35,16 @@ function createBAT({ firstBlockPosition, fragmentLogicAddressList, fragmentSize,
     }
   })
   const lastFragmentPerBlockArray = [...lastFragmentPerBlock]
-  // lastFragmentPerBlock is from last to first, so we go the other way around
+ // lastFragmentPerBlockArray.sort((a,b)=> b-a)
+    // lastFragmentPerBlock is from last to first, so we go the other way around
+    console.log({currentVhdPositionSector})
   forEachRight(lastFragmentPerBlockArray, ([vhdTableIndex, _fragmentVirtualAddress]) => {
     if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
       bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
       currentVhdPositionSector += (bitmapSize + VHD_BLOCK_SIZE_BYTES) / SECTOR_SIZE
     }
   })
+  console.log({currentVhdPositionSector})
   return [currentVhdPositionSector, lastFragmentPerBlock]
 }
 
@@ -130,20 +133,26 @@ module.exports = async function createReadableStream(
       const batPosition = batEntry * SECTOR_SIZE
       if (lastFragmentPerBlock.get(batIndex) === fragment.logicalAddressBytes) {
         batIndexToBlockMap.delete(batIndex)
+        console.log('send block', batIndex,batIndexToBlockMap.size, expectedPosition)
         yield* yieldAndTrack(currentBlockWithBitmap, batPosition, `VHD block start index: ${currentFragmentIndex}`)
-      }
+      }  
     }
   }
 
   async function* iterator() {
+    console.log('will send footer',)
     yield* yieldAndTrack(footer, 0)
+    console.log('footer sent')
     yield* yieldAndTrack(header, FOOTER_SIZE)
+    console.log('header sent')
     yield* yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
+    console.log('bat sent')
     yield* generateBlocks(fragmentIterator, bitmapSize)
     yield* yieldAndTrack(footer)
   }
-
+console.log('iterator ready')
   const stream = asyncIteratorToStream(iterator())
+  console.log({fileSize})
   stream.length = fileSize
   return stream
 }

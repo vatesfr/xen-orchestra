@@ -212,7 +212,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       console.log('WILL CLEAN')
       const xapi = this._xapi
       const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
-     // await xapi.call('VM.destroy', this._exportedVm.$ref)
+      await xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
         try {
           // list the snapshot of this VDI for this job
@@ -220,7 +220,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           //  if it's most recent one : destroy data
           //  if it's an older one : delete it
           console.log('DELETE ', vdiRef)
-          //await xapi.VDI_dataDestroy(vdiRef)
+          await xapi.VDI_dataDestroy(vdiRef)
         } catch (error) {
           Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
         }
