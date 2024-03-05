@@ -48,3 +48,14 @@ export type CollectionContext<TItem extends Item = Item> = {
   expanded: Map<string | number, TItem>
   active: TItem | undefined
 }
+
+export type UseCollectionOptions = {
+  allowMultiSelect?: boolean
+  expand?: boolean
+  selectedLabel?:
+    | ((items: Item[]) => string)
+    | {
+        max: number
+        fn: (count: number) => string
+      }
+}
