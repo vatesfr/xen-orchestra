@@ -27,6 +27,7 @@ xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<p
 Where UUID is the uuid of your XOA VM.
 
 Then you need to restart the VM.
+You can now login through SSH with the `xoa` username and password you defined in the previous command.
 
 ## Recover web login password
 
