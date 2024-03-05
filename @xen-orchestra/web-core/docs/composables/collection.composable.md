@@ -19,11 +19,22 @@ useCollection(definitions)
 useCollection(definitions, options)
 ```
 
-|                            | Required | Type                                    | Default |                                                       |
-| -------------------------- | :------: | --------------------------------------- | ------- | ----------------------------------------------------- |
-| `definitions`              |    ✓     | `(LeafDefinition \| GroupDefinition)[]` |         | The definitions of the items in the collection        |
-| `options.allowMultiSelect` |          | `boolean`                               | `false` | Whether more than one item can be selected at a time. |
-| `options.expanded`         |          | `boolean`                               | `true`  | Whether all groups are initially expanded.            |
+|                            | Required | Type                                    | Default     |                                                       |
+| -------------------------- | :------: | --------------------------------------- | ----------- | ----------------------------------------------------- |
+| `definitions`              |    ✓     | `(LeafDefinition \| GroupDefinition)[]` |             | The definitions of the items in the collection        |
+| `options.allowMultiSelect` |          | `boolean`                               | `false`     | Whether more than one item can be selected at a time. |
+| `options.expand`           |          | `boolean`                               | `true`      | Whether all groups are initially expanded.            |
+| `options.selectedLabel`    |          | `function \| object`                    | `undefined` | See below                                             |
+
+### `options.selectedLabel`
+
+This option allows you to customize the label of the selected items.
+
+| Type of `options.selectedLabel`                  | Description                                                                                         |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `undefined`                                      | The generated label will be a join of the selected items' labels.                                   |
+| `(items: Item[]) => string`                      | The selected items will be passed as first argument.                                                |
+| `{ max: number; fn: (count: number) => string }` | If more than `max` items are selected, the label will be the result of `fn(numberOfSelectedItems)`. |
 
 ## `useCollection` return values
 
@@ -33,6 +44,7 @@ useCollection(definitions, options)
 | `activeItem`    | `ComputedRef<Leaf \| Group \| undefined>` | The active item instance                                                  |
 | `selectedItems` | `ComputedRef<(Leaf \| Group)[]>`          | Array of selected item instances                                          |
 | `expandedItems` | `ComputedRef<Group[]>`                    | Array of expanded group instances                                         |
+| `selectedLabel` | `ComputedRef<string>`                     | The label of the selected items                                           |
 
 ## `LeafDefinition`
 
@@ -51,7 +63,7 @@ new LeafDefinition(id, data, options)
 ### Example
 
 ```ts
-const definition = new LeafDefinition('jd-1', { name: 'John Doe', age: 30 })
+const definition = new LeafDefinition({ id: 1, label: 'John Doe', age: 30 })
 ```
 
 ## `GroupDefinition`
@@ -74,9 +86,9 @@ new GroupDefinition(id, data, options, children)
 ### Example
 
 ```ts
-const definition = new GroupDefinition('smithes', { name: 'The Smithes' }, [
-  new ItemDefinition('jd-1', { name: 'John Smith', age: 30 }),
-  new ItemDefinition('jd-2', { name: 'Jane Smith', age: 28 }),
+const definition = new GroupDefinition({ id: 'smithes', name: 'The Smithes' }, [
+  new ItemDefinition({ id: 'jd-1', name: 'John Smith', age: 30 }),
+  new ItemDefinition({ id: 'jd-2', name: 'Jane Smith', age: 28 }),
 ])
 ```
 
@@ -89,8 +101,8 @@ mix different types of items at the same collection depth.
 
 ```ts
 const definitions = [
-  new LeafDefinition('jd-1', { name: 'John Doe', age: 30 }),
-  new LeafDefinition('rx-1', { name: 'Rex', breed: 'Golden Retriever' }),
+  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }),
+  new LeafDefinition({ id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }),
 ]
 
 const { items } = useCollection(definitions)
@@ -104,30 +116,30 @@ items.value.forEach(item => {
 
 ```ts
 const definitions = [
-  new LeafDefinition('jd-1', { name: 'John Doe', age: 30 }, { discriminator: 'person' }),
-  new LeafDefinition('rx-1', { name: 'Rex', breed: 'Golden Retriever' }, { discriminator: 'animal' }),
+  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }, { discriminator: 'person' }),
+  new LeafDefinition({ id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }, { discriminator: 'animal' }),
 ]
 
 const { items } = useCollection(definitions)
 
 items.value.forEach(item => {
   if (item.discriminator === 'person') {
-    // item.data.<cursor> `name` and `age` are available here
+    // item.data.<cursor> `label` and `age` are available here
   } else {
-    // item.data.<cursor> `name` and `breed` are available here
+    // item.data.<cursor> `label` and `breed` are available here
   }
 })
 ```
 
 ### Mixing `GroupDefinition` and `LeafDefinition` (of same types each)
 
-If you mix `LeafDefinition` and `GroupDefinition` (of same types each), you don't need to use the discriminator because
+If you mix `LeafDefinition` and `GroupDefinition` of same types each, you don't need to use the discriminator because
 the `isGroup` property will serve the same purpose.
 
 ```ts
 const definitions = [
-  new LeafDefinition('jd-1', { name: 'John Doe', age: 30 }),
-  new GroupDefinition('dogs', { name: 'Dogs', legs: 4 }, [
+  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }),
+  new GroupDefinition({ id: 'dogs', label: 'Dogs', legs: 4 }, [
     /* ... */
   ]),
 ]
@@ -136,9 +148,9 @@ const { items } = useCollection(definitions)
 
 items.value.forEach(item => {
   if (item.isGroup) {
-    // item.data.<cursor> `name` and `legs` are available here
+    // item.data.<cursor> `label` and `legs` are available here
   } else {
-    // item.data.<cursor> `name` and `age` are available here
+    // item.data.<cursor> `label` and `age` are available here
   }
 })
 ```
@@ -152,7 +164,7 @@ It takes the `data` as first argument and will return:
 
 - `true` if the item explicitly passes the filter
 - `false` if the item explicitly doesn't pass the filter
-- `undefined` if the filter is ignored
+- `undefined` if the filter doesn't apply to the item
 
 ## `defineCollection` helper
 
@@ -165,13 +177,14 @@ defineCollection(entries, getChildren)
 defineCollection(entries, options, getChildren)
 ```
 
-|                         | Required | Type                             | Default     |                                                                                |
-| ----------------------- | :------: | -------------------------------- | ----------- | ------------------------------------------------------------------------------ |
-| `entries`               |    ✓     | `T[]`                            |             | array of items to be stored in the collection                                  |
-| `options.idField`       |          | `keyof T`                        | `id`        | field to be used as the unique identifier for the items.                       |
-| `options.discriminator` |          | `string`                         | `undefined` | discriminator for the item when you mix different data types                   |
-| `options.passesFilter`  |          | `(data) => boolean \| undefined` | `undefined` | filter function that takes the data as first argument                          |
-| `getChildren`           |    ✓     | `(data: T) => Definition[]`      |             | function that returns an array of definitions that are contained in this group |
+|                         | Required | Type                                          | Default     |                                                                                |
+| ----------------------- | :------: | --------------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
+| `entries`               |    ✓     | `T[]`                                         |             | array of items to be stored in the collection                                  |
+| `options.getId`         |          | `keyof T` \| (data: T) => `string`\| `number` | `id`        | field or function to get a unique identifier for the item                      |
+| `options.getLabel`      |          | `keyof T` \| (data: T) => `string`            | `label`     | field or function to get a label for the item                                  |
+| `options.discriminator` |          | `string`                                      | `undefined` | discriminator for the item when you mix different data types                   |
+| `options.passesFilter`  |          | `(data) => boolean \| undefined`              | `undefined` | filter function that takes the data as first argument                          |
+| `getChildren`           |          | `(data: T) => Definition[]`                   |             | function that returns an array of definitions that are contained in this group |
 
 Let's take this `families` example:
 
@@ -179,22 +192,22 @@ Let's take this `families` example:
 const families = [
   {
     id: 'does',
-    name: 'The Does',
+    label: 'The Does',
     members: [
       {
         id: 'jd-1',
-        name: 'John Doe',
+        label: 'John Doe',
         age: 30,
         animals: [
           {
             id: 'jd-1-dog',
-            name: 'Rex',
+            label: 'Rex',
           },
         ],
       },
       {
         id: 'jd-2',
-        name: 'Jane Doe',
+        label: 'Jane Doe',
         age: 28,
         animals: [],
       },
@@ -202,31 +215,31 @@ const families = [
   },
   {
     id: 'smiths',
-    name: 'The Smiths',
+    label: 'The Smiths',
     members: [
       {
         id: 'js-1',
-        name: 'John Smith',
+        label: 'John Smith',
         age: 35,
         animals: [
           {
             id: 'js-1-cat',
-            name: 'Whiskers',
+            label: 'Whiskers',
           },
           {
             id: 'js-1-dog',
-            name: 'Fido',
+            label: 'Fido',
           },
         ],
       },
       {
         id: 'js-2',
-        name: 'Jane Smith',
+        label: 'Jane Smith',
         age: 33,
         animals: [
           {
             id: 'js-2-cat',
-            name: 'Mittens',
+            label: 'Mittens',
           },
         ],
       },
@@ -235,7 +248,7 @@ const families = [
 ]
 ```
 
-You can use the `defineCollection` helper:
+You can use the `defineCollection` helper this way:
 
 ```ts
 const definitions = defineCollection(families, family =>
@@ -249,18 +262,39 @@ This is the equivalent of the following code:
 const definitions = families.map(
   family =>
     new GroupDefinition(
-      family.id,
       family,
       family.members.map(
         person =>
           new GroupDefinition(
-            person.id,
             person,
-            person.animals.map(animal => new ItemDefinition(animal.id, animal))
+            person.animals.map(animal => new ItemDefinition(animal))
           )
       )
     )
 )
+```
+
+### `getId` and `getLabel`
+
+By default, ID will be retrieved from the `id` field and label from the `label` field.
+
+You can override this behavior by passing a function or a field name.
+
+```ts
+const items = [
+  { uuid: 'jd-1', name: 'John Doe' },
+  { uuid: 'jd-2', name: 'Jane Doe' },
+]
+
+const definitionsA = defineCollection(items, {
+  getId: 'uuid',
+  getLabel: 'name',
+})
+
+const definitionsB = defineCollection(items, {
+  getId: item => item.uuid,
+  getLabel: item => item.name,
+})
 ```
 
 ## `Leaf` and `Group` instances
@@ -270,6 +304,7 @@ const definitions = families.map(
 |                 |                             |                                                                   |
 | --------------- | --------------------------- | ----------------------------------------------------------------- |
 | `id`            | `string`                    | unique identifier across the whole collection of leafs and groups |
+| `label`         | `string`                    | the label of the item                                             |
 | `isGroup`       | `boolean`                   | `true`for `Group` instances, `false` for `Leaf` instances         |
 | `discriminator` | `string` \| `undefined`     | discriminator for the item when you mix different data types      |
 | `data`          | `T`                         | data stored in the item                                           |
@@ -334,14 +369,14 @@ Here are the rules to determine whether an item is visible or not.
 <template>
   <ul>
     <li v-for="family in items" :key="family.id">
-      <div class="label" @click="family.toggleExpand()">{{ family.isExpanded ? '↓' : '→' }} {{ family.data.name }}</div>
+      <div class="label" @click="family.toggleExpand()">{{ family.isExpanded ? '↓' : '→' }} {{ family.label }}</div>
       <ul v-if="family.isExpanded" class="persons">
         <li v-for="person in family.children" :key="person.id">
           <div class="label" @click="person.toggleExpand()">
-            {{ person.isExpanded ? '↓' : '→' }} {{ person.data.name }} ({{ person.data.age }})
+            {{ person.isExpanded ? '↓' : '→' }} {{ person.label }} ({{ person.data.age }})
           </div>
           <ul v-if="person.isExpanded" class="animals">
-            <li v-for="animal in person.children" :key="animal.id">{{ animal.data.name }}</li>
+            <li v-for="animal in person.children" :key="animal.id">{{ animal.label }}</li>
           </ul>
         </li>
       </ul>
@@ -385,7 +420,7 @@ Here are the rules to determine whether an item is visible or not.
         @mouseenter="family.activate()"
         @click="family.toggleChildrenSelect()"
       >
-        {{ family.data.name }}
+        {{ family.label }}
       </div>
       <ul class="persons">
         <li v-for="person in family.children" :key="person.id">
@@ -395,7 +430,7 @@ Here are the rules to determine whether an item is visible or not.
             @mouseenter="person.activate()"
             @click="person.toggleSelect()"
           >
-            {{ person.data.name }} ({{ person.data.age }})
+            {{ person.label }} ({{ person.data.age }})
           </div>
         </li>
       </ul>
@@ -449,13 +484,13 @@ Here are the rules to determine whether an item is visible or not.
   </div>
   <ul>
     <li v-for="family in items" :key="family.id">
-      <div :class="family.labelClasses">{{ family.data.name }}</div>
+      <div :class="family.labelClasses">{{ family.label }}</div>
       <ul class="sub">
         <li v-for="person in family.children" :key="person.id">
-          <div :class="person.labelClasses">{{ person.data.name }} ({{ person.data.age }})</div>
+          <div :class="person.labelClasses">{{ person.label }} ({{ person.data.age }})</div>
           <ul class="sub">
             <li v-for="animal in person.children" :key="animal.id">
-              <div :class="animal.labelClasses">{{ animal.data.name }}</div>
+              <div :class="animal.labelClasses">{{ animal.label }}</div>
             </li>
           </ul>
         </li>
@@ -467,7 +502,7 @@ Here are the rules to determine whether an item is visible or not.
 <script lang="ts" setup>
   const filter = ref<string>()
 
-  const predicate = ({ name }: { name: string }) => {
+  const predicate = ({ label }: { label: string }) => {
     const filterValue = filter.value?.trim().toLocaleLowerCase() ?? false
 
     return !filterValue ? undefined : name.toLocaleLowerCase().includes(filterValue)
