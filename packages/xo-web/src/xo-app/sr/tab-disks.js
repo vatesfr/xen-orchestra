@@ -32,6 +32,7 @@ import {
   exportVdi,
   importVdi,
   isVmRunning,
+  isSrIso,
   isSrShared,
   migrateVdi,
 } from 'xo'
@@ -361,7 +362,7 @@ export default class SrDisks extends Component {
         <MigrateVdiModalBody
           pool={this.props.sr.$pool}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate(vdis)}
-          isoSr={this.props.sr.SR_type === 'iso'}
+          isoSr={isSrIso(this.props.sr)}
         />
       ),
     }).then(({ sr }) => {
