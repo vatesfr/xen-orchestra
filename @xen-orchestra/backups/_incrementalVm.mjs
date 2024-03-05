@@ -33,7 +33,6 @@ export async function exportIncrementalVm(
     // Sets of UUIDs of VDIs that must be exported as full.
     fullVdisRequired = new Set(),
 
-    disableBaseTags = false,
     nbdConcurrency = 1,
     preferNbd,
   } = {}
@@ -73,7 +72,7 @@ export async function exportIncrementalVm(
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [TAG_BASE_DELTA]:baseVdi?.uuid,
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
@@ -132,12 +131,10 @@ export async function exportIncrementalVm(
       vm: {
         ...vm,
         other_config:
-          baseVm && !disableBaseTags
-            ? {
+          baseVm && {
                 ...vm.other_config,
                 [TAG_BASE_DELTA]: baseVm.uuid,
               }
-            : omit(vm.other_config, TAG_BASE_DELTA),
       },
     },
     'streams',
