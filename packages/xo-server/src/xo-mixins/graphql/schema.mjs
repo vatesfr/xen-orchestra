@@ -1,100 +1,162 @@
 // schema.js
-import { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLSchema, GraphQLList, GraphQLNonNull } from 'graphql'
+import {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLInt,
+  GraphQLBoolean,
+} from 'graphql'
 import { PubSub } from 'graphql-subscriptions'
+import * as CM from 'complex-matcher'
+import { every } from '@vates/predicates'
+import { ifDef } from '@xen-orchestra/defined'
+
 const pubsub = new PubSub()
 
-const HostType = new GraphQLObjectType({
-  name: 'Host',
-  fields: {
-    uuid: { type: GraphQLID },
-    name_label: { type: GraphQLString },
-    description: { type: GraphQLString },
-  },
-})
-
-const VmType = new GraphQLObjectType({
-  name: 'Vm',
-  fields: {
-    uuid: { type: GraphQLID },
-    name_label: { type: GraphQLString },
-    description: { type: GraphQLString },
-    host: {
-      type: HostType,
-      resolve(parent) {
-        return hosts.get(parent.host_uuid)
+const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
+export default class XapiGraphQlSchema {
+  #app
+  #query
+  #types
+  get query() {
+    return this.#query
+  }
+  get subscription() {
+    return new GraphQLObjectType({
+      name: 'RootSubscriptionType',
+      fields: {
+        vmUpdated: {
+          type: this.#types.VM,
+          args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
+          subscribe: (parent, { uuid }) => pubsub.asyncIterator(`VM_UPDATED_${uuid}`),
+          resolve: payload => payload,
+        },
       },
-    },
-  },
-})
-// Your in-memory collection of hosts
-const hosts = new Map()
+    })
+  }
+  constructor(app) {
+    this.#app = app
+    this.#makeTypes()
+    this.#makeQueries()
+  }
+  #resolveXapiObject(id) {
+    return this.#app.getObject(id)
+  }
 
-// Add some sample hosts
-hosts.set('host_uuid1', { uuid: 'host_uuid1', name_label: 'Host1', description: 'First host' })
-hosts.set('host_uuid2', { uuid: 'host_uuid2', name_label: 'Host2', description: 'Second host' })
-const vms = new Map()
+  #resolveXapiObjects(xapiType, { filter, limit, offset } = {}) {
+    return Object.values(
+      this.#app.getObjects({
+        filter: every(_ => _.type === xapiType, handleOptionalUserFilter(filter)),
+        limit: ifDef(limit, Number),
+        offset: ifDef(offset, Number),
+      })
+    )
+  }
 
-// Add some sample hosts
-vms.set('vm_uuid1', { uuid: 'vm_uuid1', host_uuid: 'host_uuid1', name_label: 'VM1', description: 'First VM' })
-vms.set('vm_uuid2', { uuid: 'vm_uuid2', host_uuid: 'host_uuid1', name_label: 'VM2', description: 'Second VM' })
-vms.set('vm_uuid3', { uuid: 'vm_uuid3', host_uuid: 'host_uuid2', name_label: 'VM3', description: 'third VM' })
+  #makeTypes() {
+    this.#types = {}
+    const self = this
 
-const RootQuery = new GraphQLObjectType({
-  name: 'RootQueryType',
-  fields: {
-    vm: {
-      type: VmType,
-      args: {
+    const standardCollectionArgs = {
+      limit: { type: GraphQLInt },
+      offset: { type: GraphQLInt },
+      filter: { type: GraphQLString },
+    }
+
+    this.#types.host = new GraphQLObjectType({
+      name: 'host',
+      fields: () => ({
         uuid: { type: GraphQLID },
         name_label: { type: GraphQLString },
-      },
-      resolve(parent, args) {
-        if (args.uuid) {
-          return vms.get(args.uuid)
-        } else if (args.name_label) {
-          return Array.from(vms.values()).find(vm => vm.name_label === args.name_label)
-        }
-        return null
-      },
-    },
-    vms: {
-      type: new GraphQLList(VmType),
-      resolve() {
-        return Array.from(vms.values())
-      },
-    },
-    host: {
-      type: HostType,
-      args: { uuid: { type: GraphQLID } },
-      resolve(parent, args) {
-        return hosts.get(args.uuid)
-      },
-    },
-  },
-})
-/*
-const RootMutation = new GraphQLObjectType({
-    name: 'RootMutationType',
-    fields: {
-        // Add mutations to update VMs if needed
-    },
-});
-*/
+        description: { type: GraphQLString },
+        vms: {
+          type: GraphQLList(self.#types.VM),
+          args: standardCollectionArgs,
+          resolve(parent, args) {
+            return self.#resolveXapiObjects('VM', args).filter(vm => vm.$container === parent.uuid)
+          },
+        },
+      }),
+    })
 
-const RootSubscription = new GraphQLObjectType({
-  name: 'RootSubscriptionType',
-  fields: {
-    vmUpdated: {
-      type: VmType,
-      args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
-      subscribe: (parent, { uuid }) => pubsub.asyncIterator(`VM_UPDATED_${uuid}`),
-      resolve: payload => payload,
-    },
-  },
-})
+    this.#types.VM = new GraphQLObjectType({
+      name: 'VM',
+      fields: () => ({
+        uuid: { type: GraphQLID },
+        name_label: { type: GraphQLString },
+        description: { type: GraphQLString },
+        power_state: { type: GraphQLString },
+        host: {
+          type: self.#types.host,
+          args: {
+            filter: { type: GraphQLString },
+          },
+          resolve(parent, args) {
+            return self.#app.getObject(parent.$container)
+          },
+        },
+        vbds: {
+          type: GraphQLList(self.#types.VBD),
+          args: standardCollectionArgs,
+          resolve(parent, args) {
+            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VM === parent.uuid)
+          },
+        },
+      }),
+    })
 
-export default new GraphQLSchema({
-  query: RootQuery,
-  //  mutation: RootMutation,
-  subscription: RootSubscription,
-})
+    this.#types.VBD = new GraphQLObjectType({
+      name: 'VBD',
+      fields: () => ({
+        attached: { type: GraphQLBoolean },
+        bootable: { type: GraphQLBoolean },
+        is_cd_drive: { type: GraphQLBoolean },
+        read_only: { type: GraphQLBoolean },
+        device: { type: GraphQLString },
+        position: { type: GraphQLString },
+        vm: {
+          type: self.#types.VM,
+          args: {
+            filter: { type: GraphQLString },
+          },
+          resolve(parent, args) {
+            return self.#app.getObject(parent.VM)
+          },
+        },
+      }),
+    })
+  }
+
+  #makeQueries() {
+    const self = this
+    const fields = {}
+    Object.entries(this.#types).forEach(([typeName, type]) => {
+      fields[typeName] = {
+        type,
+        args: {
+          id: { type: GraphQLID },
+        },
+        resolve(parent, args) {
+          return self.#resolveXapiObject(args.id)
+        },
+      }
+      fields[typeName + 's'] = {
+        type: new GraphQLList(type),
+        args: {
+          limit: { type: GraphQLInt },
+          offset: { type: GraphQLInt },
+          filter: { type: GraphQLString },
+        },
+        resolve(parent, args) {
+          return self.#resolveXapiObjects(typeName, args)
+        },
+      }
+    })
+    this.#query = new GraphQLObjectType({
+      name: 'XoQueryType',
+      fields,
+    })
+  }
+}
