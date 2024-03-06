@@ -125,6 +125,61 @@ export default class XapiGraphQlSchema {
             return self.#app.getObject(parent.VM)
           },
         },
+        vdi: {
+          type: self.#types.VDI,
+          args: {
+            filter: { type: GraphQLString },
+          },
+          resolve(parent, args) {
+            return self.#app.getObject(parent.VDI)
+          },
+        },
+      }),
+    })
+
+    this.#types.VDI = new GraphQLObjectType({
+      name: 'VDI',
+      fields: () => ({
+        uuid: { type: GraphQLID },
+        name_label: { type: GraphQLString },
+        description: { type: GraphQLString },
+        size: { type: GraphQLInt },
+        usage: { type: GraphQLInt },
+
+        vbds: {
+          type: GraphQLList(self.#types.VBD),
+          args: standardCollectionArgs,
+          resolve(parent, args) {
+            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VDI === parent.uuid)
+          },
+        },
+        sr: {
+          type: self.#types.SR,
+          args: {
+            filter: { type: GraphQLString },
+          },
+          resolve(parent, args) {
+            return self.#app.getObject(parent?.$SR)
+          },
+        },
+      }),
+    })
+    this.#types.SR = new GraphQLObjectType({
+      name: 'SR',
+      fields: () => ({
+        uuid: { type: GraphQLID },
+        name_label: { type: GraphQLString },
+        description: { type: GraphQLString },
+        size: { type: GraphQLInt },
+        usage: { type: GraphQLInt },
+
+        vdis: {
+          type: GraphQLList(self.#types.VDI),
+          args: standardCollectionArgs,
+          resolve(parent, args) {
+            return self.#resolveXapiObjects('VDI', args).filter(vdi => vdi.SR === parent.uuid)
+          },
+        },
       }),
     })
   }
