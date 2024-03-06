@@ -442,6 +442,15 @@ const TRANSFORMS = {
       startTime: metrics && toTimestamp(metrics.start_time),
       secureBoot: obj.platform.secureboot === 'true',
       suspendSr: link(obj, 'suspend_SR'),
+      supportsBios: (() => {
+        const vmRecommendations = obj.recommendations
+        const parsedRecommendations = parseXml(vmRecommendations)
+        const supportsBios = parsedRecommendations?.restrictions?.restriction.find(
+          restriction => restriction.field === 'supports-bios'
+        )?.value
+
+        return supportsBios === 'yes' ? true : supportsBios === 'no' ? false : undefined
+      })(),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
       VTPMs: link(obj, 'VTPMs'),
