@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Update UiCounter component (PR [#7438](https://github.com/vatesfr/xen-orchestra/pull/7438))
+
 ## **0.2.0** (2024-02-29)
 
 - Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
