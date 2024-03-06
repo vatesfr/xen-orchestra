@@ -8,6 +8,9 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM Creation] Automatically create a VTPM if the template requests it (Windows templates starting from XCP-ng 8.3) (PR [#7436](https://github.com/vatesfr/xen-orchestra/pull/7436))
+- [App] Implement the initial PWA manifest for the Xen Orchestra software (PR [#7334](https://github.com/vatesfr/xen-orchestra/pull/7334)).
+
+
 
 ### Bug fixes
 
@@ -36,5 +39,6 @@
 
 - xo-server minor
 - xo-web patch
+- xo-web minor
 
 <!--packages-end-->
