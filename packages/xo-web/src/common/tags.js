@@ -51,7 +51,7 @@ const Fragment = ({ children }) => <div style={INHERIT_STYLE}>{children}</div>
 
 class AdvancedTagCreation extends Component {
   state = {
-    tags: this.props.labels.map(tag => ({ id: tag, value: tag })),
+    tags: this.props.defaultTags.map(tag => ({ id: tag, value: tag })),
     tagConfigurations: this.props.tagConfigurations ?? {},
   }
 
@@ -188,7 +188,7 @@ export default class Tags extends Component {
         <AdvancedTagCreation
           isAdmin={this.props.isAdmin}
           tagConfigurations={this.props.configuredTags}
-          labels={this.props.labels}
+          defaultTags={this.props.labels}
         />
       ),
       icon: 'add',
