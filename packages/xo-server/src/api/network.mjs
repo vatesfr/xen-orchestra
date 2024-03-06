@@ -84,7 +84,7 @@ export async function set({
   await Promise.all([
     automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
-    mtu !== undefined && network.set_MTU(mtu),
+    mtu !== undefined && this.getXapi(network.uuid).network_setMtu(network, mtu),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
     nbd !== undefined &&
