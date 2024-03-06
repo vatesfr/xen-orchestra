@@ -74,6 +74,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 // ===================================================================
 
+export const isSrIso = sr => sr && sr.content_type === 'iso' && sr.size > 0
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
 export const isSrWritableOrIso = sr => sr && sr.size > 0
 export const isSrShared = sr => sr && sr.shared

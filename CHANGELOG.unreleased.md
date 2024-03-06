@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [ISO SR] During ISO migration, the destination SRs were not ISO SRs [#7392](https://github.com/vatesfr/xen-orchestra/issues/7392) (PR [#7431](https://github.com/vatesfr/xen-orchestra/pull/7431))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,5 +30,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
