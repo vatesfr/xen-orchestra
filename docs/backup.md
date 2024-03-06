@@ -12,7 +12,7 @@ Alternatively, here is a video recap on different backup capabilities:
 - [Full Replication](full_replication.md)
 - [Metadata Backups](metadata_backup.md)
 - [Incremental Replication](incremental_replication.md)
-- [File Level Restore](file_level_restore.md)
+- [File Level Restore](backups.md#file-level-restore)
 - [Mirror backup](mirror_backup.md)
 
 :::tip

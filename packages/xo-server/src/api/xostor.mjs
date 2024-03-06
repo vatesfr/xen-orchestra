@@ -103,7 +103,8 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
         if (error.code === 'LVM_ERROR(5)') {
           error.params = error.params.concat([
             "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
-            '[XO] This error can be triggered if one of the disks have children',
+            '[XO] This error can be triggered if at least one the disks has children.',
+            '[XO] This error can be triggered if at least one the disks has a file system.',
           ])
         }
         throw error
@@ -197,17 +198,21 @@ export const create = defer(async function (
 
     const boundInstallDependencies = installDependencies.bind(this)
     await asyncEach(hosts, host => boundInstallDependencies({ host }), { stopOnError: false })
+
+    const host = hosts[0]
+    const xapi = this.getXapi(host)
+
     const boundFormatDisks = formatDisks.bind(this)
     await asyncEach(
       hosts,
-      host => boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning }),
+      async host => {
+        await boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning })
+        $defer.onFailure(() => destroyVolumeGroup(xapi, host, true))
+      },
       {
         stopOnError: false,
       }
     )
-
-    const host = hosts[0]
-    const xapi = this.getXapi(host)
 
     const srUuid = await Task.run({ properties: { name: 'creation of the storage' } }, async () => {
       const srRef = await xapi.SR_create({
