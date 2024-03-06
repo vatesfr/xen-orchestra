@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM/Advanced] In VM Advanced tab, warn if bios and support_bios === 'no' (PR [#7442](https://github.com/vatesfr/xen-orchestra/pull/7442))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,6 +29,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-web minor
 
 <!--packages-end-->
