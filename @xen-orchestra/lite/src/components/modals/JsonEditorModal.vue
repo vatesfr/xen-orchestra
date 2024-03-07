@@ -6,7 +6,7 @@
       </template>
 
       <template #buttons>
-        <UiButton transparent @click="formatJson()">
+        <UiButton level="tertiary" @click="formatJson()">
           {{ $t('reformat') }}
         </UiButton>
         <ModalDeclineButton />
@@ -24,8 +24,8 @@ import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import { IK_MODAL } from '@/types/injection-keys'
+import UiButton from '@core/components/button/UiButton.vue'
 import { faCode } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
 

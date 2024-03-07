@@ -17,7 +17,7 @@
       <span class="slots">
         <FormInput v-model="slots" />
         <UiButton @click="slots = 'default'">Default</UiButton>
-        <UiButton outlined @click="slots = ''">Clear</UiButton>
+        <UiButton level="secondary" @click="slots = ''">Clear</UiButton>
       </span>
     </div>
 
@@ -35,9 +35,9 @@ import CodeHighlight from '@/components/CodeHighlight.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'

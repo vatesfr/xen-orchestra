@@ -35,7 +35,7 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" transparent @click="eventsLog = []"> Clear </UiButton>
+            <UiButton v-if="eventsLog.length > 0" level="tertiary" @click="eventsLog = []"> Clear </UiButton>
           </template>
         </UiCardTitle>
         <div class="events-log">
@@ -66,7 +66,6 @@ import StoryPropParams from '@/components/component-story/StoryPropParams.vue'
 import StorySettingParams from '@/components/component-story/StorySettingParams.vue'
 import StorySlotParams from '@/components/component-story/StorySlotParams.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiTab from '@/components/ui/UiTab.vue'
@@ -80,6 +79,7 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
+import UiButton from '@core/components/button/UiButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiCounter from '@core/components/UiCounter.vue'
