@@ -1689,17 +1689,16 @@ export const migrateVm = async (vm, host) => {
     return
   }
 
-  const { migrationNetwork, sr, targetHost } = params
+  const { sr, srRequired, targetHost } = params
 
   if (!targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
   }
 
-  // Workaround to prevent VM's VDIs from unexpectedly migrating to the default SR
-  // if migration network is defined, the SR is required.
-  if (migrationNetwork !== undefined && sr === undefined) {
+  if (srRequired && sr === undefined) {
     return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
+  delete params.srRequired
 
   try {
     await _call('vm.migrate', { vm: vm.id, ...params })
@@ -1733,6 +1732,11 @@ export const migrateVms = vms =>
     if (!params.targetHost) {
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
+
+    if (params.srRequired && params.sr === undefined) {
+      return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+    }
+    delete params.srRequired
 
     const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, sr, targetHost, vms } = params
     Promise.all(

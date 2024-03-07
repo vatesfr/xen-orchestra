@@ -2062,6 +2062,7 @@ const messages = {
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
   ignoreVdi: 'Ignore this VDI',
+  selectDestinationSr: 'Select a destination SR',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',

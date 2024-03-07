@@ -495,16 +495,36 @@ export default class Xapi extends XapiBase {
       bypassAssert = false,
     }
   ) {
+    const srRef = sr !== undefined ? hostXapi.getObject(sr).$ref : undefined
     const getDefaultSrRef = once(() => {
-      if (sr !== undefined) {
-        return hostXapi.getObject(sr).$ref
-      }
       const defaultSr = host.$pool.$default_SR
       if (defaultSr === undefined) {
         throw new Error(`This operation requires a default SR to be set on the pool ${host.$pool.name_label}`)
       }
       return defaultSr.$ref
     })
+
+    // VDIs/SRs mapping
+    // For VDI:
+    // - If a map of VDI -> SR was explicitly passed: use it
+    // - Else if SR was explicitly passed: use it
+    // - Else if VDI SR is reachable from the destination host: use it
+    // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
+    function getMigrationSrRef(vdi) {
+      if (mapVdisSrs[vdi.$id] !== undefined) {
+        return hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+      }
+
+      if (srRef !== undefined) {
+        return srRef
+      }
+
+      if (isSrConnected(vdi.$SR)) {
+        return vdi.$SR.$ref
+      }
+
+      return getDefaultSrRef()
+    }
 
     const hostPbds = new Set(host.PBDs)
     const connectedSrs = new Map()
@@ -518,10 +538,6 @@ export default class Xapi extends XapiBase {
     }
 
     // VDIs/SRs mapping
-    // For VDI:
-    // - If SR was explicitly passed: use it
-    // - Else if VDI SR is reachable from the destination host: use it
-    // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
     // For VDI-snapshot:
     // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
     // - Else: don't add it to the map (VDI -> SR). It will be managed by the XAPI (snapshot will be migrated to the same SR as its parent active VDI)
@@ -534,12 +550,7 @@ export default class Xapi extends XapiBase {
         if (vdi.$snapshot_of !== undefined) {
           continue
         }
-        vdis[vdi.$ref] =
-          mapVdisSrs[vdi.$id] !== undefined
-            ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : isSrConnected(vdi.$SR)
-              ? vdi.$SR.$ref
-              : getDefaultSrRef()
+        vdis[vdi.$ref] = getMigrationSrRef(vdi)
       }
     }
 
