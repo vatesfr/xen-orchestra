@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM/Console] In VM Console tab, didplay zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,6 +29,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-web minor
 
 <!--packages-end-->

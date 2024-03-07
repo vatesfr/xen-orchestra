@@ -241,6 +241,7 @@ export default class TabConsole extends Component {
             <input
               className='input-group'
               onChange={this._onChangeScaleValue}
+              step='1'
               type='number'
               value={this.state.scale * 100}
             />
