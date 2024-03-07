@@ -117,6 +117,11 @@ export default class TabConsole extends Component {
     window.location = `rdp://${formatHostname(this.props.vm.mainIpAddress)}`
   }
 
+  _onChangeScaleValue = event => {
+    const value = event.target.value
+    this.setState({ scale: value / 100 })
+  }
+
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
@@ -230,6 +235,14 @@ export default class TabConsole extends Component {
               step={0.1}
               type='range'
               value={scale}
+            />
+          </Col>
+          <Col mediumSize={1}>
+            <input
+              className='input-group'
+              onChange={this._onChangeScaleValue}
+              type='number'
+              value={this.state.scale * 100}
             />
           </Col>
           <Col mediumSize={1}>
