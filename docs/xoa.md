@@ -172,14 +172,14 @@ If you want to go back in DHCP, just run `xoa network dhcp`
 
 ### Other interfaces
 
-If you need to configure other interfaces than `eth0`, you can use the same commands with the name of the interface to configure as supplementary argument:
+If you need to configure other interfaces than the default one, you can use the same commands with the name of the interface to configure as supplementary argument:
 
 ```console
-$ xoa network static eth1
+$ xoa network static enX1
 ? Static IP for this machine 192.168.100.120
 ? Network mask (eg 255.255.255.0) 255.255.255.0
 
-$ xoa network dhcp eth1
+$ xoa network dhcp enX1
 ```
 
 ## Firewall
