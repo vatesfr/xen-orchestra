@@ -5,7 +5,7 @@
       iconProp('icon'),
       prop('arrow').bool().widget(),
       prop('info').str().widget(),
-      colorProp(),
+      colorProp().default(undefined),
       prop('disabled').bool().widget(),
       prop('selected').bool().widget(),
       slot(),
