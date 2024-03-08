@@ -42,7 +42,7 @@ export default class XapiGraphQlSchema {
     this.#makeQueries()
   }
   #resolveXapiObject(id) {
-    return this.#app.getObject(id)
+    return { ...this.#app.getObject(id), timestamp: Math.round(Date.now() / 1000) }
   }
 
   #resolveXapiObjects(xapiType, { filter, limit, offset } = {}) {
@@ -52,7 +52,7 @@ export default class XapiGraphQlSchema {
         limit: ifDef(limit, Number),
         offset: ifDef(offset, Number),
       })
-    )
+    ).map(o => ({ ...o, timestamp: Math.round(Date.now() / 1000) }))
   }
 
   #makeTypes() {
@@ -71,6 +71,7 @@ export default class XapiGraphQlSchema {
         uuid: { type: GraphQLID },
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
+        timestamp: { type: GraphQLInt },
         vms: {
           type: GraphQLList(self.#types.VM),
           args: standardCollectionArgs,
@@ -88,13 +89,14 @@ export default class XapiGraphQlSchema {
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
         power_state: { type: GraphQLString },
+        timestamp: { type: GraphQLInt },
         host: {
           type: self.#types.host,
           args: {
             filter: { type: GraphQLString },
           },
           resolve(parent, args) {
-            return self.#app.getObject(parent.$container)
+            return self.#resolveXapiObject(parent.$container)
           },
         },
         vbds: {
@@ -116,13 +118,14 @@ export default class XapiGraphQlSchema {
         read_only: { type: GraphQLBoolean },
         device: { type: GraphQLString },
         position: { type: GraphQLString },
+        timestamp: { type: GraphQLInt },
         vm: {
           type: self.#types.VM,
           args: {
             filter: { type: GraphQLString },
           },
           resolve(parent, args) {
-            return self.#app.getObject(parent.VM)
+            return self.#resolveXapiObject(parent.VM)
           },
         },
         vdi: {
@@ -131,7 +134,7 @@ export default class XapiGraphQlSchema {
             filter: { type: GraphQLString },
           },
           resolve(parent, args) {
-            return self.#app.getObject(parent.VDI)
+            return self.#resolveXapiObject(parent.VDI)
           },
         },
       }),
@@ -145,6 +148,7 @@ export default class XapiGraphQlSchema {
         description: { type: GraphQLString },
         size: { type: GraphQLInt },
         usage: { type: GraphQLInt },
+        timestamp: { type: GraphQLInt },
 
         vbds: {
           type: GraphQLList(self.#types.VBD),
@@ -159,7 +163,7 @@ export default class XapiGraphQlSchema {
             filter: { type: GraphQLString },
           },
           resolve(parent, args) {
-            return self.#app.getObject(parent?.$SR)
+            return self.#resolveXapiObject(parent?.$SR)
           },
         },
       }),
@@ -172,6 +176,7 @@ export default class XapiGraphQlSchema {
         description: { type: GraphQLString },
         size: { type: GraphQLInt },
         usage: { type: GraphQLInt },
+        timestamp: { type: GraphQLInt },
 
         vdis: {
           type: GraphQLList(self.#types.VDI),
