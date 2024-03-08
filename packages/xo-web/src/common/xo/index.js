@@ -1263,6 +1263,20 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 }
 
+export const pcisHide = async (pcis, hide) => {
+  try {
+    await confirm({
+      body: _('applyChangeOnPcis', { nPcis: pcis.length }),
+      title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length })
+    })
+  } catch (error) {
+    return
+  }
+  return _call('pci.hide', { pcis: resolveIds(pcis), hide })
+}
+
+export const isPciHidden = (pci) => _call('pci.isHidden', { id: resolveId(pci) })
+
 // Containers --------------------------------------------------------
 
 export const pauseContainer = (vm, container) => _call('docker.pause', { vm: resolveId(vm), container })

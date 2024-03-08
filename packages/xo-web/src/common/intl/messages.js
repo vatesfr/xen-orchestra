@@ -1081,6 +1081,9 @@ const messages = {
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   vendorId: 'Vendor ID',
+  pcisEnable: 'PCI{nPcis, plural, one {} other {s}} enable',
+  pcisDisable: 'PCI{nPcis, plural, one {} other {s}} disable',
+  applyChangeOnPcis: 'This operation will reboot the host in order to apply change on the PCI{nPcis, plural, one {} other {s}}. Are you sure you want to continue?',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',

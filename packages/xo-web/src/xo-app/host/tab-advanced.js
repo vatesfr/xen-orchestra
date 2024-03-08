@@ -31,8 +31,10 @@ import {
   enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
+  pcisHide,
   installSupplementalPack,
   isHyperThreadingEnabledHost,
+  isPciHidden,
   isNetDataInstalledOnHost,
   getPlugin,
   getSmartctlHealth,
@@ -76,6 +78,55 @@ const PUSBS_COLUMNS = [
     },
   },
 ]
+const PCIS_COLUMNS = [
+  {
+    name: _('id'),
+    itemRenderer: pci => {
+      const { uuid } = pci
+      return <Copiable data={uuid} tagName='p'>
+        {uuid.slice(4, 8)}
+      </Copiable>
+    },
+  },
+  {
+    name: 'PCI ID',
+    itemRenderer: pci => pci.pci_id,
+    sortCriteria: pci => pci.pci_id,
+    default: true
+  },
+  {
+    name: 'Class Name', itemRenderer: pci => pci.class_name, sortCriteria: pci => pci.class_name
+  },
+  {
+    name: 'Device Name', itemRenderer: pci => pci.device_name, sortCriteria: pci => pci.device_name
+  },
+  {
+    name: 'Enabled',
+    itemRenderer: (pci, { isPciHiddenById, isPciPassthroughAvailable }) => {
+      if (isPciHiddenById === undefined) {
+        return <Icon icon='loading' />
+      }
+      const isHidden = isPciHiddenById[pci.id]
+      const _pcisHide = value => pcisHide([pci], value)
+      return <Tooltip content={isPciPassthroughAvailable ? undefined : 'Only available for XCP-ng 8.3.0 or highter'}><Toggle value={isHidden} onChange={_pcisHide} disabled={!isPciPassthroughAvailable} /></Tooltip>
+    },
+    sortCriteria: (pci, { isPciHiddenById }) => isPciHiddenById?.[pci.id]
+  }
+]
+const PCIS_ACTIONS = [
+  {
+    handler: (pcis) => pcisHide(pcis, false),
+    icon: 'toggle-off',
+    label: 'Disable',
+    level: 'primary'
+  },
+  {
+    handler: (pcis) => pcisHide(pcis, true),
+    icon: 'toggle-on',
+    label: 'Enable',
+    level: 'primary'
+  }
+]
 
 const SCHED_GRAN_TYPE_OPTIONS = [
   {
@@ -104,7 +155,7 @@ const forceReboot = host => restartHost(host, true)
 
 const smartReboot = ALLOW_SMART_REBOOT
   ? host => restartHost(host, false, true, false, false) // don't force, suspend resident VMs, don't bypass blocked suspend, don't bypass current VM check
-  : () => {}
+  : () => { }
 
 const formatPack = ({ name, author, description, version }, key) => (
   <tr key={key}>
@@ -181,7 +232,11 @@ MultipathableSrs.propTypes = {
     .pick((_, { host }) => host.$PGPUs)
     .sort()
 
-  const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
+  const getPcis = createGetObjectsOfType('PCI').filter(
+    (_, { host }) =>
+      pci =>
+        pci.$host === host.id
+  )
 
   const getPusbs = createGetObjectsOfType('PUSB').filter(
     (_, { host }) =>
@@ -208,7 +263,7 @@ export default class extends Component {
       })
     }
 
-    const smartctlHealth = await getSmartctlHealth(host)
+    const smartctlHealth = await getSmartctlHealth(host).catch(console.error)
     const isSmartctlHealthEnabled = smartctlHealth !== null
     const smartctlUnhealthyDevices = isSmartctlHealthEnabled
       ? Object.keys(smartctlHealth).filter(deviceName => smartctlHealth[deviceName] !== 'PASSED')
@@ -223,11 +278,21 @@ export default class extends Component {
       }))
     }
 
+    const isPciPassthroughAvailable = host.version === '8.3.0' // do it with semver
+    const isPciHiddenById = {}
+    if (isPciPassthroughAvailable) {
+      await Promise.all(Object.keys(this.props.pcis).map(async id =>
+        isPciHiddenById[id] = await isPciHidden(id).catch(console.error)
+      ))
+    }
+
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(host).catch(() => null),
       isSmartctlHealthEnabled,
       smartctlUnhealthyDevices,
       unhealthyDevicesAlerts,
+      isPciHiddenById,
+      isPciPassthroughAvailable
     })
   }
 
@@ -596,6 +661,8 @@ export default class extends Component {
             <h3>{_('pusbDevices')}</h3>
             <SortedTable collection={pusbs} columns={PUSBS_COLUMNS} />
             <br />
+            <h3>PCI Devices</h3>
+            <SortedTable groupedActions={PCIS_ACTIONS} collection={pcis} columns={PCIS_COLUMNS} data-isPciHiddenById={this.state.isPciHiddenById} data-isPciPassthroughAvailable={this.state.isPciPassthroughAvailable} />
             <h3>{_('licenseHostSettingsLabel')}</h3>
             <table className='table'>
               <tbody>
