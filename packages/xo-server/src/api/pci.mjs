@@ -1,18 +1,43 @@
+import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
 
-export const set = defer(async function ($defer, { pci, hide }) {
-  const xapi = this.getXapi(pci)
+export const hide = defer(async function ($defer, { pcis, hide }) {
+  await this.checkPermissions(pcis.map(id => [id, 'administrate']))
 
-  if (hide !== undefined) {
-    await xapi.call(`PCI.${hide ? 'hide' : 'unhide'}`, pci._xapiRef)
-    $defer.onFailure(() => xapi.call(`PCI.${!hide ? 'hide' : 'unhide'}`, pci._xapiRef))
-    await xapi.rebootHost(pci.$host)
+  const _pcis = pcis.map(id => this.getObject(id, 'PCI'))
+  if (!_pcis.every(pci => pci.$host === _pcis[0].$host)) {
+    // For the changes to take effect, the host must reboot.
+    // By only allowing PCIs within the same host, this avoids having to manage the restart of multiple hosts and its priority.
+    throw new Error('All PCIs must be in the same host')
   }
+  const xapi = this.getXapi(_pcis[0])
+  const getMethod = hide => `PCI.${hide ? 'hide' : 'unhide'}`
+
+  await asyncEach(
+    _pcis,
+    async pci => {
+      await xapi.call(getMethod(hide), pci._xapiRef)
+      $defer.onFailure(() => xapi.call(getMethod(!hide), pci._xapiRef))
+    },
+    {
+      stopOnError: false,
+    }
+  )
+
+  await xapi.rebootHost(_pcis[0].$host)
 })
-set.params = {
-  id: { type: 'string' },
-  hide: { type: 'boolean', optional: true },
+
+hide.params = {
+  pcis: { type: 'array', items: { type: 'string' } },
+  hide: { type: 'boolean' },
 }
-set.resolve = {
-  pci: ['id', 'PCI', 'administrate'],
+
+export function isHidden({ pci }) {
+  return this.getXapi(pci).call('PCI.is_hidden', pci._xapiRef)
+}
+isHidden.params = {
+  id: { type: 'string' },
+}
+isHidden.resolve = {
+  pci: ['id', 'PCI', 'view'],
 }
