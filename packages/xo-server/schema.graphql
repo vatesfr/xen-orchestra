@@ -1,0 +1,86 @@
+schema {
+  query: XoQueryType
+  subscription: RootSubscriptionType
+}
+
+type XoQueryType {
+  host(id: ID): host
+  hosts(limit: Int, offset: Int, filter: String): [host]
+  vm(id: ID): VM
+  vms(limit: Int, offset: Int, filter: String): [VM]
+  vbd(id: ID): VBD
+  vbds(limit: Int, offset: Int, filter: String): [VBD]
+  vdi(id: ID): VDI
+  vdis(limit: Int, offset: Int, filter: String): [VDI]
+  sr(id: ID): SR
+  srs(limit: Int, offset: Int, filter: String): [SR]
+}
+
+type host {
+  uuid: ID
+  name_label: String
+  description: String
+  timestamp: Int
+  vms(limit: Int, offset: Int, filter: String): [VM]
+}
+
+type VM {
+  uuid: ID
+  name_label: String
+  description: String
+  power_state: String
+  timestamp: Int
+  host(filter: String): host
+  vbds(limit: Int, offset: Int, filter: String): [VBD]
+}
+
+type VBD {
+  attached: Boolean
+  bootable: Boolean
+  is_cd_drive: Boolean
+  read_only: Boolean
+  device: String
+  position: String
+  timestamp: Int
+  vm(filter: String): VM
+  vdi(filter: String): VDI
+}
+
+type VDI {
+  uuid: ID
+  name_label: String
+  description: String
+  size: Int
+  usage: Int
+  timestamp: Int
+  vbds(limit: Int, offset: Int, filter: String): [VBD]
+  sr(filter: String): SR
+}
+
+type SR {
+  uuid: ID
+  name_label: String
+  description: String
+  size: Int
+  usage: Int
+  timestamp: Int
+  vdis(limit: Int, offset: Int, filter: String): [VDI]
+}
+
+type RootSubscriptionType {
+  hostUpdated(uuid: ID!): host
+  hostRemoved(uuid: ID!): host
+  hostAdded: host
+  vmUpdated(uuid: ID!): VM
+  vmRemoved(uuid: ID!): VM
+  vmAdded: VM
+  vbdUpdated(uuid: ID!): VBD
+  vbdRemoved(uuid: ID!): VBD
+  vbdAdded: VBD
+  vdiUpdated(uuid: ID!): VDI
+  vdiRemoved(uuid: ID!): VDI
+  vdiAdded: VDI
+  srUpdated(uuid: ID!): SR
+  srRemoved(uuid: ID!): SR
+  srAdded: SR
+}

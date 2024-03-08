@@ -16,30 +16,38 @@ import { ifDef } from '@xen-orchestra/defined'
 const pubsub = new PubSub()
 
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
+
 export default class XapiGraphQlSchema {
   #app
   #query
+  #subscription
   #types
   get query() {
     return this.#query
   }
   get subscription() {
-    return new GraphQLObjectType({
-      name: 'RootSubscriptionType',
-      fields: {
-        vmUpdated: {
-          type: this.#types.VM,
-          args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
-          subscribe: (parent, { uuid }) => pubsub.asyncIterator(`VM_UPDATED_${uuid}`),
-          resolve: payload => payload,
-        },
-      },
-    })
+    return this.#subscription
   }
   constructor(app) {
     this.#app = app
+    app.objects.on('add', items => {
+      Object.values(items).forEach(item => {
+        pubsub.publish(`${item.type.toUpperCase()}s_ADDED`, item)
+      })
+    })
+    app.objects.on('update', items => {
+      Object.values(items).forEach(item => {
+        pubsub.publish(`${item.type.toUpperCase()}_UPDATED_${item.uuid}`, item)
+      })
+    })
+    app.objects.on('remove', items => {
+      Object.keys(items).forEach(uuid => {
+        pubsub.publish(`REMOVED_${uuid}`, { uuid })
+      })
+    })
     this.#makeTypes()
     this.#makeQueries()
+    this.#makeSubscription()
   }
   #resolveXapiObject(id) {
     return { ...this.#app.getObject(id), timestamp: Math.round(Date.now() / 1000) }
@@ -193,7 +201,7 @@ export default class XapiGraphQlSchema {
     const self = this
     const fields = {}
     Object.entries(this.#types).forEach(([typeName, type]) => {
-      fields[typeName] = {
+      fields[typeName.toLocaleLowerCase()] = {
         type,
         args: {
           id: { type: GraphQLID },
@@ -202,7 +210,7 @@ export default class XapiGraphQlSchema {
           return self.#resolveXapiObject(args.id)
         },
       }
-      fields[typeName + 's'] = {
+      fields[typeName.toLocaleLowerCase() + 's'] = {
         type: new GraphQLList(type),
         args: {
           limit: { type: GraphQLInt },
@@ -216,6 +224,39 @@ export default class XapiGraphQlSchema {
     })
     this.#query = new GraphQLObjectType({
       name: 'XoQueryType',
+      fields,
+    })
+  }
+
+  #makeSubscription() {
+    const fields = {}
+    Object.entries(this.#types).forEach(([typeName, type]) => {
+      fields[`${typeName.toLocaleLowerCase()}Updated`] = {
+        type,
+        args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
+        subscribe: (parent, { uuid }) => {
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED_${uuid}`)
+        },
+        resolve: payload => payload,
+      }
+      fields[`${typeName.toLocaleLowerCase()}Removed`] = {
+        type,
+        args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
+        subscribe: (parent, { uuid }) => {
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED_${uuid}`)
+        },
+        resolve: payload => payload,
+      }
+      fields[typeName.toLocaleLowerCase() + 'Added'] = {
+        type: type,
+        subscribe(parent, args) {
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_ADDED`)
+        },
+        resolve: payload => payload,
+      }
+    })
+    this.#subscription = new GraphQLObjectType({
+      name: 'RootSubscriptionType',
       fields,
     })
   }
