@@ -45,28 +45,81 @@ code readability and facilitate code folding.
 
 ## Explicit variants
 
-Aim to define all variants explicitly, including the default one.
+When possible, define all variants explicitly, including the default one.
 
 This approach ensures that the CSS is more intelligible, simpler to maintain, and easier to troubleshoot.
 
 ❌ **Bad**
 
 ```postcss
-.success {
-  --color: var(--color-green-base);
+/* COLOR VARIANTS */
+.my-component {
+  .success {
+    --color: var(--color-green-base);
+  }
 }
 
-.small {
-  --font-size: 1rem;
-}
+/* SIZE VARIANTS */
+.my-component {
+  .small {
+    --font-size: 1rem;
+  }
 
-.large {
-  --font-size: 2.4rem;
+  .large {
+    --font-size: 2.4rem;
+  }
 }
 
 .my-component {
   color: var(--color, var(--color-purple-base));
   font-size: var(--font-size, 1.6rem);
+}
+```
+
+If you need a default property when no specific class is applied, define it at the top of the selector.
+
+✅ **Good**
+
+```postcss
+/* COLOR VARIANTS */
+.my-component {
+  --color: var(--color-purple-base);
+
+  &.free {
+    --color: var(--color-green-base);
+  }
+}
+
+/* IMPLEMENTATION */
+.my-component {
+  color: var(--color);
+}
+```
+
+When dealing with multiple default properties, or nested variants, you can group them in a `& {}` block to
+enhance readability.
+
+✅ **Good**
+
+```postcss
+/* COLOR VARIANTS */
+.my-component {
+  & {
+    --color: var(--color-purple-base);
+    --background-color: var(--background-color-purple-10);
+    --border-color: var(--color-purple-d20);
+  }
+
+  &.free {
+    --color: var(--color-greeb-base);
+    --background-color: var(--background-color-greeb-10);
+    --border-color: var(--color-greeb-d20);
+  }
+}
+
+/* IMPLEMENTATION */
+.my-component {
+  color: var(--color);
 }
 ```
 
