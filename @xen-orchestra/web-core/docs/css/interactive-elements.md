@@ -14,24 +14,19 @@ applicable) in the following order:
 .my-component {
   /* color: ...; */
 
-  &.active,
-  &.selected {
+  &:is(.active, .selected) {
     /* color: ...; */
   }
 
-  &:hover,
-  &.hover,
-  &:focus-visible {
+  &:is(:hover, .hover, :focus-visible) {
     /* color: ...; */
   }
 
-  &:active,
-  &.pressed {
+  &:is(:active, .pressed) {
     /* color: ...; */
   }
 
-  &:disabled,
-  &.disabled {
+  &:is(:disabled, .disabled) {
     /* color: ...; */
   }
 }
