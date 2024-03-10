@@ -106,7 +106,7 @@ class TaskWarning extends React.Component {
         <span className={className} onClick={() => this.setState({ expanded: !this.state.expanded })}>
           <Icon icon='alarm' /> {this.props.message}
         </span>
-        {this.state.expanded && (
+        {this.state.expanded && this.props.data && (
           <ul className='task-warning'>
             {Object.keys(this.props.data).map(key => (
               <li key={key}>
