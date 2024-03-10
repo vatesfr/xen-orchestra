@@ -8,7 +8,7 @@ import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
 import { SelectResourceSetsSr, SelectSr as SelectAnySr } from 'select-objects'
 
-import { isSrShared, isSrWritable } from '../'
+import { isSrIso, isSrShared, isSrWritable } from '../'
 
 const compareSrs = createCompare([isSrShared])
 
@@ -33,7 +33,8 @@ export default class MigrateVdiModalBody extends Component {
 
   _getSrPredicate = createSelector(
     () => this.props.pool,
-    pool => sr => isSrWritable(sr) && sr.$pool === pool
+    () => this.props.isoSr,
+    (pool, isoSr) => sr => (isoSr ? isSrIso(sr) : isSrWritable(sr)) && sr.$pool === pool
   )
 
   render() {

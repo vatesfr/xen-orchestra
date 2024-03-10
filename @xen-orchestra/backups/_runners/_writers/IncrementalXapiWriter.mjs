@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { formatDateTime } from '@xen-orchestra/xapi'
@@ -14,6 +15,7 @@ import find from 'lodash/find.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
+    assert.notStrictEqual(baseVm, undefined)
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).find(
       vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
@@ -36,7 +38,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       }
     }
   }
-
+  updateUuidAndChain() {
+    // nothing to do, the chaining is not modified in this case
+  }
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({

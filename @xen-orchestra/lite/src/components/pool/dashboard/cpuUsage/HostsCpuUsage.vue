@@ -7,7 +7,7 @@
   <NoDataError v-if="hasError" />
   <UiCardSpinner v-else-if="isLoading" />
   <NoResult v-else-if="isStatEmpty" />
-  <UsageBar v-else :data="data" :n-items="N_ITEMS" />
+  <UsageBar v-else :data :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>

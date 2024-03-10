@@ -10,7 +10,7 @@
     class="ui-action-button"
     type="button"
   >
-    <UiIcon :busy="busy" :icon="icon" />
+    <UiIcon :busy :icon />
     <slot />
   </button>
 </template>

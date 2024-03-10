@@ -2,7 +2,7 @@
   <RouterLink :to="{ name: 'story' }">
     <UiTitle type="h4">Stories</UiTitle>
   </RouterLink>
-  <StoryMenuTree :tree="tree" :opened-directories="openedDirectories" @toggle-directory="toggleDirectory" />
+  <StoryMenuTree :tree :opened-directories="openedDirectories" @toggle-directory="toggleDirectory" />
 </template>
 
 <script lang="ts" setup>

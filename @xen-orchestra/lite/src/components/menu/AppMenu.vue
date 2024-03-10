@@ -1,5 +1,5 @@
 <template>
-  <slot :is-open="isOpen" :open="open" name="trigger" />
+  <slot :is-open="isOpen" :open name="trigger" />
   <Teleport to="body" :disabled="!shouldTeleport">
     <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="app-menu" v-bind="$attrs">
       <slot />

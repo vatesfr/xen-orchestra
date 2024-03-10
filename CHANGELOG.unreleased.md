@@ -7,16 +7,16 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Disable search engine indexing via a `robots.txt`
-- [Stats] Support format used by XAPI 23.31
+- [VM Creation] Automatically create a VTPM if the template requests it (Windows templates starting from XCP-ng 8.3) (PR [#7436](https://github.com/vatesfr/xen-orchestra/pull/7436))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Settings/XO Config] Sort backups from newest to oldest
-- [Plugins/audit] Don't log `tag.getAllConfigured` calls
-- [Remotes] Correctly clear error when the remote is tested with success
+- [ISO SR] During ISO migration, the destination SRs were not ISO SRs [#7392](https://github.com/vatesfr/xen-orchestra/issues/7392) (PR [#7431](https://github.com/vatesfr/xen-orchestra/pull/7431))
+- [VM/Migration] Fix VDIs that were not migrated to the destination SR (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
+- [Home/VM] VMs migration from the home view will no longer execute a [Migration with Storage Motion](https://github.com/vatesfr/xen-orchestra/blob/master/docs/manage_infrastructure.md#vm-migration-with-storage-motion-vmmigrate_send) unless it is necessary [Forum#8279](https://xcp-ng.org/forum/topic/8279/getting-errors-when-migrating-4-out-5-vmguest/)(PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
+- [VM/Migration] SR is no longer required if you select a migration network (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
 
 ### Packages to release
 
@@ -34,12 +34,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs patch
-- @xen-orchestra/xapi patch
-- vhd-lib patch
 - xo-server minor
-- xo-server-audit patch
 - xo-web patch
 
 <!--packages-end-->

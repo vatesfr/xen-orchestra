@@ -3,7 +3,7 @@
     <fieldset class="fieldset">
       <legend class="legend" @click="toggleCollapse">
         {{ label }}
-        <UiIcon :icon="icon" class="collapse-icon" />
+        <UiIcon :icon class="collapse-icon" />
       </legend>
       <div v-if="!isCollapsed" class="content">
         <slot />

@@ -191,13 +191,14 @@ export class RemoteAdapter {
   // check if we will be allowed to merge a a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(openVhd(this.handler, path), vhd => {
+    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
       // this baseUuid is not linked with this vhd
       if (!vhd.footer.uuid.equals(packedParentUid)) {
         return false
       }
 
-      const isVhdDirectory = vhd instanceof VhdDirectory
+      // check if all the chain is composed of vhd directory
+      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
       return isVhdDirectory
         ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
         : !this.useVhdDirectory()

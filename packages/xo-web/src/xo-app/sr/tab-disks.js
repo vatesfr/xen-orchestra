@@ -12,7 +12,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import renderXoItem, { Vdi } from 'render-xo-item'
+import renderXoItem, { Vdi, Vm } from 'render-xo-item'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
@@ -32,6 +32,7 @@ import {
   exportVdi,
   importVdi,
   isVmRunning,
+  isSrIso,
   isSrShared,
   migrateVdi,
 } from 'xo'
@@ -123,67 +124,73 @@ const COLUMNS = [
         vms: getAllVms(state, props),
         vbds: getVbds(state, props),
       })
-    })(({ vbds, vms }) => {
-      if (isEmpty(vms)) {
-        return null
-      }
+    })(({ item: vdi, vbds, vms, userData: { vmSnapshotsBySuspendVdi } }) => {
+      const vmSnapshot = vmSnapshotsBySuspendVdi[vdi.uuid]?.[0]
 
       return (
         <Container>
-          {map(vbds, (vbd, index) => {
-            const vm = vms[vbd.VM]
+          {vmSnapshot === undefined ? (
+            map(vbds, (vbd, index) => {
+              const vm = vms[vbd.VM]
 
-            if (vm === undefined) {
-              return null
-            }
+              if (vm === undefined) {
+                return null
+              }
 
-            const type = vm.type
-            let link
-            if (type === 'VM') {
-              link = `/vms/${vm.id}`
-            } else if (type === 'VM-template') {
-              link = `/home?s=${vm.id}&t=VM-template`
-            } else {
-              link = vm.$snapshot_of === undefined ? '/dashboard/health' : `/vms/${vm.$snapshot_of}/snapshots`
-            }
+              const type = vm.type
+              let link
+              if (type === 'VM') {
+                link = `/vms/${vm.id}`
+              } else if (type === 'VM-template') {
+                link = `/home?s=${vm.id}&t=VM-template`
+              } else {
+                link = vm.$snapshot_of === undefined ? '/dashboard/health' : `/vms/${vm.$snapshot_of}/snapshots`
+              }
 
-            return (
-              <Row className={index > 0 && 'mt-1'}>
-                <Col mediumSize={8}>
-                  <Link to={link}>{renderXoItem(vm)}</Link>
-                </Col>
-                <Col mediumSize={4}>
-                  <ButtonGroup>
-                    {vbd.attached ? (
+              return (
+                <Row className={index > 0 && 'mt-1'}>
+                  <Col mediumSize={8}>
+                    <Link to={link}>{renderXoItem(vm)}</Link>
+                  </Col>
+                  <Col mediumSize={4}>
+                    <ButtonGroup>
+                      {vbd.attached ? (
+                        <ActionRowButton
+                          btnStyle='danger'
+                          handler={disconnectVbd}
+                          handlerParam={vbd}
+                          icon='disconnect'
+                          tooltip={_('vbdDisconnect')}
+                        />
+                      ) : (
+                        <ActionRowButton
+                          btnStyle='primary'
+                          disabled={some(vbds, 'attached') || !isVmRunning(vm)}
+                          handler={connectVbd}
+                          handlerParam={vbd}
+                          icon='connect'
+                          tooltip={_('vbdConnect')}
+                        />
+                      )}
                       <ActionRowButton
                         btnStyle='danger'
-                        handler={disconnectVbd}
+                        handler={deleteVbd}
                         handlerParam={vbd}
-                        icon='disconnect'
-                        tooltip={_('vbdDisconnect')}
+                        icon='vdi-forget'
+                        tooltip={_('vdiForget')}
                       />
-                    ) : (
-                      <ActionRowButton
-                        btnStyle='primary'
-                        disabled={some(vbds, 'attached') || !isVmRunning(vm)}
-                        handler={connectVbd}
-                        handlerParam={vbd}
-                        icon='connect'
-                        tooltip={_('vbdConnect')}
-                      />
-                    )}
-                    <ActionRowButton
-                      btnStyle='danger'
-                      handler={deleteVbd}
-                      handlerParam={vbd}
-                      icon='vdi-forget'
-                      tooltip={_('vdiForget')}
-                    />
-                  </ButtonGroup>
-                </Col>
-              </Row>
-            )
-          })}
+                    </ButtonGroup>
+                  </Col>
+                </Row>
+              )
+            })
+          ) : (
+            <Col mediumSize={8}>
+              <Link to={`/vms/${vmSnapshot.$snapshot_of}/snapshots`}>
+                <Vm id={vmSnapshot.$snapshot_of} />
+              </Link>
+            </Col>
+          )}
         </Container>
       )
     }),
@@ -301,10 +308,16 @@ class NewDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  vbds: createGetObjectsOfType('VBD'),
-}))
+@connectStore(() => {
+  const getVbds = createGetObjectsOfType('VBD')
+  const getVmSnapshotsBySuspendVdi = createGetObjectsOfType('VM-snapshot').groupBy('suspendVdi')
+
+  return (state, props) => ({
+    checkPermissions: getCheckPermissions(state, props),
+    vbds: getVbds(state, props),
+    vmSnapshotsBySuspendVdi: getVmSnapshotsBySuspendVdi(state, props),
+  })
+})
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
 
@@ -349,6 +362,7 @@ export default class SrDisks extends Component {
         <MigrateVdiModalBody
           pool={this.props.sr.$pool}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate(vdis)}
+          isoSr={isSrIso(this.props.sr)}
         />
       ),
     }).then(({ sr }) => {
@@ -434,6 +448,7 @@ export default class SrDisks extends Component {
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
                 data-vdisByBaseCopy={this._getVdisByBaseCopy()}
+                data-vmSnapshotsBySuspendVdi={this.props.vmSnapshotsBySuspendVdi}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}

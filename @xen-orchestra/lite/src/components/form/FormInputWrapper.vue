@@ -2,7 +2,7 @@
   <div class="form-input-wrapper">
     <div v-if="label !== undefined || learnMoreUrl !== undefined" class="label-container">
       <label :class="{ light }" :for="id" class="label">
-        <UiIcon :icon="icon" />
+        <UiIcon :icon />
         {{ label }}
       </label>
       <a v-if="learnMoreUrl !== undefined" :href="learnMoreUrl" class="learn-more-url" target="_blank">

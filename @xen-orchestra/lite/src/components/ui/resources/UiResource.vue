@@ -1,6 +1,6 @@
 <template>
   <li class="ui-resource">
-    <UiIcon :icon="icon" class="icon" />
+    <UiIcon :icon class="icon" />
     <div class="separator" />
     <div class="label">{{ label }}</div>
     <div class="count">{{ count }}</div>

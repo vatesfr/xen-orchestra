@@ -55,10 +55,10 @@ const normalize = set => ({
   limits: set.limits
     ? map(set.limits, limit =>
         isObject(limit)
-          ? limit
+          ? { ...limit, usage: limit.usage ?? 0 }
           : {
-              available: limit,
               total: limit,
+              usage: 0,
             }
       )
     : {},
@@ -217,25 +217,32 @@ export default class {
     if (objects) {
       set.objects = objects
     }
-    if (limits) {
-      const previousLimits = set.limits
-      set.limits = map(limits, (quantity, id) => {
-        const previous = previousLimits[id]
-        if (!previous) {
-          return {
-            available: quantity,
-            total: quantity,
-          }
-        }
 
-        const { available, total } = previous
-
-        return {
-          available: available - total + quantity,
+    const previousLimits = set.limits
+    const newLimits = {}
+    forEach(limits, (quantity, id) => {
+      const previous = previousLimits[id]
+      if (previous !== undefined) {
+        newLimits[id] = {
           total: quantity,
+          usage: previous.usage,
         }
-      })
-    }
+      } else {
+        newLimits[id] = {
+          total: quantity,
+          usage: 0,
+        }
+      }
+    })
+
+    const removedLimits = Object.keys(previousLimits).filter(key => !(key in newLimits))
+    removedLimits.forEach(id => {
+      newLimits[id] = {
+        usage: previousLimits[id].usage ?? 0,
+      }
+    })
+    set.limits = newLimits
+
     if (ipPools) {
       set.ipPools = ipPools
     }
@@ -332,15 +339,16 @@ export default class {
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
       if (!limit) {
+        set.limits[id] = { usage: quantity }
         return
       }
 
-      if ((limit.available -= quantity) < 0 && !force) {
+      if ((limit.usage += quantity) > limit.total && !force) {
         throw notEnoughResources([
           {
             resourceSet: setId,
             resourceType: id,
-            available: limit.available + quantity,
+            available: limit.total - (limit.usage - quantity),
             requested: quantity,
           },
         ])
@@ -358,8 +366,8 @@ export default class {
         return
       }
 
-      if ((limit.available += quantity) > limit.total) {
-        limit.available = limit.total
+      if ((limit.usage -= quantity) < 0) {
+        limit.usage = 0
       }
     })
     await this._save(set)
@@ -371,7 +379,7 @@ export default class {
       forEach(limits, (limit, id) => {
         if (VM_RESOURCES[id] || id.startsWith('ipPool:')) {
           // only reset VMs related limits
-          limit.available = limit.total
+          limit.usage = 0
         }
       })
     })
@@ -397,7 +405,9 @@ export default class {
             forEach(await this.computeResourcesUsage(this._app.getObject(object.$id)), (usage, resource) => {
               const limit = limits[resource]
               if (limit) {
-                limit.available -= usage
+                limit.usage += usage
+              } else {
+                limits[resource] = { usage }
               }
             })
           })

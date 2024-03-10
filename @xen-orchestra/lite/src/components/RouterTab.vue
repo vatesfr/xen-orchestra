@@ -1,6 +1,6 @@
 <template>
   <RouterLink v-slot="{ isActive, href }" :to="isDisabled ? '' : to" custom>
-    <UiTab :active="isActive" :disabled="disabled" :href="href" tag="a">
+    <UiTab :active="isActive" :disabled :href tag="a">
       <slot />
     </UiTab>
   </RouterLink>

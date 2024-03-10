@@ -15,6 +15,31 @@
   &.dark {
     color-scheme: dark;
   }
+
+  --scrollbar-width: 1.4rem;
+  --scrollbar-border: 0.4rem;
+  --scrollbar-thumb-color: var(--color-purple-l40);
+  --scrollbar-track-color: var(--background-color-purple-10);
+
+  /* Firefox/Gecko and Chrome versions >= 121 */
+  scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
+  scrollbar-width: auto;
+
+  /* Chrome/Webkit */
+  ::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--scrollbar-track-color);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color);
+    border: var(--scrollbar-border) solid transparent;
+    border-radius: 90rem;
+    background-clip: content-box;
+  }
 }
 
 a {
@@ -50,4 +75,16 @@ pre {
 
 .link.router-link-active {
   text-decoration: underline;
+}
+
+.scrollbar-small {
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    --scrollbar-width: 0.7rem;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    --scrollbar-border: 0.2rem;
+  }
 }

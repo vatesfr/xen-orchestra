@@ -1,7 +1,7 @@
 <template>
   <UiModal>
     <BasicModalLayout>
-      <CodeHighlight :code="code" />
+      <CodeHighlight :code />
     </BasicModalLayout>
   </UiModal>
 </template>

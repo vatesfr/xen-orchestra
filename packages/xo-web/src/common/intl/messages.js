@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   creation: 'Creation',
+  connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
@@ -99,6 +100,7 @@ const messages = {
   destinationSR: 'Destination SR',
   destinationNetwork: 'Destination network',
   dhcp: 'DHCP',
+  id: 'ID',
   ip: 'IP',
   static: 'Static',
   user: 'User',
@@ -141,6 +143,7 @@ const messages = {
   removeColor: 'Remove color',
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
+  nRetriesVmBackupFailures: 'Number of retries if VM backup fails',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -589,7 +592,7 @@ const messages = {
   editJobNotFound: "The job you're trying to edit wasn't found",
   preferNbd: 'Use NBD protocol to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled',
-  nbdConcurrency: 'Number of NBD connexion per disk',
+  nbdConcurrency: 'Number of NBD connection per disk',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -1011,6 +1014,7 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
   editHostIscsiIqnTitle: 'Edit iSCSI IQN',
   editHostIscsiIqnMessage:
@@ -1062,6 +1066,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
@@ -1075,6 +1080,7 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
+  vendorId: 'Vendor ID',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -1404,6 +1410,7 @@ const messages = {
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1472,8 +1479,13 @@ const messages = {
   vmAddAcls: 'Add ACLs',
   addAclsErrorTitle: 'Failed to add ACL(s)',
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  createVusb: 'Create VUSB',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
+  pusbDescription: 'PUSB description',
+  pusbSpeed: 'PUSB speed',
+  pusbVersion: 'PUSB version',
+  selectPusb: 'Select PUSB',
   vmBootFirmware: 'Boot firmware',
   vmCreator: 'VM creator',
   vmDefaultBootFirmwareLabel: 'default (bios)',
@@ -1484,6 +1496,9 @@ const messages = {
   vmEditAndRestartModalMessage:
     'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
 
+  vusbs: 'VUSBs',
+  vusbRemainUnplugged: 'The VUSB remain unplugged until the next shutdown/start',
+  vusbUnplugTooltip: 'Unplug until the next shutdown/start',
   // ----- VM placeholders -----
 
   vmHomeNamePlaceholder: 'Long click to add a name',
@@ -1732,6 +1747,7 @@ const messages = {
   shareVmsByDefault: 'Share VMs by default',
   nVmsInResourceSet:
     '{nVms, number} VM{nVms, plural, one {} other {s}} belong{nVms, plural, one {s} other {}} to this Resource Set',
+  unlimitedResourceSetUsage: 'Used: {usage}',
 
   // ---- VM import ---
   fileType: 'File type:',
@@ -2046,6 +2062,7 @@ const messages = {
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
   ignoreVdi: 'Ignore this VDI',
+  selectDestinationSr: 'Select a destination SR',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',
