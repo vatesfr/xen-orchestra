@@ -3,6 +3,7 @@ import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
+import { verifyTotp } from '@vates/otp'
 
 import patch from '../patch.mjs'
 import { Tokens } from '../models/token.mjs'
@@ -56,7 +57,7 @@ export default class {
 
       try {
         const token = await app.getAuthenticationToken(tokenId)
-        return { expiration: token.expiration, userId: token.user_id }
+        return { bypassOtp: true, expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
     })
 
@@ -114,12 +115,11 @@ export default class {
           continue
         }
 
-        const { userId, expiration } = result
+        // replace userId by user
+        result.user = await this._app.getUser(result.userId)
+        delete result.userId
 
-        return {
-          user: await this._app.getUser(userId),
-          expiration,
-        }
+        return result
       } catch (error) {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
@@ -129,7 +129,7 @@ export default class {
     }
   }
 
-  async authenticateUser(credentials, userData) {
+  async authenticateUser(credentials, userData, { bypassOtp = false } = {}) {
     const { tasks } = this._app
     const task = await tasks.create(
       {
@@ -167,14 +167,23 @@ export default class {
         throw new Error('too fast authentication tries')
       }
 
-      const result = await this._authenticateUser(credentials, userData)
-      if (result === undefined) {
-        failures[username] = now
-        throw invalidCredentials()
+      const { otp, ...rest } = credentials
+      const result = await this._authenticateUser(rest, userData)
+      if (result !== undefined) {
+        const secret = result.user.preferences?.otp
+        if (
+          secret === undefined ||
+          bypassOtp ||
+          result.bypassOtp || // some authentication providers bypass OTP (e.g. token)
+          (await verifyTotp(otp, { secret }))
+        ) {
+          delete failures[username]
+          return result
+        }
       }
 
-      delete failures[username]
-      return result
+      failures[username] = now
+      throw invalidCredentials()
     })
   }
 
