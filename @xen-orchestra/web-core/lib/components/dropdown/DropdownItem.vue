@@ -1,5 +1,5 @@
 <template>
-  <div :class="[color ?? 'default', { disabled, selected }]" class="dropdown-item">
+  <div :class="[color, { disabled, selected }]" class="dropdown-item">
     <UiIcon v-if="checkbox" :color="color ?? 'info'" :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
       <UiIcon :icon />
@@ -39,25 +39,21 @@ const checkbox = inject(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .dropdown-item {
-  &.default {
+  & {
     --color: var(--color-grey-100);
     --background-color: var(--background-color-primary);
 
-    &.active,
-    &.selected {
+    &:is(.active, .selected) {
       --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-10);
     }
 
-    &:hover,
-    &.hover,
-    &:focus-visible {
+    &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-20);
     }
 
-    &:active,
-    &.pressed {
+    &:is(:active, .pressed) {
       --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-30);
     }
@@ -72,21 +68,17 @@ const checkbox = inject(
     --color: var(--color-purple-base);
     --background-color: var(--background-color-primary);
 
-    &.active,
-    &.selected {
+    &:is(.active, .selected) {
       --color: var(--color-purple-base);
       --background-color: var(--background-color-purple-10);
     }
 
-    &:hover,
-    &.hover,
-    &:focus-visible {
+    &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-purple-d20);
       --background-color: var(--background-color-purple-20);
     }
 
-    &:active,
-    &.pressed {
+    &:is(:active, .pressed) {
       --color: var(--color-purple-d40);
       --background-color: var(--background-color-purple-30);
     }
@@ -101,21 +93,17 @@ const checkbox = inject(
     --color: var(--color-green-base);
     --background-color: var(--background-color-primary);
 
-    &.active,
-    &.selected {
+    &:is(.active, .selected) {
       --color: var(--color-green-base);
       --background-color: var(--background-color-green-10);
     }
 
-    &:hover,
-    &.hover,
-    &:focus-visible {
+    &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-green-d20);
       --background-color: var(--background-color-green-20);
     }
 
-    &:active,
-    &.pressed {
+    &:is(:active, .pressed) {
       --color: var(--color-green-d40);
       --background-color: var(--background-color-green-30);
     }
@@ -130,21 +118,17 @@ const checkbox = inject(
     --color: var(--color-orange-base);
     --background-color: var(--background-color-primary);
 
-    &.active,
-    &.selected {
+    &:is(.active, .selected) {
       --color: var(--color-orange-base);
       --background-color: var(--background-color-orange-10);
     }
 
-    &:hover,
-    &.hover,
-    &:focus-visible {
+    &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-orange-d20);
       --background-color: var(--background-color-orange-20);
     }
 
-    &:active,
-    &.pressed {
+    &:is(:active, .pressed) {
       --color: var(--color-orange-d40);
       --background-color: var(--background-color-orange-30);
     }
@@ -155,26 +139,21 @@ const checkbox = inject(
     }
   }
 
-  &.error,
-  &.danger {
+  &:is(.error, .danger) {
     --color: var(--color-red-base);
     --background-color: var(--background-color-primary);
 
-    &.active,
-    &.selected {
+    &:is(.active, .selected) {
       --color: var(--color-red-base);
       --background-color: var(--background-color-red-10);
     }
 
-    &:hover,
-    &.hover,
-    &:focus-visible {
+    &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-red-d20);
       --background-color: var(--background-color-red-20);
     }
 
-    &:active,
-    &.pressed {
+    &:is(:active, .pressed) {
       --color: var(--color-red-d40);
       --background-color: var(--background-color-red-30);
     }
