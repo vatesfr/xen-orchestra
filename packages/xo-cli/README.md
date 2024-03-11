@@ -20,7 +20,7 @@ npm install --global xo-cli
 > xo-cli --help
 Usage:
 
-  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
   xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
@@ -30,6 +30,9 @@ Usage:
     --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --otp <otp>
+      One-time password if required for this user.
 
     --token <token>
       An authentication token to use instead of username/password.
