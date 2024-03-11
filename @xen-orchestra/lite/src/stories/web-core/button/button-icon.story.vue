@@ -5,9 +5,9 @@
       iconProp().preset(faEllipsis),
       colorProp(),
       prop('size')
-        .default('m')
+        .default('medium')
         .str()
-        .widget(choice('s', 'm', 'l')),
+        .widget(choice('small', 'medium', 'large')),
       prop('disabled').bool().widget(),
       prop('active').bool().widget(),
       prop('dot').bool().widget(),
