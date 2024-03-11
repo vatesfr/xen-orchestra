@@ -67,7 +67,7 @@ xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<p
 Where UUID is the uuid of your proxy VM.
 
 Then you need to restart the proxy VM.
-You can now login through SSH.
+You can now login through SSH with the `xoa` username and password you defined in the previous command.
 
 ## Adding a network card to a Proxy
 
