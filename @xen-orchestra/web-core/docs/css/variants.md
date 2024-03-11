@@ -111,9 +111,9 @@ enhance readability.
   }
 
   &.free {
-    --color: var(--color-greeb-base);
-    --background-color: var(--background-color-greeb-10);
-    --border-color: var(--color-greeb-d20);
+    --color: var(--color-green-base);
+    --background-color: var(--background-color-green-10);
+    --border-color: var(--color-green-d20);
   }
 }
 
