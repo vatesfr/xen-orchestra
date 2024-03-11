@@ -326,7 +326,14 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   xo.registerPassportStrategy(
     new LocalStrategy({ passReqToCallback: true }, async (req, username, password, done) => {
       try {
-        const { user } = await xo.authenticateUser({ username, password }, { ip: req.ip })
+        const { user } = await xo.authenticateUser(
+          { username, password },
+          { ip: req.ip },
+          {
+            // OTP is handled differently in the web auth process
+            bypassOtp: true,
+          }
+        )
         done(null, user)
       } catch (error) {
         done(null, false, { message: error.message })
