@@ -1,3 +1,5 @@
+import { asyncEach } from '@vates/async-each'
+
 export default class Network {
   async setMtu(network, mtu) {
     await network.set_MTU(mtu)
@@ -6,9 +8,35 @@ export default class Network {
     const pluggedVIFs = network.$VIFs.filter(vif => vif.currently_attached && vif.$VM.power_state === 'Running')
     const pluggedPIFs = network.$PIFs.filter(pif => pif.currently_attached)
 
-    await Promise.allSettled(pluggedVIFs.map(vif => this.callAsync('VIF.unplug', vif.$ref)))
-    await Promise.allSettled(pluggedPIFs.map(pif => this.callAsync('PIF.plug', pif.$ref)))
-    await Promise.allSettled(pluggedPIFs.map(pif => this.callAsync('PIF.plug', pif.$ref)))
-    await Promise.allSettled(pluggedVIFs.map(vif => this.callAsync('VIF.plug', vif.$ref)))
+    let errorOccurred = false
+
+    for (const { method, networkInterfaces } of [
+      {
+        method: 'VIF.unplug',
+        networkInterfaces: pluggedVIFs,
+      }, // unplugging PIFs before re-plugging seems unnecessary
+      {
+        method: 'PIF.plug',
+        networkInterfaces: pluggedPIFs,
+      },
+      {
+        method: 'VIF.plug',
+        networkInterfaces: pluggedVIFs,
+      },
+    ]) {
+      try {
+        await asyncEach(networkInterfaces, networkInterface => this.callAsync(method, networkInterface.$ref), {
+          concurrency: 20,
+          stopOnError: false,
+        })
+      } catch (error) {
+        // report an error occured, but continue the re-plugging process
+        errorOccurred = true
+      }
+    }
+
+    if (errorOccurred) {
+      throw new Error('Some network interfaces could not be updated.')
+    }
   }
 }
