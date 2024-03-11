@@ -200,10 +200,10 @@ class SelectDefaultSr extends Component {
   _onChange = sr => setDefaultSr(sr)
 
   render() {
-    const { pool, defaultSr } = this.props
+    const { defaultSr } = this.props
 
     return (
-      <XoSelect onChange={this._onChange} value={pool.default_SR} xoType='SR'>
+      <XoSelect onChange={this._onChange} value={defaultSr.id} xoType='SR'>
         {defaultSr.name_label}
       </XoSelect>
     )
