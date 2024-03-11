@@ -57,6 +57,7 @@ async function parseRegisterArgs(args, tokenDescription, client, acceptToken = f
   const {
     allowUnauthorized,
     expiresIn,
+    otp,
     token,
     _: opts,
   } = getopts(args, {
@@ -66,7 +67,7 @@ async function parseRegisterArgs(args, tokenDescription, client, acceptToken = f
     },
     boolean: ['allowUnauthorized'],
     stopEarly: true,
-    string: ['expiresIn', 'token'],
+    string: ['expiresIn', 'otp', 'token'],
   })
 
   const result = {
@@ -90,17 +91,24 @@ async function parseRegisterArgs(args, tokenDescription, client, acceptToken = f
         pw(resolve)
       }),
     ] = opts
-    result.token = await _createToken({ ...result, client, description: tokenDescription, email, password })
+    result.token = await _createToken({
+      ...result,
+      client,
+      description: tokenDescription,
+      email,
+      otp: otp !== '' ? otp : undefined,
+      password,
+    })
   }
 
   return result
 }
 
-async function _createToken({ allowUnauthorized, client, description, email, expiresIn, password, url }) {
+async function _createToken({ allowUnauthorized, client, description, email, expiresIn, otp, password, url }) {
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
   await xo.open()
   try {
-    await xo.signIn({ email, password })
+    await xo.signIn({ email, otp, password })
     console.warn('Successfully logged with', xo.user.email)
 
     return await xo.call('token.create', { client, description, expiresIn }).catch(error => {
@@ -231,7 +239,7 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
   $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
@@ -241,6 +249,9 @@ const help = wrap(
     --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --otp <otp>
+      One-time password if required for this user.
 
     --token <token>
       An authentication token to use instead of username/password.
