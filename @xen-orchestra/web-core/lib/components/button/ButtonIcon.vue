@@ -1,6 +1,6 @@
 <template>
   <button :class="[color, size, { disabled, active }]" :disabled class="button-icon" type="button">
-    <UiIcon :icon="icon" class="icon" />
+    <UiIcon :icon class="icon" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
@@ -27,9 +27,11 @@ withDefaults(
 /* COLOR VARIANTS */
 .button-icon {
   &.info {
-    --color: var(--color-purple-base);
-    --background-color: transparent;
-    --dot-color: var(--color-red-base);
+    & {
+      --color: var(--color-purple-base);
+      --background-color: transparent;
+      --dot-color: var(--color-red-base);
+    }
 
     &:is(.active, .selected) {
       --color: var(--color-purple-base);
@@ -53,9 +55,11 @@ withDefaults(
   }
 
   &.success {
-    --color: var(--color-green-base);
-    --background-color: transparent;
-    --dot-color: var(--color-red-base);
+    & {
+      --color: var(--color-green-base);
+      --background-color: transparent;
+      --dot-color: var(--color-red-base);
+    }
 
     &:is(.active, .selected) {
       --color: var(--color-green-base);
@@ -79,9 +83,11 @@ withDefaults(
   }
 
   &.warning {
-    --color: var(--color-orange-base);
-    --background-color: transparent;
-    --dot-color: var(--color-red-base);
+    & {
+      --color: var(--color-orange-base);
+      --background-color: transparent;
+      --dot-color: var(--color-red-base);
+    }
 
     &:is(.active, .selected) {
       --color: var(--color-orange-base);
@@ -105,9 +111,11 @@ withDefaults(
   }
 
   &:is(.danger, .error) {
-    --color: var(--color-red-base);
-    --background-color: transparent;
-    --dot-color: var(--color-orange-base);
+    & {
+      --color: var(--color-red-base);
+      --background-color: transparent;
+      --dot-color: var(--color-orange-base);
+    }
 
     &:is(.active, .selected) {
       --color: var(--color-red-base);
