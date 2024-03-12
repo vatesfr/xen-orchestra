@@ -37,12 +37,12 @@ export default class XapiGraphQlSchema {
     })
     app.objects.on('update', items => {
       Object.values(items).forEach(item => {
-        pubsub.publish(`${item.type.toUpperCase()}_UPDATED_${item.uuid}`, item)
+        pubsub.publish(`${item.type.toUpperCase()}_UPDATED_${item.id}`, item)
       })
     })
     app.objects.on('remove', items => {
-      Object.keys(items).forEach(uuid => {
-        pubsub.publish(`REMOVED_${uuid}`, { uuid })
+      Object.keys(items).forEach(id => {
+        pubsub.publish(`REMOVED_${id}`, { id })
       })
     })
     this.#makeTypes()
@@ -76,7 +76,7 @@ export default class XapiGraphQlSchema {
     this.#types.host = new GraphQLObjectType({
       name: 'host',
       fields: () => ({
-        uuid: { type: GraphQLID },
+        id: { type: GraphQLID },
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
         timestamp: { type: GraphQLInt },
@@ -84,7 +84,7 @@ export default class XapiGraphQlSchema {
           type: GraphQLList(self.#types.VM),
           args: standardCollectionArgs,
           resolve(parent, args) {
-            return self.#resolveXapiObjects('VM', args).filter(vm => vm.$container === parent.uuid)
+            return self.#resolveXapiObjects('VM', args).filter(vm => vm.$container === parent.id)
           },
         },
       }),
@@ -93,7 +93,7 @@ export default class XapiGraphQlSchema {
     this.#types.VM = new GraphQLObjectType({
       name: 'VM',
       fields: () => ({
-        uuid: { type: GraphQLID },
+        id: { type: GraphQLID },
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
         power_state: { type: GraphQLString },
@@ -111,7 +111,7 @@ export default class XapiGraphQlSchema {
           type: GraphQLList(self.#types.VBD),
           args: standardCollectionArgs,
           resolve(parent, args) {
-            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VM === parent.uuid)
+            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VM === parent.id)
           },
         },
       }),
@@ -151,7 +151,7 @@ export default class XapiGraphQlSchema {
     this.#types.VDI = new GraphQLObjectType({
       name: 'VDI',
       fields: () => ({
-        uuid: { type: GraphQLID },
+        id: { type: GraphQLID },
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
         size: { type: GraphQLInt },
@@ -162,7 +162,7 @@ export default class XapiGraphQlSchema {
           type: GraphQLList(self.#types.VBD),
           args: standardCollectionArgs,
           resolve(parent, args) {
-            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VDI === parent.uuid)
+            return self.#resolveXapiObjects('VBD', args).filter(vbd => vbd.VDI === parent.id)
           },
         },
         sr: {
@@ -179,7 +179,7 @@ export default class XapiGraphQlSchema {
     this.#types.SR = new GraphQLObjectType({
       name: 'SR',
       fields: () => ({
-        uuid: { type: GraphQLID },
+        id: { type: GraphQLID },
         name_label: { type: GraphQLString },
         description: { type: GraphQLString },
         size: { type: GraphQLInt },
@@ -190,7 +190,7 @@ export default class XapiGraphQlSchema {
           type: GraphQLList(self.#types.VDI),
           args: standardCollectionArgs,
           resolve(parent, args) {
-            return self.#resolveXapiObjects('VDI', args).filter(vdi => vdi.SR === parent.uuid)
+            return self.#resolveXapiObjects('VDI', args).filter(vdi => vdi.SR === parent.id)
           },
         },
       }),
@@ -233,17 +233,17 @@ export default class XapiGraphQlSchema {
     Object.entries(this.#types).forEach(([typeName, type]) => {
       fields[`${typeName.toLocaleLowerCase()}Updated`] = {
         type,
-        args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
-        subscribe: (parent, { uuid }) => {
-          return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED_${uuid}`)
+        args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+        subscribe: (parent, { id }) => {
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED_${id}`)
         },
         resolve: payload => payload,
       }
       fields[`${typeName.toLocaleLowerCase()}Removed`] = {
         type,
-        args: { uuid: { type: new GraphQLNonNull(GraphQLID) } },
-        subscribe: (parent, { uuid }) => {
-          return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED_${uuid}`)
+        args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+        subscribe: (parent, { id }) => {
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED_${id}`)
         },
         resolve: payload => payload,
       }
