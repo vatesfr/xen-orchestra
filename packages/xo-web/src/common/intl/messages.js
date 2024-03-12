@@ -143,6 +143,7 @@ const messages = {
   addCustomField: 'Add custom field',
   advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
+  detach: 'Detach',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
@@ -391,9 +392,11 @@ const messages = {
   selectSubjects: 'Choose user(s) and/or group(s)',
   selectObjects: 'Select object(s)…',
   selectRole: 'Choose a role',
+  selectHostFirst: 'Select a host first',
   selectHosts: 'Select host(s)…',
   selectHostsVms: 'Select object(s)…',
   selectNetworks: 'Select network(s)…',
+  selectPcis: 'Select PCI(s)…',
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
@@ -1026,8 +1029,11 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+<<<<<<< HEAD
   applyChangeOnPcis:
     'This operation will reboot the host in order to apply the change on the PCI{nPcis, plural, one {} other {s}}. Are you sure you want to continue?',
+=======
+>>>>>>> 340668bbc (feat(xo-web/xo-server/VM): ability to attach PCIs to a VM)
   className: 'Class name',
   deviceName: 'Device name',
   enabled: 'Enabled',
@@ -1428,10 +1434,15 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  attachedPcis: 'Attached PCIs',
+  attachingDetachingPciNeedVmBoot: 'Attaching/detaching a PCI will be taken into consideration for the next VM boot.',
+  attachPcis: 'Attach PCIs',
   createVtpm: 'Create a VTPM',
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
+  infoUnknownPciOnNonRunningVm:
+    "When a VM is offline, it's not attached to any host, and therefore, it's impossible to determine the associated PCI devices, as it depends on the hardware environment in which it would be deployed.",
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',

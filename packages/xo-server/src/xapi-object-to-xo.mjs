@@ -364,6 +364,7 @@ const TRANSFORMS = {
 
       addresses: normalizeVmNetworks(guestMetrics?.networks ?? {}),
       affinityHost: link(obj, 'affinity'),
+      attachedPcis: otherConfig.pci?.split(',')?.map(s => s.split('/')[1]),
       auto_poweron: otherConfig.auto_poweron === 'true',
       bios_strings: obj.bios_strings,
       blockedOperations: obj.blocked_operations,
