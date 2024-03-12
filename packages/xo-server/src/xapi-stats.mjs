@@ -412,7 +412,7 @@ export default class XapiStats {
 
     const srShortUUID = sr.uuid.slice(0, 8)
     return {
-      interval: hostsStats[Object.keys(hostsStats)[0]].interval,
+      interval: hostsStats[Object.keys(hostsStats)[0]]?.interval,
       endTimestamp: Math.max(...map(hostsStats, 'endTimestamp')),
       localTimestamp: Math.min(...map(hostsStats, 'localTimestamp')),
       stats: {
