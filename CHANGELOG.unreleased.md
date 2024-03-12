@@ -8,7 +8,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM Creation] Automatically create a VTPM if the template requests it (Windows templates starting from XCP-ng 8.3) (PR [#7436](https://github.com/vatesfr/xen-orchestra/pull/7436))
-- [App] Implement the initial PWA manifest for the Xen Orchestra software (PR [#7445](https://github.com/vatesfr/xen-orchestra/pull/7445)).
 - [OTP] Accepts (ignores) whitespaces in the one-time password (some OTP applications add them for nicer display)
 
 ### Bug fixes
@@ -39,6 +38,5 @@
 - @vates/otp minor
 - xo-server minor
 - xo-web patch
-- xo-web minor
 
 <!--packages-end-->
