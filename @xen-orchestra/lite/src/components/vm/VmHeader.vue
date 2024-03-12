@@ -37,8 +37,8 @@
 <script lang="ts" setup>
 import AppMenu from '@/components/menu/AppMenu.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import UiButton from '@/components/ui/UiButton.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'

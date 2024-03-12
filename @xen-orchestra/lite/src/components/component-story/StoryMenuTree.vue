@@ -22,7 +22,7 @@
 
 <script lang="ts" setup>
 import type { StoryTree } from '@/components/component-story/StoryMenu.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { faFile, faFolderClosed, faFolderOpen } from '@fortawesome/free-regular-svg-icons'
 
 const props = defineProps<{

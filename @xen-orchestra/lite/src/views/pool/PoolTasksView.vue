@@ -11,9 +11,9 @@
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 import UiTitle from '@/components/ui/UiTitle.vue'
 import { useTaskCollection } from '@/stores/xen-api/task.store'
 import { usePageTitleStore } from '@/stores/page-title.store'

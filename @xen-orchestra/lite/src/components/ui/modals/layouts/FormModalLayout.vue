@@ -1,8 +1,8 @@
 <template>
   <ModalContainer tag="form">
     <template #header>
-      <div :class="borderClass" class="title-bar">
-        <UiIcon :class="textClass" :icon />
+      <div class="title-bar" :class="color">
+        <UiIcon :color :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
       </div>
@@ -13,20 +13,20 @@
     </template>
 
     <template #footer>
-      <UiButtonGroup class="footer-buttons">
+      <ButtonGroup class="footer-buttons">
         <slot name="buttons" />
-      </UiButtonGroup>
+      </ButtonGroup>
     </template>
   </ModalContainer>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
-import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
-import { useContext } from '@/composables/context.composable'
-import { ColorContext } from '@/context'
+import ButtonGroup from '@core/components/button/ButtonGroup.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext } from '@core/context'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
@@ -39,7 +39,7 @@ defineSlots<{
   buttons: () => void
 }>()
 
-const { textClass, borderClass } = useContext(ColorContext)
+const color = useContext(ColorContext)
 </script>
 
 <style lang="postcss" scoped>
@@ -52,6 +52,23 @@ const { textClass, borderClass } = useContext(ColorContext)
   padding-bottom: 1rem;
   font-weight: 500;
   align-items: center;
+
+  &.info {
+    border-color: var(--color-purple-base);
+  }
+
+  &.success {
+    border-color: var(--color-green-base);
+  }
+
+  &.warning {
+    border-color: var(--color-orange-base);
+  }
+
+  &.error,
+  &.danger {
+    border-color: var(--color-red-base);
+  }
 }
 
 .close-icon {

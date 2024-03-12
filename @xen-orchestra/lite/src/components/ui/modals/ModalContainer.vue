@@ -1,5 +1,5 @@
 <template>
-  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container">
+  <div :class="[color, { nested: isNested }]" class="modal-container">
     <header v-if="$slots.header" class="modal-header">
       <slot name="header" />
     </header>
@@ -13,10 +13,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { ColorContext } from '@/context'
-import type { Color } from '@/types'
 import { IK_MODAL_NESTED } from '@/types/injection-keys'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext } from '@core/context'
+import type { Color } from '@core/types/color.type'
 import { inject, provide } from 'vue'
 
 const props = defineProps<{
@@ -29,7 +29,7 @@ defineSlots<{
   footer: () => any
 }>()
 
-const { backgroundClass } = useContext(ColorContext, () => props.color)
+const color = useContext(ColorContext, () => props.color)
 
 const isNested = inject(IK_MODAL_NESTED, false)
 provide(IK_MODAL_NESTED, true)
@@ -45,6 +45,25 @@ provide(IK_MODAL_NESTED, true)
   gap: 1rem;
   border-radius: 1rem;
   font-size: 1.6rem;
+  background-color: var(--background-color);
+  --background-color: var(--background-color-primary);
+
+  &.info {
+    --background-color: var(--background-color-purple-10);
+  }
+
+  &.success {
+    --background-color: var(--background-color-green-10);
+  }
+
+  &.warning {
+    --background-color: var(--background-color-orange-10);
+  }
+
+  &.error,
+  &.danger {
+    --background-color: var(--background-color-red-10);
+  }
 
   &:not(.nested) {
     min-width: 40rem;

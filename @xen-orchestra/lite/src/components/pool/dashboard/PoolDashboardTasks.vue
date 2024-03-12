@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useTaskCollection } from '@/stores/xen-api/task.store'
 

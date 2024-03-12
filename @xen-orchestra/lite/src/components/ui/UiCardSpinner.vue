@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
+import UiSpinner from '@core/components/UiSpinner.vue'
 </script>
 
 <style lang="postcss" scoped>

@@ -12,7 +12,7 @@
 </template>
 
 <script generic="T extends ObjectType" lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
+import UiSpinner from '@core/components/UiSpinner.vue'
 import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'

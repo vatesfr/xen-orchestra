@@ -9,6 +9,7 @@
       colorProp().ctx(),
       prop('outlined').bool().widget(),
       prop('transparent').bool().widget(),
+      prop('underlined').bool().widget(),
       prop('active').bool().widget(),
       setting('label').preset('Click me').widget(),
     ]"
@@ -39,8 +40,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import { colorProp, iconProp, prop, setting } from '@/libs/story/story-param'
+import UiButton from '@core/components/button/UiButton.vue'
 import { faFloppyDisk, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>
 

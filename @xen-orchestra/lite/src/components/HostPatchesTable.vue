@@ -28,8 +28,8 @@
 
 <script lang="ts" setup>
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
+import UiCounter from '@core/components/UiCounter.vue'
+import UiSpinner from '@core/components/UiSpinner.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
 import { vTooltip } from '@/directives/tooltip.directive'

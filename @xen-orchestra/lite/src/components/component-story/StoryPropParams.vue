@@ -82,7 +82,7 @@
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
 import StoryWidget from '@/components/component-story/StoryWidget.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { useModal } from '@/composables/modal.composable'
 import useSortedCollection from '@/composables/sorted-collection.composable'
 import { vTooltip } from '@/directives/tooltip.directive'

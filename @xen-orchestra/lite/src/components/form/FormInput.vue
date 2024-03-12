@@ -51,11 +51,11 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
-import type { Color } from '@/types'
 import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext, DisabledContext } from '@core/context'
+import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import { useTextareaAutosize, useVModel } from '@vueuse/core'
@@ -77,10 +77,10 @@ const props = withDefaults(
     right?: boolean
     wrapperAttrs?: HTMLAttributes
   }>(),
-  { disabled: undefined }
+  { disabled: undefined, color: 'info' }
 )
 
-const { name: contextColor } = useContext(ColorContext, () => props.color)
+const contextColor = useContext(ColorContext, () => props.color)
 
 const inputElement = ref()
 
@@ -243,7 +243,8 @@ defineExpose({
       }
     }
 
-    &.error {
+    &.error,
+    &.danger {
       --border-color: var(--color-red-base);
 
       &:hover {

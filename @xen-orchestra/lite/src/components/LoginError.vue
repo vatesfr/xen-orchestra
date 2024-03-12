@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { XenApiError } from '@/libs/xen-api/xen-api.types'
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
 

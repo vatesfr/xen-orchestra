@@ -7,10 +7,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
-import type { Color } from '@/types'
 import { IK_MODAL } from '@/types/injection-keys'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext, DisabledContext } from '@core/context'
+import type { Color } from '@core/types/color.type'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { inject } from 'vue'
 

@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 
 defineProps<{

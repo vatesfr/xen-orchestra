@@ -40,13 +40,13 @@
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
 import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
-import UiButton from '@/components/ui/UiButton.vue'
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmCollection } from '@/stores/xen-api/alarm.store'
+import UiButton from '@core/components/button/UiButton.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollection({ defer: true })
 </script>

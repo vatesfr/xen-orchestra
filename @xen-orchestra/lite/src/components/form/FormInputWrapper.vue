@@ -28,11 +28,11 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
-import type { Color } from '@/types'
 import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from '@/types/injection-keys'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { useContext } from '@core/composables/context.composable'
+import { ColorContext, DisabledContext } from '@core/context'
+import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'

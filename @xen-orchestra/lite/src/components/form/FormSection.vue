@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { useVModel, whenever } from '@vueuse/core'
 import { computed } from 'vue'

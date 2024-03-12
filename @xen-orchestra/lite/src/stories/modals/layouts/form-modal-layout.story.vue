@@ -35,7 +35,7 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
-import UiButton from '@/components/ui/UiButton.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import { iconProp, slot } from '@/libs/story/story-param'
 import { faRoute } from '@fortawesome/free-solid-svg-icons'
 </script>

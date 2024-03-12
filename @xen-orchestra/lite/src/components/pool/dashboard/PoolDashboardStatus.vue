@@ -14,7 +14,7 @@
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
 import PoolDashboardStatusItem from '@/components/pool/dashboard/PoolDashboardStatusItem.vue'
-import UiCard from '@/components/ui/UiCard.vue'
+import UiCard from '@core/components/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSeparator from '@/components/ui/UiSeparator.vue'

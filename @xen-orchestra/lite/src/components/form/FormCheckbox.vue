@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
 import { DisabledContext } from '@/context'
 import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from '@/types/injection-keys'
