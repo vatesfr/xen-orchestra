@@ -137,6 +137,7 @@ const messages = {
   addCustomField: 'Add custom field',
   advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
+  detach: 'Detach',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
@@ -1014,6 +1015,10 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  applyChangeOnPcis:
+    'This operation will reboot the host in order to apply the change on the PCI{nPcis, plural, one {} other {s}}. Are you sure you want to continue?',
+  className: 'Class name',
+  deviceName: 'Device name',
   enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
   editHostIscsiIqnTitle: 'Edit iSCSI IQN',
@@ -1066,6 +1071,11 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  'onlyAvailableXcp8.3OrHighter': 'Only available for XCP-ng 8.3.0 or highter',
+  pciDevices: 'PCI Devices',
+  pciId: 'PCI ID',
+  pcisEnable: 'PCI{nPcis, plural, one {} other {s}} enable',
+  pcisDisable: 'PCI{nPcis, plural, one {} other {s}} disable',
   pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',

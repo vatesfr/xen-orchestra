@@ -1263,6 +1263,12 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 }
 
+export const isPciHidden = pci => _call('pci.isHidden', { id: resolveId(pci) })
+
+export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
+
+export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
 // Containers --------------------------------------------------------
 
 export const pauseContainer = (vm, container) => _call('docker.pause', { vm: resolveId(vm), container })
