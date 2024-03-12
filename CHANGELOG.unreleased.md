@@ -11,6 +11,7 @@
 - [OTP] Accepts (ignores) whitespaces in the one-time password (some OTP applications add them for nicer display)
 - [VM/General] Show current VM tags without the need to search them in advanced creation tag selector [#7351](https://github.com/vatesfr/xen-orchestra/issues/7351) (PR [#7434](https://github.com/vatesfr/xen-orchestra/pull/7434))
 - [xo-cli] Supports signing in with one-time password (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
+- [App] Implement the initial PWA manifest for the Xen Orchestra 5 (PR [#7462](https://github.com/vatesfr/xen-orchestra/pull/7462)).
 
 ### Bug fixes
 
