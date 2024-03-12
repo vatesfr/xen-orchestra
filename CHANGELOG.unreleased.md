@@ -36,6 +36,9 @@
 <!--packages-start-->
 
 - @vates/otp minor
+- @xen-orchestra/backups patch
+- @xen-orchestra/xapi patch
+- xen-api major
 - xo-server minor
 - xo-web patch
 
