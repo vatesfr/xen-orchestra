@@ -8,6 +8,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SelectFiles from 'select-files'
+import semver from 'semver'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -288,7 +289,7 @@ export default class extends Component {
       }))
     }
 
-    const isPciPassthroughAvailable = host.version === '8.3.0' // do it with semver
+    const isPciPassthroughAvailable = semver.satisfies(host.version, '>=8.3.0')
     const isPciHiddenById = {}
     if (isPciPassthroughAvailable) {
       await Promise.all(
