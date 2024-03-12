@@ -320,6 +320,8 @@ const definitionsB = defineCollection(items, {
 
 The `labelClasses` properties are classes to be used in the template `:class`.
 
+_These classes are just helpers. They don't come with any default style._
+
 For a `Leaf` instance, it contains the following properties:
 
 - `selected`: whether the leaf is selected
@@ -339,6 +341,8 @@ Additionally, `Group` instances have the following properties:
 | `children`                     | `Item[]`  | array of visible children instances (see below) |
 
 ### `labelClasses`
+
+_These classes are just helpers. They don't come with any default style._
 
 For a `Group` instance, it contains the following properties:
 

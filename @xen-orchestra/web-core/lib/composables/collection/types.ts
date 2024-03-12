@@ -44,9 +44,9 @@ export type Item = Leaf | Group
 
 export type CollectionContext<TItem extends Item = Item> = {
   allowMultiSelect: boolean
-  selected: Map<string | number, TItem>
-  expanded: Map<string | number, TItem>
-  active: TItem | undefined
+  selectedItems: Map<string | number, TItem>
+  expandedItems: Map<string | number, TItem>
+  activeItem: TItem | undefined
 }
 
 export type UseCollectionOptions = {

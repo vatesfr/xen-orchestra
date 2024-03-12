@@ -41,7 +41,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
   }
 
   get isExpanded() {
-    return this.context.expanded.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
+    return this.context.expandedItems.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
   }
 
   get areChildrenFullySelected(): boolean {
@@ -82,33 +82,33 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
     return this.areChildrenFullySelected ? 'all' : this.areChildrenPartiallySelected ? 'some' : 'none'
   }
 
-  toggleExpand(force?: boolean, recursive?: boolean) {
-    const shouldExpand = force ?? !this.isExpanded
+  toggleExpand(forcedValue?: boolean, recursive?: boolean) {
+    const nextExpanded = forcedValue ?? !this.isExpanded
 
-    if (shouldExpand) {
-      this.context.expanded.set(this.id, this as Item)
+    if (nextExpanded) {
+      this.context.expandedItems.set(this.id, this as Item)
     } else {
-      this.context.expanded.delete(this.id)
+      this.context.expandedItems.delete(this.id)
     }
 
-    const shouldPropagate = recursive ?? !shouldExpand
+    const shouldPropagate = recursive ?? !nextExpanded
 
     if (shouldPropagate) {
       this.rawChildren.forEach(child => {
         if (child.isGroup) {
-          child.toggleExpand(shouldExpand, recursive)
+          child.toggleExpand(nextExpanded, recursive)
         }
       })
     }
   }
 
-  toggleChildrenSelect(force?: boolean) {
+  toggleChildrenSelect(forcedValue?: boolean) {
     if (!this.context.allowMultiSelect) {
       console.warn('allowMultiSelect must be enabled to use toggleChildrenSelect')
       return
     }
 
-    const shouldSelect = force ?? !this.areChildrenFullySelected
+    const shouldSelect = forcedValue ?? !this.areChildrenFullySelected
     this.rawChildren.forEach(child => {
       child instanceof Group ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
     })

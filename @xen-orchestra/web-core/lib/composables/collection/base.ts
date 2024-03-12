@@ -1,5 +1,5 @@
 import type { Group } from '@core/composables/collection/group'
-import type { CollectionContext, Identifiable, Item, ItemOptions } from '@core/composables/collection/types'
+import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/collection/types'
 
 export abstract class Base<T extends object = any, TDiscriminator = any> {
   abstract readonly isGroup: boolean
@@ -41,7 +41,7 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
 
   get label() {
     if (this.options.getLabel === undefined) {
-      return (this.data as { label: string }).label
+      return (this.data as Labeled).label
     }
 
     if (typeof this.options.getLabel === 'function') {
@@ -60,11 +60,11 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
   }
 
   get isSelected() {
-    return this.context.selected.has(this.id)
+    return this.context.selectedItems.has(this.id)
   }
 
   get isActive() {
-    return this.context.active?.id === this.id
+    return this.context.activeItem?.id === this.id
   }
 
   get passesFilterUpwards(): boolean {
@@ -76,20 +76,20 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
       return
     }
 
-    this.context.active = this as unknown as Item
+    this.context.activeItem = this as unknown as Item
   }
 
-  toggleSelect(force?: boolean) {
-    const shouldSelect = force ?? !this.isSelected
+  toggleSelect(forcedValue?: boolean) {
+    const shouldSelect = forcedValue ?? !this.isSelected
 
     if (shouldSelect) {
       if (!this.context.allowMultiSelect) {
-        this.context.selected.clear()
+        this.context.selectedItems.clear()
       }
 
-      this.context.selected.set(this.id, this as unknown as Item)
+      this.context.selectedItems.set(this.id, this as unknown as Item)
     } else {
-      this.context.selected.delete(this.id)
+      this.context.selectedItems.delete(this.id)
     }
   }
 }
