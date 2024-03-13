@@ -103,6 +103,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
         // for healthcheck
         this._tags = metadata.vm.tags
       }
+      await this._healthCheck()
     } else {
       Task.info('No new data to upload for this VM')
     }

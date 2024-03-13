@@ -94,7 +94,6 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     const handler = this._sourceRemoteAdapter._handler
     await Disposable.use(await handler.lock(getVmBackupDir(this._vmUuid)), async () => {
       await this._run()
-      await this._healthCheck()
     })
   }
 }
