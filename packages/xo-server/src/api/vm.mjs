@@ -1601,19 +1601,6 @@ createInterface.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function attachPci({ vm, pciId }) {
-  await this.getXapiObject(vm).update_other_config('pci', pciId)
-}
-
-attachPci.params = {
-  vm: { type: 'string' },
-  pciId: { type: 'string' },
-}
-
-attachPci.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
-}
-
 // https://docs.xcp-ng.org/compute/#5-put-this-pci-device-into-your-vm
 const getRawPciIds = pciIds => '0/'.concat(pciIds.join(',0/'))
 const getAttachedPciIds = vm => vm.other.pci?.split(',').map(s => s.split('/')[1]) ?? []
@@ -1641,6 +1628,8 @@ attachPcis.resolve = {
   vm: ['id', 'VM', 'administrate'],
 }
 
+// -------------------------------------------------------------------
+
 export async function detachPcis({ vm, pciIds }) {
   const attachedPciIds = getAttachedPciIds(vm)
   const newAttachedPciIds = attachedPciIds.filter(id => !pciIds.includes(id))
@@ -1658,19 +1647,6 @@ detachPcis.resolve = {
   vm: ['id', 'VM', 'administrate'],
 }
 
-// -------------------------------------------------------------------
-
-export async function detachPci({ vm }) {
-  await this.getXapiObject(vm).update_other_config('pci', null)
-}
-
-detachPci.params = {
-  vm: { type: 'string' },
-}
-
-detachPci.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
-}
 // -------------------------------------------------------------------
 
 export function stats({ vm, granularity }) {

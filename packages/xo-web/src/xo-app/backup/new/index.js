@@ -1163,7 +1163,6 @@ const New = decorate([
                     </Upgrade>
                   ) : (
                     <div>
-                      {console.log(state.vms)}
                       <FormFeedback
                         component={SelectVm}
                         error={state.showErrors ? state.missingVms : undefined}

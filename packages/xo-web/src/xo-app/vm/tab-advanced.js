@@ -39,6 +39,7 @@ import {
   deleteVusb,
   editVm,
   getVmsHaValues,
+  isPciPassthroughAvailable,
   isVmRunning,
   pauseVm,
   recoveryStartVm,
@@ -53,6 +54,8 @@ import {
   subscribeUsers,
   suspendVm,
   unplugVusb,
+  vmAttachPcis,
+  vmDetachPcis,
   vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -65,7 +68,6 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
-import { vmAttachPcis, vmDetachPcis } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -135,7 +137,7 @@ const PCI_COLUMNS = [
     itemRenderer: (pciId, { pciByPciId }) => {
       const pci = pciByPciId[pciId]
       if (pci === undefined) {
-        return 'Unknown'
+        return _('unknown')
       }
       const { uuid } = pci
       return (
@@ -155,25 +157,20 @@ const PCI_COLUMNS = [
     name: _('className'),
     itemRenderer: (pciId, { pciByPciId }) => {
       const pci = pciByPciId[pciId]
-      return pci === undefined ? 'Unknown' : pci.class_name
+      return pci === undefined ? _('unknown') : pci.class_name
     },
-    sortCriteria: (pciId, { pciByPciId }) => {
-      const pci = pciByPciId[pciId]
-      return pci === undefined ? 'Unknown' : pci.class_name
-    },
+    sortCriteria: (pciId, { pciByPciId }) => pciByPciId[pciId]?.class_name,
   },
   {
     name: _('deviceName'),
     itemRenderer: (pciId, { pciByPciId }) => {
       const pci = pciByPciId[pciId]
-      return pci === undefined ? 'Unknown' : pci.device_name
+      return pci === undefined ? _('unknown') : pci.device_name
     },
-    sortCriteria: (pciId, { pciByPciId }) => {
-      const pci = pciByPciId[pciId]
-      return pci === undefined ? 'Unknown' : pci.device_name
-    },
+    sortCriteria: (pciId, { pciByPciId }) => pciByPciId[pciId]?.device_name,
   },
 ]
+
 const VUSB_INDIVIDUAL_ACTIONS = [
   {
     handler: deleteVusb,
@@ -185,10 +182,12 @@ const VUSB_INDIVIDUAL_ACTIONS = [
 
 const PCI_ACTIONS = [
   {
-    handler: (pciIds, { vm }) => vmDetachPcis(vm, pciIds),
+    handler: (pciIds, { vm, isPciPassthroughAvailable }) => vmDetachPcis(vm, pciIds),
     icon: 'disconnect',
     label: _('detach'),
     level: 'danger',
+    disabled: !isPciPassthroughAvailable,
+    tooltip: 'foo bar baz',
   },
 ]
 
@@ -519,8 +518,8 @@ const NIC_TYPE_OPTIONS = [
       vusb =>
         vusb.vm === vm.id
   )
-  const getPusbs = createGetObjectsOfType('PUSB')
   const getPcisbByHost = createGetObjectsOfType('PCI').groupBy('$host')
+  const getPusbs = createGetObjectsOfType('PUSB')
   const getAvailablePusbs = getPusbs
     .pick(
       createSelector(createGetObjectsOfType('USB_group'), usbGroups =>
@@ -531,6 +530,11 @@ const NIC_TYPE_OPTIONS = [
       )
     )
     .sort()
+  const getVmHosts = createGetObjectsOfType('host').filter(
+    (_, { vm }) =>
+      host =>
+        host.$pool === vm.$pool
+  )
 
   return (state, props) => ({
     availablePusbs: getAvailablePusbs(state, props),
@@ -538,9 +542,10 @@ const NIC_TYPE_OPTIONS = [
     isAdmin: isAdmin(state, props),
     vgpus: getVgpus(state, props),
     vmPool: createGetObject((_, props) => get(() => props.vm.$pool))(state, props),
-    pusbByUsbGroup: keyBy(getPusbs(state, props), 'usbGroup'),
-    vusbs: getVusbs(state, props),
     pcisByHost: getPcisbByHost(state, props),
+    pusbByUsbGroup: keyBy(getPusbs(state, props), 'usbGroup'),
+    vmHosts: getVmHosts(state, props),
+    vusbs: getVusbs(state, props),
   })
 })
 export default class TabAdvanced extends Component {
@@ -631,31 +636,19 @@ export default class TabAdvanced extends Component {
     return createVusb(this.props.vm, pusb.usbGroup)
   }
 
-  // only available for XCP-ng 8.3.0 or highter
-  _attachPci = async () => {
+  _attachPcis = async () => {
     const { vm } = this.props
-    const attachedPciIds = this._getAttachedPciIds()
     const pcis = await confirm({
-      title: 'Attach PCI',
-      body: (
-        <PciAttachModal
-          attachedPciIds={attachedPciIds}
-          pcisByHost={this.props.pcisByHost}
-          pool={this.props.vm.$pool}
-          host={isVmRunning(vm) ? vm.$container : undefined}
-        />
-      ),
+      body: <PciAttachModal attachedPciIds={this._getAttachedPciIds()} pcisByHost={this.props.pcisByHost} vm={vm} />,
       icon: 'add',
+      title: _('attachPcis'),
     })
     await vmAttachPcis(vm, pcis)
   }
 
   _getAttachedPciIds = createSelector(
     () => this.props.vm,
-    vm => {
-      console.log(vm.other)
-      return vm.other.pci?.split(',').map(s => s.split('/')[1]) ?? [] // other.pci: 0/pci_id,0/pci_id,..
-    }
+    vm => vm.other.pci?.split(',').map(s => s.split('/')[1]) ?? [] // other.pci: 0/pci_id,0/pci_id,..
   )
 
   _getPciByPciId = createSelector(
@@ -663,11 +656,16 @@ export default class TabAdvanced extends Component {
     () => this.props.pcisByHost,
     (vm, pcisByHost) => {
       if (!isVmRunning(vm)) {
+        // If the VM is not running, it's not attached to any host, therefore,
+        // we cannot determine which XAPI PCI object is associated with the given PCI_ID (eg: 0000:01:00.4).
+        // This determination depends on the specific host environment.
         return {}
       }
       return keyBy(pcisByHost[vm.$container], 'pci_id')
     }
   )
+
+  _getIsPciPassthroughAvaialble = () => isPciPassthroughAvailable(this.props.vmHosts[this.props.pool.master])
 
   render() {
     const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
@@ -677,6 +675,7 @@ export default class TabAdvanced extends Component {
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
+    const _isPciPassthroughAvailable = this._getIsPciPassthroughAvaialble()
     return (
       <Container>
         <Row>
@@ -1209,24 +1208,31 @@ export default class TabAdvanced extends Component {
               individualActions={VUSB_INDIVIDUAL_ACTIONS}
             />
             <br />
-            <h3>Attached PCIs</h3>
-            <i className='text-info d-block'>
-              <Icon icon='info' /> When a VM is offline, it's not attached to any host, and therefore, it's impossible
-              to determine the associated PCI devices, as it depends on the hardware environment in which it would be
-              deployed.
-            </i>
-            <i className='text-info d-block'>
-              <Icon icon='info' /> Attaching/detaching a PCI will be taken into consideration for the next VM boot.
-            </i>
-            <ActionButton btnStyle='primary' handler={this._attachPci} icon='connect'>
-              Attach PCI
+            <h3>{_('attachedPcis')}</h3>
+            <div className='text-info'>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('infoUnknownPciOnNonRunningVm')}
+              </i>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('attachingDetachingPciNeedVmBoot')}
+              </i>
+            </div>
+            <ActionButton
+              btnStyle='primary'
+              disabled={!_isPciPassthroughAvailable}
+              handler={this._attachPcis}
+              icon='connect'
+              tooltip={_isPciPassthroughAvailable ? undefined : _('onlyAvailableXcp83OrHighter')}
+            >
+              {_('attachPcis')}
             </ActionButton>
             <SortedTable
+              actions={PCI_ACTIONS}
               collection={this._getAttachedPciIds()}
               columns={PCI_COLUMNS}
+              data-isPciPassthroughAvailable={_isPciPassthroughAvailable}
               data-pciByPciId={this._getPciByPciId()}
               data-vm={vm}
-              actions={PCI_ACTIONS}
             />
             <br />
             <h3>{_('miscLabel')}</h3>

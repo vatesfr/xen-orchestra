@@ -3,6 +3,7 @@ import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
+import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -1264,6 +1265,11 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
 }
 
 export const isPciHidden = pci => _call('pci.isHidden', { id: resolveId(pci) })
+
+// ATM, unknown date for the availablity on XS, since they are doing rolling updates
+// FIXME: When XS release methods to do PCI passthrough, update this check
+export const isPciPassthroughAvailable = host =>
+  host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
 
 export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
 

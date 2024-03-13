@@ -1,18 +1,18 @@
 import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
+import Tooltip from 'tooltip'
+import { createSelector } from 'selectors'
+import { isPciHidden, isVmRunning } from 'xo'
 import { Select } from 'form'
 import { SelectHost } from 'select-objects'
-import { createSelector } from 'selectors'
-import { isPciHidden } from 'xo'
-import Tooltip from 'tooltip'
 
 const PCI_RENDERER = pci => `${pci.class_name} ${pci.device_name} (${pci.pci_id})`
 
 export default class PciAttachModal extends Component {
   state = {
-    host: this.props.host,
     hiddenPcis: undefined,
+    host: isVmRunning(this.props.vm) ? this.props.vm.$container : undefined,
     pcis: [],
   }
 
@@ -21,31 +21,26 @@ export default class PciAttachModal extends Component {
   }
 
   async componentDidMount() {
-    const { props } = this
-    if (props.host !== undefined) {
-      const hiddenPcis = await this.getHiddenPcis(props.pcisByHost[props.host])
-      this.setState({ hiddenPcis })
-    }
+    this.setState({ hiddenPcis: await this.getHiddenPcis() })
   }
 
   async componentDidUpdate(prevProps, prevState) {
-    const { props, state } = this
-    if (prevState.host !== state.host) {
-      if (this.state.host === undefined) {
-        this.setState({ hiddenPcis: undefined, pcis: [] })
-      } else {
-        const hiddenPcis = await this.getHiddenPcis(props.pcisByHost[state.host])
-        this.setState({ hiddenPcis })
-      }
+    if (prevState.host !== this.state.host) {
+      this.setState({
+        pcis: [],
+        hiddenPcis: await this.getHiddenPcis(),
+      })
     }
   }
 
-  onChangeHost = host => this.linkState('host')(host?.id)
-
-  async getHiddenPcis(pcis) {
+  async getHiddenPcis() {
+    const host = this.state.host
+    if (host === undefined) {
+      return undefined
+    }
     const hidden = []
     await Promise.all(
-      pcis.map(async pci => {
+      this.props.pcisByHost[host].map(async pci => {
         if (await isPciHidden(pci.id)) {
           hidden.push(pci)
         }
@@ -54,20 +49,9 @@ export default class PciAttachModal extends Component {
     return hidden
   }
 
-  _getHostPredicate = createSelector(
-    () => this.props.pool,
-    poolId => host => host.$pool === poolId
-  )
+  onChangeHost = host => this.linkState('host')(host?.id)
 
-  _getPciPredicate = createSelector(
-    () => this.props.attachedPciIds,
-    pciIds => pci => {
-      console.log('predicate trigged')
-      console.log(pciIds)
-      console.log(pci.pci_id)
-      return !pciIds.include(pci.pci_id)
-    }
-  )
+  _getHostPredicate = host => this.props.vm.$pool === host.$pool
 
   _getPcis = createSelector(
     () => this.state.hiddenPcis,
@@ -77,19 +61,20 @@ export default class PciAttachModal extends Component {
   )
 
   render() {
+    const isHostSelected = this.state.host !== undefined
     return (
       <div>
-        <SelectHost value={this.state.host} predicate={this._getHostPredicate()} onChange={this.onChangeHost} />
-        <Tooltip content={this.state.host === undefined ? 'Select an host first' : undefined}>
+        <SelectHost onChange={this.onChangeHost} predicate={this._getHostPredicate} value={this.state.host} />
+        <Tooltip content={isHostSelected ? undefined : _('selectHostFirst')}>
           <Select
             className='mt-1'
-            disabled={this.state.host === undefined}
-            options={this._getPcis()}
-            optionRenderer={PCI_RENDERER}
-            placeholder={'Select PCI(s)'}
-            onChange={this.linkState('pcis')}
-            value={this.state.pcis}
+            disabled={!isHostSelected}
             multi
+            onChange={this.linkState('pcis')}
+            optionRenderer={PCI_RENDERER}
+            options={this._getPcis()}
+            placeholder={_('selectPcis')}
+            value={this.state.pcis}
           />
         </Tooltip>
       </div>
