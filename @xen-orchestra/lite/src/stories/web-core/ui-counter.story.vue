@@ -4,8 +4,8 @@
     :params="[
       prop('value').num().required().preset(2).widget(),
       prop('suffix').str().widget(),
-      prop('large').bool().default(false).widget(),
-      prop('color').type(`Color | 'black'`).enum('info', 'success', 'warning', 'error', 'black').widget(),
+      prop('color').type('CounterColor').enum('info', 'success', 'warning', 'error', 'danger', 'black').widget(),
+      prop('size').type('CounterSize').enum('small', 'medium').widget(),
     ]"
   >
     <UiCounter v-bind="properties" />

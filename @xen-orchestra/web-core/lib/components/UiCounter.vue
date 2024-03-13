@@ -1,16 +1,30 @@
 <template>
-  <span :class="[color, { large }]" class="ui-counter">{{ value }}{{ suffix }}</span>
+  <span :class="classNames" class="ui-counter typo">{{ value }}{{ suffix }}</span>
 </template>
 
 <script lang="ts" setup>
-import type { Color } from '@core/types/color.type'
+import type { CounterColor } from '@core/types/color.type'
+import type { CounterSize } from '@core/types/size.type'
+import { computed } from 'vue'
 
-defineProps<{
-  value: number
-  color?: Color | 'black'
-  suffix?: string
-  large?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    value: number
+    color?: CounterColor
+    size?: CounterSize
+    suffix?: string
+  }>(),
+  { size: 'small' }
+)
+
+const fontClasses = {
+  small: 'p4-semi-bold',
+  medium: 'p1-medium',
+}
+
+const classNames = computed(() => {
+  return [props.color, props.size, fontClasses[props.size]]
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -30,7 +44,7 @@ defineProps<{
     --background-color: var(--color-orange-base);
   }
 
-  &.error {
+  &:is(.error, .danger) {
     --background-color: var(--color-red-base);
   }
 
@@ -41,16 +55,12 @@ defineProps<{
 
 /* SIZE VARIANTS */
 .ui-counter {
-  & {
-    --font-size: 1rem;
-    --font-weight: 600;
+  &.small {
     --min-width: 1.5rem;
     --padding: 0 0.6rem;
   }
 
-  &.large {
-    --font-size: 1.6rem;
-    --font-weight: 500;
+  &.medium {
     --min-width: 2.4rem;
     --padding: 0 0.8rem;
   }
@@ -64,8 +74,6 @@ defineProps<{
   border-radius: 9rem;
   text-transform: lowercase;
   background-color: var(--background-color);
-  font-size: var(--font-size);
-  font-weight: var(--font-weight);
   min-width: var(--min-width);
   padding: var(--padding);
 }

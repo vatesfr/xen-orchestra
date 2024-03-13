@@ -2,7 +2,7 @@
   <UiCard :color="hasError ? 'error' : undefined">
     <UiTitle class="title-with-counter" type="h4">
       {{ $t('tasks') }}
-      <UiCounter large :value="pendingTasks.length" color="info" />
+      <UiCounter size="medium" :value="pendingTasks.length" color="info" />
     </UiTitle>
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
     <UiCardSpinner v-if="!isReady" />
