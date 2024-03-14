@@ -1,3 +1,4 @@
+import { request } from 'undici'
 import { XmlRpcMessage, XmlRpcResponse } from 'xmlrpc-parser'
 
 import prepareXmlRpcParams from './_prepareXmlRpcParams.mjs'
@@ -20,23 +21,25 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ agent, client, url }) => {
+export default ({ dispatcher, url }) => {
   url = new URL('./xmlrpc', Object.assign(new URL('http://localhost'), url))
-  const path = url.pathname + url.search
 
   return async function (method, args) {
     const message = new XmlRpcMessage(method, prepareXmlRpcParams(args))
 
-    const res = await client.request({
+    const res = await request(url, {
+      dispatcher,
       body: message.xml(),
       headers: {
         Accept: 'text/xml',
         'Content-Type': 'text/xml',
       },
       method: 'POST',
-      path,
-      agent,
     })
+
+    if ((res.statusCode / 100) | (0 !== 2)) {
+      throw new Error('unexpect statusCode ' + res.statusCode)
+    }
 
     if (res.headers['content-type'] !== 'text/xml' && res.headers['content-type'] !== 'application/xml') {
       throw new UnsupportedTransport()

@@ -5,7 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
-import { Client } from 'undici'
+import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -13,7 +13,6 @@ import { Index } from 'xo-collection/index.js'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
-import { ProxyAgent } from 'proxy-agent'
 
 import debug from './_debug.mjs'
 import getTaskResult from './_getTaskResult.mjs'
@@ -135,12 +134,30 @@ export class Xapi extends EventEmitter {
       delete url.password
     }
 
-    this._allowUnauthorized = opts.allowUnauthorized
     const { httpProxy } = opts
+    const dispatcherOpts = {
+      maxRedirections: 3,
+    }
+    const tlsOpts = {
+      minVersion: 'TLSv1',
+      rejectUnauthorized: !opts.allowUnauthorized,
+    }
     if (httpProxy !== undefined) {
-      this._httpAgent = new ProxyAgent({
-        getProxyForUrl: () => httpProxy,
-        rejectUnauthorized: !opts.allowUnauthorized,
+      const uri = new URL(httpProxy)
+      const token = 'Basic ' + Buffer.from(`${uri.username}:${uri.password}`).toString('base64')
+      this._undiciDispatcher = new ProxyAgent({
+        ...dispatcherOpts,
+
+        proxyTls: tlsOpts,
+        requestTls: tlsOpts,
+        token,
+        uri,
+      })
+    } else {
+      this._undiciDispatcher = new Agent({
+        ...dispatcherOpts,
+
+        connect: tlsOpts,
       })
     }
     this._setUrl(url)
@@ -175,10 +192,6 @@ export class Xapi extends EventEmitter {
 
       this.watchEvents()
     }
-  }
-
-  get httpAgent() {
-    return this._httpAgent
   }
 
   get readOnly() {
@@ -403,40 +416,30 @@ export class Xapi extends EventEmitter {
     }
 
     let url = new URL('http://localhost')
+    url.protocol = this._url.protocol
     await this._setHostAddressInUrl(url, host)
 
     const response = await this._addSyncStackTrace(
       pRetry(
         async () => {
-          const client = new Client(url, {
-            connect: {
-              rejectUnauthorized: !this._allowUnauthorized,
-              // Support XS <= 6.5 with Node => 12
-              minVersion: 'TLSv1',
-            },
+          return request(url, {
+            bodyTimeout: this._httpInactivityTimeout,
+            dispatcher: this._undiciDispatcher,
+            headersTimeout: this._httpInactivityTimeout,
+            maxRedirections: 0,
+            method: 'GET',
+            path: pathname,
+            query,
+            signal: $cancelToken,
+          }).then(response => {
+            const { statusCode } = response
+            if (((statusCode / 100) | 0) === 2) {
+              return response
+            }
+            const error = new Error(`unexpected ${response.statusCode}`)
+            Object.defineProperty(error, 'response', { value: response })
+            throw error
           })
-
-          return client
-            .request({
-              method: 'GET',
-              path: pathname,
-              query,
-              maxRedirections: 0,
-              headersTimeout: this._httpInactivityTimeout,
-              bodyTimeout: this._httpInactivityTimeout,
-              agent: this.httpAgent,
-
-              signal: $cancelToken,
-            })
-            .then(response => {
-              const { statusCode } = response
-              if (((statusCode / 100) | 0) === 2) {
-                return response
-              }
-              const error = new Error(`${response.statusCode} ${response.statusMessage}`)
-              Object.defineProperty(error, 'response', { value: response })
-              throw error
-            })
         },
         {
           when: error => error.response !== undefined && error.response.statusCode === 302,
@@ -506,8 +509,6 @@ export class Xapi extends EventEmitter {
 
     const doRequest = (url, opts) =>
       httpRequest(url, {
-        agent: this.httpAgent,
-
         body,
         headers,
         method: 'PUT',
@@ -971,17 +972,9 @@ export class Xapi extends EventEmitter {
     const { hostname } = url
     url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
 
-    const client = new Client(url, {
-      connect: {
-        minVersion: 'TLSv1',
-        rejectUnauthorized: !this._allowUnauthorized,
-      },
-    })
-
     this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
     this._transport = this._createTransport({
-      agent: this.httpAgent,
-      client,
+      dispatcher: this._undiciDispatcher,
       url,
     })
     this._url = url
