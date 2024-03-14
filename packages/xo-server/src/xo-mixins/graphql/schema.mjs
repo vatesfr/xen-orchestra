@@ -1,13 +1,5 @@
 // schema.js
-import {
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLID,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLInt,
-  GraphQLBoolean,
-} from 'graphql'
+import { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLList, GraphQLInt, GraphQLBoolean } from 'graphql'
 import { PubSub } from 'graphql-subscriptions'
 import * as CM from 'complex-matcher'
 import { every } from '@vates/predicates'
@@ -233,16 +225,15 @@ export default class XapiGraphQlSchema {
     Object.entries(this.#types).forEach(([typeName, type]) => {
       fields[`${typeName.toLocaleLowerCase()}Updated`] = {
         type,
-        args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-        subscribe: (parent, { id }) => {
+        subscribe: (parent, args) => {
           return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED`)
         },
         resolve: payload => payload,
       }
       fields[`${typeName.toLocaleLowerCase()}Removed`] = {
         type,
-        args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-        subscribe: (parent, { id }) => {
+        // args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+        subscribe: (parent, args) => {
           return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED`)
         },
         resolve: payload => payload,

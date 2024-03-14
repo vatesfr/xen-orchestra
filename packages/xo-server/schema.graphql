@@ -17,7 +17,7 @@ type XoQueryType {
 }
 
 type host {
-  uuid: ID
+  id: ID
   name_label: String
   description: String
   timestamp: Int
@@ -25,7 +25,7 @@ type host {
 }
 
 type VM {
-  uuid: ID
+  id: ID
   name_label: String
   description: String
   power_state: String
@@ -47,7 +47,7 @@ type VBD {
 }
 
 type VDI {
-  uuid: ID
+  id: ID
   name_label: String
   description: String
   size: Int
@@ -58,7 +58,7 @@ type VDI {
 }
 
 type SR {
-  uuid: ID
+  id: ID
   name_label: String
   description: String
   size: Int
@@ -68,19 +68,19 @@ type SR {
 }
 
 type RootSubscriptionType {
-  hostUpdated(uuid: ID!): host
-  hostRemoved(uuid: ID!): host
+  hostUpdated: host
+  hostRemoved: host
   hostAdded: host
-  vmUpdated(uuid: ID!): VM
-  vmRemoved(uuid: ID!): VM
+  vmUpdated: VM
+  vmRemoved: VM
   vmAdded: VM
-  vbdUpdated(uuid: ID!): VBD
-  vbdRemoved(uuid: ID!): VBD
+  vbdUpdated: VBD
+  vbdRemoved: VBD
   vbdAdded: VBD
-  vdiUpdated(uuid: ID!): VDI
-  vdiRemoved(uuid: ID!): VDI
+  vdiUpdated: VDI
+  vdiRemoved: VDI
   vdiAdded: VDI
-  srUpdated(uuid: ID!): SR
-  srRemoved(uuid: ID!): SR
+  srUpdated: SR
+  srRemoved: SR
   srAdded: SR
 }
