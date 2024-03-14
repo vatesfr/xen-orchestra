@@ -37,12 +37,12 @@ export default class XapiGraphQlSchema {
     })
     app.objects.on('update', items => {
       Object.values(items).forEach(item => {
-        pubsub.publish(`${item.type.toUpperCase()}_UPDATED_${item.id}`, item)
+        pubsub.publish(`${item.type.toUpperCase()}_UPDATED`, item)
       })
     })
     app.objects.on('remove', items => {
       Object.keys(items).forEach(id => {
-        pubsub.publish(`REMOVED_${id}`, { id })
+        pubsub.publish(`REMOVED`, { id })
       })
     })
     this.#makeTypes()
@@ -235,7 +235,7 @@ export default class XapiGraphQlSchema {
         type,
         args: { id: { type: new GraphQLNonNull(GraphQLID) } },
         subscribe: (parent, { id }) => {
-          return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED_${id}`)
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_UPDATED`)
         },
         resolve: payload => payload,
       }
@@ -243,7 +243,7 @@ export default class XapiGraphQlSchema {
         type,
         args: { id: { type: new GraphQLNonNull(GraphQLID) } },
         subscribe: (parent, { id }) => {
-          return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED_${id}`)
+          return pubsub.asyncIterator(`${typeName.toUpperCase()}_REMOVED`)
         },
         resolve: payload => payload,
       }
