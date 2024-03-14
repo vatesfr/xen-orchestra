@@ -322,10 +322,10 @@ export default class Plan {
     debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
 
     // execute prepositionning only if vCPU/CPU ratios are different enough, to prevent executing too often
-    // TODO : maybe we should apply a more complex function than just a ratio, to have more coherent values on both small and big architectures
+    // TODO: maybe we should apply a more complex function than just a ratio, to have more coherent values on both small and big architectures
     const ratio = vcpuPerCpuRatio(minBy(hostList, vcpuPerCpuRatio)) / vcpuPerCpuRatio(maxBy(hostList, vcpuPerCpuRatio))
     if (ratio > THRESHOLD_VCPU_RATIO) {
-      debugVcpuBalancing(`vCPU ratios not different enough : ${ratio}`)
+      debugVcpuBalancing(`vCPU ratios not different enough: ${ratio}`)
       return
     }
 
@@ -333,14 +333,14 @@ export default class Plan {
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
     const poolAverageCpu = computePoolAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {
-      debugVcpuBalancing(`Pool too much loaded for vCPU prepositionning : ${poolAverageCpu}% CPU used`)
+      debugVcpuBalancing(`Pool too much loaded for vCPU prepositionning: ${poolAverageCpu}% CPU used`)
       return
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
 
     // 1. Find source host from which to migrate.
     const sources = sortBy(
-      // filter to only get host for which removing vCPUs is meaningful
+      // filter to only get hosts for which removing vCPUs is meaningful
       filter(
         hostList,
         host =>
@@ -349,8 +349,8 @@ export default class Plan {
       ),
       [
         host => -vcpuPerCpuRatio(host),
-        // Find host with the most memory used
-        // TODO : if memory is nearly the same between two hosts, ignore this criteria and decide based on CPU usage (do the same in other sortBy)
+        // Find hosts with the most memory used
+        // TODO: if memory is nearly the same between two hosts, ignore this criteria and decide based on CPU usage (do the same in other sortBy)
         host => hostsAverages[host.id].memoryFree,
       ]
     )
@@ -375,7 +375,7 @@ export default class Plan {
           host => -hostsAverages[host.id].memoryFree,
         ]
       )
-      debugVcpuBalancing(`Destinations : ${inspect(destinations, { depth: null })}`)
+      debugVcpuBalancing(`Destinations: ${inspect(destinations, { depth: null })}`)
 
       if (!destinations.length) {
         continue // Cannot find a valid destination.
@@ -400,9 +400,9 @@ export default class Plan {
         }
 
         // deltaSource = max amount of vCPUs source should give, deltaDestination = max amount of vCPUs destination should accept, delta = max amount of vCPUs to migrate to satisfy both
-        // avoiding to migrate too much vCPUs for source or destination : deltaSource is positive, deltaDestination is negative, we check which one has greater absolute value
+        // avoiding to migrate too much vCPUs for source or destination: deltaSource is positive, deltaDestination is negative, we check which one has greater absolute value
         // using ceil instead of floor prevents edge cases where a host would become a bit overloaded, but can lead to some host being a bit underloaded
-        // ex : if we have a host with 19 vCPU and 9 host with 10 vCPU, each with the same number of CPU, then ideal vCPU per host is 10.9, rounding to 10 would make host with 19 vCPU have no destination to send VMs to
+        // ex: if we have a host with 19 vCPU and 9 host with 10 vCPU, each with the same number of CPU, then ideal vCPU per host is 10.9, rounding to 10 would make host with 19 vCPU have no destination to send VMs to
         // reversely, we could have a host with 5 vCPU and 9 host with 10 vCPU, and then the 5 vCPU host would have no source to receive VMs from
         let delta = Math.ceil(Math.min(deltaSource, -deltaDestination))
         const vms = sortBy(
