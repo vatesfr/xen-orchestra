@@ -32,7 +32,7 @@ export default class XapiGraphQlSchema {
     this.#app = app
     app.objects.on('add', items => {
       Object.values(items).forEach(item => {
-        pubsub.publish(`${item.type.toUpperCase()}s_ADDED`, item)
+        pubsub.publish(`${item.type.toUpperCase()}_ADDED`, item)
       })
     })
     app.objects.on('update', items => {
