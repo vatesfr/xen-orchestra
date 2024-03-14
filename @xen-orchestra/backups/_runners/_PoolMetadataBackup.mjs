@@ -31,7 +31,7 @@ export class PoolMetadataBackup {
     const poolDir = `${DIR_XO_POOL_METADATA_BACKUPS}/${schedule.id}/${pool.$id}`
     const dir = `${poolDir}/${formatFilenameDate(timestamp)}`
 
-    const stream = await this._exportPoolMetadata()
+    const stream = (await this._exportPoolMetadata()).body
     const fileName = `${dir}/data`
 
     const metadata = JSON.stringify(

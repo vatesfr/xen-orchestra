@@ -1,8 +1,26 @@
 # ChangeLog
 
-## **5.92.0** (2024-02-29)
+## **5.92.1** (2024-03-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [About] Clicking on commit version number opens a new tab [#7427](https://github.com/vatesfr/xen-orchestra/issues/7427) (PR [#7430](https://github.com/vatesfr/xen-orchestra/pull/7430))
+
+### Bug fixes
+
+- [Jobs] Fix `t.value is undefined` when saving a new job (broken in XO 5.91)
+- [XOSTOR] Move `ignore file sytems` outside of advanced settings (PR [#7429](https://github.com/vatesfr/xen-orchestra/pull/7429))
+- Allow unauthenticated access to `robots.txt`
+- [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation) (PR [#7426](https://github.com/vatesfr/xen-orchestra/pull/7426))
+
+### Released packages
+
+- xo-server 5.138.1
+- xo-web 5.140.0
+
+## **5.92.0** (2024-02-29)
 
 ### Highlights
 

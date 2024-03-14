@@ -142,8 +142,12 @@ port = 80
 # https://github.com/nodejs/node/issues/46574
 requestTimeout = 0
 
-[http.mounts]
+# These mount points are exposed without needing to be authenticated.
+[http.publicMounts]
 '/robots.txt' = './robots.txt'
+
+# These mount points are exposed only when authenticated.
+[http.mounts]
 '/' = '../xo-web/dist/'
 '/v6' = '../../@xen-orchestra/web/dist/'
 

@@ -122,6 +122,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetwork: this.state.migrationNetworkId,
       sr: resolveId(this.state.targetSrs.mainSr),
       targetHost: this.state.host && this.state.host.id,
+      srRequired: !this.state.doNotMigrateVdis,
     }
   }
 
@@ -222,14 +223,14 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host && (!doNotMigrateVdis || migrationNetworkId != null) && (
+        {host && (
           <div className={styles.groupBlock}>
             <SingleLineRow>
               <Col size={12}>
                 <ChooseSrForEachVdisModal
                   mainSrPredicate={this._getSrPredicate()}
                   onChange={this.linkState('targetSrs')}
-                  required
+                  required={!doNotMigrateVdis}
                   value={targetSrs}
                   vdis={vdis}
                 />

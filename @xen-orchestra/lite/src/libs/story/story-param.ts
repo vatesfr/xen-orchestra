@@ -1,7 +1,15 @@
-import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
 import mixin, { type MixinAbstractConstructor } from '@/libs/mixin'
 import type { Widget } from '@/libs/story/story-widget'
 import { boolean, choice, number, object, text } from '@/libs/story/story-widget'
+import {
+  faCity,
+  faDesktop,
+  faEllipsis,
+  faMessage,
+  faNetworkWired,
+  faServer,
+  faUser,
+} from '@fortawesome/free-solid-svg-icons'
 
 function WithType(Base: MixinAbstractConstructor<BaseParam>) {
   abstract class WithType extends Base /* implements HasType */ {
@@ -410,16 +418,19 @@ export const isSlotParam = (param: any): param is SlotParam => param instanceof 
 export const isModelParam = (param: any): param is ModelParam => param instanceof ModelParam
 
 export const colorProp = (name = 'color') =>
-  prop(name).enum('info', 'success', 'warning', 'error').default('info').widget()
+  prop(name).type('Color').enum('info', 'success', 'warning', 'error').default('info').widget()
 
 export const iconProp = (name = 'icon') =>
   prop(name)
     .type('IconDefinition')
     .widget(
       choice(
-        { label: 'Ship', value: faShip },
-        { label: 'Rocket', value: faRocket },
-        { label: 'Floppy', value: faFloppyDisk },
-        { label: 'Trash', value: faTrash }
+        { label: 'Pool', value: faCity },
+        { label: 'Host', value: faServer },
+        { label: 'VM', value: faDesktop },
+        { label: 'Network', value: faNetworkWired },
+        { label: 'User', value: faUser },
+        { label: 'More actions', value: faEllipsis },
+        { label: 'Message', value: faMessage }
       )
     )
