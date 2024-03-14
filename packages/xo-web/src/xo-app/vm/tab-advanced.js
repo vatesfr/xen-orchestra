@@ -182,12 +182,10 @@ const VUSB_INDIVIDUAL_ACTIONS = [
 
 const PCI_ACTIONS = [
   {
-    handler: (pciIds, { vm, isPciPassthroughAvailable }) => vmDetachPcis(vm, pciIds),
+    handler: (pciIds, { vm }) => vmDetachPcis(vm, pciIds),
     icon: 'disconnect',
     label: _('detach'),
     level: 'danger',
-    disabled: !isPciPassthroughAvailable,
-    tooltip: 'foo bar baz',
   },
 ]
 
@@ -1230,7 +1228,6 @@ export default class TabAdvanced extends Component {
               actions={PCI_ACTIONS}
               collection={this._getAttachedPciIds()}
               columns={PCI_COLUMNS}
-              data-isPciPassthroughAvailable={_isPciPassthroughAvailable}
               data-pciByPciId={this._getPciByPciId()}
               data-vm={vm}
             />

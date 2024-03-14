@@ -1266,7 +1266,7 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
 
 export const isPciHidden = pci => _call('pci.isHidden', { id: resolveId(pci) })
 
-// ATM, unknown date for the availablity on XS, since they are doing rolling updates
+//  ATM, unknown date for the availablity on XS, since they are doing rolling release
 // FIXME: When XS release methods to do PCI passthrough, update this check
 export const isPciPassthroughAvailable = host =>
   host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
