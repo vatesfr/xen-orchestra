@@ -9,6 +9,7 @@
 
 - [VM Creation] Automatically create a VTPM if the template requests it (Windows templates starting from XCP-ng 8.3) (PR [#7436](https://github.com/vatesfr/xen-orchestra/pull/7436))
 - [OTP] Accepts (ignores) whitespaces in the one-time password (some OTP applications add them for nicer display)
+- [VM/General] Show current VM tags without the need to search them in advanced creation tag selector [#7351](https://github.com/vatesfr/xen-orchestra/issues/7351) (PR [#7434](https://github.com/vatesfr/xen-orchestra/pull/7434))
 
 ### Bug fixes
 
@@ -41,6 +42,6 @@
 - @xen-orchestra/xapi patch
 - xen-api major
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
