@@ -36,6 +36,7 @@ import {
   installSupplementalPack,
   isHyperThreadingEnabledHost,
   isPciHidden,
+  isPciPassthroughAvailable,
   isNetDataInstalledOnHost,
   getPlugin,
   getSmartctlHealth,
@@ -289,9 +290,9 @@ export default class extends Component {
       }))
     }
 
-    const isPciPassthroughAvailable = semver.satisfies(host.version, '>=8.3.0')
+    const _isPciPassthroughAvailable = isPciPassthroughAvailable(host)
     const isPciHiddenById = {}
-    if (isPciPassthroughAvailable) {
+    if (_isPciPassthroughAvailable) {
       await Promise.all(
         Object.keys(this.props.pcis).map(async id => (isPciHiddenById[id] = await isPciHidden(id).catch(console.error)))
       )
@@ -303,7 +304,7 @@ export default class extends Component {
       smartctlUnhealthyDevices,
       unhealthyDevicesAlerts,
       isPciHiddenById,
-      isPciPassthroughAvailable,
+      isPciPassthroughAvailable: _isPciPassthroughAvailable,
     })
   }
 
