@@ -197,14 +197,14 @@ class PoolMaster extends Component {
   defaultSr: createGetObject((_, { pool }) => pool.default_SR),
 }))
 class SelectDefaultSr extends Component {
-  _onChange = sr => setDefaultSr(sr)
+  _onChange = setDefaultSr
 
   render() {
     const { defaultSr } = this.props
 
     return (
       <XoSelect onChange={this._onChange} value={defaultSr.id} xoType='SR'>
-        {defaultSr.name_label}
+        <Sr id={defaultSr.id} />
       </XoSelect>
     )
   }
