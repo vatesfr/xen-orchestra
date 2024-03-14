@@ -160,8 +160,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           'xo:backup:schedule': this.scheduleId,
           'xo:backup:vm': vm.uuid,
         })
-
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
+
+        // also tags the VDIs with the same value
+        // it is useful at least for CBT delta
+        const vdiRefs = await this._xapi.VM_getDisks(snapshotRef)
+        await Promise.all(
+          vdiRefs.map(async vdiRef => {
+            await xapi.setFieldEntries('VDI', vdiRef, 'other_config', {
+              'xo:backup:datetime': formatDateTime(this.timestamp),
+              'xo:backup:job': this._jobId,
+              'xo:backup:schedule': this.scheduleId,
+              'xo:backup:vm': vm.uuid,
+              'xo:backup:snapshot': this._exportedVm.uuid,
+            })
+          })
+        )
 
         return this._exportedVm.uuid
       })
@@ -193,19 +207,18 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
-
-    const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
+
+    const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule']) 
     await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const settings = {
         ...baseSettings,
         ...allSettings[scheduleId],
         ...allSettings[this._vm.uuid],
       }
-      return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
-        if ($ref !== baseVmRef) {
-          return xapi.VM_destroy($ref)
-        }
+      return asyncMap(getOldEntries(Math.max(settings.snapshotRetention ?? 0 , 1), snapshots), ({ $ref }) => {
+        console.log('DELETE SNAPSHOT', $ref,settings.snapshotRetention)
+        return xapi.VM_destroy($ref)
       })
     })
   }

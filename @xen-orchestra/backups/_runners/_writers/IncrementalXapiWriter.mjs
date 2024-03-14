@@ -14,13 +14,19 @@ import { listReplicatedVms } from './_listReplicatedVms.mjs'
 import find from 'lodash/find.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
-  async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
-    assert.notStrictEqual(baseVm, undefined)
+  async checkBaseVdis(baseUuidToSrcVdi/*, baseVmUuid*/) {
     const sr = this._sr
-    const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).find(
-      vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
-    )
+
+    // listReplicatedVms return a sorted list
+    // we are sure the first find is the latest replicated VM
+    const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).shift()
+    /*.find(
+      // @todo : why do we refilter here ? 
+      // we already have the last replicated VM with same sr/job of vm uuid
+      vm => vm.other_config[TAG_COPY_SRC] === baseVmUuid
+    )*/
     if (replicatedVm === undefined) {
+      console.log('no replicated VM')
       return baseUuidToSrcVdi.clear()
     }
 
@@ -34,6 +40,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
       if (!replicatedVdis.has(uuid)) {
+        console.log('baseUuidToSrcVdi does not have ', uuid)
         baseUuidToSrcVdi.delete(uuid)
       }
     }
@@ -86,14 +93,17 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
-  #decorateVmMetadata(backup) {
+  async #decorateVmMetadata(backup) {
     const { _warmMigration } = this._settings
     const sr = this._sr
     const xapi = sr.$xapi
     const vm = backup.vm
     vm.other_config[TAG_COPY_SRC] = vm.uuid
+
+/*
     const remoteBaseVmUuid = vm.other_config[TAG_BASE_DELTA]
     let baseVm
+    console.log('wll search for ', remoteBaseVmUuid)
     if (remoteBaseVmUuid) {
       baseVm = find(
         xapi.objects.all,
@@ -110,25 +120,34 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       if (vdi !== undefined) {
         baseVdis[vbd.VDI] = vbd.$VDI
       }
-    })
+    })*/
 
-    vm.other_config[TAG_COPY_SRC] = vm.uuid
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
 
     Object.values(backup.vdis).forEach(vdi => {
-      vdi.other_config[TAG_COPY_SRC] = vdi.uuid
       vdi.SR = sr.$ref
       // vdi.other_config[TAG_BASE_DELTA] is never defined on a suspend vdi
       if (vdi.other_config[TAG_BASE_DELTA]) {
-        const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
-        const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
+        const remoteBaseVdiUuid = vdi.uuid
+        const baseVdi = find(
+          xapi.objects.all,
+          vdiCandidate => vdiCandidate.other_config?.[TAG_BASE_DELTA] === remoteBaseVdiUuid
+              && vdiCandidate.SR === sr.$ref
+              // @todo , I only want the most recent one 
+
+        );
+        //const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
         if (!baseVdi) {
           throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
         }
+        console.log('FOUND BASE VDI  in writer', baseVdi)
         vdi.baseVdi = baseVdi
+      } else {
+        console.log('VDI as no tag_base_delta')
       }
+      vdi.other_config[TAG_COPY_SRC] = vdi.uuid
     })
 
     return backup
@@ -144,7 +163,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
+      targetVmRef = await importIncrementalVm(await this.#decorateVmMetadata(deltaExport), sr)
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }

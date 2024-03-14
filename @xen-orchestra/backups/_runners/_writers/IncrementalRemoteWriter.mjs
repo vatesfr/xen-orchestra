@@ -30,7 +30,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
     const vdisDir = `${this._vmBackupDir}/vdis/${this._job.id}`
 
-    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdiUuid]) => {
+    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, {uuid:srcVdiUuid}]) => {
       let parentDestPath
       const vhdDir = `${vdisDir}/${srcVdiUuid}`
       try {

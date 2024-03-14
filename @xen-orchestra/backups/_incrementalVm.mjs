@@ -25,28 +25,16 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export async function exportIncrementalVm(
-  vm,
-  baseVm,
+  vm, 
+  baseVmUuid,
   {
     cancelToken = CancelToken.none,
 
-    // Sets of UUIDs of VDIs that must be exported as full.
-    fullVdisRequired = new Set(),
-
-    disableBaseTags = false,
     nbdConcurrency = 1,
     preferNbd,
+    baseVdis = new Map()
   } = {}
 ) {
-  // refs of VM's VDIs → base's VDIs.
-  const baseVdis = {}
-  baseVm &&
-    baseVm.$VBDs.forEach(vbd => {
-      let vdi, snapshotOf
-      if ((vdi = vbd.$VDI) && (snapshotOf = vdi.$snapshot_of) && !fullVdisRequired.has(snapshotOf.uuid)) {
-        baseVdis[vdi.snapshot_of] = vdi
-      }
-    })
 
   const streams = {}
   const vdis = {}
@@ -67,13 +55,13 @@ export async function exportIncrementalVm(
     }
 
     // Look for a snapshot of this vdi in the base VM.
-    const baseVdi = baseVdis[vdi.snapshot_of]
-
+    const baseVdi = baseVdis.get(vdi.snapshot_of)
+    console.log({TAG_BASE_DELTA:baseVdi?.uuid,baseVdis, lookingFor : vdi.snapshot_of})
     vdis[vdiRef] = {
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [TAG_BASE_DELTA]:baseVdi?.uuid,
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
@@ -120,13 +108,10 @@ export async function exportIncrementalVm(
       vifs,
       vm: {
         ...vm,
-        other_config:
-          baseVm && !disableBaseTags
-            ? {
-                ...vm.other_config,
-                [TAG_BASE_DELTA]: baseVm.uuid,
-              }
-            : omit(vm.other_config, TAG_BASE_DELTA),
+        other_config: {
+          ...vm.other_config,
+          [TAG_BASE_DELTA]: baseVmUuid
+        }
       },
     },
     'streams',
