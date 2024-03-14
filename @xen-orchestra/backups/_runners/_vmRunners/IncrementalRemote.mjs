@@ -99,10 +99,10 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           'writer.updateUuidAndChain()'
         )
 
-        await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
         // for healthcheck
         this._tags = metadata.vm.tags
       }
+      await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
     } else {
       Task.info('No new data to upload for this VM')
     }
