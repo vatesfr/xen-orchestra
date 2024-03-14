@@ -72,7 +72,7 @@ exports.readCert = async function readCert(
 
     const { cert, key } = await genSelfSignedCert(opts)
 
-    info('new certificate generated', { cert, key })
+    info('new certificate generated', { cert })
 
     await Promise.all([outputFile(certPath, cert, mode).catch(warn), outputFile(keyPath, key, mode).catch(warn)])
 
