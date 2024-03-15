@@ -8,7 +8,6 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SelectFiles from 'select-files'
-import semver from 'semver'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -680,6 +679,7 @@ export default class extends Component {
               columns={PCIS_COLUMNS}
               data-isPciHiddenById={this.state.isPciHiddenById}
               data-isPciPassthroughAvailable={this.state.isPciPassthroughAvailable}
+              stateUrlParam='s_pcis'
             />
             <h3>{_('licenseHostSettingsLabel')}</h3>
             <table className='table'>
