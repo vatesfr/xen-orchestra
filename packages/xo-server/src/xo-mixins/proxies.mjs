@@ -257,7 +257,10 @@ export default class Proxy {
   }
 
   @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id)
-  getProxyApplianceUpdaterState(id) {
+  async getProxyApplianceUpdaterState(id) {
+    // ensure the updater is using the expected channel otherwise the state will not be correct
+    await this.callProxyMethod(id, 'appliance.updater.configure', { channel: await this._getChannel() })
+
     return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
