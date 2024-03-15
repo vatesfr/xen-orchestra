@@ -1,5 +1,7 @@
 <template>
-  <span :class="classNames" class="ui-counter typo">{{ value }}{{ suffix }}</span>
+  <span :class="classNames" class="ui-counter typo">
+    <span class="inner">{{ value }}</span>
+  </span>
 </template>
 
 <script lang="ts" setup>
@@ -9,10 +11,9 @@ import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    value: number
+    value: number | string
     color?: CounterColor
     size?: CounterSize
-    suffix?: string
   }>(),
   { size: 'small' }
 )
@@ -56,13 +57,13 @@ const classNames = computed(() => {
 /* SIZE VARIANTS */
 .ui-counter {
   &.small {
-    --min-width: 1.5rem;
-    --padding: 0 0.6rem;
+    --height: 1.5rem;
+    --padding: 0 0.4rem;
   }
 
   &.medium {
-    --min-width: 2.4rem;
-    --padding: 0 0.8rem;
+    --height: 2.4rem;
+    --padding: 0 0.6rem;
   }
 }
 
@@ -70,11 +71,18 @@ const classNames = computed(() => {
 .ui-counter {
   display: inline-flex;
   align-items: center;
-  color: var(--color-grey-600);
-  border-radius: 9rem;
+  justify-content: center;
+  vertical-align: middle;
   text-transform: lowercase;
-  background-color: var(--background-color);
-  min-width: var(--min-width);
+  color: var(--color-grey-600);
+  height: var(--height);
+  min-width: var(--height);
   padding: var(--padding);
+  background-color: var(--background-color);
+  border-radius: calc(var(--height) / 2);
+
+  .inner {
+    line-height: 0;
+  }
 }
 </style>

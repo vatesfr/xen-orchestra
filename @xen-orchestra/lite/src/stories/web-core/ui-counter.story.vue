@@ -2,8 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('value').num().required().preset(2).widget(),
-      prop('suffix').str().widget(),
+      prop('value').type(`'number' | 'string'`).str().required().preset(2).widget(),
       prop('color').type('CounterColor').enum('info', 'success', 'warning', 'error', 'danger', 'black').widget(),
       prop('size').type('CounterSize').enum('small', 'medium').widget(),
     ]"
