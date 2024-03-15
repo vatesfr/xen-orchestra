@@ -3,34 +3,59 @@ import { createLogger } from '@xen-orchestra/log'
 
 const { warn } = createLogger('xo:xapi:network')
 
+async function asyncFilter(arr, predicate) {
+  const results = await Promise.all(arr.map(predicate))
+
+  return arr.filter((_v, index) => results[index])
+}
+
 export default class Network {
-  async setMtu(network, mtu) {
+  async setMtu(ref, mtu) {
+    const network = await this.getRecord('network', ref)
     await network.set_MTU(mtu)
 
     // The MTU will not be updated for VIFs of paused VM, but we can't unplug/replug VIF on a paused VM
-    const pluggedVifsRefs = network.$VIFs
-      .filter(vif => vif.currently_attached && vif.$VM.power_state === 'Running')
-      .map(vif => vif.$ref)
-    const pluggedPifsRefs = network.$PIFs.filter(pif => pif.currently_attached).map(pif => pif.$ref)
+    const pluggedPifs = await asyncFilter(network.PIFs, async pif => {
+      try {
+        return await this.getField('PIF', pif, 'currently_attached')
+      } catch (error) {
+        warn(error)
+        return false
+      }
+    })
+
+    const pluggedVifs = await asyncFilter(network.VIFs, async vif => {
+      try {
+        const attached = await this.getField('VIF', vif, 'currently_attached')
+        if (attached) {
+          const VM = await this.getField('VIF', vif, 'VM')
+          return (await this.getField('VM', VM, 'power_state')) === 'Running'
+        }
+        return false
+      } catch (error) {
+        warn(error)
+        return false
+      }
+    })
 
     let errorOccurred = false
 
     for (const { method, networkInterfaces } of [
       {
         method: 'VIF.unplug',
-        networkInterfaces: pluggedVifsRefs,
+        networkInterfaces: pluggedVifs,
       },
       {
         method: 'PIF.unplug',
-        networkInterfaces: pluggedPifsRefs,
+        networkInterfaces: pluggedPifs,
       }, // unplugging PIFs may be unnecessary
       {
         method: 'PIF.plug',
-        networkInterfaces: pluggedPifsRefs,
+        networkInterfaces: pluggedPifs,
       },
       {
         method: 'VIF.plug',
-        networkInterfaces: pluggedVifsRefs,
+        networkInterfaces: pluggedVifs,
       },
     ]) {
       try {
