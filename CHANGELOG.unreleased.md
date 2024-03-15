@@ -41,6 +41,7 @@
 
 - @vates/otp minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/self-signed patch
 - @xen-orchestra/xapi patch
 - xen-api major

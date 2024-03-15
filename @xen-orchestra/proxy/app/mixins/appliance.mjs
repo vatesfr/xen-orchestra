@@ -145,6 +145,15 @@ export default class Appliance {
         updater: {
           getLocalManifest: () => Disposable.use(getUpdater(), _ => _.call('getLocalManifest')),
           getState: () => callUpdate(),
+          configure: [
+            ({ channel }) =>
+              Disposable.use(getUpdater(), async updater => {
+                await updater.call('configure', { channel })
+              }),
+            {
+              params: { channel: { type: 'string' } },
+            },
+          ],
           upgrade: () => callUpdate({ upgrade: true }),
         },
       },
