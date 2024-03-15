@@ -1,8 +1,8 @@
 <template>
   <div class="ui-status-panel">
     <img :src="imageSource" alt="" class="image" />
-    <p v-if="title !== undefined" class="title">{{ title }}</p>
-    <p v-if="subtitle !== undefined" class="subtitle">{{ subtitle }}</p>
+    <p v-if="title !== undefined" class="title typo h2-black">{{ title }}</p>
+    <p v-if="subtitle !== undefined" class="subtitle typo h3-medium">{{ subtitle }}</p>
     <slot />
   </div>
 </template>
@@ -28,14 +28,10 @@ defineProps<{
 }
 
 .title {
-  font-weight: 400;
-  font-size: 36px;
   text-align: center;
 }
 
 .subtitle {
-  font-weight: 500;
-  font-size: 24px;
   margin: 21px 0;
   text-align: center;
 }

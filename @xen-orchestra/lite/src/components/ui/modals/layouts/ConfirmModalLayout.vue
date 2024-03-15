@@ -12,7 +12,7 @@
         <UiTitle v-if="$slots.title" type="h4">
           <slot name="title" />
         </UiTitle>
-        <div v-if="$slots.subtitle" class="subtitle">
+        <div v-if="$slots.subtitle" class="subtitle typo p1-regular">
           <slot name="subtitle" />
         </div>
       </div>
@@ -70,7 +70,6 @@ defineSlots<{
 }
 
 .subtitle {
-  font-size: 1.6rem;
   font-weight: 400;
   color: var(--color-grey-200);
 }

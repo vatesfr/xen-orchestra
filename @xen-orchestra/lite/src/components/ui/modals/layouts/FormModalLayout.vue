@@ -1,7 +1,7 @@
 <template>
   <ModalContainer tag="form">
     <template #header>
-      <div :class="borderClass" class="title-bar">
+      <div :class="borderClass" class="title-bar typo h3-medium">
         <UiIcon :class="textClass" :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
@@ -47,10 +47,8 @@ const { textClass, borderClass } = useContext(ColorContext)
   display: flex;
   border-bottom-width: 1px;
   border-bottom-style: solid;
-  font-size: 2.4rem;
   gap: 1rem;
   padding-bottom: 1rem;
-  font-weight: 500;
   align-items: center;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <component :is="tag" :class="{ active, disabled: disabled || isTabBarDisabled }" class="ui-tab">
+  <component :is="tag" :class="{ active, disabled: disabled || isTabBarDisabled }" class="ui-tab typo c1-semi-bold">
     <slot />
   </component>
 </template>
@@ -22,8 +22,6 @@ const isTabBarDisabled = useContext(DisabledContext, () => props.disabled)
 
 <style lang="postcss" scoped>
 .ui-tab {
-  font-size: 1.6rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
   padding: 0 1.5rem;

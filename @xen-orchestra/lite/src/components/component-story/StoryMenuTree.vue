@@ -1,11 +1,15 @@
 <template>
   <ul class="story-menu-tree">
     <li v-for="[key, node] in tree" :key="key">
-      <span v-if="node.children.size > 0" class="directory" @click="emit('toggle-directory', node.directory)">
+      <span
+        v-if="node.children.size > 0"
+        class="directory typo p1-medium"
+        @click="emit('toggle-directory', node.directory)"
+      >
         <UiIcon :icon="isOpen(node.directory) ? faFolderOpen : faFolderClosed" />
         {{ formatName(key) }}
       </span>
-      <RouterLink v-else :to="node.path" class="link">
+      <RouterLink v-else :to="node.path" class="link typo p1-regular">
         <UiIcon :icon="faFile" />
         {{ formatName(key) }}
       </RouterLink>
@@ -51,10 +55,6 @@ const formatName = (name: string) => {
   }
 }
 
-.directory {
-  font-weight: 500;
-}
-
 .link {
   padding: 0.5rem 0;
 }
@@ -67,7 +67,6 @@ const formatName = (name: string) => {
 .directory {
   cursor: pointer;
   text-decoration: none;
-  font-size: 1.6rem;
   display: inline-block;
 }
 </style>

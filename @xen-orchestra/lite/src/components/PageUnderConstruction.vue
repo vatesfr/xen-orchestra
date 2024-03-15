@@ -4,7 +4,7 @@
     :subtitle="$t('new-features-are-coming')"
     :title="$t('xo-lite-under-construction')"
   >
-    <p class="contact">
+    <p class="contact typo p1-regular">
       {{ $t('do-you-have-needs') }}
       <a
         href="https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng"
@@ -24,8 +24,6 @@ import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 
 <style lang="postcss" scoped>
 .contact {
-  font-weight: 400;
-  font-size: 20px;
   color: var(--color-grey-100);
 
   & a {

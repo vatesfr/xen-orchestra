@@ -2,8 +2,8 @@
   <li class="ui-resource">
     <UiIcon :icon class="icon" />
     <div class="separator" />
-    <div class="label">{{ label }}</div>
-    <div class="count">{{ count }}</div>
+    <div class="label typo h6-semi-bold">{{ label }}</div>
+    <div class="count typo p2-regular">{{ count }}</div>
   </li>
 </template>
 
@@ -37,14 +37,7 @@ defineProps<{
   margin: 0 1.5rem;
 }
 
-.label {
-  font-size: 1.6rem;
-  font-weight: 700;
-}
-
 .count {
-  font-size: 1.4rem;
-  font-weight: 400;
   margin-left: 2rem;
 }
 </style>
