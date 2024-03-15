@@ -20,7 +20,7 @@ export default ({ dispatcher, url }) => {
       method: 'POST',
     })
 
-    if ((res.statusCode / 100) | (0 !== 2)) {
+    if (((res.statusCode / 100) | 0) !== 2) {
       throw new Error('unexpect statusCode ' + res.statusCode)
     }
 
