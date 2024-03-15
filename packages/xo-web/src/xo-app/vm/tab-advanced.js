@@ -1230,6 +1230,7 @@ export default class TabAdvanced extends Component {
               columns={PCI_COLUMNS}
               data-pciByPciId={this._getPciByPciId()}
               data-vm={vm}
+              stateUrlParam='s_pcis'
             />
             <br />
             <h3>{_('miscLabel')}</h3>
