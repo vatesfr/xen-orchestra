@@ -204,27 +204,14 @@ export default class Proxy {
       }
     }
 
-    let isVmKnown = false
-
-    const { vmUuid } = await this._getProxy(id)
-    if (vmUuid !== undefined) {
-      try {
-        this._app.getObject(vmUuid, 'VM')
-
-        isVmKnown = true
-      } catch (error) {
-        if (!noSuchObject.is(error)) {
-          throw error
-        }
-      }
-    }
-
-    if (isVmKnown) {
-      //  use the standard upgrade (via VM reboot)
-      await this.updateProxyAppliance(id, { upgrade: true })
-    } else {
-      // use the (limited) API upgrade instead
+    try {
+      // attempt to use the quick API upgrade
       await this.callProxyMethod(id, 'appliance.updater.upgrade')
+    } catch (error) {
+      log.warn('failed to upgrade proxy via API', { error })
+
+      // fall back to the reboot upgrade (only available if the VM is known)
+      await this.updateProxyAppliance(id, { upgrade: true })
     }
   }
 
