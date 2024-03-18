@@ -62,6 +62,8 @@ const checkAuthorizationByTypes = {
 
   PBD: or(checkMember('host'), checkMember('SR')),
 
+  PCI: checkMember('$host'),
+
   PIF: checkMember('$host'),
 
   SR: or(checkSelf, checkMember('$container')),
