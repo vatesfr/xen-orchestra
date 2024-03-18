@@ -5,7 +5,7 @@
         <template v-if="depth > 1">
           <TreeLine v-for="i in depth - 1" :key="i" full-height :right="i === depth - 1" />
         </template>
-        <UiIcon :icon="icon" class="icon" />
+        <UiIcon :icon class="icon" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>

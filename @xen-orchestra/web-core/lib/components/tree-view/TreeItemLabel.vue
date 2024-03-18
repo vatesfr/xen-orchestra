@@ -18,7 +18,7 @@
       <TreeLine v-else-if="!noIndent" />
       <a v-tooltip="{ selector: '.text' }" :href="href" class="link" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon="icon" class="icon" />
+          <UiIcon :icon class="icon" />
         </slot>
         <div class="text">
           <slot />
@@ -63,41 +63,43 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 </script>
 
 <style lang="postcss" scoped>
+/* COLOR VARIANTS */
 .tree-item-label {
-  display: flex;
-  align-items: center;
-  color: var(--color-grey-100);
-  border-radius: 0.8rem;
-  background-color: var(--background-color-primary);
-  gap: 0.4rem;
-  padding: 0 0.8rem;
-  margin-bottom: 0.2rem;
+  --color: var(--color-grey-100);
+  --background-color: var(--background-color-primary);
 
   &:hover:not(:has(.ui-button-icon:hover)) {
-    color: var(--color-grey-100);
-    background-color: var(--background-color-purple-20);
+    --color: var(--color-grey-100);
+    --background-color: var(--background-color-purple-20);
   }
 
   &:active:not(:has(.ui-button-icon:hover)) {
-    background-color: var(--background-color-purple-30);
+    --background-color: var(--background-color-purple-30);
   }
 
   &.exact-active:not(:has(.ui-button-icon:hover)) {
-    background-color: var(--background-color-purple-10);
+    --background-color: var(--background-color-purple-10);
 
     &:hover {
-      background-color: var(--background-color-purple-20);
+      --background-color: var(--background-color-purple-20);
     }
 
     &:active {
-      background-color: var(--background-color-purple-30);
+      --background-color: var(--background-color-purple-30);
     }
   }
+}
 
-  > .ui-icon {
-    cursor: pointer;
-    color: var(--color-purple-base);
-  }
+/* IMPLEMENTATION */
+.tree-item-label {
+  display: flex;
+  align-items: center;
+  color: var(--color);
+  background-color: var(--background-color);
+  border-radius: 0.8rem;
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  margin-bottom: 0.2rem;
 }
 
 .link {
@@ -109,11 +111,8 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   text-decoration: none;
   color: inherit;
   gap: 1.2rem;
-  font-weight: 500;
-  font-size: 2rem;
 
-  &:hover,
-  .icon {
+  &:hover {
     color: var(--color-grey-100);
   }
 }
@@ -122,7 +121,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 1.4rem;
   padding-inline-end: 0.4rem;
 }
 </style>
