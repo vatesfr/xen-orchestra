@@ -713,12 +713,13 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
       {
         const { token } = parseCookies(req.headers.cookie)
 
-        const { user } = await xo.authenticateUser({ token })
+        const remoteAddress = proxyAddr(req, useForwardedHeaders)
+
+        const { user } = await xo.authenticateUser({ token }, { ip: remoteAddress })
         if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
 
-        const remoteAddress = proxyAddr(req, useForwardedHeaders)
         log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
 
         const data = {

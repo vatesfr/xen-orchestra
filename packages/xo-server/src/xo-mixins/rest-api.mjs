@@ -151,8 +151,8 @@ export default class RestApi {
     this.#api = api
 
     api.use((req, res, next) => {
-      const { cookies } = req
-      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
+      const { cookies, ip } = req
+      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
             req.user = user
