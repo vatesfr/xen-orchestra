@@ -11,7 +11,7 @@
 - [OTP] Accepts (ignores) whitespaces in the one-time password (some OTP applications add them for nicer display)
 - [VM/General] Show current VM tags without the need to search them in advanced creation tag selector [#7351](https://github.com/vatesfr/xen-orchestra/issues/7351) (PR [#7434](https://github.com/vatesfr/xen-orchestra/pull/7434))
 - [xo-cli] Supports signing in with one-time password (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
-- [XOA/License] Ability to rebind licences (PR [#7390](https://github.com/vatesfr/xen-orchestra/pull/7390))
+- [XOA/License] Ability to reassign licenses to objects that are already licensed (eg: expired licenses) (PR [#7390](https://github.com/vatesfr/xen-orchestra/pull/7390))
 
 ### Bug fixes
 
