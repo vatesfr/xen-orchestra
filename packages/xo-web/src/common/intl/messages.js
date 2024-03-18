@@ -6,7 +6,6 @@ const forEach = require('lodash/forEach')
 const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
-  creation: 'Creation',
   connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
@@ -2269,6 +2268,7 @@ const messages = {
   // ----- User -----
   authToken: 'Token',
   authTokens: 'Authentication tokens',
+  authTokenLastUse: 'Last use',
   username: 'Username',
   password: 'Password',
   language: 'Language',

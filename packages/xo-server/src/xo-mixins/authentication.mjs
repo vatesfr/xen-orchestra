@@ -63,7 +63,7 @@ export default class {
 
         const MAX_LAST_USE_ENTRIES = 10
         if (Object.keys(last_uses).length > MAX_LAST_USE_ENTRIES) {
-          const entries = Object.entries(last_uses).sort((a, b) => b[0].timestamp - a[0].timestamp)
+          const entries = Object.entries(last_uses).sort((a, b) => b[1].timestamp - a[1].timestamp)
           entries.length = MAX_LAST_USE_ENTRIES
           last_uses = Object.fromEntries(entries)
         }
