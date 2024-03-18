@@ -205,6 +205,10 @@ export default class {
   // -----------------------------------------------------------------
 
   async createAuthenticationToken({ client, description, expiresIn, userId }) {
+    if (this._app.apiContext?.preventTokenCreation) {
+      throw new Error('authentication token creation is forbidden')
+    }
+
     let duration = this._defaultTokenValidity
     if (expiresIn !== undefined) {
       duration = parseDuration(expiresIn)
