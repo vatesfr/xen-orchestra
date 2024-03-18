@@ -79,13 +79,12 @@ export async function set({
   name_label: nameLabel,
   nbd,
 }) {
-  const networkXapiRef = network._xapiRef
   network = this.getXapiObject(network)
 
   await Promise.all([
     automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
-    mtu !== undefined && this.getXapi(network.uuid).network_setMtu(networkXapiRef, mtu),
+    mtu !== undefined && network.$setMtu(mtu),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
     nbd !== undefined &&
