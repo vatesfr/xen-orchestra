@@ -933,11 +933,9 @@ export default class TabAdvanced extends Component {
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
-                      {vm.supportsBios === false && vm.boot.firmware === 'BIOS' && (
+                      {vm.supportsBios === false && vm.boot.firmware === 'bios' && (
                         <span className='text-danger font-weight-bold'>
-                          <Icon icon='error' />
-                          &nbsp;
-                          {_('vmDoesNotSupportBios')}
+                          <Icon icon='error' /> {_('vmDoesNotSupportBios')}
                         </span>
                       )}
                     </td>
