@@ -51,6 +51,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
+import { ProxyAgent } from 'proxy-agent'
 
 // ===================================================================
 
@@ -752,9 +753,18 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
       const xapi = vm.$xapi
       const vmConsole = xapi.getVmConsole(id)
 
+      const serverId = xo.getXenServerIdByObject(id, ['VM', 'VM-controller'])
+      const server = await xo.getXenServer(serverId)
+      const agent =
+        server.httpProxy &&
+        new ProxyAgent({
+          getProxyForUrl: () => httpProxy,
+          rejectUnauthorized: !server.allowUnauthorized,
+        })
+
       // FIXME: lost connection due to VM restart is not detected.
       webSocketServer.handleUpgrade(req, socket, head, connection => {
-        proxyConsole(connection, vmConsole, xapi.sessionId, xapi.httpAgent)
+        proxyConsole(connection, vmConsole, xapi.sessionId, agent)
       })
     } catch (error) {
       try {
