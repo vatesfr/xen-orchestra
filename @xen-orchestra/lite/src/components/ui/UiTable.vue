@@ -1,5 +1,5 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table">
+  <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table typo p2-regular">
     <slot />
   </table>
 </template>
@@ -16,8 +16,6 @@ defineProps<{
   width: 100%;
   border-spacing: 0;
   background-color: var(--background-color-primary);
-  font-weight: 400;
-  font-size: 1.4rem;
   line-height: 2.4rem;
   color: var(--color-grey-200);
 

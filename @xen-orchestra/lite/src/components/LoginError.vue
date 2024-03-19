@@ -1,5 +1,5 @@
 <template>
-  <div v-if="error !== undefined" class="error">
+  <div v-if="error !== undefined" class="error typo p2-regular">
     <UiIcon :icon="faExclamationCircle" />
     <span v-if="error.message === 'SESSION_AUTHENTICATION_FAILED'">
       {{ $t('password-invalid') }}
@@ -22,8 +22,6 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .error {
-  font-size: 1.3rem;
-  line-height: 150%;
   margin: 0.5rem 0;
   color: var(--color-red-base);
 

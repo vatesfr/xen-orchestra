@@ -1,5 +1,5 @@
 <template>
-  <span class="ui-filter">
+  <span class="ui-filter typo p1-regular">
     <span class="label" @click="emit('edit')">
       <slot />
     </span>
@@ -22,7 +22,6 @@ const emit = defineEmits<{
 <style lang="postcss" scoped>
 .ui-filter {
   overflow: hidden;
-  font-size: 1.6rem;
   display: inline-flex;
   align-items: stretch;
   justify-content: center;

@@ -7,7 +7,7 @@
     >
       <a v-tooltip="hasTooltip" :href class="link" @click="navigate">
         <UiIcon :icon class="icon" />
-        <div ref="textElement" class="text">
+        <div ref="textElement" class="text typo h6-medium">
           <slot />
         </div>
       </a>
@@ -82,7 +82,6 @@ const hasTooltip = computed(() => hasEllipsis(textElement.value))
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 1.6rem;
 }
 
 .actions {

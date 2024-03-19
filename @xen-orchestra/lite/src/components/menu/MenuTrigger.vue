@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ active, disabled }" class="menu-trigger">
+  <div :class="{ active, disabled }" class="menu-trigger typo p1-regular">
     <UiIcon :busy :icon />
     <slot />
   </div>
@@ -19,8 +19,6 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .menu-trigger {
-  font-size: 1.6rem;
-  font-weight: 400;
   display: flex;
   align-items: center;
   height: 4.4rem;
