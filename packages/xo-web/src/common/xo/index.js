@@ -1264,7 +1264,7 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 }
 
-export const pcisHide = async (pcis, hide) => {
+export const hidePcis = async (pcis, hide) => {
   try {
     await confirm({
       body: _('applyChangeOnPcis', { nPcis: pcis.length }),

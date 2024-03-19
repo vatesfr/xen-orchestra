@@ -31,7 +31,7 @@ import {
   enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
-  pcisHide,
+  hidePcis,
   installSupplementalPack,
   isHyperThreadingEnabledHost,
   isPciHidden,
@@ -109,30 +109,43 @@ const PCIS_COLUMNS = [
   },
   {
     name: _('enabled'),
-    itemRenderer: (pci, { isPciHiddenById, isPciPassthroughAvailable }) => {
-      if (isPciHiddenById === undefined) {
+    itemRenderer: (pci, { pciStateById, isPciPassthroughAvailable }) => {
+      if (pciStateById === undefined) {
         return <Icon icon='loading' />
       }
-      const isHidden = isPciHiddenById[pci.id]
-      const _pcisHide = value => pcisHide([pci], value)
-      return (
-        <Tooltip content={isPciPassthroughAvailable ? undefined : _('onlyAvailableXcp8.3OrHighter')}>
-          <Toggle value={isHidden} onChange={_pcisHide} disabled={!isPciPassthroughAvailable} />
-        </Tooltip>
-      )
+
+      if (!isPciPassthroughAvailable) {
+        return (
+          <Tooltip content={_('onlyAvailableXcp8.3OrHigher')}>
+            <Toggle disabled />
+          </Tooltip>
+        )
+      }
+
+      const { error, isHidden } = pciStateById[pci.id]
+      if (error !== undefined) {
+        return (
+          <Tooltip content={error}>
+            <Icon icon='alarm' color='text-danger' />
+          </Tooltip>
+        )
+      }
+
+      const _hidePcis = value => hidePcis([pci], value)
+      return <Toggle value={isHidden} onChange={_hidePcis} />
     },
-    sortCriteria: (pci, { isPciHiddenById }) => isPciHiddenById?.[pci.id],
+    sortCriteria: (pci, { pciStateById }) => pciStateById?.[pci.id]?.isHidden,
   },
 ]
 const PCIS_ACTIONS = [
   {
-    handler: pcis => pcisHide(pcis, false),
+    handler: pcis => hidePcis(pcis, false),
     icon: 'toggle-off',
     label: _('disable'),
     level: 'primary',
   },
   {
-    handler: pcis => pcisHide(pcis, true),
+    handler: pcis => hidePcis(pcis, true),
     icon: 'toggle-on',
     label: _('enable'),
     level: 'primary',
@@ -290,19 +303,28 @@ export default class extends Component {
     }
 
     const _isPciPassthroughAvailable = isPciPassthroughAvailable(host)
-    const isPciHiddenById = {}
+    const pciStateById = {}
     if (_isPciPassthroughAvailable) {
       await Promise.all(
-        Object.keys(this.props.pcis).map(async id => (isPciHiddenById[id] = await isPciHidden(id).catch(console.error)))
+        Object.keys(this.props.pcis).map(async id => {
+          const pciSate = {}
+          try {
+            pciSate.isHidden = await isPciHidden(id)
+          } catch (error) {
+            console.error(error)
+            pciSate.error = error.message
+          }
+          pciStateById[id] = pciSate
+        })
       )
     }
 
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(host).catch(() => null),
       isSmartctlHealthEnabled,
+      pciStateById,
       smartctlUnhealthyDevices,
       unhealthyDevicesAlerts,
-      isPciHiddenById,
       isPciPassthroughAvailable: _isPciPassthroughAvailable,
     })
   }
@@ -677,7 +699,7 @@ export default class extends Component {
               groupedActions={PCIS_ACTIONS}
               collection={pcis}
               columns={PCIS_COLUMNS}
-              data-isPciHiddenById={this.state.isPciHiddenById}
+              data-pciStateById={this.state.pciStateById}
               data-isPciPassthroughAvailable={this.state.isPciPassthroughAvailable}
               stateUrlParam='s_pcis'
             />

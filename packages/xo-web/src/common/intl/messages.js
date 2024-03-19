@@ -1070,7 +1070,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
-  'onlyAvailableXcp8.3OrHighter': 'Only available for XCP-ng 8.3.0 or highter',
+  'onlyAvailableXcp8.3OrHigher': 'Only available for XCP-ng 8.3.0 or higher',
   pciDevices: 'PCI Devices',
   pciId: 'PCI ID',
   pcisEnable: 'PCI{nPcis, plural, one {} other {s}} enable',
