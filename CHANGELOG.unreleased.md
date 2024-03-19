@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Console] In VM Console tab, didplay zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
+- [VM/Console] In VM Console tab, display zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
 
 ### Bug fixes
 
@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-server patch
 - xo-web minor
 
 <!--packages-end-->
