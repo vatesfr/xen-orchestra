@@ -44,7 +44,7 @@ import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmCollection } from '@/stores/xen-api/alarm.store'
 

@@ -71,7 +71,7 @@ import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 import UiTab from '@/components/ui/UiTab.vue'
 import UiTabBar from '@/components/ui/UiTabBar.vue'
 import {

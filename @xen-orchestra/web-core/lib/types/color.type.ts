@@ -1,1 +1,3 @@
-export type Color = 'info' | 'error' | 'warning' | 'success'
+export type Color = 'info' | 'error' | 'danger' | 'warning' | 'success'
+
+export type CounterColor = Color | 'black'
