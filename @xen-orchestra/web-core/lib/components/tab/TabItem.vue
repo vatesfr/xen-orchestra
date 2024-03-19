@@ -1,0 +1,97 @@
+<template>
+  <component :is="tag" class="tab-item typo" :class="classNames">
+    <slot />
+  </component>
+</template>
+
+<script lang="ts" setup>
+import { useUiStore } from '@core/stores/ui.store'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+
+const props = withDefaults(
+  defineProps<{
+    disabled?: boolean
+    active?: boolean
+    tag?: string
+  }>(),
+  { tag: 'span' }
+)
+
+const { isMobile } = storeToRefs(useUiStore())
+
+const typoClass = computed(() => (isMobile.value ? 'c3-semi-bold' : 'c1-semi-bold'))
+
+const classNames = computed(() => {
+  return [
+    typoClass.value,
+    {
+      disabled: props.disabled,
+      active: props.active,
+    },
+  ]
+})
+</script>
+
+<style lang="postcss" scoped>
+/* COLOR VARIANTS */
+.tab-item {
+  & {
+    --color: var(--color-grey-100);
+    --border-color: transparent;
+    --background-color: transparent;
+  }
+
+  &:is(:hover, .hover, :focus-visible) {
+    --color: var(--color-grey-100);
+    --border-color: var(--color-purple-d20);
+    --background-color: var(--background-color-purple-20);
+  }
+
+  &:is(:active, .pressed) {
+    --color: var(--color-grey-100);
+    --border-color: var(--color-purple-d40);
+    --background-color: var(--background-color-purple-30);
+  }
+
+  &:is(.active, .selected) {
+    --color: var(--color-grey-100);
+    --border-color: var(--color-purple-base);
+    --background-color: var(--background-color-purple-10);
+  }
+
+  &:is(:disabled, .disabled) {
+    --color: var(--color-grey-400);
+    --border-color: transparent;
+    --background-color: transparent;
+  }
+}
+
+/* SIZE VARIANTS */
+.tab-item {
+  &.c3-semi-bold {
+    --spacing: 0.8rem;
+  }
+
+  &.c1-semi-bold {
+    --spacing: 1.6rem;
+  }
+}
+
+/* IMPLEMENTATION */
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing);
+  padding: var(--spacing);
+  text-decoration: none;
+  color: var(--color);
+  background-color: var(--background-color);
+  border-bottom: 0.2rem solid var(--border-color);
+  cursor: pointer;
+
+  &.disabled {
+    pointer-events: none;
+  }
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <UiTabBar>
+  <TabList>
     <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }">
       {{ $t('dashboard') }}
     </RouterTab>
@@ -24,12 +24,12 @@
     <RouterTab :to="{ name: 'vm.tasks', params: { uuid } }">
       {{ $t('tasks') }}
     </RouterTab>
-  </UiTabBar>
+  </TabList>
 </template>
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import UiTabBar from '@/components/ui/UiTabBar.vue'
+import TabList from '@core/components/tab/TabList.vue'
 
 defineProps<{
   uuid: string

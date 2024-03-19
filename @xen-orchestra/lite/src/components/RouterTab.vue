@@ -1,26 +1,17 @@
 <template>
-  <RouterLink v-slot="{ isActive, href }" :to="isDisabled ? '' : to" custom>
-    <UiTab :active="isActive" :disabled :href tag="a">
+  <RouterLink v-slot="{ isActive, href }" :to custom>
+    <TabItem :active="isActive" :disabled :href="disabled ? undefined : href" :tag="disabled ? 'div' : 'a'">
       <slot />
-    </UiTab>
+    </TabItem>
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
+import TabItem from '@core/components/tab/TabItem.vue'
 import type { RouteLocationRaw } from 'vue-router'
-import UiTab from '@/components/ui/UiTab.vue'
 
-const props = withDefaults(
-  defineProps<{
-    to: RouteLocationRaw
-    disabled?: boolean
-  }>(),
-  { disabled: undefined }
-)
-
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+defineProps<{
+  to: RouteLocationRaw
+  disabled?: boolean
+}>()
 </script>
-
-<style lang="postcss" scoped></style>
