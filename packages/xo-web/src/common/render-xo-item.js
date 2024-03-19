@@ -547,6 +547,19 @@ User.defaultProps = {
 
 // ===================================================================
 
+export const Pci = decorate([
+  connectStore(() => ({
+    pci: createGetObject(),
+  })),
+  ({ pci }) => (
+    <span>
+      {pci.class_name} {pci.device_name} ({pci.pci_id})
+    </span>
+  ),
+])
+
+// ===================================================================
+
 const xoItemToRender = {
   // Subscription objects.
   cloudConfig: template => (
@@ -675,6 +688,8 @@ const xoItemToRender = {
       />
     </span>
   ),
+
+  PCI: props => <Pci {...props} self />,
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
