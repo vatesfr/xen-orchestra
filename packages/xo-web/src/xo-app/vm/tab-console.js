@@ -227,24 +227,28 @@ export default class TabConsole extends Component {
             </div>
           </Col>
           <Col mediumSize={2} className='hidden-lg-down'>
-            <input
-              className='form-control'
-              max={3}
-              min={0.1}
-              onChange={this.linkState('scale')}
-              step={0.1}
-              type='range'
-              value={scale}
-            />
-          </Col>
-          <Col mediumSize={1}>
-            <input
-              className='input-group'
-              onChange={this._onChangeScaleValue}
-              step='1'
-              type='number'
-              value={this.state.scale * 100}
-            />
+            <Row>
+              <Col mediumSize={8}>
+                <input
+                  className='form-control'
+                  max={3}
+                  min={0.1}
+                  onChange={this.linkState('scale')}
+                  step={0.1}
+                  type='range'
+                  value={scale}
+                />
+              </Col>
+              <Col mediumSize={4}>
+                <input
+                  className='input-group'
+                  onChange={this._onChangeScaleValue}
+                  step='1'
+                  type='number'
+                  value={Math.round(this.state.scale * 100)}
+                />
+              </Col>
+            </Row>
           </Col>
           <Col mediumSize={1}>
             <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
