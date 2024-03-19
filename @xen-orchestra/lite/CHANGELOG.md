@@ -3,6 +3,7 @@
 ## **next**
 
 - Fix duplicate consoles after failed connection (PR [#7505](https://github.com/vatesfr/xen-orchestra/pull/7505))
+- [Tabs] Disable navigation to in-progress views (PR [7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
 
 ## **0.2.0** (2024-02-29)
 
