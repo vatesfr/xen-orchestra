@@ -17,13 +17,8 @@ import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import type { RouteLocationRaw } from 'vue-router'
 
-const props = withDefaults(
-  defineProps<{
-    to: RouteLocationRaw
-    disabled?: boolean
-  }>(),
-  { disabled: undefined }
-)
-
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+defineProps<{
+  to: RouteLocationRaw
+  disabled?: boolean
+}>()
 </script>
