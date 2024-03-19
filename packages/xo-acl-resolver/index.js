@@ -66,9 +66,13 @@ const checkAuthorizationByTypes = {
 
   PIF: checkMember('$host'),
 
+  PUSB: checkMember('host'),
+
   SR: or(checkSelf, checkMember('$container')),
 
   task: checkMember('$host'),
+
+  usb_group: checkMember('PUSB'),
 
   VBD: checkMember('VDI'),
 
@@ -101,6 +105,8 @@ const checkAuthorizationByTypes = {
   'VM-snapshot': or(checkSelf, checkMember('$snapshot_of')),
 
   'VM-template': or(checkSelf, checkMember('$pool')),
+
+  VUSB: checkMember('vm'),
 }
 
 // Hoisting is important for this function.
