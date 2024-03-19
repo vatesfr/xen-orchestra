@@ -3,13 +3,13 @@
     v-slot="{ properties }"
     :params="[
       slot().help('Meant to receive UiButton components'),
-      slot('third-button').help('Meant to receive a third UiButton component, it will be on a second row'),
+      slot('tertiary').help('Meant to receive a third UiButton component, it will be on a second row'),
     ]"
   >
     <ButtonGroup v-bind="properties">
       <UiButton level="secondary">Cancel</UiButton>
       <UiButton>Call to action</UiButton>
-      <template #third-button>
+      <template #tertiary>
         <UiButton level="tertiary" color="warning">Secondary call to action</UiButton>
       </template>
     </ButtonGroup>

@@ -1,8 +1,8 @@
 <template>
   <div class="button-group">
     <div class="line"><slot /></div>
-    <div v-if="slots['third-button']" class="line">
-      <slot name="third-button" />
+    <div v-if="slots.tertiary" class="line">
+      <slot name="tertiary" />
     </div>
   </div>
 </template>
@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 const slots = defineSlots<{
   default: () => void
-  'third-button'?: () => void
+  tertiary?: () => void
 }>()
 </script>
 

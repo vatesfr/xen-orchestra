@@ -13,14 +13,14 @@
       </MenuList>
       <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
         <template #trigger="{ open, isOpen }">
-          <UiButton
+          <ButtonIcon
             v-tooltip="{
               placement: 'left',
               content: $t('more-actions'),
             }"
-            :class="{ pressed: isOpen }"
-            :left-icon="faEllipsisVertical"
-            transparent
+            :class="{ active: isOpen }"
+            :icon="faEllipsisVertical"
+            size="large"
             class="more-actions-button"
             @click="open"
           />
@@ -46,6 +46,7 @@ import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
 import UiButton from '@core/components/button/UiButton.vue'
+import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -58,9 +59,3 @@ const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm
 
 const name = computed(() => vm.value?.name_label)
 </script>
-
-<style lang="postcss">
-.more-actions-button {
-  font-size: 1.2em;
-}
-</style>

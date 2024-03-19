@@ -42,4 +42,10 @@ defineProps<{
 .title {
   color: var(--color-grey-100);
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
 </style>

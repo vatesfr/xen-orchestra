@@ -1,8 +1,8 @@
 <template>
   <button :class="className" :disabled="busy || isDisabled" type="button" class="ui-button">
-    <UiIcon :busy :icon="leftIcon" class="icon" />
+    <UiIcon :busy :icon="leftIcon" class="icon" fixed-width />
     <slot />
-    <UiIcon :icon="rightIcon" class="icon" />
+    <UiIcon :icon="rightIcon" class="icon" fixed-width />
   </button>
 </template>
 
@@ -41,14 +41,12 @@ const fontClasses = {
   medium: 'typo h3-semi-bold',
 }
 
-const fontClass = computed(() => fontClasses[props.size])
-
 const className = computed(() => {
   return [
     props.color,
     props.level,
     props.size,
-    fontClass.value,
+    fontClasses[props.size],
     {
       busy: props.busy,
       disabled: isDisabled.value,
@@ -152,21 +150,20 @@ const className = computed(() => {
 
 /* LEVELS VARIANTS */
 .ui-button {
-  & {
-    --border-radius: 0.8rem;
-    --border-style: solid;
-  }
-
   &.primary {
     --color: var(--color-grey-600);
     --background-color: var(--accent-color);
     --border-color: var(--accent-color);
+    --border-style: solid;
+    --border-radius: 0.8rem;
   }
 
   &.secondary {
     --color: var(--accent-color);
     --background-color: var(--background-color-primary);
     --border-color: var(--accent-color);
+    --border-style: solid;
+    --border-radius: 0.8rem;
   }
 
   &.tertiary {
