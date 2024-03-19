@@ -1,13 +1,12 @@
 import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { createSelector } from 'selectors'
 import { isPciHidden, isVmRunning } from 'xo'
 import { Select } from 'form'
 import { SelectHost } from 'select-objects'
-
-const PCI_RENDERER = pci => `${pci.class_name} ${pci.device_name} (${pci.pci_id})`
 
 export default class PciAttachModal extends Component {
   state = {
@@ -71,7 +70,7 @@ export default class PciAttachModal extends Component {
             disabled={!isHostSelected}
             multi
             onChange={this.linkState('pcis')}
-            optionRenderer={PCI_RENDERER}
+            optionRenderer={renderXoItem}
             options={this._getPcis()}
             placeholder={_('selectPcis')}
             value={this.state.pcis}

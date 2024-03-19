@@ -646,10 +646,10 @@ export default class TabAdvanced extends Component {
 
   _getAttachedPciIds = createSelector(
     () => this.props.vm,
-    vm => vm.other.pci?.split(',').map(s => s.split('/')[1]) ?? [] // other.pci: 0/pci_id,0/pci_id,..
+    vm => vm.other.pci?.split(',')?.map(s => s.split('/')[1]) ?? [] // other.pci: 0/pci_id,0/pci_id,..
   )
 
-  _getPciByPciId = createSelector(
+  _getPcis = createSelector(
     () => this.props.vm,
     () => this.props.pcisByHost,
     (vm, pcisByHost) => {
@@ -663,7 +663,17 @@ export default class TabAdvanced extends Component {
     }
   )
 
-  _getIsPciPassthroughAvaialble = () => isPciPassthroughAvailable(this.props.vmHosts[this.props.pool.master])
+  _getIsPciPassthroughAvailable = () => {
+    const { pool, vm, vmHosts } = this.props
+
+    const host = vmHosts[pool?.master ?? vm.$container]
+    if (host === undefined) {
+      // Let's consider it `available` to avoid blocking a user who only has ACL on the VM
+      return true
+    }
+
+    return isPciPassthroughAvailable(host)
+  }
 
   render() {
     const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
@@ -673,7 +683,7 @@ export default class TabAdvanced extends Component {
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
-    const _isPciPassthroughAvailable = this._getIsPciPassthroughAvaialble()
+    const _isPciPassthroughAvailable = this._getIsPciPassthroughAvailable()
     return (
       <Container>
         <Row>
@@ -1228,7 +1238,7 @@ export default class TabAdvanced extends Component {
               actions={PCI_ACTIONS}
               collection={this._getAttachedPciIds()}
               columns={PCI_COLUMNS}
-              data-pciByPciId={this._getPciByPciId()}
+              data-pciByPciId={this._getPcis()}
               data-vm={vm}
               stateUrlParam='s_pcis'
             />

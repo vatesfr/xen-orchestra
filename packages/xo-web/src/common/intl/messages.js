@@ -386,7 +386,7 @@ const messages = {
   selectSubjects: 'Choose user(s) and/or group(s)',
   selectObjects: 'Select object(s)…',
   selectRole: 'Choose a role',
-  selectHostFirst: 'Select an host first',
+  selectHostFirst: 'Select a host first',
   selectHosts: 'Select host(s)…',
   selectHostsVms: 'Select object(s)…',
   selectNetworks: 'Select network(s)…',
