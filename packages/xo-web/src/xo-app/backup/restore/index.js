@@ -5,10 +5,9 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, formatSize, noop } from 'utils'
+import { addSubscriptions, formatSize, noop, NumericDate } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { FormattedDate } from 'react-intl'
 import { cloneDeep, filter, find, flatMap, forEach, map, reduce, orderBy } from 'lodash'
 import { checkBackup, deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 
@@ -34,33 +33,13 @@ const BACKUPS_COLUMNS = [
   },
   {
     name: _('firstBackupColumn'),
-    itemRenderer: ({ first }) => (
-      <FormattedDate
-        value={new Date(first.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ first }) => <NumericDate timestamp={first.timestamp} />,
     sortCriteria: 'first.timestamp',
     sortOrder: 'desc',
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => (
-      <FormattedDate
-        value={new Date(last.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ last }) => <NumericDate timestamp={last.timestamp} />,
     sortCriteria: 'last.timestamp',
     default: true,
     sortOrder: 'desc',
