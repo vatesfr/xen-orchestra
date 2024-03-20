@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VMWare/Migration] Alignment of the end of delta on older esxi (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/vmware-explorer patch
 
 <!--packages-end-->
