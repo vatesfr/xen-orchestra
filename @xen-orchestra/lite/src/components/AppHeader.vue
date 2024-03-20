@@ -24,7 +24,7 @@ import UiButton from '@/components/ui/UiButton.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
 import { useRouter } from 'vue-router'
-import { useUiStore } from '@/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { faBars, faDownload } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 

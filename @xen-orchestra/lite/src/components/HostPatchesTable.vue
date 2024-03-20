@@ -33,7 +33,7 @@ import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
 import { vTooltip } from '@/directives/tooltip.directive'
-import { useUiStore } from '@/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
 
 const props = defineProps<{

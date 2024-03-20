@@ -36,9 +36,9 @@ import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPower
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useUiStore } from '@/stores/ui.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 
