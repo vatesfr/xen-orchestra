@@ -74,11 +74,9 @@ export default class VhdEsxiCowd extends VhdAbstract {
     // a grain directory entry contains the address of a grain table
     // a grain table can adresses at most 4096 grain of 512 Bytes of data
     this.#header = unpackHeader(createHeader(Math.ceil(size / (4096 * 512))))
-
     const geometry = _computeGeometryForSize(size)
-    const actualSize = geometry.actualSize
     this.#footer = unpackFooter(
-      createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, this.#parentVhd.footer.diskType)
+      createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, this.#parentVhd.footer.diskType)
     )
   }
 
