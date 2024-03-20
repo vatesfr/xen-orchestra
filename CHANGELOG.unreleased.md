@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VMWare/Migration] Make one pass for the cold base disk and snapshots (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -29,7 +31,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - vhd-lib patch
 
 <!--packages-end-->
