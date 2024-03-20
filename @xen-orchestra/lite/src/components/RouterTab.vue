@@ -1,6 +1,6 @@
 <template>
   <RouterLink v-slot="{ isActive, href }" :to custom>
-    <TabItem :active="isActive" :disabled :href="disabled ? undefined : href" :tag="disabled ? 'div' : 'a'">
+    <TabItem :active="isActive" :disabled :href="disabled ? undefined : href" :tag="disabled ? undefined : 'a'">
       <slot />
     </TabItem>
   </RouterLink>

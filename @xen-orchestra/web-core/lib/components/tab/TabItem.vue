@@ -20,11 +20,9 @@ const props = withDefaults(
 
 const { isMobile } = storeToRefs(useUiStore())
 
-const typoClass = computed(() => (isMobile.value ? 'c3-semi-bold' : 'c1-semi-bold'))
-
 const classNames = computed(() => {
   return [
-    typoClass.value,
+    isMobile.value ? 'c3-semi-bold' : 'c1-semi-bold',
     {
       disabled: props.disabled,
       active: props.active,
