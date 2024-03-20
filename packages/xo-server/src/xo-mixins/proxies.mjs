@@ -251,7 +251,7 @@ export default class Proxy {
     } catch (error) {
       // this method does not exist on older versions of the proxy, simply ignore the error
       if (error.code !== -32601) {
-        throw error
+        log.warn('failed to set proxy updater channel', { error })
       }
     }
 
