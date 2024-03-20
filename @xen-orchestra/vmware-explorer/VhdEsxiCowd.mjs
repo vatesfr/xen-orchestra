@@ -4,9 +4,9 @@ import { FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { notEqual, strictEqual } from 'node:assert'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
+import { openDatastore } from './_openDatastore.mjs'
 
 export default class VhdEsxiCowd extends VhdAbstract {
-  #esxi
   #datastore
   #parentVhd
   #path
@@ -17,14 +17,14 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
   #grainDirectory
 
-  static async open(esxi, datastore, path, parentVhd, opts) {
-    const vhd = new VhdEsxiCowd(esxi, datastore, path, parentVhd, opts)
+  static async open(datastoreName, path, parentVhd, opts) {
+    const datastore = openDatastore(datastoreName, opts)
+    const vhd = new VhdEsxiCowd(datastore, path, parentVhd, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
-  constructor(esxi, datastore, path, parentVhd, { lookMissingBlockInParent = true } = {}) {
+  constructor(datastore, path, parentVhd, { lookMissingBlockInParent = true } = {}) {
     super()
-    this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#parentVhd = parentVhd
@@ -54,7 +54,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
   }
 
   async #read(start, length) {
-    return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
+    return this.#datastore.getBuffer(this.#path, start, start + length)
   }
 
   async readHeaderAndFooter() {
