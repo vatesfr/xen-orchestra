@@ -1,12 +1,15 @@
-import { useEventListener, type WindowEventName } from '@vueuse/core'
+import type { TooltipDirectiveContent } from '@core/directives/tooltip.directive'
 import { uniqueId } from '@core/utils/unique-id.util'
+import { useEventListener, type WindowEventName } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import type { Options } from 'placement.js'
 import { computed, type EffectScope, effectScope, ref } from 'vue'
 
 export type TooltipOptions = {
-  content: string | false
+  content: TooltipDirectiveContent
   placement: Options['placement']
+  selector: string | undefined
+  vertical: boolean
 }
 
 export type TooltipEvents = { on: WindowEventName; off: WindowEventName }

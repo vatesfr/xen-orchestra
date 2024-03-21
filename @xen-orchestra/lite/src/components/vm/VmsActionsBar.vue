@@ -33,7 +33,7 @@ import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportIte
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
