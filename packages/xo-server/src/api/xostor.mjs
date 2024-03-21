@@ -11,6 +11,12 @@ const PROVISIONING = Object.values(ENUM_PROVISIONING)
 const VG_NAME = 'linstor_group'
 const XOSTOR_DEPENDENCIES = ['xcp-ng-release-linstor', 'xcp-ng-linstor']
 
+function checkIfLinstorSr(sr) {
+  if (sr.SR_type !== 'linstor') {
+    throw new Error('Not a XOSTOR storage')
+  }
+}
+
 function pluginCall(xapi, host, plugin, fnName, args) {
   return Task.run(
     { properties: { name: `call plugin on: ${host.name_label}`, objectId: host.uuid, plugin, fnName, args } },
@@ -296,9 +302,7 @@ export async function destroy({ sr }) {
     type: 'xo:xostor:destroy',
   })
   return task.run(async () => {
-    if (sr.SR_type !== 'linstor') {
-      throw new Error('Not a XOSTOR storage')
-    }
+    checkIfLinstorSr(sr)
     const xapi = this.getXapi(sr)
     const hosts = Object.values(xapi.objects.indexes.type.host).map(host => this.getObject(host.uuid, 'host'))
 
@@ -325,5 +329,63 @@ destroy.params = {
   sr: { type: 'string' },
 }
 destroy.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
+}
+
+export async function set({ sr, preferredInterface }) {
+  checkIfLinstorSr(sr)
+  if (preferredInterface !== undefined) {
+    await this.getXapi(sr).xostor_setPreferredInterface(sr._xapiRef, preferredInterface)
+  }
+}
+set.description = 'Changes the properties of an existing XOSTOR storage'
+set.params = {
+  sr: { type: 'string' },
+  preferredInterface: {
+    optional: true,
+    type: 'string',
+  },
+}
+set.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
+}
+
+export async function createInterface({ sr, network, name }) {
+  checkIfLinstorSr(sr)
+  await this.getXapi(sr).xostor_createInterface(sr._xapiRef, network._xapiRef, name)
+}
+createInterface.description = 'Create a linstor interface'
+createInterface.params = {
+  sr: { type: 'string' },
+  network: { type: 'string' },
+  name: { type: 'string' },
+}
+createInterface.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
+  network: ['network', 'network', 'operate'],
+}
+
+export async function getInterfaces({ sr }) {
+  checkIfLinstorSr(sr)
+  return this.getXapi(sr).xostor_getInterfaces(sr._xapiRef)
+}
+getInterfaces.description = 'Get linstor available interfaces'
+getInterfaces.params = {
+  sr: { type: 'string' },
+}
+getInterfaces.resolve = {
+  sr: ['sr', 'SR', 'view'],
+}
+
+export async function destroyInterface({ sr, name }) {
+  checkIfLinstorSr(sr)
+  await this.getXapi(sr).xostor_destroyInterface(sr._xapiRef, name)
+}
+destroyInterface.description = 'Destroy a linstor interface'
+destroyInterface.params = {
+  sr: { type: 'string' },
+  name: { type: 'string' },
+}
+destroyInterface.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }
