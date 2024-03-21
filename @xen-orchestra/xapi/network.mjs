@@ -14,6 +14,11 @@ export default class Network {
     const network = await this.getRecord('network', ref)
     await network.set_MTU(mtu)
 
+    // Update PIFs and VIFs MTU, see:
+    // - https://github.com/xenserver/xenadmin/blob/b210cd2c2d8547f5bb48b49d71f17429c7d65e44/XenAdmin/SettingsPanels/EditNetworkPage.cs#L575
+    // - https://github.com/xenserver/xenadmin/blob/b210cd2c2d8547f5bb48b49d71f17429c7d65e44/XenAdmin/SettingsPanels/EditNetworkPage.cs#L625-L628
+    // - https://github.com/xenserver/xenadmin/blob/b210cd2c2d8547f5bb48b49d71f17429c7d65e44/XenModel/Actions/Network/UnplugPlugNetworkAction.cs#L81-L153
+
     // The MTU will not be updated for VIFs of paused VM, but we can't unplug/replug VIF on a paused VM
     const pluggedPifs = await asyncFilter(network.PIFs, async pif => {
       try {
