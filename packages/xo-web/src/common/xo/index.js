@@ -1572,7 +1572,15 @@ export const deleteTemplates = templates =>
     body: _('templateDeleteModalBody', { templates: templates.length }),
   }).then(async () => {
     const defaultTemplates = []
+    const protectedTemplates = []
     let nErrors = 0
+
+    const showError = () =>
+      error(
+        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
+        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
+      )
+
     await Promise.all(
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
@@ -1583,6 +1591,8 @@ export const deleteTemplates = templates =>
             })
           ) {
             defaultTemplates.push(id)
+          } else if (forbiddenOperation.is(reason)) {
+            protectedTemplates.push(id)
           } else {
             nErrors++
           }
@@ -1591,41 +1601,46 @@ export const deleteTemplates = templates =>
     )
 
     const nDefaultTemplates = defaultTemplates.length
-    if (nDefaultTemplates === 0 && nErrors === 0) {
-      return
+    const nProtectedTemplates = protectedTemplates.length
+
+    if (nProtectedTemplates !== 0) {
+      await confirm({
+        title: _('deleteProtectedTemplatesTitle', { nProtectedTemplates }),
+        body: _('deleteProtectedTemplatesMessage', { nProtectedTemplates }),
+      })
+      await Promise.all(
+        map(protectedTemplates, id =>
+          _call('vm.delete', {
+            id,
+            forceBlockedOperation: true,
+          }).catch(() => {
+            nErrors++
+          })
+        )
+      )
     }
 
-    const showError = () =>
-      error(
-        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
-        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
-      )
-
-    return nDefaultTemplates === 0
-      ? showError()
-      : confirm({
-          title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
-          body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
-        })
-          .then(
-            () =>
-              Promise.all(
-                map(defaultTemplates, id =>
-                  _call('vm.delete', {
-                    id,
-                    forceDeleteDefaultTemplate: true,
-                  }).catch(() => {
-                    nErrors++
-                  })
-                )
-              ),
-            noop
+    if (nDefaultTemplates !== 0) {
+      await confirm({
+        title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+        body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+      }).then(() =>
+        Promise.all(
+          map(defaultTemplates, id =>
+            _call('vm.delete', {
+              id,
+              forceDeleteDefaultTemplate: true,
+            }).catch(() => {
+              nErrors++
+            })
           )
-          .then(() => {
-            if (nErrors !== 0) {
-              showError()
-            }
-          }, noop)
+        )
+      )
+    }
+
+    if (nErrors !== 0) {
+      showError()
+    }
   }, noop)
 
 export const snapshotVm = async (vm, name, saveMemory, description) => {

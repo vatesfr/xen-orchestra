@@ -1520,7 +1520,8 @@ const messages = {
   deleteDefaultTemplatesTitle: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
   deleteDefaultTemplatesMessage:
     'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
-
+  deleteProtectedTemplatesTitle:'Delete protected template{nProtectedTemplates, plural, one {} other {s}}',
+  deleteProtectedTemplatesMessage: 'You are attempting to delete {nProtectedTemplates, number} protected template{nProtectedTemplates, plural, one {} other {s}}. Do you want to continue?',
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
   hostPanel: 'Host{hosts, plural, one {} other {s}}',
