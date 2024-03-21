@@ -12,6 +12,7 @@
 - [VM/General] Show current VM tags without the need to search them in advanced creation tag selector [#7351](https://github.com/vatesfr/xen-orchestra/issues/7351) (PR [#7434](https://github.com/vatesfr/xen-orchestra/pull/7434))
 - [xo-cli] Supports signing in with one-time password (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
 - [Plugin/load-balancer] A parameter was added in performance mode to balance VMs on hosts depending on their number of vCPUs, when it does not cause performance issues [#5389](https://github.com/vatesfr/xen-orchestra/issues/5389) (PR [#7333](https://github.com/vatesfr/xen-orchestra/pull/7333))
+- [Template] Allow bypassing blocked operation when deleting protected template (PR [#7493](https://github.com/vatesfr/xen-orchestra/pull/7493))
 
 ### Bug fixes
 
@@ -49,6 +50,8 @@
 - xo-cli minor
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-web minor
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
