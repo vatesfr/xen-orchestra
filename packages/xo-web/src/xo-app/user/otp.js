@@ -39,7 +39,6 @@ export default decorate([
               <img src={qrcode} alt='qrcode' />
             </Row>
           )}
-          )}
         </Col>
       </Row>
     </Container>
