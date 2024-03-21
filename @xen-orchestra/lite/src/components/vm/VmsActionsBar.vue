@@ -1,5 +1,5 @@
 <template>
-  <AppMenu
+  <UiMenu
     :disabled="selectedRefs.length === 0"
     :horizontal="!isMobile"
     :shadow="isMobile"
@@ -23,12 +23,10 @@
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
     <VmActionExportItems :vm-refs="selectedRefs" />
     <VmActionDeleteItem :vm-refs="selectedRefs" />
-  </AppMenu>
+  </UiMenu>
 </template>
 
 <script lang="ts" setup>
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuItem from '@/components/menu/MenuItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionDeleteItem from '@/components/vm/VmActionItems/VmActionDeleteItem.vue'
@@ -39,6 +37,8 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useUiStore } from '@/stores/ui.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import UiMenu from '@core/components/menu/UiMenu.vue'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 

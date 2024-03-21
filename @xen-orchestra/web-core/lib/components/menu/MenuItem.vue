@@ -10,7 +10,7 @@
     >
       <slot />
     </MenuTrigger>
-    <AppMenu v-else :disabled="isDisabled" shadow>
+    <UiMenu v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon="icon" @click="open">
           <slot />
@@ -18,14 +18,14 @@
         </MenuTrigger>
       </template>
       <slot name="submenu" />
-    </AppMenu>
+    </UiMenu>
   </li>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
-import AppMenu from '@core/components/menu/UiMenu.vue'
+import UiMenu from '@core/components/menu/UiMenu.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'

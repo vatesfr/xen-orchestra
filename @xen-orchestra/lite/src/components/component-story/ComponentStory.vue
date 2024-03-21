@@ -7,7 +7,7 @@
     </UiTab>
     <UiTab v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTab>
     <UiTab v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTab>
-    <AppMenu placement="bottom" shadow>
+    <UiMenu placement="bottom" shadow>
       <template #trigger="{ open, isOpen }">
         <UiTab :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <UiIcon :icon="faSliders" />
@@ -17,7 +17,7 @@
       <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
         {{ label }}
       </MenuItem>
-    </AppMenu>
+    </UiMenu>
   </UiTabBar>
 
   <div :class="{ 'full-width': fullWidthComponent }" class="tabs">
@@ -35,7 +35,7 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" transparent @click="eventsLog = []"> Clear </UiButton>
+            <UiButton v-if="eventsLog.length > 0" transparent @click="eventsLog = []"> Clear</UiButton>
           </template>
         </UiCardTitle>
         <div class="events-log">
@@ -65,13 +65,10 @@ import StoryEventParams from '@/components/component-story/StoryEventParams.vue'
 import StoryPropParams from '@/components/component-story/StoryPropParams.vue'
 import StorySettingParams from '@/components/component-story/StorySettingParams.vue'
 import StorySlotParams from '@/components/component-story/StorySlotParams.vue'
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuItem from '@/components/menu/MenuItem.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import UiTab from '@/components/ui/UiTab.vue'
 import UiTabBar from '@/components/ui/UiTabBar.vue'
 import {
@@ -83,6 +80,9 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import UiMenu from '@core/components/menu/UiMenu.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
