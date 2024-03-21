@@ -19,7 +19,7 @@ export default decorate([
     computed: {
       qrcode: /* async */ ({ secret }, props) =>
         secret && qrcode.toDataURL(authenticator.keyuri(props.user.email, 'XenOrchestra', secret)),
-      secret: (_, { user }) => user && user.preferences && user.preferences.otp,
+      secret: (_, { user }) => user?.preferences?.otp,
     },
   }),
   injectState,
@@ -30,12 +30,15 @@ export default decorate([
           <strong>{_('OtpAuthentication')}</strong>
         </Col>
         <Col smallSize={10}>
-          <Toggle value={user.preferences.otp !== undefined} onChange={effects._handleOtp} />
-          {secret !== undefined && ' ' + secret}
+          <Row>
+            <Toggle className='align-middle' value={user.preferences.otp !== undefined} onChange={effects._handleOtp} />
+            {secret !== undefined && ' ' + secret}
+          </Row>
           {qrcode !== undefined && (
-            <div>
+            <Row>
               <img src={qrcode} alt='qrcode' />
-            </div>
+            </Row>
+          )}
           )}
         </Col>
       </Row>

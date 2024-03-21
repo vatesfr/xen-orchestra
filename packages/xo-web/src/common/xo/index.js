@@ -3309,7 +3309,7 @@ export const addOtp = async secret => {
       })
     } while (!(await authenticator.check(token, secret)))
   } catch (error) {
-    if (error === null) {
+    if (error === undefined) {
       // action canceled
       return
     }
