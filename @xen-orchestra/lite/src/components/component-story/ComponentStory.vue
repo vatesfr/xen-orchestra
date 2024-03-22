@@ -7,7 +7,7 @@
     </UiTab>
     <UiTab v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTab>
     <UiTab v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTab>
-    <UiMenu placement="bottom" shadow>
+    <MenuList placement="bottom" shadow>
       <template #trigger="{ open, isOpen }">
         <UiTab :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <UiIcon :icon="faSliders" />
@@ -17,7 +17,7 @@
       <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
         {{ label }}
       </MenuItem>
-    </UiMenu>
+    </MenuList>
   </UiTabBar>
 
   <div :class="{ 'full-width': fullWidthComponent }" class="tabs">
@@ -35,7 +35,7 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" transparent @click="eventsLog = []"> Clear</UiButton>
+            <UiButton v-if="eventsLog.length > 0" transparent @click="eventsLog = []"> Clear </UiButton>
           </template>
         </UiCardTitle>
         <div class="events-log">
@@ -81,7 +81,7 @@ import {
   type Param,
 } from '@/libs/story/story-param'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import UiMenu from '@core/components/menu/UiMenu.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import UiCounter from '@core/components/UiCounter.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'

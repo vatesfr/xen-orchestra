@@ -1,5 +1,5 @@
 <template>
-  <UiMenu placement="bottom-end" shadow>
+  <MenuList placement="bottom-end" shadow>
     <template #trigger="{ open, isOpen }">
       <button :class="{ active: isOpen }" class="account-button" @click="open">
         <UiIcon :icon="faCircleUser" class="user-icon" />
@@ -13,14 +13,14 @@
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
       {{ $t('log-out') }}
     </MenuItem>
-  </UiMenu>
+  </MenuList>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import UiMenu from '@core/components/menu/UiMenu.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import {
   faAngleDown,
   faArrowRightFromBracket,

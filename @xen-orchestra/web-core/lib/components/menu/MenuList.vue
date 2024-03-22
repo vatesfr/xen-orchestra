@@ -1,7 +1,7 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport to="body" :disabled="!shouldTeleport">
-    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="ui-menu" v-bind="$attrs">
+    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="menu-list" v-bind="$attrs">
       <slot />
     </ul>
   </Teleport>
@@ -81,7 +81,7 @@ const open = (event: MouseEvent) => {
 </script>
 
 <style lang="postcss" scoped>
-.ui-menu {
+.menu-list {
   z-index: 1;
   display: inline-flex;
   flex-direction: column;

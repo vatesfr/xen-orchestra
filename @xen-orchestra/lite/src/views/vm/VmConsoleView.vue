@@ -4,7 +4,7 @@
     <UiSpinner v-else-if="!isReady" class="spinner" />
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-for-console')" />
     <template v-else-if="vm && vmConsole">
-      <UiMenu horizontal>
+      <MenuList horizontal>
         <MenuItem v-if="uiStore.hasUi" :icon="faArrowUpRightFromSquare" @click="openInNewTab">
           {{ $t('open-console-in-new-tab') }}
         </MenuItem>
@@ -17,7 +17,7 @@
         <MenuItem :disabled="!consoleElement" :icon="faKeyboard" @click="sendCtrlAltDel">
           {{ $t('send-ctrl-alt-del') }}
         </MenuItem>
-      </UiMenu>
+      </MenuList>
       <RemoteConsole
         ref="consoleElement"
         :is-console-available="isConsoleAvailable"
@@ -40,7 +40,7 @@ import { useUiStore } from '@/stores/ui.store'
 import { useConsoleCollection } from '@/stores/xen-api/console.store'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import UiMenu from '@core/components/menu/UiMenu.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import {
   faArrowUpRightFromSquare,
   faDownLeftAndUpRightToCenter,
@@ -173,7 +173,7 @@ const openInNewTab = () => {
   }
 }
 
-.vm-console-view:deep(.app-menu) {
+.vm-console-view:deep(.menu-list) {
   background-color: transparent;
   align-self: center;
 }

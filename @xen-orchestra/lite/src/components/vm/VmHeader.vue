@@ -2,7 +2,7 @@
   <TitleBar :icon="faDisplay">
     {{ name }}
     <template #actions>
-      <UiMenu v-if="vm !== undefined" placement="bottom-end" shadow>
+      <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
         <template #trigger="{ open, isOpen }">
           <UiButton :active="isOpen" :icon="faPowerOff" @click="open">
             {{ $t('change-state') }}
@@ -10,8 +10,8 @@
           </UiButton>
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
-      </UiMenu>
-      <UiMenu v-if="vm !== undefined" placement="bottom-end" shadow>
+      </MenuList>
+      <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
         <template #trigger="{ open, isOpen }">
           <UiButton
             v-tooltip="{
@@ -29,7 +29,7 @@
         <VmActionExportItem :vm-refs="[vm.$ref]" is-single-action />
         <VmActionSnapshotItem :vm-refs="[vm.$ref]" />
         <VmActionMigrateItem :selected-refs="[vm.$ref]" is-single-action />
-      </UiMenu>
+      </MenuList>
     </template>
   </TitleBar>
 </template>
@@ -46,7 +46,7 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
-import UiMenu from '@core/components/menu/UiMenu.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
