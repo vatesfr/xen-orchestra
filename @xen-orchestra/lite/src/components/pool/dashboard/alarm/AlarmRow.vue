@@ -10,7 +10,7 @@
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
-    <td class="level">{{ alarm.level * 100 }}%</td>
+    <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
     <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
     <td class="object">
       <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
@@ -44,8 +44,6 @@ const hasTooltip = computed(() => hasEllipsis(descriptionElement.value))
 }
 .level {
   color: var(--color-red-base);
-  font-size: 1.4rem;
-  font-weight: 700;
 }
 .on {
   white-space: nowrap;

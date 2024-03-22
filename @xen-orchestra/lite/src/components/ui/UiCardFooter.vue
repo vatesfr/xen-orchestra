@@ -1,5 +1,5 @@
 <template>
-  <div class="footer">
+  <div class="footer typo c2-semi-bold">
     <div class="footer-card">
       <slot name="left" />
     </div>
@@ -15,18 +15,12 @@
 .footer {
   color: var(--color-grey-200);
   display: flex;
-  font-size: 14px;
   justify-content: space-between;
 }
 
 .footer-card {
   display: flex;
-  text-transform: uppercase;
   width: 45%;
   justify-content: space-between;
-}
-
-:deep(.footer-card) p {
-  font-weight: 700;
 }
 </style>

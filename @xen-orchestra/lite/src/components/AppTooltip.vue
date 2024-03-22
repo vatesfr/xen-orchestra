@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip">
+  <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip typo p1-regular">
     <span class="triangle" />
     <span class="label">{{ options.content }}</span>
   </div>
@@ -35,8 +35,6 @@ watchEffect(() => {
 
 <style lang="postcss" scoped>
 .app-tooltip {
-  font-size: 1.6rem;
-  font-weight: 400;
   position: relative;
   display: inline-flex;
   padding: 0.3125em 0.5em;

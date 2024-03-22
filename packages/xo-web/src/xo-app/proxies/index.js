@@ -229,13 +229,7 @@ const COLUMNS = [
       if (state.endsWith('-upgrade-needed')) {
         return (
           <div>
-            <ActionButton
-              btnStyle='success'
-              disabled={proxy.vmUuid === undefined}
-              handler={upgradeAppliance}
-              handlerParam={proxy.id}
-              icon='upgrade'
-            >
+            <ActionButton btnStyle='success' handler={upgradeAppliance} handlerParam={proxy.id} icon='upgrade'>
               {_('upgrade')}
             </ActionButton>
             <p className='text-warning'>

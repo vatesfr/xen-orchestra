@@ -1,6 +1,6 @@
 <template>
   <ul class="infra-vm-list">
-    <li v-if="hasError" class="text-error">{{ $t('error-no-data') }}</li>
+    <li v-if="hasError" class="text-error typo h6-semi-bold">{{ $t('error-no-data') }}</li>
     <template v-else-if="!isReady">
       <InfraLoadingItem v-for="i in 3" :key="i" :icon="faDisplay" />
     </template>
@@ -28,9 +28,6 @@ const vms = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef ?? ('O
 <style lang="postcss" scoped>
 .text-error {
   padding-left: 3rem;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 150%;
   color: var(--color-red-base);
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="no-data">
     <img alt="No data" class="img" src="@/assets/undraw-bug-fixing.svg" />
-    <p class="text-error">{{ $t('error-no-data') }}</p>
+    <p class="text-error typo h4-medium">{{ $t('error-no-data') }}</p>
   </div>
 </template>
 
@@ -22,9 +22,6 @@
   margin: auto;
   width: 8em;
   font-style: normal;
-  font-weight: 500;
-  font-size: 1.25em;
-  line-height: 150%;
   color: var(--color-red-base);
 }
 </style>
