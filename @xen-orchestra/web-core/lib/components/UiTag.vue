@@ -1,9 +1,9 @@
 <template>
-  <span class="ui-tag typo p3-regular" :class="[color, { light }]">
+  <span :class="[color, { light }]" class="ui-tag typo p3-regular">
     <slot name="icon">
       <UiIcon :icon fixed-width />
     </slot>
-    <slot />
+    <span class="content"><slot /></span>
   </span>
 </template>
 
@@ -25,52 +25,51 @@ withDefaults(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-tag {
+  --color: var(--color-grey-600);
+
+  &.light {
+    --color: var(--color-grey-100);
+  }
+}
+
+/* BACKGROUND COLOR VARIANTS */
+.ui-tag {
   &.grey {
-    --color: var(--color-grey-600);
     --background-color: var(--color-grey-300);
 
     &.light {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-secondary);
     }
   }
 
   &.info {
-    --color: var(--color-grey-600);
     --background-color: var(--color-purple-l20);
 
     &.light {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-10);
     }
   }
 
   &.success {
-    --color: var(--color-grey-600);
     --background-color: var(--color-green-l20);
 
     &.light {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-green-10);
     }
   }
 
   &.warning {
-    --color: var(--color-grey-600);
     --background-color: var(--color-orange-l20);
 
     &.light {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-orange-10);
     }
   }
 
   &:is(.error, .danger) {
-    --color: var(--color-grey-600);
     --background-color: var(--color-red-l20);
 
     &.light {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-red-10);
     }
   }
@@ -87,5 +86,11 @@ withDefaults(
   background-color: var(--background-color);
   padding: 0.2rem 0.8rem;
   border-radius: 0.4rem;
+  vertical-align: middle;
+
+  .content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 </style>
