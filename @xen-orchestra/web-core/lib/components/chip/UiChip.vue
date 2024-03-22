@@ -30,84 +30,81 @@ const emit = defineEmits<{
 </script>
 
 <style lang="postcss" scoped>
-/* CHIP COLOR VARIANTS */
+/* COLOR VARIANTS */
+.ui-chip {
+  --color: var(--color-grey-100);
+
+  &.disabled {
+    --color: var(--color-grey-600);
+
+    &.info {
+      --color: var(--color-grey-300);
+    }
+  }
+}
+
+/* BACKGROUND COLOR VARIANTS */
 .ui-chip {
   &.info {
-    --color: var(--color-grey-100);
     --background-color: var(--background-color-purple-10);
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-20);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-purple-30);
     }
 
     &.disabled {
-      --color: var(--color-grey-300);
       --background-color: var(--background-color-secondary);
     }
   }
 
   &.success {
-    --color: var(--color-grey-100);
     --background-color: var(--background-color-green-10);
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-green-20);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-green-30);
     }
 
     &.disabled {
-      --color: var(--color-grey-600);
       --background-color: var(--color-green-l60);
     }
   }
 
   &.warning {
-    --color: var(--color-grey-100);
     --background-color: var(--background-color-orange-10);
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-orange-20);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-orange-30);
     }
 
     &.disabled {
-      --color: var(--color-grey-600);
       --background-color: var(--color-orange-l60);
     }
   }
 
   &:is(.danger, .error) {
-    --color: var(--color-grey-100);
     --background-color: var(--background-color-red-10);
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-red-20);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-grey-100);
       --background-color: var(--background-color-red-30);
     }
 
     &.disabled {
-      --color: var(--color-grey-600);
       --background-color: var(--color-red-l60);
     }
   }
