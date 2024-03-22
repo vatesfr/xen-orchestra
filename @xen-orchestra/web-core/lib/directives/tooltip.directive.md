@@ -100,7 +100,7 @@ If you want to check the vertical overflow, you can set the `vertical` option to
 
 <script setup>
 import { ref } from 'vue'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 const myTooltip = ref('Content') // or ref({ content: "Content", placement: "left-end" })
 const isTooltipEnabled = ref(true)
