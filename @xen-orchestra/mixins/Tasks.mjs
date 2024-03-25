@@ -46,6 +46,7 @@ export default class Tasks extends EventEmitter {
           if (status === 'success') {
             try {
               await this.#store.del(id)
+              this.emit('remove', id)
             } catch (error) {
               warn('failure on deleting task log from store', { error, taskLog })
             }
@@ -68,6 +69,7 @@ export default class Tasks extends EventEmitter {
         const { id } = $root
         await this.#store.put(id, $root)
         this.emit(id, $root)
+        this.emit('update', $root)
       } catch (error) {
         warn('failure on saving task log in store', { error, taskLog })
       }
@@ -114,6 +116,7 @@ export default class Tasks extends EventEmitter {
       const deleteEntry = key => {
         ++count
         db.del(key, cb)
+        this.emit('remove', key)
       }
 
       const onData =
@@ -140,7 +143,7 @@ export default class Tasks extends EventEmitter {
   }
 
   async clearLogs() {
-    await this.#store.clear()
+    await this.#gc(0)
   }
 
   /**
@@ -182,6 +185,7 @@ export default class Tasks extends EventEmitter {
 
   async deleteLog(id) {
     await this.#store.del(id)
+    this.emit('remove', id)
   }
 
   async get(id) {
