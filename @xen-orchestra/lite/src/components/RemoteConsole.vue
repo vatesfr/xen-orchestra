@@ -73,7 +73,7 @@ const createVncConnection = async () => {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
 
     if (vncClient !== undefined) {
-      // New VNC Client may have been created in the meanwhile
+      // New VNC Client may have been created in the meantime
       return
     }
   }
