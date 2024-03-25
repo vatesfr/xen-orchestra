@@ -71,6 +71,11 @@ const clearVncClient = () => {
 const createVncConnection = async () => {
   if (nConnectionAttempts !== 0) {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
+
+    if (vncClient !== undefined) {
+      // New VNC Client may have been created in the meanwhile
+      return
+    }
   }
 
   vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
