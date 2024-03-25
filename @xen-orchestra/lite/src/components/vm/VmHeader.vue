@@ -4,7 +4,7 @@
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
         <template #trigger="{ open, isOpen }">
-          <UiButton :active="isOpen" :icon="faPowerOff" @click="open">
+          <UiButton :class="{ pressed: isOpen }" :left-icon="faPowerOff" @click="open">
             {{ $t('change-state') }}
             <UiIcon :icon="faAngleDown" />
           </UiButton>
@@ -13,15 +13,15 @@
       </MenuList>
       <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
         <template #trigger="{ open, isOpen }">
-          <UiButton
+          <ButtonIcon
             v-tooltip="{
               placement: 'left',
               content: $t('more-actions'),
             }"
-            :active="isOpen"
+            :class="{ active: isOpen }"
             :icon="faEllipsisVertical"
+            size="large"
             class="more-actions-button"
-            transparent
             @click="open"
           />
         </template>
@@ -37,7 +37,6 @@
 <script lang="ts" setup>
 import TitleBar from '@/components/TitleBar.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
@@ -46,6 +45,8 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
+import UiButton from '@core/components/button/UiButton.vue'
+import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -58,9 +59,3 @@ const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm
 
 const name = computed(() => vm.value?.name_label)
 </script>
-
-<style lang="postcss">
-.more-actions-button {
-  font-size: 1.2em;
-}
-</style>

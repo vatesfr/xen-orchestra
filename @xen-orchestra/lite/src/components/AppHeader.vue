@@ -8,7 +8,7 @@
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
-      <UiButton v-if="isDesktop" :icon="faDownload" @click="openXoaDeploy">
+      <UiButton v-if="isDesktop" :left-icon="faDownload" @click="openXoaDeploy">
         {{ $t('deploy-xoa') }}
       </UiButton>
       <AccountButton />
@@ -20,13 +20,13 @@
 import AccountButton from '@/components/AccountButton.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { useRouter } from 'vue-router'
+import UiButton from '@core/components/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { faBars, faDownload } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 

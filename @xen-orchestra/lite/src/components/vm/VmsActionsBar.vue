@@ -7,7 +7,7 @@
     placement="bottom-end"
   >
     <template v-if="isMobile" #trigger="{ isOpen, open }">
-      <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
+      <ButtonIcon :active="isOpen" :icon="faEllipsis" @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
       {{ $t('change-state') }}
@@ -27,7 +27,6 @@
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@/components/ui/UiButton.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionDeleteItem from '@/components/vm/VmActionItems/VmActionDeleteItem.vue'
 import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportItems.vue'
@@ -36,6 +35,7 @@ import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPower
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import { vTooltip } from '@/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { useUiStore } from '@core/stores/ui.store'

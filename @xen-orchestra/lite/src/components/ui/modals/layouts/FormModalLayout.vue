@@ -13,9 +13,9 @@
     </template>
 
     <template #footer>
-      <UiButtonGroup class="footer-buttons">
+      <ButtonGroup class="footer-buttons">
         <slot name="buttons" />
-      </UiButtonGroup>
+      </ButtonGroup>
     </template>
   </ModalContainer>
 </template>
@@ -24,9 +24,9 @@
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
-import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
+import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
