@@ -25,5 +25,5 @@ const props = withDefaults(
   { disabled: undefined }
 )
 
-const isDisabled = useContext(DisabledContext, props.disabled)
+const isDisabled = useContext(DisabledContext, () => props.disabled)
 </script>
