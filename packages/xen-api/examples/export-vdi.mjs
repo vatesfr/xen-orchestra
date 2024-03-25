@@ -19,18 +19,21 @@ defer(async ($defer, rawArgs) => {
     _: args,
   } = getopts(rawArgs, {
     boolean: 'raw',
+    string: ['proxy'],
     alias: {
+      proxy: 'p',
       raw: 'r',
       throttle: 't',
     },
   })
 
   if (args.length < 2) {
-    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
+    return console.log('Usage: export-vdi [--proxy <URL>] [--raw] <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
     allowUnauthorized: true,
+    httpProxy: proxy || undefined,
     url: args[0],
     watchEvents: false,
   })
