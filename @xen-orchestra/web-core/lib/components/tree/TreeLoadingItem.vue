@@ -3,7 +3,7 @@
     <div class="tree-loading-item-label-placeholder">
       <div class="link-placeholder">
         <template v-if="depth > 1">
-          <TreeLine v-for="i in depth - 1" :key="i" full-height :right="i === depth - 1" />
+          <TreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
         </template>
         <UiIcon :icon class="icon" />
         <div class="loader">&nbsp;</div>
@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import TreeLine from '@core/components/tree-view/TreeLine.vue'
+import TreeLine from '@core/components/tree/TreeLine.vue'
 import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { inject } from 'vue'

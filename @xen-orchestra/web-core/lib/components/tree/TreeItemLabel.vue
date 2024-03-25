@@ -1,7 +1,7 @@
 <template>
   <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div
-      :class="isExactActive ? 'exact-active' : $props.active ? 'active' : undefined"
+      :class="isExactActive ? 'exact-active' : active ? 'active' : undefined"
       class="tree-item-label"
       v-bind="$attrs"
     >
@@ -9,14 +9,13 @@
         <TreeLine
           v-for="i in depth - 1"
           :key="i"
-          full-height
           :half-height="(!hasToggle && i === depth - 1) || !isExpanded"
           :right="i === depth - 1"
         />
       </template>
       <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" fixed-width @click="toggle()" />
       <TreeLine v-else-if="!noIndent" />
-      <a v-tooltip="{ selector: '.text' }" :href="href" class="link" @click="navigate">
+      <a v-tooltip="{ selector: '.text' }" :href class="link" @click="navigate">
         <slot name="icon">
           <UiIcon :icon class="icon" />
         </slot>
@@ -31,7 +30,7 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import TreeLine from '@core/components/tree-view/TreeLine.vue'
+import TreeLine from '@core/components/tree/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   IK_TREE_ITEM_EXPANDED,
@@ -68,25 +67,19 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   --color: var(--color-grey-100);
   --background-color: var(--background-color-primary);
 
-  &:hover:not(:has(.ui-button-icon:hover)) {
+  &:is(.exact-active, .active) {
+    --color: var(--color-grey-100);
+    --background-color: var(--background-color-purple-10);
+  }
+
+  &:hover {
     --color: var(--color-grey-100);
     --background-color: var(--background-color-purple-20);
   }
 
-  &:active:not(:has(.ui-button-icon:hover)) {
+  &:active {
+    --color: var(--color-grey-100);
     --background-color: var(--background-color-purple-30);
-  }
-
-  &.exact-active:not(:has(.ui-button-icon:hover)) {
-    --background-color: var(--background-color-purple-10);
-
-    &:hover {
-      --background-color: var(--background-color-purple-20);
-    }
-
-    &:active {
-      --background-color: var(--background-color-purple-30);
-    }
   }
 }
 

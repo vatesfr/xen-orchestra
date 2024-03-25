@@ -1,16 +1,16 @@
 <template>
-  <ComponentStory :params="[]">
+  <ComponentStory :params="[slot()]">
     <TreeList>
       <TreeItem>
-        <TreeItemLabel route="dashboard" :icon="faCity"> Pool </TreeItemLabel>
+        <TreeItemLabel :icon="faCity" route="dashboard">Pool</TreeItemLabel>
         <template #sublist>
-          <TreeList v-for="i in 3" :key="i">
-            <TreeItem>
-              <TreeItemLabel route="dashboard" :icon="faServer">
+          <TreeList>
+            <TreeItem v-for="i in 3" :key="i">
+              <TreeItemLabel :icon="faServer" route="dashboard">
                 Host - {{ i }}
                 <template #addons>
                   <ButtonIcon v-if="i === 2" :icon="faStar" color="warning" />
-                  <UiCounter value="3" color="info" />
+                  <UiCounter color="info" value="3" />
                 </template>
               </TreeItemLabel>
               <template #sublist>
@@ -37,10 +37,11 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { slot } from '@/libs/story/story-param'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
-import TreeItem from '@core/components/tree-view/TreeItem.vue'
-import TreeItemLabel from '@core/components/tree-view/TreeItemLabel.vue'
-import TreeList from '@core/components/tree-view/TreeList.vue'
+import TreeItem from '@core/components/tree/TreeItem.vue'
+import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
+import TreeList from '@core/components/tree/TreeList.vue'
 import UiCounter from '@core/components/UiCounter.vue'
 import { faCity, faEllipsis, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 </script>

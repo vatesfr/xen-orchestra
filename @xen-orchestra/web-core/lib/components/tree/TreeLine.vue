@@ -1,17 +1,13 @@
 <template>
   <div class="tree-line">
-    <div
-      class="tree-line-vertical"
-      :class="{ 'tree-line-half-height': halfHeight, 'tree-line-full-height': fullHeight }"
-    />
-    <div class="tree-line-horizontal" :class="{ right }" />
+    <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical tree-line-full-height" />
+    <div :class="{ right }" class="tree-line-horizontal" />
   </div>
 </template>
 
 <script lang="ts" setup>
 defineProps<{
   halfHeight?: boolean
-  fullHeight?: boolean
   right?: boolean
 }>()
 </script>
@@ -45,8 +41,8 @@ defineProps<{
   }
 }
 
-.ui-tree-item:last-child {
-  > .ui-tree-item-label {
+.tree-item:last-child {
+  > .tree-item-label {
     .tree-line-half-height {
       align-self: start;
       height: calc(50% + 0.5rem);

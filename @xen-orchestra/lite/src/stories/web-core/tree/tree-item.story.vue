@@ -2,7 +2,7 @@
   <ComponentStory :params="[slot(), slot('sublist')]">
     <TreeList>
       <TreeItem>
-        <TreeItemLabel route="dashboard" :icon="faServer">Host</TreeItemLabel>
+        <TreeItemLabel :icon="faServer" route="dashboard">Host</TreeItemLabel>
         <template #sublist>
           <TreeList>
             <TreeItem>
@@ -18,8 +18,8 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot } from '@/libs/story/story-param'
-import TreeItem from '@core/components/tree-view/TreeItem.vue'
-import TreeItemLabel from '@core/components/tree-view/TreeItemLabel.vue'
-import TreeList from '@core/components/tree-view/TreeList.vue'
+import TreeItem from '@core/components/tree/TreeItem.vue'
+import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
+import TreeList from '@core/components/tree/TreeList.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 </script>
