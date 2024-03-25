@@ -1,5 +1,8 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[slot().help('Contains <RouterTab> or <TabItem>')]">
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[prop('disabled').bool().widget(), slot().help('Contains <RouterTab> or <TabItem>')]"
+  >
     <TabList v-bind="properties">
       <TabItem>Foo</TabItem>
       <TabItem>Bar</TabItem>
@@ -10,7 +13,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 </script>
