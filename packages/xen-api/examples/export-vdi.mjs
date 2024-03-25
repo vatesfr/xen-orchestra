@@ -14,6 +14,7 @@ import { createOutputStream, formatProgress, pipeline, resolveRecord, throttle }
 
 defer(async ($defer, rawArgs) => {
   const {
+    proxy,
     raw,
     throttle: bps,
     _: args,
