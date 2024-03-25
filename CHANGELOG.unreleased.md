@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+- [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
 
 ### Bug fixes
 
@@ -33,7 +34,9 @@
 
 - @vates/xml major
 - @vates/xml-rpc major
+- @xen-orchestra/mixins minor
 - xen-api patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
