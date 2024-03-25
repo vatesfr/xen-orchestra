@@ -11,7 +11,7 @@ export const hide = defer(async function ($defer, { pcis, hide }) {
     throw new Error('All PCIs must be in the same host')
   }
   const xapi = this.getXapi(_pcis[0])
-  const getMethod = hide => `PCI.${hide ? 'hide' : 'unhide'}`
+  const getMethod = hide => `PCI.${hide ? 'disable' : 'enable'}_dom0_access`
 
   await asyncEach(
     _pcis,
@@ -32,8 +32,8 @@ hide.params = {
   hide: { type: 'boolean' },
 }
 
-export function isHidden({ pci }) {
-  return this.getXapi(pci).call('PCI.is_hidden', pci._xapiRef)
+export async function isHidden({ pci }) {
+  return !(await this.getXapi(pci).call('PCI.is_dom0_access_enabled', pci._xapiRef))
 }
 isHidden.params = {
   id: { type: 'string' },
