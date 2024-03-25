@@ -1,13 +1,13 @@
 <template>
-  <div :class="{ active, disabled }" class="menu-trigger typo p1-regular">
-    <UiIcon :busy :icon />
+  <div :class="{ active, disabled }" class="menu-trigger">
+    <UiIcon :busy="busy" :icon="icon" />
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
+import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 
 defineProps<{
   active?: boolean
@@ -19,6 +19,8 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .menu-trigger {
+  font-size: 1.6rem;
+  font-weight: 400;
   display: flex;
   align-items: center;
   height: 4.4rem;
@@ -37,13 +39,12 @@ defineProps<{
     cursor: pointer;
 
     &:hover {
-      background-color: var(--background-color-secondary);
+      background-color: var(--background-color-purple-10);
     }
 
     &:active,
     &.active {
-      color: var(--color-purple-base);
-      background-color: var(--background-color-purple-10);
+      background-color: var(--background-color-purple-20);
     }
   }
 }

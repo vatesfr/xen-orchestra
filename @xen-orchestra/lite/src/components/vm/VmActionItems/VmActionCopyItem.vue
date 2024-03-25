@@ -11,12 +11,12 @@
 </template>
 
 <script lang="ts" setup>
-import MenuItem from '@/components/menu/MenuItem.vue'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
 import { vTooltip } from '@/directives/tooltip.directive'
-import { VM_POWER_STATE, VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import { useVmCollection } from '@/stores/xen-api/vm.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
