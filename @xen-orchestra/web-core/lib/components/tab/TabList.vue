@@ -4,7 +4,19 @@
   </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { useContext } from '@core/composables/context.composable'
+import { DisabledContext } from '@core/context'
+
+const props = withDefaults(
+  defineProps<{
+    disabled?: boolean
+  }>(),
+  { disabled: undefined }
+)
+
+useContext(DisabledContext, () => props.disabled)
+</script>
 
 <style lang="postcss" scoped>
 .tab-list {

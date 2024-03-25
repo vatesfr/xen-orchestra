@@ -1,10 +1,12 @@
 <template>
-  <component :is="tag" class="tab-item typo" :class="classNames">
+  <component :is="tag" :class="classNames" class="tab-item typo">
     <slot />
   </component>
 </template>
 
 <script lang="ts" setup>
+import { useContext } from '@core/composables/context.composable'
+import { DisabledContext } from '@core/context'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -15,16 +17,18 @@ const props = withDefaults(
     active?: boolean
     tag?: string
   }>(),
-  { tag: 'span' }
+  { tag: 'span', disabled: undefined }
 )
 
 const { isMobile } = storeToRefs(useUiStore())
+
+const isDisabled = useContext(DisabledContext, () => props.disabled)
 
 const classNames = computed(() => {
   return [
     isMobile.value ? 'c3-semi-bold' : 'c1-semi-bold',
     {
-      disabled: props.disabled,
+      disabled: isDisabled.value,
       active: props.active,
     },
   ]
