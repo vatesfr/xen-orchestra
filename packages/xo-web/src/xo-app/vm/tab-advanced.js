@@ -578,6 +578,14 @@ export default class TabAdvanced extends Component {
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
+    const displayFirmwareError = (recommendations, firmware) => {
+      return recommendations?.some(
+        restriction =>
+          (restriction.value === 'no' || restriction.value === undefined) &&
+          ((restriction.field === 'supports-bios' && firmware === 'bios') ||
+            (restriction.field === 'supports-uefi' && firmware === 'uefi'))
+      )
+    }
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
@@ -933,9 +941,9 @@ export default class TabAdvanced extends Component {
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
-                      {vm.supportsBios === false && vm.boot.firmware === 'bios' && (
+                      {displayFirmwareError(vm.getFirmwareRecommendations, vm.boot.firmware) && (
                         <span className='text-danger font-weight-bold'>
-                          <Icon icon='error' /> {_('vmDoesNotSupportBios')}
+                          <Icon icon='error' /> {_('vmDoesNotSupportFirmware')}
                         </span>
                       )}
                     </td>
