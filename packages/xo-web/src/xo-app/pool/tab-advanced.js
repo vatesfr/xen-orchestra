@@ -10,11 +10,12 @@ import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, map, values } from 'lodash'
+import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -26,6 +27,8 @@ import {
 } from 'selectors'
 import {
   editPool,
+  enableHa,
+  disableHa,
   installSupplementalPackOnAllHosts,
   isSrWritable,
   rollingPoolReboot,
@@ -260,6 +263,33 @@ export default class TabAdvanced extends Component {
 
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
+  _onChangeHighAvailability = async(value) => {
+    if (value) {
+      await this.setState({
+        srs: this.props.pool.haSrs ?? [],
+      })
+      await confirm({
+        body: (
+          <div>
+            <SelectSr multi value={this.state.srs} onChange={srs => this.setState({srs: srs.map(sr => sr.id)})} />
+          </div>
+        ),
+        title: _('poolEnableHa'),
+      })
+
+      return // enableHa(this.props.pool)
+    }
+    else {
+      return confirm({
+        title: _('poolDisableHa'),
+        body: _('poolDisableHaConfirm'),
+      }).then(() => {
+        return disableHa(this.props.pool)
+      }, noop)
+    }
+  }
+
+
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
 
   _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })
@@ -328,6 +358,24 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('poolHaStatus')}</th>
                     <td>{pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}</td>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHaStatus')}</th>
+                    <td>
+                      <Toggle value={pool.HA_enabled} onChange={this._onChangeHighAvailability} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHeartbeatSrs')}</th>
+                    <td>
+                      <ul>
+                        {map(pool.haSrs, sr => (
+                          <li key={sr}>
+                            <Sr id={sr} />
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
                   </tr>
                   <tr>
                     <th>{_('setpoolMaster')}</th>

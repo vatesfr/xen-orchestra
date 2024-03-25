@@ -149,6 +149,19 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  disableHa() {
+    return this.call('pool.disable_ha')
+  }
+
+  // =================================================================
+
+  enableHa(heartbeatSrs, configuration) {
+    console.log("==> enableHa :", heartbeatSrs, configuration)
+    return this.call('pool.enable_ha', [], configuration)
+  }
+
+  // =================================================================
+
   async joinPool(masterAddress, masterUsername, masterPassword, force = false) {
     try {
       await this.call(force ? 'pool.join_force' : 'pool.join', masterAddress, masterUsername, masterPassword)
