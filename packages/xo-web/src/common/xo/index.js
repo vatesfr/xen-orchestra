@@ -1624,17 +1624,16 @@ export const deleteTemplates = templates =>
       await confirm({
         title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
         body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
-      }).then(() =>
-        Promise.all(
-          map(defaultTemplates, id =>
-            _call('vm.delete', {
-              id,
-              forceDeleteDefaultTemplate: true,
-            }).catch(() => {
-              nErrors++
-            })
-          )
-        )
+      })
+      await Promise.all(
+        map(defaultTemplates, id => {
+          _call('vm.delete', {
+            id,
+            forceDeleteDefaultTemplate: true,
+          }).catch(() => {
+            nErrors++
+          })
+        })
       )
     }
 
