@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 import { useModal } from '@/composables/modal.composable'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmCollection } from '@/stores/xen-api/vm.store'

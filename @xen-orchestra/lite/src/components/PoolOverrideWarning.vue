@@ -32,7 +32,7 @@ import { useSessionStorage } from '@vueuse/core'
 
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{
   asTooltip?: boolean

@@ -10,7 +10,7 @@
         <RouterView />
       </main>
     </div>
-    <AppTooltips />
+    <TooltipList />
   </div>
   <ModalList />
 </template>
@@ -19,7 +19,7 @@
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
-import AppTooltips from '@/components/AppTooltips.vue'
+import TooltipList from '@core/components/tooltip/TooltipList.vue'
 import ModalList from '@/components/ui/modals/ModalList.vue'
 import { useChartTheme } from '@/composables/chart-theme.composable'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
