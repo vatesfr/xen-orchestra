@@ -363,7 +363,9 @@ export default class Api {
 
       const resolvedParams = await resolveParams.call(app, method, params)
 
-      let result = await method.call(app, resolvedParams)
+      let result = await app.tasks
+        .create({ name: 'API call: ' + name, method: name, params, type: 'api.call' }, { clearLogOnSuccess: true })
+        .run(() => method.call(app, resolvedParams))
 
       // If nothing was returned, consider this operation a success
       // and return true.

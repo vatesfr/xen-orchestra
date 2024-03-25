@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
+- [Tasks] Log pending and failed API calls as XO tasks, eventually they will replaced logs in Settings/Logs
 
 ### Packages to release
 
@@ -35,6 +36,7 @@
 - @vates/fuse-vhd patch
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/vmware-explorer patch
+- xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-web patch
