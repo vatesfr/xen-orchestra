@@ -2,13 +2,13 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
-import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
+import { finished } from 'node:stream/promises'
 import { Index } from 'xo-collection/index.js'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
@@ -507,7 +507,7 @@ export class Xapi extends EventEmitter {
     // server won't prematurely cut the connection), and the connection will be
     // cut once all the data has been sent without waiting for a response
     const isStream = typeof body.pipe === 'function'
-    const useHack = isStream && body.length === undefined
+    const useHack = true && isStream && body.length === undefined
     if (useHack) {
       console.warn(this._humanId, 'Xapi#putResource', pathname, 'missing length')
 
@@ -539,37 +539,40 @@ export class Xapi extends EventEmitter {
     // before consuming body
     const response = await this._addSyncStackTrace(
       isStream
-        ? doRequest(dummyUrl, {
-            body: '',
+        ? Promise.all([
+            doRequest(dummyUrl, {
+              body: '',
 
-            maxRedirections: 0,
-          }).then(
-            response => {
-              response.body.on('error', noop)
-              response.body.destroy()
-              return doRequest(url)
-            },
-            async error => {
-              let response
-              if (error != null && (response = error.response) != null) {
+              maxRedirections: 0,
+            }).then(
+              response => {
                 response.body.on('error', noop)
                 response.body.destroy()
+                return doRequest(url)
+              },
+              async error => {
+                let response
+                if (error != null && (response = error.response) != null) {
+                  response.body.on('error', noop)
+                  response.body.destroy()
 
-                const {
-                  headers: { location },
-                  statusCode,
-                } = response
-                if (statusCode === 302 && location !== undefined) {
-                  // ensure the original query is sent
-                  const newUrl = new URL(location, url)
-                  newUrl.searchParams.set('task_id', query.task_id)
-                  return doRequest(await this._replaceHostAddressInUrl(newUrl))
+                  const {
+                    headers: { location },
+                    statusCode,
+                  } = response
+                  if (statusCode === 302 && location !== undefined) {
+                    // ensure the original query is sent
+                    const newUrl = new URL(location, url)
+                    newUrl.searchParams.set('task_id', query.task_id)
+                    return doRequest(await this._replaceHostAddressInUrl(newUrl))
+                  }
                 }
-              }
 
-              throw error
-            }
-          )
+                throw error
+              }
+            ),
+            finished(body),
+          ]).then(_ => _[0])
         : doRequest(url)
     )
 
@@ -591,25 +594,16 @@ export class Xapi extends EventEmitter {
     }
 
     try {
-      const { req } = response
-      if (!req.finished) {
-        await new Promise((resolve, reject) => {
-          req.on('finish', resolve)
-          response.on('error', reject)
-        })
-      }
-
       if (useHack) {
-        response.destroy()
+        body.on('error', noop)
+        body.destroy()
       } else {
         // consume the response
-        response.resume()
-        await new Promise((resolve, reject) => {
-          response.on('end', resolve).on('error', reject)
-        })
+        response.body.resume()
+        await finished(response)
       }
     } catch (error) {
-      if (this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+      if (false && this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
         console.warn(this._humanId, 'Xapi#putResource', pathname, error)
       } else {
         throw error
