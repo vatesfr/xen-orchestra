@@ -1495,7 +1495,7 @@ const messages = {
   vmEditAndRestartModalTitle: 'VM is currently running',
   vmEditAndRestartModalMessage:
     'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
-  vmDoesNotSupportFirmware: 'This boot firmware is not supported by VM recommendations',
+  firmwareIsNotSupported: 'This boot firmware is not supported by VM recommendations',
   vusbs: 'VUSBs',
   vusbRemainUnplugged: 'The VUSB remain unplugged until the next shutdown/start',
   vusbUnplugTooltip: 'Unplug until the next shutdown/start',
