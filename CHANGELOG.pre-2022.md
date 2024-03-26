@@ -2419,7 +2419,7 @@
 - [Tasks] Filter does not work [#2740](https://github.com/vatesfr/xen-orchestra/issues/2740)
 - Pagination broken when listing pool VMs [#2730](https://github.com/vatesfr/xen-orchestra/issues/2730)
 - All jobs show error icon with message "This backup's creator no longer exists" [#2728](https://github.com/vatesfr/xen-orchestra/issues/2728)
-- [Basic backup] Continous Replication VM names [#2727](https://github.com/vatesfr/xen-orchestra/issues/2727)
+- [Basic backup] Continuous Replication VM names [#2727](https://github.com/vatesfr/xen-orchestra/issues/2727)
 - Continuous replication clone removed [#2724](https://github.com/vatesfr/xen-orchestra/issues/2724)
 - [Backup] "See matching VMs" issue [#2704](https://github.com/vatesfr/xen-orchestra/issues/2704)
 - How to exclude CR targets from a smart backup using tags? [#2613](https://github.com/vatesfr/xen-orchestra/issues/2613)
@@ -2608,7 +2608,7 @@
 - Fix PoolActionBar to add a new SR [#2307](https://github.com/vatesfr/xen-orchestra/issues/2307)
 - VM snapshots are not correctly deleted [#2304](https://github.com/vatesfr/xen-orchestra/issues/2304)
 - Parallel deletion of VMs fails [#2297](https://github.com/vatesfr/xen-orchestra/issues/2297)
-- Continous replication create multiple zombie disks [#2292](https://github.com/vatesfr/xen-orchestra/issues/2292)
+- Continuous replication create multiple zombie disks [#2292](https://github.com/vatesfr/xen-orchestra/issues/2292)
 - Add user to Group issue [#2196](https://github.com/vatesfr/xen-orchestra/issues/2196)
 - [VM migration] Error if default SR not accessible to target host [#2180](https://github.com/vatesfr/xen-orchestra/issues/2180)
 
