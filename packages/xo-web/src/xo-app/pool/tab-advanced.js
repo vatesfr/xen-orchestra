@@ -10,7 +10,7 @@ import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, connectStore, noop } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
@@ -211,9 +211,12 @@ class SelectDefaultSr extends Component {
   }
 }
 
-@connectStore(() => ({
-  haSrs: createGetObjectsOfType("SR").pick((_, props) => props.srs),
-}))
+@connectStore(
+  () => ({
+    haSrs: createGetObjectsOfType('SR').pick((_, { srs }) => srs),
+  }),
+  { withRef: true }
+)
 class EnableHaModal extends Component {
   state = {
     srs: Object.values(this.props.haSrs),
@@ -225,9 +228,56 @@ class EnableHaModal extends Component {
   render() {
     return (
       <div>
+        <strong>{_('poolHaChooseSrs')}</strong>
         <SelectSr multi value={this.state.srs} onChange={this.linkState('srs')} />
       </div>
     )
+  }
+}
+
+class ToggleHa extends Component {
+  state = {
+    busy: false,
+  }
+
+  _onChange = async value => {
+    if (value) {
+      const haSrs = await confirm({
+        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} />,
+        title: _('poolEnableHa'),
+        icon: 'pool',
+      })
+
+      try {
+        this.setState({ busy: true })
+        await enableHa({
+          pool: this.props.pool,
+          heartbeatSrs: haSrs.map(sr => sr._xapiRef),
+          configuration: this.props.pool.ha_configuration ?? {},
+        })
+        this.setState({ busy: false })
+      } catch (error) {
+        this.setState({ busy: false })
+        throw error
+      }
+    } else {
+      await confirm({
+        title: _('poolDisableHa'),
+        body: _('poolDisableHaConfirm'),
+      })
+      try {
+        this.setState({ busy: true })
+        await disableHa(this.props.pool)
+        this.setState({ busy: false })
+      } catch (error) {
+        this.setState({ busy: false })
+        throw error
+      }
+    }
+  }
+
+  render() {
+    return <Toggle value={this.props.pool.HA_enabled} onChange={this._onChange} disabled={this.state.busy} />
   }
 }
 
@@ -282,29 +332,6 @@ export default class TabAdvanced extends Component {
   _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
 
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
-
-  _onChangeHighAvailability = async(value) => {
-    if (value) {
-      const haSrs = await confirm({
-        body: (
-          <EnableHaModal srs={this.props.pool.haSrs ?? []} />
-        ),
-        title: _('poolEnableHa'),
-      })
-      console.log("haSrs :", haSrs.map(sr => sr.id))
-
-      return // enableHa(haSrs.map(sr => sr.id))
-    }
-    else {
-      return confirm({
-        title: _('poolDisableHa'),
-        body: _('poolDisableHaConfirm'),
-      }).then(() => {
-        return disableHa(this.props.pool)
-      }, noop)
-    }
-  }
-
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
 
@@ -378,7 +405,7 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('poolHaStatus')}</th>
                     <td>
-                      <Toggle value={pool.HA_enabled} onChange={this._onChangeHighAvailability} />
+                      <ToggleHa pool={pool} />
                     </td>
                   </tr>
                   <tr>

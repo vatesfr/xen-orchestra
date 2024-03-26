@@ -117,7 +117,6 @@ setPoolMaster.resolve = {
 // -------------------------------------------------------------------
 
 export async function disableHa({ pool }) {
-  console.log('disableHa')
   await this.hasPermissions(this.apiContext.user.id, [[pool, 'administrate']])
 
   await this.getXapi(pool).disableHa()
@@ -133,13 +132,15 @@ disableHa.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 
-
 // -------------------------------------------------------------------
 
 export async function enableHa({ pool, heartbeatSrs, configuration }) {
   await this.hasPermissions(this.apiContext.user.id, [[pool, 'administrate']])
 
   await this.getXapi(pool).enableHa(heartbeatSrs, configuration)
+
+  // TODO : update pool.haSrs
+  // await pool.set_haSrs(heartbeatSrs)
 }
 
 enableHa.params = {
@@ -152,7 +153,7 @@ enableHa.params = {
   },
   configuration: {
     type: 'object',
-  }
+  },
 }
 
 enableHa.resolve = {
