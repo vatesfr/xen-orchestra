@@ -50,6 +50,7 @@
 - @xen-orchestra/proxy minor
 - @xen-orchestra/self-signed patch
 - @xen-orchestra/xapi minor
+- @xen-orchestra/vmware-explorer patch
 - xen-api major
 - xo-cli minor
 - xo-server minor
