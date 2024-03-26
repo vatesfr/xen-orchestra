@@ -7,37 +7,37 @@ export type Identifiable = { id: string | number }
 
 export type Labeled = { label: string }
 
-type AcceptableKeys<T, TAccepted> = {
-  [K in keyof T]: T[K] extends TAccepted ? K : never
-}[keyof T]
+type AcceptableKeys<TData, TAccepted> = {
+  [K in keyof TData]: TData[K] extends TAccepted ? K : never
+}[keyof TData]
 
-type AcceptableGetter<T, TAccepted> = AcceptableKeys<T, TAccepted> | ((data: T) => TAccepted)
+type AcceptableGetter<TData, TAccepted> = AcceptableKeys<TData, TAccepted> | ((data: TData) => TAccepted)
 
-export type BaseOptions<T, TDiscriminator> = {
+export type BaseOptions<TData, TDiscriminator> = {
   discriminator?: TDiscriminator
-  predicate?: (data: T) => boolean | undefined
+  predicate?: (data: TData) => boolean | undefined
   activable?: boolean
 }
 
-type GetIdOption<T extends object> = T extends Identifiable
-  ? { getId?: AcceptableGetter<T, string | number> }
-  : { getId: AcceptableGetter<T, string | number> }
+type GetIdOption<TData extends object> = TData extends Identifiable
+  ? { getId?: AcceptableGetter<TData, string | number> }
+  : { getId: AcceptableGetter<TData, string | number> }
 
-type GetLabelOption<T extends object> = T extends Labeled
-  ? { getLabel?: AcceptableGetter<T, string> }
-  : { getLabel: AcceptableGetter<T, string> }
+type GetLabelOption<TData extends object> = TData extends Labeled
+  ? { getLabel?: AcceptableGetter<TData, string> }
+  : { getLabel: AcceptableGetter<TData, string> }
 
-export type TreeNodeOptions<T extends object, TDiscriminator> = BaseOptions<T, TDiscriminator> &
-  GetIdOption<T> &
-  GetLabelOption<T>
+export type TreeNodeOptions<TData extends object, TDiscriminator> = BaseOptions<TData, TDiscriminator> &
+  GetIdOption<TData> &
+  GetLabelOption<TData>
 
 export type Definition = LeafDefinition | BranchDefinition
 
 export type DefinitionToTreeNode<TDefinition> =
-  TDefinition extends BranchDefinition<infer T, infer TChildDefinition, infer TDiscriminator>
-    ? Branch<T, DefinitionToTreeNode<TChildDefinition>, TDiscriminator>
-    : TDefinition extends LeafDefinition<infer T, infer TDiscriminator>
-      ? Leaf<T, TDiscriminator>
+  TDefinition extends BranchDefinition<infer TData, infer TChildDefinition, infer TDiscriminator>
+    ? Branch<TData, DefinitionToTreeNode<TChildDefinition>, TDiscriminator>
+    : TDefinition extends LeafDefinition<infer TData, infer TDiscriminator>
+      ? Leaf<TData, TDiscriminator>
       : never
 
 export type TreeNode = Leaf | Branch

@@ -1,30 +1,30 @@
 import type { Branch } from '@core/composables/tree/branch'
 import type { CollectionContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
 
-export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any> {
+export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean
   abstract passesFilterDownwards: boolean
   abstract isVisible: boolean
   abstract labelClasses: Record<string, boolean>
 
-  readonly data: T
+  readonly data: TData
   readonly depth: number
   readonly parent: Branch | undefined
   readonly context: CollectionContext
-  readonly options: TreeNodeOptions<T, TDiscriminator>
+  readonly options: TreeNodeOptions<TData, TDiscriminator>
 
   constructor(
-    data: T,
+    data: TData,
     parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
-    options?: TreeNodeOptions<T, TDiscriminator>
+    options?: TreeNodeOptions<TData, TDiscriminator>
   ) {
     this.data = data
     this.parent = parent
     this.context = context
     this.depth = depth
-    this.options = options ?? ({} as TreeNodeOptions<T, TDiscriminator>)
+    this.options = options ?? ({} as TreeNodeOptions<TData, TDiscriminator>)
   }
 
   get id() {

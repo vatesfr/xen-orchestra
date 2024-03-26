@@ -1,6 +1,6 @@
 import { TreeNodeDefinitionBase } from '@core/composables/tree/tree-node-definition-base'
 
-export class LeafDefinition<T extends object = any, const TDiscriminator = any> extends TreeNodeDefinitionBase<
-  T,
+export class LeafDefinition<TData extends object = any, const TDiscriminator = any> extends TreeNodeDefinitionBase<
+  TData,
   TDiscriminator
 > {}

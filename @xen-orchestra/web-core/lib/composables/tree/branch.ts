@@ -2,20 +2,20 @@ import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
 import type { CollectionContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
 export class Branch<
-  T extends object = any,
+  TData extends object = any,
   TChild extends TreeNode = TreeNode,
   const TDiscriminator = any,
-> extends TreeNodeBase<T, TDiscriminator> {
+> extends TreeNodeBase<TData, TDiscriminator> {
   readonly isBranch = true
   readonly rawChildren: TChild[]
 
   constructor(
-    data: T,
+    data: TData,
     parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
-    options: TreeNodeOptions<T, TDiscriminator> | undefined,
-    getChildren: (thisBranch: Branch<T, TChild, TDiscriminator>) => TChild[]
+    options: TreeNodeOptions<TData, TDiscriminator> | undefined,
+    getChildren: (thisBranch: Branch<TData, TChild, TDiscriminator>) => TChild[]
   ) {
     super(data, parent, context, depth, options)
     this.rawChildren = getChildren(this)

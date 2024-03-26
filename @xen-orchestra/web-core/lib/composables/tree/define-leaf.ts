@@ -1,16 +1,16 @@
 import { LeafDefinition } from '@core/composables/tree/leaf-definition'
 import type { Identifiable, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
 
-export function defineLeaf<T extends Identifiable & Labeled, const TDiscriminator>(
-  data: T
-): LeafDefinition<T, TDiscriminator>
-export function defineLeaf<T extends object, const TDiscriminator>(
-  data: T,
-  options: TreeNodeOptions<T, TDiscriminator>
-): LeafDefinition<T, TDiscriminator>
-export function defineLeaf<T extends object, const TDiscriminator>(
-  data: T,
-  options?: TreeNodeOptions<T, TDiscriminator>
-): LeafDefinition<T, TDiscriminator> {
-  return new LeafDefinition(data, options ?? ({} as TreeNodeOptions<T, TDiscriminator>))
+export function defineLeaf<TData extends Identifiable & Labeled, const TDiscriminator>(
+  data: TData
+): LeafDefinition<TData, TDiscriminator>
+export function defineLeaf<TData extends object, const TDiscriminator>(
+  data: TData,
+  options: TreeNodeOptions<TData, TDiscriminator>
+): LeafDefinition<TData, TDiscriminator>
+export function defineLeaf<TData extends object, const TDiscriminator>(
+  data: TData,
+  options?: TreeNodeOptions<TData, TDiscriminator>
+): LeafDefinition<TData, TDiscriminator> {
+  return new LeafDefinition(data, options ?? ({} as TreeNodeOptions<TData, TDiscriminator>))
 }
