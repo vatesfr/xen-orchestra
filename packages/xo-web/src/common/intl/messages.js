@@ -910,7 +910,7 @@ const messages = {
   poolDisableHaConfirm: 'Are you sure you want to disable high availability ?',
   poolEnableHa: 'Enabling high availability',
   poolEditAll: 'Edit all',
-  poolHaChooseSrs: 'Choose SRs used for heartbeat',
+  poolHaSelectSrs: 'Select heartbeat SRs',
   poolHaEnabled: 'Enabled',
   poolHaDisabled: 'Disabled',
   poolHaStatus: 'High Availability',

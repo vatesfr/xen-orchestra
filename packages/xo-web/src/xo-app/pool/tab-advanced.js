@@ -228,7 +228,7 @@ class EnableHaModal extends Component {
   render() {
     return (
       <div>
-        <strong>{_('poolHaChooseSrs')}</strong>
+        <strong>{_('poolHaSelectSrs')}</strong>
         <SelectSr multi value={this.state.srs} onChange={this.linkState('srs')} />
       </div>
     )
@@ -399,28 +399,6 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                   <tr>
-                    <th>{_('poolHaStatus')}</th>
-                    <td>{pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}</td>
-                  </tr>
-                  <tr>
-                    <th>{_('poolHaStatus')}</th>
-                    <td>
-                      <ToggleHa pool={pool} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{_('poolHeartbeatSrs')}</th>
-                    <td>
-                      <ul>
-                        {map(pool.haSrs, sr => (
-                          <li key={sr}>
-                            <Sr id={sr} />
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                  <tr>
                     <th>{_('setpoolMaster')}</th>
                     <td>
                       <PoolMaster pool={pool} />
@@ -506,6 +484,24 @@ export default class TabAdvanced extends Component {
                           <Icon icon='remove' />
                         </a>
                       )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHaStatus')}</th>
+                    <td>
+                      <ToggleHa pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHeartbeatSrs')}</th>
+                    <td>
+                      <ul>
+                        {map(pool.haSrs, sr => (
+                          <li key={sr}>
+                            <Sr id={sr} />
+                          </li>
+                        ))}
+                      </ul>
                     </td>
                   </tr>
                 </tbody>
