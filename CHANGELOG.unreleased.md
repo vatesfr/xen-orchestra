@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Console] In VM and Host Console tab, display zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
+- [Console] In VM and Host Console tab, display console's zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
 
 ### Bug fixes
 

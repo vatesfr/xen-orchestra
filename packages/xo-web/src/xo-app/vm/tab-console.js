@@ -246,6 +246,8 @@ export default class TabConsole extends Component {
                   step='1'
                   type='number'
                   value={Math.round(this.state.scale * 100)}
+                  min={1}
+                  max={300}
                 />
               </Col>
             </Row>

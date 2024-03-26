@@ -13,7 +13,7 @@ import { Container, Row, Col } from 'grid'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, LoadSparkLines } from 'xo-sparklines'
 
 export default class extends Component {
-  state = { clipboard: '', scale: 1 }
+  state = { scale: 1 }
 
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
@@ -85,7 +85,7 @@ export default class extends Component {
               max={3}
               min={0.1}
               type='range'
-              onChange={this._onChangeScaleValue}
+              onChange={this.linkState('scale')}
               step={0.1}
               value={scale}
             />
@@ -97,6 +97,8 @@ export default class extends Component {
               step='1'
               type='number'
               value={Math.round(this.state.scale * 100)}
+              min={1}
+              max={300}
             />
           </Col>
         </Row>
