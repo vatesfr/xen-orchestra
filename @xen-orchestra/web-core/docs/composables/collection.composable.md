@@ -389,11 +389,9 @@ Here are the rules to determine whether an item is visible or not.
 </template>
 
 <script lang="ts" setup>
-  const definitions = defineCollection(families, ({ members }) =>
-    defineCollection(members, ({ animals }) => defineCollection(animals))
-  )
+  const definitions = defineTree(families, ({ members }) => defineTree(members, ({ animals }) => defineTree(animals)))
 
-  const { items } = useCollection(definitions)
+  const { items } = useTree(definitions)
 </script>
 
 <style lang="postcss" scoped>
@@ -443,9 +441,9 @@ Here are the rules to determine whether an item is visible or not.
 </template>
 
 <script lang="ts" setup>
-  const definitions = defineCollection(families, ({ members }) => defineCollection(members))
+  const definitions = defineTree(families, ({ members }) => defineTree(members))
 
-  const { items } = useCollection(definitions, { allowMultiSelect: true })
+  const { items } = useTree(definitions, { allowMultiSelect: true })
 </script>
 
 <style lang="postcss" scoped>
@@ -512,11 +510,11 @@ Here are the rules to determine whether an item is visible or not.
     return !filterValue ? undefined : name.toLocaleLowerCase().includes(filterValue)
   }
 
-  const definitions = defineCollection(families, { predicate }, ({ members }) =>
-    defineCollection(members, { predicate }, ({ animals }) => defineCollection(animals, { predicate }))
+  const definitions = defineTree(families, { predicate }, ({ members }) =>
+    defineTree(members, { predicate }, ({ animals }) => defineTree(animals, { predicate }))
   )
 
-  const { items } = useCollection(definitions, { expand: false })
+  const { items } = useTree(definitions, { expand: false })
 </script>
 
 <style lang="postcss" scoped>

@@ -1,6 +1,6 @@
 import type { ItemOptions } from '@core/composables/tree/types'
 
-export abstract class DefinitionBase<T extends object, TDiscriminator> {
+export abstract class TreeNodeDefinitionBase<T extends object, TDiscriminator> {
   data: T
   options: ItemOptions<T, TDiscriminator>
 

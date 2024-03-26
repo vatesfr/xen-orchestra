@@ -1,5 +1,5 @@
-import type { Group } from '@core/composables/tree/branch'
-import type { GroupDefinition } from '@core/composables/tree/branch-definition'
+import type { Branch } from '@core/composables/tree/branch'
+import type { BranchDefinition } from '@core/composables/tree/branch-definition'
 import type { Leaf } from '@core/composables/tree/leaf'
 import type { LeafDefinition } from '@core/composables/tree/leaf-definition'
 
@@ -31,16 +31,16 @@ export type ItemOptions<T extends object, TDiscriminator> = BaseOptions<T, TDisc
   GetIdOption<T> &
   GetLabelOption<T>
 
-export type Definition = LeafDefinition | GroupDefinition
+export type Definition = LeafDefinition | BranchDefinition
 
 export type DefinitionToItem<TDefinition> =
-  TDefinition extends GroupDefinition<infer T, infer TChildDefinition, infer TDiscriminator>
-    ? Group<T, DefinitionToItem<TChildDefinition>, TDiscriminator>
+  TDefinition extends BranchDefinition<infer T, infer TChildDefinition, infer TDiscriminator>
+    ? Branch<T, DefinitionToItem<TChildDefinition>, TDiscriminator>
     : TDefinition extends LeafDefinition<infer T, infer TDiscriminator>
       ? Leaf<T, TDiscriminator>
       : never
 
-export type Item = Leaf | Group
+export type Item = Leaf | Branch
 
 export type CollectionContext<TItem extends Item = Item> = {
   allowMultiSelect: boolean

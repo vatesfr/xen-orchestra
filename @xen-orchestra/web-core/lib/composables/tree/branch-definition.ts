@@ -1,11 +1,11 @@
-import { DefinitionBase } from '@core/composables/tree/tree-node-definition-base'
+import { TreeNodeDefinitionBase } from '@core/composables/tree/tree-node-definition-base'
 import type { Definition, ItemOptions } from '@core/composables/tree/types'
 
-export class GroupDefinition<
+export class BranchDefinition<
   T extends object = any,
   TChildDefinition extends Definition = Definition,
   const TDiscriminator = any,
-> extends DefinitionBase<T, TDiscriminator> {
+> extends TreeNodeDefinitionBase<T, TDiscriminator> {
   children: TChildDefinition[]
 
   constructor(data: T, options: ItemOptions<T, TDiscriminator>, children: TChildDefinition[]) {

@@ -1,4 +1,4 @@
-import { buildCollection } from '@core/composables/tree/build-tree'
+import { buildTree } from '@core/composables/tree/build-tree'
 import type {
   CollectionContext,
   Definition,
@@ -8,7 +8,7 @@ import type {
 } from '@core/composables/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
-export function useCollection<TDefinition extends Definition, TItem extends Item = DefinitionToItem<TDefinition>>(
+export function useTree<TDefinition extends Definition, TItem extends Item = DefinitionToItem<TDefinition>>(
   definitions: MaybeRefOrGetter<TDefinition[]>,
   options?: UseCollectionOptions
 ) {
@@ -23,7 +23,7 @@ export function useCollection<TDefinition extends Definition, TItem extends Item
   const expandedItems = computed(() => Array.from(context.expandedItems.values()))
   const activeItem = computed(() => context.activeItem)
 
-  const rawItems = computed(() => buildCollection(toValue(definitions), context))
+  const rawItems = computed(() => buildTree(toValue(definitions), context))
   const items = computed(() => rawItems.value.filter(item => item.isVisible))
 
   if (options?.expand !== false) {

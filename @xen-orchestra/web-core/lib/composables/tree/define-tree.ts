@@ -1,27 +1,27 @@
-import { GroupDefinition } from '@core/composables/tree/branch-definition'
+import { BranchDefinition } from '@core/composables/tree/branch-definition'
 import { LeafDefinition } from '@core/composables/tree/leaf-definition'
 import type { ItemOptions, Definition, Identifiable, Labeled } from '@core/composables/tree/types'
 
 // Overload 1: Leaf with no options
-export function defineCollection<T extends Identifiable & Labeled, const TDiscriminator = any>(
+export function defineTree<T extends Identifiable & Labeled, const TDiscriminator = any>(
   entries: T[]
 ): LeafDefinition<T, TDiscriminator>[]
 
 // Overload 2: Leaf with options
-export function defineCollection<T extends object, const TDiscriminator = any>(
+export function defineTree<T extends object, const TDiscriminator = any>(
   entries: T[],
   options: ItemOptions<T, TDiscriminator>
 ): LeafDefinition<T, TDiscriminator>[]
 
 // Overload 3: Group with no options
-export function defineCollection<
+export function defineTree<
   T extends Identifiable & Labeled,
   TChildDefinition extends Definition,
   const TDiscriminator = any,
->(entries: T[], getChildren: (data: T) => TChildDefinition[]): GroupDefinition<T, TChildDefinition, TDiscriminator>[]
+>(entries: T[], getChildren: (data: T) => TChildDefinition[]): BranchDefinition<T, TChildDefinition, TDiscriminator>[]
 
 // Overload 4: Group with options
-export function defineCollection<
+export function defineTree<
   T extends object,
   TChildDefinition extends Definition = Definition,
   const TDiscriminator = any,
@@ -29,10 +29,10 @@ export function defineCollection<
   entries: T[],
   options: ItemOptions<T, TDiscriminator>,
   getChildren: (data: T) => TChildDefinition[]
-): GroupDefinition<T, TChildDefinition, TDiscriminator>[]
+): BranchDefinition<T, TChildDefinition, TDiscriminator>[]
 
 // Implementation
-export function defineCollection<
+export function defineTree<
   T extends object,
   TChildDefinition extends Definition = Definition,
   const TDiscriminator = any,
@@ -49,7 +49,7 @@ export function defineCollection<
   const getChildrenFn = typeof optionsOrGetChildren === 'function' ? optionsOrGetChildren : getChildren
 
   if (getChildrenFn !== undefined) {
-    return entries.map(data => new GroupDefinition(data, options, getChildrenFn(data)))
+    return entries.map(data => new BranchDefinition(data, options, getChildrenFn(data)))
   }
 
   return entries.map(data => new LeafDefinition(data, options))

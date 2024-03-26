@@ -1,7 +1,7 @@
-import type { Group } from '@core/composables/tree/branch'
+import type { Branch } from '@core/composables/tree/branch'
 import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/tree/types'
 
-export abstract class Base<T extends object = any, TDiscriminator = any> {
+export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any> {
   abstract readonly isGroup: boolean
   abstract passesFilterDownwards: boolean
   abstract isVisible: boolean
@@ -9,13 +9,13 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
 
   readonly data: T
   readonly depth: number
-  readonly parent: Group | undefined
+  readonly parent: Branch | undefined
   readonly context: CollectionContext
   readonly options: ItemOptions<T, TDiscriminator>
 
   constructor(
     data: T,
-    parent: Group | undefined,
+    parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
     options?: ItemOptions<T, TDiscriminator>

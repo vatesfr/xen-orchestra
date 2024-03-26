@@ -1,6 +1,6 @@
-import { Base } from '@core/composables/tree/tree-node-base'
+import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
 
-export class Leaf<T extends object = any, const TDiscriminator = any> extends Base<T, TDiscriminator> {
+export class Leaf<T extends object = any, const TDiscriminator = any> extends TreeNodeBase<T, TDiscriminator> {
   readonly isGroup = false
 
   get passesFilterDownwards(): boolean {

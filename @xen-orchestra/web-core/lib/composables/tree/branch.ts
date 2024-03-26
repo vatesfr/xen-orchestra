@@ -1,20 +1,21 @@
-import { Base } from '@core/composables/tree/tree-node-base'
+import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
 import type { CollectionContext, Item, ItemOptions } from '@core/composables/tree/types'
 
-export class Group<T extends object = any, TChild extends Item = Item, const TDiscriminator = any> extends Base<
-  T,
-  TDiscriminator
-> {
+export class Branch<
+  T extends object = any,
+  TChild extends Item = Item,
+  const TDiscriminator = any,
+> extends TreeNodeBase<T, TDiscriminator> {
   readonly isGroup = true
   readonly rawChildren: TChild[]
 
   constructor(
     data: T,
-    parent: Group | undefined,
+    parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
     options: ItemOptions<T, TDiscriminator> | undefined,
-    getChildren: (thisGroup: Group<T, TChild, TDiscriminator>) => TChild[]
+    getChildren: (thisGroup: Branch<T, TChild, TDiscriminator>) => TChild[]
   ) {
     super(data, parent, context, depth, options)
     this.rawChildren = getChildren(this)
@@ -110,7 +111,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
 
     const shouldSelect = forcedValue ?? !this.areChildrenFullySelected
     this.rawChildren.forEach(child => {
-      child instanceof Group ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
+      child instanceof Branch ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
     })
   }
 }
