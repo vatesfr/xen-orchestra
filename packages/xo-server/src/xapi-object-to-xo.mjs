@@ -931,8 +931,8 @@ const TRANSFORMS = {
     return {
       type: 'USB_group',
 
-      PUSB: link(obj, 'PUSBs'),
-      VUSB: link(obj, 'VUSBs'),
+      PUSBs: link(obj, 'PUSBs'),
+      VUSBs: link(obj, 'VUSBs'),
     }
   },
 }
