@@ -478,10 +478,7 @@ export default decorate([
             </fieldset>
           )}
           <div className='form-group'>
-            <label>
-              {_('remoteEncryptionKey')}
-              <span className='tag tag-pill tag-info ml-1'>{_('alpha')}</span>
-            </label>
+            <label>{_('remoteEncryptionKey')}</label>
             {isEncrypted && !useVhdDirectory && (
               <p className='text-warning'>
                 <Icon icon='alarm' /> {_('remoteEncryptionMustUseVhd')}
