@@ -1,5 +1,5 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type { CollectionContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
+import type { TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
 export class Branch<
   TData extends object = any,
@@ -12,7 +12,7 @@ export class Branch<
   constructor(
     data: TData,
     parent: Branch | undefined,
-    context: CollectionContext,
+    context: TreeContext,
     depth: number,
     options: TreeNodeOptions<TData, TDiscriminator> | undefined,
     getChildren: (thisBranch: Branch<TData, TChild, TDiscriminator>) => TChild[]

@@ -13,7 +13,7 @@ type AcceptableKeys<TData, TAccepted> = {
 
 type AcceptableGetter<TData, TAccepted> = AcceptableKeys<TData, TAccepted> | ((data: TData) => TAccepted)
 
-export type BaseOptions<TData, TDiscriminator> = {
+export type BaseTreeNodeOptions<TData, TDiscriminator> = {
   discriminator?: TDiscriminator
   predicate?: (data: TData) => boolean | undefined
   activable?: boolean
@@ -27,7 +27,7 @@ type GetLabelOption<TData extends object> = TData extends Labeled
   ? { getLabel?: AcceptableGetter<TData, string> }
   : { getLabel: AcceptableGetter<TData, string> }
 
-export type TreeNodeOptions<TData extends object, TDiscriminator> = BaseOptions<TData, TDiscriminator> &
+export type TreeNodeOptions<TData extends object, TDiscriminator> = BaseTreeNodeOptions<TData, TDiscriminator> &
   GetIdOption<TData> &
   GetLabelOption<TData>
 
@@ -42,14 +42,14 @@ export type DefinitionToTreeNode<TDefinition> =
 
 export type TreeNode = Leaf | Branch
 
-export type CollectionContext<TTreeNode extends TreeNode = TreeNode> = {
+export type TreeContext<TTreeNode extends TreeNode = TreeNode> = {
   allowMultiSelect: boolean
   selectedNodes: Map<string | number, TTreeNode>
   expandedNodes: Map<string | number, TTreeNode>
   activeNode: TTreeNode | undefined
 }
 
-export type UseCollectionOptions = {
+export type UseTreeOptions = {
   allowMultiSelect?: boolean
   expand?: boolean
   selectedLabel?:

@@ -1,5 +1,5 @@
 import type { Branch } from '@core/composables/tree/branch'
-import type { CollectionContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
+import type { TreeContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
 
 export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean
@@ -10,13 +10,13 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
   readonly data: TData
   readonly depth: number
   readonly parent: Branch | undefined
-  readonly context: CollectionContext
+  readonly context: TreeContext
   readonly options: TreeNodeOptions<TData, TDiscriminator>
 
   constructor(
     data: TData,
     parent: Branch | undefined,
-    context: CollectionContext,
+    context: TreeContext,
     depth: number,
     options?: TreeNodeOptions<TData, TDiscriminator>
   ) {
