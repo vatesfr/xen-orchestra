@@ -28,6 +28,7 @@
 - [VM/Migration] SR is no longer required if you select a migration network (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
 - [Backup] Fix `an error has occurred` when clicking on warning text in logs (PR [#7458](https://github.com/vatesfr/xen-orchestra/pull/7458))
 - [JSON-RPC API] Correctly require one-time password if configured for user (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
+- [Remotes] Fix size reporting for huge remotes
 
 ### Packages to release
 
@@ -47,6 +48,7 @@
 
 - @vates/otp minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/proxy minor
 - @xen-orchestra/self-signed patch
 - @xen-orchestra/xapi minor
