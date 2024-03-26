@@ -1,4 +1,6 @@
 import { asyncEach } from '@vates/async-each'
+import { decorateMethodsWith } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 import { Disposable } from 'promise-toolbox'
 
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
@@ -90,11 +92,21 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     return chain
   }
 
-  async run() {
+  async run($defer) {
     const handler = this._sourceRemoteAdapter._handler
     await Disposable.use(await handler.lock(getVmBackupDir(this._vmUuid)), async () => {
+      await this._callWriters(async writer => {
+        await writer.beforeBackup()
+        $defer(async () => {
+          await writer.afterBackup()
+        })
+      }, 'writer.beforeBackup()')
       await this._run()
       await this._healthCheck()
     })
   }
 }
+
+decorateMethodsWith(AbstractRemote, {
+  run: defer,
+})

@@ -52,14 +52,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
     // yeah , let's go
   }
-  async _run($defer) {
+  async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
-    await this._callWriters(async writer => {
-      await writer.beforeBackup()
-      $defer(async () => {
-        await writer.afterBackup()
-      })
-    }, 'writer.beforeBackup()')
 
     if (transferList.length > 0) {
       for (const metadata of transferList) {
