@@ -1,9 +1,9 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type { CollectionContext, Item, ItemOptions } from '@core/composables/tree/types'
+import type { CollectionContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
 export class Branch<
   T extends object = any,
-  TChild extends Item = Item,
+  TChild extends TreeNode = TreeNode,
   const TDiscriminator = any,
 > extends TreeNodeBase<T, TDiscriminator> {
   readonly isGroup = true
@@ -14,7 +14,7 @@ export class Branch<
     parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
-    options: ItemOptions<T, TDiscriminator> | undefined,
+    options: TreeNodeOptions<T, TDiscriminator> | undefined,
     getChildren: (thisGroup: Branch<T, TChild, TDiscriminator>) => TChild[]
   ) {
     super(data, parent, context, depth, options)
@@ -42,7 +42,7 @@ export class Branch<
   }
 
   get isExpanded() {
-    return this.context.expandedItems.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
+    return this.context.expandedNodes.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
   }
 
   get areChildrenFullySelected(): boolean {
@@ -87,9 +87,9 @@ export class Branch<
     const nextExpanded = forcedValue ?? !this.isExpanded
 
     if (nextExpanded) {
-      this.context.expandedItems.set(this.id, this as Item)
+      this.context.expandedNodes.set(this.id, this as TreeNode)
     } else {
-      this.context.expandedItems.delete(this.id)
+      this.context.expandedNodes.delete(this.id)
     }
 
     const shouldPropagate = recursive ?? !nextExpanded

@@ -1,5 +1,5 @@
 import { TreeNodeDefinitionBase } from '@core/composables/tree/tree-node-definition-base'
-import type { Definition, ItemOptions } from '@core/composables/tree/types'
+import type { Definition, TreeNodeOptions } from '@core/composables/tree/types'
 
 export class BranchDefinition<
   T extends object = any,
@@ -8,7 +8,7 @@ export class BranchDefinition<
 > extends TreeNodeDefinitionBase<T, TDiscriminator> {
   children: TChildDefinition[]
 
-  constructor(data: T, options: ItemOptions<T, TDiscriminator>, children: TChildDefinition[]) {
+  constructor(data: T, options: TreeNodeOptions<T, TDiscriminator>, children: TChildDefinition[]) {
     super(data, options)
 
     this.children = children

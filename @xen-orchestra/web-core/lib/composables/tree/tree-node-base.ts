@@ -1,5 +1,5 @@
 import type { Branch } from '@core/composables/tree/branch'
-import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/tree/types'
+import type { CollectionContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
 
 export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any> {
   abstract readonly isGroup: boolean
@@ -11,20 +11,20 @@ export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any>
   readonly depth: number
   readonly parent: Branch | undefined
   readonly context: CollectionContext
-  readonly options: ItemOptions<T, TDiscriminator>
+  readonly options: TreeNodeOptions<T, TDiscriminator>
 
   constructor(
     data: T,
     parent: Branch | undefined,
     context: CollectionContext,
     depth: number,
-    options?: ItemOptions<T, TDiscriminator>
+    options?: TreeNodeOptions<T, TDiscriminator>
   ) {
     this.data = data
     this.parent = parent
     this.context = context
     this.depth = depth
-    this.options = options ?? ({} as ItemOptions<T, TDiscriminator>)
+    this.options = options ?? ({} as TreeNodeOptions<T, TDiscriminator>)
   }
 
   get id() {
@@ -60,11 +60,11 @@ export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any>
   }
 
   get isSelected() {
-    return this.context.selectedItems.has(this.id)
+    return this.context.selectedNodes.has(this.id)
   }
 
   get isActive() {
-    return this.context.activeItem?.id === this.id
+    return this.context.activeNode?.id === this.id
   }
 
   get passesFilterUpwards(): boolean {
@@ -76,7 +76,7 @@ export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any>
       return
     }
 
-    this.context.activeItem = this as unknown as Item
+    this.context.activeNode = this as unknown as TreeNode
   }
 
   toggleSelect(forcedValue?: boolean) {
@@ -84,12 +84,12 @@ export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any>
 
     if (shouldSelect) {
       if (!this.context.allowMultiSelect) {
-        this.context.selectedItems.clear()
+        this.context.selectedNodes.clear()
       }
 
-      this.context.selectedItems.set(this.id, this as unknown as Item)
+      this.context.selectedNodes.set(this.id, this as unknown as TreeNode)
     } else {
-      this.context.selectedItems.delete(this.id)
+      this.context.selectedNodes.delete(this.id)
     }
   }
 }

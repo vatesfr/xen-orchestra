@@ -27,33 +27,33 @@ type GetLabelOption<T extends object> = T extends Labeled
   ? { getLabel?: AcceptableGetter<T, string> }
   : { getLabel: AcceptableGetter<T, string> }
 
-export type ItemOptions<T extends object, TDiscriminator> = BaseOptions<T, TDiscriminator> &
+export type TreeNodeOptions<T extends object, TDiscriminator> = BaseOptions<T, TDiscriminator> &
   GetIdOption<T> &
   GetLabelOption<T>
 
 export type Definition = LeafDefinition | BranchDefinition
 
-export type DefinitionToItem<TDefinition> =
+export type DefinitionToTreeNode<TDefinition> =
   TDefinition extends BranchDefinition<infer T, infer TChildDefinition, infer TDiscriminator>
-    ? Branch<T, DefinitionToItem<TChildDefinition>, TDiscriminator>
+    ? Branch<T, DefinitionToTreeNode<TChildDefinition>, TDiscriminator>
     : TDefinition extends LeafDefinition<infer T, infer TDiscriminator>
       ? Leaf<T, TDiscriminator>
       : never
 
-export type Item = Leaf | Branch
+export type TreeNode = Leaf | Branch
 
-export type CollectionContext<TItem extends Item = Item> = {
+export type CollectionContext<TTreeNode extends TreeNode = TreeNode> = {
   allowMultiSelect: boolean
-  selectedItems: Map<string | number, TItem>
-  expandedItems: Map<string | number, TItem>
-  activeItem: TItem | undefined
+  selectedNodes: Map<string | number, TTreeNode>
+  expandedNodes: Map<string | number, TTreeNode>
+  activeNode: TTreeNode | undefined
 }
 
 export type UseCollectionOptions = {
   allowMultiSelect?: boolean
   expand?: boolean
   selectedLabel?:
-    | ((items: Item[]) => string)
+    | ((nodes: TreeNode[]) => string)
     | {
         max: number
         fn: (count: number) => string

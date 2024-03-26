@@ -2,54 +2,54 @@ import { buildTree } from '@core/composables/tree/build-tree'
 import type {
   CollectionContext,
   Definition,
-  DefinitionToItem,
-  Item,
+  DefinitionToTreeNode,
+  TreeNode,
   UseCollectionOptions,
 } from '@core/composables/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
-export function useTree<TDefinition extends Definition, TItem extends Item = DefinitionToItem<TDefinition>>(
+export function useTree<TDefinition extends Definition, TTreeNode extends TreeNode = DefinitionToTreeNode<TDefinition>>(
   definitions: MaybeRefOrGetter<TDefinition[]>,
   options?: UseCollectionOptions
 ) {
   const context = reactive({
     allowMultiSelect: options?.allowMultiSelect ?? false,
-    selectedItems: ref(new Map()),
-    expandedItems: ref(new Map()),
-    activeItem: ref(),
-  }) as CollectionContext<TItem>
+    selectedNodes: ref(new Map()),
+    expandedNodes: ref(new Map()),
+    activeNode: ref(),
+  }) as CollectionContext<TTreeNode>
 
-  const selectedItems = computed(() => Array.from(context.selectedItems.values()))
-  const expandedItems = computed(() => Array.from(context.expandedItems.values()))
-  const activeItem = computed(() => context.activeItem)
+  const selectedNodes = computed(() => Array.from(context.selectedNodes.values()))
+  const expandedNodes = computed(() => Array.from(context.expandedNodes.values()))
+  const activeNode = computed(() => context.activeNode)
 
-  const rawItems = computed(() => buildTree(toValue(definitions), context))
-  const items = computed(() => rawItems.value.filter(item => item.isVisible))
+  const rawNodes = computed(() => buildTree(toValue(definitions), context))
+  const nodes = computed(() => rawNodes.value.filter(node => node.isVisible))
 
   if (options?.expand !== false) {
-    items.value.forEach(item => item.isGroup && item.toggleExpand(true, true))
+    nodes.value.forEach(node => node.isGroup && node.toggleExpand(true, true))
   }
 
-  const deactivate = () => (context.activeItem = undefined)
+  const deactivate = () => (context.activeNode = undefined)
 
   const selectedLabel = computed(() => {
     if (typeof options?.selectedLabel === 'function') {
-      return options.selectedLabel(selectedItems.value)
+      return options.selectedLabel(selectedNodes.value)
     }
 
-    if (typeof options?.selectedLabel === 'object' && selectedItems.value.length > options.selectedLabel.max) {
-      return options.selectedLabel.fn(selectedItems.value.length)
+    if (typeof options?.selectedLabel === 'object' && selectedNodes.value.length > options.selectedLabel.max) {
+      return options.selectedLabel.fn(selectedNodes.value.length)
     }
 
-    return selectedItems.value.map(item => item.label).join(', ')
+    return selectedNodes.value.map(node => node.label).join(', ')
   })
 
   return {
-    items,
+    nodes,
     deactivate,
-    activeItem,
-    selectedItems,
+    activeNode,
+    selectedNodes,
     selectedLabel,
-    expandedItems,
+    expandedNodes,
   }
 }
