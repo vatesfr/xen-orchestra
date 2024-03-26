@@ -1575,12 +1575,6 @@ export const deleteTemplates = templates =>
     const protectedTemplates = []
     let nErrors = 0
 
-    const showError = () =>
-      error(
-        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
-        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
-      )
-
     await Promise.all(
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
@@ -1600,8 +1594,14 @@ export const deleteTemplates = templates =>
       )
     )
 
-    const nDefaultTemplates = defaultTemplates.length
     const nProtectedTemplates = protectedTemplates.length
+    const showError = () =>
+      error(
+        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
+        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
+      )
+
+    const protectedDefaultTemplate = new Set()
 
     if (nProtectedTemplates !== 0) {
       await confirm({
@@ -1613,13 +1613,24 @@ export const deleteTemplates = templates =>
           _call('vm.delete', {
             id,
             forceBlockedOperation: true,
-          }).catch(() => {
-            nErrors++
+          }).catch(reason => {
+            if (
+              incorrectState.is(reason, {
+                expected: false,
+                property: 'isDefaultTemplate',
+              })
+            ) {
+              defaultTemplates.push(id)
+              protectedDefaultTemplate.add(id)
+            } else {
+              nErrors++
+            }
           })
         )
       )
     }
-
+    
+    const nDefaultTemplates = defaultTemplates.length
     if (nDefaultTemplates !== 0) {
       await confirm({
         title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
@@ -1630,6 +1641,7 @@ export const deleteTemplates = templates =>
           _call('vm.delete', {
             id,
             forceDeleteDefaultTemplate: true,
+            forceBlockedOperation: protectedDefaultTemplate.has(id),
           }).catch(() => {
             nErrors++
           })
