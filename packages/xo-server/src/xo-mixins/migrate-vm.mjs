@@ -171,7 +171,7 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, dataStoreToRemotes }
+    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, dataStoreToHandlers }
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -253,13 +253,13 @@ export default class MigrateVm {
               vhd = await VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
                 thin: false,
                 esxi,
-                remotes: dataStoreToRemotes,
+                dataStoreToHandlers,
               })
             } else {
               vhd = await openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
                 lookMissingBlockInParent: true,
                 esxi,
-                remotes: dataStoreToRemotes,
+                dataStoreToHandlers,
               })
             }
             vhd.label = fileName
@@ -309,7 +309,7 @@ export default class MigrateVm {
               vhd = await VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
                 thin: false,
                 esxi,
-                remotes: dataStoreToRemotes,
+                dataStoreToHandlers,
               })
               // we don't need to read the BAT with the importVdiThroughXva process
               const vdiMetadata = {
@@ -335,7 +335,7 @@ export default class MigrateVm {
               vhd = await openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
                 lookMissingBlockInParent: false,
                 esxi,
-                remotes: dataStoreToRemotes,
+                dataStoreToHandlers,
               })
             }
             const stream = vhd.stream()

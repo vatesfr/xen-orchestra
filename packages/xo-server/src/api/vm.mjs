@@ -12,12 +12,12 @@ import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
-import { ignoreErrors, timeout } from 'promise-toolbox'
+import { Disposable, ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
-import { getHandler } from '@xen-orchestra/fs'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 
 const log = createLogger('xo:vm')
 
@@ -1385,28 +1385,36 @@ export { import_ as import }
 
 export async function importFromEsxi({ host, network, password, sr, sslVerify = true, stopSource = false, user, vm }) {
   const task = await this.tasks.create({ name: `importing vm ${vm}` })
-  const remotes = {}
-  await asyncEach(await this.getAllRemotes(), async remote => {
-    if (remote.name.startsWith('[VMWARE]')) {
-      const handler = getHandler(remote)
-      await handler.sync()
-      remotes[remote.name.substring('[VMWARE]'.length)] = handler
-      // todo : dispose
-    }
-  })
 
-  return task.run(() =>
-    this.migrationfromEsxi({
-      host,
-      user,
-      password,
-      sslVerify,
-      vm,
-      sr,
-      network,
-      stopSource,
-      dataStoreToRemotes: remotes,
-    })
+  const PREFIX = '[vmware]'
+
+  return Disposable.use(
+    Disposable.all(
+      (await this.getAllRemotes())
+        .filter(({ name }) => name.toLocaleLowerCase().startsWith(PREFIX))
+        .map(remote => getSyncedHandler(remote))
+    ),
+    handlers => {
+      const dataStoreToHandlers = {}
+      handlers.forEach(handler => {
+        const name = handler._remote.name
+        const dataStoreName = name.substring(PREFIX.length).trim()
+        dataStoreToHandlers[dataStoreName] = handler
+      })
+      return task.run(() =>
+        this.migrationfromEsxi({
+          host,
+          user,
+          password,
+          sslVerify,
+          vm,
+          sr,
+          network,
+          stopSource,
+          dataStoreToHandlers,
+        })
+      )
+    }
   )
 }
 
