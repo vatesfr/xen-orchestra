@@ -1,6 +1,6 @@
-import { GroupDefinition } from '@core/composables/collection/group-definition'
-import { LeafDefinition } from '@core/composables/collection/leaf-definition'
-import type { ItemOptions, Definition, Identifiable, Labeled } from '@core/composables/collection/types'
+import { GroupDefinition } from '@core/composables/tree/branch-definition'
+import { LeafDefinition } from '@core/composables/tree/leaf-definition'
+import type { ItemOptions, Definition, Identifiable, Labeled } from '@core/composables/tree/types'
 
 // Overload 1: Leaf with no options
 export function defineCollection<T extends Identifiable & Labeled, const TDiscriminator = any>(

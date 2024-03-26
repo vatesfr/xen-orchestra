@@ -1,5 +1,5 @@
-import { LeafDefinition } from '@core/composables/collection/leaf-definition'
-import type { Identifiable, ItemOptions, Labeled } from '@core/composables/collection/types'
+import { LeafDefinition } from '@core/composables/tree/leaf-definition'
+import type { Identifiable, ItemOptions, Labeled } from '@core/composables/tree/types'
 
 export function defineLeaf<T extends Identifiable & Labeled, const TDiscriminator>(
   data: T

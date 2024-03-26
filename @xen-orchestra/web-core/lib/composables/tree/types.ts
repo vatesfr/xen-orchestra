@@ -1,7 +1,7 @@
-import type { Group } from '@core/composables/collection/group'
-import type { GroupDefinition } from '@core/composables/collection/group-definition'
-import type { Leaf } from '@core/composables/collection/leaf'
-import type { LeafDefinition } from '@core/composables/collection/leaf-definition'
+import type { Group } from '@core/composables/tree/branch'
+import type { GroupDefinition } from '@core/composables/tree/branch-definition'
+import type { Leaf } from '@core/composables/tree/leaf'
+import type { LeafDefinition } from '@core/composables/tree/leaf-definition'
 
 export type Identifiable = { id: string | number }
 

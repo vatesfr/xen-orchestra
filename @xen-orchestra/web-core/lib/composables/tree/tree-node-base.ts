@@ -1,5 +1,5 @@
-import type { Group } from '@core/composables/collection/group'
-import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/collection/types'
+import type { Group } from '@core/composables/tree/branch'
+import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/tree/types'
 
 export abstract class Base<T extends object = any, TDiscriminator = any> {
   abstract readonly isGroup: boolean

@@ -1,11 +1,11 @@
-import { buildCollection } from '@core/composables/collection/build-collection'
+import { buildCollection } from '@core/composables/tree/build-tree'
 import type {
   CollectionContext,
   Definition,
   DefinitionToItem,
   Item,
   UseCollectionOptions,
-} from '@core/composables/collection/types'
+} from '@core/composables/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useCollection<TDefinition extends Definition, TItem extends Item = DefinitionToItem<TDefinition>>(

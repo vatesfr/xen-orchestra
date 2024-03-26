@@ -1,5 +1,5 @@
-import { GroupDefinition } from '@core/composables/collection/group-definition'
-import type { Definition, Identifiable, ItemOptions, Labeled } from '@core/composables/collection/types'
+import { GroupDefinition } from '@core/composables/tree/branch-definition'
+import type { Definition, Identifiable, ItemOptions, Labeled } from '@core/composables/tree/types'
 
 export function defineGroup<
   T extends Identifiable & Labeled,

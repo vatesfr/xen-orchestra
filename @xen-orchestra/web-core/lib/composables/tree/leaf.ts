@@ -1,4 +1,4 @@
-import { Base } from '@core/composables/collection/base'
+import { Base } from '@core/composables/tree/tree-node-base'
 
 export class Leaf<T extends object = any, const TDiscriminator = any> extends Base<T, TDiscriminator> {
   readonly isGroup = false

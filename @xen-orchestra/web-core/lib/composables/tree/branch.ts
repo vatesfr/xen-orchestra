@@ -1,5 +1,5 @@
-import { Base } from '@core/composables/collection/base'
-import type { CollectionContext, Item, ItemOptions } from '@core/composables/collection/types'
+import { Base } from '@core/composables/tree/tree-node-base'
+import type { CollectionContext, Item, ItemOptions } from '@core/composables/tree/types'
 
 export class Group<T extends object = any, TChild extends Item = Item, const TDiscriminator = any> extends Base<
   T,

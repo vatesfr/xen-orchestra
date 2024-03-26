@@ -1,4 +1,4 @@
-import type { ItemOptions } from '@core/composables/collection/types'
+import type { ItemOptions } from '@core/composables/tree/types'
 
 export abstract class DefinitionBase<T extends object, TDiscriminator> {
   data: T

@@ -1,7 +1,7 @@
-import { Group } from '@core/composables/collection/group'
-import { GroupDefinition } from '@core/composables/collection/group-definition'
-import { Leaf } from '@core/composables/collection/leaf'
-import type { CollectionContext, Definition, DefinitionToItem, Item } from '@core/composables/collection/types'
+import { Group } from '@core/composables/tree/branch'
+import { GroupDefinition } from '@core/composables/tree/branch-definition'
+import { Leaf } from '@core/composables/tree/leaf'
+import type { CollectionContext, Definition, DefinitionToItem, Item } from '@core/composables/tree/types'
 
 export function buildCollection<TDefinition extends Definition>(
   definitions: TDefinition[],

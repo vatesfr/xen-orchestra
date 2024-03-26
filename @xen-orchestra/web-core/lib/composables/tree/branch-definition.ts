@@ -1,5 +1,5 @@
-import { DefinitionBase } from '@core/composables/collection/definition-base'
-import type { Definition, ItemOptions } from '@core/composables/collection/types'
+import { DefinitionBase } from '@core/composables/tree/tree-node-definition-base'
+import type { Definition, ItemOptions } from '@core/composables/tree/types'
 
 export class GroupDefinition<
   T extends object = any,
