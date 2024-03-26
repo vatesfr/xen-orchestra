@@ -241,7 +241,7 @@ export default class TabConsole extends Component {
               </Col>
               <Col mediumSize={4}>
                 <input
-                  className='input-group'
+                  className='form-control'
                   onChange={this._onChangeScaleValue}
                   step='1'
                   type='number'
