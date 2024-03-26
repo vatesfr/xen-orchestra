@@ -211,6 +211,26 @@ class SelectDefaultSr extends Component {
   }
 }
 
+@connectStore(() => ({
+  haSrs: createGetObjectsOfType("SR").pick((_, props) => props.srs),
+}))
+class EnableHaModal extends Component {
+  state = {
+    srs: Object.values(this.props.haSrs),
+  }
+
+  get value() {
+    return this.state.srs
+  }
+  render() {
+    return (
+      <div>
+        <SelectSr multi value={this.state.srs} onChange={this.linkState('srs')} />
+      </div>
+    )
+  }
+}
+
 @injectIntl
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
@@ -265,19 +285,15 @@ export default class TabAdvanced extends Component {
 
   _onChangeHighAvailability = async(value) => {
     if (value) {
-      await this.setState({
-        srs: this.props.pool.haSrs ?? [],
-      })
-      await confirm({
+      const haSrs = await confirm({
         body: (
-          <div>
-            <SelectSr multi value={this.state.srs} onChange={srs => this.setState({srs: srs.map(sr => sr.id)})} />
-          </div>
+          <EnableHaModal srs={this.props.pool.haSrs ?? []} />
         ),
         title: _('poolEnableHa'),
       })
+      console.log("haSrs :", haSrs.map(sr => sr.id))
 
-      return // enableHa(this.props.pool)
+      return // enableHa(haSrs.map(sr => sr.id))
     }
     else {
       return confirm({
