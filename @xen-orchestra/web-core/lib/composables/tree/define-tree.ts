@@ -13,14 +13,14 @@ export function defineTree<T extends object, const TDiscriminator = any>(
   options: TreeNodeOptions<T, TDiscriminator>
 ): LeafDefinition<T, TDiscriminator>[]
 
-// Overload 3: Group with no options
+// Overload 3: Branch with no options
 export function defineTree<
   T extends Identifiable & Labeled,
   TChildDefinition extends Definition,
   const TDiscriminator = any,
 >(entries: T[], getChildren: (data: T) => TChildDefinition[]): BranchDefinition<T, TChildDefinition, TDiscriminator>[]
 
-// Overload 4: Group with options
+// Overload 4: Branch with options
 export function defineTree<
   T extends object,
   TChildDefinition extends Definition = Definition,

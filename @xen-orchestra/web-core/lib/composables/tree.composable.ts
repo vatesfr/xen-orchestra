@@ -27,7 +27,7 @@ export function useTree<TDefinition extends Definition, TTreeNode extends TreeNo
   const nodes = computed(() => rawNodes.value.filter(node => node.isVisible))
 
   if (options?.expand !== false) {
-    nodes.value.forEach(node => node.isGroup && node.toggleExpand(true, true))
+    nodes.value.forEach(node => node.isBranch && node.toggleExpand(true, true))
   }
 
   const deactivate = () => (context.activeNode = undefined)

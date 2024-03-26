@@ -1,7 +1,7 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
 
 export class Leaf<T extends object = any, const TDiscriminator = any> extends TreeNodeBase<T, TDiscriminator> {
-  readonly isGroup = false
+  readonly isBranch = false
 
   get passesFilterDownwards(): boolean {
     return this.passesFilter ?? false

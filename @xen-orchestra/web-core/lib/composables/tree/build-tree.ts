@@ -10,8 +10,8 @@ export function buildTree<TDefinition extends Definition>(
   function create(definitions: Definition[], parent: Branch | undefined, depth: number): TreeNode[] {
     return definitions.map(definition =>
       definition instanceof BranchDefinition
-        ? new Branch(definition.data, parent, context, depth, definition.options, thisGroup =>
-            create(definition.children, thisGroup, depth + 1)
+        ? new Branch(definition.data, parent, context, depth, definition.options, thisBranch =>
+            create(definition.children, thisBranch, depth + 1)
           )
         : new Leaf(definition.data, parent, context, depth, definition.options)
     )

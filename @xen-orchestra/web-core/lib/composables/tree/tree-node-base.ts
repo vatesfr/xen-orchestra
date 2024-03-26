@@ -2,7 +2,7 @@ import type { Branch } from '@core/composables/tree/branch'
 import type { CollectionContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
 
 export abstract class TreeNodeBase<T extends object = any, TDiscriminator = any> {
-  abstract readonly isGroup: boolean
+  abstract readonly isBranch: boolean
   abstract passesFilterDownwards: boolean
   abstract isVisible: boolean
   abstract labelClasses: Record<string, boolean>

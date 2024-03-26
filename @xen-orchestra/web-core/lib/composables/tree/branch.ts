@@ -6,7 +6,7 @@ export class Branch<
   TChild extends TreeNode = TreeNode,
   const TDiscriminator = any,
 > extends TreeNodeBase<T, TDiscriminator> {
-  readonly isGroup = true
+  readonly isBranch = true
   readonly rawChildren: TChild[]
 
   constructor(
@@ -15,7 +15,7 @@ export class Branch<
     context: CollectionContext,
     depth: number,
     options: TreeNodeOptions<T, TDiscriminator> | undefined,
-    getChildren: (thisGroup: Branch<T, TChild, TDiscriminator>) => TChild[]
+    getChildren: (thisBranch: Branch<T, TChild, TDiscriminator>) => TChild[]
   ) {
     super(data, parent, context, depth, options)
     this.rawChildren = getChildren(this)
@@ -51,7 +51,7 @@ export class Branch<
       return false
     }
 
-    return this.rawChildren.every(child => (child.isGroup ? child.areChildrenFullySelected : child.isSelected))
+    return this.rawChildren.every(child => (child.isBranch ? child.areChildrenFullySelected : child.isSelected))
   }
 
   get areChildrenPartiallySelected(): boolean {
@@ -64,7 +64,7 @@ export class Branch<
       return false
     }
 
-    return this.rawChildren.some(child => (child.isGroup ? child.areChildrenPartiallySelected : child.isSelected))
+    return this.rawChildren.some(child => (child.isBranch ? child.areChildrenPartiallySelected : child.isSelected))
   }
 
   get labelClasses() {
@@ -96,7 +96,7 @@ export class Branch<
 
     if (shouldPropagate) {
       this.rawChildren.forEach(child => {
-        if (child.isGroup) {
+        if (child.isBranch) {
           child.toggleExpand(nextExpanded, recursive)
         }
       })
