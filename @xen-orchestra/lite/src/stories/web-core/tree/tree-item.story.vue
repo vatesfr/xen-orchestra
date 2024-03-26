@@ -1,5 +1,10 @@
 <template>
-  <ComponentStory :params="[slot(), slot('sublist')]">
+  <ComponentStory
+    :params="[
+      slot().help('Meant to receive a <TreeItemLabel>'),
+      slot('sublist').help('Meant to receive a <TreeList> child.'),
+    ]"
+  >
     <TreeList>
       <TreeItem>
         <TreeItemLabel :icon="faServer" route="dashboard">Host</TreeItemLabel>

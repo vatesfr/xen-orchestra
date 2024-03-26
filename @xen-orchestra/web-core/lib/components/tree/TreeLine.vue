@@ -1,6 +1,6 @@
 <template>
   <div class="tree-line">
-    <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical tree-line-full-height" />
+    <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical" />
     <div :class="{ right }" class="tree-line-horizontal" />
   </div>
 </template>
@@ -23,11 +23,8 @@ defineProps<{
   .tree-line-vertical {
     width: 0.1rem;
     background: var(--color-purple-base);
-
-    &.tree-line-full-height {
-      height: calc(100% + 0.5rem);
-      transform: translateY(-0.5rem);
-    }
+    height: calc(100% + 0.5rem);
+    transform: translateY(-0.5rem);
   }
 
   .tree-line-horizontal {
