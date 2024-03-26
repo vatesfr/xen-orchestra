@@ -1,17 +1,17 @@
 import { buildTree } from '@core/composables/tree/build-tree'
 import type {
   CollectionContext,
-  Definition,
+  TreeNodeDefinition,
   DefinitionToTreeNode,
   TreeNode,
   UseCollectionOptions,
 } from '@core/composables/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
-export function useTree<TDefinition extends Definition, TTreeNode extends TreeNode = DefinitionToTreeNode<TDefinition>>(
-  definitions: MaybeRefOrGetter<TDefinition[]>,
-  options?: UseCollectionOptions
-) {
+export function useTree<
+  TDefinition extends TreeNodeDefinition,
+  TTreeNode extends TreeNode = DefinitionToTreeNode<TDefinition>,
+>(definitions: MaybeRefOrGetter<TDefinition[]>, options?: UseCollectionOptions) {
   const context = reactive({
     allowMultiSelect: options?.allowMultiSelect ?? false,
     selectedNodes: ref(new Map()),

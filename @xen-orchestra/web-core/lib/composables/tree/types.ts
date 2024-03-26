@@ -31,7 +31,7 @@ export type TreeNodeOptions<TData extends object, TDiscriminator> = BaseOptions<
   GetIdOption<TData> &
   GetLabelOption<TData>
 
-export type Definition = LeafDefinition | BranchDefinition
+export type TreeNodeDefinition = LeafDefinition | BranchDefinition
 
 export type DefinitionToTreeNode<TDefinition> =
   TDefinition extends BranchDefinition<infer TData, infer TChildDefinition, infer TDiscriminator>

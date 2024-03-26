@@ -1,6 +1,6 @@
 import { BranchDefinition } from '@core/composables/tree/branch-definition'
 import { LeafDefinition } from '@core/composables/tree/leaf-definition'
-import type { TreeNodeOptions, Definition, Identifiable, Labeled } from '@core/composables/tree/types'
+import type { TreeNodeOptions, TreeNodeDefinition, Identifiable, Labeled } from '@core/composables/tree/types'
 
 // Overload 1: Leaf with no options
 export function defineTree<TData extends Identifiable & Labeled, const TDiscriminator = any>(
@@ -16,7 +16,7 @@ export function defineTree<TData extends object, const TDiscriminator = any>(
 // Overload 3: Branch with no options
 export function defineTree<
   TData extends Identifiable & Labeled,
-  TChildDefinition extends Definition,
+  TChildDefinition extends TreeNodeDefinition,
   const TDiscriminator = any,
 >(
   entries: TData[],
@@ -26,7 +26,7 @@ export function defineTree<
 // Overload 4: Branch with options
 export function defineTree<
   TData extends object,
-  TChildDefinition extends Definition = Definition,
+  TChildDefinition extends TreeNodeDefinition = TreeNodeDefinition,
   const TDiscriminator = any,
 >(
   entries: TData[],
@@ -37,7 +37,7 @@ export function defineTree<
 // Implementation
 export function defineTree<
   TData extends object,
-  TChildDefinition extends Definition = Definition,
+  TChildDefinition extends TreeNodeDefinition = TreeNodeDefinition,
   const TDiscriminator = any,
 >(
   entries: TData[],
