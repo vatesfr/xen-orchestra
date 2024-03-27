@@ -1,5 +1,5 @@
 import { BranchDefinition } from '@core/composables/tree/branch-definition'
-import type { TreeNodeDefinition, Identifiable, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
+import type { Identifiable, Labeled, TreeNodeDefinition, TreeNodeOptions } from '@core/composables/tree/types'
 
 export function defineBranch<
   TData extends Identifiable & Labeled,
@@ -14,10 +14,10 @@ export function defineBranch<TData extends object, TChildDefinition extends Tree
 export function defineBranch<TData extends object, TChildDefinition extends TreeNodeDefinition, const TDiscriminator>(
   data: TData,
   optionsOrChildren: TreeNodeOptions<TData, TDiscriminator> | TChildDefinition[],
-  children?: TChildDefinition[]
+  childrenOrNone?: TChildDefinition[]
 ): BranchDefinition<TData, TChildDefinition, TDiscriminator> {
   const options = Array.isArray(optionsOrChildren) ? ({} as TreeNodeOptions<TData, TDiscriminator>) : optionsOrChildren
-  const actualChildren = Array.isArray(optionsOrChildren) ? optionsOrChildren : children!
+  const children = Array.isArray(optionsOrChildren) ? optionsOrChildren : childrenOrNone!
 
-  return new BranchDefinition(data, options, actualChildren)
+  return new BranchDefinition(data, options, children)
 }

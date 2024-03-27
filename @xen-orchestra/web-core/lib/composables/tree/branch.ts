@@ -1,13 +1,13 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type { TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
+import type { ChildTreeGetter, TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
 export class Branch<
   TData extends object = any,
-  TChild extends TreeNode = TreeNode,
+  TChildNode extends TreeNode = TreeNode,
   const TDiscriminator = any,
 > extends TreeNodeBase<TData, TDiscriminator> {
   readonly isBranch = true
-  readonly rawChildren: TChild[]
+  readonly rawChildren: TChildNode[]
 
   constructor(
     data: TData,
@@ -15,10 +15,10 @@ export class Branch<
     context: TreeContext,
     depth: number,
     options: TreeNodeOptions<TData, TDiscriminator> | undefined,
-    getChildren: (thisBranch: Branch<TData, TChild, TDiscriminator>) => TChild[]
+    getChildTree: ChildTreeGetter<TData, TChildNode, TDiscriminator>
   ) {
     super(data, parent, context, depth, options)
-    this.rawChildren = getChildren(this)
+    this.rawChildren = getChildTree(this)
   }
 
   get children() {
@@ -87,7 +87,7 @@ export class Branch<
     const nextExpanded = forcedValue ?? !this.isExpanded
 
     if (nextExpanded) {
-      this.context.expandedNodes.set(this.id, this as TreeNode)
+      this.context.expandedNodes.set(this.id, this)
     } else {
       this.context.expandedNodes.delete(this.id)
     }

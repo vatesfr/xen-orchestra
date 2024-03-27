@@ -13,7 +13,7 @@ type AcceptableKeys<TData, TAccepted> = {
 
 type AcceptableGetter<TData, TAccepted> = AcceptableKeys<TData, TAccepted> | ((data: TData) => TAccepted)
 
-export type BaseTreeNodeOptions<TData, TDiscriminator> = {
+export type BaseTreeNodeOptions<TData extends object, TDiscriminator> = {
   discriminator?: TDiscriminator
   predicate?: (data: TData) => boolean | undefined
   activable?: boolean
@@ -41,6 +41,14 @@ export type DefinitionToTreeNode<TDefinition> =
       : never
 
 export type TreeNode = Leaf | Branch
+
+export type ChildTreeGetter<TData extends object, TChildNode extends TreeNode, TDiscriminator> = (
+  thisBranch: Branch<TData, TChildNode, TDiscriminator>
+) => TChildNode[]
+
+export type ChildTreeDefinitionGetter<TData extends object, TChildDefinition extends TreeNodeDefinition> = (
+  data: TData
+) => TChildDefinition[]
 
 export type TreeContext<TTreeNode extends TreeNode = TreeNode> = {
   allowMultiSelect: boolean

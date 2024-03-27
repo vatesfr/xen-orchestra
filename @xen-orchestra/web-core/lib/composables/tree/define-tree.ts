@@ -1,6 +1,12 @@
 import { BranchDefinition } from '@core/composables/tree/branch-definition'
 import { LeafDefinition } from '@core/composables/tree/leaf-definition'
-import type { TreeNodeOptions, TreeNodeDefinition, Identifiable, Labeled } from '@core/composables/tree/types'
+import type {
+  ChildTreeDefinitionGetter,
+  Identifiable,
+  Labeled,
+  TreeNodeDefinition,
+  TreeNodeOptions,
+} from '@core/composables/tree/types'
 
 // Overload 1: Leaf with no options
 export function defineTree<TData extends Identifiable & Labeled, const TDiscriminator = any>(
@@ -20,7 +26,7 @@ export function defineTree<
   const TDiscriminator = any,
 >(
   entries: TData[],
-  getChildren: (data: TData) => TChildDefinition[]
+  getChildTree: ChildTreeDefinitionGetter<TData, TChildDefinition>
 ): BranchDefinition<TData, TChildDefinition, TDiscriminator>[]
 
 // Overload 4: Branch with options
@@ -31,7 +37,7 @@ export function defineTree<
 >(
   entries: TData[],
   options: TreeNodeOptions<TData, TDiscriminator>,
-  getChildren: (data: TData) => TChildDefinition[]
+  getChildTree: ChildTreeDefinitionGetter<TData, TChildDefinition>
 ): BranchDefinition<TData, TChildDefinition, TDiscriminator>[]
 
 // Implementation
@@ -41,18 +47,18 @@ export function defineTree<
   const TDiscriminator = any,
 >(
   entries: TData[],
-  optionsOrGetChildren?: TreeNodeOptions<TData, TDiscriminator> | ((data: TData) => TChildDefinition[]),
-  getChildren?: (data: TData) => TChildDefinition[]
+  optionsOrGetChildTree?: TreeNodeOptions<TData, TDiscriminator> | ChildTreeDefinitionGetter<TData, TChildDefinition>,
+  getChildTreeOrNone?: ChildTreeDefinitionGetter<TData, TChildDefinition>
 ) {
-  const options = (typeof optionsOrGetChildren === 'function' ? {} : optionsOrGetChildren ?? {}) as TreeNodeOptions<
+  const options = (typeof optionsOrGetChildTree === 'function' ? {} : optionsOrGetChildTree ?? {}) as TreeNodeOptions<
     TData,
     TDiscriminator
   >
 
-  const getChildrenFn = typeof optionsOrGetChildren === 'function' ? optionsOrGetChildren : getChildren
+  const getChildTree = typeof optionsOrGetChildTree === 'function' ? optionsOrGetChildTree : getChildTreeOrNone
 
-  if (getChildrenFn !== undefined) {
-    return entries.map(data => new BranchDefinition(data, options, getChildrenFn(data)))
+  if (getChildTree !== undefined) {
+    return entries.map(data => new BranchDefinition(data, options, getChildTree(data)))
   }
 
   return entries.map(data => new LeafDefinition(data, options))

@@ -1,5 +1,5 @@
 import type { Branch } from '@core/composables/tree/branch'
-import type { TreeContext, Identifiable, TreeNode, TreeNodeOptions, Labeled } from '@core/composables/tree/types'
+import type { Identifiable, Labeled, TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
 export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean
