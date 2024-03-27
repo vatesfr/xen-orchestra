@@ -27,4 +27,7 @@
 
 <!--packages-start-->
 
+- xo-server patch
+- xo-web patch
+
 <!--packages-end-->
