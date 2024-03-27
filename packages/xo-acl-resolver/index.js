@@ -72,7 +72,7 @@ const checkAuthorizationByTypes = {
 
   task: checkMember('$host'),
 
-  usb_group: checkMember('PUSB'),
+  USB_group: checkMember('PUSBs'),
 
   VBD: checkMember('VDI'),
 
