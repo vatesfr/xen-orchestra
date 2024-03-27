@@ -10,5 +10,5 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
-import UserLogo from '@core/components/UserLogo.vue'
+import UserLogo from '@core/components/user/UserLogo.vue'
 </script>

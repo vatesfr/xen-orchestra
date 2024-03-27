@@ -24,19 +24,22 @@ withDefaults(
   &.extra-small {
     --size: 1.6rem;
     --border-size: 0.1rem;
-    --background-position: top -0.493rem left -0.8rem / 2.88rem;
+    --background-position: -0.8rem -0.493rem;
+    --background-size: 2.88rem;
   }
 
   &.small {
     --size: 2.4rem;
     --border-size: 0.1rem;
-    --background-position: top -0.739rem left -1.2rem / 4.32rem;
+    --background-position: -1.2rem -0.739rem;
+    --background-size: 4.32rem;
   }
 
   &.medium {
     --size: 4rem;
     --border-size: 0.2rem;
-    --background-position: top -1.232rem left -2rem / 7.2rem;
+    --background-position: -2rem -1.232rem;
+    --background-size: 7.2rem;
   }
 }
 
@@ -45,7 +48,8 @@ withDefaults(
   display: block;
   width: var(--size);
   height: var(--size);
-  background: var(--color-grey-100) url('../assets/user.png') no-repeat var(--background-position);
+  background: var(--color-grey-100) url('../../assets/user.png') no-repeat var(--background-position) /
+    var(--background-size);
   border: var(--border-size) solid var(--border-color);
   border-radius: 20rem;
 }
