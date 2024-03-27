@@ -1,12 +1,12 @@
 <template>
-  <div class="ui-tab-bar">
+  <div class="tab-list">
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
+import { useContext } from '@core/composables/context.composable'
+import { DisabledContext } from '@core/context'
 
 const props = withDefaults(
   defineProps<{
@@ -19,7 +19,7 @@ useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
-.ui-tab-bar {
+.tab-list {
   display: flex;
   align-items: stretch;
   height: 5rem;
