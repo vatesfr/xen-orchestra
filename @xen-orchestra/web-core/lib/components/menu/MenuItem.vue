@@ -10,7 +10,7 @@
     >
       <slot />
     </MenuTrigger>
-    <AppMenu v-else :disabled="isDisabled" shadow>
+    <MenuList v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
@@ -18,17 +18,17 @@
         </MenuTrigger>
       </template>
       <slot name="submenu" />
-    </AppMenu>
+    </MenuList>
   </li>
 </template>
 
 <script lang="ts" setup>
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuTrigger from '@/components/menu/MenuTrigger.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@/types/injection-keys'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
+import { useContext } from '@core/composables/context.composable'
+import { DisabledContext } from '@core/context'
+import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
@@ -72,7 +72,7 @@ const handleClick = async () => {
 
 <style lang="postcss" scoped>
 .menu-item {
-  color: var(--color-grey-200);
+  color: var(--color-grey-000);
 }
 
 .submenu-icon {

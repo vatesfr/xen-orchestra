@@ -521,9 +521,23 @@ export const createFakeProgress = (() => {
   }
 })()
 
-export const NumericDate = ({ timestamp }) => (
-  <FormattedDate day='2-digit' hour='numeric' minute='numeric' month='2-digit' value={timestamp} year='numeric' />
-)
+const padNumber2 = n => (n < 10 ? '0' + n : String(n))
+
+/**
+ * Format a Date object or a ECMAScript timestamp
+ *
+ * The format is very close to the date (YYYY-MM-DD) time (hh:mm) representation
+ * of ISO 8601 expect the T separator is replaced by a whitespace for readability.
+ */
+export const NumericDate = ({ timestamp }) => {
+  const d = timestamp instanceof Date ? timestamp : new Date(timestamp)
+  return (
+    <span>
+      {d.getFullYear()}-{padNumber2(d.getMonth() + 1)}-{padNumber2(d.getDate())} {padNumber2(d.getHours())}:
+      {padNumber2(d.getMinutes())}
+    </span>
+  )
+}
 
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />

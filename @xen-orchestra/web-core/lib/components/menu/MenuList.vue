@@ -1,16 +1,16 @@
 <template>
-  <slot :is-open="isOpen" :open name="trigger" />
+  <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport to="body" :disabled="!shouldTeleport">
-    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="app-menu" v-bind="$attrs">
+    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="menu-list" v-bind="$attrs">
       <slot />
     </ul>
   </Teleport>
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@/types/injection-keys'
+import { useContext } from '@core/composables/context.composable'
+import { DisabledContext } from '@core/context'
+import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
 import placementJs, { type Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
@@ -81,16 +81,16 @@ const open = (event: MouseEvent) => {
 </script>
 
 <style lang="postcss" scoped>
-.app-menu {
+.menu-list {
   z-index: 1;
   display: inline-flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 0.4rem;
   cursor: default;
   color: var(--color-grey-200);
-  border-radius: 0.8rem;
+  border-radius: 0.4rem;
   background-color: var(--color-grey-600);
-  gap: 0.5rem;
+  gap: 0.2rem;
 
   &.horizontal {
     flex-direction: row;

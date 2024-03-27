@@ -3,9 +3,9 @@
 </template>
 
 <script lang="ts" setup>
+import AppTooltip from '@core/components/tooltip/TooltipItem.vue'
+import { useTooltipStore } from '@core/stores/tooltip.store'
 import { storeToRefs } from 'pinia'
-import AppTooltip from '@/components/AppTooltip.vue'
-import { useTooltipStore } from '@/stores/tooltip.store'
 
 const tooltipStore = useTooltipStore()
 const { tooltips } = storeToRefs(tooltipStore)

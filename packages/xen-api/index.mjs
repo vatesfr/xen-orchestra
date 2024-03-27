@@ -13,6 +13,7 @@ import { Index } from 'xo-collection/index.js'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
+import { ProxyAgent as HttpProxyAgent } from 'proxy-agent'
 
 import debug from './_debug.mjs'
 import getTaskResult from './_getTaskResult.mjs'
@@ -135,6 +136,7 @@ export class Xapi extends EventEmitter {
     }
 
     const { httpProxy } = opts
+    this._allowUnauthorized = opts.allowUnauthorized
     const dispatcherOpts = {
       maxRedirections: 3,
     }
@@ -143,6 +145,11 @@ export class Xapi extends EventEmitter {
       rejectUnauthorized: !opts.allowUnauthorized,
     }
     if (httpProxy !== undefined) {
+      this._httpAgent = new HttpProxyAgent({
+        getProxyForUrl: () => httpProxy,
+        rejectUnauthorized: !opts.allowUnauthorized,
+      })
+
       const uri = new URL(httpProxy)
       const token = 'Basic ' + Buffer.from(`${uri.username}:${uri.password}`).toString('base64')
       this._undiciDispatcher = new ProxyAgent({
@@ -509,6 +516,7 @@ export class Xapi extends EventEmitter {
 
     const doRequest = (url, opts) =>
       httpRequest(url, {
+        agent: this._httpAgent,
         body,
         headers,
         method: 'PUT',

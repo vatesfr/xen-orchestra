@@ -1,9 +1,9 @@
 <template>
-  <li :class="{ horizontal }" class="ui-menu-separator" />
+  <li :class="{ horizontal }" class="menu-separator" />
 </template>
 
 <script lang="ts" setup>
-import { IK_MENU_HORIZONTAL } from '@/types/injection-keys'
+import { IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
 import { computed, inject } from 'vue'
 
 const horizontal = inject(
@@ -13,7 +13,7 @@ const horizontal = inject(
 </script>
 
 <style lang="postcss" scoped>
-.ui-menu-separator {
+.menu-separator {
   &.horizontal {
     margin: 0 0.5rem;
     border-right: 1px solid var(--color-grey-500);

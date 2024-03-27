@@ -4,7 +4,7 @@
     <UiSpinner v-else-if="!isReady" class="spinner" />
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-for-console')" />
     <template v-else-if="vm && vmConsole">
-      <AppMenu horizontal>
+      <MenuList horizontal>
         <MenuItem v-if="uiStore.hasUi" :icon="faArrowUpRightFromSquare" @click="openInNewTab">
           {{ $t('open-console-in-new-tab') }}
         </MenuItem>
@@ -17,7 +17,7 @@
         <MenuItem :disabled="!consoleElement" :icon="faKeyboard" @click="sendCtrlAltDel">
           {{ $t('send-ctrl-alt-del') }}
         </MenuItem>
-      </AppMenu>
+      </MenuList>
       <RemoteConsole
         ref="consoleElement"
         :is-console-available="isConsoleAvailable"
@@ -30,17 +30,17 @@
 
 <script lang="ts" setup>
 import monitor from '@/assets/monitor.svg'
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuItem from '@/components/menu/MenuItem.vue'
 import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
-import { useUiStore } from '@/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { useConsoleCollection } from '@/stores/xen-api/console.store'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import {
   faArrowUpRightFromSquare,
   faDownLeftAndUpRightToCenter,
@@ -173,7 +173,7 @@ const openInNewTab = () => {
   }
 }
 
-.vm-console-view:deep(.app-menu) {
+.vm-console-view:deep(.menu-list) {
   background-color: transparent;
   align-self: center;
 }

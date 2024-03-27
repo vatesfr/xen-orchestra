@@ -23,7 +23,7 @@
       </div>
 
       <template #buttons>
-        <UiButton outlined>Cancel</UiButton>
+        <UiButton level="secondary">Cancel</UiButton>
         <UiButton>Migrate 3 VMs</UiButton>
       </template>
     </FormModalLayout>
@@ -35,8 +35,8 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import { iconProp, slot } from '@/libs/story/story-param'
+import UiButton from '@core/components/button/UiButton.vue'
 import { faRoute } from '@fortawesome/free-solid-svg-icons'
 </script>
 

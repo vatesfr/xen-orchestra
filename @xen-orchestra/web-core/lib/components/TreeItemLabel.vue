@@ -7,11 +7,11 @@
       v-bind="$attrs"
     >
       <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" @click="toggle()" />
-      <a v-tooltip="hasTooltip" :href="href" class="link" @click="navigate">
+      <a v-tooltip="{ selector: '.text' }" :href="href" class="link" @click="navigate">
         <slot name="icon">
           <UiIcon :icon="icon" class="icon" />
         </slot>
-        <div ref="textElement" class="text">
+        <div class="text">
           <slot />
         </div>
       </a>
@@ -25,7 +25,6 @@
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import {
   IK_TREE_ITEM_EXPANDED,
   IK_TREE_ITEM_HAS_CHILDREN,
@@ -42,9 +41,6 @@ defineProps<{
   route: RouteLocationRaw
   active?: boolean
 }>()
-
-const textElement = ref<HTMLElement>()
-const hasTooltip = computed(() => hasEllipsis(textElement.value))
 
 const hasToggle = inject(
   IK_TREE_ITEM_HAS_CHILDREN,

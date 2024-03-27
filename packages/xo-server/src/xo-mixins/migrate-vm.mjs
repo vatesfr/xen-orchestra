@@ -55,8 +55,9 @@ export default class MigrateVm {
 
   async warmMigrateVm(sourceVmId, srId, startDestVm = true, deleteSource = false) {
     // we'll use a one time use continuous replication job with the VM to migrate
-    const jobId = generateUuid()
     const app = this._app
+    await app.checkFeatureAuthorization('WARM_MIGRATION')
+    const jobId = generateUuid()
     const sourceVm = app.getXapiObject(sourceVmId)
     let backup = this.#createWarmBackup(sourceVmId, srId, jobId)
     await backup.run()
