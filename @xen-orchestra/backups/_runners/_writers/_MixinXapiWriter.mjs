@@ -38,8 +38,12 @@ export const MixinXapiWriter = (BaseClass = Object) =>
           const { $xapi: xapi } = sr
           let healthCheckVmRef
           try {
-            const baseVm = xapi.getObject(this._targetVmRef) ?? (await xapi.waitObject(this._targetVmRef))
-
+            let baseVm
+            try {
+              baseVm = xapi.getObject(this._targetVmRef)
+            } catch (err) {
+              baseVm = await xapi.waitObject(this._targetVmRef)
+            }
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
               healthCheckVmRef = await Task.run(
                 { name: 'cloning-vm' },

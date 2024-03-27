@@ -17,7 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VMWare/Migration] Alignment of the end of delta on older ESXi (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
-
+- [Backup] Fix `no object with uuid or opaqueref` when running a health check (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
 - vhd-lib patch
 - xo-acl-resolver minor
