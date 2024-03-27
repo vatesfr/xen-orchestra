@@ -6,6 +6,7 @@ import { Task } from '@vates/task'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
 import assert from 'node:assert'
+import { openDatastore } from './_openDatastore.mjs'
 
 /* eslint-disable no-console */
 
@@ -13,7 +14,6 @@ import assert from 'node:assert'
 const VHD_BLOCK_LENGTH = 2 * 1024 * 1024
 export default class VhdEsxiRaw extends VhdAbstract {
   #datastore
-  #esxi
   #path
   #thin
 
@@ -25,8 +25,9 @@ export default class VhdEsxiRaw extends VhdAbstract {
   #stream
   #reading = false
 
-  static async open(esxi, datastore, path, opts) {
-    const vhd = new VhdEsxiRaw(esxi, datastore, path, opts)
+  static async open(datastoreName, path, opts) {
+    const datastore = openDatastore(datastoreName, opts)
+    const vhd = new VhdEsxiRaw(datastore, path, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
@@ -39,17 +40,15 @@ export default class VhdEsxiRaw extends VhdAbstract {
     return this.#footer
   }
 
-  constructor(esxi, datastore, path, { thin = true } = {}) {
+  constructor(datastore, path, { thin = true } = {}) {
     super()
-    this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#thin = thin
   }
 
   async readHeaderAndFooter() {
-    const res = await this.#esxi.download(this.#datastore, this.#path)
-    const length = res.headers.get('content-length')
+    const length = await this.#datastore.getSize(this.#path)
 
     this.#header = unpackHeader(createHeader(length / VHD_BLOCK_LENGTH))
     const geometry = _computeGeometryForSize(length)
@@ -85,8 +84,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
       // no stream
       if (this.#stream === undefined) {
         const end = this.footer.currentSize - 1
-        const res = await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)
-        this.#stream = res.body
+        this.#stream = await this.#datastore.getStream(this.#path, start, end)
         this.#streamOffset = start
       }
 
@@ -201,8 +199,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
   }
 
   rawContent() {
-    return this.#esxi.download(this.#datastore, this.#path).then(res => {
-      const stream = res.body
+    return this.#datastore.getStream(this.#path).then(stream => {
       stream.length = this.footer.currentSize
       return stream
     })

@@ -5,6 +5,7 @@ import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { notEqual, strictEqual } from 'node:assert'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
+import { openDatastore } from './_openDatastore.mjs'
 
 // one big difference with the other versions of VMDK is that the grain tables are actually sparse, they are pre-allocated but not used in grain order,
 // so we have to read the grain directory to know where to find the grain tables
@@ -53,7 +54,6 @@ function readSeSparseTable(buffer, index) {
 }
 
 export default class VhdEsxiSeSparse extends VhdAbstract {
-  #esxi
   #datastore
   #parentVhd
   #path
@@ -73,8 +73,9 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   #stream
   #streamOffset = 0
 
-  static async open(esxi, datastore, path, parentVhd, opts) {
-    const vhd = new VhdEsxiSeSparse(esxi, datastore, path, parentVhd, opts)
+  static async open(datastoreName, path, parentVhd, opts) {
+    const datastore = openDatastore(datastoreName, opts)
+    const vhd = new VhdEsxiSeSparse(datastore, path, parentVhd, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
@@ -82,9 +83,8 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   get path() {
     return this.#path
   }
-  constructor(esxi, datastore, path, parentVhd, { lookMissingBlockInParent = true } = {}) {
+  constructor(datastore, path, parentVhd, { lookMissingBlockInParent = true } = {}) {
     super()
-    this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#parentVhd = parentVhd
@@ -114,7 +114,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   async #read(start, length) {
     if (!this.#footer) {
       // we need to be able before the footer is loaded, to read the header and footer
-      return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
+      return this.#datastore.getBuffer(this.#path, start, start + length)
     }
     if (this.#reading) {
       throw new Error('reading must be done sequentially')
@@ -132,8 +132,8 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
       }
       // no stream
       if (this.#stream === undefined) {
-        const end = this.footer.currentSize - 1
-        const res = await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)
+        const end = this.footer.currentSize
+        const res = await this.#datastore.getStream(this.#path, start, end)
         this.#stream = res.body
         this.#streamOffset = start
       }
