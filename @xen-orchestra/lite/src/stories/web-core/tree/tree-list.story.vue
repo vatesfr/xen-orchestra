@@ -5,7 +5,7 @@
         <TreeItemLabel :icon="faCity" route="dashboard">Pool</TreeItemLabel>
         <template #sublist>
           <TreeList>
-            <TreeItem v-for="i in 3" :key="i">
+            <TreeItem v-for="i of 3" :key="i">
               <TreeItemLabel :icon="faServer" route="dashboard">
                 Host - {{ i }}
                 <template #addons>
@@ -15,11 +15,11 @@
               </TreeItemLabel>
               <template #sublist>
                 <TreeList>
-                  <TreeItem>
+                  <TreeItem v-for="j of 3" :key="j">
                     <TreeItemLabel no-indent route="dashboard">
-                      VM {{ i }}
+                      VM {{ i }}.{{ j }}
                       <template #addons>
-                        <UiIcon v-if="i === 2" busy />
+                        <UiIcon v-if="j === 2" busy />
                         <ButtonIcon :icon="faEllipsis" />
                       </template>
                     </TreeItemLabel>

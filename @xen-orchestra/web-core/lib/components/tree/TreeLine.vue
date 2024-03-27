@@ -14,6 +14,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .tree-line {
+  --offset: 0.7rem;
   flex: 0 1 1.25em;
   align-self: stretch;
   display: flex;
@@ -23,8 +24,8 @@ defineProps<{
   .tree-line-vertical {
     width: 0.1rem;
     background: var(--color-purple-base);
-    height: calc(100% + 0.5rem);
-    transform: translateY(-0.5rem);
+    height: calc(100% + var(--offset));
+    transform: translateY(calc(var(--offset) * -1));
   }
 
   .tree-line-horizontal {
@@ -42,7 +43,7 @@ defineProps<{
   > .tree-item-label {
     .tree-line-half-height {
       align-self: start;
-      height: calc(50% + 0.5rem);
+      height: calc(50% + var(--offset));
     }
   }
 }
