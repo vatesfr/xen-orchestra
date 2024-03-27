@@ -11,7 +11,7 @@
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { useUiStore } from '@/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { onClickOutside, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'

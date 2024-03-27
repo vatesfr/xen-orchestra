@@ -15,14 +15,14 @@
 </template>
 
 <script lang="ts" setup>
-import MenuItem from '@/components/menu/MenuItem.vue'
 import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
 import { DisabledContext } from '@/context'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faRoute } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 

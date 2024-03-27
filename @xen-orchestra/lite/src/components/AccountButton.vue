@@ -1,5 +1,5 @@
 <template>
-  <AppMenu placement="bottom-end" shadow>
+  <MenuList placement="bottom-end" shadow>
     <template #trigger="{ open, isOpen }">
       <button :class="{ active: isOpen }" class="account-button" @click="open">
         <UiIcon :icon="faCircleUser" class="user-icon" />
@@ -13,12 +13,14 @@
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
       {{ $t('log-out') }}
     </MenuItem>
-  </AppMenu>
+  </MenuList>
 </template>
 
 <script lang="ts" setup>
-import { nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { useXenApiStore } from '@/stores/xen-api.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import {
   faAngleDown,
   faArrowRightFromBracket,
@@ -26,10 +28,8 @@ import {
   faGear,
   faMessage,
 } from '@fortawesome/free-solid-svg-icons'
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuItem from '@/components/menu/MenuItem.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 

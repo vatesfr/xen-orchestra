@@ -3,7 +3,7 @@
     <template v-if="$slots.label || label">
       <span class="circle" />
       <div class="label-container">
-        <div ref="labelElement" v-tooltip="isTooltipEnabled" class="label">
+        <div v-tooltip="{ vertical: true }" class="label">
           <slot name="label">{{ label }}</slot>
         </div>
       </div>
@@ -16,18 +16,12 @@
 
 <script lang="ts" setup>
 import UiBadge from '@/components/ui/UiBadge.vue'
-import { vTooltip } from '@/directives/tooltip.directive'
-import { hasEllipsis } from '@/libs/utils'
-import { computed, ref } from 'vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{
   label?: string
   value?: string
 }>()
-
-const labelElement = ref<HTMLElement>()
-
-const isTooltipEnabled = computed(() => hasEllipsis(labelElement.value, { vertical: true }))
 </script>
 
 <style lang="postcss" scoped>

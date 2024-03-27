@@ -3647,6 +3647,9 @@ export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseI
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
 
+export const rebindObjectLicense = (boundObjectId, licenseId, productId) =>
+  _call('xoa.licenses.rebindObject', { boundObjectId, licenseId, productId })
+
 export const bindXcpngLicense = (licenseId, boundObjectId) =>
   bindLicense(licenseId, boundObjectId)::tap(subscribeXcpngLicenses.forceRefresh)
 
