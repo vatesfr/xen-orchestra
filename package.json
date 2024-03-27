@@ -92,7 +92,7 @@
       "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
     ],
     ".USAGE.md": "scripts/usage-to-readme.js --git-add",
-    "./CHANGELOG.unreleased.md": "sh -c scripts/gen-deps-list.js --"
+    "./CHANGELOG.unreleased.md": "sh -c 'scripts/gen-deps-list.js --check-order' --"
   },
   "private": true,
   "scripts": {
