@@ -229,13 +229,21 @@ class EnableHaModal extends Component {
     return (
       <div>
         <strong>{_('poolHaSelectSrs')}</strong>
-        <SelectSr multi value={this.state.srs} onChange={this.linkState('srs')} />
+        <br />
+        {_('poolHaSelectSrsDetails')}
+        <SelectSr
+          multi
+          value={this.state.srs}
+          onChange={this.linkState('srs')}
+          predicate={sr => sr.shared && isSrWritable(sr)}
+        />
       </div>
     )
   }
 }
 
 class ToggleHa extends Component {
+  // state.busy is used to prevent interraction with toggle while HA is being enabled or disabled
   state = {
     busy: false,
   }
@@ -399,6 +407,24 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                   <tr>
+                    <th>{_('poolHeartbeatSr')}</th>
+                    <td>
+                      <ul>
+                        {map(pool.haSrs, sr => (
+                          <li key={sr}>
+                            <Sr id={sr} />
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHaStatus')}</th>
+                    <td>
+                      <ToggleHa pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
                     <th>{_('setpoolMaster')}</th>
                     <td>
                       <PoolMaster pool={pool} />
@@ -484,24 +510,6 @@ export default class TabAdvanced extends Component {
                           <Icon icon='remove' />
                         </a>
                       )}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{_('poolHaStatus')}</th>
-                    <td>
-                      <ToggleHa pool={pool} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{_('poolHeartbeatSrs')}</th>
-                    <td>
-                      <ul>
-                        {map(pool.haSrs, sr => (
-                          <li key={sr}>
-                            <Sr id={sr} />
-                          </li>
-                        ))}
-                      </ul>
                     </td>
                   </tr>
                 </tbody>

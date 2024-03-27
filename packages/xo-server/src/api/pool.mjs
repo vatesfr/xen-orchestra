@@ -138,9 +138,6 @@ export async function enableHa({ pool, heartbeatSrs, configuration }) {
   await this.hasPermissions(this.apiContext.user.id, [[pool, 'administrate']])
 
   await this.getXapi(pool).enableHa(heartbeatSrs, configuration)
-
-  // TODO : update pool.haSrs
-  // await pool.set_haSrs(heartbeatSrs)
 }
 
 enableHa.params = {
