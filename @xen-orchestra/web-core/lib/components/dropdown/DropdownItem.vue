@@ -1,5 +1,5 @@
 <template>
-  <div :class="[color, { disabled, selected }]" class="dropdown-item">
+  <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
     <UiIcon v-if="checkbox" :color="color ?? 'info'" :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
       <UiIcon :icon />
@@ -14,6 +14,7 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Color } from '@core/types/color.type'
 import { IK_DROPDOWN_CHECKBOX } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -180,6 +181,9 @@ const checkbox = inject(
 
 .label {
   margin-right: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-text {

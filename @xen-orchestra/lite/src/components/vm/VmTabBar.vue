@@ -1,35 +1,35 @@
 <template>
-  <UiTabBar>
-    <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }">
+  <TabList>
+    <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }" disabled>
       {{ $t('dashboard') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.console', params: { uuid } }">
       {{ $t('console') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.alarms', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.alarms', params: { uuid } }" disabled>
       {{ $t('alarms') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.stats', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.stats', params: { uuid } }" disabled>
       {{ $t('stats') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.system', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.system', params: { uuid } }" disabled>
       {{ $t('system') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.network', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.network', params: { uuid } }" disabled>
       {{ $t('network') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.storage', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.storage', params: { uuid } }" disabled>
       {{ $t('storage') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.tasks', params: { uuid } }">
+    <RouterTab :to="{ name: 'vm.tasks', params: { uuid } }" disabled>
       {{ $t('tasks') }}
     </RouterTab>
-  </UiTabBar>
+  </TabList>
 </template>
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import UiTabBar from '@/components/ui/UiTabBar.vue'
+import TabList from '@core/components/tab/TabList.vue'
 
 defineProps<{
   uuid: string

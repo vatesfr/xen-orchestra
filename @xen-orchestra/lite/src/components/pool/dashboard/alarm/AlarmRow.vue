@@ -6,7 +6,7 @@
       </div>
     </th>
     <td>
-      <div ref="descriptionElement" v-tooltip="hasTooltip" class="ellipsis description">
+      <div v-tooltip class="ellipsis description">
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
@@ -21,19 +21,15 @@
 <script lang="ts" setup generic="T extends RawObjectType">
 import ObjectLink from '@/components/ObjectLink.vue'
 import RelativeTime from '@/components/RelativeTime.vue'
-import { vTooltip } from '@/directives/tooltip.directive'
-import { hasEllipsis, parseDateTime } from '@/libs/utils'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { parseDateTime } from '@/libs/utils'
 import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
 import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
 import type { XenApiAlarm } from '@/types/xen-api'
-import { computed, ref } from 'vue'
 
 defineProps<{
   alarm: XenApiAlarm<T>
 }>()
-
-const descriptionElement = ref<HTMLElement>()
-const hasTooltip = computed(() => hasEllipsis(descriptionElement.value))
 </script>
 
 <style lang="postcss" scoped>

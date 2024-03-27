@@ -384,14 +384,18 @@ const COLUMNS_AUTH_TOKENS = [
     sortCriteria: 'description',
   },
   {
-    itemRenderer: ({ created_at }) => {
-      if (created_at !== undefined) {
-        return <NumericDate timestamp={created_at} />
+    itemRenderer: ({ last_use_ip, last_uses }) => {
+      if (last_use_ip !== undefined) {
+        return (
+          <span>
+            <NumericDate timestamp={last_uses[last_use_ip].timestamp} /> by <code>{last_use_ip}</code>
+          </span>
+        )
       }
       return _('notDefined')
     },
-    name: _('creation'),
-    sortCriteria: 'created_at',
+    name: _('authTokenLastUse'),
+    sortCriteria: ({ last_use_ip, last_uses }) => last_use_ip && last_uses[last_use_ip].timestamp,
   },
   {
     default: true,
@@ -420,7 +424,34 @@ const GROUPED_ACTIONS_AUTH_TOKENS = [
 ]
 
 const UserAuthTokens = addSubscriptions({
-  userAuthTokens: subscribeUserAuthTokens,
+  userAuthTokens: cb =>
+    subscribeUserAuthTokens(tokens => {
+      cb(
+        tokens.map(token => {
+          // find and inject last_use_ip from last_uses dictionnary
+          const { last_uses } = token
+          if (last_uses !== undefined) {
+            const ips = Object.keys(last_uses)
+            const n = ips.length
+            if (n !== 0) {
+              let lastIp = ips[0]
+              let lastTimestamp = last_uses[lastIp].timestamp
+              for (let i = 1; i < n; ++i) {
+                const ip = ips[i]
+                const { timestamp } = last_uses[ip]
+                if (timestamp > lastTimestamp) {
+                  lastIp = ip
+                  lastTimestamp = timestamp
+                }
+              }
+              return { ...token, last_use_ip: lastIp }
+            }
+          }
+
+          return token
+        })
+      )
+    }),
 })(({ userAuthTokens }) => (
   <div>
     <Card>

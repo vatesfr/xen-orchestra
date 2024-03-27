@@ -1,12 +1,13 @@
 <template>
   <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip typo p1-regular">
     <span class="triangle" />
-    <span class="label">{{ options.content }}</span>
+    <span class="label">{{ content }}</span>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { TooltipOptions } from '@/stores/tooltip.store'
+import type { TooltipOptions } from '@core/stores/tooltip.store'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import { isString } from 'lodash-es'
 import place from 'placement.js'
 import { computed, ref, watchEffect } from 'vue'
@@ -18,9 +19,25 @@ const props = defineProps<{
 
 const tooltipElement = ref<HTMLElement>()
 
-const isDisabled = computed(() =>
-  isString(props.options.content) ? props.options.content.trim() === '' : props.options.content === false
-)
+const content = computed(() => {
+  if (props.options.content === false) {
+    return false
+  }
+
+  if (isString(props.options.content)) {
+    return props.options.content.trim() === '' ? false : props.options.content
+  }
+
+  const ellipsisTarget = props.options.selector ? props.target.querySelector(props.options.selector) : props.target
+
+  if (!ellipsisTarget || !hasEllipsis(ellipsisTarget, { vertical: props.options.vertical })) {
+    return false
+  }
+
+  return ellipsisTarget.textContent?.trim() ?? false
+})
+
+const isDisabled = computed(() => content.value === false)
 
 const placement = computed(() => props.options.placement ?? 'top')
 
