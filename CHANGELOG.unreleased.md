@@ -64,5 +64,6 @@
 - xo-cli minor
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-web minor
 
 <!--packages-end-->
