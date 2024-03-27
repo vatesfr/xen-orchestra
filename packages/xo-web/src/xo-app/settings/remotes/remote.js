@@ -230,7 +230,6 @@ export default decorate([
               {map(remoteTypes, (label, key) => _({ key }, label, message => <option value={key}>{message}</option>))}
             </select>
             {type === 'smb' && <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>}
-            {type === 's3' && <em className='text-warning'>Backup to Amazon S3 is a BETA feature</em>}
           </div>
           <div className='form-group'>
             <input
