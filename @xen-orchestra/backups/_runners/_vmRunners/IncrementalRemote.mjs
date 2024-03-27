@@ -1,6 +1,4 @@
 import { asyncEach } from '@vates/async-each'
-import { decorateMethodsWith } from '@vates/decorate-with'
-import { defer } from 'golike-defer'
 import assert from 'node:assert'
 import * as UUID from 'uuid'
 import isVhdDifferencingDisk from 'vhd-lib/isVhdDifferencingDisk.js'
@@ -52,14 +50,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
     // yeah , let's go
   }
-  async _run($defer) {
+  async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
-    await this._callWriters(async writer => {
-      await writer.beforeBackup()
-      $defer(async () => {
-        await writer.afterBackup()
-      })
-    }, 'writer.beforeBackup()')
 
     if (transferList.length > 0) {
       for (const metadata of transferList) {
@@ -110,6 +102,3 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
 }
 
 export const IncrementalRemote = IncrementalRemoteVmBackupRunner
-decorateMethodsWith(IncrementalRemoteVmBackupRunner, {
-  _run: defer,
-})
