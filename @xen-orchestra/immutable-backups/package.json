@@ -17,13 +17,13 @@
     "xo-lift-remote-immutability": "./liftProtection.mjs"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "node": ">=14.0.0"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
-    "@xen-orchestra/backups": "^0.45.0",
+    "@xen-orchestra/backups": "^0.46.0",
     "@xen-orchestra/log": "^0.6.0",
     "app-conf": "^2.3.0",
     "chokidar": "^3.5.3",
