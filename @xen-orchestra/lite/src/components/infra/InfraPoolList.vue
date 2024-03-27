@@ -1,6 +1,6 @@
 <template>
-  <ul class="infra-pool-list">
-    <li v-if="hasError" class="text-error">
+  <ul class="infra-pool-list typo h6-medium">
+    <li v-if="hasError" class="text-error typo h6-semi-bold">
       {{ $t('error-no-data') }}
     </li>
     <InfraLoadingItem v-else-if="!isReady || pool === undefined" :icon="faBuilding" />
@@ -28,11 +28,6 @@ const { isReady, hasError, pool } = usePoolCollection()
 </script>
 
 <style lang="postcss" scoped>
-.infra-pool-list {
-  font-size: 1.6rem;
-  font-weight: 500;
-}
-
 .infra-vm-list:deep(.link),
 .infra-vm-list:deep(.link-placeholder) {
   padding-left: 2rem;
@@ -40,9 +35,6 @@ const { isReady, hasError, pool } = usePoolCollection()
 
 .text-error {
   padding-left: 3rem;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 150%;
   color: var(--color-red-base);
 }
 </style>

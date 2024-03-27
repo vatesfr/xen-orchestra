@@ -1,7 +1,7 @@
 <template>
   <div :class="{ collapsible }" class="form-section">
     <fieldset class="fieldset">
-      <legend class="legend" @click="toggleCollapse">
+      <legend class="legend typo h4-medium" @click="toggleCollapse">
         {{ label }}
         <UiIcon :icon class="collapse-icon" />
       </legend>
@@ -71,8 +71,6 @@ whenever(
   border: none;
   border-bottom: 1px solid var(--color-purple-base);
   width: 100%;
-  font-size: 2rem;
-  font-weight: 500;
   padding-bottom: 1rem;
 
   .collapsible & {

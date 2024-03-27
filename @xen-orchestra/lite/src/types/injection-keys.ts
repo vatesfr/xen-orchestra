@@ -5,8 +5,6 @@ import type { ValueFormatter } from '@/types/chart'
 import type { ModalController } from '@/types/index'
 import type { ComputedRef, InjectionKey } from 'vue'
 
-export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<boolean>
-
 export const IK_CHART_VALUE_FORMATTER = Symbol('IK_CHART_VALUE_FORMATTER') as InjectionKey<ComputedRef<ValueFormatter>>
 
 export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'select' | 'textarea'>
@@ -14,10 +12,6 @@ export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'select' | 
 export const IK_CHECKBOX_TYPE = Symbol('IK_CHECKBOX_TYPE') as InjectionKey<'checkbox' | 'radio' | 'toggle'>
 
 export const IK_FORM_HAS_LABEL = Symbol('IK_FORM_HAS_LABEL') as InjectionKey<ComputedRef<boolean>>
-
-export const IK_MENU_HORIZONTAL = Symbol('IK_MENU_HORIZONTAL') as InjectionKey<ComputedRef<boolean>>
-
-export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 
 export const IK_HOST_STATS = Symbol('IK_HOST_STATS') as InjectionKey<ComputedRef<Stat<HostStats>[]>>
 

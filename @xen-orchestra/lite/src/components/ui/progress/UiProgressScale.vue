@@ -1,5 +1,5 @@
 <template>
-  <p class="unit">
+  <p class="unit typo p3-regular">
     <span>0{{ unit }}</span>
     <span v-for="step in steps" :key="step"> {{ Math.round((maxValue / (steps + 1)) * step) }}{{ unit }} </span>
     <span>{{ maxValue }}{{ unit }}</span>
@@ -21,8 +21,6 @@ withDefaults(
 .unit {
   color: var(--color-grey-300);
   display: flex;
-  font-size: 12px;
-  font-weight: 400;
   justify-content: space-between;
   letter-spacing: 0.04em;
   line-height: 16px;

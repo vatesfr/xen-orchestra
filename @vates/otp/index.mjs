@@ -9,6 +9,15 @@ function assert(name, value) {
   }
 }
 
+const WHITESPACES = /\s+/g
+function cleanToken(otp) {
+  // remove whitespaces
+  //
+  // some OTP clients add whitespaces for better readability (e.g. `XXX XXX`)
+  // and users might be tempted to write them
+  return otp && otp.replace(WHITESPACES, '')
+}
+
 // https://github.com/google/google-authenticator/wiki/Key-Uri-Format
 function generateUri(protocol, label, params) {
   assert('label', typeof label === 'string')
@@ -64,7 +73,7 @@ export function generateHotpUri({ counter, digits, issuer, label, secret }) {
 }
 
 export async function verifyHotp(token, opts) {
-  return token === (await generateHotp(opts))
+  return cleanToken(token) === (await generateHotp(opts))
 }
 
 function totpCounter(period = 30, timestamp = Math.floor(Date.now() / 1e3)) {
@@ -85,6 +94,7 @@ export async function verifyTotp(token, { period, timestamp, window = 1, ...opts
   const counter = totpCounter(period, timestamp)
   const end = counter + window
   opts.counter = counter - window
+  token = cleanToken(token)
   while (opts.counter <= end) {
     if (token === (await generateHotp(opts))) {
       return true

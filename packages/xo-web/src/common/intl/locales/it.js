@@ -5036,8 +5036,9 @@ export default {
   // Original text: 'Add OTP authentication'
   addOtpConfirm: 'Aggiungi autenticazione OTP',
 
-  // Original text: 'Are you sure you want to add OTP authentication?'
-  addOtpConfirmMessage: "Sei sicuro di voler aggiungere l'autenticazione OTP?",
+  // Original text: 'To enable OTP authentication, add it to your application and then enter your current password to validate.'
+  addOtpConfirmMessage:
+    "Per abilitare l'autenticazione OTP, aggiungila alla tua applicazione e quindi inserisci la password corrente per convalidare.",
 
   // Original text: 'Remove OTP authentication'
   removeOtpConfirm: 'Rimuovi autenticazione OTP',

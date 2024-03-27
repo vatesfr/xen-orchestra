@@ -1,5 +1,5 @@
 <template>
-  <table class="story-params-table">
+  <table class="story-params-table typo p2-regular">
     <slot />
   </table>
 </template>
@@ -8,7 +8,6 @@
 
 <style lang="postcss" scoped>
 .story-params-table {
-  font-size: 1.4rem;
   border-spacing: 0;
 
   & :slotted(thead th) {

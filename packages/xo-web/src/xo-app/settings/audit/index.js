@@ -13,10 +13,11 @@ import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { alert, chooseAction, form } from 'modal'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { injectIntl } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { noop, startCase } from 'lodash'
+import { NumericDate } from 'utils'
 import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
@@ -208,17 +209,7 @@ const COLUMNS = [
     sortCriteria: ({ data, event }) => (event === 'apiCall' ? data.method : event),
   },
   {
-    itemRenderer: ({ time }) => (
-      <FormattedDate
-        day='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        month='short'
-        second='2-digit'
-        value={new Date(time)}
-        year='numeric'
-      />
-    ),
+    itemRenderer: ({ time }) => <NumericDate timestamp={time} />,
     name: _('date'),
     sortCriteria: 'time',
     sortOrder: 'desc',

@@ -14,7 +14,7 @@ import sanitizeHtml from 'sanitize-html'
 import Tooltip from 'tooltip'
 import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
-import { FormattedRelative, FormattedDate } from 'react-intl'
+import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
@@ -25,7 +25,14 @@ import {
   getResolvedPendingTasks,
   isAdmin,
 } from 'selectors'
-import { addSubscriptions, connectStore, formatSizeShort, getVirtualizationModeLabel, osFamily } from 'utils'
+import {
+  addSubscriptions,
+  connectStore,
+  formatSizeShort,
+  getVirtualizationModeLabel,
+  osFamily,
+  NumericDate,
+} from 'utils'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 import { injectState, provideState } from 'reaclette'
 import { find } from 'lodash'
@@ -213,12 +220,7 @@ const GeneralTab = decorate([
             <p style={CREATED_VM_STYLES}>
               {_(isAdmin ? 'vmCreatedAdmin' : 'vmCreatedNonAdmin', {
                 user: vmCreator?.email ?? _('unknown'),
-                date:
-                  installTime !== null ? (
-                    <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />
-                  ) : (
-                    _('unknown')
-                  ),
+                date: installTime !== null ? <NumericDate timestamp={installTime * 1000} /> : _('unknown'),
                 template:
                   vmTemplate !== undefined ? (
                     <VmTemplate id={vmTemplate.id} />

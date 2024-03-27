@@ -468,8 +468,8 @@ const NIC_TYPE_OPTIONS = [
     .pick(
       createSelector(createGetObjectsOfType('USB_group'), usbGroups =>
         map(
-          filter(usbGroups, usbGroup => usbGroup.VUSB[0] === undefined),
-          usbGroup => usbGroup.PUSB
+          filter(usbGroups, usbGroup => usbGroup.VUSBs[0] === undefined),
+          usbGroup => usbGroup.PUSBs
         )
       )
     )

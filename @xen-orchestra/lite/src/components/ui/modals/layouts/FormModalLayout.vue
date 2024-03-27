@@ -1,7 +1,7 @@
 <template>
   <ModalContainer tag="form">
     <template #header>
-      <div :class="borderClass" class="title-bar">
+      <div :class="borderClass" class="title-bar typo h3-medium">
         <UiIcon :class="textClass" :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
@@ -13,9 +13,9 @@
     </template>
 
     <template #footer>
-      <UiButtonGroup class="footer-buttons">
+      <ButtonGroup class="footer-buttons">
         <slot name="buttons" />
-      </UiButtonGroup>
+      </ButtonGroup>
     </template>
   </ModalContainer>
 </template>
@@ -24,9 +24,9 @@
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
-import UiButtonGroup from '@/components/ui/UiButtonGroup.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
+import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
@@ -47,10 +47,8 @@ const { textClass, borderClass } = useContext(ColorContext)
   display: flex;
   border-bottom-width: 1px;
   border-bottom-style: solid;
-  font-size: 2.4rem;
   gap: 1rem;
   padding-bottom: 1rem;
-  font-weight: 500;
   align-items: center;
 }
 

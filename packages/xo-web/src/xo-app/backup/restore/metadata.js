@@ -11,9 +11,8 @@ import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { filter, flatMap, forOwn, reduce } from 'lodash'
-import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { noop, resolveId } from 'utils'
+import { noop, NumericDate, resolveId } from 'utils'
 import { deleteMetadataBackups, listMetadataBackups, restoreMetadataBackup, subscribeRemotes } from 'xo'
 
 import Logs from '../../logs/restore-metadata'
@@ -117,33 +116,13 @@ const COLUMNS = [
   },
   {
     name: _('firstBackupColumn'),
-    itemRenderer: ({ first }) => (
-      <FormattedDate
-        value={new Date(first.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ first }) => <NumericDate timestamp={first.timestamp} />,
     sortCriteria: 'first',
     sortOrder: 'desc',
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => (
-      <FormattedDate
-        value={new Date(last.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ last }) => <NumericDate timestamp={last.timestamp} />,
     sortCriteria: 'last',
     default: true,
     sortOrder: 'desc',

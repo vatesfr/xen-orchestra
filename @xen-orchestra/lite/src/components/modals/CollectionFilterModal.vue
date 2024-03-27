@@ -14,7 +14,7 @@
 
         <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
           {{ $t('available-properties-for-advanced-filter') }}
-          <div class="properties">
+          <div class="properties typo p1-regular">
             <UiBadge v-for="(filter, property) in availableFilters" :key="property" :icon="getFilterIcon(filter)">
               {{ property }}
             </UiBadge>
@@ -23,7 +23,7 @@
       </template>
 
       <template #buttons>
-        <UiButton transparent @click="addNewFilter()">
+        <UiButton level="tertiary" @click="addNewFilter()">
           {{ $t('add-or') }}
         </UiButton>
         <ModalDeclineButton />
@@ -42,10 +42,10 @@ import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import { getFilterIcon } from '@/libs/utils'
 import type { Filters, NewFilter } from '@/types/filter'
 import { IK_MODAL } from '@/types/injection-keys'
+import UiButton from '@core/components/button/UiButton.vue'
 import { Or, parse } from 'complex-matcher'
 import { computed, inject, onMounted, ref } from 'vue'
 
@@ -110,7 +110,6 @@ onMounted(() => {
 
 <style lang="postcss" scoped>
 .properties {
-  font-size: 1.6rem;
   margin-top: 1rem;
 
   ul {

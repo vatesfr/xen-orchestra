@@ -51,6 +51,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
+import { ProxyAgent } from 'proxy-agent'
 
 // ===================================================================
 
@@ -273,7 +274,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
-  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
+  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -326,7 +327,14 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   xo.registerPassportStrategy(
     new LocalStrategy({ passReqToCallback: true }, async (req, username, password, done) => {
       try {
-        const { user } = await xo.authenticateUser({ username, password }, { ip: req.ip })
+        const { user } = await xo.authenticateUser(
+          { username, password },
+          { ip: req.ip },
+          {
+            // OTP is handled differently in the web auth process
+            bypassOtp: true,
+          }
+        )
         done(null, user)
       } catch (error) {
         done(null, false, { message: error.message })
@@ -705,12 +713,13 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
       {
         const { token } = parseCookies(req.headers.cookie)
 
-        const { user } = await xo.authenticateUser({ token })
+        const remoteAddress = proxyAddr(req, useForwardedHeaders)
+
+        const { user } = await xo.authenticateUser({ token }, { ip: remoteAddress })
         if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
 
-        const remoteAddress = proxyAddr(req, useForwardedHeaders)
         log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
 
         const data = {
@@ -745,9 +754,18 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
       const xapi = vm.$xapi
       const vmConsole = xapi.getVmConsole(id)
 
+      const serverId = xo.getXenServerIdByObject(id, ['VM', 'VM-controller'])
+      const server = await xo.getXenServer(serverId)
+      const agent =
+        server.httpProxy &&
+        new ProxyAgent({
+          getProxyForUrl: () => httpProxy,
+          rejectUnauthorized: !server.allowUnauthorized,
+        })
+
       // FIXME: lost connection due to VM restart is not detected.
       webSocketServer.handleUpgrade(req, socket, head, connection => {
-        proxyConsole(connection, vmConsole, xapi.sessionId, xapi.httpAgent)
+        proxyConsole(connection, vmConsole, xapi.sessionId, agent)
       })
     } catch (error) {
       try {

@@ -9,6 +9,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
 import { Ref } from 'xen-api'
@@ -502,7 +503,7 @@ class Vm {
       exportedVmRef = vmRef
     }
     try {
-      const stream = await this.getResource(cancelToken, '/export/', {
+      const response = await this.getResource(cancelToken, '/export/', {
         query: {
           ref: exportedVmRef,
           use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
@@ -511,10 +512,10 @@ class Vm {
       })
 
       if (useSnapshot) {
-        stream.once('end', destroySnapshot).once('error', destroySnapshot)
+        finished(response.body, destroySnapshot)
       }
 
-      return stream
+      return response
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, exportedVm] = await Promise.all([

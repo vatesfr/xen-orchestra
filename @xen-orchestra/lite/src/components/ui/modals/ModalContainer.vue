@@ -1,5 +1,5 @@
 <template>
-  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container">
+  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container typo p1-regular">
     <header v-if="$slots.header" class="modal-header">
       <slot name="header" />
     </header>
@@ -44,7 +44,6 @@ provide(IK_MODAL_NESTED, true)
   padding: 2rem;
   gap: 1rem;
   border-radius: 1rem;
-  font-size: 1.6rem;
 
   &:not(.nested) {
     min-width: 40rem;

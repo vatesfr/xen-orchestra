@@ -1,3 +1,4 @@
+import authenticator from '../otp-authenticator.js'
 import asap from 'asap'
 import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
@@ -74,6 +75,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 // ===================================================================
 
+export const isSrIso = sr => sr && sr.content_type === 'iso' && sr.size > 0
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
 export const isSrWritableOrIso = sr => sr && sr.size > 0
 export const isSrShared = sr => sr && sr.shared
@@ -1688,17 +1690,16 @@ export const migrateVm = async (vm, host) => {
     return
   }
 
-  const { migrationNetwork, sr, targetHost } = params
+  const { sr, srRequired, targetHost } = params
 
   if (!targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
   }
 
-  // Workaround to prevent VM's VDIs from unexpectedly migrating to the default SR
-  // if migration network is defined, the SR is required.
-  if (migrationNetwork !== undefined && sr === undefined) {
+  if (srRequired && sr === undefined) {
     return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
+  delete params.srRequired
 
   try {
     await _call('vm.migrate', { vm: vm.id, ...params })
@@ -1732,6 +1733,11 @@ export const migrateVms = vms =>
     if (!params.targetHost) {
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
+
+    if (params.srRequired && params.sr === undefined) {
+      return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+    }
+    delete params.srRequired
 
     const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, sr, targetHost, vms } = params
     Promise.all(
@@ -3291,17 +3297,29 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
-export const addOtp = secret =>
-  confirm({
-    title: _('addOtpConfirm'),
-    body: _('addOtpConfirmMessage'),
-  }).then(
-    () =>
-      _setUserPreferences({
-        otp: secret,
-      }),
-    noop
-  )
+// eslint-disable-next-line import/first
+import { AddOtpModal } from './add-otp-modal.js'
+export const addOtp = async secret => {
+  try {
+    let token
+    do {
+      token = await confirm({
+        title: _('addOtpConfirm'),
+        body: <AddOtpModal failedToken={token} secret={secret} user={xo.user} />,
+      })
+    } while (!(await authenticator.check(token, secret)))
+  } catch (error) {
+    if (error === undefined) {
+      // action canceled
+      return
+    }
+    throw error
+  }
+
+  return _setUserPreferences({
+    otp: secret,
+  })
+}
 
 export const removeOtp = user =>
   confirm({
@@ -3628,6 +3646,9 @@ export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get'
 export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
+
+export const rebindObjectLicense = (boundObjectId, licenseId, productId) =>
+  _call('xoa.licenses.rebindObject', { boundObjectId, licenseId, productId })
 
 export const bindXcpngLicense = (licenseId, boundObjectId) =>
   bindLicense(licenseId, boundObjectId)::tap(subscribeXcpngLicenses.forceRefresh)

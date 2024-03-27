@@ -1,7 +1,7 @@
 <template>
   <div class="form-input-wrapper">
     <div v-if="label !== undefined || learnMoreUrl !== undefined" class="label-container">
-      <label :class="{ light }" :for="id" class="label">
+      <label :class="[light ? 'p1-regular light' : 'h7-semi-bold']" :for="id" class="label typo">
         <UiIcon :icon />
         {{ label }}
       </label>
@@ -95,15 +95,11 @@ useContext(DisabledContext, () => props.disabled)
   padding: 1rem 0;
 
   &.light {
-    font-size: 1.6rem;
     color: var(--color-grey-300);
-    font-weight: 400;
   }
 
   &:not(.light) {
-    font-size: 1.4rem;
     text-transform: uppercase;
-    font-weight: 700;
     color: var(--color-grey-100);
   }
 }

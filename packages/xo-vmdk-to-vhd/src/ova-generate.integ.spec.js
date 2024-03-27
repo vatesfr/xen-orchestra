@@ -99,7 +99,7 @@ test('An ova file is generated correctly', async () => {
     try {
       await execXmllint(xml, [
         '--schema',
-        path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'),
+        path.join(__dirname, '..', 'src', 'ova-schema', 'dsp8023_1.1.1.xsd'),
         '--noout',
         '--nonet',
         '-',

@@ -1,7 +1,7 @@
 <template>
   <div class="title-bar">
     <UiIcon :icon class="icon" />
-    <div class="title">
+    <div class="title typo h4-medium">
       <slot />
     </div>
     <div class="actions">
@@ -40,7 +40,12 @@ defineProps<{
 }
 
 .title {
-  font-size: 2.5rem;
   color: var(--color-grey-100);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 </style>

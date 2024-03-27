@@ -16,7 +16,7 @@ const methods = {
   exportPoolMetadata($cancelToken) {
     return this.getResource($cancelToken, PATH_DB_DUMP, {
       task: this.task_create('Export pool metadata'),
-    })
+    }).then(response => response.body)
   },
 
   // Restore the XAPI database from an XML backup
