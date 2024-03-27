@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
-import { FormattedDate } from 'react-intl'
+import { NumericDate } from 'utils'
 import { Select } from 'form'
 
 export default class DeleteMetadataBackupModalBody extends Component {
@@ -16,17 +16,7 @@ export default class DeleteMetadataBackupModalBody extends Component {
     return this.state.backups
   }
 
-  _optionRenderer = ({ timestamp }) => (
-    <FormattedDate
-      value={new Date(timestamp)}
-      month='long'
-      day='numeric'
-      year='numeric'
-      hour='2-digit'
-      minute='2-digit'
-      second='2-digit'
-    />
-  )
+  _optionRenderer = ({ timestamp }) => <NumericDate timestamp={timestamp} />
 
   render() {
     return (

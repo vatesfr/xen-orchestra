@@ -3,7 +3,6 @@ import contentType from 'content-type'
 import cookie from 'cookie'
 import hrp from 'http-request-plus'
 import isEmpty from 'lodash/isEmpty.js'
-import mapValues from 'lodash/mapValues.js'
 import omit from 'lodash/omit.js'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
@@ -251,7 +250,7 @@ export default class Proxy {
     } catch (error) {
       // this method does not exist on older versions of the proxy, simply ignore the error
       if (error.code !== -32601) {
-        throw error
+        log.warn('failed to set proxy updater channel', { error })
       }
     }
 
@@ -299,8 +298,13 @@ export default class Proxy {
       app.getApplianceRegistration(),
     ])
     const xenstoreData = {
+      // will be removed by xoa-first-run
       'vm-data/system-account-xoa-password': password,
+
+      // will be removed by xo-proxy
       'vm-data/xo-proxy-authenticationToken': JSON.stringify(proxyAuthenticationToken),
+
+      // will be removed by xoa-updater
       'vm-data/xoa-updater-credentials': JSON.stringify({
         email,
         registrationToken,
@@ -308,9 +312,11 @@ export default class Proxy {
       'vm-data/xoa-updater-channel': JSON.stringify(await this._getChannel()),
     }
     if (httpProxy !== undefined) {
+      // will be removed by xoa-updater
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
     }
     if (networkConfiguration !== undefined) {
+      // will be removed by xoa-first-run
       xenstoreData['vm-data/ip'] = networkConfiguration.ip
       xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
       xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
@@ -328,7 +334,6 @@ export default class Proxy {
       date,
       proxyAuthenticationToken,
       vm,
-      xenstoreData,
     }
   }
 
@@ -361,7 +366,7 @@ export default class Proxy {
       }
     }
 
-    let { date, proxyAuthenticationToken, vm, xenstoreData } = await this._createProxyVm(srId, licenseId, {
+    let { date, proxyAuthenticationToken, vm } = await this._createProxyVm(srId, licenseId, {
       httpProxy,
       networkConfiguration,
       networkId,
@@ -379,8 +384,6 @@ export default class Proxy {
         vmUuid: vm.uuid,
       })
     }
-
-    await vm.update_xenstore_data(mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null))
 
     const xapi = app.getXapi(srId)
 

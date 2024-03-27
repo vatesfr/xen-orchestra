@@ -12,10 +12,9 @@ import SearchBar from 'search-bar'
 import Select from 'form/select'
 import TASK_STATUS from 'task-status'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
+import { addSubscriptions, connectStore, formatSize, formatSpeed, NumericDate } from 'utils'
 import { countBy, cloneDeep, filter, map } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
-import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
@@ -32,17 +31,7 @@ const TaskStateInfos = ({ status }) => {
   )
 }
 
-const TaskDate = ({ value }) => (
-  <FormattedDate
-    value={new Date(value)}
-    month='short'
-    day='numeric'
-    year='numeric'
-    hour='2-digit'
-    minute='2-digit'
-    second='2-digit'
-  />
-)
+const TaskDate = ({ value }) => <NumericDate timestamp={value} />
 
 const TaskStart = ({ task }) => <div>{_.keyValue(_('taskStart'), <TaskDate value={task.start} />)}</div>
 const TaskEnd = ({ task }) =>

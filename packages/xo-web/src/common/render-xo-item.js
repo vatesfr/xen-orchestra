@@ -10,9 +10,8 @@ import decorate from './apply-decorators'
 import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
-import { addSubscriptions, connectStore, formatSize, ShortDate } from './utils'
+import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
-import { FormattedDate } from 'react-intl'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
 
 // ===================================================================
@@ -664,15 +663,7 @@ const xoItemToRender = {
       )}
       {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
-      <FormattedDate
-        value={new Date(backup.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
+      <NumericDate timestamp={backup.timestamp} />
     </span>
   ),
 }

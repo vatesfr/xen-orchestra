@@ -8,8 +8,8 @@ import renderXoItem, { Pool, renderXoItemFromId } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import TASK_STATUS from 'task-status'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore, resolveIds } from 'utils'
-import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
+import { addSubscriptions, connectStore, NumericDate, resolveIds } from 'utils'
+import { FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { Col, Container, Row } from 'grid'
 import { differenceBy, isEmpty, map, some } from 'lodash'
@@ -161,7 +161,7 @@ const FINISHED_TASKS_COLUMNS = [
   ...COMMON,
   {
     default: true,
-    itemRenderer: task => <FormattedDate value={task.disappeared} hour='2-digit' minute='2-digit' second='2-digit' />,
+    itemRenderer: task => <NumericDate timestamp={task.disappeared} />,
     name: _('taskLastSeen'),
     sortCriteria: task => task.disappeared,
     sortOrder: 'desc',
@@ -193,10 +193,7 @@ const XO_TASKS_COLUMNS = [
   },
   {
     default: true,
-    itemRenderer: task =>
-      task.start === undefined ? null : (
-        <FormattedDate year='numeric' month='short' day='2-digit' hour='numeric' minute='numeric' value={task.start} />
-      ),
+    itemRenderer: task => (task.start === undefined ? null : <NumericDate timestamp={task.start} />),
     name: _('taskStarted'),
     sortCriteria: 'start',
     sortOrder: 'desc',

@@ -13,6 +13,8 @@ import { Container, Row, Col } from 'grid'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, LoadSparkLines } from 'xo-sparklines'
 
 export default class extends Component {
+  state = { scale: 1 }
+
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
@@ -31,8 +33,14 @@ export default class extends Component {
 
   _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
 
+  _onChangeScaleValue = event => {
+    const value = event.target.value
+    this.setState({ scale: value / 100 })
+  }
+
   render() {
     const { vmController, statsOverview } = this.props
+    const { scale } = this.state
 
     return (
       <Container>
@@ -54,7 +62,7 @@ export default class extends Component {
         )}
         <br />
         <Row>
-          <Col mediumSize={10}>
+          <Col mediumSize={7}>
             <div className='input-group'>
               <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
@@ -71,10 +79,33 @@ export default class extends Component {
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
             </Button>
           </Col>
+          <Col mediumSize={2}>
+            <input
+              className='form-control'
+              max={3}
+              min={0.1}
+              type='range'
+              onChange={this.linkState('scale')}
+              step={0.1}
+              value={scale}
+            />
+          </Col>
+          <Col mediumSize={1}>
+            <input
+              className='form-control'
+              onChange={this._onChangeScaleValue}
+              step='1'
+              type='number'
+              value={Math.round(this.state.scale * 100)}
+              min={1}
+              max={300}
+            />
+          </Col>
         </Row>
         <Row className='console'>
           <Col>
             <NoVnc
+              scale={scale}
               ref='noVnc'
               url={resolveUrl(`consoles/${vmController.id}`)}
               onClipboardChange={this._getRemoteClipboard}

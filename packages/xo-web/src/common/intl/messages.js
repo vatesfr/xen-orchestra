@@ -6,7 +6,6 @@ const forEach = require('lodash/forEach')
 const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
-  creation: 'Creation',
   connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
@@ -2269,6 +2268,7 @@ const messages = {
   // ----- User -----
   authToken: 'Token',
   authTokens: 'Authentication tokens',
+  authTokenLastUse: 'Last use',
   username: 'Username',
   password: 'Password',
   language: 'Language',
@@ -2310,7 +2310,9 @@ const messages = {
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
   addOtpConfirm: 'Add OTP authentication',
-  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
+  addOtpConfirmMessage:
+    'To enable OTP authentication, add it to your application and then enter the current password to validate.',
+  addOtpInvalidPassword: 'Password is invalid',
   removeOtpConfirm: 'Remove OTP authentication',
   removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',

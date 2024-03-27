@@ -10,13 +10,13 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { connectStore, downloadLog } from 'utils'
+import { connectStore, downloadLog, NumericDate } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import filter from 'lodash/filter.js'
 import { Pool } from 'render-xo-item'
 import { subscribeBackupNgLogs } from 'xo'
 
-import { STATUS_LABELS, LOG_FILTERS, LogDate } from './utils'
+import { STATUS_LABELS, LOG_FILTERS } from './utils'
 
 const showError = error => alert(_('logError'), <pre>{JSON.stringify(error, null, 2).replace(/\\n/g, '\n')}</pre>)
 
@@ -46,13 +46,13 @@ const COLUMNS = [
   },
   {
     name: _('logsBackupTime'),
-    itemRenderer: ({ data: { timestamp } }) => <LogDate time={timestamp} />,
+    itemRenderer: ({ data: { timestamp } }) => <NumericDate timestamp={timestamp} />,
     sortCriteria: 'data.timestamp',
   },
   {
     default: true,
     name: _('logsRestoreTime'),
-    itemRenderer: task => <LogDate time={task.start} />,
+    itemRenderer: task => <NumericDate timestamp={task.start} />,
     sortCriteria: 'start',
     sortOrder: 'desc',
   },

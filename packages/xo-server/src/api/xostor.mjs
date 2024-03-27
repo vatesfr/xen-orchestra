@@ -253,7 +253,7 @@ export const create = defer(async function (
     const srUuid = await Task.run({ properties: { name: 'creation of the storage' } }, async () => {
       const srRef = await xapi.SR_create({
         device_config: {
-          'group-name': 'linstor_group/' + LV_NAME,
+          'group-name': `linstor_group${provisioning === ENUM_PROVISIONING.Thin ? `/${LV_NAME}` : ''}`,
           redundancy: String(replication),
           provisioning,
         },

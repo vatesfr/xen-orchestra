@@ -294,12 +294,11 @@ export default class Esxi extends EventEmitter {
           if (typeof disk !== 'object') {
             continue
           }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          if (disk.deviceType.match(/cdrom/i)) {
             continue
           }
-          // ide hard disk don't have deviceType, but cdroms have one
-          if (channelType === 'ide' && disk.deviceType === 'atapi-cdrom') {
+          // can be something other than a disk, like a controller card
+          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
             continue
           }
 

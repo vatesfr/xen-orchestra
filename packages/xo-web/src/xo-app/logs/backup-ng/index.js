@@ -11,7 +11,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { connectStore, formatSize } from 'utils'
+import { connectStore, formatSize, NumericDate } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
@@ -27,7 +27,7 @@ import {
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
 
-import { STATUS_LABELS, LOG_FILTERS, LogDate } from '../utils'
+import { STATUS_LABELS, LOG_FILTERS } from '../utils'
 
 const UL_STYLE = { listStyleType: 'none' }
 
@@ -100,14 +100,14 @@ const COLUMNS = [
   },
   {
     name: _('jobStart'),
-    itemRenderer: log => <LogDate time={log.start} />,
+    itemRenderer: log => <NumericDate timestamp={log.start} />,
     sortCriteria: 'start',
     sortOrder: 'desc',
   },
   {
     default: true,
     name: _('jobEnd'),
-    itemRenderer: log => log.end !== undefined && <LogDate time={log.end} />,
+    itemRenderer: log => log.end !== undefined && <NumericDate timestamp={log.end} />,
     sortCriteria: log => log.end || log.start,
     sortOrder: 'desc',
   },

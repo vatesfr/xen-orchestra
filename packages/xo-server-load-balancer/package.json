@@ -24,7 +24,7 @@
   "preferGlobal": false,
   "main": "dist/",
   "engines": {
-    "node": ">=7"
+    "node": ">=12.9"
   },
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.6",
