@@ -1386,17 +1386,19 @@ export { import_ as import }
 export async function importFromEsxi({ host, network, password, sr, sslVerify = true, stopSource = false, user, vm }) {
   const task = await this.tasks.create({ name: `importing vm ${vm}` })
 
-  const PREFIX = '[VMWARE]'
+  const PREFIX = '[vmware]'
 
   return Disposable.use(
     Disposable.all(
-      (await this.getAllRemotes()).filter(({ name }) => name.startsWith(PREFIX)).map(remote => getSyncedHandler(remote))
+      (await this.getAllRemotes())
+        .filter(({ name }) => name.toLocaleLowerCase().startsWith(PREFIX))
+        .map(remote => getSyncedHandler(remote))
     ),
     handlers => {
       const dataStoreToHandlers = {}
       handlers.forEach(handler => {
         const name = handler._remote.name
-        const dataStoreName = name.substring(PREFIX.length)
+        const dataStoreName = name.substring(PREFIX.length).trim()
         dataStoreToHandlers[dataStoreName] = handler
       })
       return task.run(() =>
