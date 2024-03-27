@@ -6,8 +6,8 @@
       Choose a component
       <FormSelect v-model="componentPath">
         <option value="" />
-        <option v-for="path in componentPaths" :key="path">
-          {{ path }}
+        <option v-for="path in componentPaths" :key="path" :value="path">
+          {{ pathToOptionLabel(path) }}
         </option>
       </FormSelect>
     </div>
@@ -17,7 +17,7 @@
       <span class="slots">
         <FormInput v-model="slots" />
         <UiButton @click="slots = 'default'">Default</UiButton>
-        <UiButton outlined @click="slots = ''">Clear</UiButton>
+        <UiButton level="secondary" @click="slots = ''">Clear</UiButton>
       </span>
     </div>
 
@@ -35,24 +35,29 @@ import CodeHighlight from '@/components/CodeHighlight.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import UiButton from '@core/components/button/UiButton.vue'
 import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'
 
 const componentPath = ref('')
 
-const components = import.meta.glob<{ default: ComponentOptions }>('/src/components/**/*.vue', {
-  eager: true,
-})
+const components = import.meta.glob<{ default: ComponentOptions }>(
+  ['/src/components/**/*.vue', '/../web-core/lib/components/**/*.vue'],
+  { eager: true }
+)
 
 const componentsWithProps = Object.fromEntries(
   Object.entries(components).filter(([, component]) => component.default.props || component.default.emits)
 )
 
 const componentPaths = Object.keys(componentsWithProps)
+
+function pathToOptionLabel(path: string) {
+  return path.replace('../web-core/lib/components/', '[XO Web Core] ').replace('/src/components/', '[XO Lite] ')
+}
 
 const lines = ref<string[]>([])
 const slots = ref('')
@@ -64,7 +69,7 @@ const widgetsToImport = ref(new Set<string>())
 
 const template = computed(() => {
   const componentName = componentPath.value.replace(/.*\/([^/]+)\.vue$/, '$1')
-  const path = componentPath.value.replace(/^\/src/, '@')
+  const path = componentPath.value.replace(/^\/src/, '@').replace(/^\.\.\/web-core\/lib/, '@core')
   const paramsLines = [...lines.value]
   const slotsNames = slots.value
     .split(',')
@@ -175,8 +180,26 @@ watch(
           .map(ctor => extractTypeFromConstructor(ctor, propName))
           .join(' | ')
 
-        if (type !== 'unknown') {
-          current.push(`type(${quote(type)})`)
+        switch (type) {
+          case 'boolean':
+            current.push('bool()')
+            break
+          case 'number':
+            current.push('num()')
+            break
+          case 'string':
+            current.push('str()')
+            break
+          case 'object':
+            current.push('obj()')
+            break
+          case 'array':
+            current.push('arr()')
+            break
+          case 'unknown':
+            break
+          default:
+            current.push(`type(${quote(type)})`)
         }
       }
 

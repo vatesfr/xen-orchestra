@@ -8,7 +8,7 @@
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">
       <div>
-        <p class="text">
+        <p class="text typo h4-medium">
           {{ $t('click-to-display-alarms') }}
         </p>
         <UiButton @click="start">{{ $t('load-now') }}</UiButton>
@@ -25,7 +25,7 @@
       <div>
         <img alt="" src="@/assets/server-status.svg" />
       </div>
-      <p class="text">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
+      <p class="text typo h4-medium">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
     </div>
     <div v-else class="table-container">
       <UiTable>
@@ -40,13 +40,13 @@
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
 import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@/components/ui/UiCounter.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmCollection } from '@/stores/xen-api/alarm.store'
+import UiButton from '@core/components/button/UiButton.vue'
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollection({ defer: true })
 </script>
@@ -64,8 +64,6 @@ const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollect
   gap: 3rem;
 }
 .text {
-  font-size: 2rem;
-  font-weight: 500;
   .pre-start & {
     margin-bottom: 2rem;
   }

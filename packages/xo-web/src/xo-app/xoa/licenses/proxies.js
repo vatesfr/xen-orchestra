@@ -1,74 +1,68 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
-import Icon from 'icon'
 import React from 'react'
-import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import groupBy from 'lodash/groupBy.js'
+import { createSelector } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { Proxy, Vm } from 'render-xo-item'
-import { subscribeProxies, bindLicense } from 'xo'
+import { subscribeProxies } from 'xo'
+
+import LicenseForm from './license-form'
 
 class ProxyLicensesForm extends Component {
-  state = {
-    licenseId: 'none',
-  }
+  getAlerts = createSelector(
+    () => this.props.item,
+    () => this.props.userData,
+    (proxy, userData) => {
+      const alerts = []
+      const licenses = userData.licensesByVmUuid[proxy.vmUuid]
 
-  onChangeLicense = event => {
-    this.setState({ licenseId: event.target.value })
-  }
+      if (proxy.vmUuid === undefined) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <p>
+              {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            </p>
+          ),
+        })
+      }
 
-  bind = () => {
-    const { item, userData } = this.props
-    return bindLicense(this.state.licenseId, item.vmUuid).then(userData.updateLicenses)
-  }
+      // Proxy bound to multiple licenses
+      if (licenses?.length > 1) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <p>
+              {_('proxyMultipleLicenses')}
+              <br />
+              {licenses.map(license => license.id.slice(-4)).join(',')}
+            </p>
+          ),
+        })
+      }
+      return alerts
+    }
+  )
 
   render() {
+    const alerts = this.getAlerts()
     const { item, userData } = this.props
-    const { licenseId } = this.state
     const licenses = userData.licensesByVmUuid[item.vmUuid]
 
-    if (item.vmUuid === undefined) {
-      return (
-        <span className='text-danger'>
-          {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
-        </span>
-      )
-    }
-
-    // Proxy bound to multiple licenses
-    if (licenses?.length > 1) {
-      return (
-        <div>
-          <span>{licenses.map(license => license.id.slice(-4)).join(',')}</span>{' '}
-          <Tooltip content={_('proxyMultipleLicenses')}>
-            <Icon color='text-danger' icon='alarm' />
-          </Tooltip>
-        </div>
-      )
-    }
-
     const license = licenses?.[0]
-    return license !== undefined ? (
-      <span>{license.id.slice(-4)}</span>
-    ) : (
-      <form className='form-inline'>
-        <SelectLicense onChange={this.onChangeLicense} productType='xoproxy' />
-        <ActionButton
-          btnStyle='primary'
-          className='ml-1'
-          disabled={licenseId === 'none'}
-          handler={this.bind}
-          handlerParam={licenseId}
-          icon='connect'
-        >
-          {_('bindLicense')}
-        </ActionButton>
-      </form>
+    return (
+      <LicenseForm
+        alerts={alerts}
+        item={item}
+        itemUuidPath='vmUuid'
+        license={license}
+        productType='xoproxy'
+        userData={userData}
+      />
     )
   }
 }

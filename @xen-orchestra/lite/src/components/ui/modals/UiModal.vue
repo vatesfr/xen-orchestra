@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <form class="ui-modal" v-bind="$attrs" @click.self="modal.decline()">
+    <form class="ui-modal typo p1-regular" v-bind="$attrs" @click.self="modal.decline()">
       <slot />
     </form>
   </Teleport>
@@ -48,7 +48,5 @@ whenever(escape, () => modal.decline())
   background: rgba(26, 27, 56, 0.25);
   flex-direction: column;
   gap: 2rem;
-  font-size: 1.6rem;
-  font-weight: 400;
 }
 </style>

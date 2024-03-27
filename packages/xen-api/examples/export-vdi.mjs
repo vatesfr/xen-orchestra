@@ -14,23 +14,27 @@ import { createOutputStream, formatProgress, pipeline, resolveRecord, throttle }
 
 defer(async ($defer, rawArgs) => {
   const {
+    proxy,
     raw,
     throttle: bps,
     _: args,
   } = getopts(rawArgs, {
     boolean: 'raw',
+    string: ['proxy'],
     alias: {
+      proxy: 'p',
       raw: 'r',
       throttle: 't',
     },
   })
 
   if (args.length < 2) {
-    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
+    return console.log('Usage: export-vdi [--proxy <URL>] [--raw] <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
     allowUnauthorized: true,
+    httpProxy: proxy || undefined,
     url: args[0],
     watchEvents: false,
   })
@@ -44,14 +48,14 @@ defer(async ($defer, rawArgs) => {
   const vdi = await resolveRecord(xapi, 'VDI', args[1])
 
   // https://xapi-project.github.io/xen-api/snapshots.html#downloading-a-disk-or-snapshot
-  const exportStream = await xapi.getResource(token, '/export_raw_vdi/', {
+  const response = await xapi.getResource(token, '/export_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
       vdi: vdi.$ref,
     },
   })
 
-  console.warn('Export task:', exportStream.headers['task-id'])
+  console.warn('Export task:', response.headers['task-id'])
 
   const top = createTop()
   const progressStream = createProgress()
@@ -63,5 +67,5 @@ defer(async ($defer, rawArgs) => {
     }, 1e3)
   )
 
-  await pipeline(exportStream, progressStream, throttle(bps), createOutputStream(args[2]))
+  await pipeline(response.body, progressStream, throttle(bps), createOutputStream(args[2]))
 })(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

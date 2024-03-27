@@ -70,6 +70,7 @@ module.exports = {
           ['/delta_backups', 'Delta Backup'],
           ['/disaster_recovery.md', 'Disaster Recovery'],
           ['/continuous_replication', 'Continuous Replication'],
+          ['/mirror_backup', 'Mirror Backups'],
           ['/metadata_backup', 'Metadata Backup'],
           ['/backup_reports', 'Backup Reports'],
           ['/backup_troubleshooting', 'Backup Troubleshooting'],

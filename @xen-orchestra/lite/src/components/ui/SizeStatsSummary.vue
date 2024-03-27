@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isDisplayed" class="summary">
+  <div v-if="isDisplayed" class="summary typo c2-semi-bold">
     <div class="summary-card">
       <p>{{ $t('total-used') }}:</p>
       <div class="summary-value">
@@ -38,8 +38,6 @@ const isDisplayed = computed(() => !isNaN(percentUsed.value) && !isNaN(percentFr
 .summary {
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
-  font-size: 14px;
   color: var(--color-grey-300);
   margin-top: 2rem;
 }
@@ -47,11 +45,6 @@ const isDisplayed = computed(() => !isNaN(percentUsed.value) && !isNaN(percentFr
 .summary-card {
   color: var(--color-grey-200);
   display: flex;
-  text-transform: uppercase;
-}
-
-.summary-card p {
-  font-weight: 700;
 }
 
 .summary-value {

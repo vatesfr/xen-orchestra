@@ -6,11 +6,10 @@ import marked from 'marked'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, NumericDate } from 'utils'
 import { alert } from 'modal'
 import { reportBug } from 'report-bug-button'
 import { filter, some } from 'lodash'
-import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { subscribeNotifications, dismissNotification } from 'xo'
 
@@ -27,15 +26,7 @@ const COLUMNS = [
       const Tag = read ? 'span' : 'strong'
       return (
         <Tag>
-          <FormattedDate
-            value={new Date(created)}
-            month='long'
-            day='numeric'
-            year='numeric'
-            hour='2-digit'
-            minute='2-digit'
-            second='2-digit'
-          />
+          <NumericDate timestamp={created} />
         </Tag>
       )
     },

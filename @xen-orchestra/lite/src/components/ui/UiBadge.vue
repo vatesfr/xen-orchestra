@@ -1,5 +1,5 @@
 <template>
-  <span class="ui-badge">
+  <span class="ui-badge typo p2-medium">
     <UiIcon :icon />
     <slot />
   </span>
@@ -20,8 +20,6 @@ defineProps<{
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 1.4rem;
-  font-weight: 500;
   padding: 0 0.8rem;
   height: 1.8em;
   color: var(--color-grey-600);

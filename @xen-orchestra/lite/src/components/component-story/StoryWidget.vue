@@ -1,5 +1,10 @@
 <template>
-  <FormSelect v-if="isSelectWidget(widget)" v-model="model" :wrapper-attrs="{ class: 'full-width' }">
+  <FormSelect
+    v-if="isSelectWidget(widget)"
+    v-model="model"
+    :wrapper-attrs="{ class: 'full-width' }"
+    class="typo p2-regular"
+  >
     <option v-if="!required && model === undefined" :value="undefined" />
     <option v-for="choice in widget.choices" :key="choice.label" :value="choice.value">
       {{ choice.label }}
@@ -14,9 +19,9 @@
   <div v-else-if="isBooleanWidget(widget)">
     <FormCheckbox v-model="model" />
   </div>
-  <FormInput v-else-if="isNumberWidget(widget)" v-model.number="model" type="number" />
-  <FormInput v-else-if="isTextWidget(widget)" v-model="model" />
-  <FormJson v-else-if="isObjectWidget(widget)" v-model="model" />
+  <FormInput v-else-if="isNumberWidget(widget)" v-model.number="model" type="number" class="typo p2-regular" />
+  <FormInput v-else-if="isTextWidget(widget)" v-model="model" class="typo p2-regular" />
+  <FormJson v-else-if="isObjectWidget(widget)" v-model="model" class="typo p2-regular" />
 </template>
 
 <script lang="ts" setup>
@@ -56,11 +61,5 @@ const model = useVModel(props, 'modelValue', emit)
 .radio {
   display: flex;
   gap: 1rem;
-}
-
-.form-select,
-.form-input,
-.form-json {
-  font-size: 1.4rem;
 }
 </style>

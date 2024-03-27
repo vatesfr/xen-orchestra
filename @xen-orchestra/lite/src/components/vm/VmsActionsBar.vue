@@ -1,5 +1,5 @@
 <template>
-  <AppMenu
+  <MenuList
     :disabled="selectedRefs.length === 0"
     :horizontal="!isMobile"
     :shadow="isMobile"
@@ -7,7 +7,7 @@
     placement="bottom-end"
   >
     <template v-if="isMobile" #trigger="{ isOpen, open }">
-      <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
+      <ButtonIcon :active="isOpen" :icon="faEllipsis" @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
       {{ $t('change-state') }}
@@ -23,22 +23,22 @@
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
     <VmActionExportItems :vm-refs="selectedRefs" />
     <VmActionDeleteItem :vm-refs="selectedRefs" />
-  </AppMenu>
+  </MenuList>
 </template>
 
 <script lang="ts" setup>
-import AppMenu from '@/components/menu/AppMenu.vue'
-import MenuItem from '@/components/menu/MenuItem.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionDeleteItem from '@/components/vm/VmActionItems/VmActionDeleteItem.vue'
 import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportItems.vue'
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
-import { vTooltip } from '@/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useUiStore } from '@/stores/ui.store'
+import ButtonIcon from '@core/components/button/ButtonIcon.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 

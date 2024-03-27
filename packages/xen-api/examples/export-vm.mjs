@@ -37,17 +37,17 @@ defer(async ($defer, rawArgs) => {
   process.on('SIGINT', cancel)
 
   // https://xapi-project.github.io/xen-api/importexport.html
-  const exportStream = await xapi.getResource(token, '/export/', {
+  const response = await xapi.getResource(token, '/export/', {
     query: {
       ref: (await resolveRecord(xapi, 'VM', args[1])).$ref,
       use_compression: zstd ? 'zstd' : gzip ? 'true' : 'false',
     },
   })
 
-  console.warn('Export task:', exportStream.headers['task-id'])
+  console.warn('Export task:', response.headers['task-id'])
 
   await pipeline(
-    exportStream,
+    response.body,
     createProgress({ time: 1e3 }, p => console.warn(formatProgress(p))),
     createOutputStream(args[2])
   )
