@@ -34,10 +34,28 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
   return stream
 }
 
+function batContainsBlock(bat, blockId) {
+  const entry = bat.readUInt32BE(blockId * 4)
+  return entry !== BLOCK_UNUSED
+}
+
+function cbtContainsBlock(cbt, blockId) {
+  // block are aligned, we could probably compare the bytes to 255
+  // each CBT block is 64KB
+  // each VHD block is 2MB
+  // => 32 CBT blocks per VHD block
+  // each CBT block used flag is stored in 1 bit
+  // => 4 bytes per VHD block => UINT32
+  // if any sublock i used => download the full block
+  const position = blockId * 4
+  return cbt.readUInt32BE(position) !== 0
+}
+
 exports.createNbdVhdStream = async function createVhdStream(
   nbdClient,
   sourceStream,
   {
+    changedBlocks,
     maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
     minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
   } = {}
@@ -51,7 +69,11 @@ exports.createNbdVhdStream = async function createVhdStream(
   await skipStrict(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
   // new table offset
   header.tableOffset = FOOTER_SIZE + HEADER_SIZE
-  const streamBat = await readChunkStrict(sourceStream, batSize)
+  let streamBat
+  if (changedBlocks === undefined) {
+    console.log('fall back to read bay from source')
+    streamBat = await readChunkStrict(sourceStream, batSize)
+  }
   let offset = FOOTER_SIZE + HEADER_SIZE + batSize
   // check if parentlocator are ordered
   let precLocator = 0
@@ -79,19 +101,21 @@ exports.createNbdVhdStream = async function createVhdStream(
   // compute a BAT with the position that the block will have in the resulting stream
   // blocks starts directly after parent locator entries
   const entries = []
-  for (let i = 0; i < header.maxTableEntries; i++) {
-    const entry = streamBat.readUInt32BE(i * 4)
-    if (entry !== BLOCK_UNUSED) {
-      bat.writeUInt32BE(offsetSector, i * 4)
-      entries.push(i)
+  for (let blockId = 0; blockId < header.maxTableEntries; blockId++) {
+    const hasBlock = changedBlocks ? cbtContainsBlock(changedBlocks, blockId) : batContainsBlock(streamBat, blockId)
+    if (hasBlock) {
+      bat.writeUInt32BE(offsetSector, blockId * 4)
+      entries.push(blockId)
       offsetSector += blockSizeInSectors
+      console.log('contains',blockId,  offsetSector)
     } else {
-      bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
+      bat.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
     }
   }
 
   const totalLength = (offsetSector + 1) /* end footer */ * SECTOR_SIZE
 
+  console.log('contains',{totalLength})
   let lengthRead = 0
   let lastUpdate = 0
   let lastLengthRead = 0
@@ -133,6 +157,7 @@ exports.createNbdVhdStream = async function createVhdStream(
     }
 
     // close export stream we won't use it anymore
+    console.log('destroy source stream')
     sourceStream.destroy()
 
     // yield  blocks from nbd

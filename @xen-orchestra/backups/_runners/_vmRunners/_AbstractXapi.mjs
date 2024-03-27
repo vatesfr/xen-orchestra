@@ -160,8 +160,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           'xo:backup:schedule': this.scheduleId,
           'xo:backup:vm': vm.uuid,
         })
-
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
+
+        // also tags the VDIs with the same value
+        // it is useful at least for CBT delta
+        const vdiRefs = await this._xapi.VM_getDisks(snapshotRef)
+        await Promise.all(
+          vdiRefs.map(async vdiRef => {
+            await xapi.setFieldEntries('VDI', vdiRef, 'other_config', {
+              'xo:backup:datetime': formatDateTime(this.timestamp),
+              'xo:backup:job': this._jobId,
+              'xo:backup:schedule': this.scheduleId,
+              'xo:backup:vm': vm.uuid,
+              'xo:backup:snapshot': this._exportedVm.uuid,
+            })
+          })
+        )
 
         return this._exportedVm.uuid
       })
@@ -190,10 +204,30 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _removeUnusedSnapshots() {
+    console.log(this._settings.deltaComputeMode)
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
+    if (this._settings.deltaComputeMode === 'CBT' && this._exportedVm?.is_a_snapshot) {
+      console.log('WILL CLEAN')
+      const xapi = this._xapi
+      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
+      await xapi.call('VM.destroy', this._exportedVm.$ref)
+      for (const vdiRef of vdiRefs) {
+        try {
+          // list the snapshot of this VDI for this job
+          // if it's the snapshot for this job
+          //  if it's most recent one : destroy data
+          //  if it's an older one : delete it
+          console.log('DELETE ', vdiRef)
+          await xapi.VDI_dataDestroy(vdiRef)
+        } catch (error) {
+          Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
+        }
+      }
+    }
 
+    // cleanup any regular snapshots (for example before CBT was enabled)
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
     await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
@@ -226,6 +260,23 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     throw new Error('Not implemented')
   }
 
+  async enableCbt() {
+    // for each disk of the VM , enable CBT
+    if (this._settings.deltaComputationMode !== 'CBT') {
+      return
+    }
+    const vm = this._vm
+    const xapi = this._xapi
+    const vdiRefs = await vm.$getDisks(vm.VBDs)
+    for (const vdiRef of vdiRefs) {
+      try {
+        await xapi.VDI_enableChangeBlockTracking(vdiRef)
+      } catch (error) {
+        Task.warning(`Couldn't enable CBT on this VDI`, { error, vdiRef })
+      }
+    }
+  }
+
   async run($defer) {
     const settings = this._settings
     assert(
@@ -246,7 +297,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
-
+    await this.enableCbt()
     const vm = this._vm
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')

@@ -83,9 +83,31 @@ class Vdi {
     }
   }
 
+  // return an buffer with 0/1 bit, showing if the 64KB block corresponding 
+  // in the raw vdi has changed
+  async listChangedBlock(ref, baseRef){
+    console.log('listchanged blocks', ref, baseRef)
+    const encoded =  await  this.call('VDI.list_changed_blocks', baseRef, ref)
+    console.log({encoded})
+    const buf = Buffer.from(encoded, 'base64')
+    console.log({buf})
+    return buf
+  }
+
+  async enableChangeBlockTracking(ref){
+    return this.call('VDI.enable_cbt', ref)
+  }
+  async disableChangeBlockTracking(ref){
+    return this.call('VDI.disable_cbt', ref)
+  }
+
+  async  dataDestroy(ref){
+    return this.call('VDI.data_destroy', ref)
+  }
+
   async exportContent(
     ref,
-    { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
+    { baseRef, cancelToken = CancelToken.none, changedBlocks, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
   ) {
     const query = {
       format,
@@ -116,7 +138,7 @@ class Vdi {
         ).body
         if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
           const taskRef = await this.task_create(`Exporting content of VDI ${vdiName} using NBD`)
-          stream = await createNbdVhdStream(nbdClient, stream)
+          stream = await createNbdVhdStream(nbdClient, stream, {changedBlocks})
           stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
           finished(stream, () => this.task_destroy(taskRef))
         }

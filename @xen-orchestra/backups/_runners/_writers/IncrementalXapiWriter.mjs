@@ -14,11 +14,11 @@ import { listReplicatedVms } from './_listReplicatedVms.mjs'
 import find from 'lodash/find.js'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
-  async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
+  async checkBaseVdis(baseUuidToSrcVdi, baseVmUuid) {
     assert.notStrictEqual(baseVm, undefined)
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).find(
-      vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
+      vm => vm.other_config[TAG_COPY_SRC] === baseVmUuid
     )
     if (replicatedVm === undefined) {
       return baseUuidToSrcVdi.clear()

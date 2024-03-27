@@ -33,7 +33,6 @@ export async function exportIncrementalVm(
     // Sets of UUIDs of VDIs that must be exported as full.
     fullVdisRequired = new Set(),
 
-    disableBaseTags = false,
     nbdConcurrency = 1,
     preferNbd,
   } = {}
@@ -73,19 +72,30 @@ export async function exportIncrementalVm(
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [TAG_BASE_DELTA]:baseVdi?.uuid,
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
 
+    let changedBlocks
+    // @todo : move this to @Xo/xapi/vdi.mjs
+    if (vdi.cbt_enabled && baseVdi?.$ref && baseVdi?.cbt_enabled) {
+      // if listChangedBlock fails we can't export any data
+      // since the previous snapshot is probably a metadata only snapshot
+      // not usable for delta comparison
+      changedBlocks = await vdi.$listChangedBlock(baseVdi?.$ref)
+      Task.info('Export using CBT')
+    } 
+
     streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
       baseRef: baseVdi?.$ref,
       cancelToken,
+      changedBlocks,
       format: 'vhd',
       nbdConcurrency,
       preferNbd,
-    })
+    }) 
   })
 
   const suspendVdi = vm.$suspend_VDI
@@ -121,12 +131,10 @@ export async function exportIncrementalVm(
       vm: {
         ...vm,
         other_config:
-          baseVm && !disableBaseTags
-            ? {
+          baseVm && {
                 ...vm.other_config,
                 [TAG_BASE_DELTA]: baseVm.uuid,
               }
-            : omit(vm.other_config, TAG_BASE_DELTA),
       },
     },
     'streams',

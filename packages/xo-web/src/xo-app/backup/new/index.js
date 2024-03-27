@@ -45,6 +45,7 @@ import { RemoteProxy, RemoteProxyWarning } from './_remoteProxy'
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { canDeltaBackup, constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from './../utils'
+import Select from '../../../common/form/select'
 
 export NewMetadataBackup from './metadata'
 export NewMirrorBackup from './mirror'
@@ -641,11 +642,17 @@ const New = decorate([
           nRetriesVmBackupFailures: nRetries,
         })
       },
+      setDeltaComputationMode({ setGlobalSettings }, deltaComputationMode) {
+        setGlobalSettings({
+          deltaComputationMode,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
+      inputDeltaComputationMode: generateId,
       inputFullIntervalId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
@@ -760,6 +767,7 @@ const New = decorate([
     const {
       checkpointSnapshot,
       concurrency,
+      deltaComputationMode = 'AGAINST_PREVIOUS_SNAPSHOT',
       fullInterval,
       maxExportRate,
       nbdConcurrency = 1,
@@ -1126,6 +1134,24 @@ const New = decorate([
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />
+
+                      {state.isDelta && (
+                        <FormGroup>
+                          <label htmlFor={state.inputDeltaComputationMode}>
+                            <strong>{_('deltaComputationMode')}</strong>
+                          </label>
+                          <Select
+                            id={state.inputDeltaComputationMode}
+                            onChange={effects.setDeltaComputationMode}
+                            value={deltaComputationMode}
+                            disabled={!state.inputPreferNbd}
+                            options={[
+                              { label: _('deltaComputationModeSnapshot'), value: 'AGAINST_PREVIOUS_SNAPSHOT' },
+                              { label: _('deltaComputationModeCbt'), value: 'CBT' },
+                            ]}
+                          />
+                        </FormGroup>
+                      )}
                     </div>
                   )}
                 </CardBlock>
