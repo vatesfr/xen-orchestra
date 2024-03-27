@@ -809,6 +809,11 @@ export const forgetHost = host =>
 
 export const enableHost = host => _call('host.enable', { host: resolveId(host) })
 
+export const enableHa = ({ pool, heartbeatSrs, configuration }) =>
+  _call('pool.enableHa', { pool: resolveId(pool), heartbeatSrs, configuration })
+
+export const disableHa = pool => _call('pool.disableHa', { pool: resolveId(pool) })
+
 export const setDefaultSr = sr => _call('pool.setDefaultSr', { sr: resolveId(sr) })
 
 export const setPoolMaster = host =>

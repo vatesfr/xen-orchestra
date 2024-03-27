@@ -20,6 +20,7 @@
 - Use [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601) for numeric datetimes (PR [#7484](https://github.com/vatesfr/xen-orchestra/pull/7484))
 - [Console] In VM and Host Console tab, display console's zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
 - [OTP] Activate it now requires entering a one-time password to validate the setup and prevent user from being locked out (PR [#7480](https://github.com/vatesfr/xen-orchestra/pull/7480))
+- [Pool/Advanced] High availability can now be activated or deactivated, and the heartbeat SR can be configured during activation [#4731](https://github.com/vatesfr/xen-orchestra/issues/4731) (PR [#7503](https://github.com/vatesfr/xen-orchestra/pull/7503))
 
 ### Bug fixes
 
