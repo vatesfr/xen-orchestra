@@ -147,8 +147,14 @@ formatDisks.resolve = {
 
 export const create = defer(async function (
   $defer,
-  { description, disksByHost, force, ignoreFileSystems, name, provisioning, replication }
+  { description, disksByHost, force, ignoreFileSystems, name, preferredInterface, provisioning, replication }
 ) {
+  let network
+  if (preferredInterface !== undefined) {
+    network = this.getObject(preferredInterface.networkId)
+    await this.checkPermissions([[preferredInterface.networkId, 'operate']])
+  }
+
   const task = await this.tasks.create({ name: `creation of XOSTOR: ${name}`, type: 'xo:xostor:create' })
   return task.run(async () => {
     const hostIds = Object.keys(disksByHost)
@@ -214,8 +220,8 @@ export const create = defer(async function (
       }
     )
 
-    const srUuid = await Task.run({ properties: { name: 'creation of the storage' } }, async () => {
-      const srRef = await xapi.SR_create({
+    const srRef = await Task.run({ properties: { name: 'creation of the storage' } }, () =>
+      xapi.SR_create({
         device_config: {
           'group-name': 'linstor_group/' + LV_NAME,
           redundancy: String(replication),
@@ -227,8 +233,18 @@ export const create = defer(async function (
         shared: true,
         type: 'linstor',
       })
-      return xapi.getField('SR', srRef, 'uuid')
-    })
+    )
+    $defer.onFailure(() => xapi.destroySr(srRef))
+    const srUuid = await xapi.getField('SR', srRef, 'uuid')
+
+    if (network !== undefined) {
+      // Test if the SR is correctly deleted on throw
+      // same for VG and license
+      await Task.run({ properties: { name: 'configure linstor interface' } }, async () => {
+        await xapi.xostor_createInterface(srRef, network._xapiRef, preferredInterface.name)
+        await xapi.xostor_setPreferredInterface(srRef, preferredInterface.name)
+      })
+    }
 
     await this.rebindLicense({
       licenseId: license.id,
@@ -248,6 +264,14 @@ create.params = {
   force: { type: 'boolean', optional: true, default: false },
   ignoreFileSystems: { type: 'boolean', optional: true, default: false },
   name: { type: 'string' },
+  preferredInterface: {
+    optional: true,
+    properties: {
+      networkId: { type: 'string' },
+      name: { type: 'string' },
+    },
+    type: 'object',
+  }, // networtId: linstorInterfaceName
   provisioning: { enum: PROVISIONING },
   replication: { type: 'number' },
 }
