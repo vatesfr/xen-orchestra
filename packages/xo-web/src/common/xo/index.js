@@ -1,3 +1,4 @@
+import authenticator from '../otp-authenticator.js'
 import asap from 'asap'
 import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
@@ -3296,17 +3297,29 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
-export const addOtp = secret =>
-  confirm({
-    title: _('addOtpConfirm'),
-    body: _('addOtpConfirmMessage'),
-  }).then(
-    () =>
-      _setUserPreferences({
-        otp: secret,
-      }),
-    noop
-  )
+// eslint-disable-next-line import/first
+import { AddOtpModal } from './add-otp-modal.js'
+export const addOtp = async secret => {
+  try {
+    let token
+    do {
+      token = await confirm({
+        title: _('addOtpConfirm'),
+        body: <AddOtpModal failedToken={token} secret={secret} user={xo.user} />,
+      })
+    } while (!(await authenticator.check(token, secret)))
+  } catch (error) {
+    if (error === undefined) {
+      // action canceled
+      return
+    }
+    throw error
+  }
+
+  return _setUserPreferences({
+    otp: secret,
+  })
+}
 
 export const removeOtp = user =>
   confirm({
