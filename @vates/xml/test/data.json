@@ -1,0 +1,606 @@
+{
+  "name": "catalog",
+  "attributes": {},
+  "children": [
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk101"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Gambardella, Matthew"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "XML Developer's Guide"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Computer"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "44.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-10-01"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "An in-depth look at creating applications\n    with XML."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk102"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Ralls, Kim"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Midnight Rain"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Fantasy"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "5.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-12-16"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "A former architect battles corporate zombies,\n    an evil sorceress, and her own childhood to become queen\n    of the world."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk103"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Corets, Eva"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Maeve Ascendant"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Fantasy"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "5.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-11-17"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "After the collapse of a nanotechnology\n    society in England, the young survivors lay the\n    foundation for a new society."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk104"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Corets, Eva"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Oberon's Legacy"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Fantasy"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "5.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2001-03-10"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "In post-apocalypse England, the mysterious\n    agent known only as Oberon helps to create a new life\n    for the inhabitants of London. Sequel to Maeve\n    Ascendant."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk105"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Corets, Eva"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "The Sundered Grail"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Fantasy"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "5.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2001-09-10"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "The two daughters of Maeve, half-sisters,\n    battle one another for control of England. Sequel to\n    Oberon's Legacy."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk106"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Randall, Cynthia"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Lover Birds"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Romance"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "4.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-09-02"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "When Carla meets Paul at an ornithology\n    conference, tempers fly as feathers get ruffled."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk107"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Thurman, Paula"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Splish Splash"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Romance"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "4.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-11-02"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "A deep sea diver finds true love twenty\n    thousand leagues beneath the sea."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk108"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Knorr, Stefan"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Creepy Crawlies"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Horror"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "4.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-12-06"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "An anthology of horror stories about roaches,\n    centipedes, scorpions  and other insects."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk109"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Kress, Peter"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Paradox Lost"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Science Fiction"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "6.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-11-02"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "After an inadvertant trip through a Heisenberg\n    Uncertainty Device, James Salway discovers the problems\n    of being quantum."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk110"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "O'Brien, Tim"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Microsoft .NET: The Programming Bible"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Computer"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "36.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-12-09"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "Microsoft's .NET initiative is explored in\n    detail in this deep programmer's reference."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk111"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "O'Brien, Tim"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "MSXML3: A Comprehensive Guide"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Computer"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "36.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2000-12-01"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "The Microsoft MSXML3 parser is covered in\n    detail, with attention to XML DOM interfaces, XSLT processing,\n    SAX and more."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "book",
+      "attributes": {
+        "id": "bk112"
+      },
+      "children": [
+        {
+          "name": "author",
+          "attributes": {},
+          "children": [
+            "Galos, Mike"
+          ]
+        },
+        {
+          "name": "title",
+          "attributes": {},
+          "children": [
+            "Visual Studio 7: A Comprehensive Guide"
+          ]
+        },
+        {
+          "name": "genre",
+          "attributes": {},
+          "children": [
+            "Computer"
+          ]
+        },
+        {
+          "name": "price",
+          "attributes": {},
+          "children": [
+            "49.95"
+          ]
+        },
+        {
+          "name": "publish_date",
+          "attributes": {},
+          "children": [
+            "2001-04-16"
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {},
+          "children": [
+            "Microsoft Visual Studio 7 is explored in depth,\n    looking at how Visual Basic, Visual C++, C#, and ASP+ are\n    integrated into a comprehensive development\n    environment."
+          ]
+        }
+      ]
+    }
+  ]
+}

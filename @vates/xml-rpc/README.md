@@ -16,6 +16,8 @@ npm install --save @vates/xml-rpc
 
 ## Usage
 
+### Parsing
+
 ```js
 import parser from '@vates/xml-rpc/parser.mjs'
 
@@ -36,8 +38,6 @@ parser.array({
 })
 // [ true, 42 ]
 ```
-
-## Parsing XML
 
 Parsing XML is out of this library's scope, but you can achieve it easily with
 `fast-xml-rpc`:
@@ -67,6 +67,12 @@ const tree = new XMLParser({
 
 // it can now be passed to the XML-RPC parser
 parser.methodResponse(tree.methodResponse)
+```
+
+### Formatting
+
+```js
+import formatter from '@vates/xml-rpc/formatter.mjs'
 ```
 
 ## Contributions
