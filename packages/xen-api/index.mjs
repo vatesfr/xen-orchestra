@@ -138,6 +138,8 @@ export class Xapi extends EventEmitter {
     const { httpProxy } = opts
     this._allowUnauthorized = opts.allowUnauthorized
     const dispatcherOpts = {
+      bodyTimeout: this._httpInactivityTimeout,
+      headersTimeout: this._httpInactivityTimeout,
       maxRedirections: 3,
     }
     const tlsOpts = {
@@ -430,9 +432,7 @@ export class Xapi extends EventEmitter {
       pRetry(
         async () => {
           return request(url, {
-            bodyTimeout: this._httpInactivityTimeout,
             dispatcher: this._undiciDispatcher,
-            headersTimeout: this._httpInactivityTimeout,
             maxRedirections: 0,
             method: 'GET',
             path: pathname,
