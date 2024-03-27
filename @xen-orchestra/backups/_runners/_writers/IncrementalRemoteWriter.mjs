@@ -93,34 +93,26 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     const scheduleId = this._scheduleId
     const vmUuid = this._vmUuid
 
-    const oldEntries = getOldEntries(
-      settings.exportRetention - 1,
-      await adapter.listVmBackups(vmUuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
-    )
-    this._oldEntries = oldEntries
-
-    // FIXME: implement optimized multiple VHDs merging with synthetic
-    // delta
-    //
-    // For the time being, limit the number of deleted backups by run
-    // because it can take a very long time and can lead to
-    // interrupted backup with broken VHD chain.
-    //
-    // The old backups will be eventually merged in future runs of the
-    // job.
-    const { maxMergedDeltasPerRun } = this._settings
-    if (oldEntries.length > maxMergedDeltasPerRun) {
-      oldEntries.length = maxMergedDeltasPerRun
-    }
-
     if (settings.deleteFirst) {
-      await this._deleteOldEntries()
+      const oldEntries = getOldEntries(
+        settings.exportRetention - 1, // we will write a new backup after
+        await adapter.listVmBackups(vmUuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+      )
+      await this._deleteOldEntries(oldEntries)
     }
   }
 
   async cleanup() {
+    const adapter = this._adapter
+    const settings = this._settings
+    const scheduleId = this._scheduleId
+    const vmUuid = this._vmUuid
     if (!this._settings.deleteFirst) {
-      await this._deleteOldEntries()
+      const oldEntries = getOldEntries(
+        settings.exportRetention,
+        await adapter.listVmBackups(vmUuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+      )
+      await this._deleteOldEntries(oldEntries)
     }
   }
 
@@ -162,9 +154,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     })
   }
 
-  async _deleteOldEntries() {
+  async _deleteOldEntries(oldEntries) {
     const adapter = this._adapter
-    const oldEntries = this._oldEntries
 
     // delete sequentially from newest to oldest to avoid unnecessary merges
     for (let i = oldEntries.length; i-- > 0; ) {
