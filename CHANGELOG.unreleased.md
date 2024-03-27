@@ -17,6 +17,7 @@
 - [Pool/Advanced] Default SR can now also be configured from the pool's _Advanced_ tab [#7414](https://github.com/vatesfr/xen-orchestra/issues/7414) (PR [#7451](https://github.com/vatesfr/xen-orchestra/pull/7451))
 - [XOA/License] Ability to change the license assigned to an object already licensed (e.g. expired licenses) (PR [#7390](https://github.com/vatesfr/xen-orchestra/pull/7390))
 - [User] Show authentication tokens last use datetime and IP address (PR [#7479](https://github.com/vatesfr/xen-orchestra/pull/7479))
+- Use [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601) for numeric datetimes (PR [#7484](https://github.com/vatesfr/xen-orchestra/pull/7484))
 
 ### Bug fixes
 

@@ -4,10 +4,9 @@ import Component from 'base-component'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, noop } from 'utils'
+import { addSubscriptions, noop, NumericDate } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { FormattedDate } from 'react-intl'
 import { deleteBackups, fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } from 'lodash'
 
@@ -29,33 +28,13 @@ const BACKUPS_COLUMNS = [
   },
   {
     name: _('firstBackupColumn'),
-    itemRenderer: ({ first }) => (
-      <FormattedDate
-        value={new Date(first.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ first }) => <NumericDate timestamp={first.timestamp} />,
     sortCriteria: 'first.timestamp',
     sortOrder: 'desc',
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => (
-      <FormattedDate
-        value={new Date(last.timestamp)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ last }) => <NumericDate timestamp={last.timestamp} />,
     sortCriteria: 'last.timestamp',
     default: true,
     sortOrder: 'desc',
