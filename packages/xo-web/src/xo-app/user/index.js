@@ -594,6 +594,7 @@ export default class User extends Component {
                 <option value='tr'>Türkçe</option>
                 <option value='he'>עברי</option>
                 <option value='zh'>简体中文</option>
+                <option value='fa'>فارسی</option>
               </select>
             </Col>
           </Row>
