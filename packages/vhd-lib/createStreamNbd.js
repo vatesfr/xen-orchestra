@@ -132,6 +132,12 @@ exports.createNbdVhdStream = async function createVhdStream(
       }
     }
 
+    sourceStream.on('error', error => {
+      /* we can safely ignore the UND_ERR_ABORTED errror since we are the one aborting it */
+      if (error.code !== 'UND_ERR_ABORTED') {
+        throw error
+      }
+    })
     // close export stream we won't use it anymore
     sourceStream.destroy()
 
