@@ -100,7 +100,12 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
               additionnalVmTag: 'xo:no-bak=Health Check',
             },
           }).run()
-          const restoredVm = xapi.getObject(restoredId)
+          let restoredVm
+          try {
+            restoredVm = xapi.getObject(restoredId)
+          } catch (err) {
+            restoredVm = await xapi.waitObject(restoredId)
+          }
           try {
             await new HealthCheckVmBackup({
               restoredVm,
