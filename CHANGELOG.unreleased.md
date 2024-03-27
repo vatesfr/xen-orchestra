@@ -34,6 +34,7 @@
 - [Remotes] Fix size reporting for huge remotes
 - [VM/WarmMigration] Feature is for PREMIUM and SOURCE users (PR [#7514](https://github.com/vatesfr/xen-orchestra/pull/7514))
 - [VMWare/Migration] Handle raw CDROM
+- [XOSTOR Creation] The host toolstack is now restarted after installing the XOSTOR dependencies (PR [#7437](https://github.com/vatesfr/xen-orchestra/pull/7437))
 
 ### Packages to release
 
