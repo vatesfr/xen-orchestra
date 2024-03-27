@@ -1,29 +1,36 @@
 <template>
   <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div
-      :class="isExactActive ? 'exact-active' : $props.active ? 'active' : undefined"
-      :style="{ paddingLeft: `${depth * 20}px` }"
+      :class="isExactActive ? 'exact-active' : active ? 'active' : undefined"
       class="tree-item-label"
       v-bind="$attrs"
     >
-      <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" @click="toggle()" />
-      <a v-tooltip="{ selector: '.text' }" :href="href" class="link" @click="navigate">
+      <template v-if="depth > 1">
+        <TreeLine
+          v-for="i in depth - 1"
+          :key="i"
+          :half-height="(!hasToggle && i === depth - 1) || !isExpanded"
+          :right="i === depth - 1"
+        />
+      </template>
+      <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" fixed-width @click="toggle()" />
+      <TreeLine v-else-if="!noIndent" />
+      <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon="icon" class="icon" />
+          <UiIcon :icon class="icon" />
         </slot>
         <div class="text">
           <slot />
         </div>
       </a>
-      <div class="actions">
-        <slot name="actions" />
-      </div>
+      <slot name="addons" />
     </div>
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import TreeLine from '@core/components/tree/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   IK_TREE_ITEM_EXPANDED,
@@ -40,6 +47,7 @@ defineProps<{
   icon?: IconDefinition
   route: RouteLocationRaw
   active?: boolean
+  noIndent?: boolean
 }>()
 
 const hasToggle = inject(
@@ -54,43 +62,37 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 </script>
 
 <style lang="postcss" scoped>
+/* COLOR VARIANTS */
 .tree-item-label {
-  display: flex;
-  align-items: center;
-  color: var(--color-grey-100);
-  border-radius: 0.8rem;
-  background-color: var(--background-color-primary);
-  column-gap: 0.4rem;
-  padding: 0 0.8rem;
+  --color: var(--color-grey-100);
+  --background-color: var(--background-color-primary);
+
+  &:is(.exact-active, .active) {
+    --color: var(--color-grey-100);
+    --background-color: var(--background-color-purple-10);
+  }
 
   &:hover {
-    color: var(--color-grey-100);
-    background-color: var(--background-color-purple-20);
+    --color: var(--color-grey-100);
+    --background-color: var(--background-color-purple-20);
   }
 
   &:active {
-    background-color: var(--background-color-purple-30);
+    --color: var(--color-grey-100);
+    --background-color: var(--background-color-purple-30);
   }
+}
 
-  &.exact-active {
-    background-color: var(--background-color-purple-10);
-
-    &:hover {
-      background-color: var(--background-color-purple-20);
-    }
-
-    > .ui-icon {
-      color: var(--color-purple-base);
-    }
-
-    &:active {
-      background-color: var(--background-color-purple-30);
-    }
-  }
-
-  > .ui-icon {
-    cursor: pointer;
-  }
+/* IMPLEMENTATION */
+.tree-item-label {
+  display: flex;
+  align-items: center;
+  color: var(--color);
+  background-color: var(--background-color);
+  border-radius: 0.8rem;
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  margin-bottom: 0.2rem;
 }
 
 .link {
@@ -102,11 +104,8 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   text-decoration: none;
   color: inherit;
   gap: 1.2rem;
-  font-weight: 500;
-  font-size: 2rem;
 
-  &:hover,
-  .icon {
+  &:hover {
     color: var(--color-grey-100);
   }
 }
@@ -115,15 +114,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 1.4rem;
   padding-inline-end: 0.4rem;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  gap: 0.8rem;
 }
 </style>
