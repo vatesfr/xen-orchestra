@@ -31,6 +31,7 @@
 - [JSON-RPC API] Correctly require one-time password if configured for user (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
 - [Remotes] Fix size reporting for huge remotes
 - [VM/WarmMigration] Feature is for PREMIUM and SOURCE users (PR [#7514](https://github.com/vatesfr/xen-orchestra/pull/7514))
+- [VMWare/Migration] Handle raw CDROM
 
 ### Packages to release
 
@@ -53,6 +54,7 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/proxy minor
 - @xen-orchestra/self-signed patch
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xapi minor
 - xen-api major
 - xo-cli minor
