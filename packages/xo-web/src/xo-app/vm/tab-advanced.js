@@ -933,6 +933,11 @@ export default class TabAdvanced extends Component {
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
+                      {!vm.isFirmwareSupported && (
+                        <span className='text-danger font-weight-bold'>
+                          <Icon icon='error' /> {_('firmwareNotSupported')}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 )}
