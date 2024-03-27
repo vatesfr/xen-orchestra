@@ -42,6 +42,10 @@ const or =
 
 const checkMember = memberName => (object, permission) => {
   const member = object[memberName]
+  if (Array.isArray(member)) {
+    return member.map(m => checkAuthorization(m, permission)).every(authorized => authorized)
+  }
+
   return member !== object.id && checkAuthorization(member, permission)
 }
 
@@ -62,11 +66,17 @@ const checkAuthorizationByTypes = {
 
   PBD: or(checkMember('host'), checkMember('SR')),
 
+  PCI: checkMember('$host'),
+
   PIF: checkMember('$host'),
+
+  PUSB: checkMember('host'),
 
   SR: or(checkSelf, checkMember('$container')),
 
   task: checkMember('$host'),
+
+  USB_group: checkMember('PUSBs'),
 
   VBD: checkMember('VDI'),
 
@@ -99,6 +109,8 @@ const checkAuthorizationByTypes = {
   'VM-snapshot': or(checkSelf, checkMember('$snapshot_of')),
 
   'VM-template': or(checkSelf, checkMember('$pool')),
+
+  VUSB: checkMember('vm'),
 }
 
 // Hoisting is important for this function.

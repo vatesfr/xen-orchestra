@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- xo-acl-resolver minor
+
 <!--packages-end-->
