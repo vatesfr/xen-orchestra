@@ -1,5 +1,7 @@
 import { request } from 'undici'
 import { XmlRpcMessage, XmlRpcResponse } from 'xmlrpc-parser'
+import { parseXml } from '/home/julien/dev/vatesfr/xen-orchestra/packages/xo-server/dist/utils.mjs'
+import { parser } from '@vates/xml-rpc/parser.mjs'
 
 import prepareXmlRpcParams from './_prepareXmlRpcParams.mjs'
 import XapiError from '../_XapiError.mjs'
@@ -46,7 +48,7 @@ export default ({ dispatcher, url }) => {
     }
 
     const xml = await res.body.text()
-    const response = await new XmlRpcResponse().parse(xml)
+    const response = parser.methodResponse(parseXml(xml).methodResponse)
 
     return parseResult(response.params[0])
   }
