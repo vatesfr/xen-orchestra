@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Remotes] S3 (Object storage) and remote encryption are ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
+- [Remotes] S3 (Object storage) and remote encryption are production ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
 
 ### Bug fixes
 
