@@ -27,7 +27,7 @@
 - [VM/Migration] SR is no longer required if you select a migration network (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
 - [Backup] Fix `an error has occurred` when clicking on warning text in logs (PR [#7458](https://github.com/vatesfr/xen-orchestra/pull/7458))
 - [JSON-RPC API] Correctly require one-time password if configured for user (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
-- [VMWare/Migration] handle raw cdrom
+- [VMWare/Migration] Handle raw CDROM
 
 ### Packages to release
 
