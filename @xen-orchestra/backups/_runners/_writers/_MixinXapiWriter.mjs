@@ -26,7 +26,8 @@ export const MixinXapiWriter = (BaseClass = Object) =>
     }
 
     healthCheck() {
-      const sr = this._healthCheckSr
+      // the SR that the VM has been replicated on
+      const sr = this._sr
       assert.notStrictEqual(sr, undefined, 'SR should be defined before making a health check')
       assert.notEqual(this._targetVmRef, undefined, 'A vm should have been transfered to be health checked')
       // copy VM
@@ -57,11 +58,17 @@ export const MixinXapiWriter = (BaseClass = Object) =>
                 { name: 'copying-vm' },
                 async () =>
                   await xapi
-                    .callAsync('VM.copy', this._targetVmRef, `Health Check - ${baseVm.name_label}`, sr.$ref)
+                    .callAsync(
+                      'VM.copy',
+                      this._targetVmRef,
+                      `Health Check - ${baseVm.name_label}`,
+                      this._healthCheckSr.$ref
+                    )
                     .then(extractOpaqueRef)
               )
             }
-            const healthCheckVm = xapi.getObject(healthCheckVmRef) ?? (await xapi.waitObject(healthCheckVmRef))
+            const healthCheckVm =
+              xapi.getObject(healthCheckVmRef, undefined) ?? (await xapi.waitObject(healthCheckVmRef))
             await healthCheckVm.add_tags('xo:no-bak=Health Check')
             await new HealthCheckVmBackup({
               restoredVm: healthCheckVm,
