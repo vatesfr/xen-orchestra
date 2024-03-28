@@ -133,7 +133,8 @@ exports.createNbdVhdStream = async function createVhdStream(
     }
 
     // close export stream we won't use it anymore
-    sourceStream.destroy()
+    // destroying a stream can raise an error that can be safely ignored
+    sourceStream.on('error', () => {}).destroy()
 
     // yield  blocks from nbd
     const nbdIterator = nbdClient.readBlocks(function* () {
