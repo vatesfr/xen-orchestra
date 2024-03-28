@@ -7,9 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VMWare/Migration] Make one pass for the cold base disk and snapshots (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [VMWare/Migration] Use NFS datastore from XO Remote to bypass VMFS6 lock (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VMWare/Migration] Alignment of the end of delta on older ESXi (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
 
 ### Packages to release
 
@@ -27,6 +32,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer minor
+- vhd-lib patch
 - xo-acl-resolver minor
 
 <!--packages-end-->
