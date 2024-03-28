@@ -425,6 +425,7 @@ const delete_ = defer(async function (
     delete_disks, // eslint-disable-line camelcase
     force,
     forceDeleteDefaultTemplate,
+    forceBlockedOperation,
     vm,
 
     deleteDisks = delete_disks,
@@ -468,7 +469,12 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.VM_destroy(vm._xapiRef, { deleteDisks, force, forceDeleteDefaultTemplate })
+  return xapi.VM_destroy(vm._xapiRef, {
+    deleteDisks,
+    force,
+    forceDeleteDefaultTemplate,
+    bypassBlockedOperation: forceBlockedOperation,
+  })
 })
 
 delete_.params = {
@@ -485,6 +491,11 @@ delete_.params = {
   },
 
   forceDeleteDefaultTemplate: {
+    optional: true,
+    type: 'boolean',
+  },
+
+  forceBlockedOperation: {
     optional: true,
     type: 'boolean',
   },
