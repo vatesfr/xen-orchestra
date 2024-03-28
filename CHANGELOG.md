@@ -18,6 +18,11 @@
 - [Console] In VM and Host Console tab, display console's zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
 - [OTP] Activate it now requires entering a one-time password to validate the setup and prevent user from being locked out (PR [#7480](https://github.com/vatesfr/xen-orchestra/pull/7480))
 - [VM/Advanced] Display a warning if the VM does not support the selected firmware (PR [#7442](https://github.com/vatesfr/xen-orchestra/pull/7442))
+- [VMWare/Migration] Make one pass for the cold base disk and snapshots (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [VMWare/Migration] Use NFS datastore from XO Remote to bypass VMFS6 lock (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Remotes] S3 (Object storage) and remote encryption are production ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
+- [Template] Attempting to delete a template protected against accidental deletion displays a confirmation modal (PR [#7493](https://github.com/vatesfr/xen-orchestra/pull/7493))
+- [Pool/Advanced] High availability can now be activated or deactivated, and the heartbeat SR can be configured during activation [#4731](https://github.com/vatesfr/xen-orchestra/issues/4731) (PR [#7503](https://github.com/vatesfr/xen-orchestra/pull/7503))
 
 ### Bug fixes
 
@@ -31,6 +36,10 @@
 - [VM/WarmMigration] Feature is for PREMIUM and SOURCE users (PR [#7514](https://github.com/vatesfr/xen-orchestra/pull/7514))
 - [VMWare/Migration] Handle raw CDROM
 - [XOSTOR Creation] The host toolstack is now restarted after installing the XOSTOR dependencies (PR [#7437](https://github.com/vatesfr/xen-orchestra/pull/7437))
+- [VMWare/Migration] Alignment of the end of delta on older ESXi (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Backup] Fix `no object with uuid or opaqueref` when running a health check (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
+- [Backup] Fix `task has already ended` when running a health check in a mirror backup (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
+- [Backup] Fix health check being stuck when using a different, non shared health check SR (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
 
 ### Released packages
 
@@ -39,18 +48,20 @@
 - @vates/nbd-client 3.0.1
 - @vates/otp 1.1.0
 - @xen-orchestra/xapi 5.0.0
-- @xen-orchestra/backups 0.46.0
 - @xen-orchestra/backups-cli 1.0.16
 - @xen-orchestra/cr-seed-cli 1.0.1
 - @xen-orchestra/immutable-backups 1.0.3
 - @xen-orchestra/self-signed 0.2.1
-- @xen-orchestra/proxy 0.27.0
-- @xen-orchestra/vmware-explorer 0.4.2
 - xapi-explore-sr 0.4.3
 - xo-cli 0.27.0
-- xo-server 5.139.0
 - xo-server-load-balancer 0.9.0
-- xo-web 5.141.0
+- vhd-lib 4.9.2
+- @xen-orchestra/backups 0.46.1
+- @xen-orchestra/proxy 0.27.1
+- @xen-orchestra/vmware-explorer 0.6.0
+- xo-acl-resolver 0.5.0
+- xo-server 5.140.0
+- xo-web 5.142.0
 
 ## **5.92.1** (2024-03-06)
 
