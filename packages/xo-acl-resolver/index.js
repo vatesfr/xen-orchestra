@@ -42,7 +42,6 @@ const or =
 
 const checkMember = memberName => (object, permission) => {
   const member = object[memberName]
-
   return member !== object.id && checkAuthorization(member, permission)
 }
 
