@@ -37,6 +37,7 @@
 - @xen-orchestra/vmware-explorer minor
 - vhd-lib patch
 - xo-acl-resolver minor
+- xo-server patch
 - xo-web minor
 
 <!--packages-end-->

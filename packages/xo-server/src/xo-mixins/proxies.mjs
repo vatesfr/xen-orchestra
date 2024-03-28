@@ -242,7 +242,7 @@ export default class Proxy {
     await xapi._waitObjectState(vmUuid, vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined)
   }
 
-  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id)
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id, false)
   async getProxyApplianceUpdaterState(id) {
     try {
       // ensure the updater is using the expected channel otherwise the state will not be correct
