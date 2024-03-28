@@ -9,6 +9,7 @@
 
 - [VMWare/Migration] Make one pass for the cold base disk and snapshots (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
 - [VMWare/Migration] Use NFS datastore from XO Remote to bypass VMFS6 lock (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Remotes] S3 (Object storage) and remote encryption are production ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
 
 ### Bug fixes
 
@@ -35,5 +36,6 @@
 - @xen-orchestra/vmware-explorer minor
 - vhd-lib patch
 - xo-acl-resolver minor
+- xo-web minor
 
 <!--packages-end-->
