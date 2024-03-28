@@ -45,6 +45,12 @@ const checkMember = memberName => (object, permission) => {
   return member !== object.id && checkAuthorization(member, permission)
 }
 
+const checkMembers = memberName => (object, permission) => {
+  const members = object[memberName]
+
+  return members.length > 0 && members.every(member => checkAuthorization(member, permission))
+}
+
 const checkSelf = ({ id }, permission) => {
   const permissionsForObject = permissionsByObject[id]
 
@@ -62,11 +68,17 @@ const checkAuthorizationByTypes = {
 
   PBD: or(checkMember('host'), checkMember('SR')),
 
+  PCI: checkMember('$host'),
+
   PIF: checkMember('$host'),
+
+  PUSB: checkMember('host'),
 
   SR: or(checkSelf, checkMember('$container')),
 
   task: checkMember('$host'),
+
+  USB_group: checkMembers('PUSBs'),
 
   VBD: checkMember('VDI'),
 
@@ -99,6 +111,8 @@ const checkAuthorizationByTypes = {
   'VM-snapshot': or(checkSelf, checkMember('$snapshot_of')),
 
   'VM-template': or(checkSelf, checkMember('$pool')),
+
+  VUSB: checkMember('vm'),
 }
 
 // Hoisting is important for this function.
