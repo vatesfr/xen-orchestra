@@ -49,6 +49,12 @@ const checkMember = memberName => (object, permission) => {
   return member !== object.id && checkAuthorization(member, permission)
 }
 
+const checkMembers = memberName => (object, permission) => {
+  const members = object[memberName]
+
+  return members.length > 0 && members.every(member => checkAuthorization(member, permission))
+}
+
 const checkSelf = ({ id }, permission) => {
   const permissionsForObject = permissionsByObject[id]
 
@@ -76,7 +82,7 @@ const checkAuthorizationByTypes = {
 
   task: checkMember('$host'),
 
-  USB_group: checkMember('PUSBs'),
+  USB_group: checkMembers('PUSBs'),
 
   VBD: checkMember('VDI'),
 
