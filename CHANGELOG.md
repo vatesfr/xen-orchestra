@@ -44,23 +44,23 @@
 ### Released packages
 
 - @xen-orchestra/fs 4.1.6
-- vhd-lib 4.9.2
 - xen-api 3.0.0
 - @vates/nbd-client 3.0.1
 - @vates/otp 1.1.0
 - @xen-orchestra/xapi 5.0.0
-- @xen-orchestra/backups 0.46.1
 - @xen-orchestra/backups-cli 1.0.16
 - @xen-orchestra/cr-seed-cli 1.0.1
 - @xen-orchestra/immutable-backups 1.0.3
 - @xen-orchestra/self-signed 0.2.1
-- @xen-orchestra/proxy 0.27.1
-- @xen-orchestra/vmware-explorer 0.6.0
 - xapi-explore-sr 0.4.3
 - xo-acl-resolver 0.5.0
 - xo-cli 0.27.0
-- xo-server 5.140.0
 - xo-server-load-balancer 0.9.0
+- vhd-lib 4.9.2
+- @xen-orchestra/backups 0.46.1
+- @xen-orchestra/proxy 0.27.1
+- @xen-orchestra/vmware-explorer 0.6.0
+- xo-server 5.140.0
 - xo-web 5.142.0
 
 ## **5.92.1** (2024-03-06)
