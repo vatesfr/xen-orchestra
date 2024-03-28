@@ -42,9 +42,6 @@ const or =
 
 const checkMember = memberName => (object, permission) => {
   const member = object[memberName]
-  if (Array.isArray(member)) {
-    return member.every(m => checkAuthorization(m, permission))
-  }
 
   return member !== object.id && checkAuthorization(member, permission)
 }
