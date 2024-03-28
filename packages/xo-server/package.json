@@ -133,7 +133,7 @@
     "ws": "^8.2.3",
     "xdg-basedir": "^5.1.0",
     "xen-api": "^3.0.0",
-    "xo-acl-resolver": "^0.4.1",
+    "xo-acl-resolver": "^0.5.0",
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",
     "xo-remote-parser": "^0.9.2",
