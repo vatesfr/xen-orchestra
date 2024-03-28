@@ -211,15 +211,9 @@ class SelectDefaultSr extends Component {
   }
 }
 
-@connectStore(
-  () => ({
-    haSrs: createGetObjectsOfType('SR').pick((_, { srs }) => srs),
-  }),
-  { withRef: true }
-)
 class EnableHaModal extends Component {
   state = {
-    srs: Object.values(this.props.haSrs),
+    srs: Object.values(this.props.srs),
   }
 
   get value() {
@@ -234,7 +228,7 @@ class EnableHaModal extends Component {
         <SelectSr
           multi
           value={this.state.srs}
-          onChange={this.linkState('srs')}
+          onChange={srs => this.setState({ srs: srs.map(sr => sr.id) })}
           predicate={sr => sr.shared && isSrWritable(sr)}
         />
       </div>
@@ -260,7 +254,7 @@ class ToggleHa extends Component {
         this.setState({ busy: true })
         await enableHa({
           pool: this.props.pool,
-          heartbeatSrs: haSrs.map(sr => sr.id),
+          heartbeatSrs: haSrs,
           configuration: this.props.pool.ha_configuration ?? {},
         })
       } finally {
