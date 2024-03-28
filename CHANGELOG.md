@@ -53,13 +53,13 @@
 - @xen-orchestra/immutable-backups 1.0.3
 - @xen-orchestra/self-signed 0.2.1
 - xapi-explore-sr 0.4.3
-- xo-acl-resolver 0.5.0
 - xo-cli 0.27.0
 - xo-server-load-balancer 0.9.0
 - vhd-lib 4.9.2
 - @xen-orchestra/backups 0.46.1
 - @xen-orchestra/proxy 0.27.1
 - @xen-orchestra/vmware-explorer 0.6.0
+- xo-acl-resolver 0.5.0
 - xo-server 5.140.0
 - xo-web 5.142.0
 
