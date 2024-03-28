@@ -248,10 +248,7 @@ export default class Proxy {
       // ensure the updater is using the expected channel otherwise the state will not be correct
       await this.callProxyMethod(id, 'appliance.updater.configure', { channel: await this._getChannel() })
     } catch (error) {
-      // this method does not exist on older versions of the proxy, simply ignore the error
-      if (error.code !== -32601) {
-        log.warn('failed to set proxy updater channel', { error })
-      }
+      log.warn('failed to set proxy updater channel', { error })
     }
 
     return this.callProxyMethod(id, 'appliance.updater.getState')
