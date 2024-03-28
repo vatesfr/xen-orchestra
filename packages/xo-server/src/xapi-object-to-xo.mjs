@@ -400,7 +400,18 @@ const TRANSFORMS = {
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
+      isFirmwareSupported: (() => {
+        const restrictions = parseXml(obj.recommendations)?.restrictions?.restriction
 
+        if (restrictions === undefined) {
+          return true
+        }
+
+        const field = `supports-${obj.HVM_boot_params.firmware}`
+        const firmwareRestriction = restrictions.find(restriction => restriction.field === field)
+
+        return firmwareRestriction === undefined || firmwareRestriction.value !== 'no'
+      })(),
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
@@ -931,8 +942,8 @@ const TRANSFORMS = {
     return {
       type: 'USB_group',
 
-      PUSB: link(obj, 'PUSBs'),
-      VUSB: link(obj, 'VUSBs'),
+      PUSBs: link(obj, 'PUSBs'),
+      VUSBs: link(obj, 'VUSBs'),
     }
   },
 }

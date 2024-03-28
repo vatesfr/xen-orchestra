@@ -117,6 +117,11 @@ export default class TabConsole extends Component {
     window.location = `rdp://${formatHostname(this.props.vm.mainIpAddress)}`
   }
 
+  _onChangeScaleValue = event => {
+    const value = event.target.value
+    this.setState({ scale: value / 100 })
+  }
+
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
@@ -222,15 +227,30 @@ export default class TabConsole extends Component {
             </div>
           </Col>
           <Col mediumSize={2} className='hidden-lg-down'>
-            <input
-              className='form-control'
-              max={3}
-              min={0.1}
-              onChange={this.linkState('scale')}
-              step={0.1}
-              type='range'
-              value={scale}
-            />
+            <Row>
+              <Col mediumSize={8}>
+                <input
+                  className='form-control'
+                  max={3}
+                  min={0.1}
+                  onChange={this.linkState('scale')}
+                  step={0.1}
+                  type='range'
+                  value={scale}
+                />
+              </Col>
+              <Col mediumSize={4}>
+                <input
+                  className='form-control'
+                  onChange={this._onChangeScaleValue}
+                  step='1'
+                  type='number'
+                  value={Math.round(this.state.scale * 100)}
+                  min={1}
+                  max={300}
+                />
+              </Col>
+            </Row>
           </Col>
           <Col mediumSize={1}>
             <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>

@@ -5,9 +5,9 @@
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a v-tooltip="hasTooltip" :href class="link" @click="navigate">
+      <a v-tooltip="{ selector: '.text' }" :href class="link" @click="navigate">
         <UiIcon :icon class="icon" />
-        <div ref="textElement" class="text typo h6-medium">
+        <div class="text typo h6-medium">
           <slot />
         </div>
       </a>
@@ -20,10 +20,8 @@
 
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { vTooltip } from '@/directives/tooltip.directive'
-import { hasEllipsis } from '@/libs/utils'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { computed, ref } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
 defineProps<{
@@ -31,9 +29,6 @@ defineProps<{
   route: RouteLocationRaw
   active?: boolean
 }>()
-
-const textElement = ref<HTMLElement>()
-const hasTooltip = computed(() => hasEllipsis(textElement.value))
 </script>
 
 <style lang="postcss" scoped>

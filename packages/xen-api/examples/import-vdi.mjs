@@ -12,13 +12,17 @@ import { createClient } from '../index.mjs'
 import { createInputStream, resolveRef } from './utils.mjs'
 
 defer(async ($defer, argv) => {
-  const opts = getopts(argv, { boolean: ['events', 'raw', 'remove-length'], string: ['sr', 'vdi'] })
+  const opts = getopts(argv, {
+    alias: { proxy: 'p' },
+    boolean: ['events', 'raw', 'remove-length'],
+    string: ['proxy', 'sr', 'vdi'],
+  })
 
   const url = opts._[0]
 
   if (url === undefined) {
     return console.log(
-      'Usage: import-vdi [--events] [--raw] [--sr <SR identifier>] [--vdi <VDI identifier>] <XS URL> [<VHD file>]'
+      'Usage: import-vdi [--events] [--proxy <URL>] [--raw] [--sr <SR identifier>] [--vdi <VDI identifier>] <XS URL> [<VHD file>]'
     )
   }
 
@@ -38,6 +42,7 @@ defer(async ($defer, argv) => {
 
   const xapi = createClient({
     allowUnauthorized: true,
+    httpProxy: opts.proxy || undefined,
     url,
     watchEvents: opts.events && ['task'],
   })

@@ -1,4 +1,4 @@
-import { useUiStore } from '@/stores/ui.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed, provide, ref, watch } from 'vue'
 import { THEME_KEY } from 'vue-echarts'

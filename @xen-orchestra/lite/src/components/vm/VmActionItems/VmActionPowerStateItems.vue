@@ -65,16 +65,16 @@
 </template>
 
 <script lang="ts" setup>
-import MenuItem from '@/components/menu/MenuItem.vue'
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useHostCollection } from '@/stores/xen-api/host.store'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import { useHostMetricsCollection } from '@/stores/xen-api/host-metrics.store'
+import { useHostCollection } from '@/stores/xen-api/host.store'
 import { usePoolCollection } from '@/stores/xen-api/pool.store'
 import { useVmCollection } from '@/stores/xen-api/vm.store'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { VM_POWER_STATE, VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import {
   faCirclePlay,
   faMoon,

@@ -20,7 +20,7 @@ defineProps<{
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-icon {
-  --color: inherit;
+  --color: currentColor;
 
   &.info {
     --color: var(--color-purple-base);

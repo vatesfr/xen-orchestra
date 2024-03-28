@@ -354,7 +354,9 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      return await this.call('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '')
+      return await this.callAsync('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '').then(
+        extractOpaqueRef
+      )
     } finally {
       if (snapshotRef) {
         await this.VM_destroy(snapshotRef)

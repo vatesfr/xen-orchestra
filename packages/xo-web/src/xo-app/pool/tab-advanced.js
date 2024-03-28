@@ -29,6 +29,7 @@ import {
   installSupplementalPackOnAllHosts,
   isSrWritable,
   rollingPoolReboot,
+  setDefaultSr,
   setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -187,6 +188,21 @@ class PoolMaster extends Component {
     return (
       <XoSelect onChange={this._onChange} predicate={this._getPoolMasterPredicate} value={pool.master} xoType='host'>
         {master.name_label}
+      </XoSelect>
+    )
+  }
+}
+
+@connectStore(() => ({
+  defaultSr: createGetObject((_, { pool }) => pool.default_SR),
+}))
+class SelectDefaultSr extends Component {
+  render() {
+    const { defaultSr } = this.props
+
+    return (
+      <XoSelect onChange={setDefaultSr} value={defaultSr.id} xoType='SR'>
+        <Sr id={defaultSr.id} />
       </XoSelect>
     )
   }
@@ -369,6 +385,12 @@ export default class TabAdvanced extends Component {
                           </div>
                         </form>
                       )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('defaultSr')}</th>
+                    <td>
+                      <SelectDefaultSr pool={pool} />
                     </td>
                   </tr>
                   <tr>

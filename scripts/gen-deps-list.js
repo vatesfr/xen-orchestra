@@ -29,6 +29,11 @@ let allPackages
 async function main(args, scriptName) {
   const toRelease = { __proto__: null }
 
+  const checkOrder = args[0] === '--check-order'
+  if (checkOrder) {
+    args.shift()
+  }
+
   const testMode = args[0] === '--test'
   if (testMode) {
     debug('reading packages from CLI')
@@ -59,6 +64,19 @@ async function main(args, scriptName) {
       return
     }
     await readPackagesFromChangelog(toRelease)
+  }
+
+  if (checkOrder) {
+    let prev
+    for (const name of Object.keys(toRelease)) {
+      if (prev === undefined || name > prev) {
+        prev = name
+      } else {
+        throw new Error(
+          `invalid packages to release order in CHANGELOG.unreleased.md: ${name} should be before ${prev}`
+        )
+      }
+    }
   }
 
   allPackages = keyBy(await getPackages(true), 'name')

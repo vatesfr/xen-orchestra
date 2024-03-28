@@ -6,7 +6,6 @@ const forEach = require('lodash/forEach')
 const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
-  creation: 'Creation',
   connected: 'Connected',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
@@ -599,7 +598,7 @@ const messages = {
   remoteTypeLocal: 'Local',
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
-  remoteTypeS3: 'Amazon Web Services S3 (beta)',
+  remoteTypeS3: 'Amazon Web Services S3',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -1495,7 +1494,7 @@ const messages = {
   vmEditAndRestartModalTitle: 'VM is currently running',
   vmEditAndRestartModalMessage:
     'This VM is currently running, and needs to be stopped to modify this value. Restart VM and modify this value?',
-
+  firmwareNotSupported: 'Firmware not supported',
   vusbs: 'VUSBs',
   vusbRemainUnplugged: 'The VUSB remain unplugged until the next shutdown/start',
   vusbUnplugTooltip: 'Unplug until the next shutdown/start',
@@ -2270,6 +2269,7 @@ const messages = {
   // ----- User -----
   authToken: 'Token',
   authTokens: 'Authentication tokens',
+  authTokenLastUse: 'Last use',
   username: 'Username',
   password: 'Password',
   language: 'Language',
@@ -2311,7 +2311,9 @@ const messages = {
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
   addOtpConfirm: 'Add OTP authentication',
-  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
+  addOtpConfirmMessage:
+    'To enable OTP authentication, add it to your application and then enter the current password to validate.',
+  addOtpInvalidPassword: 'Password is invalid',
   removeOtpConfirm: 'Remove OTP authentication',
   removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',

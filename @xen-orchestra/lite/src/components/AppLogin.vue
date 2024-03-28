@@ -36,22 +36,21 @@
 </template>
 
 <script lang="ts" setup>
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { storeToRefs } from 'pinia'
-import { onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useLocalStorage, whenever } from '@vueuse/core'
-
 import FormCheckbox from '@/components/form/FormCheckbox.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import LoginError from '@/components/LoginError.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import type { XenApiError } from '@/libs/xen-api/xen-api.types'
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import { usePageTitleStore } from '@/stores/page-title.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import UiButton from '@core/components/button/UiButton.vue'
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import { useLocalStorage, whenever } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('login'))

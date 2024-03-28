@@ -1,7 +1,9 @@
-import df from '@sindresorhus/df'
+import assert from 'node:assert/strict'
+import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs-extra'
 import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
+import { execFile } from 'node:child_process'
 import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
@@ -26,6 +28,22 @@ async function addSyncStackTrace(fn, ...args) {
 
     error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
+  }
+}
+
+// $filesystem $size $used $available_bytes $capacity $mountpoint
+const DF_RE = /^(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d{1,3})%\s+(.+)$/
+
+async function df(path) {
+  const stdout = await fromCallback(execFile, 'df', ['-kP', path])
+  const lines = stdout.trim().split('\n')
+  assert.equal(lines.length, 2) // headers + first line
+  const matches = DF_RE.exec(lines[1])
+  assert.notEqual(matches, null)
+  return {
+    size: Number(matches[2]) * 1024,
+    used: Number(matches[3]) * 1024,
+    available: Number(matches[4]) * 1024,
   }
 }
 
@@ -101,7 +119,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     // filesystem, type, size, used, available, capacity and mountpoint.
     // size, used, available and capacity may be `NaN` so we remove any `NaN`
     // value from the object.
-    const info = await df.file(this.getFilePath('/'))
+    const info = await df(this.getFilePath('/'))
     Object.keys(info).forEach(key => {
       if (Number.isNaN(info[key])) {
         delete info[key]
