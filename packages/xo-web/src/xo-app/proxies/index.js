@@ -108,7 +108,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     collapsed: true,
     disabled: ({ vmUuid }) => vmUuid === undefined,
-    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id, { ignoreRunningJobs: true }),
+    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id, { force: true }),
     icon: 'upgrade',
     label: _('forceUpgrade'),
     level: 'primary',

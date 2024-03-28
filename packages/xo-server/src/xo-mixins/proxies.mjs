@@ -191,7 +191,7 @@ export default class Proxy {
     return proxy
   }
 
-  async upgradeProxyAppliance(id, ignoreRunningJobs = false) {
+  async upgradeProxyAppliance(id, { force = false, ignoreRunningJobs = force }) {
     if (!ignoreRunningJobs) {
       const stream = await this.callProxyMethod(id, 'backup.listRunningJobs', undefined, { assertType: 'iterator' })
       const ids = []
@@ -203,14 +203,14 @@ export default class Proxy {
       }
     }
 
-    try {
-      // attempt to use the quick API upgrade
-      await this.callProxyMethod(id, 'appliance.updater.upgrade')
-    } catch (error) {
-      log.warn('failed to upgrade proxy via API', { error })
-
-      // fall back to the reboot upgrade (only available if the VM is known)
+    if (force) {
+      // reboot upgrade (only available if the VM is known)
       await this.updateProxyAppliance(id, { upgrade: true })
+    } else {
+      // quick API upgrade
+      await this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, {
+        timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
+      })
     }
   }
 
