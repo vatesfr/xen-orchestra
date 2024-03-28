@@ -11,6 +11,7 @@
 - [VMWare/Migration] Use NFS datastore from XO Remote to bypass VMFS6 lock (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
 - [Remotes] S3 (Object storage) and remote encryption are production ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
 - [Template] Attempting to delete a template protected against accidental deletion displays a confirmation modal (PR [#7493](https://github.com/vatesfr/xen-orchestra/pull/7493))
+- [Pool/Advanced] High availability can now be activated or deactivated, and the heartbeat SR can be configured during activation [#4731](https://github.com/vatesfr/xen-orchestra/issues/4731) (PR [#7503](https://github.com/vatesfr/xen-orchestra/pull/7503))
 
 ### Bug fixes
 
@@ -41,7 +42,7 @@
 - @xen-orchestra/vmware-explorer minor
 - vhd-lib patch
 - xo-acl-resolver minor
-- xo-server patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->

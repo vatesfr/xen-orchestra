@@ -116,6 +116,45 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function disableHa({ pool }) {
+  await this.getXapi(pool).disableHa()
+}
+
+disableHa.params = {
+  pool: {
+    type: 'string',
+  },
+}
+
+disableHa.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function enableHa({ pool, heartbeatSrs, configuration }) {
+  await this.getXapi(pool).enableHa(heartbeatSrs, configuration)
+}
+
+enableHa.params = {
+  pool: {
+    type: 'string',
+  },
+  heartbeatSrs: {
+    type: 'array',
+    items: { type: 'string' },
+  },
+  configuration: {
+    type: 'object',
+  },
+}
+
+enableHa.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 // Returns an array of missing new patches in the host
 // Returns an empty array if up-to-date
 export function listMissingPatches({ host }) {
