@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.93.0** (2024-03-20)
+## **5.93.0** (2024-03-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
