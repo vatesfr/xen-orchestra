@@ -55,6 +55,50 @@ redirectToHttps = true
 
 This should be written just before the `mount` option, inside the `http:` block.
 
+### Using Let's Encrypt certificates
+
+Xen Orchestra can generate and renew Let's Encrypt certificates automatically. To enable this, add at the bottom of you XO configuation:
+
+```toml
+# Must be set to true for this feature
+autoCert = true
+
+# These entries are required and indicates where the certificate and the
+# private key will be saved.
+cert = 'path/to/cert.pem'
+key = 'path/to/key.pem'
+
+# ACME (e.g. Let's Encrypt, ZeroSSL) CA directory
+#
+# Specifies the URL to the ACME CA's directory.
+#
+# A identifier `provider/directory` can be passed instead of a URL, see the
+# list of supported directories here: https://www.npmjs.com/package/acme-client#directory-urls
+#
+# Note that the application cannot detect that this value has changed.
+#
+# In that case delete the certificate and the key files, and restart the
+# application to generate new ones.
+#
+# Default is 'letsencrypt/production'
+acmeCa = 'letsencrypt/production'
+
+# Domain for which the certificate should be created.
+#
+# This entry is required.
+acmeDomain = 'my.domain.net'
+
+# Optional email address which will be used for the certificate creation.
+#
+# It will be notified of any issues.
+acmeEmail = 'admin@my.domain.net'
+```
+
+:::tip
+- First of all, make sure your XO is listening on HTTP on port 80 and on HTTPS 443.
+- Your server must be reachable with the configured domain to the certificate provider (e.g. Let's Encrypt), it usually means publicly reachable.
+:::
+
 ## Link to xo-web
 
 You shouldn't have to change this. It's the path where `xo-web` files are served by `xo-server`.
