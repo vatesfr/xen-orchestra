@@ -245,7 +245,7 @@ export default class RestApi {
         async 'logs.tar'(req, res) {
           const host = req.xapiObject
 
-          const response = await host.$xapi.getResource('/audit_log', { host })
+          const response = await host.$xapi.getResource('/host_logs_download', { host })
 
           res.setHeader('content-type', 'application/x-tar')
           await pipeline(response.body, compressMaybe(req, res))
