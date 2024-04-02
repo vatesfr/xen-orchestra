@@ -236,15 +236,19 @@ export default class RestApi {
         async 'audit.txt'(req, res) {
           const host = req.xapiObject
 
+          const response = await host.$xapi.getResource('/audit_log', { host })
+
           res.setHeader('content-type', 'text/plain')
-          await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
+          await pipeline(response.body, compressMaybe(req, res))
         },
 
         async 'logs.tar'(req, res) {
           const host = req.xapiObject
 
+          const response = await host.$xapi.getResource('/audit_log', { host })
+
           res.setHeader('content-type', 'application/x-tar')
-          await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
+          await pipeline(response.body, compressMaybe(req, res))
         },
 
         async missing_patches(req, res) {
