@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Fix download of host's audit and logs broken in XO 5.93.0
+- [Host/Advanced] Fix _Hyper Threading_ not correctly recognized if _Smartctl_ plugin returned an error
 
 ### Packages to release
 
@@ -30,5 +31,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
