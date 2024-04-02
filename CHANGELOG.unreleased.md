@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Fix download of host's audit and logs broken in XO 5.93.0
+- [VM] Fix `unknown error` on export (broken in XO 5.93.0)
 
 ### Packages to release
 

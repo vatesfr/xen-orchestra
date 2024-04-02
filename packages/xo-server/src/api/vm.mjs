@@ -16,7 +16,7 @@ import { Disposable, ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
+import { forEach, map, mapFilter, noop, parseSize, safeDateFormat } from '../utils.mjs'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 
 const log = createLogger('xo:vm')
@@ -1226,11 +1226,9 @@ async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' })
   const stream =
     format === 'ova' ? await xapi.exportVmOva(vmRef) : (await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })).body
 
-  res.on('close', () => stream.destroy())
-  // Remove the filename as it is already part of the URL.
-  stream.headers['content-disposition'] = 'attachment'
+  res.on('close', () => stream.on('error', noop).destroy())
 
-  res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+  res.setHeader('content-disposition', 'attachment')
   stream.pipe(res)
 }
 
