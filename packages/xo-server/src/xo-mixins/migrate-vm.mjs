@@ -302,9 +302,6 @@ export default class MigrateVm {
             const { capacity, descriptionLabel, fileName, nameLabel, path, datastore: datastoreName, isFull } = disk
             let { vdi, vhd: parentVhd } = vhds[userdevice]
             let vhd
-            if (vdi === undefined) {
-              throw new Error(`Can't import delta of a running VM without its parent vdi`)
-            }
             if (isFull) {
               vhd = await VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
                 thin: false,
