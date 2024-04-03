@@ -208,8 +208,8 @@ export default class extends Component {
       })
     }
 
-    const smartctlHealth = await getSmartctlHealth(host)
-    const isSmartctlHealthEnabled = smartctlHealth !== null
+    const smartctlHealth = await getSmartctlHealth(host).catch(console.error)
+    const isSmartctlHealthEnabled = smartctlHealth != null
     const smartctlUnhealthyDevices = isSmartctlHealthEnabled
       ? Object.keys(smartctlHealth).filter(deviceName => smartctlHealth[deviceName] !== 'PASSED')
       : undefined
