@@ -13,7 +13,7 @@
 
 - [REST API] Fix download of host's audit and logs broken in XO 5.93.0
 - [VM] Fix `unknown error` on export (broken in XO 5.93.0)
-- [Host/Advanced] Fix _Hyper Threading_ not correctly recognized if _Smartctl_ plugin returned an error (PR [#7525](https://github.com/vatesfr/xen-orchestra/pull/7525))
+- [Host/Advanced] Fix _Hyper Threading_ not correctly recognized if _Smartctl_ plugin returned an error [Forum#8675](https://xcp-ng.org/forum/topic/8675/ht-smt-detection-in-8-3-not-fully-working) (PR [#7525](https://github.com/vatesfr/xen-orchestra/pull/7525))
 
 ### Packages to release
 
