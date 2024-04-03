@@ -1,7 +1,7 @@
 <template>
   <FontAwesomeLayers class="vm-icon">
     <UiIcon :icon="faDisplay" />
-    <PowerStateIcon :state="state" />
+    <PowerStateIcon :state class="state" />
   </FontAwesomeLayers>
 </template>
 
@@ -22,7 +22,7 @@ defineProps<{
   flex-shrink: 0;
 }
 
-.power-state-icon {
+.state {
   font-size: 0.7em;
   transform: translate(80%, 70%);
 }

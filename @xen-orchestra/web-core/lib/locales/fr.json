@@ -1,5 +1,9 @@
 {
   "core": {
+    "close": "Fermer",
+    "master": "Hôte primaire",
+    "open": "Ouvrir",
+    "quick-actions": "Actions rapides",
     "sidebar": {
       "close": "Fermer la barre latérale",
       "lock": "Verrouiller la barre latérale",

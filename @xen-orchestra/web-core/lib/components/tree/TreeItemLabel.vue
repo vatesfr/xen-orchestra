@@ -13,7 +13,13 @@
           :right="i === depth - 1"
         />
       </template>
-      <UiIcon v-if="hasToggle" :icon="isExpanded ? faAngleDown : faAngleRight" fixed-width @click="toggle()" />
+      <ButtonIcon
+        v-if="hasToggle"
+        v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
+        :icon="isExpanded ? faAngleDown : faAngleRight"
+        size="small"
+        @click="toggle()"
+      />
       <TreeLine v-else-if="!noIndent" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
@@ -29,6 +35,7 @@
 </template>
 
 <script lang="ts" setup>
+import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeLine from '@core/components/tree/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
