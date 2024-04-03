@@ -1459,51 +1459,70 @@ export async function importMultipleFromEsxi({
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
   let done = 0
   return task.run(async () => {
-    Task.set('total', vms.length)
-    Task.set('done', 0)
-    Task.set('progress', 0)
-    const result = {}
-    try {
-      await asyncEach(
-        vms,
-        async vm => {
-          await Task.run({ properties: { name: `importing vm ${vm}` } }, async () => {
-            try {
-              const vmUuid = await this.migrationfromEsxi({
-                host,
-                user,
-                password,
-                sslVerify,
-                thin,
-                vm,
-                sr,
-                network,
-                stopSource,
+    const PREFIX = '[vmware]'
+
+    return Disposable.use(
+      Disposable.all(
+        (await this.getAllRemotes())
+          .filter(({ name }) => name.toLocaleLowerCase().startsWith(PREFIX))
+          .map(remote => getSyncedHandler(remote))
+      ),
+      async handlers => {
+        const dataStoreToHandlers = {}
+        handlers.forEach(handler => {
+          const name = handler._remote.name
+          const dataStoreName = name.substring(PREFIX.length).trim()
+          dataStoreToHandlers[dataStoreName] = handler
+        })
+
+        Task.set('total', vms.length)
+        Task.set('done', 0)
+        Task.set('progress', 0)
+        const result = {}
+        try {
+          await asyncEach(
+            vms,
+            async vm => {
+              await Task.run({ properties: { name: `importing vm ${vm}` } }, async () => {
+                try {
+                  const vmUuid = await this.migrationfromEsxi({
+                    host,
+                    user,
+                    password,
+                    sslVerify,
+                    thin,
+                    vm,
+                    sr,
+                    network,
+                    stopSource,
+                    dataStoreToHandlers,
+                  })
+                  result[vm] = vmUuid
+                } finally {
+                  done++
+                  Task.set('done', done)
+                  Task.set('progress', Math.round((done * 100) / vms.length))
+                }
               })
-              result[vm] = vmUuid
-            } finally {
-              done++
-              Task.set('done', done)
-              Task.set('progress', Math.round((done * 100) / vms.length))
+            },
+            {
+              concurrency,
+              stopOnError,
             }
-          })
-        },
-        {
-          concurrency,
-          stopOnError,
+          )
+          return result
+        } catch (error) {
+          // if stopOnError is true :
+          //   error is the original error , `suceeded` property {[esxi vm id]: xen vm id} contains only the VMs migrated before the error.
+          //   VMs started before the error and finished migration after won't be in
+          // else
+          //    error is an AggregatedError with an `errors` property containing all the errors
+          //    and a `succeeded` property  {[esxi vm id]: xen vm id} containing all the migrated VMs
+          error.succeeded = result
+          throw error
         }
-      )
-      return result
-    } catch (error) {
-      // if stopOnError is true :
-      //   error is the original error , `suceeded` property {[esxi vm id]: xen vm id} contains only the VMs migrated before the error.
-      //   VMs started before the error and finished migration after won't be in
-      // else
-      //    error is an AggregatedError with an `errors` property containing all the errors
-      //    and a `succeeded` property  {[esxi vm id]: xen vm id} containing all the migrated VMs
-      error.succeeded = result
-      throw error
-    }
+      }
+    )
   })
 }
 
