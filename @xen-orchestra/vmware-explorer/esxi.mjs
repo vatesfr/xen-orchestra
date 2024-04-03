@@ -233,33 +233,35 @@ export default class Esxi extends EventEmitter {
   async getAllVmMetadata() {
     const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime'])
 
-    return Object.keys(datas).map(id => {
-      const { config, storage, runtime } = datas[id]
-      if (storage === undefined) {
-        throw new Error(`source VM ${id} don't have any storage`)
-      }
-      const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
-        ? storage.perDatastoreUsage
-        : [storage.perDatastoreUsage]
-      return {
-        id,
-        nameLabel: config.name,
-        memory: +config.hardware.memoryMB * 1024 * 1024,
-        nCpus: +config.hardware.numCPU,
-        guestToolsInstalled: false,
-        firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-        powerState: runtime.powerState,
-        storage: perDatastoreUsage.reduce(
-          (prev, curr) => {
-            return {
-              used: prev.used + +curr.committed,
-              free: prev.free + +curr.uncommitted,
-            }
-          },
-          { used: 0, free: 0 }
-        ),
-      }
-    })
+    return Object.keys(datas)
+      .map(id => {
+        const { config, storage, runtime } = datas[id]
+        if (storage === undefined) {
+          return undefined
+        }
+        const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
+          ? storage.perDatastoreUsage
+          : [storage.perDatastoreUsage]
+        return {
+          id,
+          nameLabel: config.name,
+          memory: +config.hardware.memoryMB * 1024 * 1024,
+          nCpus: +config.hardware.numCPU,
+          guestToolsInstalled: false,
+          firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+          powerState: runtime.powerState,
+          storage: perDatastoreUsage.reduce(
+            (prev, curr) => {
+              return {
+                used: prev.used + +curr.committed,
+                free: prev.free + +curr.uncommitted,
+              }
+            },
+            { used: 0, free: 0 }
+          ),
+        }
+      })
+      .filter(_ => _ !== undefined)
   }
 
   async getTransferableVmMetadata(vmId) {
