@@ -59,18 +59,22 @@ export default class {
         const token = await app.getAuthenticationToken(tokenId)
 
         let { last_uses = {} } = token
-        last_uses[ip] = { timestamp: Date.now() }
 
-        const MAX_LAST_USE_ENTRIES = 10
-        if (Object.keys(last_uses).length > MAX_LAST_USE_ENTRIES) {
-          const entries = Object.entries(last_uses).sort((a, b) => b[1].timestamp - a[1].timestamp)
-          entries.length = MAX_LAST_USE_ENTRIES
-          last_uses = Object.fromEntries(entries)
+        const now = Date.now()
+        if (Object.hasOwn(last_uses, ip) && now - last_uses[ip].timestamp > 60e3) {
+          last_uses[ip] = { timestamp: now }
+
+          const MAX_LAST_USE_ENTRIES = 10
+          if (Object.keys(last_uses).length > MAX_LAST_USE_ENTRIES) {
+            const entries = Object.entries(last_uses).sort((a, b) => b[1].timestamp - a[1].timestamp)
+            entries.length = MAX_LAST_USE_ENTRIES
+            last_uses = Object.fromEntries(entries)
+          }
+
+          token.last_uses = last_uses
+
+          this._tokens.update(token)
         }
-
-        token.last_uses = last_uses
-
-        this._tokens.update(token)
 
         return { bypassOtp: true, expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
