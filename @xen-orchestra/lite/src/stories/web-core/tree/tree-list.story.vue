@@ -17,6 +17,9 @@
                 <TreeList>
                   <TreeItem v-for="j of 3" :key="j">
                     <TreeItemLabel no-indent route="dashboard">
+                      <template #icon>
+                        <ObjectIcon :state="j === 3 ? 'halted' : 'running'" type="vm" />
+                      </template>
                       VM {{ i }}.{{ j }}
                       <template #addons>
                         <UiIcon v-if="j === 2" busy />
@@ -39,6 +42,7 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { slot } from '@/libs/story/story-param'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
+import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
