@@ -1,9 +1,13 @@
+import { useTree } from '@core/composables/tree.composable'
 import type { Branch } from '@core/composables/tree/branch'
 import type { BranchDefinition } from '@core/composables/tree/branch-definition'
 import type { Leaf } from '@core/composables/tree/leaf'
 import type { LeafDefinition } from '@core/composables/tree/leaf-definition'
+import type { TreeNodeBase } from '@core/composables/tree/tree-node-base'
 
-export type Identifiable = { id: string | number }
+export type TreeNodeId = string | number
+
+export type Identifiable = { id: TreeNodeId }
 
 export type Labeled = { label: string }
 
@@ -13,15 +17,22 @@ type AcceptableKeys<TData, TAccepted> = {
 
 type AcceptableGetter<TData, TAccepted> = AcceptableKeys<TData, TAccepted> | ((data: TData) => TAccepted)
 
+export type TreeNode<
+  TData extends object = any,
+  TChildNode extends TreeNode = TreeNode<any, any>,
+  TDiscriminator = any,
+> = Leaf<TData, TDiscriminator> | Branch<TData, TChildNode, TDiscriminator>
+
 export type BaseTreeNodeOptions<TData extends object, TDiscriminator> = {
   discriminator?: TDiscriminator
-  predicate?: (data: TData) => boolean | undefined
-  activable?: boolean
+  predicate?: (node: TreeNodeBase<TData, TDiscriminator>) => boolean | undefined
+  selectable?: boolean
+  meta?: any
 }
 
 type GetIdOption<TData extends object> = TData extends Identifiable
-  ? { getId?: AcceptableGetter<TData, string | number> }
-  : { getId: AcceptableGetter<TData, string | number> }
+  ? { getId?: AcceptableGetter<TData, TreeNodeId> }
+  : { getId: AcceptableGetter<TData, TreeNodeId> }
 
 type GetLabelOption<TData extends object> = TData extends Labeled
   ? { getLabel?: AcceptableGetter<TData, string> }
@@ -40,8 +51,6 @@ export type DefinitionToTreeNode<TDefinition> =
       ? Leaf<TData, TDiscriminator>
       : never
 
-export type TreeNode = Leaf | Branch
-
 export type ChildTreeGetter<TData extends object, TChildNode extends TreeNode, TDiscriminator> = (
   thisBranch: Branch<TData, TChildNode, TDiscriminator>
 ) => TChildNode[]
@@ -50,11 +59,11 @@ export type ChildTreeDefinitionGetter<TData extends object, TChildDefinition ext
   data: TData
 ) => TChildDefinition[]
 
-export type TreeContext<TTreeNode extends TreeNode = TreeNode> = {
+export type TreeContext = {
   allowMultiSelect: boolean
-  selectedNodes: Map<string | number, TTreeNode>
-  expandedNodes: Map<string | number, TTreeNode>
-  activeNode: TTreeNode | undefined
+  selectedIds: Set<TreeNodeId>
+  expandedIds: Set<TreeNodeId>
+  activeId: TreeNodeId | undefined
 }
 
 export type UseTreeOptions = {
@@ -66,4 +75,18 @@ export type UseTreeOptions = {
         max: number
         fn: (count: number) => string
       }
+}
+
+export type Tree = ReturnType<typeof useTree>
+
+export type LeafStatuses = {
+  active: boolean
+  selected: boolean
+  matches: boolean
+}
+
+export type BranchStatuses = LeafStatuses & {
+  'selected-partial': boolean
+  'selected-full': boolean
+  expanded: boolean
 }

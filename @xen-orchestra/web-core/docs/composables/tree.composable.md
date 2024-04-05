@@ -38,12 +38,14 @@ This option allows you to customize the label of the selected nodes.
 
 ## `useTree` return values
 
-|                 | Type                                       |                                                                                |
-| --------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| `nodes`         | `(Leaf \| Branch)[]`                       | Array of visible `Leaf` and `Branch` instances (See TreeNode Visibility below) |
-| `activeNode`    | `ComputedRef<Leaf \| Branch \| undefined>` | The active node instance                                                       |
-| `selectedNodes` | `ComputedRef<(Leaf \| Branch)[]>`          | Array of selected node instances                                               |
-| `selectedLabel` | `ComputedRef<string>`                      | The generator label for the selected nodes                                     |
+|                 | Type                                       |                                                                                    |
+| --------------- | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `nodes`         | `(Leaf \| Branch)[]`                       | Array of **visible** `Leaf` and `Branch` instances (See TreeNode Visibility below) |
+| `activeId`      | `Ref<string \| number \| undefined>`       | The active node id                                                                 |
+| `activeNode`    | `ComputedRef<Leaf \| Branch \| undefined>` | The active node instance                                                           |
+| `selectedIds`   | `Ref<(string \| number)[]>`                | Array of selected nodes id                                                         |
+| `selectedNodes` | `ComputedRef<(Leaf \| Branch)[]>`          | Array of selected nodes instance                                                   |
+| `selectedLabel` | `ComputedRef<string>`                      | The generator label for the selected nodes                                         |
 
 ## `LeafDefinition`
 
@@ -52,14 +54,14 @@ new LeafDefinition(data)
 new LeafDefinition(data, options)
 ```
 
-|                         |     Required     | Type                                         | Default     |                                                                                        |
-| ----------------------- | :--------------: | -------------------------------------------- | ----------- | -------------------------------------------------------------------------------------- |
-| `data`                  |        ✓         | `T`                                          |             | data to be stored in the node                                                          |
-| `options.discriminator` |                  | `string`                                     | `undefined` | discriminator for the node when you mix different data types (see Discriminator below) |
-| `options.predicate`     |                  | `(data: T) => boolean \| undefined`          | `undefined` | filter function (see Filtering below)                                                  |
-| `options.activable`     |                  | `boolean`                                    | `true`      | whether the node can be activated                                                      |
-| `options.getId`         |  if no `T[id]`   | `keyof T` \| `(data: T) => string \| number` | `id`        | field or function to get a unique identifier for the node                              |
-| `options.getLabel`      | if no `T[label]` | `keyof T` \| `(data: T) => string`           | `label`     | field or function to get a label for the node                                          |
+|                         |       Required       | Type                                                 | Default                                 |                                                                                        |
+| ----------------------- | :------------------: | ---------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+| `data`                  |          ✓           | `TData`                                              |                                         | data to be stored in the node                                                          |
+| `options.discriminator` |                      | `string`                                             | `undefined`                             | discriminator for the node when you mix different data types (see Discriminator below) |
+| `options.predicate`     |                      | `(node: TreeNode) => boolean \| undefined`           | `undefined`                             | filter function (see Filtering below)                                                  |
+| `options.selectable`    |                      | `boolean`                                            | `true` for `Leaf`, `false` for `Branch` | whether the node can be selected                                                       |
+| `options.getId`         |  if no `TData[id]`   | `keyof TData` \| `(data: TData) => string \| number` | `id`                                    | field or function to get a unique identifier for the node                              |
+| `options.getLabel`      | if no `TData[label]` | `keyof TData` \| `(data: TData) => string`           | `label`                                 | field or function to get a label for the node                                          |
 
 ### Example
 
@@ -76,10 +78,10 @@ new BranchDefinition(data, children)
 new BranchDefinition(data, options, children)
 ```
 
-|                            |     | Type                   | Default |                                                  |
-| -------------------------- | --- | ---------------------- | ------- | ------------------------------------------------ |
-| (same as `LeafDefinition`) |     |                        |         |                                                  |
-| `children`                 | ✓   | `TreeNodeDefinition[]` |         | array of nodes that are contained in this branch |
+|                            |     | Type                   | Default |                                                                  |
+| -------------------------- | --- | ---------------------- | ------- | ---------------------------------------------------------------- |
+| (same as `LeafDefinition`) |     |                        |         |                                                                  |
+| `children`                 | ✓   | `TreeNodeDefinition[]` |         | array of definitions for nodes that are contained in this branch |
 
 ### Example
 
@@ -175,14 +177,14 @@ defineTree(entries, defineChildTree)
 defineTree(entries, options, defineChildTree)
 ```
 
-|                         |     Required     | Type                                          | Default     |                                                                                 |
-| ----------------------- | :--------------: | --------------------------------------------- | ----------- | ------------------------------------------------------------------------------- |
-| `entries`               |        ✓         | `(T extends object)[]`                        |             | array of entries for which to create a definition                               |
-| `options.getId`         |  If no `T[id]`   | `keyof T` \| (data: T) => `string`\| `number` | `id`        | field or function to get a unique identifier for the node                       |
-| `options.getLabel`      | If no `T[label]` | `keyof T` \| (data: T) => `string`            | `label`     | field or function to get a label for the node                                   |
-| `options.discriminator` |                  | `string`                                      | `undefined` | discriminator for the node when you mix different data types                    |
-| `options.predicate`     |                  | `(data) => boolean \| undefined`              | `undefined` | filter function that takes the data as first argument                           |
-| `defineChildTree`       |                  | `(data: T) => TreeNodeDefinition[]`           |             | function that returns an array of definitions that are contained in this branch |
+|                         |       Required       | Type                                                  | Default     |                                                                                 |
+| ----------------------- | :------------------: | ----------------------------------------------------- | ----------- | ------------------------------------------------------------------------------- |
+| `entries`               |          ✓           | `(TData extends object)[]`                            |             | array of entries for which to create a definition                               |
+| `options.getId`         |  If no `TData[id]`   | `keyof TData` \| (data: TData) => `string`\| `number` | `id`        | field or function to get a unique identifier for the node                       |
+| `options.getLabel`      | If no `TData[label]` | `keyof TData` \| (data: TData) => `string`            | `label`     | field or function to get a label for the node                                   |
+| `options.discriminator` |                      | `string`                                              | `undefined` | discriminator for the node when you mix different data types                    |
+| `options.predicate`     |                      | `(node: TreeNode) => boolean \| undefined`            | `undefined` | filter function that takes the data as first argument                           |
+| `defineChildTree`       |                      | `(data: TData) => TreeNodeDefinition[]`               |             | function that returns an array of definitions that are contained in this branch |
 
 Let's take this `families` example:
 
@@ -249,7 +251,7 @@ const families = [
 You can use the `defineTree` helper this way:
 
 ```ts
-const definitions = defineTree(families, family => defineTree(family.members, person => defineTree(person.animals)))
+const definitions = defineTree(families, family => defineTree(family.members, member => defineTree(member.animals)))
 ```
 
 This is the equivalent of the following code:
@@ -303,20 +305,22 @@ const definitionsB = defineTree(entries, {
 | `label`         | `string`                    | the label of the node                                               |
 | `isBranch`      | `boolean`                   | `true`for `Branch` instances, `false` for `Leaf` instances          |
 | `discriminator` | `string` \| `undefined`     | discriminator for the node when you mix different data types        |
-| `data`          | `T`                         | data stored in the node                                             |
+| `data`          | `TData`                     | data stored in the node                                             |
 | `depth`         | `number`                    | depth of the node in the collection                                 |
 | `isSelected`    | `boolean`                   | whether the node is selected                                        |
 | `isActive`      | `boolean`                   | whether the node is active                                          |
 | `isVisible`     | `boolean`                   | whether the node is visible (see TreeNode Visibility below)         |
 | `activate`      | `() => void`                | function to activate the node                                       |
 | `toggleSelect`  | `(force?: boolean) => void` | function to toggle the selection of the node                        |
-| `labelClasses`  | `{ [name]: boolean }`       | object of classes to be used in the template (see below)            |
+| `statuses`      | `{ [name]: boolean }`       | object of Node statuses (see below)                                 |
 
-### `labelClasses`
+### `statuses`
 
-The `labelClasses` properties are classes to be used in the template `:class`.
+The `statuses` properties is an object for Node statuses.
 
-_These classes are just helpers. They don't come with any default style._
+It can, for example, be used in the template `:class`.
+
+_This object is just a helper. It doesn't come with any default style._
 
 For a `Leaf` instance, it contains the following properties:
 
@@ -336,9 +340,9 @@ Additionally, `Branch` instances have the following properties:
 | `rawChildren`                  | `TreeNode[]` | array of all children instances                 |
 | `children`                     | `TreeNode[]` | array of visible children instances (see below) |
 
-### `labelClasses`
+### `statuses`
 
-_These classes are just helpers. They don't come with any default style._
+_This object is just a helper. It doesn't come with any default style._
 
 For a `Branch` instance, it contains the following properties:
 
@@ -418,7 +422,7 @@ Here are the rules to determine whether a node is visible or not.
     <li v-for="family in nodes" :key="family.id">
       <div
         class="label family"
-        :class="family.labelClasses"
+        :class="family.statuses"
         @mouseenter="family.activate()"
         @click="family.toggleChildrenSelect()"
       >
@@ -428,7 +432,7 @@ Here are the rules to determine whether a node is visible or not.
         <li v-for="person in family.children" :key="person.id">
           <div
             class="label person"
-            :class="person.labelClasses"
+            :class="person.statuses"
             @mouseenter="person.activate()"
             @click="person.toggleSelect()"
           >
@@ -486,13 +490,13 @@ Here are the rules to determine whether a node is visible or not.
   </div>
   <ul>
     <li v-for="family in nodes" :key="family.id">
-      <div :class="family.labelClasses">{{ family.label }}</div>
+      <div :class="family.statuses">{{ family.label }}</div>
       <ul class="sub">
         <li v-for="person in family.children" :key="person.id">
-          <div :class="person.labelClasses">{{ person.label }} ({{ person.data.age }})</div>
+          <div :class="person.statuses">{{ person.label }} ({{ person.data.age }})</div>
           <ul class="sub">
             <li v-for="animal in person.children" :key="animal.id">
-              <div :class="animal.labelClasses">{{ animal.label }}</div>
+              <div :class="animal.statuses">{{ animal.label }}</div>
             </li>
           </ul>
         </li>

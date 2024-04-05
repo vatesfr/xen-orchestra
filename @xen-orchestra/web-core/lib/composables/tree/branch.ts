@@ -1,5 +1,11 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type { ChildTreeGetter, TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
+import type {
+  BranchStatuses,
+  ChildTreeGetter,
+  TreeContext,
+  TreeNode,
+  TreeNodeOptions,
+} from '@core/composables/tree/types'
 
 export class Branch<
   TData extends object = any,
@@ -25,6 +31,10 @@ export class Branch<
     return this.rawChildren.filter(child => child.isVisible)
   }
 
+  get hasChildren() {
+    return this.children.length > 0
+  }
+
   get passesFilterDownwards(): boolean {
     return this.passesFilter || this.rawChildren.some(child => child.passesFilterDownwards)
   }
@@ -38,11 +48,15 @@ export class Branch<
       return false
     }
 
+    if (!this.hasChildren) {
+      return false
+    }
+
     return this.parent?.isExpanded ?? true
   }
 
   get isExpanded() {
-    return this.context.expandedNodes.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
+    return this.context.expandedIds.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
   }
 
   get areChildrenFullySelected(): boolean {
@@ -67,7 +81,7 @@ export class Branch<
     return this.rawChildren.some(child => (child.isBranch ? child.areChildrenPartiallySelected : child.isSelected))
   }
 
-  get labelClasses() {
+  get statuses(): BranchStatuses {
     return {
       active: this.isActive,
       selected: this.isSelected,
@@ -87,9 +101,9 @@ export class Branch<
     const nextExpanded = forcedValue ?? !this.isExpanded
 
     if (nextExpanded) {
-      this.context.expandedNodes.set(this.id, this)
+      this.context.expandedIds.add(this.id)
     } else {
-      this.context.expandedNodes.delete(this.id)
+      this.context.expandedIds.delete(this.id)
     }
 
     const shouldPropagate = recursive ?? !nextExpanded
@@ -111,7 +125,7 @@ export class Branch<
 
     const shouldSelect = forcedValue ?? !this.areChildrenFullySelected
     this.rawChildren.forEach(child => {
-      child instanceof Branch ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
+      child.isBranch ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
     })
   }
 }
