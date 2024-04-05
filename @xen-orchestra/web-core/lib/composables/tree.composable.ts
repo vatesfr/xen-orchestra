@@ -1,43 +1,74 @@
-import { buildTree } from '@core/composables/tree/build-tree'
+import { buildNodes } from '@core/composables/tree/build-nodes'
 import type {
   DefinitionToTreeNode,
   TreeContext,
   TreeNode,
   TreeNodeDefinition,
+  TreeNodeId,
   UseTreeOptions,
 } from '@core/composables/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<
   TDefinition extends TreeNodeDefinition,
-  TTreeNode extends TreeNode = DefinitionToTreeNode<TDefinition>,
->(definitions: MaybeRefOrGetter<TDefinition[]>, options?: UseTreeOptions) {
+  TTreeNode extends DefinitionToTreeNode<TDefinition> = DefinitionToTreeNode<TDefinition>,
+>(definitions: MaybeRefOrGetter<TDefinition[]>, options: UseTreeOptions = {}) {
+  const selectedIds = ref(new Set<TreeNodeId>())
+  const expandedIds = ref(new Set<TreeNodeId>())
+  const activeId = ref<TreeNodeId>()
+
   const context = reactive({
-    allowMultiSelect: options?.allowMultiSelect ?? false,
-    selectedNodes: ref(new Map()),
-    expandedNodes: ref(new Map()),
-    activeNode: ref(),
-  }) as TreeContext<TTreeNode>
+    allowMultiSelect: options.allowMultiSelect ?? false,
+    selectedIds,
+    expandedIds,
+    activeId,
+  }) as TreeContext
 
-  const selectedNodes = computed(() => Array.from(context.selectedNodes.values()))
-  const expandedNodes = computed(() => Array.from(context.expandedNodes.values()))
-  const activeNode = computed(() => context.activeNode)
+  const nodes = computed(() => {
+    const nodes = buildNodes<TDefinition, TTreeNode>(toValue(definitions), context)
 
-  const rawNodes = computed(() => buildTree(toValue(definitions), context))
-  const nodes = computed(() => rawNodes.value.filter(node => node.isVisible))
+    if (options.expand !== false) {
+      nodes.forEach(node => node.isBranch && node.toggleExpand(true, true))
+    }
 
-  if (options?.expand !== false) {
-    nodes.value.forEach(node => node.isBranch && node.toggleExpand(true, true))
+    return nodes
+  })
+
+  const nodesMap = computed(() => {
+    const nodeMap = new Map<TreeNodeId, TreeNode>()
+
+    function traverse(node: TreeNode) {
+      nodeMap.set(node.id, node)
+
+      if (node.isBranch) {
+        node.rawChildren.forEach(traverse)
+      }
+    }
+
+    nodes.value.forEach(traverse)
+
+    return nodeMap
+  })
+
+  const visibleNodes = computed(() => nodes.value.filter(node => node.isVisible))
+
+  const getNode = (id: TreeNodeId | undefined) => (id !== undefined ? nodesMap.value.get(id) : undefined)
+  const getNodes = (ids: TreeNodeId[]) => ids.map(getNode).filter(node => node !== undefined) as TreeNode[]
+
+  const selectedNodes = computed(() => getNodes(Array.from(selectedIds.value.values())))
+  const expandedNodes = computed(() => getNodes(Array.from(expandedIds.value.values())))
+  const activeNode = computed(() => getNode(activeId.value))
+
+  if (options.expand !== false) {
+    visibleNodes.value.forEach(node => node.isBranch && node.toggleExpand(true, true))
   }
 
-  const deactivate = () => (context.activeNode = undefined)
-
   const selectedLabel = computed(() => {
-    if (typeof options?.selectedLabel === 'function') {
+    if (typeof options.selectedLabel === 'function') {
       return options.selectedLabel(selectedNodes.value)
     }
 
-    if (typeof options?.selectedLabel === 'object' && selectedNodes.value.length > options.selectedLabel.max) {
+    if (typeof options.selectedLabel === 'object' && selectedNodes.value.length > options.selectedLabel.max) {
       return options.selectedLabel.fn(selectedNodes.value.length)
     }
 
@@ -45,11 +76,14 @@ export function useTree<
   })
 
   return {
-    nodes,
-    deactivate,
+    nodes: visibleNodes,
+    activeId,
     activeNode,
+    selectedIds,
     selectedNodes,
     selectedLabel,
+    expandedIds,
     expandedNodes,
+    options,
   }
 }
