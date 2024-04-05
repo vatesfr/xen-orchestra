@@ -61,7 +61,7 @@ VMs are placed to use all possible resources. This means balance the load to giv
 
 #### Density
 
-This time, the objective is to use the least hosts possible, and to concentrate your VMs. In this mode, you can choose to shutdown unused (and compatible) hosts.
+This time, the objective is to use the least hosts possible, and to concentrate your VMs. In this mode, unused (and compatible) hosts are shut down.
 
 #### Simple
 
