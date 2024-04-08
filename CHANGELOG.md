@@ -7,6 +7,7 @@
 - @xen-orchestra/backups 0.47.0
 - @xen-orchestra/backups-cli 1.0.17
 - @xen-orchestra/immutable-backups 1.0.4
+- @xen-orchestra/proxy 0.27.2
 
 ## **5.93.0** (2024-03-29)
 
