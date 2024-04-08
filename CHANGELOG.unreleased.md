@@ -38,9 +38,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/vmware-explorer patch
 - xo-server patch
 - xo-server-perf-alert patch
 - xo-web patch
-
 <!--packages-end-->
