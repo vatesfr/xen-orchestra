@@ -86,7 +86,7 @@ export default decorate([
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
-        const filter = new ComplexMatcher.Property('tags', new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`, 'i'))
+        const filter = new ComplexMatcher.Property('tags', new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`))
 
         success(
           _('recipeCreatedSuccessfully'),

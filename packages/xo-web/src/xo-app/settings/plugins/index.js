@@ -47,7 +47,7 @@ class Plugin extends Component {
     name => {
       const s = new ComplexMatcher.Property(
         'name',
-        new ComplexMatcher.RegExp('^' + escapeRegExp(name) + '$', 'i')
+        new ComplexMatcher.RegExp('^' + escapeRegExp(name) + '$')
       ).toString()
       return location => ({ ...location, query: { ...location.query, s } })
     }
