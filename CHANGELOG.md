@@ -11,6 +11,7 @@
 - @xen-orchestra/vmware-explorer 0.6.1
 - xo-server 5.140.1
 - xo-server-perf-alert 0.3.7
+- xo-web 5.142.1
 
 ## **5.93.0** (2024-03-29)
 
