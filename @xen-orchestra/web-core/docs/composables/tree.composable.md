@@ -391,7 +391,7 @@ Here are the rules to determine whether a node is visible or not.
     defineTree(members, ({ animals }) => defineTree(animals))
   )
 
-  const { nodes } = useTree(definitions)
+  const { nodes } = useTree(familyDefinitions)
 </script>
 
 <style lang="postcss" scoped>
@@ -507,7 +507,7 @@ Here are the rules to determine whether a node is visible or not.
   const predicate = ({ label }: { label: string }) => {
     const filterValue = filter.value?.trim().toLocaleLowerCase() ?? false
 
-    return !filterValue ? undefined : name.toLocaleLowerCase().includes(filterValue)
+    return !filterValue ? undefined : label.toLocaleLowerCase().includes(filterValue)
   }
 
   const definitions = defineTree(families, { predicate }, ({ members }) =>
