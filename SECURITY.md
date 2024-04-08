@@ -13,5 +13,4 @@ We apply patches and fix security issues for the following versions:
 
 ## Reporting a Vulnerability
 
-If you discover a vulnerability, you should contact us by sending an email to security at vates dot fr
-From there, we'll discuss how to deal with it and prepare a dedicated mitigation.
+If you discover a vulnerability, you should contact us by sending an email to security at vates dot tech. From there, we'll discuss how to deal with it and prepare a dedicated mitigation.
