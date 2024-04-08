@@ -38,6 +38,5 @@
 
 <!--packages-start-->
 
-- xo-server-perf-alert patch
 - xo-web patch
 <!--packages-end-->

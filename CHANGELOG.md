@@ -10,6 +10,7 @@
 - @xen-orchestra/proxy 0.27.2
 - @xen-orchestra/vmware-explorer 0.6.1
 - xo-server 5.140.1
+- xo-server-perf-alert 0.3.7
 
 ## **5.93.0** (2024-03-29)
 
