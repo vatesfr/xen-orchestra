@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Released packages
+
+- @xen-orchestra/backups 0.47.0
+
 ## **5.93.0** (2024-03-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

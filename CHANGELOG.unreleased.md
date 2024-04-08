@@ -38,7 +38,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups minor
 - @xen-orchestra/vmware-explorer patch
 - xo-server patch
 - xo-server-perf-alert patch
