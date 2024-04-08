@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [RPU] If a XOSTOR is present in the pool, Rolling Pool Update is no longer available (PR [#7540](https://github.com/vatesfr/xen-orchestra/pull/7540))
+- [RPU] If a XOSTOR is present in the pool, _Rolling Pool Update_ is no longer available (PR [#7540](https://github.com/vatesfr/xen-orchestra/pull/7540))
 
 ### Bug fixes
 
