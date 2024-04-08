@@ -751,7 +751,7 @@ export default class NewVm extends BaseComponent {
     template => template && template.virtualizationMode === 'hvm'
   )
 
-  _templateNeedsVtpm = () => this.props.template?.platform?.vtpm === 'true'
+  _templateNeedsVtpm = () => this.props.template?.needsVtpm
 
   // On change -------------------------------------------------------------------
 

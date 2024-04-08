@@ -441,6 +441,7 @@ const TRANSFORMS = {
       installTime: metrics && toTimestamp(metrics.install_time),
       name_description: obj.name_description,
       name_label: obj.name_label,
+      needsVtpm: obj.platform.vtpm === 'true',
       notes: otherConfig['xo:notes'],
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,

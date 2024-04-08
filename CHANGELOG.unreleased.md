@@ -18,6 +18,7 @@
 - [VMWare/Migration] Fix `Can't import delta of a running VM without its parent vdi` when importing snapshotless VM (PR [#7530](https://github.com/vatesfr/xen-orchestra/pull/7530))
 - [VMWare/Migration] Don't fail all VMs if one does not have any disks (PR [#7530](https://github.com/vatesfr/xen-orchestra/pull/7530))
 - [Plugin/perf-alert] Fix important CPU & memory usage (broken in XO 5.93.0)
+- [New/VM] Correctly detects if the template requires a VTPM device
 
 ### Packages to release
 
