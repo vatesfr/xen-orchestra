@@ -2584,7 +2584,7 @@ const messages = {
   poolAlreadyHasXostor: 'Pool already has a XOSTOR',
   poolNotRecentEnough: 'Not recent enough. Current version: {version}',
   replication: 'Replication',
-  rpuNoLongerAvailableIfXostor: 'As long as XOSTOR storage is present in the pool, Rolling Pool Update would no longer be available',
+  rpuNoLongerAvailableIfXostor: 'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   storage: 'Storage',
