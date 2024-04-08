@@ -217,9 +217,16 @@ const PoolCard = decorate([
               </ul>
             </div>
           )}
-          <em>
-            <Icon icon='info' /> {_('xostorPackagesWillBeInstalled')}
-          </em>
+          <div>
+            <em>
+              <Icon icon='info' /> {_('xostorPackagesWillBeInstalled')}
+            </em>
+          </div>
+          <div className='text-warning'>
+            <em>
+              <Icon icon='alarm' /> {_('rpuNoLongerAvailableIfXostor')}
+            </em>
+          </div>
         </div>
       </CardBlock>
     </Card>
