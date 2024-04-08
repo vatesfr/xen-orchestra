@@ -1,30 +1,30 @@
-import type { Group } from '@core/composables/collection/group'
-import type { CollectionContext, Identifiable, Item, ItemOptions, Labeled } from '@core/composables/collection/types'
+import type { Branch } from '@core/composables/tree/branch'
+import type { Identifiable, Labeled, TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
-export abstract class Base<T extends object = any, TDiscriminator = any> {
-  abstract readonly isGroup: boolean
+export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
+  abstract readonly isBranch: boolean
   abstract passesFilterDownwards: boolean
   abstract isVisible: boolean
   abstract labelClasses: Record<string, boolean>
 
-  readonly data: T
+  readonly data: TData
   readonly depth: number
-  readonly parent: Group | undefined
-  readonly context: CollectionContext
-  readonly options: ItemOptions<T, TDiscriminator>
+  readonly parent: Branch | undefined
+  readonly context: TreeContext
+  readonly options: TreeNodeOptions<TData, TDiscriminator>
 
   constructor(
-    data: T,
-    parent: Group | undefined,
-    context: CollectionContext,
+    data: TData,
+    parent: Branch | undefined,
+    context: TreeContext,
     depth: number,
-    options?: ItemOptions<T, TDiscriminator>
+    options?: TreeNodeOptions<TData, TDiscriminator>
   ) {
     this.data = data
     this.parent = parent
     this.context = context
     this.depth = depth
-    this.options = options ?? ({} as ItemOptions<T, TDiscriminator>)
+    this.options = options ?? ({} as TreeNodeOptions<TData, TDiscriminator>)
   }
 
   get id() {
@@ -60,11 +60,11 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
   }
 
   get isSelected() {
-    return this.context.selectedItems.has(this.id)
+    return this.context.selectedNodes.has(this.id)
   }
 
   get isActive() {
-    return this.context.activeItem?.id === this.id
+    return this.context.activeNode?.id === this.id
   }
 
   get passesFilterUpwards(): boolean {
@@ -76,7 +76,7 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
       return
     }
 
-    this.context.activeItem = this as unknown as Item
+    this.context.activeNode = this as unknown as TreeNode
   }
 
   toggleSelect(forcedValue?: boolean) {
@@ -84,12 +84,12 @@ export abstract class Base<T extends object = any, TDiscriminator = any> {
 
     if (shouldSelect) {
       if (!this.context.allowMultiSelect) {
-        this.context.selectedItems.clear()
+        this.context.selectedNodes.clear()
       }
 
-      this.context.selectedItems.set(this.id, this as unknown as Item)
+      this.context.selectedNodes.set(this.id, this as unknown as TreeNode)
     } else {
-      this.context.selectedItems.delete(this.id)
+      this.context.selectedNodes.delete(this.id)
     }
   }
 }

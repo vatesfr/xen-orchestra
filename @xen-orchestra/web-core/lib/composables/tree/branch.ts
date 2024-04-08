@@ -1,23 +1,24 @@
-import { Base } from '@core/composables/collection/base'
-import type { CollectionContext, Item, ItemOptions } from '@core/composables/collection/types'
+import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
+import type { ChildTreeGetter, TreeContext, TreeNode, TreeNodeOptions } from '@core/composables/tree/types'
 
-export class Group<T extends object = any, TChild extends Item = Item, const TDiscriminator = any> extends Base<
-  T,
-  TDiscriminator
-> {
-  readonly isGroup = true
-  readonly rawChildren: TChild[]
+export class Branch<
+  TData extends object = any,
+  TChildNode extends TreeNode = TreeNode,
+  const TDiscriminator = any,
+> extends TreeNodeBase<TData, TDiscriminator> {
+  readonly isBranch = true
+  readonly rawChildren: TChildNode[]
 
   constructor(
-    data: T,
-    parent: Group | undefined,
-    context: CollectionContext,
+    data: TData,
+    parent: Branch | undefined,
+    context: TreeContext,
     depth: number,
-    options: ItemOptions<T, TDiscriminator> | undefined,
-    getChildren: (thisGroup: Group<T, TChild, TDiscriminator>) => TChild[]
+    options: TreeNodeOptions<TData, TDiscriminator> | undefined,
+    getChildTree: ChildTreeGetter<TData, TChildNode, TDiscriminator>
   ) {
     super(data, parent, context, depth, options)
-    this.rawChildren = getChildren(this)
+    this.rawChildren = getChildTree(this)
   }
 
   get children() {
@@ -41,7 +42,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
   }
 
   get isExpanded() {
-    return this.context.expandedItems.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
+    return this.context.expandedNodes.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
   }
 
   get areChildrenFullySelected(): boolean {
@@ -50,7 +51,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
       return false
     }
 
-    return this.rawChildren.every(child => (child.isGroup ? child.areChildrenFullySelected : child.isSelected))
+    return this.rawChildren.every(child => (child.isBranch ? child.areChildrenFullySelected : child.isSelected))
   }
 
   get areChildrenPartiallySelected(): boolean {
@@ -63,7 +64,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
       return false
     }
 
-    return this.rawChildren.some(child => (child.isGroup ? child.areChildrenPartiallySelected : child.isSelected))
+    return this.rawChildren.some(child => (child.isBranch ? child.areChildrenPartiallySelected : child.isSelected))
   }
 
   get labelClasses() {
@@ -86,16 +87,16 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
     const nextExpanded = forcedValue ?? !this.isExpanded
 
     if (nextExpanded) {
-      this.context.expandedItems.set(this.id, this as Item)
+      this.context.expandedNodes.set(this.id, this)
     } else {
-      this.context.expandedItems.delete(this.id)
+      this.context.expandedNodes.delete(this.id)
     }
 
     const shouldPropagate = recursive ?? !nextExpanded
 
     if (shouldPropagate) {
       this.rawChildren.forEach(child => {
-        if (child.isGroup) {
+        if (child.isBranch) {
           child.toggleExpand(nextExpanded, recursive)
         }
       })
@@ -110,7 +111,7 @@ export class Group<T extends object = any, TChild extends Item = Item, const TDi
 
     const shouldSelect = forcedValue ?? !this.areChildrenFullySelected
     this.rawChildren.forEach(child => {
-      child instanceof Group ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
+      child instanceof Branch ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
     })
   }
 }
