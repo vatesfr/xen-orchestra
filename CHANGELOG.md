@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/backups 0.47.0
+- @xen-orchestra/backups-cli 1.0.17
 
 ## **5.93.0** (2024-03-29)
 
