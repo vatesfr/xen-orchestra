@@ -488,6 +488,11 @@ const methods = {
   },
 
   async rollingPoolUpdate($defer, { xsCredentials } = {}) {
+    // Temporary workaround until XCP-ng finds a way to update linstor packages
+    if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+      throw new Error('rolling pool update not possible since there is a linstor SR in the pool')
+    }
+
     const isXcp = _isXcp(this.pool.$master)
 
     const hasMissingPatchesByHost = {}

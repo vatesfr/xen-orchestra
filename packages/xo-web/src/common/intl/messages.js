@@ -1156,6 +1156,7 @@ const messages = {
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
+  rollingPoolUpdateDisabledBecauseXostorOnPool: 'RPU is disabled because a XOSTOR storage is present on the pool',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
@@ -1525,8 +1526,9 @@ const messages = {
   deleteDefaultTemplatesTitle: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
   deleteDefaultTemplatesMessage:
     'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
-  deleteProtectedTemplatesTitle:'Delete protected template{nProtectedTemplates, plural, one {} other {s}}',
-  deleteProtectedTemplatesMessage: 'You are attempting to delete {nProtectedTemplates, plural, one {a} other {nProtectedTemplates}} template{nProtectedTemplates, plural, one {} other {s}} protected from accidental deletion. Do you want to continue?',
+  deleteProtectedTemplatesTitle: 'Delete protected template{nProtectedTemplates, plural, one {} other {s}}',
+  deleteProtectedTemplatesMessage:
+    'You are attempting to delete {nProtectedTemplates, plural, one {a} other {nProtectedTemplates}} template{nProtectedTemplates, plural, one {} other {s}} protected from accidental deletion. Do you want to continue?',
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
   hostPanel: 'Host{hosts, plural, one {} other {s}}',
@@ -2573,7 +2575,7 @@ const messages = {
   licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
   licenseNotBoundXostor: 'No XOSTOR attached',
   licenseExpiredXostorWarning:
-    'The license {licenseId} has expired. You can still use the SR but cannot administrate it anymore.',
+  'The license {licenseId} has expired. You can still use the SR but cannot administrate it anymore.',
   networks: 'Networks',
   notXcpPool: 'Not an XCP-ng pool',
   noXostorFound: 'No XOSTOR found',
@@ -2583,6 +2585,7 @@ const messages = {
   poolAlreadyHasXostor: 'Pool already has a XOSTOR',
   poolNotRecentEnough: 'Not recent enough. Current version: {version}',
   replication: 'Replication',
+  rpuNoLongerAvailableIfXostor: 'As long as XOSTOR storage is present on the pool, Rolling Pool Update would no longer be available anymore',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   storage: 'Storage',
