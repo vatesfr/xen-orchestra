@@ -75,8 +75,6 @@ Go into Settings/Logs view.
 
 ### CLI
 
-All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
-
 To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
 
 ```sh
@@ -181,16 +179,6 @@ cp key.pem key.pem-old
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 360
 systemctl restart xo-server.service
 ```
-
-### Logs
-
-The system logs are visible by using this command:
-
-```sh
-tail -f /var/log/syslog
-```
-
-You can read more about logs [in the dedicated logs chapter](troubleshooting.md#logs).
 
 ### Ghost tasks
 
