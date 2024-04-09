@@ -1,3 +1,4 @@
+import Handlebars from "handlebars"
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
@@ -80,6 +81,8 @@ const formatSize = bytes =>
     unit: 'B',
   })
 
+Handlebars.registerHelper('formatSize', formatSize)
+
 const formatSpeed = (bytes, milliseconds) =>
   milliseconds > 0
     ? humanFormat((bytes * 1e3) / milliseconds, {
@@ -87,6 +90,8 @@ const formatSpeed = (bytes, milliseconds) =>
         unit: 'B/s',
       })
     : 'N/A'
+
+Handlebars.registerHelper('formatSpeed', (bytes, start, end) => formatSpeed(bytes, end - start))
 
 const noop = Function.prototype
 
@@ -104,6 +109,22 @@ const TITLE_BY_STATUS = {
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
 
+Handlebars.registerHelper('titleByStatus', function (status) {
+  if (this && status in TITLE_BY_STATUS) {
+    return TITLE_BY_STATUS[status](this.length)
+  }
+})
+
+Handlebars.registerHelper('reportSuccesses', function (totalTasks, tasks) {
+  const n = totalTasks?.length ?? 0
+  const nSuccesses = tasks.success?.length ?? 0
+  if (n !== 0) return `- **Successes**: ${nSuccesses} / ${n}`
+})
+
+Handlebars.registerHelper('pluralizeStatus', function (status, pluralMark, number) {
+  return number > 1 ? status + pluralMark : status
+})
+
 const getTemporalDataMarkdown = (end, start, formatDate) => {
   const markdown = [`- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
@@ -116,7 +137,25 @@ const getTemporalDataMarkdown = (end, start, formatDate) => {
   return markdown
 }
 
+Handlebars.registerHelper('reportTemporalData', function (end, start, formatDate) {
+  const markdown = [`- **Start time**: ${formatDate(start)}`]
+  if (end !== undefined) {
+    markdown.push(`- **End time**: ${formatDate(end)}`)
+    const duration = end - start
+    if (duration >= 1) {
+      markdown.push(`- **Duration**: ${formatDuration(duration)}`)
+    }
+  }
+  return markdown.join('\n')
+})
+
 const getWarningsMarkdown = (warnings = []) => warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
+
+Handlebars.registerHelper('reportWarnings', function (warnings = []) {
+  if (warnings.length)
+  return '\n' + warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`).join('\n')
+})
+
 
 const getErrorMarkdown = task => {
   let message
@@ -127,6 +166,16 @@ const getErrorMarkdown = task => {
   const label = task.status === 'skipped' ? 'Reason' : 'Error'
   return `- **${label}**: ${message}`
 }
+
+Handlebars.registerHelper('reportError', function (task) {
+  let message
+  if (task.status === 'success' || (message = task.result?.message ?? task.result?.code) === undefined) {
+    return
+  }
+
+  const label = task.status === 'skipped' ? 'Reason' : 'Error'
+  return `\n- **${label}**: ${message}`
+})
 
 const MARKDOWN_BY_TYPE = {
   pool(task, { formatDate }) {
@@ -166,6 +215,47 @@ const MARKDOWN_BY_TYPE = {
 
 const getMarkdown = (task, props) => MARKDOWN_BY_TYPE[task.data?.type]?.(task, props)
 
+const BODY_TITLE_BY_TYPE = {
+  pool({ task }) {
+    const { id, pool = {}, poolMaster = {} } = task.data
+    const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
+
+    return {
+      body: [
+        pool.uuid !== undefined ? `- **UUID**: ${pool.uuid}` : `- **ID**: ${id}`,
+      ],
+      title: `[pool] ${name}`,
+    }
+  },
+  xo({ jobName }) {
+    return {
+      body: [],
+      title: `[XO] ${jobName}`,
+    }
+  },
+  remote({ task }) {
+    return {
+      body: [`- **ID**: ${task.data.id}`],
+      title: `[remote] ${task.additionnalData.name}`,
+    }
+  },
+}
+
+Handlebars.registerHelper('reportTask', function (task, isSubTask, jobName='') {
+  const {title, body} = BODY_TITLE_BY_TYPE[task.data?.type]?.({task, jobName})
+  if (isSubTask) {
+    const icon = STATUS_ICON[task.status]
+    return [`- **${title}** ${icon}`, ...body].join('\n')
+  }
+  else {
+    return [`### ${title}`, ...body].join('\n')
+  }
+})
+
+Handlebars.registerHelper('getIcon', function (task) {
+  return STATUS_ICON[task.status]
+})
+
 const toMarkdown = parts => {
   const lines = []
   let indentLevel = -1
@@ -183,6 +273,246 @@ const toMarkdown = parts => {
 
   return lines.join('\n')
 }
+
+const getTaskAdditionnalData = async (task, props) => {
+  if (task.data?.type === 'remote') {
+    const name = await props.xo.getRemote(task.data.id).then(
+      ({ name }) => name,
+      error => {
+        logger.warn(error)
+        return UNKNOWN_ITEM
+      }
+    )
+    return {name}
+  }
+  return {}
+}
+
+// ===================================================================
+
+const metadataSubTaskPartial =
+`{{reportTask . true}}
+{{reportTemporalData end start formatDate}}{{reportError .}}{{reportWarnings warnings}}`
+
+Handlebars.registerPartial(
+  "metadataSubtask",
+  metadataSubTaskPartial
+)
+
+const metadataTemplate =
+`##  Global status: {{log.status}}
+
+- **Job ID**: {{log.jobId}}
+- **Job name**: {{jobName}}
+- **Run ID**: {{log.id}}
+{{reportTemporalData log.end log.start formatDate}}
+{{reportSuccesses log.tasks tasksByStatus}}{{reportError log}}{{reportWarnings log.warnings}}
+{{#each tasksByStatus}}
+---
+
+{{titleByStatus @key}}
+{{#each this}}
+
+
+{{reportTask this false ../../log.jobName}}
+{{reportTemporalData this.end this.start ../../formatDate}}{{reportError this}}{{reportWarnings this.warnings}}
+{{#each this.tasks}}
+  {{>metadataSubtask formatDate=../../../formatDate}}
+{{/each}}
+{{/each}}
+{{/each}}
+
+---
+
+*{{pkg.name}} v{{pkg.version}}*`
+
+// TODO : maybe reportWarnings should be a partial
+// TODO : handle subtask indentation
+// TODO : do a partial to mutualize templates
+// TODO : template for mail subject?
+
+// ===================================================================
+
+const vmSubTaskPartial =
+`{{#if subTaskLog}}
+- {{title}} ({{id}}) {{getIcon subTaskLog}}
+  {{reportTemporalData subTaskLog.end subTaskLog.start formatDate}}
+  {{reportWarnings subTaskLog.warnings}} {{reportError subTaskLog}}
+{{else}}
+  - **{{operationLog.message}}** {{getIcon operationLog}}
+    {{reportTemporalData operationLog.end operationLog.start formatDate}}
+    {{#if operationLog.result.size}}
+    - **Size**: {{formatSize operationLog.result.size}}
+    - **Speed**: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}
+    {{/if}} {{reportWarnings operationLog.warnings}} {{reportError operationLog}}
+{{/if}}
+`
+
+Handlebars.registerPartial(
+  "vmSubTaskPartial",
+  vmSubTaskPartial
+)
+
+const vmSubTextPartial =
+`{{#each snapshotSubtasks}}
+- **Snapshot** {{getIcon subTaskLog}}
+  {{reportTemporalData subTaskLog.end subTaskLog.start ../formatDate}}
+{{/each}}
+{{#if srsSubTasks}}
+- **SRs**
+{{#each srsSubTasks}}
+  {{>vmSubTaskPartial formatDate=../formatDate}}
+{{/each}}
+{{/if}}
+{{#if remotesSubTasks}}
+- **Remotes**
+{{#each remotesSubTasks}}
+  {{>vmSubTaskPartial formatDate=../formatDate}}
+{{/each}}
+{{/if}}
+`
+
+Handlebars.registerPartial(
+  "vmSubTextPartial",
+  vmSubTextPartial
+)
+
+const vmTextPartial =
+`
+{{#if vm}}
+### {{vm.name_label}}
+
+- **UUID**: {{vm.uuid}}
+{{else}}
+### VM not found
+
+- **UUID**: {{taskLog.data.id}}
+{{/if}}
+{{reportTemporalData taskLog.end taskLog.start formatDate}}{{reportWarnings taskLog.warnings}}
+`
+
+Handlebars.registerPartial(
+  "vmTextPartial",
+  vmTextPartial
+)
+
+const vmSuccessPartial =
+`---
+
+## {{tasksByStatus.success.count}} {{pluralizeStatus 'Success' 'es' tasksByStatus.success.count}}
+
+{{#each tasksByStatus.success.tasks}}
+{{>vmTextPartial formatDate=../formatDate}}
+{{>vmSubTextPartial formatDate=../formatDate}}
+{{/each}}
+`
+
+Handlebars.registerPartial(
+  "vmSuccessPartial",
+  vmSuccessPartial
+)
+
+const vmInterruptedPartial =
+`---
+
+## {{tasksByStatus.interrupted.count}} Interrupted
+
+{{#each tasksByStatus.interrupted.tasks}}
+{{>vmTextPartial formatDate=../formatDate}}
+{{>vmSubTextPartial formatDate=../formatDate}}
+{{/each}}
+`
+
+Handlebars.registerPartial(
+  "vmInterruptedPartial",
+  vmInterruptedPartial
+)
+
+const vmSkippedPartial =
+`---
+
+## {{tasksByStatus.skipped.count}} Skipped
+
+{{#each tasksByStatus.skipped.tasks}}
+{{>vmTextPartial formatDate=../formatDate}}
+- **Reason**: {{message}}
+{{/each}}
+`
+
+Handlebars.registerPartial(
+  "vmSkippedPartial",
+  vmSkippedPartial
+)
+
+const vmFailurePartial =
+`---
+
+## {{tasksByStatus.failure.count}} {{pluralizeStatus 'Failure' 's' tasksByStatus.failure.count}}
+
+{{#each tasksByStatus.failure.tasks}}
+{{#if uuid}}
+
+### {{name}}
+
+- **UUID**: {{uuid}}
+- **Type**: {{taskLog.data.type}}
+{{reportTemporalData taskLog.end taskLog.start formatDate}}{{reportWarnings taskLog.warnings}}
+- **Error**: {{taskLog.result.message}}
+{{else}}
+{{>vmTextPartial formatDate=../formatDate}}
+{{#if taskLog.result}}
+- **Error**: {{taskLog.result.message}}
+{{else}}
+{{>vmSubTextPartial formatDate=../formatDate}}
+{{/if}}
+{{/if}}
+{{/each}}
+`
+
+Handlebars.registerPartial(
+  "vmFailurePartial",
+  vmFailurePartial
+)
+
+const vmTemplate =
+`##  Global status: {{log.status}}
+
+- **Job ID**: {{log.jobId}}
+- **Run ID**: {{log.id}}
+- **mode**: {{log.data.mode}}
+{{reportTemporalData log.end log.start formatDate}}
+{{#if log.tasks}}
+- **Successes**: {{tasksByStatus.success.count}} / {{tasksByStatus.vmTasks.count}}
+{{#if globalTransferSize}}
+- **Transfer size**: {{formatSize globalTransferSize}}
+{{/if}}
+{{#if globalMergeSize}}
+- **Merge size**: {{formatSize globalMergeSize}}
+{{/if}}
+{{reportWarnings log.warnings}}
+
+{{#if tasksByStatus.failure.tasks}}
+{{>vmFailurePartial}}
+{{/if}}
+{{#if tasksByStatus.skipped.tasks}}
+{{>vmSkippedPartial}}
+{{/if}}
+{{#if tasksByStatus.interrupted.tasks}}
+{{>vmInterruptedPartial}}
+{{/if}}
+{{#if tasksByStatus.success.tasks}}
+{{>vmSuccessPartial}}
+{{/if}}
+{{else}}
+{{reportError log}}{{reportWarnings log.warnings}}
+{{/if}}
+---
+
+*{{pkg.name}} v{{pkg.version}}*`
+
+// TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
+// TODO : do as titleByStatus for this template
+// TODO : better getIcon
 
 // ===================================================================
 
@@ -324,6 +654,27 @@ class BackupReportsXoPlugin {
     }
 
     // footer
+
+    for (const taskBatch of Object.values(tasksByStatus)) {
+      for (const task of taskBatch) {
+        task.additionnalData = await getTaskAdditionnalData(task, {xo})
+        for (const subTask of task.tasks) {
+          subTask.additionnalData = await getTaskAdditionnalData(subTask, {xo})
+        }
+      }
+    }
+
+    console.log("---------------------------")
+    const template = Handlebars.compile(metadataTemplate)
+    console.log(template({
+      jobName,
+      log,
+      pkg,
+      tasksByStatus,
+      formatDate
+    }))
+
+
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
 
     return this._sendReport({
@@ -367,6 +718,10 @@ class BackupReportsXoPlugin {
     const skippedVmsText = []
     const successfulVmsText = []
     const interruptedVmsText = []
+    const failedTasks = []
+    const skippedVms = []
+    const successfulVms = []
+    const interruptedVms = []
 
     let globalMergeSize = 0
     let globalTransferSize = 0
@@ -387,13 +742,16 @@ class BackupReportsXoPlugin {
         try {
           if (type === 'SR') {
             const { name_label: name, uuid } = xo.getObject(id)
+            failedTasks.push({taskLog, name, uuid})
             failedTasksText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
           } else {
             const { name } = await xo.getRemote(id)
+            failedTasks.push({taskLog, name, uuid: id})
             failedTasksText.push(`### ${name}`, '', `- **UUID**: ${id}`)
           }
         } catch (error) {
           logger.warn(error)
+          failedTasks.push({taskLog, name: UNKNOWN_ITEM, uuid: id})
           failedTasksText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
         }
 
@@ -429,10 +787,13 @@ class BackupReportsXoPlugin {
         ...getWarningsMarkdown(taskLog.warnings),
       ]
 
-      const failedSubTasks = []
+      const failedSubTasks = [] // not used ATM
       const snapshotText = []
       const srsText = []
       const remotesText = []
+      const snapshotSubtasks = []
+      const srsSubTasks = []
+      const remotesSubTasks = []
 
       for (const subTaskLog of taskLog.tasks ?? []) {
         if (subTaskLog.message !== 'export' && subTaskLog.message !== 'snapshot') {
@@ -444,6 +805,7 @@ class BackupReportsXoPlugin {
         const errorMarkdown = getErrorMarkdown(subTaskLog)
 
         if (subTaskLog.message === 'snapshot') {
+          snapshotSubtasks.push({subTaskLog})
           snapshotText.push(`- **Snapshot** ${icon}`, [
             ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
           ])
@@ -454,6 +816,7 @@ class BackupReportsXoPlugin {
           })
           const title = remote !== undefined ? remote.name : `Remote Not found`
 
+          remotesSubTasks.push({ subTaskLog, title, id })
           remotesText.push(`- **${title}** (${id}) ${icon}`, [
             ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
             ...getWarningsMarkdown(subTaskLog.warnings),
@@ -470,6 +833,7 @@ class BackupReportsXoPlugin {
             sr = xo.getObject(id)
           } catch (e) {}
           const [srName, srUuid] = sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
+          srsSubTasks.push({ subTaskLog, title: srName, id: srUuid })
           srsText.push(`- **${srName}** (${srUuid}) ${icon}`, [
             ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
             ...getWarningsMarkdown(subTaskLog.warnings),
@@ -512,8 +876,10 @@ class BackupReportsXoPlugin {
             ],
           ]
           if (type === 'remote') {
+            remotesSubTasks.push({ operationLog })
             remotesText.push(operationText)
           } else if (type === 'SR') {
+            srsSubTasks.push({ operationLog })
             srsText.push(operationText)
           }
         })
@@ -529,6 +895,7 @@ class BackupReportsXoPlugin {
       if (taskLog.result !== undefined) {
         if (taskLog.status === 'skipped') {
           ++nSkipped
+          skippedVms.push({ taskLog, vm, message: taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR ? UNHEALTHY_VDI_CHAIN_MESSAGE : taskLog.result.message })
           skippedVmsText.push(
             ...text,
             `- **Reason**: ${
@@ -539,17 +906,21 @@ class BackupReportsXoPlugin {
           )
         } else {
           ++nFailures
+          failedTasks.push({ taskLog, vm })
           failedTasksText.push(...text, `- **Error**: ${taskLog.result.message}`)
         }
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
+          failedTasks.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
           failedTasksText.push(...text, ...subText)
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
+          interruptedVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
           interruptedVmsText.push(...text, ...subText)
         } else {
           ++nSuccesses
+          successfulVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
           successfulVmsText.push(...text, ...subText)
         }
       }
@@ -588,6 +959,26 @@ class BackupReportsXoPlugin {
     }
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
+
+    console.log("---------------------------")
+    const template = Handlebars.compile(vmTemplate)
+    console.log(template({
+      jobName,
+      log,
+      pkg,
+      tasksByStatus: {
+        failure: {tasks: failedTasks, count: nFailures},
+        skipped: {tasks: skippedVms, count: nSkipped},
+        interrupted: {tasks: interruptedVms, count: nInterrupted},
+        success: {tasks: (force || reportWhen !== 'failure') ? successfulVms : [], count: nSuccesses},
+        vmTasks: {count: nVmTasks},
+      },
+      formatDate,
+      globalMergeSize,
+      globalTransferSize,
+    }))
+
+
     return this._sendReport({
       mailReceivers,
       markdown: toMarkdown(markdown),
@@ -597,6 +988,8 @@ class BackupReportsXoPlugin {
   }
 
   async _sendReport({ mailReceivers, markdown, subject, success }) {
+     console.log("==========================")
+     console.log(markdown)
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
