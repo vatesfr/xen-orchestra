@@ -212,6 +212,8 @@ export default class Proxy {
         timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
       })
     }
+
+    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
@@ -236,8 +238,6 @@ export default class Proxy {
 
       await xapi.startVm(vmUuid)
     }
-
-    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
 
     await xapi._waitObjectState(vmUuid, vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined)
   }
