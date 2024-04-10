@@ -33,7 +33,7 @@ import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { Host, renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
-import { alert, chooseAction, confirm } from '../modal'
+import { alert, chooseAction, confirm, form } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject, isAdmin } from 'selectors'
 import { getXoaPlan, SOURCES } from '../xoa-plans'
@@ -50,6 +50,8 @@ import {
 
 import parseNdJson from './_parseNdJson'
 import RollingPoolRebootModal from './rolling-pool-reboot-modal'
+
+import { NetworkCard } from '../../xo-app/xostor/new-xostor-form.js'
 
 // ===================================================================
 
@@ -639,6 +641,26 @@ export const subscribeXostorHealthCheck = sr => {
   }
 
   return subscribeSrsXostorHealthCheck[srId]
+}
+
+const subscribeSrsXostorInterfaces = {}
+export const subscribeXostorInterfaces = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorInterfaces[srId] === undefined) {
+    subscribeSrsXostorInterfaces[srId] = createSubscription(() => _call('xostor.getInterfaces', { sr: srId }))
+  }
+
+  return subscribeSrsXostorInterfaces[srId]
+}
+subscribeXostorInterfaces.forceRefresh = sr => {
+  if (sr === undefined) {
+    forEach(subscribeSrsXostorInterfaces, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeSrsXostorInterfaces[resolveId(sr)]
+  subscription?.forceRefresh()
 }
 
 // System ============================================================
@@ -3672,6 +3694,31 @@ export const updateXosanPacks = pool =>
 // XOSTOR   --------------------------------------------------------------------
 
 export const createXostorSr = params => _call('xostor.create', params)
+
+export const destroyXostorInterface = (sr, ifaceName) =>
+  _call('xostor.destroyInterface', { sr: resolveId(sr), name: ifaceName })::tap(() =>
+    subscribeXostorInterfaces.forceRefresh(sr)
+  )
+
+export const createXostorInterface = async sr => {
+  const { interfaceName, networkId } = await form({
+    render: props => <NetworkCard {...props} insideModalForm sr={sr} />,
+    defaultValue: {
+      interfaceName: '',
+      networkId: undefined,
+    },
+    header: (
+      <span>
+        <Icon icon='add' /> {_('createInterface')}
+      </span>
+    ),
+  })
+
+  await _call('xostor.createInterface', { sr: resolveId(sr), network: networkId, name: interfaceName })::tap(() =>
+    subscribeXostorInterfaces.forceRefresh(sr)
+  )
+}
+export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr), ...params })
 
 // Licenses --------------------------------------------------------------------
 

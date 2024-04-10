@@ -237,15 +237,31 @@ const PoolCard = decorate([
   ),
 ])
 
-const NetworkCard = decorate([
+export const NetworkCard = decorate([
+  connectStore({
+    networks: createGetObjectsOfType('network'),
+    pifsByNetwork: createGetObjectsOfType('PIF').groupBy('$network'),
+  }),
   provideState({
     initialState: () => ({ onlyShowXostorNetworks: true }),
     effects: {
       toggleState,
+      _onNetworkChange(_, network) {
+        this.props.onChange({
+          ...this.state._networkValues,
+          networkId: network?.id,
+        })
+      },
+      _onInterfaceNameChange(_, ev) {
+        this.props.onChange({
+          ...this.state._networkValues,
+          interfaceName: ev.target.value,
+        })
+      },
     },
     computed: {
       networksPredicate: (state, props) => network => {
-        if (network.$pool !== state.poolId) {
+        if (network.$pool !== (props.insideModalForm ? props.sr.$pool : state.poolId)) {
           return false
         }
         const pifs = props.pifsByNetwork[network.id]
@@ -254,35 +270,41 @@ const NetworkCard = decorate([
           (doesNetworkHavePifs(network) && arePifsStatic(pifs) && doPifsHaveIp(pifs) && arePifsAttached(pifs))
         )
       },
-      networkHavePifs: (state, props) => doesNetworkHavePifs(props.networks[state.networkId]),
-      pifsAreAttached: (state, props) => arePifsAttached(props.pifsByNetwork[state.networkId]),
-      pifsAreStatic: (state, props) => arePifsStatic(props.pifsByNetwork[state.networkId]),
-      pifsHaveIp: (state, props) => doPifsHaveIp(props.pifsByNetwork[state.networkId]),
-      interfaceNameContainsWhiteSpace: state => state.interfaceName.includes(' '),
-      interfaceNameReserved: state => state.interfaceName.trim() === 'default',
+      networkHavePifs: (state, props) => doesNetworkHavePifs(props.networks[state._networkValues.networkId]),
+      pifsAreAttached: (state, props) => arePifsAttached(props.pifsByNetwork[state._networkValues.networkId]),
+      pifsAreStatic: (state, props) => arePifsStatic(props.pifsByNetwork[state._networkValues.networkId]),
+      pifsHaveIp: (state, props) => doPifsHaveIp(props.pifsByNetwork[state._networkValues.networkId]),
+      interfaceNameContainsWhiteSpace: state => state._networkValues.interfaceName.includes(' '),
+      interfaceNameReserved: state => state._networkValues.interfaceName.trim() === 'default',
       networkCompatible: state =>
         state.networkHavePifs && state.pifsAreStatic && state.pifsHaveIp && state.pifsAreAttached,
+      _networkValues: (state, props) => ({
+        interfaceName: props.insideModalForm ? props.value.interfaceName : state.interfaceName,
+        networkId: props.insideModalForm ? props.value.networkId : state.networkId,
+      }),
     },
   }),
   injectState,
-  ({ effects, state }) => (
+  ({ effects, state, insideModalForm }) => (
     <Card>
       <CardHeader>
         {_('network')}
-        {_('optionalEntry')}
+        {!insideModalForm && _('optionalEntry')}
       </CardHeader>
       <CardBlock>
-        <i className='d-block'>
-          <Icon icon='info' /> {_('byDefaultManagementNetworkUsed')}
-        </i>
+        {!insideModalForm && (
+          <i className='d-block'>
+            <Icon icon='info' /> {_('byDefaultManagementNetworkUsed')}
+          </i>
+        )}
         <Row className='mb-1'>
           <Col>
             {_('interfaceName')}
             <DebounceInput
               className='form-control'
               name='interfaceName'
-              onChange={effects.onInterfaceNameChange}
-              value={state.interfaceName}
+              onChange={effects._onInterfaceNameChange}
+              value={state._networkValues.interfaceName}
             />
             <ul className='text-danger'>
               {state.interfaceNameReserved && (
@@ -308,12 +330,12 @@ const NetworkCard = decorate([
           {_('onlyShowXostorRequirements', { type: _('networks') })}
         </label>
         <SelectNetwork
-          disabled={!state.isPoolSelected}
-          onChange={effects.onNetworkChange}
+          disabled={!insideModalForm && !state.isPoolSelected}
+          onChange={effects._onNetworkChange}
           predicate={state.networksPredicate}
-          value={state.networkId}
+          value={state._networkValues.networkId}
         />
-        {state.networkId !== undefined && !state.networkCompatible && (
+        {state._networkValues.networkId !== undefined && !state.networkCompatible && (
           <div className='text-danger'>
             <ul>
               {!state.networkHavePifs && <li>{_('networkNoPifs')}</li>}
@@ -560,8 +582,6 @@ const SummaryCard = decorate([
 const NewXostorForm = decorate([
   connectStore({
     hostsByPoolId: createGetObjectsOfType('host').sort().groupBy('$pool'),
-    networks: createGetObjectsOfType('network'),
-    pifsByNetwork: createGetObjectsOfType('PIF').groupBy('$network'),
   }),
   provideState({
     initialState: () => ({
@@ -585,9 +605,6 @@ const NewXostorForm = decorate([
       onIgnoreFileSystemsChange(_, value) {
         this.state.ignoreFileSystems = value
       },
-      onInterfaceNameChange(_, ev) {
-        this.state.interfaceName = ev.target.value
-      },
       onPoolChange(_, pool) {
         this.state.disksByHost = {}
         this.state.poolId = pool?.id
@@ -598,8 +615,9 @@ const NewXostorForm = decorate([
       onProvisioningChange(_, provisioning) {
         this.state.provisioning = provisioning
       },
-      onNetworkChange(_, network) {
-        this.state.networkId = network?.id
+      onNetworkChange(_, { interfaceName, networkId }) {
+        this.state.interfaceName = interfaceName
+        this.state.networkId = networkId
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
@@ -671,7 +689,7 @@ const NewXostorForm = decorate([
     },
   }),
   injectState,
-  ({ effects, resetState, state, hostsByPoolId, networks, pifsByNetwork }) => (
+  ({ effects, resetState, state, hostsByPoolId }) => (
     <Container>
       <Row>
         <Col size={6}>
@@ -686,7 +704,7 @@ const NewXostorForm = decorate([
           <PoolCard hostsByPoolId={hostsByPoolId} />
         </Col>
         <Col size={6}>
-          <NetworkCard networks={networks} pifsByNetwork={pifsByNetwork} />
+          <NetworkCard onChange={effects.onNetworkChange} />
         </Col>
       </Row>
       <Row>
