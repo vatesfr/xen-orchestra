@@ -296,7 +296,7 @@ export default class Esxi extends EventEmitter {
           if (typeof disk !== 'object') {
             continue
           }
-          if (disk.deviceType.match(/cdrom/i)) {
+          if (disk.deviceType && disk.deviceType.match(/cdrom/i)) {
             continue
           }
           // can be something other than a disk, like a controller card
