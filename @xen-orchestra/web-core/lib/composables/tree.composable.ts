@@ -50,7 +50,7 @@ export function useTree<
     return nodeMap
   })
 
-  const visibleNodes = computed(() => nodes.value.filter(node => node.isVisible))
+  const visibleNodes = computed(() => nodes.value.filter(node => !node.isExcluded))
 
   const getNode = (id: TreeNodeId | undefined) => (id !== undefined ? nodesMap.value.get(id) : undefined)
   const getNodes = (ids: TreeNodeId[]) => ids.map(getNode).filter(node => node !== undefined) as TreeNode[]
@@ -58,10 +58,6 @@ export function useTree<
   const selectedNodes = computed(() => getNodes(Array.from(selectedIds.value.values())))
   const expandedNodes = computed(() => getNodes(Array.from(expandedIds.value.values())))
   const activeNode = computed(() => getNode(activeId.value))
-
-  if (options.expand !== false) {
-    visibleNodes.value.forEach(node => node.isBranch && node.toggleExpand(true, true))
-  }
 
   const selectedLabel = computed(() => {
     if (typeof options.selectedLabel === 'function') {
