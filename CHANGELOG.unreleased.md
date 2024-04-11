@@ -18,6 +18,7 @@
 
 - [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
 - [Import/VMWare] Fix ERR_PREMATURE_CLOSE error with Xenserver hosts (PR [#7563](https://github.com/vatesfr/xen-orchestra/pull/7563))
+- [VMWare/Migration] Handle multiple datacenters (PR [#7553](https://github.com/vatesfr/xen-orchestra/pull/7553))
 
 ### Packages to release
 
