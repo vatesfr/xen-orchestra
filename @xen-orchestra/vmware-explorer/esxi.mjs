@@ -9,6 +9,7 @@ import https from 'https'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import xml2js from 'xml2js'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
 
@@ -356,5 +357,37 @@ export default class Esxi extends EventEmitter {
   }
   powerOn(vmId) {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
+  }
+  async fetchProperty(type, id, propertyName) {
+    // the fetch method does not seems to be exposed by the wsdl
+    // inpired  by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
+    const res = await fetch(`https://${this.#host}/sdk`, {
+      method: 'POST',
+      headers: {
+        Cookie: this.#client.authCookie.cookies,
+        SOAPAction: '"urn:vim25/6.0"', // mandatory to have a answer when asking for httpNfcLease
+      },
+      agent: this.#httpsAgent,
+      body: `<?xml version="1.0" encoding="UTF-8"?>
+        <soapenv:Envelope 
+          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        >
+          <soapenv:Body>
+            <Fetch xmlns="urn:vim25">
+              <_this type="${type}">${id}</_this>
+              <prop >${propertyName}</prop>
+            </Fetch>
+          </soapenv:Body>
+        </soapenv:Envelope>`,
+    })
+    const text = await res.text()
+    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/)
+
+    return new Promise((resolve, reject) => {
+      xml2js.parseString(matches?.[1] ?? '', (err, res) => (err ? reject(err) : resolve(res.returnval)))
+    })
   }
 }
