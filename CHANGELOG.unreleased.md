@@ -34,7 +34,7 @@
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - xo-server patch
 
 <!--packages-end-->
