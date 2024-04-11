@@ -1,5 +1,9 @@
 # Installation
 
+:::tip
+If you want to deploy an official XO Appliance on an airgapped infrastructure, refer to the [dedicated documentation](airgap.md).
+:::
+
 ## XOA
 
 Log in to your account and use the deploy form [available on this page](https://xen-orchestra.com/#!/xoa).
