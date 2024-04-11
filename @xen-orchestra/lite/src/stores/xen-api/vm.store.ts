@@ -1,43 +1,35 @@
 import type { GetStats } from '@/composables/fetch-stats.composable'
-import { useXenApiStoreSubscribableContext } from '@/composables/xen-api-store-subscribable-context.composable'
 import { sortRecordsByNameLabel } from '@/libs/utils'
 import type { VmStats } from '@/libs/xapi-stats'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { type VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { createUseCollection } from '@/stores/xen-api/create-use-collection'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { castArray } from 'lodash-es'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const useVmStore = defineStore('xen-api-vm', () => {
-  const context = useXenApiStoreSubscribableContext('vm')
+  const deps = { host: useHostStore() }
 
-  const records = computed(() =>
-    context.records.value
-      .filter(vm => !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain)
-      .sort(sortRecordsByNameLabel)
-  )
+  const { context: baseContext, ...configRest } = createXapiStoreConfig('vm', {
+    beforeAdd(vm) {
+      if (vm.is_a_snapshot || vm.is_control_domain || vm.is_a_template) {
+        return undefined
+      }
 
-  const isOperationPending = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
-    const currentOperations = Object.values(vm.current_operations)
+      return vm
+    },
+    sortBy: (vm1, vm2) => sortRecordsByNameLabel(vm1, vm2),
+  })
 
-    return castArray(operations).some(operation => currentOperations.includes(operation))
-  }
-
-  const areSomeOperationAllowed = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
-    const allowedOperations = Object.values(vm.allowed_operations)
-
-    return castArray(operations).some(operation => allowedOperations.includes(operation))
-  }
-
-  const runningVms = computed(() => records.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
+  const runningVms = computed(() => baseContext.records.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
   const recordsByHostRef = computed(() => {
     const vmsByHostOpaqueRef = new Map<XenApiHost['$ref'], XenApiVm[]>()
 
-    records.value.forEach(vm => {
+    baseContext.records.value.forEach(vm => {
       if (!vmsByHostOpaqueRef.has(vm.resident_on)) {
         vmsByHostOpaqueRef.set(vm.resident_on, [])
       }
@@ -47,6 +39,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
 
     return vmsByHostOpaqueRef
   })
+
   const getStats = ((id, granularity, ignoreExpired = false, { abortSignal }) => {
     const xenApiStore = useXenApiStore()
 
@@ -54,15 +47,13 @@ export const useVmStore = defineStore('xen-api-vm', () => {
       return undefined
     }
 
-    const vm = context.getByUuid(id)
+    const vm = baseContext.getByUuid(id)
 
     if (vm === undefined) {
       throw new Error(`VM ${id} could not be found.`)
     }
 
-    const hostStore = useHostStore()
-
-    const host = hostStore.getByOpaqueRef(vm.resident_on)
+    const host = deps.host.$context.getByOpaqueRef(vm.resident_on)
 
     if (host === undefined) {
       throw new Error(`VM ${id} is halted or host could not be found.`)
@@ -77,15 +68,12 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     })
   }) as GetStats<XenApiVm>
 
-  return {
-    ...context,
-    records,
-    isOperationPending,
-    areSomeOperationAllowed,
+  const context = {
+    ...baseContext,
     runningVms,
     recordsByHostRef,
     getStats,
   }
-})
 
-export const useVmCollection = createUseCollection(useVmStore)
+  return createSubscribableStoreContext({ context, ...configRest }, deps)
+})

@@ -19,12 +19,12 @@
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import TooltipList from '@core/components/tooltip/TooltipList.vue'
 import ModalList from '@/components/ui/modals/ModalList.vue'
 import { useChartTheme } from '@/composables/chart-theme.composable'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
@@ -33,7 +33,7 @@ import { useI18n } from 'vue-i18n'
 
 const xenApiStore = useXenApiStore()
 
-const { pool } = usePoolCollection()
+const { pool } = usePoolStore().subscribe()
 
 useChartTheme()
 const uiStore = useUiStore()

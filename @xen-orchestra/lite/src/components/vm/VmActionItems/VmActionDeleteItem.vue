@@ -11,10 +11,10 @@
 
 <script lang="ts" setup>
 import { useModal } from '@/composables/modal.composable'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -23,7 +23,7 @@ const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef: getVm } = useVmCollection()
+const { getByOpaqueRef: getVm } = useVmStore().subscribe()
 
 const vms = computed<XenApiVm[]>(() => props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined))
 

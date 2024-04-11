@@ -2,8 +2,8 @@ import { sortRecordsByNameLabel } from '@/libs/utils'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import { castArray } from 'lodash-es'
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, ref, toValue } from 'vue'
@@ -11,8 +11,8 @@ import { computed, ref, toValue } from 'vue'
 export const useVmMigration = (vmRefs: MaybeRefOrGetter<XenApiVm['$ref'] | XenApiVm['$ref'][]>) => {
   const $isMigrating = ref(false)
   const selectedHost = ref<XenApiHost>()
-  const { getByOpaqueRef: getVm } = useVmCollection()
-  const { records: hosts } = useHostCollection()
+  const { getByOpaqueRef: getVm } = useVmStore().subscribe()
+  const { records: hosts } = useHostStore().subscribe()
 
   const vms = computed(
     () =>

@@ -43,7 +43,7 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -52,7 +52,7 @@ import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawe
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-const { getByUuid: getVmByUuid } = useVmCollection()
+const { getByUuid: getVmByUuid } = useVmStore().subscribe()
 const { currentRoute } = useRouter()
 
 const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm['uuid']))

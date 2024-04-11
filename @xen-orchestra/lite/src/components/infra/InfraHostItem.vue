@@ -23,24 +23,24 @@
 import InfraAction from '@/components/infra/InfraAction.vue'
 import InfraItemLabel from '@/components/infra/InfraItemLabel.vue'
 import InfraVmList from '@/components/infra/InfraVmList.vue'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faAngleDown, faAngleUp, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
 
 const props = defineProps<{
   hostOpaqueRef: XenApiHost['$ref']
 }>()
 
-const { getByOpaqueRef } = useHostCollection()
+const { getByOpaqueRef } = useHostStore().subscribe()
 const host = computed(() => getByOpaqueRef(props.hostOpaqueRef))
 
-const { pool } = usePoolCollection()
+const { pool } = usePoolStore().subscribe()
 const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef)
 
 const uiStore = useUiStore()
@@ -48,7 +48,7 @@ const uiStore = useUiStore()
 const isCurrentHost = computed(() => props.hostOpaqueRef === uiStore.currentHostOpaqueRef)
 const [isExpanded, toggle] = useToggle(true)
 
-const { recordsByHostRef, isReady } = useVmCollection()
+const { recordsByHostRef, isReady } = useVmStore().subscribe()
 
 const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0)
 </script>

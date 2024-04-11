@@ -43,22 +43,22 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardFooter from '@/components/ui/UiCardFooter.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { percent } from '@/libs/utils'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { useVmMetricsCollection } from '@/stores/xen-api/vm-metrics.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])
 
-const { hasError: hostStoreHasError, isReady: isHostStoreReady, runningHosts } = useHostCollection()
+const { hasError: hostStoreHasError, isReady: isHostStoreReady, runningHosts } = useHostStore().subscribe()
 
-const { hasError: vmStoreHasError, isReady: isVmStoreReady, records: vms } = useVmCollection()
+const { hasError: vmStoreHasError, isReady: isVmStoreReady, records: vms } = useVmStore().subscribe()
 
-const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } = useVmMetricsCollection()
+const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } = useVmMetricsStore().subscribe()
 
 const nPCpu = computed(() => runningHosts.value.reduce((total, host) => total + Number(host.cpu_info.cpu_count), 0))
 

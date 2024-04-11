@@ -1,9 +1,9 @@
-import { useXenApiStoreSubscribableContext } from '@/composables/xen-api-store-subscribable-context.composable'
-import { createUseCollection } from '@/stores/xen-api/create-use-collection'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 
 export const useVmMetricsStore = defineStore('xen-api-vm-metrics', () => {
-  return useXenApiStoreSubscribableContext('vm_metrics')
-})
+  const config = createXapiStoreConfig('vm_metrics')
 
-export const useVmMetricsCollection = createUseCollection(useVmMetricsStore)
+  return createSubscribableStoreContext(config, {})
+})

@@ -1,11 +1,8 @@
-<template>
-  <PageUnderConstruction />
-</template>
+<template>No subscription</template>
 
 <script lang="ts" setup>
-import PageUnderConstruction from '@/components/PageUnderConstruction.vue'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useI18n } from 'vue-i18n'
+import { onBeforeRouteLeave } from 'vue-router'
 
-usePageTitleStore().setTitle(useI18n().t('hosts'))
+// eslint-disable-next-line no-console
+onBeforeRouteLeave(() => console.log('-'.repeat(20)))
 </script>

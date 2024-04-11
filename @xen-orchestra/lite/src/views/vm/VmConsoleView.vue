@@ -33,14 +33,15 @@ import monitor from '@/assets/monitor.svg'
 import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
+import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
-import { useUiStore } from '@core/stores/ui.store'
-import { useConsoleCollection } from '@/stores/xen-api/console.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useConsoleStore } from '@/stores/xen-api/console.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
   faDownLeftAndUpRightToCenter,
@@ -67,13 +68,13 @@ const router = useRouter()
 const route = useRoute()
 const uiStore = useUiStore()
 
-const { isReady: isVmReady, getByUuid: getVmByUuid, hasError: hasVmError, isOperationPending } = useVmCollection()
+const { isReady: isVmReady, getByUuid: getVmByUuid, hasError: hasVmError } = useVmStore().subscribe()
 
 const {
   isReady: isConsoleReady,
   getByOpaqueRef: getConsoleByOpaqueRef,
   hasError: hasConsoleError,
-} = useConsoleCollection()
+} = useConsoleStore().subscribe()
 
 const isReady = computed(() => isVmReady.value && isConsoleReady.value)
 
@@ -94,7 +95,7 @@ const vmConsole = computed(() => {
 })
 
 const isConsoleAvailable = computed(() =>
-  vm.value !== undefined ? !isOperationPending(vm.value, STOP_OPERATIONS) : false
+  vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
 )
 
 const consoleElement = ref()

@@ -12,7 +12,9 @@
       />
       <UserLogo v-tooltip="{ content: $t('account-organization-more'), placement: 'bottom-end' }" size="medium" />
     </template>
-    <template #sidebar-content>Sidebar coming soon</template>
+    <template #sidebar-content>
+      <InfraPoolList />
+    </template>
     <template #content-header>
       <slot name="content-header" />
     </template>
@@ -29,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'

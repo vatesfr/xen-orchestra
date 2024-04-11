@@ -12,9 +12,9 @@
 
 <script lang="ts" setup>
 import InfraHostItem from '@/components/infra/InfraHostItem.vue'
-import { useHostCollection } from '@/stores/xen-api/host.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
 
-const { records: hosts, isReady, hasError } = useHostCollection()
+const { records: hosts, isReady, hasError } = useHostStore().subscribe()
 </script>
 
 <style lang="postcss" scoped>
