@@ -36,8 +36,25 @@ exports.Task = class Task {
     }
   }
 
-  static run(opts, fn) {
-    return new this(opts).run(fn)
+  static run(...args) {
+    let opts = args[0]
+    let fn
+    if (typeof opts === 'object') {
+      args.shift()
+      fn = args[0]
+    } else {
+      fn = opts
+      opts = undefined
+    }
+    args.shift()
+
+    const thisArg = this !== Task ? this : undefined
+
+    if (typeof fn !== 'function') {
+      fn = this[fn]
+    }
+
+    return new Task(opts).run(() => fn.apply(thisArg, args))
   }
 
   static set(name, value) {
