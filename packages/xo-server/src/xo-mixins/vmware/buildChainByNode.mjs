@@ -15,8 +15,8 @@ export function buildDiskChainByNode(disks, snapshots) {
   chain.push(disks)
 
   for (const disk of chain) {
-    if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
-      /* 2TO */
+    if (disk.capacity > 2088960 * 1024 * 1024) {
+      /* 2TB - 8 MB is the maximum for smapi v1 */
       throw new Error("Can't migrate disks larger than 2TiB")
     }
   }
