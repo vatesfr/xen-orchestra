@@ -360,12 +360,12 @@ export default class Esxi extends EventEmitter {
   }
   async fetchProperty(type, id, propertyName) {
     // the fetch method does not seems to be exposed by the wsdl
-    // inpired  by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
+    // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
     const res = await fetch(`https://${this.#host}/sdk`, {
       method: 'POST',
       headers: {
         Cookie: this.#client.authCookie.cookies,
-        SOAPAction: '"urn:vim25/6.0"', // mandatory to have a answer when asking for httpNfcLease
+        SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
       },
       agent: this.#httpsAgent,
       body: `<?xml version="1.0" encoding="UTF-8"?>
