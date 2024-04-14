@@ -222,6 +222,16 @@ export default class Api {
             },
           },
         ],
+        throw: [
+          function ({ message }) {
+            throw new Error(message)
+          },
+          {
+            params: {
+              message: { type: 'string' },
+            },
+          },
+        ],
       },
     })
   }
