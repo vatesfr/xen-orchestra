@@ -140,7 +140,6 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
     }
   )
 }
-
 formatDisks.description = 'Format disks for a XOSTOR use'
 formatDisks.permission = 'admin'
 formatDisks.params = {
@@ -175,14 +174,14 @@ export const create = defer(async function (
 
     const host = hosts[0]
     const xapi = this.getXapi(host)
-    const poolHosts = Object.keys(xapi.objects.indexes.type.host)
+    const poolHostIds = Object.keys(xapi.objects.indexes.type.host)
 
     await Task.run({ properties: { name: 'licenses check' } }, async () => {
       const now = Date.now()
-      const nPoolHosts = poolHosts.length
+      const nPoolHosts = poolHostIds.length
 
       const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
-      const allHostsAreLicensed = poolHosts.every(id => {
+      const allHostsAreLicensed = poolHostIds.every(id => {
         const license = xcpLicenseByHostId[id]
         return license !== undefined && (license.expires === undefined || license.expires > now)
       })

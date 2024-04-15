@@ -29,6 +29,6 @@
 
 - @vates/task minor
 - @xen-orchestra/proxy minor
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
