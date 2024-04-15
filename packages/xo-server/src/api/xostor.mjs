@@ -1,3 +1,4 @@
+import keyBy from 'lodash/keyBy.js'
 import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -139,6 +140,7 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
     }
   )
 }
+
 formatDisks.description = 'Format disks for a XOSTOR use'
 formatDisks.permission = 'admin'
 formatDisks.params = {
@@ -165,46 +167,7 @@ export const create = defer(async function (
   const task = await this.tasks.create({ name: `creation of XOSTOR: ${name}`, type: 'xo:xostor:create' })
   return task.run(async () => {
     const hostIds = Object.keys(disksByHost)
-
-    const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
-
-    const license = await Task.run({ properties: { name: 'license check' } }, async () => {
-      const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
-
-      const now = Date.now()
-      const availableLicenses = xostorLicenses.filter(
-        ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
-      )
-
-      let _license = availableLicenses.find(({ productId }) => productId === 'xostor')
-
-      if (_license === undefined) {
-        _license = availableLicenses.find(({ productId }) => productId === 'xostor.trial')
-      }
-
-      if (_license === undefined) {
-        _license = await this.createBoundXostorTrialLicense({
-          boundObjectId: tmpBoundObjectId,
-        })
-      } else {
-        await this.bindLicense({
-          licenseId: _license.id,
-          boundObjectId: tmpBoundObjectId,
-        })
-      }
-      $defer.onFailure(() =>
-        this.unbindLicense({
-          licenseId: _license.id,
-          productId: _license.productId,
-          boundObjectId: tmpBoundObjectId,
-        })
-      )
-
-      return _license
-    })
-
     const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
-
     if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
       // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
       throw new Error('All hosts must be in the same pool')
@@ -212,6 +175,55 @@ export const create = defer(async function (
 
     const host = hosts[0]
     const xapi = this.getXapi(host)
+    const poolHosts = Object.keys(xapi.objects.indexes.type.host)
+
+    await Task.run({ properties: { name: 'licenses check' } }, async () => {
+      const now = Date.now()
+      const nPoolHosts = poolHosts.length
+
+      const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
+      const allHostsAreLicensed = poolHosts.every(id => {
+        const license = xcpLicenseByHostId[id]
+        return license !== undefined && (license.expires === undefined || license.expires > now)
+      })
+
+      if (!allHostsAreLicensed) {
+        throw new Error('All hosts must be under an XCP-ng Pro license')
+      }
+
+      const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
+      let availableLicenses = xostorLicenses.filter(
+        ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
+      )
+      const nAvailableLicenses = availableLicenses.length
+
+      if (nAvailableLicenses === 0) {
+        // Creation XOSTOR licenses
+        throw new Error('Not implemented')
+        /**
+         * availableLicenses = createXostorTrialLicenses()
+         */
+      } else if (nAvailableLicenses < nPoolHosts) {
+        throw new Error(`Not enought XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
+      }
+
+      await asyncEach(
+        poolHosts,
+        async hostId => {
+          const license = availableLicenses.pop()
+          await this.bindLicense({
+            licenseId: license.id,
+            boundObjectId: hostId,
+          })
+          $defer.onFailure(() =>
+            this.unbindLicense({ licenseId: license.id, productId: 'xostor', boundObjectId: hostId })
+          )
+        },
+        {
+          stopOnError: false,
+        }
+      )
+    })
 
     const handleHostsDependencies = defer(async ($defer, hosts) => {
       const boundInstallDependencies = installDependencies.bind(this)
@@ -286,12 +298,6 @@ export const create = defer(async function (
       })
     }
 
-    await this.rebindLicense({
-      licenseId: license.id,
-      oldBoundObjectId: tmpBoundObjectId,
-      newBoundObjectId: srUuid,
-    })
-
     return srUuid
   })
 })
@@ -331,13 +337,12 @@ export async function destroy({ sr }) {
     await Task.run({ properties: { name: 'deletion of the storage', objectId: sr.uuid } }, () =>
       xapi.destroySr(sr._xapiId)
     )
-    const license = (await this.getLicenses({ productType: 'xostor' })).find(
-      license => license.boundObjectId === sr.uuid
-    )
-    await Task.run({ properties: { name: 'unbind the attached license' } }, () =>
-      this.unbindLicense({
-        boundObjectId: license.boundObjectId,
-        productId: license.productId,
+    await Task.run({ properties: { name: 'unbind attached licenses' } }, () =>
+      asyncEach(hosts, host => {
+        this.unbindLicense({
+          boundObjectId: host.id,
+          productId: 'xostor',
+        })
       })
     )
     await Task.run({ properties: { name: `destroy volume group on ${hosts.length} hosts` } }, () =>
