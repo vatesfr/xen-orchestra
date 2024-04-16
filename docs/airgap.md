@@ -40,7 +40,7 @@ You can now delete the XOA on your connected pool, it is no longer necessary.
 
 ## Upgrade
 
-To upgrade your need to:
+To upgrade your XOA, you need to:
 
 1. shutdown the XOA on your airgapped pool
 2. export it in an XVA file
