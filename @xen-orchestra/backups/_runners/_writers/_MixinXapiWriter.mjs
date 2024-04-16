@@ -71,7 +71,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
             const healthCheckVm =
               xapi.getObject(healthCheckVmRef, undefined) ?? (await xapi.waitObject(healthCheckVmRef))
             await healthCheckVm.add_tags('xo:no-bak=Health Check')
-            const timeout = this._config.healthCheckTimeout ? ms(this._config.healthCheckTimeout) : undefined
+            const timeout = ms(this._config.healthCheckTimeout)
             await new HealthCheckVmBackup({
               restoredVm: healthCheckVm,
               timeout,
