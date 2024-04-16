@@ -43,11 +43,11 @@ You can now delete the XOA on your connected pool, it is no longer necessary.
 To upgrade your XOA, you need to:
 
 1. shutdown the XOA on your airgapped pool
-2. export it in an XVA file
+2. export it to an XVA file
 3. move it to your connected pool and import it
 4. start it, run the [upgrade process](https://xen-orchestra.com/docs/updater.html)
 5. shutdown this XOA
-6. export it in an XVA file
+6. export it to an XVA file
 7. move it to your airgapped pool and import it
 8. start it and check that everything appears correct
 9. delete the XOA on your connected pool and the previous XOA on your airgapped pool
