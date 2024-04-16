@@ -412,6 +412,7 @@ destroyInterface.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }
 export async function healthCheck({ sr }) {
+  checkIfLinstorSr(sr)
   const xapi = this.getXapi(sr)
   const pool = this.getObject(sr.$pool)
   const groupName = this.getObject(sr.$PBDs[0]).device_config['group-name']
