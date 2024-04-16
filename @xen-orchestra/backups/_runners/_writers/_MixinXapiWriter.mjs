@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
 import { Task } from '../../Task.mjs'
+import ms from 'ms'
 
 export const MixinXapiWriter = (BaseClass = Object) =>
   class MixinXapiWriter extends BaseClass {
@@ -70,8 +71,10 @@ export const MixinXapiWriter = (BaseClass = Object) =>
             const healthCheckVm =
               xapi.getObject(healthCheckVmRef, undefined) ?? (await xapi.waitObject(healthCheckVmRef))
             await healthCheckVm.add_tags('xo:no-bak=Health Check')
+            const timeout = this._config.healthCheckTimeout ? ms(this._config.healthCheckTimeout) : undefined
             await new HealthCheckVmBackup({
               restoredVm: healthCheckVm,
+              timeout,
               xapi,
             }).run()
           } finally {

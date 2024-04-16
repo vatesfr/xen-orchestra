@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backups] Make health check timeout configurable : property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,6 +32,7 @@
 <!--packages-start-->
 
 - @vates/task minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/vmware-explorer patch
 - xo-server patch
