@@ -1781,6 +1781,18 @@ export default class NewVm extends BaseComponent {
             <SectionContent>
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
+                {secureBoot && pool.allowSecureBoot === '' && (
+                  <span className='align-self-center text-warning ml-1'>
+                    <Icon icon='alarm' /> {_('secureBootSetupWarning')}{' '}
+                    <a
+                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                      rel='noopener noreferrer'
+                      target='_blank'
+                    >
+                      <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                    </a>
+                  </span>
+                )}
               </Item>
               <Item label={_('enableVtpm')} className='d-inline-flex'>
                 <Tooltip content={!isVtpmSupported ? _('vtpmNotSupported') : undefined}>

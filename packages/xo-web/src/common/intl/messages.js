@@ -1714,6 +1714,7 @@ const messages = {
   newVmNetworkConfigDoc: 'Network config documentation',
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
+  secureBootSetupWarning: 'This pool was not yet setup for Guest UEFI Secure Boot.',
   seeVtpmDocumentation: 'See VTPM documentation',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
   destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
