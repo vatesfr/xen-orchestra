@@ -197,7 +197,7 @@ export const create = defer(async function (
       const nAvailableLicenses = availableLicenses.length
 
       if (nAvailableLicenses === 0) {
-        availableLicenses = await this.createBoundXostorTrialLicense({
+        availableLicenses = await this.createXostorTrialLicenses({
           quantity: nPoolHosts,
         })
       } else if (nAvailableLicenses < nPoolHosts) {
