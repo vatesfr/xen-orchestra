@@ -20,7 +20,7 @@ When everything is good, you can shutdown your XOA and export it:
 
 ```console
 $ xe vm-shutdown uuid=$uuid
-$ xe vm-export uuid=$uuid filename=xoa.xva
+$ xe vm-export compress=true uuid=$uuid filename=xoa.xva
 Export succeeded
 ```
 
