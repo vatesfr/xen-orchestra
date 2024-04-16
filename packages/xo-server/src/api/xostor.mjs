@@ -197,17 +197,16 @@ export const create = defer(async function (
       const nAvailableLicenses = availableLicenses.length
 
       if (nAvailableLicenses === 0) {
-        // Creation XOSTOR licenses
         throw new Error('Not implemented')
         /**
          * availableLicenses = createXostorTrialLicenses()
          */
       } else if (nAvailableLicenses < nPoolHosts) {
-        throw new Error(`Not enought XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
+        throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
       }
 
       await asyncEach(
-        poolHosts,
+        poolHostIds,
         async hostId => {
           const license = availableLicenses.pop()
           await this.bindLicense({
