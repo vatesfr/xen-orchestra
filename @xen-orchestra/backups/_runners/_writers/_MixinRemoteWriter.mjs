@@ -8,6 +8,7 @@ import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '../../ImportVmBackup.mjs'
 import { Task } from '../../Task.mjs'
 import * as MergeWorker from '../../merge-worker/index.mjs'
+import ms from 'ms'
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
@@ -107,8 +108,10 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             restoredVm = await xapi.waitObject(restoredId)
           }
           try {
+            const timeout = ms(this._config.healthCheckTimeout)
             await new HealthCheckVmBackup({
               restoredVm,
+              timeout,
               xapi,
             }).run()
           } finally {

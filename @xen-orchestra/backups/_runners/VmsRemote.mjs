@@ -19,6 +19,7 @@ const DEFAULT_REMOTE_VM_SETTINGS = {
   exportRetention: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
+  healthCheckTimeout: '10m',
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
   nRetriesVmBackupFailures: 0,
