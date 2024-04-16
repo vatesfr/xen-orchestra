@@ -6,7 +6,7 @@ This page concerns only official XO Appliances, and not XO built from sources.
 
 XO has not been initially developed to support airgapped infrastructures, but the following procedures have been tested and validated to permit its support.
 
-A separate XCP-ng pool with Internet access is necessary, it will be used as a temporary zone to register and upgrade the XOA.
+A separate XCP-ng pool with Internet access is necessary, and it will be used as a temporary zone to register and upgrade the XOA.
 
 ## Deployement
 
