@@ -1,7 +1,7 @@
 # Installation
 
 :::tip
-If you want to deploy an official XO Appliance on an airgapped infrastructure, refer to the [dedicated documentation](airgap.md).
+If you want to deploy an XOA in an airgapped infrastructure, refer to the [dedicated documentation](airgap.md).
 :::
 
 ## XOA
