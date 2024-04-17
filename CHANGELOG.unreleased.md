@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] At VM creation, warn if secure boot is on but pool is not setup to (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
+- [VM] At VM creation, warn if secure boot is on but pool is not setup for UEFI Secure Boot (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
 
 ### Bug fixes
 
