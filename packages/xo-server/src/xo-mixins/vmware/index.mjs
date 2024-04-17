@@ -30,7 +30,15 @@ export default class MigrateVm {
   }
 
   async #createVmAndNetworks({ metadata, networkId, xapi }) {
-    const { firmware, memory, name_label, networks, nCpus } = metadata
+    const {
+      guestId,
+      firmware,
+      memory,
+      name_label,
+      networks,
+      nCpus,
+    } = metadata
+
     return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
@@ -40,7 +48,7 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           memory_static_min: memory,
-          name_description: 'from esxi',
+          name_description: `from esxi -- source guest id :${guestId}`,
           name_label,
           VCPUs_at_startup: nCpus,
           VCPUs_max: nCpus,
