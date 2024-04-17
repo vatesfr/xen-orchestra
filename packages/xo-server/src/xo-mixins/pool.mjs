@@ -10,7 +10,6 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
-
 export default class Pools {
   constructor(app) {
     this._app = app
