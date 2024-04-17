@@ -88,16 +88,22 @@ export default class Pools {
         throw new Error(`Not enough XOSTOR Licenses. Expected: ${nNewHosts}, actual: ${nAvailableXostorLicenses}`)
       }
 
-      await asyncEach(sourceIds, async hostId => {
-        const xostorLicense = availableXostorLicenses.pop()
-        await _app.bindLicense({
-          licenseId: xostorLicense.id,
-          boundObjectId: hostId,
-        })
-        $defer.onFailure(() =>
-          _app.unbindLicense({ licenseId: xostorLicense.id, productId: 'xostor', boundObjectId: hostId })
-        )
-      })
+      await asyncEach(
+        sourceIds,
+        async hostId => {
+          const xostorLicense = availableXostorLicenses.pop()
+          await _app.bindLicense({
+            licenseId: xostorLicense.id,
+            boundObjectId: hostId,
+          })
+          $defer.onFailure(() =>
+            _app.unbindLicense({ licenseId: xostorLicense.id, productId: 'xostor', boundObjectId: hostId })
+          )
+        },
+        {
+          stopOnError: false,
+        }
+      )
     }
 
     // Find missing patches on the target.
