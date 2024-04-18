@@ -147,6 +147,8 @@ export default class Esxi extends EventEmitter {
 
   // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95
   async search(type, properties) {
+    // search types are limited to "ComputeResource", "Datacenter", "Datastore", "DistributedVirtualSwitch", "Folder", "HostSystem", "Network", "ResourcePool", "VirtualMachine"}
+    // from https://github.com/vmware/govmomi/issues/2595#issuecomment-966604502
     // get property collector
     const propertyCollector = this.#client.serviceContent.propertyCollector
     // get view manager
@@ -287,13 +289,11 @@ export default class Esxi extends EventEmitter {
   }
 
   async getTransferableVmMetadata(vmId) {
-    const search = await this.search('VirtualMachine', ['name', 'config', 'storage', 'runtime', 'snapshot'])
-    if (search[vmId] === undefined) {
-      throw new Error(`VM ${vmId} not found `)
-    }
-    const { config, runtime } = search[vmId]
-
-    const [, dataStore, vmxPath] = config.files.vmPathName.match(/^\[(.*)\] (.+.vmx)$/)
+    const [config, runtime] = await Promise.all([
+      this.fetchProperty('VirtualMachine', vmId, 'config'),
+      this.fetchProperty('VirtualMachine', vmId, 'runtime'),
+    ])
+    const [, dataStore, vmxPath] = config.files[0].vmPathName[0].match(/^\[(.*)\] (.+.vmx)$/)
     const res = await this.download(dataStore, vmxPath)
     const vmx = parseVmx(await res.text())
     // list datastores
@@ -359,14 +359,13 @@ export default class Esxi extends EventEmitter {
     } catch (error) {
       // no vmsd file :fall back to a full withou snapshots
     }
-
     return {
-      name_label: config.name,
-      memory: +config.hardware.memoryMB * 1024 * 1024,
-      nCpus: +config.hardware.numCPU,
+      name_label: config.name[0],
+      memory: +config.hardware[0].memoryMB[0] * 1024 * 1024,
+      nCpus: +config.hardware[0].numCPU[0],
       guestToolsInstalled: false,
-      firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-      powerState: runtime.powerState,
+      firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
+      powerState: runtime.powerState[0],
       snapshots,
       disks,
       networks,
