@@ -25,7 +25,7 @@ export default class Esxi extends EventEmitter {
 
   constructor(host, user, password, sslVerify) {
     super()
-    this.#host = host
+    this.#host = host.trim()
     this.#user = user
     this.#password = password
     if (!sslVerify) {
