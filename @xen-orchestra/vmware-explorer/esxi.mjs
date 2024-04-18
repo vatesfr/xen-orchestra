@@ -259,19 +259,35 @@ export default class Esxi extends EventEmitter {
   }
 
   async getAllVmMetadata() {
-    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime'])
+    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
     return Object.keys(datas)
       .map(id => {
-        const { config, storage, runtime } = datas[id]
+        const { config, layoutEx, storage, runtime } = datas[id]
         if (storage === undefined) {
           return undefined
         }
+        // vsan , maybe raw disk , that forbid access to a direct vmdk
+        // descriptor may exist though with a .vmdk extension
+        let hasAllExtentsListed = true
+
+        // structure of layoutEx is described in  https://developer.vmware.com/apis/1720/
+        layoutEx?.disk?.forEach(disk => {
+          hasAllExtentsListed &&
+            disk.chain?.forEach(({ fileKey: fileKeys }) => {
+              // look for the disk extent data , not the descriptor
+              const fileChain = layoutEx.file.find(file => {
+                return fileKeys.includes(file.key) && file.type === 'diskExtent'
+              })
+              hasAllExtentsListed = hasAllExtentsListed && fileChain.length === fileKeys.length // the chain is complete
+            })
+        })
         const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
           ? storage.perDatastoreUsage
           : [storage.perDatastoreUsage]
         return {
           id,
+          hasAllExtentsListed,
           nameLabel: config.name,
           memory: +config.hardware.memoryMB * 1024 * 1024,
           nCpus: +config.hardware.numCPU,
