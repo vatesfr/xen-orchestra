@@ -589,7 +589,11 @@ const NewXostorForm = decorate([
         this.state.interfaceName = ev.target.value
       },
       onPoolChange(_, pool) {
-        this.state.disksByHost = {}
+        const disksByHost = {}
+        this.props.hostsByPoolId[pool?.id]?.forEach(host => {
+          disksByHost[host.id] = []
+        })
+        this.state.disksByHost = disksByHost
         this.state.poolId = pool?.id
       },
       onReplicationChange(_, replication) {
@@ -650,7 +654,7 @@ const NewXostorForm = decorate([
     },
     computed: {
       // Private ==========
-      _disksByHostValues: state => Object.values(state.disksByHost).filter(disks => disks.length > 0),
+      _disksByHostValues: state => Object.values(state.disksByHost),
       // Utils ============
       poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
