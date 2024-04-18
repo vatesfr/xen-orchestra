@@ -108,7 +108,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             restoredVm = await xapi.waitObject(restoredId)
           }
           try {
-            const timeout = ms(this._config.healthCheckTimeout)
+            const timeout = ms(this._settings.healthCheckTimeout)
             await new HealthCheckVmBackup({
               restoredVm,
               timeout,
