@@ -15,6 +15,7 @@
 
 - [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
 - [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
+- [VMWare/Migration] Don't use default proxy to query the source
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/vmware-explorer minor
+- @vates/node-vsphere-soap patch
 - xo-server patch
 - xo-server-load-balancer patch
 
