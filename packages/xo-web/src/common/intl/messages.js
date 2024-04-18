@@ -2560,11 +2560,11 @@ const messages = {
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork: 'Will configure the host xosan network device with a static IP address and plug it in.',
   // ----- XOSTOR -----
-  approximateFinalSize: 'Approximate final size',
+  approximateFinalSize: 'Approximate SR capacity',
   byDefaultManagementNetworkUsed: 'By default, the management network will be used',
   cantFetchDisksFromNonXcpngHost: 'Unable to fetch physical disks from non-XCP-ng host',
   diskAlreadyMounted: 'The disk is mounted on: {mountpoint}',
-  diskHasChildren: 'The disk has children',
+  diskHasChildren: 'The disk has existing partition',
   diskIncompatibleXostor: 'Disk incompatible with XOSTOR',
   diskIsReadOnly: 'The disk is Read-Only',
   disks: 'Disks',
@@ -2572,10 +2572,11 @@ const messages = {
   fieldsMissing: 'Some fields are missing',
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
   ignoreFileSystems: 'Ignore file systems',
+  ignoreFileSystemsInfo: 'Force LINSTOR group creation on existing filesystem',
   interfaceName: 'Interface name',
   interfaceNameRequired: 'Interface name is required if a network is provided',
   interfaceNameReserved: 'This interface name is reserved',
-  isTapdevsDisk: 'This is "tapdevs" disk',
+  isTapdevDisk: 'This is "tapdev" disk',
   licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
   licenseNotBoundXostor: 'No XOSTOR attached',
   licenseExpiredXostorWarning:
@@ -2593,6 +2594,8 @@ const messages = {
   pifsNotAttached: 'Not all PIFs are attached',
   pifsNotStatic: 'Not all PIFs are static',
   replication: 'Replication',
+  restartRequiredWarningMessage:
+    'Hosts toolstask will restart if packages need to be installed. Do you want to continue?',
   rpuNoLongerAvailableIfXostor:
     'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   selectDisks: 'Select disk(s)…',
@@ -2603,6 +2606,7 @@ const messages = {
   wrongNumberOfHosts: 'Wrong number of hosts',
   xostor: 'XOSTOR',
   xostorAvailableInXoa: 'XOSTOR is available in XOA',
+  xostorCreation: 'XOSTOR creation',
   xostorIsInBetaStage: 'XOSTOR is currently in its BETA stage. Do not use it in a production environment!',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',

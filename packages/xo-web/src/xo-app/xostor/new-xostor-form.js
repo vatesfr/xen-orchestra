@@ -48,7 +48,7 @@ const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.le
 const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
-const isTapdevsDisk = disk => disk.name.startsWith('td')
+const istapdevDisk = disk => disk.name.startsWith('td')
 const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
 const isHostRecentEnough = host => semver.satisfies(host?.version, `>=${MINIMAL_POOL_VERSION_FOR_XOSTOR}`)
@@ -62,7 +62,7 @@ const xostorDiskPredicate = disk =>
   !isDiskRo(disk) &&
   !isDiskMounted(disk) &&
   !diskHasChildren(disk) &&
-  !isTapdevsDisk(disk)
+  !istapdevDisk(disk)
 const arePifsAttached = pifs => pifs.every(pif => pif.attached)
 const arePifsStatic = pifs => pifs.every(pif => pif.mode === 'Static' || pif.ipv6Mode === 'Static')
 const doesNetworkHavePifs = network => network.PIFs.length > 0
@@ -74,7 +74,7 @@ const StorageCard = decorate([
   injectState,
   ({ effects, state }) => (
     <Card>
-      <CardHeader>{_('storage')}</CardHeader>
+      <CardHeader>{_('generalTabName')}</CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -149,6 +149,11 @@ const SettingsCard = decorate([
           <Col style={SPACE_BETWEEN}>
             <label>{_('ignoreFileSystems')}</label>
             <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
+          </Col>
+          <Col>
+            <i>
+              <Icon icon='info' /> {_('ignoreFileSystemsInfo')}
+            </i>
           </Col>
         </Row>
         {/* {state.displayAdvancedSettings && ( Advanced settings section )} */}
@@ -451,8 +456,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const _isTapdevsDisk = isTapdevsDisk(disk)
-  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevsDisk
+  const _istapdevDisk = istapdevDisk(disk)
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_istapdevDisk
 
   return (
     <li className='list-group-item'>
@@ -473,7 +478,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
             {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
-            {_isTapdevsDisk && <li>{_('isTapdevsDisk')}</li>}
+            {_istapdevDisk && <li>{_('isTapdevDisk')}</li>}
           </ul>
         </div>
       )}
@@ -526,7 +531,7 @@ const SummaryCard = decorate([
                 <Col size={6}>
                   {_('keyValue', {
                     key: _('description'),
-                    value: srDescription === '' ? _('noValue') : srDescription,
+                    value: srDescription,
                   })}
                 </Col>
               </Row>
