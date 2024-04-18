@@ -167,7 +167,7 @@ export const create = defer(async function (
   return task.run(async () => {
     const hostIds = Object.keys(disksByHost)
     const hosts = hostIds.map(hostId => this.getObject(hostId, 'host'))
-    if (!hosts.every(host => host.$pool === hosts[0].$pool)) {
+    if (hosts.some(host => host.$pool !== hosts[0].$pool)) {
       // we need to do this test to ensure it won't create a partial LV group with only the host of the pool of the first master
       throw new Error('All hosts must be in the same pool')
     }
@@ -181,13 +181,17 @@ export const create = defer(async function (
       const nPoolHosts = poolHostIds.length
 
       const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
-      const allHostsAreLicensed = poolHostIds.every(id => {
+      const hostIdsWithoutXcpLicense = poolHostIds.filter(id => {
         const license = xcpLicenseByHostId[id]
-        return license !== undefined && (license.expires === undefined || license.expires > now)
+        return license === undefined || license.expires < now
       })
 
-      if (!allHostsAreLicensed) {
-        throw new Error('All hosts must be under an XCP-ng Pro license')
+      const nHostWithoutXcpLicense = hostIdsWithoutXcpLicense.length
+      if (nHostWithoutXcpLicense > 0) {
+        Task.warning(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`, {
+          hostIds: hostIdsWithoutXcpLicense,
+        })
+        throw new Error(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`)
       }
 
       const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
@@ -197,6 +201,7 @@ export const create = defer(async function (
       const nAvailableLicenses = availableLicenses.length
 
       if (nAvailableLicenses === 0) {
+        Task.info(`Creating ${nPoolHosts} trial licenses`)
         availableLicenses = await this.createXostorTrialLicenses({
           quantity: nPoolHosts,
         })

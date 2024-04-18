@@ -10,6 +10,35 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
+async function processLicenses($defer, app, productId, licenses, hostIds) {
+  const now = Date.now()
+  const nNewHosts = hostIds.length
+  const availableLicenses = licenses.filter(
+    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
+  )
+  const nAvailableLicenses = availableLicenses.length
+  if (nNewHosts > nAvailableLicenses) {
+    throw new Error(
+      `Not enough ${productId.toUpperCase()} Licenses. Expected: ${nNewHosts}, actual: ${nAvailableLicenses}`
+    )
+  }
+
+  await asyncEach(
+    hostIds,
+    async hostId => {
+      const license = availableLicenses.pop()
+      await app.bindLicense({
+        licenseId: license.id,
+        boundObjectId: hostId,
+      })
+      $defer.onFailure(() => app.unbindLicense({ licenseId: license.id, productId, boundObjectId: hostId }))
+    },
+    {
+      stopOnError: false,
+    }
+  )
+}
+
 export default class Pools {
   constructor(app) {
     this._app = app
@@ -37,73 +66,14 @@ export default class Pools {
 
     const hasLinstorSr = some(_app.objects.all, { SR_type: 'linstor', $pool: target.uuid })
     if (hasLinstorSr) {
-      let nNewHosts = 0
-      let nHostWithoutXcpLicense = 0
       const xcpLicenses = await _app.getLicenses({ productType: 'xcpng' })
-      const licenseByHostId = keyBy(xcpLicenses, 'boundObjectId')
-      const now = Date.now()
+      const xcpLicenseByHostId = keyBy(xcpLicenses, 'boundObjectId')
+      const hostIdsWithoutXcpLicense = sourceIds.filter(hostId => xcpLicenseByHostId[hostId] === undefined)
 
-      for (const hostId of sourceIds) {
-        nNewHosts++
-        if (licenseByHostId[hostId] === undefined) {
-          nHostWithoutXcpLicense++
-        }
+      if (hostIdsWithoutXcpLicense.length !== 0) {
+        await processLicenses($defer, _app, 'xcpng', xcpLicenses, hostIdsWithoutXcpLicense)
       }
-
-      if (nHostWithoutXcpLicense !== 0) {
-        const availableXcpLicenses = xcpLicenses.filter(
-          ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
-        )
-        const nAvailableXcpLicenses = availableXcpLicenses.length
-        if (nHostWithoutXcpLicense > nAvailableXcpLicenses) {
-          throw new Error(
-            `Not enough XCP Pro Licenses. Expected: ${nHostWithoutXcpLicense}, actual: ${nAvailableXcpLicenses}`
-          )
-        }
-
-        await asyncEach(
-          sourceIds,
-          async hostId => {
-            const xcpLicense = availableXcpLicenses.pop()
-            await _app.bindLicense({
-              licenseId: xcpLicense.id,
-              boundObjectId: hostId,
-            })
-            $defer.onFailure(() =>
-              _app.unbindLicense({ licenseId: xcpLicense.id, productId: xcpLicense.productId, boundObjectId: hostId })
-            )
-          },
-          {
-            stopOnError: false,
-          }
-        )
-      }
-
-      const xostorLicenses = await _app.getLicenses({ productType: 'xostor' })
-      const availableXostorLicenses = xostorLicenses.filter(
-        ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
-      )
-      const nAvailableXostorLicenses = availableXostorLicenses.length
-      if (nNewHosts > nAvailableXostorLicenses) {
-        throw new Error(`Not enough XOSTOR Licenses. Expected: ${nNewHosts}, actual: ${nAvailableXostorLicenses}`)
-      }
-
-      await asyncEach(
-        sourceIds,
-        async hostId => {
-          const xostorLicense = availableXostorLicenses.pop()
-          await _app.bindLicense({
-            licenseId: xostorLicense.id,
-            boundObjectId: hostId,
-          })
-          $defer.onFailure(() =>
-            _app.unbindLicense({ licenseId: xostorLicense.id, productId: 'xostor', boundObjectId: hostId })
-          )
-        },
-        {
-          stopOnError: false,
-        }
-      )
+      await processLicenses($defer, _app, 'xostor', await _app.getLicenses({ productType: 'xostor' }), sourceIds)
     }
 
     // Find missing patches on the target.
