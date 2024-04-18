@@ -1,57 +1,103 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
+import BulkIcons from 'bulk-icons'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
+import { bindLicense, rebindLicense } from 'xo'
+import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { groupBy } from 'lodash'
-import { injectState, provideState } from 'reaclette'
+import { map, filter } from 'lodash'
+import { injectState } from 'reaclette'
 import { Pool, Sr } from 'render-xo-item'
 
-import LicenseForm from './license-form'
+import BindXostorLicensesModal from './bind-xostor-licenses-modal'
 
+@injectState
 class XostorLicensesForm extends Component {
-  getAlerts = createSelector(
+  getLicenseInfo = createSelector(
     () => this.props.item,
-    () => this.props.userData,
-    (sr, userData) => {
-      const alerts = []
-      const licenses = userData.licensesByXostorUuid[sr.id]
-
-      // Xostor bound to multiple licenses
-      if (licenses?.length > 1) {
-        alerts.push({
-          level: 'danger',
-          render: (
-            <p>
-              {_('xostorMultipleLicenses')}
-              <br />
-              {licenses.map(license => license.id.slice(-4)).join(',')}
-            </p>
-          ),
-        })
+    () => this.props.state.xostorLicenseInfoByXostorId,
+    (sr, xostorLicenseInfoByXostor) => {
+      if (xostorLicenseInfoByXostor === undefined) {
+        return
       }
-
-      const license = licenses?.[0]
-      if (license?.expires < Date.now()) {
-        alerts.push({
-          level: 'danger',
-          render: _('licenseExpiredXostorWarning', { licenseId: license?.id.slice(-4) }),
-        })
-      }
-      return alerts
+      return xostorLicenseInfoByXostor[sr.id]
     }
   )
 
+  bindXostorLicenses = async () => {
+    const { item: sr, userData } = this.props
+    const { hosts, xostorLicenses } = userData
+
+    const now = Date.now()
+    const xostorLicenseById = {}
+    const xostorLicensesByHost = {}
+
+    xostorLicenses.forEach(license => {
+      xostorLicenseById[license.id] = license
+
+      if (xostorLicensesByHost[license.boundObjectId] === undefined) {
+        xostorLicensesByHost[license.boundObjectId] = []
+      }
+      xostorLicensesByHost[license.boundObjectId].push(license)
+    })
+
+    const hostsWithoutLicense = filter(hosts, host => {
+      if (host.$pool !== sr.$pool) {
+        return false
+      }
+      const licenses = xostorLicensesByHost[host.id]
+      return licenses === undefined || licenses.every(license => license.expires < now)
+    })
+
+    const licenseByHost = await confirm({
+      icon: 'connect',
+      title: _('bindLicenses'),
+      body: <BindXostorLicensesModal hosts={hostsWithoutLicense} />,
+    })
+
+    await Promise.all(
+      map(licenseByHost, (licenseId, hostId) => {
+        if (licenseId === 'none') {
+          return
+        }
+
+        const license = xostorLicenseById[licenseId]
+        return license.boundObjectId === undefined
+          ? bindLicense(licenseId, hostId)
+          : rebindLicense('xostor', licenseId, license.boundObjectId, hostId)
+      })
+    )
+    await this.props.userData.updateLicenses()
+  }
+
   render() {
-    const alerts = this.getAlerts()
+    const licenseInfo = this.getLicenseInfo()
+    if (licenseInfo === undefined) {
+      return _('statusLoading')
+    }
+    const { alerts, supportEnabled } = licenseInfo
 
-    const { item, userData } = this.props
-    const licenses = userData.licensesByXostorUuid[item.id]
-    const license = licenses?.[0]
-
-    return <LicenseForm alerts={alerts} item={item} license={license} productType='xostor' userData={userData} />
+    return (
+      <div>
+        {supportEnabled && (
+          <Tooltip content={_('xostorProSupportEnabled')}>
+            <Icon icon='menu-support' className='text-success' />
+          </Tooltip>
+        )}
+        {alerts.length > 0 && <BulkIcons alerts={alerts} />}
+        {!supportEnabled && (
+          <ActionButton btnStyle='primary' className='ml-1' handler={this.bindXostorLicenses} icon='connect'>
+            {_('bindLicenses')}
+          </ActionButton>
+        )}
+      </div>
+    )
   }
 }
 
@@ -76,19 +122,16 @@ const COLUMNS = [
 const Xostor = decorate([
   connectStore(() => ({
     xostorSrs: createGetObjectsOfType('SR').filter([({ SR_type }) => SR_type === 'linstor']),
+    hosts: createGetObjectsOfType('host'),
   })),
-  provideState({
-    computed: {
-      licensesByXostorUuid: (state, { xostorLicenses }) => groupBy(xostorLicenses, 'boundObjectId'),
-    },
-  }),
   injectState,
-  ({ state, xostorSrs, updateLicenses }) => (
+  ({ state, xostorSrs, updateLicenses, hosts, xostorLicenses }) => (
     <SortedTable
       collection={xostorSrs}
       columns={COLUMNS}
+      data-hosts={hosts}
       data-updateLicenses={updateLicenses}
-      data-licensesByXostorUuid={state.licensesByXostorUuid}
+      data-xostorLicenses={xostorLicenses}
       individualActions={INDIVIDUAL_ACTIONS}
     />
   ),
