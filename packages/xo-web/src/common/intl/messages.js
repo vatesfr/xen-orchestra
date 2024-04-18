@@ -2602,6 +2602,8 @@ const messages = {
   pifsNotStatic: 'Not all PIFs are static',
   replication: 'Replication',
   resourceList: 'Resource list',
+  restartRequiredWarningMessage:
+    'Hosts toolstask will restart if packages need to be installed. Do you want to continue?',
   rpuNoLongerAvailableIfXostor:
     'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   selectDisks: 'Select disk(s)…',
@@ -2613,6 +2615,7 @@ const messages = {
   wrongNumberOfHosts: 'Wrong number of hosts',
   xostor: 'XOSTOR',
   xostorAvailableInXoa: 'XOSTOR is available in XOA',
+  xostorCreation: 'XOSTOR creation',
   xostorIsInBetaStage: 'XOSTOR is currently in its BETA stage. Do not use it in a production environment!',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
