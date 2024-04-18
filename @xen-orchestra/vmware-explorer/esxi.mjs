@@ -429,4 +429,38 @@ export default class Esxi extends EventEmitter {
       xml2js.parseString(matches?.[1] ?? '', (err, res) => (err ? reject(err) : resolve(res.returnval)))
     })
   }
+
+  async export(vmId) {
+    const exported = await this.#exec('ExportVm', { _this: vmId })
+    const exportTaskId = exported.returnval.$value
+    let isReady = false
+    for (let i = 0; i < 10 && !isReady; i++) {
+      const state = await this.fetchProperty('HttpNfcLease', exportTaskId, 'state')
+      isReady = state._ === 'ready'
+      if (!isReady) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    if (!isReady) {
+      throw new Error('not ready')
+    }
+
+    const { deviceUrl: deviceUrls } = await this.fetchProperty('HttpNfcLease', exportTaskId, 'info')
+    const streams = {}
+    for (let { url, disk, targetId } of deviceUrls) {
+      url = url[0]
+      disk = disk[0]
+      // filter ram/cdrom/..
+      if (disk === 'true') {
+        // the url returned are in the form of https://*/ follower by a short lived link, default 5mn
+        const fullUrl = new URL(url)
+        fullUrl.host = this.#host
+        const vmdkres = await this.#fetch(fullUrl)
+        const stream = vmdkres.body
+        streams[targetId] = stream
+      }
+    }
+
+    return streams
+  }
 }
