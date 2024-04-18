@@ -48,7 +48,7 @@ const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.le
 const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
-const istapdevDisk = disk => disk.name.startsWith('td')
+const isTapdevDisk = disk => disk.name.startsWith('td')
 const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
 const isHostRecentEnough = host => semver.satisfies(host?.version, `>=${MINIMAL_POOL_VERSION_FOR_XOSTOR}`)
@@ -62,7 +62,7 @@ const xostorDiskPredicate = disk =>
   !isDiskRo(disk) &&
   !isDiskMounted(disk) &&
   !diskHasChildren(disk) &&
-  !istapdevDisk(disk)
+  !isTapdevDisk(disk)
 const arePifsAttached = pifs => pifs.every(pif => pif.attached)
 const arePifsStatic = pifs => pifs.every(pif => pif.mode === 'Static' || pif.ipv6Mode === 'Static')
 const doesNetworkHavePifs = network => network.PIFs.length > 0
@@ -456,8 +456,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const _istapdevDisk = istapdevDisk(disk)
-  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_istapdevDisk
+  const _isTapdevDisk = isTapdevDisk(disk)
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevDisk
 
   return (
     <li className='list-group-item'>
@@ -478,7 +478,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
             {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
-            {_istapdevDisk && <li>{_('isTapdevDisk')}</li>}
+            {_isTapdevDisk && <li>{_('isTapdevDisk')}</li>}
           </ul>
         </div>
       )}
