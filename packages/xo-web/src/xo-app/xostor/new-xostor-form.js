@@ -74,7 +74,7 @@ const StorageCard = decorate([
   injectState,
   ({ effects, state }) => (
     <Card>
-      <CardHeader>{_('generalTabName')}</CardHeader>
+      <CardHeader>{_('newSrGeneral')}</CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -477,7 +477,7 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {!_isDiskRecommendedType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
-            {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
+            {_diskHasChildren && <li>{_('diskHasExistingPartition')}</li>}
             {_isTapdevDisk && <li>{_('isTapdevDisk')}</li>}
           </ul>
         </div>
@@ -551,7 +551,7 @@ const SummaryCard = decorate([
               <Row>
                 <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
                 <Col size={6}>
-                  {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
+                  {_('keyValue', { key: _('approximateSrCapacity'), value: formatSize(state.finalSize) })}
                 </Col>
               </Row>
             </div>
