@@ -16,7 +16,9 @@ export function parseDescriptor(text) {
       descriptorDict[defLine[0].toLowerCase()] = defLine[1].replace(/['"]+/g, '')
     } else {
       const [, access, sizeSectors, type, name, offset] = line.match(/([A-Z]+) ([0-9]+) ([A-Z]+) "(.*)" ?(.*)$/)
-      extentList.push({ access, sizeSectors, type, name, offset })
+      const usingVsan = name.startsWith('vsan://')
+
+      extentList.push({ access, sizeSectors, type, name, offset, usingVsan })
     }
   }
   strictEqual(extentList.length, 1, 'only one extent per vmdk is supported')
