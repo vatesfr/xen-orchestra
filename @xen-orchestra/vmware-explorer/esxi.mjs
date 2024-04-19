@@ -352,8 +352,21 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  powerOff(vmId) {
-    return this.#exec('PowerOffVM_Task', { _this: vmId })
+  async powerOff(vmId) {
+    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
+    const taskId = res.returnval.$value
+    let state = 'running'
+    let info
+    for (let i = 0; i < 60 && state === 'running'; i++) {
+      // https://developer.vmware.com/apis/1720/
+      info = await this.fetchProperty('Task', taskId, 'info')
+      state = info.state[0]
+      if (state === 'running') {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    strictEqual(state, 'success', info.error ?? `fail to power off vm ${vmId}, state:${state}`)
+    return info
   }
   powerOn(vmId) {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
