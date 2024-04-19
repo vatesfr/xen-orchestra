@@ -68,12 +68,18 @@ async function main(args, scriptName) {
 
   if (checkOrder) {
     let prev
-    for (const name of Object.keys(toRelease)) {
+    const names = Object.keys(toRelease)
+    for (const name of names) {
       if (prev === undefined || name > prev) {
         prev = name
       } else {
+        // we know that `name` should be before `prev`, but we don't know at which place
+        //
+        // find the package that should be right after
+        const after = names.find(candidate => candidate > name)
+
         throw new Error(
-          `invalid packages to release order in CHANGELOG.unreleased.md: ${name} should be before ${prev}`
+          `invalid packages to release order in CHANGELOG.unreleased.md: ${name} should be above ${after}`
         )
       }
     }
