@@ -34,11 +34,11 @@
 
 <!--packages-start-->
 
+- @vates/node-vsphere-soap patch
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/vmware-explorer minor
-- @vates/node-vsphere-soap patch
 - xo-server patch
 - xo-server-load-balancer patch
 
