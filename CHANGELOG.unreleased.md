@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
+- [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
 
 ### Bug fixes
 
@@ -36,10 +37,12 @@
 
 - @vates/node-vsphere-soap patch
 - @vates/task minor
+- @xen-orchestra/audit-core minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
+- xo-server-audit minor
 - xo-server-load-balancer patch
 
 <!--packages-end-->
