@@ -656,11 +656,13 @@ const NewXostorForm = decorate([
       // Utils ============
       poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
-      numberOfHostsWithDisks: state => state._disksByHostValues.length,
+      numberOfHostsWithDisks: state => Object.values(state.disksByHost).filter(disks => disks.length > 0).length,
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
       isNameMissing: state => state.srName.trim() === '',
-      isDisksMissing: state => state.numberOfHostsWithDisks === 0,
+      isDisksMissing: state => {
+        return Object.values(state.disksByHost).every(disks => disks.length === 0)
+      },
       isInterfaceNameMissing: state => state.networkId !== undefined && state.interfaceName.trim() === '',
       isFormInvalid: state =>
         state.isReplicationMissing ||
