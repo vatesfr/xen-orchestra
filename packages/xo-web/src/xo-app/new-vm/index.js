@@ -1782,7 +1782,7 @@ export default class NewVm extends BaseComponent {
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
                 {secureBoot && !pool.secureBootSetup && (
-                  <span className='align-self-center text-warning ml-1'>
+                  <span className='align-self-center text-danger ml-1'>
                     <a
                       href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
                       rel='noopener noreferrer'
