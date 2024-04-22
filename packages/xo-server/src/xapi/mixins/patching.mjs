@@ -8,6 +8,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { extractOpaqueRef } from '@xen-orchestra/xapi'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
@@ -497,30 +498,34 @@ const methods = {
 
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
-    await asyncEach(hosts, async host => {
-      const hostUuid = host.uuid
-      const missingPatches = await this.listMissingPatches(hostUuid)
-      hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+    await Task.run({ properties: { name: `Listing missing patches` } }, async () => {
+      await asyncEach(hosts, async host => {
+        const hostUuid = host.uuid
+        const missingPatches = await this.listMissingPatches(hostUuid)
+        hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+      })
     })
 
-    await this.rollingPoolReboot({
-      xsCredentials,
-      beforeEvacuateVms: async () => {
-        // On XS/CH, start by installing patches on all hosts
-        if (!isXcp) {
-          log.debug('Install patches')
-          await this.installPatches({ xsCredentials })
-        }
-      },
-      beforeRebootHost: async host => {
-        if (isXcp) {
-          log.debug(`Install patches on host ${host.id}`)
-          await this.installPatches({ hosts: [host] })
-        }
-      },
-      ignoreHost: host => {
-        return !hasMissingPatchesByHost[host.uuid]
-      },
+    return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
+      await this.rollingPoolReboot({
+        xsCredentials,
+        beforeEvacuateVms: async () => {
+          // On XS/CH, start by installing patches on all hosts
+          if (!isXcp) {
+            log.debug('Install patches')
+            await this.installPatches({ xsCredentials })
+          }
+        },
+        beforeRebootHost: async host => {
+          if (isXcp) {
+            log.debug(`Install patches on host ${host.id}`)
+            await this.installPatches({ hosts: [host] })
+          }
+        },
+        ignoreHost: host => {
+          return !hasMissingPatchesByHost[host.uuid]
+        },
+      })
     })
   },
 }
