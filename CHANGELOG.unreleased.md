@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [XOSTOR/create] In warning message of the summary section, take into consideration hosts without disks (PR [#7572](https://github.com/vatesfr/xen-orchestra/pull/7572))
+- [XOSTOR/create] In the summary section, the warning message "Hosts do not have the same number of disks" now takes into consideration host without disks (PR [#7572](https://github.com/vatesfr/xen-orchestra/pull/7572))
 
 ### Bug fixes
 

@@ -607,9 +607,7 @@ const NewXostorForm = decorate([
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
-        if (disksByHost[hostId] === undefined) {
-          disksByHost[hostId] = []
-        }
+
         disksByHost[hostId].push(disk)
         this.state.disksByHost = { ...disksByHost }
       },
