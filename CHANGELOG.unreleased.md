@@ -23,6 +23,7 @@
 - [Remotes] Correctly clear error when the remote is tested with success
 - [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
 - [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
+- [VM/Advanced] Fix error displayed when non-admin user activates auto power on
 
 ### Packages to release
 
