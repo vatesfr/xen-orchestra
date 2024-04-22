@@ -2571,6 +2571,8 @@ const messages = {
   byDefaultManagementNetworkUsed: 'By default, the management network will be used',
   cantFetchDisksFromNonXcpngHost: 'Unable to fetch physical disks from non-XCP-ng host',
   createInterface: 'Create interface',
+  createXostoreConfirm:
+    'If packages need to be installed, the toolstack on those hosts will restart. Do you want to continue?',
   diskAlreadyMounted: 'The disk is mounted on: {mountpoint}',
   diskHasChildren: 'The disk has children',
   diskIncompatibleXostor: 'Disk incompatible with XOSTOR',
@@ -2602,8 +2604,6 @@ const messages = {
   pifsNotStatic: 'Not all PIFs are static',
   replication: 'Replication',
   resourceList: 'Resource list',
-  restartRequiredWarningMessage:
-    'Hosts toolstask will restart if packages need to be installed. Do you want to continue?',
   rpuNoLongerAvailableIfXostor:
     'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   selectDisks: 'Select disk(s)…',

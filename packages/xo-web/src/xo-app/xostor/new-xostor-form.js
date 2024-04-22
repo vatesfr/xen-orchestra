@@ -650,8 +650,8 @@ const NewXostorForm = decorate([
 
         await confirm({
           title: _('xostorCreation'),
-          body: _('restartRequiredWarningMessage'),
-        }).then(() => createXostorSr())
+          body: _('createXostoreConfirm'),
+        })
 
         const preferredInterface =
           networkId !== undefined
