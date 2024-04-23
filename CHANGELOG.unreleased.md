@@ -16,6 +16,8 @@
 
 - Fix support of XenServer 6.5 (broken in XO 5.93.0)
 
+- [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,6 +37,7 @@
 - @vates/xml major
 - @vates/xml-rpc major
 - @xen-orchestra/mixins minor
+- @xen-orchestra/vmware patch
 - xen-api patch
 - xo-cli patch
 - xo-server minor
