@@ -45,5 +45,6 @@
 - xo-server patch
 - xo-server-audit minor
 - xo-server-load-balancer patch
+- xo-web patch
 
 <!--packages-end-->
