@@ -8,7 +8,7 @@ XO has not been initially developed to support airgapped infrastructures, but th
 
 A separate XCP-ng pool with Internet access is necessary, and it will be used as a temporary zone to register and upgrade the XOA.
 
-## Deployement
+## Deployment
 
 [Follow the standard procedure](https://xen-orchestra.com/docs/installation.html) to deploy the XOA on your pool with Internet access.
 
@@ -52,4 +52,4 @@ To upgrade your XOA, you need to:
 8. start it and check that everything appears correct
 9. delete the XOA on your connected pool and the previous XOA on your airgapped pool
 
-For details on the steps, refer to the [_Deployement_ section](#deployement).
+For details on the steps, refer to the [_Deployment_ section](#deployment).
