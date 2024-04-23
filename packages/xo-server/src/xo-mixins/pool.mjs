@@ -10,33 +10,44 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 
-async function processLicenses($defer, app, productId, licenses, hostIds) {
+async function enforceHostsHaveLicense($defer, app, productType, hostIds) {
   const now = Date.now()
-  const nNewHosts = hostIds.length
-  const availableLicenses = licenses.filter(
-    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
-  )
-  const nAvailableLicenses = availableLicenses.length
-  if (nNewHosts > nAvailableLicenses) {
-    throw new Error(
-      `Not enough ${productId.toUpperCase()} Licenses. Expected: ${nNewHosts}, actual: ${nAvailableLicenses}`
+  const licenses = await app.getLicenses({ productType })
+  const licenseByBoundObjectId = keyBy(licenses, 'boundObjectId')
+  const hostIdsWithoutLicense = hostIds.filter(id => {
+    const license = licenseByBoundObjectId[id]
+    return license === undefined || (license.expires !== undefined && license.expires < now)
+  })
+
+  if (hostIdsWithoutLicense > 0) {
+    const nNewHosts = hostIdsWithoutLicense.length
+    const availableLicenses = licenses.filter(
+      ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
+    )
+    const nAvailableLicenses = availableLicenses.length
+    if (nNewHosts > nAvailableLicenses) {
+      throw new Error(
+        `Not enough ${productType.toUpperCase()} Licenses. Expected: ${nNewHosts}, actual: ${nAvailableLicenses}`
+      )
+    }
+
+    await asyncEach(
+      hostIdsWithoutLicense,
+      async hostId => {
+        const license = availableLicenses.pop()
+        await app.bindLicense({
+          licenseId: license.id,
+          boundObjectId: hostId,
+        })
+        $defer.onFailure(() =>
+          app.unbindLicense({ licenseId: license.id, productId: license.productId, boundObjectId: hostId })
+        )
+      },
+      {
+        stopOnError: false,
+      }
     )
   }
-
-  await asyncEach(
-    hostIds,
-    async hostId => {
-      const license = availableLicenses.pop()
-      await app.bindLicense({
-        licenseId: license.id,
-        boundObjectId: hostId,
-      })
-      $defer.onFailure(() => app.unbindLicense({ licenseId: license.id, productId, boundObjectId: hostId }))
-    },
-    {
-      stopOnError: false,
-    }
-  )
 }
 
 export default class Pools {
@@ -66,14 +77,10 @@ export default class Pools {
 
     const hasLinstorSr = some(_app.objects.all, { SR_type: 'linstor', $pool: target.uuid })
     if (hasLinstorSr) {
-      const xcpLicenses = await _app.getLicenses({ productType: 'xcpng' })
-      const xcpLicenseByHostId = keyBy(xcpLicenses, 'boundObjectId')
-      const hostIdsWithoutXcpLicense = sourceIds.filter(hostId => xcpLicenseByHostId[hostId] === undefined)
-
-      if (hostIdsWithoutXcpLicense.length !== 0) {
-        await processLicenses($defer, _app, 'xcpng', xcpLicenses, hostIdsWithoutXcpLicense)
-      }
-      await processLicenses($defer, _app, 'xostor', await _app.getLicenses({ productType: 'xostor' }), sourceIds)
+      await Promise.all([
+        enforceHostsHaveLicense($defer, _app, 'xcpng', sourceIds),
+        enforceHostsHaveLicense($defer, _app, 'xostor', sourceIds),
+      ])
     }
 
     // Find missing patches on the target.
