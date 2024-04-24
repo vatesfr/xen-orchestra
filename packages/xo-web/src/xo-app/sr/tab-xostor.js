@@ -29,12 +29,12 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('vdi'),
-    itemRenderer: ({ vdiId }) => <Vdi id={vdiId} />,
+    itemRenderer: ({ vdiId }) => vdiId !== '' && <Vdi id={vdiId} />,
   },
   {
     name: _('inUse'),
-    itemRenderer: resource => <Icon icon={String(resource['in-use'])} />,
-    sortCriteria: resource => resource['in-use'],
+    itemRenderer: ({ inUse }) => <Icon icon={String(inUse)} />,
+    sortCriteria: ({ inUse }) => inUse,
   },
   {
     name: _('diskState'),
@@ -60,14 +60,14 @@ export default class TabXostor extends Component {
       }
 
       return Object.keys(healthCheck.resources).flatMap(resourceName => {
-        return Object.keys(healthCheck.resources[resourceName].nodes).reduce((acc, hostname) => {
-          const nodeInfo = healthCheck.resources[resourceName].nodes[hostname]
+        return Object.entries(healthCheck.resources[resourceName].nodes).reduce((acc, [hostname, nodeInfo]) => {
           const volume = nodeInfo.volumes[0] // Max only one volume
           if (volume !== undefined) {
             const nodeStatus = healthCheck.nodes[hostname]
             const host = this.props.hostByHostname[hostname][0]
 
             acc.push({
+              inUse: nodeInfo['in-use'],
               vdiId: healthCheck.resources[resourceName].uuid,
               volume,
               nodeStatus,
