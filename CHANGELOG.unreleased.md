@@ -46,6 +46,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
+- @xen-orchestra/xapi major
 - xen-api major
 - xo-cli minor
 - xo-server minor
