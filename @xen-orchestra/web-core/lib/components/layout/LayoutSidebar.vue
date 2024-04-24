@@ -1,13 +1,16 @@
 <template>
   <div
-    :class="{ pinned: sidebar.isPinned && !ui.isMobile, expanded: sidebar.isExpanded, mobile: ui.isMobile }"
+    :class="{ locked: sidebar.isLocked && !ui.isMobile, expanded: sidebar.isExpanded, mobile: ui.isMobile }"
     class="layout-sidebar"
   >
-    <div v-if="!ui.isMobile" class="pin">
+    <div v-if="!ui.isMobile" class="lock">
       <UiButtonIcon
-        v-tooltip="{ content: sidebar.isPinned ? 'Unpin sidebar' : 'Pin sidebar', placement: 'right' }"
-        :icon="sidebar.isPinned ? faLock : faLockOpen"
-        @click="sidebar.togglePin()"
+        v-tooltip="{
+          content: sidebar.isLocked ? $t('core.sidebar.unlock') : $t('core.sidebar.lock'),
+          placement: 'right',
+        }"
+        :icon="sidebar.isLocked ? faLock : faLockOpen"
+        @click="sidebar.toggleLock()"
       />
     </div>
     <div v-if="$slots.header">
@@ -58,17 +61,17 @@ const ui = useUiStore()
     margin-left 0.25s,
     transform 0.25s;
 
-  &.pinned {
+  &.locked {
     margin-left: v-bind('sidebar.cssOffset');
   }
 
-  &:not(.pinned) {
+  &:not(.locked) {
     position: absolute;
     transform: translateX(v-bind('sidebar.cssOffset'));
   }
 }
 
-.pin {
+.lock {
   text-align: right;
   padding: 0.8rem;
 }
@@ -79,11 +82,8 @@ const ui = useUiStore()
 }
 
 .resize-handle {
-  content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0 0 0 auto;
   width: 0.8rem;
   background-color: transparent;
   cursor: col-resize;

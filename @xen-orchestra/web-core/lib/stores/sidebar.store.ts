@@ -7,10 +7,10 @@ import { computed, ref } from 'vue'
 export const useSidebarStore = defineStore('layout', () => {
   const uiStore = useUiStore()
   const isExpanded = useLocalStorage('sidebar.expanded', true)
-  const isPinned = useLocalStorage('sidebar.pinned', true)
+  const isLocked = useLocalStorage('sidebar.locked', true)
   const width = useLocalStorage('sidebar.width', 350)
   const toggleExpand = useToggle(isExpanded)
-  const togglePin = useToggle(isPinned)
+  const toggleLock = useToggle(isLocked)
   const isResizing = ref(false)
 
   let initialX: number
@@ -38,7 +38,7 @@ export const useSidebarStore = defineStore('layout', () => {
 
   const cssWidth = computed(() => (uiStore.isMobile ? '100%' : `${width.value}px`))
 
-  const cssOffset = computed(() => (isExpanded.value ? 0 : uiStore.isMobile ? '-100%' : `-${width.value}px`))
+  const cssOffset = computed(() => (isExpanded.value ? 0 : `-${cssWidth.value}`))
 
   const { load, unload } = useStyleTag('body { cursor: col-resize !important; }', { immediate: false })
 
@@ -51,10 +51,10 @@ export const useSidebarStore = defineStore('layout', () => {
 
   return {
     isExpanded,
-    isPinned,
+    isLocked,
     width,
     toggleExpand,
-    togglePin,
+    toggleLock,
     startResize,
     isResizing,
     cssWidth,

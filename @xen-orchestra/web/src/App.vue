@@ -1,8 +1,10 @@
 <template>
   <RouterView />
+  <TooltipList />
 </template>
 
 <script lang="ts" setup>
+import TooltipList from '@core/components/tooltip/TooltipList.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'

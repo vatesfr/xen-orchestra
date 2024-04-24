@@ -1,3 +1,10 @@
 {
-  "core": {}
+  "core": {
+    "sidebar": {
+      "close": "Fermer la barre latérale",
+      "lock": "Verrouiller la barre latérale",
+      "open": "Ouvrir la barre latérale",
+      "unlock": "Déverrouiller la barre latérale"
+    }
+  }
 }

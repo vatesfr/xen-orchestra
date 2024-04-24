@@ -3,7 +3,7 @@
     <header class="header">
       <slot name="app-logo" />
       <UiButtonIcon
-        v-tooltip="sidebarStore.isExpanded ? 'Close sidebar' : 'Open sidebar'"
+        v-tooltip="sidebarStore.isExpanded ? $t('core.sidebar.close') : $t('core.sidebar.open')"
         :icon="sidebarStore.isExpanded ? faAngleDoubleLeft : faBars"
         class="sidebar-toggle"
         @click="sidebarStore.toggleExpand()"
@@ -12,7 +12,7 @@
     </header>
     <div class="container">
       <div
-        v-if="sidebarStore.isExpanded && !sidebarStore.isPinned"
+        v-if="sidebarStore.isExpanded && !sidebarStore.isLocked"
         class="sidebar-overlay"
         @click="sidebarStore.toggleExpand(false)"
       />
@@ -93,10 +93,7 @@ const isPanelVisible = computed(() => {
 <style lang="postcss" scoped>
 .sidebar-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1000;
 }
 
@@ -155,9 +152,7 @@ const isPanelVisible = computed(() => {
   &.mobile {
     width: 100%;
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0 0 0 auto;
     z-index: 1000;
   }
 }

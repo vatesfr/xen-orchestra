@@ -1,3 +1,10 @@
 {
-  "core": {}
+  "core": {
+    "sidebar": {
+      "close": "Close sidebar",
+      "lock": "Lock sidebar open",
+      "open": "Open sidebar",
+      "unlock": "Unlock sidebar"
+    }
+  }
 }
