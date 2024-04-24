@@ -633,7 +633,9 @@ export const subscribeXostorHealthCheck = sr => {
   const srId = resolveId(sr)
 
   if (subscribeSrsXostorHealthCheck[srId] === undefined) {
-    subscribeSrsXostorHealthCheck[srId] = createSubscription(() => _call('xostor.healthCheck', { sr: srId }))
+    subscribeSrsXostorHealthCheck[srId] = createSubscription(() => _call('xostor.healthCheck', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
   }
 
   return subscribeSrsXostorHealthCheck[srId]
