@@ -3,7 +3,10 @@
     <header class="header">
       <slot name="app-logo" />
       <UiButtonIcon
-        v-tooltip="sidebarStore.isExpanded ? $t('core.sidebar.close') : $t('core.sidebar.open')"
+        v-tooltip="{
+          content: sidebarStore.isExpanded ? $t('core.sidebar.close') : $t('core.sidebar.open'),
+          placement: 'right',
+        }"
         :icon="sidebarStore.isExpanded ? faAngleDoubleLeft : faBars"
         class="sidebar-toggle"
         @click="sidebarStore.toggleExpand()"
