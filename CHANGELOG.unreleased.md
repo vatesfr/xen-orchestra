@@ -28,5 +28,6 @@
 <!--packages-start-->
 
 - @vates/xml major
+- @vates/xml-rpc major
 
 <!--packages-end-->
