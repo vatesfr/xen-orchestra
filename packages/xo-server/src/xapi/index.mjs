@@ -25,7 +25,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough, pipeline } from 'stream'
 import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
-import { extractOpaqueRef, parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
+import { parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
@@ -350,7 +350,7 @@ export default class Xapi extends XapiBase {
   _cloneVm(vm, nameLabel = vm.name_label) {
     log.debug(`Cloning VM ${vm.name_label}${nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''}`)
 
-    return this.callAsync('VM.clone', vm.$ref, nameLabel).then(extractOpaqueRef)
+    return this.callAsync('VM.clone', vm.$ref, nameLabel)
   }
 
   // Copy a VM: make a normal copy of a VM and all its VDIs.
@@ -370,9 +370,7 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      return await this.callAsync('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '').then(
-        extractOpaqueRef
-      )
+      return await this.callAsync('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
       if (snapshotRef) {
         await this.VM_destroy(snapshotRef)
@@ -1015,7 +1013,7 @@ export default class Xapi extends XapiBase {
   _cloneVdi(vdi) {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
-    return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
+    return this.callAsync('VDI.clone', vdi.$ref)
   }
 
   async moveVdi(vdiId, srId) {
@@ -1031,14 +1029,14 @@ export default class Xapi extends XapiBase {
       return this.barrier(
         await pRetry(() => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
           when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-        }).then(extractOpaqueRef)
+        })
       )
     } catch (error) {
       const { code } = error
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
       }
-      const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(extractOpaqueRef))
+      const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref))
       await asyncMapSettled(vdi.$VBDs, async vbd => {
         await this.call('VBD.destroy', vbd.$ref)
         await this.VBD_create({
@@ -1128,7 +1126,7 @@ export default class Xapi extends XapiBase {
   async snapshotVdi(vdiId, nameLabel) {
     const vdi = this.getObject(vdiId)
 
-    const snap = await this._getOrWaitObject(await this.callAsync('VDI.snapshot', vdi.$ref).then(extractOpaqueRef))
+    const snap = await this._getOrWaitObject(await this.callAsync('VDI.snapshot', vdi.$ref))
 
     if (nameLabel) {
       await snap.set_name_label(nameLabel)

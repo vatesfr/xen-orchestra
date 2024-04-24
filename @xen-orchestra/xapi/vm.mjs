@@ -14,7 +14,6 @@ import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
 import { Ref } from 'xen-api'
 
-import extractOpaqueRef from './_extractOpaqueRef.mjs'
 import isDefaultTemplate from './isDefaultTemplate.mjs'
 import isVmRunning from './_isVmRunning.mjs'
 
@@ -225,7 +224,7 @@ class Vm {
       name_label = vm.name_label
     }
     try {
-      const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+      const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label)
 
       // detached async
       this._httpHook(vm, '/post-sync').catch(noop)
@@ -564,10 +563,10 @@ class Vm {
       )
     }
     try {
-      const ref = await this.putResource(stream, '/import/', {
+      const [ref] = await this.putResource(stream, '/import/', {
         query,
         task: taskRef,
-      }).then(extractOpaqueRef)
+      })
       if (onVmCreation != null) {
         ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
       }
@@ -636,9 +635,9 @@ class Vm {
     }
 
     let destroyNobakVdis = false
-    let result
+    let ref
     try {
-      result = await this.callAsync(...params)
+      ref = await this.callAsync(...params)
     } catch (error) {
       if (error.code !== 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
         throw error
@@ -658,10 +657,8 @@ class Vm {
 
       params.pop()
 
-      result = await this.callAsync(...params)
+      ref = await this.callAsync(...params)
     }
-
-    const ref = extractOpaqueRef(result)
 
     // detached async
     this._httpHook(vm, '/post-sync').catch(noop)
