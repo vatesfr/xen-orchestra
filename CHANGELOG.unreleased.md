@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- @vates/xml major
+
 <!--packages-end-->
