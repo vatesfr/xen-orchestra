@@ -648,7 +648,9 @@ export const subscribeXostorInterfaces = sr => {
   const srId = resolveId(sr)
 
   if (subscribeSrsXostorInterfaces[srId] === undefined) {
-    subscribeSrsXostorInterfaces[srId] = createSubscription(() => _call('xostor.getInterfaces', { sr: srId }))
+    subscribeSrsXostorInterfaces[srId] = createSubscription(() => _call('xostor.getInterfaces', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
   }
 
   return subscribeSrsXostorInterfaces[srId]
@@ -3695,10 +3697,12 @@ export const updateXosanPacks = pool =>
 
 export const createXostorSr = params => _call('xostor.create', params)
 
-export const destroyXostorInterface = (sr, ifaceName) =>
-  _call('xostor.destroyInterface', { sr: resolveId(sr), name: ifaceName })::tap(() =>
-    subscribeXostorInterfaces.forceRefresh(sr)
+export const destroyXostorInterfaces = async (sr, ifaceNames) => {
+  const srId = resolveId(sr)
+  await Promise.all(ifaceNames.map(ifaceName => _call('xostor.destroyInterface', { sr: srId, name: ifaceName })))::tap(
+    () => subscribeXostorInterfaces.forceRefresh(sr)
   )
+}
 
 export const createXostorInterface = async sr => {
   const { interfaceName, networkId } = await form({

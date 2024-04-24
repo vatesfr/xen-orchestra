@@ -12,9 +12,12 @@ import { createSelector, createGetObjectsOfType } from 'selectors'
 import { Host, Vdi } from 'render-xo-item'
 import { subscribeXostorHealthCheck } from 'xo'
 import PifsColumn from 'sorted-table/pifs-column'
+import { Card, CardBlock, CardHeader } from 'card'
+import { Col, Container, Row } from 'grid'
+import { createGetObjectsOfType, createCollectionWrapper, createSelector } from 'selectors'
 import { find } from 'lodash'
 import { generateId } from 'reaclette-utils'
-import { createXostorInterface, destroyXostorInterface, setXostor, subscribeXostorInterfaces } from 'xo'
+import { createXostorInterface, destroyXostorInterfaces, setXostor, subscribeXostorInterfaces } from 'xo'
 
 const RESOURCE_COLUMNS = [
   {
@@ -73,7 +76,11 @@ const INTERFACES_COLUMNS = [
 export default class TabXostor extends Component {
   _actions = [
     {
-      handler: ifaces => Promise.all(ifaces.map(iface => destroyXostorInterface(this.props.sr, iface.name))),
+      handler: ifaces =>
+        destroyXostorInterfaces(
+          this.props.sr,
+          ifaces.map(iface => iface.name)
+        ),
       icon: 'delete',
       label: _('delete'),
       level: 'danger',
@@ -90,39 +97,43 @@ export default class TabXostor extends Component {
     },
   ]
 
-  getComputedIfaces = createSelector(
-    () => this.props.interfaces,
-    ifaces => {
-      if (ifaces === undefined) {
-        return {}
-      }
-      const computedIfaces = {}
-      for (const ifaceName in ifaces) {
-        computedIfaces[ifaceName] = {
-          id: generateId(),
-          name: ifaceName,
-          nodeIfaces: ifaces[ifaceName],
+  getComputedIfaces = createCollectionWrapper(
+    createSelector(
+      () => this.props.interfaces,
+      ifaces => {
+        if (ifaces === undefined) {
+          return {}
         }
+        const computedIfaces = {}
+        for (const ifaceName in ifaces) {
+          computedIfaces[ifaceName] = {
+            id: generateId(),
+            name: ifaceName,
+            nodeIfaces: ifaces[ifaceName],
+          }
+        }
+        return computedIfaces
       }
-      return computedIfaces
-    }
+    )
   )
 
-  getPifsByIfaceName = createSelector(
-    () => this.props.interfaces,
-    () => this.props.pifs,
-    (ifaces, pifs) => {
-      if (ifaces === undefined) {
-        return {}
+  getPifsByIfaceName = createCollectionWrapper(
+    createSelector(
+      () => this.props.interfaces,
+      () => this.props.pifs,
+      (ifaces, pifs) => {
+        if (ifaces === undefined) {
+          return {}
+        }
+        const pifsByIfaceName = {}
+        for (const ifaceName in ifaces) {
+          pifsByIfaceName[ifaceName] = ifaces[ifaceName].map(
+            iface => find(pifs, pif => pif.ip === iface.address || pif.ipv6 === iface.address)?.id
+          )
+        }
+        return pifsByIfaceName
       }
-      const pifsByIfaceName = {}
-      for (const ifaceName in ifaces) {
-        pifsByIfaceName[ifaceName] = ifaces[ifaceName].map(
-          iface => find(pifs, pif => pif.ip === iface.address || pif.ipv6 === iface.address)?.id
-        )
-      }
-      return pifsByIfaceName
-    }
+    )
   )
 
   getResourceInfos = createSelector(
