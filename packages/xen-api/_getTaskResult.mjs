@@ -1,4 +1,6 @@
 import { Cancel } from 'promise-toolbox'
+import { parseXml } from '@vates/xml/parse'
+import { xmlRpcParser } from '@vates/xml-rpc/parser'
 
 import XapiError from './_XapiError.mjs'
 
@@ -14,9 +16,10 @@ export default task => {
   }
   if (status === 'success') {
     // the result might be:
-    // - empty string
+    // - empty string (tasks without result on XS 6.5)
     // - an opaque reference
     // - an XML-RPC value
-    return Promise.resolve(task.result)
+    const { result } = task
+    return Promise.resolve(result === '' ? '' : xmlRpcParser.parse_value(parseXml(result)))
   }
 }
