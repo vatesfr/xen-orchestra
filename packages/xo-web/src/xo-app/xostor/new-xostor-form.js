@@ -660,9 +660,7 @@ const NewXostorForm = decorate([
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
       isNameMissing: state => state.srName.trim() === '',
-      isDisksMissing: state => {
-        return Object.values(state.disksByHost).every(disks => disks.length === 0)
-      },
+      isDisksMissing: state => Object.values(state.disksByHost).every(disks => disks.length === 0),
       isInterfaceNameMissing: state => state.networkId !== undefined && state.interfaceName.trim() === '',
       isFormInvalid: state =>
         state.isReplicationMissing ||
