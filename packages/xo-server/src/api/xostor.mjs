@@ -254,9 +254,6 @@ export const create = defer(async function (
     await asyncEach(
       hosts,
       async host => {
-        if (Object.values(disksByHost).some(disks => !disks.length)) {
-          throw new Error('One or more hosts are missing some disks')
-        }
         await boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning })
         $defer.onFailure(() => destroyVolumeGroup(xapi, host, true))
       },
