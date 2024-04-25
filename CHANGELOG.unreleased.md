@@ -22,7 +22,7 @@
 - [Import/VMWare] Remove additional whitespaces in host address
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
-- [XOSTOR] Install or update packages on all hosts of the pool instead of only hosts containing disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
+- [XOSTOR] Install or update packages on all hosts in the poll rather than just hosts with disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
 
 ### Packages to release
 
