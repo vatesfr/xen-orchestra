@@ -164,7 +164,13 @@ export const create = defer(async function (
 
   const task = await this.tasks.create({ name: `creation of XOSTOR: ${name}`, type: 'xo:xostor:create' })
   return task.run(async () => {
-    const hostIds = Object.keys(disksByHost)
+    const hostIds = Object.keys(disksByHost).filter(id => {
+      const nDisks = disksByHost[id].length
+      if (nDisks === 0) {
+        delete disksByHost[id]
+      }
+      return nDisks > 0
+    })
 
     const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
 
