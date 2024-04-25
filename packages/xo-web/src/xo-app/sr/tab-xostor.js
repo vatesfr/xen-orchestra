@@ -2,22 +2,23 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
+import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
 import SortedTable from 'sorted-table'
-
 import { addSubscriptions, connectStore } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
-import { createSelector, createGetObjectsOfType } from 'selectors'
-import { Host, Vdi } from 'render-xo-item'
-import { subscribeXostorHealthCheck } from 'xo'
-import PifsColumn from 'sorted-table/pifs-column'
-import { Card, CardBlock, CardHeader } from 'card'
-import { Col, Container, Row } from 'grid'
-import { createGetObjectsOfType, createCollectionWrapper, createSelector } from 'selectors'
+import { createCollectionWrapper, createSelector, createGetObjectsOfType } from 'selectors'
+import {
+  createXostorInterface,
+  destroyXostorInterfaces,
+  setXostor,
+  subscribeXostorHealthCheck,
+  subscribeXostorInterfaces,
+} from 'xo'
 import { find } from 'lodash'
 import { generateId } from 'reaclette-utils'
-import { createXostorInterface, destroyXostorInterfaces, setXostor, subscribeXostorInterfaces } from 'xo'
+import { Host, Vdi } from 'render-xo-item'
 
 const RESOURCE_COLUMNS = [
   {
@@ -181,6 +182,8 @@ export default class TabXostor extends Component {
               </CardBlock>
             </Card>
           </Col>
+        </Row>
+        <Row>
           <Col>
             <Card>
               <CardHeader>
