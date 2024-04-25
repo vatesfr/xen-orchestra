@@ -18,7 +18,9 @@
 - [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
 - [VMWare/Migration] Don't use default proxy to query the source
 - [Import/VMWare] Remove additional whitespaces in host address
+- [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+
 
 ### Packages to release
 

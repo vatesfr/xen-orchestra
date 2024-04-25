@@ -105,6 +105,7 @@ export default class MigrateVm {
       vmId,
     })
     if (isRunning && stopSource) {
+      await esxi.powerOff(vmId)
       await importDisksFromDatastore({
         esxi,
         dataStoreToHandlers,
