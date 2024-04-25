@@ -2578,6 +2578,8 @@ const messages = {
   disks: 'Disks',
   fieldRequired: '{field} is required',
   fieldsMissing: 'Some fields are missing',
+  hostBoundToMultipleXostorLicenses: 'More than 1 XOSTOR license on {host}',
+  hostHasNoXostorLicense: 'No XOSTOR license on {host}',
   hostsNotSameNumberOfDisks: 'Hosts do not have the same number of disks',
   ignoreFileSystems: 'Ignore file systems',
   interfaceName: 'Interface name',
@@ -2587,7 +2589,7 @@ const messages = {
   licenseBoundUnknownXostor: 'License attached to an unknown XOSTOR',
   licenseNotBoundXostor: 'No XOSTOR attached',
   licenseExpiredXostorWarning:
-    'The license {licenseId} has expired. You can still use the SR but cannot administrate it anymore.',
+    'License{nLicenseIds, plural, one {} other {s}} {licenseIds} ha{nLicenseIds, plural, one {s} other {ve}} expired on {host}',
   networkNoPifs: 'The network does not have PIFs',
   networks: 'Networks',
   notXcpPool: 'Not an XCP-ng pool',
@@ -2743,6 +2745,7 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
   proxyUnknownVm: 'Unknown proxy VM.',
+  xostorProSupportEnabled: 'XOSTOR Pro Support enabled',
 
   // ----- plan -----
   onlyAvailableToEnterprise: 'Only available to Enterprise users',
