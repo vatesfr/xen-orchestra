@@ -9,6 +9,7 @@
 
 - [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
 - [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
+- [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
 
 ### Bug fixes
 
@@ -43,9 +44,9 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/vmware-explorer minor
-- xo-server patch
+- xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

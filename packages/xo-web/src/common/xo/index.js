@@ -628,6 +628,19 @@ export const subscribeCloudXoConfig = createSubscription(() =>
   fetch('./rest/v0/cloud/xo-config').then(resp => resp.json())
 )
 
+const subscribeSrsXostorHealthCheck = {}
+export const subscribeXostorHealthCheck = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorHealthCheck[srId] === undefined) {
+    subscribeSrsXostorHealthCheck[srId] = createSubscription(() => _call('xostor.healthCheck', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
+  }
+
+  return subscribeSrsXostorHealthCheck[srId]
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
