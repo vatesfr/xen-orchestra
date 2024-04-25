@@ -21,7 +21,6 @@
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
 
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
