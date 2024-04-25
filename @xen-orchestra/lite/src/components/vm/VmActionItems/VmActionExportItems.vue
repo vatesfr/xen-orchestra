@@ -17,7 +17,7 @@
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
 import { exportVmsAsCsvFile, exportVmsAsJsonFile } from '@/libs/vm'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faCode, faFileCsv, faFileExport } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -26,6 +26,6 @@ const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef: getVm } = useVmCollection()
+const { getByOpaqueRef: getVm } = useVmStore().subscribe()
 const vms = computed(() => props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined))
 </script>

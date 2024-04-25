@@ -15,13 +15,13 @@ export function createSubscribableStoreContext<TContext>(
   function subscribe(options: { defer: true }): SubscribeContext<TContext, true>
   function subscribe<TDefer extends boolean = false>(options?: { defer?: TDefer }): SubscribeContext<TContext, TDefer>
   function subscribe<TDefer extends boolean>(options?: { defer?: TDefer }): SubscribeContext<TContext, TDefer> {
-    const dependencyStarts = [] as (() => void)[]
+    const dependencyControls = [] as { start: () => void; stop: () => void }[]
 
     Object.values(dependsOn).forEach(dep => {
       const context = dep.subscribe({ defer: options?.defer })
 
       if (context.deferred) {
-        dependencyStarts.push(context.start)
+        dependencyControls.push({ start: context.start, stop: context.stop })
       }
     })
 
@@ -30,11 +30,17 @@ export function createSubscribableStoreContext<TContext>(
 
     const start = () => {
       isStarted.value = true
-      dependencyStarts.forEach(start => start())
+      dependencyControls.forEach(({ start }) => start())
       subscriptions.value.add(id)
     }
 
-    onBeforeUnmount(() => subscriptions.value.delete(id))
+    const stop = () => {
+      subscriptions.value.delete(id)
+      dependencyControls.forEach(({ stop }) => stop())
+      isStarted.value = false
+    }
+
+    onBeforeUnmount(() => stop())
 
     if (!options?.defer) {
       start()
@@ -48,6 +54,7 @@ export function createSubscribableStoreContext<TContext>(
       ...config.context,
       deferred: true,
       start,
+      stop,
       isStarted: readonly(isStarted),
     } as SubscribeContext<TContext, TDefer>
   }

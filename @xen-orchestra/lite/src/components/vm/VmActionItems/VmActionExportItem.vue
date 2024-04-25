@@ -14,9 +14,10 @@
 import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
 import { DisabledContext } from '@/context'
+import { areSomeVmOperationAllowed } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
@@ -27,12 +28,12 @@ const props = defineProps<{
   isSingleAction?: boolean
 }>()
 
-const { getByOpaqueRefs, areSomeOperationAllowed } = useVmCollection()
+const { getByOpaqueRefs } = useVmStore().subscribe()
 
 const isParentDisabled = useContext(DisabledContext)
 
 const isSomeExportable = computed(() =>
-  getByOpaqueRefs(props.vmRefs).some(vm => areSomeOperationAllowed(vm, VM_OPERATION.EXPORT))
+  getByOpaqueRefs(props.vmRefs).some(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))
 )
 
 const isDisabled = computed(() => isParentDisabled.value || !isSomeExportable.value)

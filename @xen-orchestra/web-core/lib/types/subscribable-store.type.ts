@@ -4,6 +4,7 @@ export type SubscribeContext<TContext, TDefer extends boolean = false> = TDefer 
   ? TContext & {
       deferred: true
       start: () => void
+      stop: () => void
       isStarted: Readonly<Ref<boolean>>
     }
   : TContext & { deferred: false }

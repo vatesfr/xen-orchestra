@@ -14,12 +14,12 @@
 <script generic="T extends ObjectType" lang="ts" setup>
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { ObjectType, ObjectTypeToRecord } from '@/libs/xen-api/xen-api.types'
+import type { XapiContext } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import type { StoreDefinition } from 'pinia'
-import { computed, onUnmounted, watch } from 'vue'
+import { computed, watch } from 'vue'
 import type { RouteRecordName } from 'vue-router'
 
 type HandledTypes = 'host' | 'vm' | 'sr' | 'pool'
@@ -28,7 +28,7 @@ type Config = Partial<
   Record<
     ObjectType,
     {
-      useStore: StoreDefinition<any, any, any, any>
+      context: XapiContext<any> & { start: () => void; stop: () => void }
       routeName: RouteRecordName | undefined
     }
   >
@@ -40,33 +40,27 @@ const props = defineProps<{
 }>()
 
 const config: Config = {
-  host: { useStore: useHostStore, routeName: 'host.dashboard' },
-  vm: { useStore: useVmStore, routeName: 'vm.console' },
-  sr: { useStore: useSrStore, routeName: undefined },
-  pool: { useStore: usePoolStore, routeName: 'pool.dashboard' },
+  host: { context: useHostStore().subscribe({ defer: true }), routeName: 'host.dashboard' },
+  vm: { context: useVmStore().subscribe({ defer: true }), routeName: 'vm.console' },
+  sr: { context: useSrStore().subscribe({ defer: true }), routeName: undefined },
+  pool: { context: usePoolStore().subscribe({ defer: true }), routeName: 'pool.dashboard' },
 } satisfies Record<HandledTypes, any>
 
-const store = computed(() => config[props.type]?.useStore())
-
-const subscriptionId = Symbol('OBJECT_LINK_SUBSCRIPTION_ID')
+const context = computed(() => config[props.type]?.context)
 
 watch(
-  store,
-  (nextStore, previousStore) => {
-    previousStore?.unsubscribe(subscriptionId)
-    nextStore?.subscribe(subscriptionId)
+  context,
+  (nextContext, previousContext) => {
+    previousContext?.stop()
+    nextContext?.start()
   },
   { immediate: true }
 )
 
-onUnmounted(() => {
-  store.value?.unsubscribe(subscriptionId)
-})
-
-const record = computed<ObjectTypeToRecord<HandledTypes> | undefined>(() => store.value?.getByUuid(props.uuid as any))
+const record = computed(() => context.value?.getByUuid(props.uuid as any))
 
 const isReady = computed(() => {
-  return store.value?.isReady ?? true
+  return context.value?.isReady.value ?? true
 })
 
 const objectRoute = computed(() => {

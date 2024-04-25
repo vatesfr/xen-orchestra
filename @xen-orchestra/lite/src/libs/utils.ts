@@ -5,13 +5,6 @@ import { utcParse } from 'd3-time-format'
 import format from 'human-format'
 import { find, forEach, round, size, sum } from 'lodash-es'
 
-export function sortRecordsByNameLabel(record1: { name_label: string }, record2: { name_label: string }) {
-  const label1 = record1.name_label.toLocaleLowerCase()
-  const label2 = record2.name_label.toLocaleLowerCase()
-
-  return label1.localeCompare(label2)
-}
-
 export function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
