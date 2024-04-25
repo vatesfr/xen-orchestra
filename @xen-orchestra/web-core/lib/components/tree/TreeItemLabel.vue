@@ -48,7 +48,7 @@ import {
 } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
-import { computed, inject, ref } from 'vue'
+import { inject, ref } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
 defineProps<{
@@ -58,10 +58,7 @@ defineProps<{
   noIndent?: boolean
 }>()
 
-const hasToggle = inject(
-  IK_TREE_ITEM_HAS_CHILDREN,
-  computed(() => false)
-)
+const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
 
 const toggle = inject(IK_TREE_ITEM_TOGGLE, () => undefined)
 const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
@@ -123,5 +120,9 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-inline-end: 0.4rem;
+}
+
+.icon {
+  font-size: 1.6rem;
 }
 </style>
