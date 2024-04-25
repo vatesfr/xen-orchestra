@@ -19,6 +19,7 @@ import {
 import { find } from 'lodash'
 import { generateId } from 'reaclette-utils'
 import { Host, Vdi } from 'render-xo-item'
+import { injectState } from 'reaclette'
 
 const RESOURCE_COLUMNS = [
   {
@@ -74,6 +75,7 @@ const INTERFACES_COLUMNS = [
   healthCheck: subscribeXostorHealthCheck(sr),
   interfaces: subscribeXostorInterfaces(sr),
 }))
+@injectState
 export default class TabXostor extends Component {
   _actions = [
     {
@@ -166,8 +168,36 @@ export default class TabXostor extends Component {
     }
   )
 
+  getXostorLicenseInfo = createSelector(
+    () => this.props.state.xostorLicenseInfoByXostorId,
+    () => this.props.sr,
+    (xostorLicenseInfoByXostorId, sr) => xostorLicenseInfoByXostorId?.[sr.id]
+  )
+
   render() {
     const resourceInfos = this.getResourceInfos()
+    const xostorLicenseInfo = this.getXostorLicenseInfo()
+
+    if (xostorLicenseInfo === undefined) {
+      return _('statusLoading')
+    }
+
+    if (!xostorLicenseInfo.supportEnabled) {
+      return (
+        <div>
+          <p>{_('manageXostorWarning')}</p>
+          <ul>
+            {xostorLicenseInfo.alerts
+              .filter(alert => alert.level === 'danger')
+              .map((alert, index) => (
+                <li key={index} className='text-danger'>
+                  {alert.render}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )
+    }
 
     return (
       <Container>

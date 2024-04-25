@@ -2590,6 +2590,7 @@ const messages = {
   licenseNotBoundXostor: 'No XOSTOR attached',
   licenseExpiredXostorWarning:
     'License{nLicenseIds, plural, one {} other {s}} {licenseIds} ha{nLicenseIds, plural, one {s} other {ve}} expired on {host}',
+  manageXostorWarning: 'To manage this XOSTOR storage, you must resolve the following issues:',
   networkNoPifs: 'The network does not have PIFs',
   networks: 'Networks',
   notXcpPool: 'Not an XCP-ng pool',
