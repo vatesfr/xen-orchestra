@@ -19,6 +19,7 @@
 - [VMWare/Migration] Don't use default proxy to query the source
 - [Import/VMWare] Remove additional whitespaces in host address
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
+- [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
 
 ### Packages to release
 
@@ -45,5 +46,6 @@
 - xo-server patch
 - xo-server-audit minor
 - xo-server-load-balancer patch
+- xo-web patch
 
 <!--packages-end-->
