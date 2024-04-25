@@ -22,6 +22,7 @@
 - [Import/VMWare] Remove additional whitespaces in host address
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+- [XOSTOR] Fix `LVM_ERROR(5)` when trying to format disks on an empty disks array (PR [#7598](https://github.com/vatesfr/xen-orchestra/pull/7598))
 
 ### Packages to release
 
