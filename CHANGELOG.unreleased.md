@@ -22,6 +22,7 @@
 - [Import/VMWare] Remove additional whitespaces in host address
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+- [VM/Backups] Don't incorrectly list backup jobs using _Smart Mode_ if this VM has a `xo:no-bak` tag [#7527](https://github.com/vatesfr/xen-orchestra/issues/7527)
 
 ### Packages to release
 
