@@ -32,4 +32,4 @@ The official documentation is available at https://xen-orchestra.com/docs
 
 ## License
 
-AGPL3 © [Vates](http://vates.tech)
+AGPL3 © [Vates](https://vates.tech)

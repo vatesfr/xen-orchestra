@@ -229,7 +229,7 @@ curl \
 
 The `sr` query parameter can be used to specify on which SR the VM should be imported, if not specified, the default SR will be used.
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 ## VDI Import
 
@@ -248,7 +248,7 @@ curl \
   | cat
 ```
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 ### New VDI
 
@@ -263,7 +263,7 @@ curl \
   | cat
 ```
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 This request returns the UUID of the created VDI.
 

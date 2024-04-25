@@ -12,6 +12,8 @@ import Router from '@koa/router'
 import stubTrue from 'lodash/stubTrue.js'
 import Zone from 'node-zone'
 import { createLogger } from '@xen-orchestra/log'
+import { makeOnProgress } from '@vates/task/combineEvents'
+import { Task } from '@vates/task'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
@@ -89,8 +91,6 @@ export default class Api {
       try {
         result = await zone.run(() => this._call(body.method, body.params))
       } catch (error) {
-        const { method, params } = body
-        warn('call error', { method, params, error })
         ctx.set('Content-Type', 'application/json')
         ctx.body = formatError(body.id, error)
         return
@@ -222,6 +222,16 @@ export default class Api {
             },
           },
         ],
+        throw: [
+          function ({ message }) {
+            throw new Error(message)
+          },
+          {
+            params: {
+              message: { type: 'string' },
+            },
+          },
+        ],
       },
     })
   }
@@ -240,7 +250,24 @@ export default class Api {
       if (!validateParams(params)) {
         throw errors.invalidParameters(validateParams.errors)
       }
-      const result = await method(params)
+
+      let log
+      const onProgress = makeOnProgress({
+        onRootTaskEnd(log_) {
+          log = log_
+        },
+      })
+      const task = new Task({ properties: { method: name, params }, onProgress })
+
+      let result
+      try {
+        result = await task.run(() => method(params))
+      } catch (error) {
+        // log is an object with properties, it can be used directly
+        warn('call error', log)
+        throw error
+      }
+
       if (!validateResult(result)) {
         warn('invalid API method result', { errors: validateResult.error, result })
       }

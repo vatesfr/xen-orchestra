@@ -3,6 +3,7 @@
 const assert = require('node:assert').strict
 const { describe, it } = require('test')
 
+const { makeOnProgress } = require('./combineEvents.js')
 const { Task } = require('./index.js')
 
 const noop = Function.prototype
@@ -159,6 +160,44 @@ describe('Task', function () {
           type: 'info',
         })
       })
+    })
+  })
+
+  describe('.run()', function () {
+    function fn(...args) {
+      Task.set('baz', 'qux')
+
+      return [this, ...args]
+    }
+    const obj = { fn }
+
+    it('accepts optional options', async function () {
+      assert.deepEqual(
+        await Task.run(
+          {
+            properties: { foo: 'bar' },
+            onProgress: makeOnProgress({
+              onRootTaskEnd(log) {
+                assert.deepEqual(log.properties, { __proto__: null, foo: 'bar', baz: 'qux' })
+              },
+            }),
+          },
+          fn
+        ),
+        [undefined]
+      )
+    })
+
+    it('accepts optional arguments', async function () {
+      assert.deepEqual(await Task.run(fn, 'foo', 'bar'), [undefined, 'foo', 'bar'])
+    })
+
+    it('accepts optional context', async function () {
+      assert.deepEqual(await Task.run.call('foo', fn), ['foo'])
+    })
+
+    it('accepts a method name instead of a function', async function () {
+      assert.deepEqual(await Task.run.call(obj, 'fn'), [obj])
     })
   })
 
