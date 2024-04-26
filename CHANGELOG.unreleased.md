@@ -36,6 +36,7 @@
 - @vates/xml-rpc major
 - @xen-orchestra/mixins minor
 - xen-api patch
+- xo-cli patch
 - xo-server minor
 - xo-web minor
 
