@@ -9,6 +9,7 @@ import semver from 'semver'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
+import { confirm } from 'modal'
 import { createGetObjectsOfType } from 'selectors'
 import { first, map, mapValues, remove, size, some } from 'lodash'
 import { createXostorSr, getBlockdevices } from 'xo'
@@ -646,6 +647,11 @@ const NewXostorForm = decorate([
           provisioning,
           replication,
         } = this.state
+
+        await confirm({
+          title: _('xostorCreation'),
+          body: _('createXostoreConfirm'),
+        })
 
         const preferredInterface =
           networkId !== undefined

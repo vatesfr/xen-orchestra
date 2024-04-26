@@ -2571,6 +2571,8 @@ const messages = {
   byDefaultManagementNetworkUsed: 'By default, the management network will be used',
   cantFetchDisksFromNonXcpngHost: 'Unable to fetch physical disks from non-XCP-ng host',
   createInterface: 'Create interface',
+  createXostoreConfirm:
+    'If packages need to be installed, the toolstack on those hosts will restart. Do you want to continue?',
   diskAlreadyMounted: 'The disk is mounted on: {mountpoint}',
   diskHasChildren: 'The disk has children',
   diskIncompatibleXostor: 'Disk incompatible with XOSTOR',
@@ -2613,6 +2615,7 @@ const messages = {
   wrongNumberOfHosts: 'Wrong number of hosts',
   xostor: 'XOSTOR',
   xostorAvailableInXoa: 'XOSTOR is available in XOA',
+  xostorCreation: 'XOSTOR creation',
   xostorIsInBetaStage: 'XOSTOR is currently in its BETA stage. Do not use it in a production environment!',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',

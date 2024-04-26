@@ -11,6 +11,7 @@
 - [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
 - [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
 - [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
+- [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
 
 ### Bug fixes
 
