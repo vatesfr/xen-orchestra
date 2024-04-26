@@ -4,7 +4,7 @@
   "version": "0.6.1",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
-    "@vates/node-vsphere-soap": "^2.0.0",
+    "@vates/node-vsphere-soap": "^2.0.1",
     "@vates/read-chunk": "^1.2.0",
     "@vates/task": "^0.2.0",
     "@xen-orchestra/log": "^0.6.0",
