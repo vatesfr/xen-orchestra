@@ -7,23 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
-- [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
-- [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
-- [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
-- [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
-- [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
-- [VMWare/Migration] Don't use default proxy to query the source
-- [Import/VMWare] Remove additional whitespaces in host address
-- [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
-- [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
-- [VM/Backups] Don't incorrectly list backup jobs using _Smart Mode_ if this VM has a `xo:no-bak` tag [#7527](https://github.com/vatesfr/xen-orchestra/issues/7527)
 
 ### Packages to release
 
@@ -40,16 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/node-vsphere-soap patch
-- @vates/task minor
-- @xen-orchestra/audit-core minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/proxy minor
-- @xen-orchestra/vmware-explorer minor
-- xo-server minor
-- xo-server-audit minor
-- xo-server-load-balancer patch
-- xo-web minor
 
 <!--packages-end-->
