@@ -38,7 +38,14 @@ export default class Tasks extends EventEmitter {
       this.#tasks.delete(id)
     },
     onTaskUpdate: async taskLog => {
-      const { id, status } = taskLog
+      // Error objects are not JSON-ifiable by default
+      const { result } = taskLog
+      if (result instanceof Error && result.toJSON === undefined) {
+        taskLog.result = serializeError(result)
+      }
+
+      const { $root } = taskLog
+      const { status, id } = $root
       if (status !== 'pending') {
         if (this.#logsToClearOnSuccess.has(id)) {
           this.#logsToClearOnSuccess.delete(id)
@@ -55,18 +62,9 @@ export default class Tasks extends EventEmitter {
         }
       }
 
-      // Error objects are not JSON-ifiable by default
-      const { result } = taskLog
-      if (result instanceof Error && result.toJSON === undefined) {
-        taskLog.result = serializeError(result)
-      }
-
       try {
-        const { $root } = taskLog
-
         $root.updatedAt = Date.now()
 
-        const { id } = $root
         await this.#store.put(id, $root)
         this.emit(id, $root)
         this.emit('update', $root)
