@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +34,6 @@
 - @vates/xml major
 - @vates/xml-rpc major
 - xen-api patch
+- xo-web minor
 
 <!--packages-end-->
