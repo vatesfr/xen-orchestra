@@ -4,8 +4,6 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
-
 - [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
 - [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
 - [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
@@ -13,8 +11,6 @@
 - [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
 - [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
