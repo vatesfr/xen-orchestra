@@ -332,6 +332,13 @@ export default class RestApi {
             name_description: { type: 'string', minLength: 0, optional: true },
             name_label: { type: 'string' },
             template: { type: 'string' },
+            CPUs: { type: 'integer', optional: true },
+            cpusMax: { type: 'integer', optional: true },
+            secureBoot: { type: 'boolean', default: false },
+            createVtpm: { type: 'boolean', default: false },
+            hvmBootFirmware: { enum: ['bios', 'uefi'], default: 'bios' },
+            VDIs: { type: 'array' },
+            VIFs: { type: 'array' },
           }
         ),
         emergency_shutdown: async ({ xapiObject }) => {
