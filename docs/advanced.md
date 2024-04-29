@@ -71,7 +71,6 @@ In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https:
 8. Clear out the machine-id so it can be regenerated when the template is used:  
    ```sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id```
 10. Shutdown the VM and create a template from that image.
-   
 
 ### Usage
 
