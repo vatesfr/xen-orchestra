@@ -612,7 +612,11 @@ const NewXostorForm = decorate([
         this.state.ignoreFileSystems = value
       },
       onPoolChange(_, pool) {
-        this.state.disksByHost = {}
+        const disksByHost = {}
+        this.props.hostsByPoolId[pool?.id]?.forEach(host => {
+          disksByHost[host.id] = []
+        })
+        this.state.disksByHost = disksByHost
         this.state.poolId = pool?.id
       },
       onReplicationChange(_, replication) {
@@ -627,9 +631,7 @@ const NewXostorForm = decorate([
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
-        if (disksByHost[hostId] === undefined) {
-          disksByHost[hostId] = []
-        }
+
         disksByHost[hostId].push(disk)
         this.state.disksByHost = { ...disksByHost }
       },
@@ -679,11 +681,11 @@ const NewXostorForm = decorate([
     },
     computed: {
       // Private ==========
-      _disksByHostValues: state => Object.values(state.disksByHost).filter(disks => disks.length > 0),
+      _disksByHostValues: state => Object.values(state.disksByHost),
       // Utils ============
       poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
-      numberOfHostsWithDisks: state => state._disksByHostValues.length,
+      numberOfHostsWithDisks: state => state._disksByHostValues.filter(disks => disks.length > 0).length,
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
       isNameMissing: state => state.srName.trim() === '',
