@@ -9,6 +9,7 @@ import https from 'https'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import xml2js from 'xml2js'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
 
@@ -24,7 +25,7 @@ export default class Esxi extends EventEmitter {
 
   constructor(host, user, password, sslVerify) {
     super()
-    this.#host = host
+    this.#host = host.trim()
     this.#user = user
     this.#password = password
     if (!sslVerify) {
@@ -296,7 +297,7 @@ export default class Esxi extends EventEmitter {
           if (typeof disk !== 'object') {
             continue
           }
-          if (disk.deviceType.match(/cdrom/i)) {
+          if (disk.deviceType?.match(/cdrom/i)) {
             continue
           }
           // can be something other than a disk, like a controller card
@@ -351,10 +352,57 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  powerOff(vmId) {
-    return this.#exec('PowerOffVM_Task', { _this: vmId })
+  async powerOff(vmId) {
+    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
+    const taskId = res.returnval.$value
+    let state = 'running'
+    let info
+    for (let i = 0; i < 60 && state === 'running'; i++) {
+      // https://developer.vmware.com/apis/1720/
+      info = await this.fetchProperty('Task', taskId, 'info')
+      state = info.state[0]
+      if (state === 'running') {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    strictEqual(state, 'success', info.error ?? `fail to power off vm ${vmId}, state:${state}`)
+    return info
   }
   powerOn(vmId) {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
+  }
+  async fetchProperty(type, id, propertyName) {
+    // the fetch method does not seems to be exposed by the wsdl
+    // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
+    const url = new URL('https://localhost/sdk')
+    url.host = this.#host
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Cookie: this.#client.authCookie.cookies,
+        SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
+      },
+      agent: this.#httpsAgent,
+      body: `<?xml version="1.0" encoding="UTF-8"?>
+        <soapenv:Envelope 
+          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        >
+          <soapenv:Body>
+            <Fetch xmlns="urn:vim25">
+              <_this type="${type}">${id}</_this>
+              <prop >${propertyName}</prop>
+            </Fetch>
+          </soapenv:Body>
+        </soapenv:Envelope>`,
+    })
+    const text = await res.text()
+    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/)
+
+    return new Promise((resolve, reject) => {
+      xml2js.parseString(matches?.[1] ?? '', (err, res) => (err ? reject(err) : resolve(res.returnval)))
+    })
   }
 }

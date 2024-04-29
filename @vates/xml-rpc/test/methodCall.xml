@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<methodCall>
+  <methodName>examples.getStateName</methodName>
+  <params>
+    <param>
+      <value>
+        <array>
+          <data>
+            <value>
+              <int>1404</int>
+            </value>
+            <value>
+              Something here
+            </value>
+          </data>
+        </array>
+      </value>
+    </param>
+    <param>
+      <value>
+        <base64>eW91IGNhbid0IHJlYWQgdGhpcyE=</base64>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>1</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <dateTime.iso8601>1998-07-17T14:08:55.000Z</dateTime.iso8601>
+      </value>
+    </param>
+    <param>
+      <value>
+        <double>-12.53</double>
+      </value>
+    </param>
+    <param>
+      <value>
+        <int>42</int>
+      </value>
+    </param>
+    <param>
+      <value>
+        Hello world!
+      </value>
+    </param>
+    <param>
+      <value>
+        <struct>
+          <member>
+            <name>foo</name>
+            <value>
+              <int>1</int>
+            </value>
+          </member>
+          <member>
+            <name>bar</name>
+            <value>
+              <int>2</int>
+            </value>
+          </member>
+        </struct>
+      </value>
+    </param>
+    <param>
+      <value>
+        <nil />
+      </value>
+    </param>
+  </params>
+</methodCall>

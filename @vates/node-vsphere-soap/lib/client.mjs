@@ -31,14 +31,20 @@ export function Client(vCenterHostname, username, password, sslVerify) {
   EventEmitter.call(this)
 
   // sslVerify argument handling
+  // don't use any proxy to connect to the esxi
   if (sslVerify) {
-    this.clientopts = {}
+    this.clientopts = {
+      request: axios.create({
+        proxy: false,
+      }),
+    }
   } else {
     this.clientopts = {
       request: axios.create({
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
         }),
+        proxy: false,
       }),
     }
   }

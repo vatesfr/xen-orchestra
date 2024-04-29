@@ -33,7 +33,7 @@ import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { Host, renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
-import { alert, chooseAction, confirm } from '../modal'
+import { alert, chooseAction, confirm, form } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject, isAdmin } from 'selectors'
 import { getXoaPlan, SOURCES } from '../xoa-plans'
@@ -50,6 +50,8 @@ import {
 
 import parseNdJson from './_parseNdJson'
 import RollingPoolRebootModal from './rolling-pool-reboot-modal'
+
+import { NetworkCard } from '../../xo-app/xostor/new-xostor-form.js'
 
 // ===================================================================
 
@@ -592,32 +594,98 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
-export const subscribeXoTasks = createSubscription(async previousTasks => {
-  let filter = ''
-  // Deduplicate previous tasks and new tasks with a Map
-  const tasks = new Map()
-  if (previousTasks !== undefined) {
-    let lastUpdate = 0
-    previousTasks.forEach(task => {
-      if (task.updatedAt > lastUpdate) {
-        lastUpdate = task.updatedAt
+export const subscribeXoTasks = (() => {
+  let abortController
+  const cache = new Map()
+  const subscribers = new Set()
+
+  const basePath =
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href'
+
+  const clearCacheDelay = 6e5 // 10m
+  let clearCacheTimeout
+  function clearCache() {
+    cache.clear()
+  }
+
+  const notify = throttle(function () {
+    // The object needs to be different each time to ensure components refresh
+    const data = Array.from(cache.values())
+
+    for (const subscriber of subscribers) {
+      subscriber(data)
+    }
+  }, 100)
+
+  async function run() {
+    if (abortController !== undefined) {
+      return
+    }
+    abortController = new AbortController()
+    clearTimeout(clearCacheTimeout)
+
+    while (true) {
+      try {
+        // starts watching collection
+        const resWatch = await fetch(basePath + '&ndjson&watch', { signal: abortController.signal })
+
+        // fetches existing objects
+        const response = await fetch(basePath, { signal: abortController.signal })
+        const objects = await response.json()
+        cache.clear()
+        for (const object of objects) {
+          cache.set(object.id, object)
+        }
+        notify()
+
+        // handles events
+        let buf = ''
+        for await (const chunk of resWatch.body) {
+          buf += String.fromCharCode(...chunk)
+
+          let i
+          while ((i = buf.indexOf('\n')) !== -1) {
+            const line = buf.slice(0, i)
+            buf = buf.slice(i + 1)
+            const [event, object] = JSON.parse(line)
+            if (event === 'remove') {
+              cache.delete(object.id)
+            } else {
+              cache.set(object.id, object)
+            }
+          }
+          notify()
+        }
+      } catch (error) {
+        if (error === 'abort') {
+          break
+        }
+
+        console.error('monitor XO tasks', error)
       }
-      tasks.set(task.id, task)
+
+      await new Promise(resolve => setTimeout(resolve, 10e3))
+    }
+
+    abortController = undefined
+    clearCacheTimeout = setTimeout(clearCache, clearCacheDelay)
+  }
+
+  return function subscribeXoTasks(cb) {
+    subscribers.add(cb)
+
+    asap(() => cb(cache))
+
+    run()
+
+    return once(function unsubscribeXoTasks() {
+      subscribers.delete(cb)
+      if (subscribers.size === 0) {
+        abortController.abort('abort')
+      }
     })
-    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
   }
-
-  // Fetch new and updated tasks
-  const response = await fetch(
-    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
-  )
-  for (const task of await response.json()) {
-    tasks.set(task.id, task)
-  }
-
-  // Sort dates by start time
-  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
-})
+})()
 
 export const subscribeCloudXoConfigBackups = createSubscription(
   () => fetch('./rest/v0/cloud/xo-config/backups?fields=xoaId,createdAt,id,content_href').then(resp => resp.json()),
@@ -627,6 +695,41 @@ export const subscribeCloudXoConfigBackups = createSubscription(
 export const subscribeCloudXoConfig = createSubscription(() =>
   fetch('./rest/v0/cloud/xo-config').then(resp => resp.json())
 )
+
+const subscribeSrsXostorHealthCheck = {}
+export const subscribeXostorHealthCheck = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorHealthCheck[srId] === undefined) {
+    subscribeSrsXostorHealthCheck[srId] = createSubscription(() => _call('xostor.healthCheck', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
+  }
+
+  return subscribeSrsXostorHealthCheck[srId]
+}
+
+const subscribeSrsXostorInterfaces = {}
+export const subscribeXostorInterfaces = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorInterfaces[srId] === undefined) {
+    subscribeSrsXostorInterfaces[srId] = createSubscription(() => _call('xostor.getInterfaces', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
+  }
+
+  return subscribeSrsXostorInterfaces[srId]
+}
+subscribeXostorInterfaces.forceRefresh = sr => {
+  if (sr === undefined) {
+    forEach(subscribeSrsXostorInterfaces, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeSrsXostorInterfaces[resolveId(sr)]
+  subscription?.forceRefresh()
+}
 
 // System ============================================================
 
@@ -2569,9 +2672,7 @@ export const destroyTasks = tasks =>
 
 export const abortXoTask = async task => {
   const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
-  if (response.ok) {
-    subscribeXoTasks.forceRefresh()
-  } else {
+  if (!response.ok) {
     throw new Error(await response.text())
   }
 }
@@ -3659,6 +3760,33 @@ export const updateXosanPacks = pool =>
 // XOSTOR   --------------------------------------------------------------------
 
 export const createXostorSr = params => _call('xostor.create', params)
+
+export const destroyXostorInterfaces = async (sr, ifaceNames) => {
+  const srId = resolveId(sr)
+  await Promise.all(ifaceNames.map(ifaceName => _call('xostor.destroyInterface', { sr: srId, name: ifaceName })))::tap(
+    () => subscribeXostorInterfaces.forceRefresh(sr)
+  )
+}
+
+export const createXostorInterface = async sr => {
+  const { interfaceName, networkId } = await form({
+    render: props => <NetworkCard {...props} insideModalForm sr={sr} />,
+    defaultValue: {
+      interfaceName: '',
+      networkId: undefined,
+    },
+    header: (
+      <span>
+        <Icon icon='add' /> {_('createInterface')}
+      </span>
+    ),
+  })
+
+  await _call('xostor.createInterface', { sr: resolveId(sr), network: networkId, name: interfaceName })::tap(() =>
+    subscribeXostorInterfaces.forceRefresh(sr)
+  )
+}
+export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr), ...params })
 
 // Licenses --------------------------------------------------------------------
 

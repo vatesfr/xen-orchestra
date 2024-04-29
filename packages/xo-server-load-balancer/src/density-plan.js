@@ -165,7 +165,10 @@ export default class DensityPlan extends Plan {
   // Test if a VM migration on a destination (of a destinations set) is possible.
   _testMigration({ vm, destinations, hostsAverages, vmsAverages }) {
     const {
-      _thresholds: { critical: criticalThreshold },
+      _thresholds: {
+        cpu: { critical: criticalThresholdCpu },
+        memoryFree: { critical: criticalThresholdMemoryFree },
+      },
     } = this
 
     // Sort the destinations by available memory. (- -> +)
@@ -177,8 +180,8 @@ export default class DensityPlan extends Plan {
 
       // Unable to move the VM.
       if (
-        destinationAverages.cpu + vmAverages.cpu >= criticalThreshold ||
-        destinationAverages.memoryFree - vmAverages.memory <= criticalThreshold
+        destinationAverages.cpu + vmAverages.cpu >= criticalThresholdCpu ||
+        destinationAverages.memoryFree - vmAverages.memory <= criticalThresholdMemoryFree
       ) {
         continue
       }

@@ -1,15 +1,14 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
-import Button from 'button'
 import ButtonGroup from 'button-group'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
+import PifsColumn from 'sorted-table/pifs-column'
 import Tooltip, { conditionalTooltip } from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -17,7 +16,7 @@ import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Select, Toggle } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
-import { connectPif, deleteNetwork, disconnectPif, editNetwork, editPif } from 'xo'
+import { deleteNetwork, editNetwork, editPif } from 'xo'
 
 // =============================================================================
 
@@ -201,87 +200,6 @@ class ToggleDefaultLockingMode extends Component {
 // -----------------------------------------------------------------------------
 
 @connectStore(() => {
-  const pif = createGetObject()
-  const host = createGetObject(createSelector(pif, pif => pif.$host))
-  const disableUnplug = createSelector(
-    pif,
-    pif => pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
-  )
-
-  return { host, pif, disableUnplug }
-})
-class PifItem extends Component {
-  render() {
-    const { pif, host, disableUnplug } = this.props
-
-    return (
-      <tr>
-        <td>{pif.device}</td>
-        <td>{host.name_label}</td>
-        <td>{pif.ip}</td>
-        <td>{pif.mac}</td>
-        <td>
-          {pif.carrier ? (
-            <span className='tag tag-success'>{_('poolNetworkPifAttached')}</span>
-          ) : (
-            <span className='tag tag-default'>{_('poolNetworkPifDetached')}</span>
-          )}
-        </td>
-        <td className='text-xs-right'>
-          <ButtonGroup>
-            <ActionRowButton
-              disabled={disableUnplug}
-              handler={pif.attached ? disconnectPif : connectPif}
-              handlerParam={pif}
-              icon={pif.attached ? 'disconnect' : 'connect'}
-              tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
-            />
-          </ButtonGroup>
-        </td>
-      </tr>
-    )
-  }
-}
-
-class PifsItem extends BaseComponent {
-  render() {
-    const { network } = this.props
-    const { showPifs } = this.state
-
-    return (
-      <div>
-        <Tooltip content={showPifs ? _('hidePifs') : _('showPifs')}>
-          <Button size='small' className='mb-1 pull-right' onClick={this.toggleState('showPifs')}>
-            <Icon icon={showPifs ? 'hidden' : 'shown'} />
-          </Button>
-        </Tooltip>
-        {showPifs && (
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>{_('pifDeviceLabel')}</th>
-                <th>{_('homeTypeHost')}</th>
-                <th>{_('pifAddressLabel')}</th>
-                <th>{_('pifMacLabel')}</th>
-                <th>{_('pifStatusLabel')}</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {map(network.PIFs, pifId => (
-                <PifItem key={pifId} id={pifId} />
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    )
-  }
-}
-
-// -----------------------------------------------------------------------------
-
-@connectStore(() => {
   const disablePifUnplug = pif => pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
 
   const getDisableNetworkDelete = createSelector(
@@ -359,7 +277,7 @@ const NETWORKS_COLUMNS = [
   },
   {
     name: _('poolNetworkPif'),
-    itemRenderer: network => !isEmpty(network.PIFs) && <PifsItem network={network} />,
+    itemRenderer: network => !isEmpty(network.PIFs) && <PifsColumn network={network} />,
   },
   {
     name: _('poolNetworkAutomatic'),

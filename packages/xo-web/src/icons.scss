@@ -358,6 +358,10 @@
     @extend .fa;
     @extend .fa-code;
   }
+  &-favorite {
+    @extend .fa;
+    @extend .fa-star
+  }
 
   // Backups
   &-backup {
