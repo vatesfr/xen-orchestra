@@ -7,21 +7,19 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
-- [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
-- [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
-- [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
+- [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+- [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
-- [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
-- [VMWare/Migration] Don't use default proxy to query the source
-- [Import/VMWare] Remove additional whitespaces in host address
-- [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
-- [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+- Fix support of XenServer 6.5 (broken in XO 5.93.0)
+- [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
+- [Import/VMWare] Fix ERR_PREMATURE_CLOSE error with Xenserver hosts (PR [#7563](https://github.com/vatesfr/xen-orchestra/pull/7563))
+- [VMWare/Migration] Handle multiple datacenters (PR [#7553](https://github.com/vatesfr/xen-orchestra/pull/7553))
+- [XOSTOR/create] In the summary section, the warning message "Hosts do not have the same number of disks" now takes into consideration host without disks (PR [#7572](https://github.com/vatesfr/xen-orchestra/pull/7572))
+- [XOSTOR] Install or update packages on all hosts in the pool rather than just hosts with disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
 - [XOSTOR] Fix `LVM_ERROR(5)` during XOSTOR creation (PR [#7598](https://github.com/vatesfr/xen-orchestra/pull/7598))
 
 ### Packages to release
@@ -40,15 +38,13 @@
 
 <!--packages-start-->
 
-- @vates/node-vsphere-soap patch
-- @vates/task minor
-- @xen-orchestra/audit-core minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/proxy minor
-- @xen-orchestra/vmware-explorer minor
+- @vates/xml major
+- @vates/xml-rpc major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/vmware-explorer patch
+- xen-api patch
+- xo-cli patch
 - xo-server minor
-- xo-server-audit minor
-- xo-server-load-balancer patch
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
