@@ -112,6 +112,7 @@ const ghApiCall = async (path, method = 'GET', data) => {
 const ghApiUploadReleaseAsset = async (releaseId, assetName, file) => {
   const opts = {
     method: 'POST',
+    duplex: 'half',
     body: fs.createReadStream(file),
     headers: {
       Accept: 'application/vnd.github+json',
