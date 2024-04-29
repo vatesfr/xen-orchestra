@@ -4,6 +4,7 @@ import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
+import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -1371,6 +1372,30 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
       })
   )
 }
+
+export const hidePcis = async (pcis, hide) => {
+  try {
+    await confirm({
+      body: _('applyChangeOnPcis', { nPcis: pcis.length }),
+      // hide `true` means that we will disable dom0's PCI access, so we will "enable" the possibility of passthrough this PCI
+      title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
+    })
+  } catch (error) {
+    return
+  }
+  return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
+}
+
+export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', { id: resolveId(pci) })) === 'disabled'
+
+//  ATM, unknown date for the availablity on XS, since they are doing rolling release
+// FIXME: When XS release methods to do PCI passthrough, update this check
+export const isPciPassthroughAvailable = host =>
+  host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
+
+export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
+
+export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
 
 // Containers --------------------------------------------------------
 
@@ -3826,11 +3851,16 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
-export const subscribeXcpngLicenses = createSubscription(() =>
-  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
-    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
-    : undefined
-)
+const createLicenseSubscription = productType =>
+  createSubscription(() =>
+    getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+      ? _call('xoa.licenses.getAll', { productType })
+      : undefined
+  )
+
+export const subscribeXcpngLicenses = createLicenseSubscription('xcpng')
+
+export const subscribeXostorLicenses = createLicenseSubscription('xostor')
 
 // Support --------------------------------------------------------------------
 

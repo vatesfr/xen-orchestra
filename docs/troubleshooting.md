@@ -112,6 +112,10 @@ You can see your current network configuration by running `ifconfig` (default in
 
 You can modify the IP configuration with `xoa network static` (for a static IP address) or `xoa network dhcp` to use DHCP.
 
+### Stats not working
+
+If statistics (all VMs and hosts) are not showing for a specific pool, check if there is a _Backup network_ configured on your pool (setting is in the _Advanced_ tab of the pool) and make sure XO can access all hosts of the pool via this network.
+
 ### Memory
 
 Sometimes xo-server runs out of memory, this can be seen in the logs (`journalctl -u xo-server.service`):

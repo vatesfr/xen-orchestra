@@ -49,7 +49,7 @@ const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.le
 const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
-const isTapdevsDisk = disk => disk.name.startsWith('td')
+const isTapdevDisk = disk => disk.name.startsWith('td')
 const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
 const isHostRecentEnough = host => semver.satisfies(host?.version, `>=${MINIMAL_POOL_VERSION_FOR_XOSTOR}`)
@@ -63,7 +63,7 @@ const xostorDiskPredicate = disk =>
   !isDiskRo(disk) &&
   !isDiskMounted(disk) &&
   !diskHasChildren(disk) &&
-  !isTapdevsDisk(disk)
+  !isTapdevDisk(disk)
 const arePifsAttached = pifs => pifs.every(pif => pif.attached)
 const arePifsStatic = pifs => pifs.every(pif => pif.mode === 'Static' || pif.ipv6Mode === 'Static')
 const doesNetworkHavePifs = network => network.PIFs.length > 0
@@ -75,7 +75,7 @@ const StorageCard = decorate([
   injectState,
   ({ effects, state }) => (
     <Card>
-      <CardHeader>{_('storage')}</CardHeader>
+      <CardHeader>{_('newSrGeneral')}</CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -150,6 +150,11 @@ const SettingsCard = decorate([
           <Col style={SPACE_BETWEEN}>
             <label>{_('ignoreFileSystems')}</label>
             <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
+          </Col>
+          <Col>
+            <i>
+              <Icon icon='info' /> {_('ignoreFileSystemsInfo')}
+            </i>
           </Col>
         </Row>
         {/* {state.displayAdvancedSettings && ( Advanced settings section )} */}
@@ -474,8 +479,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const _isTapdevsDisk = isTapdevsDisk(disk)
-  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevsDisk
+  const _isTapdevDisk = isTapdevDisk(disk)
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevDisk
 
   return (
     <li className='list-group-item'>
@@ -495,8 +500,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {!_isDiskRecommendedType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
-            {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
-            {_isTapdevsDisk && <li>{_('isTapdevsDisk')}</li>}
+            {_diskHasChildren && <li>{_('diskHasExistingPartition')}</li>}
+            {_isTapdevDisk && <li>{_('isTapdevDisk')}</li>}
           </ul>
         </div>
       )}
@@ -549,7 +554,7 @@ const SummaryCard = decorate([
                 <Col size={6}>
                   {_('keyValue', {
                     key: _('description'),
-                    value: srDescription === '' ? _('noValue') : srDescription,
+                    value: srDescription,
                   })}
                 </Col>
               </Row>
@@ -569,7 +574,7 @@ const SummaryCard = decorate([
               <Row>
                 <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
                 <Col size={6}>
-                  {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
+                  {_('keyValue', { key: _('approximateSrCapacity'), value: formatSize(state.finalSize) })}
                 </Col>
               </Row>
             </div>
@@ -607,7 +612,11 @@ const NewXostorForm = decorate([
         this.state.ignoreFileSystems = value
       },
       onPoolChange(_, pool) {
-        this.state.disksByHost = {}
+        const disksByHost = {}
+        this.props.hostsByPoolId[pool?.id]?.forEach(host => {
+          disksByHost[host.id] = []
+        })
+        this.state.disksByHost = disksByHost
         this.state.poolId = pool?.id
       },
       onReplicationChange(_, replication) {
@@ -622,9 +631,7 @@ const NewXostorForm = decorate([
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
-        if (disksByHost[hostId] === undefined) {
-          disksByHost[hostId] = []
-        }
+
         disksByHost[hostId].push(disk)
         this.state.disksByHost = { ...disksByHost }
       },
@@ -674,11 +681,11 @@ const NewXostorForm = decorate([
     },
     computed: {
       // Private ==========
-      _disksByHostValues: state => Object.values(state.disksByHost).filter(disks => disks.length > 0),
+      _disksByHostValues: state => Object.values(state.disksByHost),
       // Utils ============
       poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
-      numberOfHostsWithDisks: state => state._disksByHostValues.length,
+      numberOfHostsWithDisks: state => state._disksByHostValues.filter(disks => disks.length > 0).length,
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
       isNameMissing: state => state.srName.trim() === '',

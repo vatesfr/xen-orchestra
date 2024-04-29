@@ -14,7 +14,11 @@ function set(obj, keyPath, val) {
     }
     if (!other.length) {
       // without descendant
-      obj[key][index] = val
+      if (typeof obj[key][index] !== 'object') {
+        // sometimes there are additional properties on a string (like guestOS="ubuntu" and then guestOS.detailed =)
+        // we ignore these data for now
+        obj[key][index] = val
+      }
     } else {
       // with descendant
       if (!obj[key][index]) {
