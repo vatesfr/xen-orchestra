@@ -188,9 +188,6 @@ export const create = defer(async function (
 
       const nHostWithoutXcpLicense = hostIdsWithoutXcpLicense.length
       if (nHostWithoutXcpLicense > 0) {
-        Task.warning(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`, {
-          hostIds: hostIdsWithoutXcpLicense,
-        })
         throw new Error(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`)
       }
 
@@ -201,10 +198,13 @@ export const create = defer(async function (
       const nAvailableLicenses = availableLicenses.length
 
       if (nAvailableLicenses === 0) {
-        Task.info(`Creating ${nPoolHosts} trial licenses`)
-        availableLicenses = await this.createXostorTrialLicenses({
-          quantity: nPoolHosts,
-        })
+        availableLicenses = await Task.run(
+          { properties: { name: 'Creating trial licenses', quantity: nPoolHosts } },
+          () =>
+            this.createXostorTrialLicenses({
+              quantity: nPoolHosts,
+            })
+        )
       } else if (nAvailableLicenses < nPoolHosts) {
         throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
       }
