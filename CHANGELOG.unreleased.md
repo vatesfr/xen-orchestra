@@ -9,6 +9,7 @@
 
 - [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
 - [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
+- [Home/SR] Display _Pro Support_ status for XOSTOR SR (PR [#7601](https://github.com/vatesfr/xen-orchestra/pull/7601))
 
 ### Bug fixes
 
@@ -45,6 +46,6 @@
 - xen-api patch
 - xo-cli patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
