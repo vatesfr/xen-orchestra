@@ -212,6 +212,8 @@ export const create = defer(async function (
 
     const host = hosts[0]
     const xapi = this.getXapi(host)
+    const poolHostIds = Object.keys(xapi.objects.indexes.type.host)
+    const poolHosts = poolHostIds.map(id => this.getObject(id, 'host'))
 
     const handleHostsDependencies = defer(async ($defer, hosts) => {
       const boundInstallDependencies = installDependencies.bind(this)
@@ -248,7 +250,7 @@ export const create = defer(async function (
         }
       )
     })
-    await handleHostsDependencies(hosts)
+    await handleHostsDependencies(poolHosts)
 
     const boundFormatDisks = formatDisks.bind(this)
     await asyncEach(
