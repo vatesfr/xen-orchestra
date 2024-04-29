@@ -60,14 +60,17 @@ You only need to use a template of a VM with CloudInit installed inside it. [Che
 In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
 :::
 
-Example on how to create a Cloud Init template with Ubuntu 22.04 LTS:
+### Example: How to create a Cloud Init template with Ubuntu 22.04 LTS?
 
-1. Install Ubuntu 22.04 LTS on a VM (2 CPU, 8 GB of RAM, 10 GB drive)
-2. Upon reboot, update/updrade with w/apt command
-3. Install the Guest Tools
-4. ```sudo apt install install cloud-initramfs-growroot```
-5. ```sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id```
-6. Shutdown the VM and create a template from that image.
+1. Create a VM  with e.g. 2 CPU, 8 GiB of RAM, 10 GiB of disk space, and install Ubuntu 22.04 LTS on it.
+2. Upon reboot, ```wapt-get update``` and ```wapt-get upgrade``` the machine.
+3. Install the [Guest Tools](https://xcp-ng.org/docs/guests.html#guest-tools).
+4. Install the "cloud-initramfs-growroot" so that the VM can apply a Cloud Config:  
+   ```sudo apt install install cloud-initramfs-growroot```
+5. Run the command ```sudo cloud-init clean```.
+8. Clear out the machine-id so it can be regenerated when the template is used:  
+   ```sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id```
+10. Shutdown the VM and create a template from that image.
    
 
 ### Usage
