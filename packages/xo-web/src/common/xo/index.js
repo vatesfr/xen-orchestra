@@ -594,32 +594,98 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
-export const subscribeXoTasks = createSubscription(async previousTasks => {
-  let filter = ''
-  // Deduplicate previous tasks and new tasks with a Map
-  const tasks = new Map()
-  if (previousTasks !== undefined) {
-    let lastUpdate = 0
-    previousTasks.forEach(task => {
-      if (task.updatedAt > lastUpdate) {
-        lastUpdate = task.updatedAt
+export const subscribeXoTasks = (() => {
+  let abortController
+  const cache = new Map()
+  const subscribers = new Set()
+
+  const basePath =
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href'
+
+  const clearCacheDelay = 6e5 // 10m
+  let clearCacheTimeout
+  function clearCache() {
+    cache.clear()
+  }
+
+  const notify = throttle(function () {
+    // The object needs to be different each time to ensure components refresh
+    const data = Array.from(cache.values())
+
+    for (const subscriber of subscribers) {
+      subscriber(data)
+    }
+  }, 100)
+
+  async function run() {
+    if (abortController !== undefined) {
+      return
+    }
+    abortController = new AbortController()
+    clearTimeout(clearCacheTimeout)
+
+    while (true) {
+      try {
+        // starts watching collection
+        const resWatch = await fetch(basePath + '&ndjson&watch', { signal: abortController.signal })
+
+        // fetches existing objects
+        const response = await fetch(basePath, { signal: abortController.signal })
+        const objects = await response.json()
+        cache.clear()
+        for (const object of objects) {
+          cache.set(object.id, object)
+        }
+        notify()
+
+        // handles events
+        let buf = ''
+        for await (const chunk of resWatch.body) {
+          buf += String.fromCharCode(...chunk)
+
+          let i
+          while ((i = buf.indexOf('\n')) !== -1) {
+            const line = buf.slice(0, i)
+            buf = buf.slice(i + 1)
+            const [event, object] = JSON.parse(line)
+            if (event === 'remove') {
+              cache.delete(object.id)
+            } else {
+              cache.set(object.id, object)
+            }
+          }
+          notify()
+        }
+      } catch (error) {
+        if (error === 'abort') {
+          break
+        }
+
+        console.error('monitor XO tasks', error)
       }
-      tasks.set(task.id, task)
+
+      await new Promise(resolve => setTimeout(resolve, 10e3))
+    }
+
+    abortController = undefined
+    clearCacheTimeout = setTimeout(clearCache, clearCacheDelay)
+  }
+
+  return function subscribeXoTasks(cb) {
+    subscribers.add(cb)
+
+    asap(() => cb(cache))
+
+    run()
+
+    return once(function unsubscribeXoTasks() {
+      subscribers.delete(cb)
+      if (subscribers.size === 0) {
+        abortController.abort('abort')
+      }
     })
-    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
   }
-
-  // Fetch new and updated tasks
-  const response = await fetch(
-    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
-  )
-  for (const task of await response.json()) {
-    tasks.set(task.id, task)
-  }
-
-  // Sort dates by start time
-  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
-})
+})()
 
 export const subscribeCloudXoConfigBackups = createSubscription(
   () => fetch('./rest/v0/cloud/xo-config/backups?fields=xoaId,createdAt,id,content_href').then(resp => resp.json()),
@@ -2606,9 +2672,7 @@ export const destroyTasks = tasks =>
 
 export const abortXoTask = async task => {
   const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
-  if (response.ok) {
-    subscribeXoTasks.forceRefresh()
-  } else {
+  if (!response.ok) {
     throw new Error(await response.text())
   }
 }

@@ -1,0 +1,25 @@
+{
+  "name": "tag1",
+  "attributes": {
+    "attr1": "value1",
+    "attr2": "value2"
+  },
+  "children": [
+    "Text & entities",
+    {
+      "name": "tag2",
+      "attributes": {},
+      "children": []
+    },
+    {
+      "name": "tag2",
+      "attributes": {},
+      "children": []
+    },
+    {
+      "name": "ns:tag3",
+      "attributes": {},
+      "children": []
+    }
+  ]
+}

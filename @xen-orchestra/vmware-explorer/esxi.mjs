@@ -16,7 +16,7 @@ const { warn } = createLogger('xo:vmware-explorer:esxi')
 export default class Esxi extends EventEmitter {
   #client
   #cookies
-  #dcPath
+  #dcPaths // map datastore name => datacenter name
   #host
   #httpsAgent
   #user
@@ -41,8 +41,7 @@ export default class Esxi extends EventEmitter {
         // this means that the server is connected and can answer API queries
         // you won't be able to download a file as long a the 'ready' event is not emitted
         this.#ready = true
-        const res = await this.search('Datacenter', ['name'])
-        this.#dcPath = Object.values(res)[0].name
+        await this.#computeDatacenters()
         this.emit('ready')
       } catch (error) {
         this.emit('error', error)
@@ -51,6 +50,29 @@ export default class Esxi extends EventEmitter {
     this.#client.on('error', err => {
       this.emit('error', err)
     })
+  }
+
+  async #computeDatacenters() {
+    this.#dcPaths = {}
+    // the datastore property is a collection of datastore id
+    const res = await this.search('Datacenter', ['name', 'datastore'])
+    await Promise.all(
+      Object.values(res).map(async ({ datastore, name }) => {
+        await Promise.all(
+          datastore.ManagedObjectReference.map(async ({ $value }) => {
+            // get the datastore name
+            const res = await this.fetchProperty('Datastore', $value, 'name')
+            this.#dcPaths[res._] = name
+          })
+        )
+      })
+    )
+  }
+
+  #findDatacenter(dataStore) {
+    notStrictEqual(this.#dcPaths, undefined)
+    notStrictEqual(this.#dcPaths[dataStore], undefined)
+    return this.#dcPaths[dataStore]
   }
 
   #exec(cmd, args) {
@@ -70,11 +92,10 @@ export default class Esxi extends EventEmitter {
 
   async #download(dataStore, path, range) {
     strictEqual(this.#ready, true)
-    notStrictEqual(this.#dcPath, undefined)
     const url = new URL('https://localhost')
     url.host = this.#host
     url.pathname = '/folder/' + path
-    url.searchParams.set('dcPath', this.#dcPath)
+    url.searchParams.set('dcPath', this.#findDatacenter(dataStore))
     url.searchParams.set('dsName', dataStore)
     const headers = {}
     if (this.#cookies) {

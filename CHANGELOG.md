@@ -1,5 +1,42 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
+- [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
+- [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
+- [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
+- [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
+
+### Bug fixes
+
+- [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
+- [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
+- [VMWare/Migration] Don't use default proxy to query the source
+- [Import/VMWare] Remove additional whitespaces in host address
+- [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
+- [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+- [VM/Backups] Don't incorrectly list backup jobs using _Smart Mode_ if this VM has a `xo:no-bak` tag [#7527](https://github.com/vatesfr/xen-orchestra/issues/7527)
+
+### Released packages
+
+- @vates/node-vsphere-soap 2.0.1
+- @vates/task 0.3.0
+- @xen-orchestra/audit-core 0.3.0
+- @xen-orchestra/xapi 5.0.1
+- @xen-orchestra/backups 0.48.0
+- @xen-orchestra/backups-cli 1.0.18
+- @xen-orchestra/immutable-backups 1.0.5
+- @xen-orchestra/mixins 0.14.1
+- @xen-orchestra/proxy 0.28.0
+- @xen-orchestra/vmware-explorer 0.7.0
+- xo-server 5.141.0
+- xo-server-audit 0.11.0
+- xo-server-load-balancer 0.9.1
+- xo-web 5.143.0
+
 ## **5.93.1** (2024.04-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
