@@ -159,6 +159,7 @@ export async function rest(args) {
       cookie: 'authenticationToken=' + token,
     },
     rejectUnauthorized: !allowUnauthorized,
+    timeout: 0,
   }
 
   if (command === undefined || !(command in COMMANDS)) {

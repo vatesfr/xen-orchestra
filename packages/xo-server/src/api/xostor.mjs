@@ -109,7 +109,7 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
       } catch (error) {
         if (error.code === 'LVM_ERROR(5)') {
           error.params = error.params.concat([
-            "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
+            "[XO] This error can be triggered if one of the disks is a 'tapdev' disk.",
             '[XO] This error can be triggered if at least one the disks has children.',
             '[XO] This error can be triggered if at least one the disks has a file system.',
           ])
@@ -164,6 +164,11 @@ export const create = defer(async function (
 
   const task = await this.tasks.create({ name: `creation of XOSTOR: ${name}`, type: 'xo:xostor:create' })
   return task.run(async () => {
+    Object.entries(disksByHost).forEach(([hostId, disks]) => {
+      if (disks.length === 0) {
+        delete disksByHost[hostId]
+      }
+    })
     const hostIds = Object.keys(disksByHost)
 
     const tmpBoundObjectId = `tmp_${hostIds.join(',')}_${Math.random().toString(32).slice(2)}`
@@ -212,6 +217,8 @@ export const create = defer(async function (
 
     const host = hosts[0]
     const xapi = this.getXapi(host)
+    const poolHostIds = Object.keys(xapi.objects.indexes.type.host)
+    const poolHosts = poolHostIds.map(id => this.getObject(id, 'host'))
 
     const handleHostsDependencies = defer(async ($defer, hosts) => {
       const boundInstallDependencies = installDependencies.bind(this)
@@ -248,7 +255,7 @@ export const create = defer(async function (
         }
       )
     })
-    await handleHostsDependencies(hosts)
+    await handleHostsDependencies(poolHosts)
 
     const boundFormatDisks = formatDisks.bind(this)
     await asyncEach(
