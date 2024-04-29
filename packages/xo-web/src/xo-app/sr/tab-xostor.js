@@ -5,7 +5,7 @@ import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, connectStore, TryXoa } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { createCollectionWrapper, createSelector, createGetObjectsOfType } from 'selectors'
@@ -18,6 +18,7 @@ import {
 } from 'xo'
 import { find } from 'lodash'
 import { generateId } from 'reaclette-utils'
+import { getXoaPlan, SOURCES } from 'xoa-plans'
 import { Host, Vdi } from 'render-xo-item'
 import { injectState } from 'reaclette'
 
@@ -175,6 +176,17 @@ export default class TabXostor extends Component {
   )
 
   render() {
+    if (getXoaPlan() === SOURCES) {
+      return (
+        <Container>
+          <h2 className='text-info'>{_('xostorAvailableInXoa')}</h2>
+          <p>
+            <TryXoa page='xostor' />
+          </p>
+        </Container>
+      )
+    }
+
     const resourceInfos = this.getResourceInfos()
     const xostorLicenseInfo = this.getXostorLicenseInfo()
 
