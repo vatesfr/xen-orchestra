@@ -37,7 +37,7 @@ const Xostor = decorate([
         <Container>
           <h2 className='text-info'>{_('xostorAvailableInXoa')}</h2>
           <p>
-            <TryXoa page='xosan' />
+            <TryXoa page='xostor' />
           </p>
         </Container>
       ) : (
