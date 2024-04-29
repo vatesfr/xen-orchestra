@@ -39,6 +39,7 @@ import {
   deleteVusb,
   editVm,
   getVmsHaValues,
+  isPciPassthroughAvailable,
   isVmRunning,
   pauseVm,
   recoveryStartVm,
@@ -53,6 +54,8 @@ import {
   subscribeUsers,
   suspendVm,
   unplugVusb,
+  vmAttachPcis,
+  vmDetachPcis,
   vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -64,6 +67,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
+import PciAttachModal from './pci-attach-modal'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -127,11 +131,60 @@ const VUSB_COLUMNS = [
   },
 ]
 
+const PCI_COLUMNS = [
+  {
+    name: _('id'),
+    itemRenderer: (pciId, { pciByPciId }) => {
+      const pci = pciByPciId[pciId]
+      if (pci === undefined) {
+        return _('unknown')
+      }
+      const { uuid } = pci
+      return (
+        <Copiable data={uuid} tagName='p'>
+          {uuid.slice(4, 8)}
+        </Copiable>
+      )
+    },
+  },
+  {
+    default: true,
+    name: _('pciId'),
+    itemRenderer: pciId => pciId,
+    sortCriteria: pciId => pciId,
+  },
+  {
+    name: _('className'),
+    itemRenderer: (pciId, { pciByPciId }) => {
+      const pci = pciByPciId[pciId]
+      return pci === undefined ? _('unknown') : pci.class_name
+    },
+    sortCriteria: (pciId, { pciByPciId }) => pciByPciId[pciId]?.class_name,
+  },
+  {
+    name: _('deviceName'),
+    itemRenderer: (pciId, { pciByPciId }) => {
+      const pci = pciByPciId[pciId]
+      return pci === undefined ? _('unknown') : pci.device_name
+    },
+    sortCriteria: (pciId, { pciByPciId }) => pciByPciId[pciId]?.device_name,
+  },
+]
+
 const VUSB_INDIVIDUAL_ACTIONS = [
   {
     handler: deleteVusb,
     icon: 'delete',
     label: _('delete'),
+    level: 'danger',
+  },
+]
+
+const PCI_ACTIONS = [
+  {
+    handler: (pciIds, { vm }) => vmDetachPcis(vm, pciIds),
+    icon: 'disconnect',
+    label: _('detach'),
     level: 'danger',
   },
 ]
@@ -463,6 +516,7 @@ const NIC_TYPE_OPTIONS = [
       vusb =>
         vusb.vm === vm.id
   )
+  const getPcisbByHost = createGetObjectsOfType('PCI').groupBy('$host')
   const getPusbs = createGetObjectsOfType('PUSB')
   const getAvailablePusbs = getPusbs
     .pick(
@@ -474,6 +528,11 @@ const NIC_TYPE_OPTIONS = [
       )
     )
     .sort()
+  const getVmHosts = createGetObjectsOfType('host').filter(
+    (_, { vm }) =>
+      host =>
+        host.$pool === vm.$pool
+  )
 
   return (state, props) => ({
     availablePusbs: getAvailablePusbs(state, props),
@@ -481,7 +540,9 @@ const NIC_TYPE_OPTIONS = [
     isAdmin: isAdmin(state, props),
     vgpus: getVgpus(state, props),
     vmPool: createGetObject((_, props) => get(() => props.vm.$pool))(state, props),
+    pcisByHost: getPcisbByHost(state, props),
     pusbByUsbGroup: keyBy(getPusbs(state, props), 'usbGroup'),
+    vmHosts: getVmHosts(state, props),
     vusbs: getVusbs(state, props),
   })
 })
@@ -573,6 +634,41 @@ export default class TabAdvanced extends Component {
     return createVusb(this.props.vm, pusb.usbGroup)
   }
 
+  _attachPcis = async () => {
+    const { vm } = this.props
+    const pcis = await confirm({
+      body: <PciAttachModal attachedPciIds={vm.attachedPcis} pcisByHost={this.props.pcisByHost} vm={vm} />,
+      icon: 'add',
+      title: _('attachPcis'),
+    })
+    await vmAttachPcis(vm, pcis)
+  }
+
+  _getPcis = createSelector(
+    () => this.props.vm,
+    () => this.props.pcisByHost,
+    (vm, pcisByHost) => {
+      if (!isVmRunning(vm) && vm.power_state !== 'Paused') {
+        // If the VM is not running, it's not attached to any host, therefore,
+        // we cannot determine which XAPI PCI object is associated with the given PCI_ID (eg: 0000:01:00.4).
+        // This determination depends on the specific host environment.
+        return {}
+      }
+      return keyBy(pcisByHost[vm.$container], 'pci_id')
+    }
+  )
+
+  _getPciAttachButtonTooltip = () => {
+    const { vm, vmHosts } = this.props
+    const host = vmHosts[vm.$container]
+    if (host === undefined) {
+      // Host ACL is required
+      return _('notEnoughPermissionsError')
+    }
+
+    return isPciPassthroughAvailable(host) ? undefined : _('onlyAvailableXcp8.3OrHigher')
+  }
+
   render() {
     const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
@@ -581,6 +677,7 @@ export default class TabAdvanced extends Component {
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
+    const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
     return (
       <Container>
         <Row>
@@ -1116,6 +1213,33 @@ export default class TabAdvanced extends Component {
               columns={VUSB_COLUMNS}
               data-pusbsByUsbGroup={pusbByUsbGroup}
               individualActions={VUSB_INDIVIDUAL_ACTIONS}
+            />
+            <br />
+            <h3>{_('attachedPcis')}</h3>
+            <div className='text-info'>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('infoUnknownPciOnNonRunningVm')}
+              </i>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('attachingDetachingPciNeedVmBoot')}
+              </i>
+            </div>
+            <ActionButton
+              btnStyle='primary'
+              disabled={pciAttachButtonTooltip !== undefined}
+              handler={this._attachPcis}
+              icon='connect'
+              tooltip={pciAttachButtonTooltip}
+            >
+              {_('attachPcis')}
+            </ActionButton>
+            <SortedTable
+              actions={PCI_ACTIONS}
+              collection={vm.attachedPcis}
+              columns={PCI_COLUMNS}
+              data-pciByPciId={this._getPcis()}
+              data-vm={vm}
+              stateUrlParam='s_pcis'
             />
             <br />
             <h3>{_('miscLabel')}</h3>

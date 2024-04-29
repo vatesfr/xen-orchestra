@@ -1393,6 +1393,10 @@ export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', 
 export const isPciPassthroughAvailable = host =>
   host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
 
+export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
+
+export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
 // Containers --------------------------------------------------------
 
 export const pauseContainer = (vm, container) => _call('docker.pause', { vm: resolveId(vm), container })
