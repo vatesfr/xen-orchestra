@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+- [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
 - [VM] At VM creation, warn if secure boot is on but pool is not setup for UEFI Secure Boot [#7500](https://github.com/vatesfr/xen-orchestra/issues/7500) (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
 
 ### Bug fixes
@@ -31,6 +33,11 @@
 
 <!--packages-start-->
 
+- @vates/xml major
+- @vates/xml-rpc major
+- @xen-orchestra/mixins minor
+- xen-api patch
+- xo-cli patch
 - @vates/task minor
 - @xen-orchestra/proxy minor
 - xo-server minor
