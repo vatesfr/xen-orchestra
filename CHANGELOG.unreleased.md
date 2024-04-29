@@ -9,6 +9,7 @@
 
 - [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
 - [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
+- [XOSTOR] Remove the banner _XOSTOR is currently in its BETA stage_
 
 ### Bug fixes
 
