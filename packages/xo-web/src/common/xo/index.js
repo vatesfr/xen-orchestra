@@ -3762,16 +3762,16 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
-const subscribeLicenses = productType =>
+const createLicenseSubscription = productType =>
   createSubscription(() =>
     getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
       ? _call('xoa.licenses.getAll', { productType })
       : undefined
   )
 
-export const subscribeXcpngLicenses = subscribeLicenses('xcpng')
+export const subscribeXcpngLicenses = createLicenseSubscription('xcpng')
 
-export const subscribeXostorLicenses = subscribeLicenses('xostor')
+export const subscribeXostorLicenses = createLicenseSubscription('xostor')
 
 // Support --------------------------------------------------------------------
 

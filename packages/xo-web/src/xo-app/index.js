@@ -16,7 +16,7 @@ import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { checkXoa, clearXoaCheckCache } from 'xo'
 import { forEach, groupBy, keyBy, pick } from 'lodash'
-import { Host as RenderXoHost } from 'render-xo-item'
+import { Host as HostItem } from 'render-xo-item'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
 import { provideState } from 'reaclette'
@@ -246,7 +246,7 @@ export const ICON_POOL_LICENSE = {
       { xostors }
     ) => {
       if (xcpngLicenseByBoundObjectId === undefined || xostorLicensesByBoundObjectId === undefined) {
-        return 
+        return
       }
       const xostorLicenseInfoByXostorId = {}
       const now = Date.now()
@@ -269,7 +269,7 @@ export const ICON_POOL_LICENSE = {
               level: 'danger',
               render: (
                 <p>
-                  {_('hostNoSupport')} <RenderXoHost id={hostId} />
+                  {_('hostNoSupport')} <HostItem id={hostId} />
                 </p>
               ),
             })
@@ -279,7 +279,7 @@ export const ICON_POOL_LICENSE = {
             supportEnabled = false
             alerts.push({
               level: 'danger',
-              render: <p>{_('hostHasNoXostorLicense', { host: <RenderXoHost id={hostId} /> })}</p>,
+              render: <p>{_('hostHasNoXostorLicense', { host: <HostItem id={hostId} /> })}</p>,
             })
           }
 
@@ -288,7 +288,7 @@ export const ICON_POOL_LICENSE = {
               level: 'warning',
               render: (
                 <p>
-                  {_('hostBoundToMultipleXostorLicenses', { host: <RenderXoHost id={hostId} /> })}
+                  {_('hostBoundToMultipleXostorLicenses', { host: <HostItem id={hostId} /> })}
                   <br />
                   {xostorLicenses.map(license => license.id.slice(-4)).join(',')}
                 </p>
@@ -298,15 +298,19 @@ export const ICON_POOL_LICENSE = {
 
           const expiredXostorLicenses = xostorLicenses?.filter(license => license.expires < now)
           if (expiredXostorLicenses?.length > 0) {
-            supportEnabled = expiredXostorLicenses.length < xostorLicenses.length
+            let level = 'warning'
+            if (expiredXostorLicenses.length === xostorLicenses.length) {
+              supportEnabled = false
+              level = 'danger'
+            }
             alerts.push({
-              level: 'danger',
+              level,
               render: (
                 <p>
                   {_('licenseExpiredXostorWarning', {
                     licenseIds: expiredXostorLicenses.map(license => license.id.slice(-4)).join(','),
                     nLicenseIds: expiredXostorLicenses.length,
-                    host: <RenderXoHost id={hostId} />,
+                    host: <HostItem id={hostId} />,
                   })}
                 </p>
               ),
