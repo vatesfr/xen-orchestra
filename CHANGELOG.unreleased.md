@@ -40,7 +40,7 @@
 - @vates/xml major
 - @vates/xml-rpc major
 - @xen-orchestra/mixins minor
-- @xen-orchestra/vmware patch
+- @xen-orchestra/vmware-explorer patch
 - xen-api patch
 - xo-cli patch
 - xo-server minor
