@@ -130,6 +130,10 @@ class AuditCore {
     return nValid
   }
 
+  get(id) {
+    return this._storage.get(id)
+  }
+
   async *getFrom(newest) {
     const storage = this._storage
 

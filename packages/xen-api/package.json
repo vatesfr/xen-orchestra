@@ -33,6 +33,8 @@
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
     "@vates/decorate-with": "^2.1.0",
+    "@vates/xml": "^0.0.0",
+    "@vates/xml-rpc": "^0.0.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
@@ -49,7 +51,6 @@
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
     "undici": "^6.2.1",
-    "xmlrpc-parser": "^1.0.3",
     "xo-collection": "^0.5.0"
   },
   "devDependencies": {

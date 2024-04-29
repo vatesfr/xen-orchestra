@@ -24,6 +24,7 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   fullInterval: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
+  healthCheckTimeout: '10m',
   maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
   nRetriesVmBackupFailures: 0,

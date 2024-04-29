@@ -109,7 +109,7 @@ export async function formatDisks({ disks, force, host, ignoreFileSystems, provi
       } catch (error) {
         if (error.code === 'LVM_ERROR(5)') {
           error.params = error.params.concat([
-            "[XO] This error can be triggered if one of the disks is a 'tapdevs' disk.",
+            "[XO] This error can be triggered if one of the disks is a 'tapdev' disk.",
             '[XO] This error can be triggered if at least one the disks has children.',
             '[XO] This error can be triggered if at least one the disks has a file system.',
           ])
@@ -410,4 +410,20 @@ destroyInterface.params = {
 }
 destroyInterface.resolve = {
   sr: ['sr', 'SR', 'administrate'],
+}
+export async function healthCheck({ sr }) {
+  checkIfLinstorSr(sr)
+  const xapi = this.getXapi(sr)
+  const pool = this.getObject(sr.$pool)
+  const groupName = this.getObject(sr.$PBDs[0]).device_config['group-name']
+
+  return JSON.parse(
+    await pluginCall(xapi, this.getObject(pool.master), 'linstor-manager', 'healthCheck', { groupName })
+  )
+}
+healthCheck.params = {
+  sr: { type: 'string' },
+}
+healthCheck.resolve = {
+  sr: ['sr', 'SR', 'view'],
 }

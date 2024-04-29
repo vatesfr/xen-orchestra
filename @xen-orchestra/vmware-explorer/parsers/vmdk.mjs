@@ -38,7 +38,7 @@ export default function parseVmdk(raw) {
     fileName: descriptor.extent.name,
     parentId: descriptor.parentcid,
     parentFileName: descriptor.parentfilenamehint,
-    vmdFormat: descriptor.extent.type,
+    vmdkFormat: descriptor.extent.type,
     nameLabel: descriptor.extent.name,
   }
 }
