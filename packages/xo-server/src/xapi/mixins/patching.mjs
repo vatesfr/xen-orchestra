@@ -498,13 +498,31 @@ const methods = {
 
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
-    await Task.run({ properties: { name: `Listing missing patches` } }, async () => {
-      await asyncEach(hosts, async host => {
-        const hostUuid = host.uuid
-        const missingPatches = await this.listMissingPatches(hostUuid)
-        hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
-      })
-    })
+    await Task.run(
+      { properties: { name: `Listing missing patches`, total: hosts.length, progress: 0, done: 0 } },
+      async () => {
+        let done = 0
+        await asyncEach(hosts, async host => {
+          const hostUuid = host.uuid
+          await Task.run(
+            {
+              properties: {
+                name: `Listing missing patches for host ${hostUuid}`,
+                hostId: hostUuid,
+                hostName: host.name_label,
+              },
+            },
+            async () => {
+              const missingPatches = await this.listMissingPatches(hostUuid)
+              hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+            }
+          )
+          done++
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / hosts.length))
+        })
+      }
+    )
 
     return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot({
@@ -512,14 +530,19 @@ const methods = {
         beforeEvacuateVms: async () => {
           // On XS/CH, start by installing patches on all hosts
           if (!isXcp) {
-            log.debug('Install patches')
-            await this.installPatches({ xsCredentials })
+            Task.run({ properties: { name: `Installing XS patches` } }, async () => {
+              await this.installPatches({ xsCredentials })
+            })
           }
         },
         beforeRebootHost: async host => {
           if (isXcp) {
-            log.debug(`Install patches on host ${host.id}`)
-            await this.installPatches({ hosts: [host] })
+            Task.run(
+              { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
+              async () => {
+                await this.installPatches({ hosts: [host] })
+              }
+            )
           }
         },
         ignoreHost: host => {

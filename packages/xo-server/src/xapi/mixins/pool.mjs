@@ -1,5 +1,4 @@
 import { cancelable, timeout } from 'promise-toolbox'
-import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
@@ -11,7 +10,6 @@ import groupBy from 'lodash/groupBy.js'
 import mapValues from 'lodash/mapValues.js'
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
-const log = createLogger('xo:xapi')
 
 const methods = {
   exportPoolMetadata($cancelToken) {
@@ -88,67 +86,60 @@ const methods = {
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
-    let hasRestartedOne = false
     // Restart all the hosts one by one
-    await Task.run({ properties: { name: `Restart hosts`, total: hosts.length } }, async () => {
-      let done = 0
-      Task.set('progress', 0)
-      Task.set('done', 0)
-      for (const host of hosts) {
-        const hostId = host.uuid
-        const hostName = host.name_label
+    await Task.run(
+      { properties: { name: `Restarting hosts`, total: hosts.length, progress: 0, done: 0 } },
+      async () => {
+        let done = 0
+        for (const host of hosts) {
+          const hostId = host.uuid
+          const hostName = host.name_label
 
-        if (!ignoreHost || !ignoreHost(host)) {
-          await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
-            // This is an old metrics reference from before the pool master restart.
-            // The references don't seem to change but it's not guaranteed.
-            const metricsRef = host.metrics
+          if (!ignoreHost || !ignoreHost(host)) {
+            await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
+              // This is an old metrics reference from before the pool master restart.
+              // The references don't seem to change but it's not guaranteed.
+              const metricsRef = host.metrics
 
-            await this.barrier(metricsRef)
-            await this._waitObjectState(metricsRef, metrics => metrics.live)
+              await this.barrier(metricsRef)
+              await this._waitObjectState(metricsRef, metrics => metrics.live)
 
-            const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
-            await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
-              await this.clearHost(host)
-            })
+              const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+              await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
+                await this.clearHost(host)
+              })
 
-            await Task.run({ properties: { name: `Actions before reboot`, hostId, hostName } }, async () => {
               if (beforeRebootHost) {
                 await beforeRebootHost(host)
               }
-            })
 
-            const rebootTime = await getServerTime()
-            await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
-              await this.callAsync('host.reboot', host.$ref)
-            })
+              const rebootTime = await getServerTime()
+              await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
+                await this.callAsync('host.reboot', host.$ref)
+              })
 
-            await Task.run({ properties: { name: `Waiting host up`, hostId, hostName } }, async () => {
-              await timeout.call(
-                (async () => {
-                  await this._waitObjectState(
-                    hostId,
-                    host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
-                  )
-                  await this._waitObjectState(metricsRef, metrics => metrics.live)
-                })(),
-                this._restartHostTimeout,
-                new Error(`Host ${hostId} took too long to restart`)
-              )
+              await Task.run({ properties: { name: `Waiting for host to be up`, hostId, hostName } }, async () => {
+                await timeout.call(
+                  (async () => {
+                    await this._waitObjectState(
+                      hostId,
+                      host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+                    )
+                    await this._waitObjectState(metricsRef, metrics => metrics.live)
+                  })(),
+                  this._restartHostTimeout,
+                  new Error(`Host ${hostId} took too long to restart`)
+                )
+              })
+              Task.info(`Host ${hostId} is up`)
             })
-            log.debug(`Host ${hostId} is up`)
-            hasRestartedOne = true
-          })
+          }
+          done++
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / hosts.length))
         }
-        done++
-        Task.set('done', done)
-        Task.set('progress', Math.round((done * 100) / hosts.length))
       }
-    })
-
-    if (hasRestartedOne) {
-      log.debug('Migrate VMs back to where they were')
-    }
+    )
 
     // Start with the last host since it's the emptiest one after the rolling
     // update
@@ -177,14 +168,15 @@ const methods = {
             if (residentVmRefs.includes(vmRef)) {
               continue
             }
+
+            const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
             await Task.run(
-              { properties: { name: `Migrating VM ${vmRef} back to host ${hostId}`, hostId, hostName, vmRef } },
+              { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
               async () => {
                 try {
-                  const vmId = await this.getField('VM', vmRef, 'uuid')
                   await this.migrateVm(vmId, this, hostId)
                 } catch (err) {
-                  log.error(err)
+                  Task.warning(err)
                   if (error === undefined) {
                     error = err
                   }
