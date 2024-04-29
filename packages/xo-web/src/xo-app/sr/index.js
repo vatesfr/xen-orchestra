@@ -22,6 +22,7 @@ import TabHosts from './tab-host'
 import TabLogs from './tab-logs'
 import TabStats from './tab-stats'
 import TabXosan from './tab-xosan'
+import TabXostor from './tab-xostor'
 
 // ===================================================================
 
@@ -33,6 +34,7 @@ import TabXosan from './tab-xosan'
   logs: TabLogs,
   stats: TabStats,
   xosan: TabXosan,
+  xostor: TabXostor,
 })
 @connectStore(() => {
   const getSr = createGetObject()
@@ -127,6 +129,7 @@ export default class Sr extends Component {
               {sr.SR_type === 'xosan' && <NavLink to={`/srs/${sr.id}/xosan`}>XOSAN</NavLink>}
               <NavLink to={`/srs/${sr.id}/hosts`}>{_('hostsTabName')}</NavLink>
               <NavLink to={`/srs/${sr.id}/logs`}>{_('logsTabName')}</NavLink>
+              {sr.SR_type === 'linstor' && <NavLink to={`/srs/${sr.id}/xostor`}>{_('xostor')}</NavLink>}
               <NavLink to={`/srs/${sr.id}/advanced`}>{_('advancedTabName')}</NavLink>
             </NavTabs>
           </Col>

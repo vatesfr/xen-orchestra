@@ -72,7 +72,7 @@ const BindLicensesButton = decorate([
         }
 
         const hostsWithoutLicense = poolHosts.filter(host => {
-          const license = this.state.xcpngLicenseByBoundObjectId[host.id]
+          const license = this.state.xcpngLicenseByBoundObjectId?.[host.id]
           return license === undefined || license.expires < Date.now()
         })
         const licenseIdByHost = await confirm({
