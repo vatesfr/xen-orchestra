@@ -17,6 +17,7 @@
 - Fix support of XenServer 6.5 (broken in XO 5.93.0)
 
 - [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
+- [Import/VMWare] Fix ERR_PREMATURE_CLOSE error with Xenserver hosts (PR [#7563](https://github.com/vatesfr/xen-orchestra/pull/7563))
 
 ### Packages to release
 
