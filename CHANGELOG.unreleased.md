@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [XOSTOR] Various UI modifications in order to prepare XOSTOR official release (PR [#7568](https://github.com/vatesfr/xen-orchestra/pull/7568))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
