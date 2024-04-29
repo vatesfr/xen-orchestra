@@ -42,13 +42,6 @@ const Xostor = decorate([
         </Container>
       ) : (
         <Container>
-          <div className='alert alert-warning'>
-            <p className='mb-0'>
-              <strong>
-                <Icon icon='alarm' /> {_('xostorIsInBetaStage')}
-              </strong>
-            </p>
-          </div>
           <XostorList />
           <Row className='mb-1'>
             <Col>

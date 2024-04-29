@@ -2637,7 +2637,6 @@ const messages = {
   xostor: 'XOSTOR',
   xostorAvailableInXoa: 'XOSTOR is available in XOA',
   xostorCreation: 'XOSTOR creation',
-  xostorIsInBetaStage: 'XOSTOR is currently in its BETA stage. Do not use it in a production environment!',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
   xostorMultipleLicenses: 'This XOSTOR has more than 1 license!',

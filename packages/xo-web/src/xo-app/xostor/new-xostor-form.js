@@ -214,9 +214,9 @@ const PoolCard = decorate([
           {state.poolHosts !== undefined && !state.isPoolXostorCompatible && (
             <div className='text-danger'>
               {/* FIXME: add link of the documentation when ready */}
-              <a href='#' rel='noreferrer' target='_blank'>
+              {/* <a href='#' rel='noreferrer' target='_blank'>
                 {_('objectDoesNotMeetXostorRequirements', { object: <PoolRenderItem id={state.poolId} /> })}
-              </a>
+              </a> */}
               <ul>
                 {!state.isXcpngHost && <li>{_('notXcpPool')}</li>}
                 {!state.poolIsWithinRecommendedHostRange && <li>{_('wrongNumberOfHosts')}</li>}
