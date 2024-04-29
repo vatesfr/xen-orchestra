@@ -1424,7 +1424,7 @@ importFromEsxi.params = {
   stopSource: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
-  workDirRemote: { type: 'string' },
+  workDirRemote: { type: 'string', optional: true },
 }
 
 /**
