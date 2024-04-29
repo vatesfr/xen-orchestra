@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Fix support of XenServer 6.5 (broken in XO 5.93.0)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.

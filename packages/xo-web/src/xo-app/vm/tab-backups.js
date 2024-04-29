@@ -10,6 +10,11 @@ import { subscribeBackupNgJobs } from 'xo'
 
 import JobsTable from '../backup/overview/tab-jobs'
 
+function hasOnlyKey(obj, key) {
+  const keys = Object.keys(obj)
+  return keys.length === 1 && keys[0] === key
+}
+
 const BackupTab = decorate([
   adminOnly,
   addSubscriptions({
@@ -20,8 +25,30 @@ const BackupTab = decorate([
       jobIds: ({ predicate }, { jobs }) => filter(jobs, predicate).map(_ => _.id),
       predicate:
         (_, { vm }) =>
-        ({ vms }) =>
-          vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
+        ({ vms }) => {
+          if (vms === undefined) {
+            return false
+          }
+
+          // simple mode
+          if (hasOnlyKey(vms, 'id')) {
+            const { id } = vms
+            if (id === vm.id) {
+              return true
+            }
+
+            if (hasOnlyKey(id, '__or') && Array.isArray(id.__or)) {
+              return id.__or.includes(vm.id)
+            }
+          }
+
+          // smart mode
+          if (vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')) {
+            // handle xo:no-bak and xo:no-bak=reason tags. For example : VMs from Health Check
+            return false
+          }
+          return createPredicate(omit(vms, 'power_state'))(vm)
+        },
     },
   }),
   injectState,
