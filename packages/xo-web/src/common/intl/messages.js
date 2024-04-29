@@ -1029,11 +1029,8 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
-<<<<<<< HEAD
   applyChangeOnPcis:
     'This operation will reboot the host in order to apply the change on the PCI{nPcis, plural, one {} other {s}}. Are you sure you want to continue?',
-=======
->>>>>>> 340668bbc (feat(xo-web/xo-server/VM): ability to attach PCIs to a VM)
   className: 'Class name',
   deviceName: 'Device name',
   enabled: 'Enabled',
