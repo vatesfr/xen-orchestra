@@ -306,48 +306,41 @@ The following query parameters are supported to customize the created VDI:
 
 ### Available actions
 
-To see the actions available on a given object, get the collection at `/rest/v0/<type>/<uuid>/actions`.
+To see the actions available on objects of a specific collection, get the collection at `/rest/v0/<type>/_/actions`.
 
-The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters. Use `fields=params` to see it when fetching the collection.
+For example, to list all actions on a VM:
 
-For example, to list all actions on a given VM:
-
-```sh
-curl \
+```console
+$ curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions?fields=params'
-```
-
-Example response:
-
-```json
+  'https://xo.company.lan/rest/v0/vms/_/actions'
 [
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_shutdown"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/hard_reboot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/hard_shutdown"
-  },
-  {
-    "params": {
-      "name_label": {
-        "type": "string",
-        "optional": true
-      }
-    },
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/snapshot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/start"
-  }
+"/rest/v0/vms/_/actions/clean_reboot",
+"/rest/v0/vms/_/actions/clean_shutdown",
+"/rest/v0/vms/_/actions/hard_reboot",
+"/rest/v0/vms/_/actions/hard_shutdown",
+"/rest/v0/vms/_/actions/snapshot",
+"/rest/v0/vms/_/actions/start"
 ]
 ```
+
+To see more information about a specific action, you can checkout its endpoint:
+
+```console
+$ curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/_/actions/snapshot'
+{
+  "params": {
+    "name_label": {
+      "type": "string",
+      "optional": true
+    }
+  }
+}
+```
+
+The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters.
 
 ### Start an action
 

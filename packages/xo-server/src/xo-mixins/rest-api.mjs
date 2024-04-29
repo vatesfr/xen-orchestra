@@ -743,7 +743,7 @@ export default class RestApi {
     )
 
     api.get(
-      '/:collection/:object/actions',
+      ['/:collection/_/actions', '/:collection/:object/actions'],
       wrap((req, res) => {
         const { actions } = req.collection
         return sendObjects(
@@ -753,7 +753,7 @@ export default class RestApi {
         )
       })
     )
-    api.get('/:collection/:object/actions/:action', (req, res, next) => {
+    api.get(['/:collection/_/actions/:action', '/:collection/:object/actions/:action'], (req, res, next) => {
       const { action: id } = req.params
       const action = req.collection.actions?.[id]
       if (action === undefined) {
