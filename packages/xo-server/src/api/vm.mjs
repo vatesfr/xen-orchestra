@@ -1398,6 +1398,7 @@ export async function importFromEsxi({
   sr,
   sslVerify = true,
   stopSource = false,
+  template,
   user,
   vm,
   workDirRemote,
@@ -1409,6 +1410,7 @@ export async function importFromEsxi({
     sr,
     sslVerify,
     stopSource,
+    template,
     user,
     vms: [vm],
     workDirRemote,
@@ -1423,6 +1425,7 @@ importFromEsxi.params = {
   sslVerify: { type: 'boolean', optional: true },
   stopSource: { type: 'boolean', optional: true },
   user: { type: 'string' },
+  template: { type: 'string' },
   vm: { type: 'string' },
   workDirRemote: { type: 'string', optional: true },
 }
@@ -1442,6 +1445,7 @@ export async function importMultipleFromEsxi({
   stopSource,
   stopOnError,
   thin,
+  template,
   user,
   vms,
   workDirRemote,
@@ -1483,6 +1487,7 @@ export async function importMultipleFromEsxi({
                 sr,
                 network,
                 stopSource,
+                template,
                 dataStoreToHandlers,
                 workDirRemote: workDirRemoteHandler,
               })
@@ -1533,6 +1538,7 @@ importMultipleFromEsxi.params = {
     description: 'should the import stop on the first error , default true . Warning, change the response format',
   },
   thin: { type: 'boolean', optional: true, default: false },
+  template: { type: 'string' },
   user: { type: 'string' },
   vms: {
     items: {

@@ -29,7 +29,7 @@ export default class MigrateVm {
     return esxi.getAllVmMetadata()
   }
 
-  async #createVmAndNetworks({ metadata, networkId, xapi }) {
+  async #createVmAndNetworks({ metadata, networkId, template, xapi }) {
     const {
       guestId,
       firmware,
@@ -38,7 +38,7 @@ export default class MigrateVm {
       networks,
       nCpus,
     } = metadata
-
+    
     return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
@@ -48,8 +48,9 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           memory_static_min: memory,
-          name_description: `from esxi -- source guest id :${guestId}`,
+          name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
+          platform: { ...template.platform },
           VCPUs_at_startup: nCpus,
           VCPUs_max: nCpus,
         })
@@ -177,6 +178,7 @@ export default class MigrateVm {
       network: networkId,
       vm: vmId,
       stopSource,
+      template: templateId,
       dataStoreToHandlers,
       workDirRemote,
     }
@@ -184,13 +186,14 @@ export default class MigrateVm {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
     const sr = app.getXapiObject(srId)
+    const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
     const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    const vm = await this.#createVmAndNetworks({ metadata, networkId, xapi })
+    const vm = await this.#createVmAndNetworks({ metadata, networkId, template, xapi })
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
     await this.#importDisks({ esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
