@@ -131,7 +131,6 @@ const methods = {
                   new Error(`Host ${hostId} took too long to restart`)
                 )
               })
-              Task.info(`Host ${hostId} is up`)
             })
           }
           done++
@@ -169,22 +168,25 @@ const methods = {
               continue
             }
 
-            const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
-            await Task.run(
-              { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
-              async () => {
-                try {
+            try {
+              const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+              await Task.run(
+                { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
+                async () => {
                   await this.migrateVm(vmId, this, hostId)
-                } catch (err) {
-                  Task.warning(err)
-                  if (error === undefined) {
-                    error = err
-                  }
                 }
+              )
+            } catch (err) {
+              if (error === undefined) {
+                error = err
               }
-            )
+            }
           }
         })
+      }
+      // making the migration task fail if any of the migrations failed
+      if (error !== undefined) {
+        throw error
       }
     })
 

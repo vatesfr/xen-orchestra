@@ -14,13 +14,11 @@ task.start({ name: 'Rolling pool reboot', poolId: string, poolName: string })
 │  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
 │  │  │  └─ task.end
-│  |  ├─ task.info([{message: string}])
 │  │  └─ task.end
 │  └─ task.end
 ├─ task.start({ name: 'Migrate VMs back' })
 |  ├─ task.start({ name: `Migrating VMs back to host ${hostId}`, hostId: string, hostName: string })
 |  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
-│  │  |  ├─ task.warning(message: string)
 │  │  │  └─ task.end
 │  │  └─ task.end
 │  └─ task.end
@@ -48,13 +46,11 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
-│  |  |  ├─ task.info([{message: string}])
 │  │  │  └─ task.end
 │  │  └─ task.end
 │  ├─ task.start({ name: 'Migrate VMs back' })
 │  |  ├─ task.start({ name: `Migrating VMs back to host ${hostId}`, hostId: string, hostName: string })
 │  |  |  ├─ task.start({ name: `Migrating VM ${vmId} back to host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
-│  │  |  |  ├─ task.warning(message: string)
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
 │  │  └─ task.end
