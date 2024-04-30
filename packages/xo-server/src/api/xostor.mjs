@@ -18,10 +18,10 @@ function checkIfLinstorSr(sr) {
   }
 }
 
-function pluginCall(xapi, host, plugin, fnName, args) {
+function pluginCall(xapi, host, plugin, fnName, args, { useAsync = true } = {}) {
   return Task.run(
     { properties: { name: `call plugin on: ${host.name_label}`, objectId: host.uuid, plugin, fnName, args } },
-    () => xapi.call('host.call_plugin', host._xapiRef, plugin, fnName, args)
+    () => xapi[useAsync ? 'callAsync' : 'call']('host.call_plugin', host._xapiRef, plugin, fnName, args)
   )
 }
 
@@ -85,12 +85,14 @@ updateDependencies.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
-export async function formatDisks({ disks, force, host, ignoreFileSystems, provisioning }) {
+export async function formatDisks({ disks, force, host, ignoreFileSystems, provisioning, xapi }) {
   const rawDisks = disks.join(',')
   return Task.run(
     { properties: { disks, name: `format disks on ${host.name_label}`, objectId: host.uuid } },
     async () => {
-      const xapi = this.getXapi(host)
+      if (xapi === undefined) {
+        xapi = this.getXapi(host)
+      }
 
       const lvmPlugin = (fnName, args) => pluginCall(xapi, host, 'lvm.py', fnName, args)
 
@@ -246,9 +248,16 @@ export const create = defer(async function (
           try {
             needInstallPackages = Object.values(
               JSON.parse(
-                await pluginCall(xapi, host, 'updater.py', 'query_installed', {
-                  packages: XOSTOR_DEPENDENCIES.join(),
-                })
+                await pluginCall(
+                  xapi,
+                  host,
+                  'updater.py',
+                  'query_installed',
+                  {
+                    packages: XOSTOR_DEPENDENCIES.join(),
+                  },
+                  { useAsync: false }
+                )
               )
             ).some(pkg => pkg === '')
           } catch (_) {}
@@ -274,7 +283,7 @@ export const create = defer(async function (
     await asyncEach(
       hosts,
       async host => {
-        await boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning })
+        await boundFormatDisks({ disks: disksByHost[host.id], host, force, ignoreFileSystems, provisioning, xapi })
         $defer.onFailure(() => destroyVolumeGroup(xapi, host, true))
       },
       {
@@ -431,7 +440,14 @@ export async function healthCheck({ sr }) {
   const groupName = this.getObject(sr.$PBDs[0]).device_config['group-name']
 
   return JSON.parse(
-    await pluginCall(xapi, this.getObject(pool.master), 'linstor-manager', 'healthCheck', { groupName })
+    await pluginCall(
+      xapi,
+      this.getObject(pool.master),
+      'linstor-manager',
+      'healthCheck',
+      { groupName },
+      { useAsync: false }
+    )
   )
 }
 healthCheck.params = {
