@@ -7,6 +7,9 @@ import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
+import { v4 as uuidv4 } from 'uuid'
+import VhdEsxiStreamOptimized from '@xen-orchestra/vmware-explorer/VhdEsxiStreamOptimized.mjs'
+import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 
 export default class MigrateVm {
   constructor(app) {
@@ -70,8 +73,45 @@ export default class MigrateVm {
     })
   }
 
-  async #importDisks({ esxi, dataStoreToHandlers, metadata, sr, stopSource, vm, vmId }) {
+  #getTempDiskPath() {
+    return `xo-vm-tmp/${uuidv4()}.vmdk`
+  }
+
+  @decorateWith(deferrable)
+  async _importDisksExportVm($defer, { workDirRemote, vmId, vm, sr, esxi }) {
+    const streams = await esxi.export(`${vmId}`)
+    await Promise.all(
+      Object.entries(streams).map(async ([key, stream], userdevice) => {
+        const path = this.#getTempDiskPath()
+        $defer(() => workDirRemote.unlink(path))
+        await workDirRemote.outputStream(path, stream)
+        const vhd = new VhdEsxiStreamOptimized(workDirRemote, path)
+        await vhd.readHeaderAndFooter()
+        await vhd.readBlockAllocationTable()
+        const vdiMetadata = {
+          name_description: key,
+          name_label: '[ESXI][VSAN]' + key,
+          SR: sr.$ref,
+          virtual_size: vhd.footer.currentSize,
+        }
+        const vdi = await importVdiThroughXva(vdiMetadata, vhd, sr.$xapi, sr)
+        const vbd = await sr.$xapi.VBD_create({
+          VDI: vdi.$ref,
+          VM: vm.$ref,
+          device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+          userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
+        })
+        $defer.onFailure(() => sr.$xapi.call('VBD.destroy', vbd))
+      })
+    )
+  }
+
+  async #importDisks({ esxi, dataStoreToHandlers, metadata, sr, stopSource, vm, vmId, workDirRemote }) {
     const { disks, powerState, snapshots } = metadata
+    if (disks.some(({ usingVsan }) => usingVsan)) {
+      Task.info('Some VM storages use VSAN, fall back to compatible API')
+      return this._importDisksExportVm({ workDirRemote, vmId, vm, sr, esxi })
+    }
 
     const isRunning = powerState !== 'poweredOff'
 
@@ -120,7 +160,18 @@ export default class MigrateVm {
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, dataStoreToHandlers }
+    {
+      host,
+      user,
+      password,
+      sslVerify,
+      sr: srId,
+      network: networkId,
+      vm: vmId,
+      stopSource,
+      dataStoreToHandlers,
+      workDirRemote,
+    }
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -134,7 +185,7 @@ export default class MigrateVm {
     const vm = await this.#createVmAndNetworks({ metadata, networkId, xapi })
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
-    await this.#importDisks({ esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId })
+    await this.#importDisks({ esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
 
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label

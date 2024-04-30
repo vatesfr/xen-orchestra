@@ -72,7 +72,7 @@ const BindLicensesButton = decorate([
         }
 
         const hostsWithoutLicense = poolHosts.filter(host => {
-          const license = this.state.xcpngLicenseByBoundObjectId[host.id]
+          const license = this.state.xcpngLicenseByBoundObjectId?.[host.id]
           return license === undefined || license.expires < Date.now()
         })
         const licenseIdByHost = await confirm({
@@ -204,8 +204,8 @@ class SelectDefaultSr extends Component {
     const { defaultSr } = this.props
 
     return (
-      <XoSelect onChange={setDefaultSr} value={defaultSr.id} xoType='SR'>
-        <Sr id={defaultSr.id} />
+      <XoSelect onChange={setDefaultSr} value={defaultSr} xoType='SR'>
+        {defaultSr !== undefined ? <Sr id={defaultSr.id} /> : _('noValue')}
       </XoSelect>
     )
   }
