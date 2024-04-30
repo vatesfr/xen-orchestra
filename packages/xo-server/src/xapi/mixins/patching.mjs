@@ -8,6 +8,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { extractOpaqueRef } from '@xen-orchestra/xapi'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
@@ -497,30 +498,57 @@ const methods = {
 
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
-    await asyncEach(hosts, async host => {
-      const hostUuid = host.uuid
-      const missingPatches = await this.listMissingPatches(hostUuid)
-      hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
-    })
+    await Task.run(
+      { properties: { name: `Listing missing patches`, total: hosts.length, progress: 0, done: 0 } },
+      async () => {
+        let done = 0
+        await asyncEach(hosts, async host => {
+          const hostUuid = host.uuid
+          await Task.run(
+            {
+              properties: {
+                name: `Listing missing patches for host ${hostUuid}`,
+                hostId: hostUuid,
+                hostName: host.name_label,
+              },
+            },
+            async () => {
+              const missingPatches = await this.listMissingPatches(hostUuid)
+              hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+            }
+          )
+          done++
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / hosts.length))
+        })
+      }
+    )
 
-    await this.rollingPoolReboot({
-      xsCredentials,
-      beforeEvacuateVms: async () => {
-        // On XS/CH, start by installing patches on all hosts
-        if (!isXcp) {
-          log.debug('Install patches')
-          await this.installPatches({ xsCredentials })
-        }
-      },
-      beforeRebootHost: async host => {
-        if (isXcp) {
-          log.debug(`Install patches on host ${host.id}`)
-          await this.installPatches({ hosts: [host] })
-        }
-      },
-      ignoreHost: host => {
-        return !hasMissingPatchesByHost[host.uuid]
-      },
+    return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
+      await this.rollingPoolReboot({
+        xsCredentials,
+        beforeEvacuateVms: async () => {
+          // On XS/CH, start by installing patches on all hosts
+          if (!isXcp) {
+            Task.run({ properties: { name: `Installing XS patches` } }, async () => {
+              await this.installPatches({ xsCredentials })
+            })
+          }
+        },
+        beforeRebootHost: async host => {
+          if (isXcp) {
+            Task.run(
+              { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
+              async () => {
+                await this.installPatches({ hosts: [host] })
+              }
+            )
+          }
+        },
+        ignoreHost: host => {
+          return !hasMissingPatchesByHost[host.uuid]
+        },
+      })
     })
   },
 }

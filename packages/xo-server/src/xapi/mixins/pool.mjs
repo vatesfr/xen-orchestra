@@ -1,16 +1,15 @@
 import { cancelable, timeout } from 'promise-toolbox'
-import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
 import groupBy from 'lodash/groupBy.js'
 import mapValues from 'lodash/mapValues.js'
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
-const log = createLogger('xo:xapi')
 
 const methods = {
   exportPoolMetadata($cancelToken) {
@@ -87,94 +86,109 @@ const methods = {
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
-    let hasRestartedOne = false
     // Restart all the hosts one by one
-    for (const host of hosts) {
-      const hostId = host.uuid
-      if (ignoreHost && ignoreHost(host)) {
-        continue
+    await Task.run(
+      { properties: { name: `Restarting hosts`, total: hosts.length, progress: 0, done: 0 } },
+      async () => {
+        let done = 0
+        for (const host of hosts) {
+          const hostId = host.uuid
+          const hostName = host.name_label
+
+          if (!ignoreHost || !ignoreHost(host)) {
+            await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
+              // This is an old metrics reference from before the pool master restart.
+              // The references don't seem to change but it's not guaranteed.
+              const metricsRef = host.metrics
+
+              await this.barrier(metricsRef)
+              await this._waitObjectState(metricsRef, metrics => metrics.live)
+
+              const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+              await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
+                await this.clearHost(host)
+              })
+
+              if (beforeRebootHost) {
+                await beforeRebootHost(host)
+              }
+
+              const rebootTime = await getServerTime()
+              await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
+                await this.callAsync('host.reboot', host.$ref)
+              })
+
+              await Task.run({ properties: { name: `Waiting for host to be up`, hostId, hostName } }, async () => {
+                await timeout.call(
+                  (async () => {
+                    await this._waitObjectState(
+                      hostId,
+                      host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+                    )
+                    await this._waitObjectState(metricsRef, metrics => metrics.live)
+                  })(),
+                  this._restartHostTimeout,
+                  new Error(`Host ${hostId} took too long to restart`)
+                )
+              })
+            })
+          }
+          done++
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / hosts.length))
+        }
       }
-
-      // This is an old metrics reference from before the pool master restart.
-      // The references don't seem to change but it's not guaranteed.
-      const metricsRef = host.metrics
-
-      await this.barrier(metricsRef)
-      await this._waitObjectState(metricsRef, metrics => metrics.live)
-
-      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
-      log.debug(`Evacuate host ${hostId}`)
-      await this.clearHost(host)
-
-      if (beforeRebootHost) {
-        await beforeRebootHost(host)
-      }
-
-      log.debug(`Restart host ${hostId}`)
-      const rebootTime = await getServerTime()
-      await this.callAsync('host.reboot', host.$ref)
-
-      log.debug(`Wait for host ${hostId} to be up`)
-      await timeout.call(
-        (async () => {
-          await this._waitObjectState(
-            hostId,
-            host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
-          )
-          await this._waitObjectState(metricsRef, metrics => metrics.live)
-        })(),
-        this._restartHostTimeout,
-        new Error(`Host ${hostId} took too long to restart`)
-      )
-      log.debug(`Host ${hostId} is up`)
-      hasRestartedOne = true
-    }
-
-    if (hasRestartedOne) {
-      log.debug('Migrate VMs back to where they were')
-    }
+    )
 
     // Start with the last host since it's the emptiest one after the rolling
     // update
     ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
 
-    let error
-    for (const host of hosts) {
-      const hostId = host.uuid
-      if (ignoreHost && ignoreHost(host)) {
-        continue
-      }
-
-      const vmRefs = vmRefsByHost[hostId]
-
-      if (vmRefs === undefined) {
-        continue
-      }
-
-      // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
-      // this.getField is used in order not to get cached data.
-      const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
-
-      for (const vmRef of vmRefs) {
-        if (residentVmRefs.includes(vmRef)) {
+    await Task.run({ properties: { name: `Migrate VMs back` } }, async () => {
+      let error
+      for (const host of hosts) {
+        const hostId = host.uuid
+        const hostName = host.name_label
+        if (ignoreHost && ignoreHost(host)) {
           continue
         }
 
-        try {
-          const vmId = await this.getField('VM', vmRef, 'uuid')
-          await this.migrateVm(vmId, this, hostId)
-        } catch (err) {
-          log.error(err)
-          if (error === undefined) {
-            error = err
-          }
-        }
-      }
-    }
+        const vmRefs = vmRefsByHost[hostId]
 
-    if (error !== undefined) {
-      throw error
-    }
+        if (vmRefs === undefined) {
+          continue
+        }
+        await Task.run({ properties: { name: `Migrating VMs back to host ${hostId}`, hostId, hostName } }, async () => {
+          // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
+          // this.getField is used in order not to get cached data.
+          const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
+
+          for (const vmRef of vmRefs) {
+            if (residentVmRefs.includes(vmRef)) {
+              continue
+            }
+
+            try {
+              const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+              await Task.run(
+                { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
+                async () => {
+                  await this.migrateVm(vmId, this, hostId)
+                }
+              )
+            } catch (err) {
+              if (error === undefined) {
+                error = err
+              }
+            }
+          }
+        })
+      }
+      // making the migration task fail if any of the migrations failed
+      if (error !== undefined) {
+        throw error
+      }
+    })
   },
 }
 
