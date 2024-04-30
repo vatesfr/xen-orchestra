@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Tree view] Update tree view with new components from design system (PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))
+
 ## **0.2.1** (2024-04-02)
 
 - Fix duplicate consoles after failed connection (PR [#7505](https://github.com/vatesfr/xen-orchestra/pull/7505))

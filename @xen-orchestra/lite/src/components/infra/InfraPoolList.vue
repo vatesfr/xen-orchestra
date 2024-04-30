@@ -1,40 +1,33 @@
 <template>
-  <ul class="infra-pool-list typo h6-medium">
-    <li v-if="hasError" class="text-error typo h6-semi-bold">
-      {{ $t('error-no-data') }}
-    </li>
-    <InfraLoadingItem v-else-if="!isReady || pool === undefined" :icon="faBuilding" />
-    <li v-else class="infra-pool-item">
-      <InfraItemLabel :icon="faBuilding" :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }" active>
+  <TreeList class="infra-pool-list">
+    <TreeItem>
+      <TreeItemError v-if="hasError">
+        {{ $t('error-no-data') }}
+      </TreeItemError>
+      <TreeLoadingItem v-else-if="!isReady || pool === undefined" :icon="faCity" />
+      <TreeItemLabel v-else :icon="faCity" :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }">
         {{ pool.name_label || '(Pool)' }}
-      </InfraItemLabel>
-
-      <InfraHostList />
-
-      <InfraVmList />
-    </li>
-  </ul>
+      </TreeItemLabel>
+      <template #sublist>
+        <TreeList>
+          <InfraHostItems />
+          <InfraVmItems />
+        </TreeList>
+      </template>
+    </TreeItem>
+  </TreeList>
 </template>
 
 <script lang="ts" setup>
-import InfraHostList from '@/components/infra/InfraHostList.vue'
-import InfraItemLabel from '@/components/infra/InfraItemLabel.vue'
-import InfraLoadingItem from '@/components/infra/InfraLoadingItem.vue'
-import InfraVmList from '@/components/infra/InfraVmList.vue'
+import InfraHostItems from '@/components/infra/InfraHostItems.vue'
+import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import { usePoolCollection } from '@/stores/xen-api/pool.store'
-import { faBuilding } from '@fortawesome/free-regular-svg-icons'
+import TreeItem from '@core/components/tree/TreeItem.vue'
+import TreeItemError from '@core/components/tree/TreeItemError.vue'
+import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
+import TreeList from '@core/components/tree/TreeList.vue'
+import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
+import { faCity } from '@fortawesome/free-solid-svg-icons'
 
 const { isReady, hasError, pool } = usePoolCollection()
 </script>
-
-<style lang="postcss" scoped>
-.infra-vm-list:deep(.link),
-.infra-vm-list:deep(.link-placeholder) {
-  padding-left: 2rem;
-}
-
-.text-error {
-  padding-left: 3rem;
-  color: var(--color-red-base);
-}
-</style>

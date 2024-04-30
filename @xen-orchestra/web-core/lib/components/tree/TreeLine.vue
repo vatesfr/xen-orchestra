@@ -15,7 +15,7 @@ defineProps<{
 <style lang="postcss" scoped>
 .tree-line {
   --offset: 0.7rem;
-  flex: 0 1 1.25em;
+  flex: 0 1 1em;
   align-self: stretch;
   display: flex;
   align-items: center;
