@@ -144,8 +144,8 @@ const methods = {
     // update
     ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
 
-    let error
     await Task.run({ properties: { name: `Migrate VMs back` } }, async () => {
+      let error
       for (const host of hosts) {
         const hostId = host.uuid
         const hostName = host.name_label
@@ -189,10 +189,6 @@ const methods = {
         throw error
       }
     })
-
-    if (error !== undefined) {
-      throw error
-    }
   },
 }
 
