@@ -47,7 +47,7 @@
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
     "vhd-lib": "^4.9.2",
-    "xen-api": "^3.0.0",
+    "xen-api": "^3.0.1",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
