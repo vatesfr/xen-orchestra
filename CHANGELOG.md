@@ -9,6 +9,14 @@
 - [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
 - [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
 - [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
+- [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+- [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
+- [Home/SR] Display _Pro Support_ status for XOSTOR SR (PR [#7601](https://github.com/vatesfr/xen-orchestra/pull/7601))
+- [Host/Advanced] Ability to `enable/disable` passthrough for PCIs [#7432](https://github.com/vatesfr/xen-orchestra/issues/7432) (PR [#7455](https://github.com/vatesfr/xen-orchestra/pull/7455))
+- [VM/Advanced] Ability to `attach/detach` PCIs to a VM [#7432](https://github.com/vatesfr/xen-orchestra/issues/7432) (PR [#7464](https://github.com/vatesfr/xen-orchestra/pull/7464))
+- [XOSTOR] XOSTOR is no longer in BETA
+- [VM] At VM creation, warn if secure boot is on but pool is not setup for UEFI Secure Boot [#7500](https://github.com/vatesfr/xen-orchestra/issues/7500) (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
+- [Rolling Pool Update/Reboot] Use XO tasks for better reportability (PR [#7578](https://github.com/vatesfr/xen-orchestra/pull/7578))
 
 ### Bug fixes
 
@@ -19,6 +27,14 @@
 - [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
 - [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
 - [VM/Backups] Don't incorrectly list backup jobs using _Smart Mode_ if this VM has a `xo:no-bak` tag [#7527](https://github.com/vatesfr/xen-orchestra/issues/7527)
+- Fix support of XenServer 6.5 (broken in XO 5.93.0)
+- [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
+- [Import/VMWare] Fix ERR_PREMATURE_CLOSE error with Xenserver hosts (PR [#7563](https://github.com/vatesfr/xen-orchestra/pull/7563))
+- [VMWare/Migration] Handle multiple datacenters (PR [#7553](https://github.com/vatesfr/xen-orchestra/pull/7553))
+- [XOSTOR/create] In the summary section, the warning message "Hosts do not have the same number of disks" now takes into consideration host without disks (PR [#7572](https://github.com/vatesfr/xen-orchestra/pull/7572))
+- [XOSTOR] Install or update packages on all hosts in the pool rather than just hosts with disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
+- [XOSTOR] Fix `LVM_ERROR(5)` during XOSTOR creation (PR [#7598](https://github.com/vatesfr/xen-orchestra/pull/7598))
+- [Pool/Advanced] Fix `an error has occurred` when no default SR is set on the pool (PR [#7616](https://github.com/vatesfr/xen-orchestra/pull/7616))
 
 ### Released packages
 
@@ -29,13 +45,17 @@
 - @xen-orchestra/backups 0.48.0
 - @xen-orchestra/backups-cli 1.0.18
 - @xen-orchestra/immutable-backups 1.0.5
-- @xen-orchestra/mixins 0.14.1
-- @xen-orchestra/proxy 0.28.0
-- @xen-orchestra/vmware-explorer 0.7.0
-- xo-server 5.141.0
 - xo-server-audit 0.11.0
 - xo-server-load-balancer 0.9.1
-- xo-web 5.143.0
+- @vates/xml 2.0.0
+- @vates/xml-rpc 1.0.0
+- xen-api 3.0.1
+- @xen-orchestra/mixins 0.15.0
+- @xen-orchestra/proxy 0.28.1
+- @xen-orchestra/vmware-explorer 0.7.1
+- xo-cli 0.27.1
+- xo-server 5.142.0
+- xo-web 5.144.0
 
 ## **5.93.1** (2024.04-10)
 
