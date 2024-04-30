@@ -35,6 +35,7 @@
 - [XOSTOR] Install or update packages on all hosts in the pool rather than just hosts with disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
 - [XOSTOR] Fix `LVM_ERROR(5)` during XOSTOR creation (PR [#7598](https://github.com/vatesfr/xen-orchestra/pull/7598))
 - [Pool/Advanced] Fix `an error has occurred` when no default SR is set on the pool (PR [#7616](https://github.com/vatesfr/xen-orchestra/pull/7616))
+- [XOSTOR/Create] Fix `UND_ERR_HEADERS_TIMEOUT` error when installing dependencies (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
 
 ### Released packages
 
@@ -54,7 +55,7 @@
 - @xen-orchestra/proxy 0.28.1
 - @xen-orchestra/vmware-explorer 0.7.1
 - xo-cli 0.27.1
-- xo-server 5.142.0
+- xo-server 5.142.1
 - xo-web 5.144.0
 
 ## **5.93.1** (2024.04-10)
