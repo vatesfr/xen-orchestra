@@ -204,8 +204,8 @@ class SelectDefaultSr extends Component {
     const { defaultSr } = this.props
 
     return (
-      <XoSelect onChange={setDefaultSr} value={defaultSr.id} xoType='SR'>
-        <Sr id={defaultSr.id} />
+      <XoSelect onChange={setDefaultSr} value={defaultSr} xoType='SR'>
+        {defaultSr !== undefined ? <Sr id={defaultSr.id} /> : _('noValue')}
       </XoSelect>
     )
   }
