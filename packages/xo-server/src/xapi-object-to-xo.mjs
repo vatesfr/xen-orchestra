@@ -99,6 +99,7 @@ const TRANSFORMS = {
     const cpuInfo = obj.cpu_info
     return {
       auto_poweron: obj.other_config.auto_poweron === 'true',
+      secureBootSetup: obj.custom_uefi_certificates !== undefined && obj.custom_uefi_certificates !== '',
       crashDumpSr: link(obj, 'crash_dump_SR'),
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
