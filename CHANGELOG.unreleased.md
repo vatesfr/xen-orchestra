@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [XOSTOR/Create] Fix `UND_ERR_HEADERS_TIMEOUT` error when installing dependencies (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,7 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- xo-server patch
 
 <!--packages-end-->
