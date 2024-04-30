@@ -1777,23 +1777,25 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          hvmBootFirmware === 'uefi' && (
-            <SectionContent>
+          hvmBootFirmware === 'uefi' && [
+            <SectionContent key='secureBoot'>
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
-                {secureBoot && pool !== undefined && !pool.secureBootSetup && (
-                  <span className='align-self-center text-danger ml-1'>
-                    <a
-                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
-                      rel='noopener noreferrer'
-                      className='text-danger'
-                      target='_blank'
-                    >
-                      <Icon icon='alarm' /> {_('secureBootNotSetup')}
-                    </a>
-                  </span>
-                )}
               </Item>
+              {secureBoot && pool !== undefined && !pool.secureBootSetup && (
+                <span className='align-self-center text-danger ml-1'>
+                  <a
+                    href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                    rel='noopener noreferrer'
+                    className='text-danger'
+                    target='_blank'
+                  >
+                    <Icon icon='alarm' /> {_('secureBootNotSetup')}
+                  </a>
+                </span>
+              )}
+            </SectionContent>,
+            <SectionContent key='vtpm'>
               <Item label={_('enableVtpm')} className='d-inline-flex'>
                 <Tooltip content={!isVtpmSupported ? _('vtpmNotSupported') : undefined}>
                   <Toggle onChange={this._toggleState('createVtpm')} value={createVtpm} disabled={!isVtpmSupported} />
@@ -1812,7 +1814,7 @@ export default class NewVm extends BaseComponent {
                 )}
               </Item>
             </SectionContent>
-          ),
+          ],
           isAdmin && isHvm && (
             <SectionContent>
               <Item>

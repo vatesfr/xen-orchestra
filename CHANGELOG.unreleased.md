@@ -38,8 +38,6 @@
 - @xen-orchestra/mixins minor
 - xen-api patch
 - xo-cli patch
-- @vates/task minor
-- @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor
 
