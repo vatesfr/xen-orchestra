@@ -273,13 +273,14 @@ export default class Esxi extends EventEmitter {
 
         // structure of layoutEx is described in  https://developer.vmware.com/apis/1720/
         layoutEx?.disk?.forEach(disk => {
+          // we can stop, even if only one disk is missing an extent
           hasAllExtentsListed &&
             disk.chain?.forEach(({ fileKey: fileKeys }) => {
               // look for the disk extent data , not the descriptor
-              const fileChain = layoutEx.file.find(file => {
+              const fileExtent = layoutEx.file.find(file => {
                 return fileKeys.includes(file.key) && file.type === 'diskExtent'
               })
-              hasAllExtentsListed = hasAllExtentsListed && fileChain.length === fileKeys.length // the chain is complete
+              hasAllExtentsListed = hasAllExtentsListed && fileExtent !== undefined
             })
         })
         const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
