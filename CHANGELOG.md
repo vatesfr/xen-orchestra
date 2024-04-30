@@ -47,7 +47,7 @@
 - @xen-orchestra/immutable-backups 1.0.5
 - xo-server-audit 0.11.0
 - xo-server-load-balancer 0.9.1
-- @vates/xml 1.0.0
+- @vates/xml 2.0.0
 - @vates/xml-rpc 1.0.0
 - xen-api 3.0.1
 - @xen-orchestra/mixins 0.15.0
