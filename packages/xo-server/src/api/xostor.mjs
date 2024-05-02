@@ -206,7 +206,6 @@ export const create = defer(async function (
         throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
       }
 
-      // only if not using trial XOSTOR licenses
       if (availableLicenses.some(license => !license.tags.includes('TRIAL'))) {
         const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
         const hostIdsWithoutXcpLicense = poolHostIds.filter(id => {
