@@ -2628,6 +2628,7 @@ const messages = {
   pifsNotAttached: 'Not all PIFs are attached',
   pifsNotStatic: 'Not all PIFs are static',
   replication: 'Replication',
+  replicationCount: 'Replication count is higher than hosts with disks',
   resourceList: 'Resource list',
   rpuNoLongerAvailableIfXostor:
     'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
