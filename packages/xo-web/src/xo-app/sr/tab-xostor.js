@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
@@ -40,7 +41,7 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('vdi'),
-    itemRenderer: ({ vdiId }) => vdiId !== '' && <Vdi id={vdiId} />,
+    itemRenderer: ({ vdiId }) => <Copiable data={vdiId}>{vdiId !== '' && <Vdi id={vdiId} />}</Copiable>,
   },
   {
     name: _('inUse'),
