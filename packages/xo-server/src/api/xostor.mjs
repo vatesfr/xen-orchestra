@@ -188,17 +188,6 @@ export const create = defer(async function (
       const now = Date.now()
       const nPoolHosts = poolHostIds.length
 
-      const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
-      const hostIdsWithoutXcpLicense = poolHostIds.filter(id => {
-        const license = xcpLicenseByHostId[id]
-        return license === undefined || license.expires < now
-      })
-
-      const nHostWithoutXcpLicense = hostIdsWithoutXcpLicense.length
-      if (nHostWithoutXcpLicense > 0) {
-        throw new Error(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`)
-      }
-
       const xostorLicenses = await this.getLicenses({ productType: 'xostor' })
       let availableLicenses = xostorLicenses.filter(
         ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > now)
@@ -215,6 +204,20 @@ export const create = defer(async function (
         )
       } else if (nAvailableLicenses < nPoolHosts) {
         throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
+      }
+
+      // only if not using trial XOSTOR licenses
+      if (availableLicenses.some(license => !license.tags.includes('TRIAL'))) {
+        const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
+        const hostIdsWithoutXcpLicense = poolHostIds.filter(id => {
+          const license = xcpLicenseByHostId[id]
+          return license === undefined || license.expires < now
+        })
+
+        const nHostWithoutXcpLicense = hostIdsWithoutXcpLicense.length
+        if (nHostWithoutXcpLicense > 0) {
+          throw new Error(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`)
+        }
       }
 
       await asyncEach(

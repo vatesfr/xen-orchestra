@@ -264,9 +264,14 @@ export const ICON_POOL_LICENSE = {
           const xostorLicenses = xostorLicensesByBoundObjectId[hostId]
 
           if (xcpngLicense === undefined || xcpngLicense.expires < now) {
-            supportEnabled = false
+            const isTrialLicenses = xostorLicenses.every(
+              license => license.tags.includes('TRIAL') && license.expires > now
+            )
+            if (!isTrialLicenses) {
+              supportEnabled = false
+            }
             alerts.push({
-              level: 'danger',
+              level: isTrialLicenses ? 'warning' : 'danger',
               render: (
                 <p>
                   {_('hostNoSupport')} <HostItem id={hostId} />
