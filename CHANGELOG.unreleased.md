@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+-[XOSTOR] Display a warning when replication count is higher than then number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->
