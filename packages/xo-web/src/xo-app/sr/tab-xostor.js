@@ -41,7 +41,7 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('vdi'),
-    itemRenderer: ({ vdiId }) => <Copiable data={vdiId}>{vdiId !== '' && <Vdi id={vdiId} />}</Copiable>,
+    itemRenderer: ({ vdiId }) => vdiId !== '' && <Copiable data={vdiId}>{<Vdi id={vdiId} />}</Copiable>,
   },
   {
     name: _('inUse'),
