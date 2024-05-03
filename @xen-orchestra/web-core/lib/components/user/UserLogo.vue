@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <span :class="size" class="user-logo" />
 </template>

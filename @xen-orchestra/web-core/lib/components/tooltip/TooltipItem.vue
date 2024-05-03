@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip typo p3-regular">
     {{ content }}

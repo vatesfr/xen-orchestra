@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <div
     :class="{ locked: sidebar.isLocked && !ui.isMobile, expanded: sidebar.isExpanded, mobile: ui.isMobile }"

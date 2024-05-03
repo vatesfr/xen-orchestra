@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <FontAwesomeLayers :class="[size, { disabled: stateConfig === undefined }]" class="object-icon">
     <UiIcon :icon="mainIcon" />

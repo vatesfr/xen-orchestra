@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <li class="menu-item">
     <MenuTrigger

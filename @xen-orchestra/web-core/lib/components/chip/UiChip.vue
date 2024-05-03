@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <span :class="[color, { disabled }]" class="ui-chip typo p3-regular" @click="emit('edit')">
     <ChipIcon :color :disabled :icon />

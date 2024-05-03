@@ -1,3 +1,4 @@
+<!-- v1.1.0 -->
 <template>
   <FontAwesomeLayers :class="size" class="complex-icon">
     <slot />

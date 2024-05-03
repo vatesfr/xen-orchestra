@@ -1,3 +1,4 @@
+<!-- v1.0.0 -->
 <template>
   <component :is="tag" :class="classNames" class="tab-item typo">
     <slot />

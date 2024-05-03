@@ -1,3 +1,4 @@
+<!-- v1.1.0 -->
 <template>
   <ul class="tree-list">
     <slot />
