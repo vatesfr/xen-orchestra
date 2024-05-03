@@ -20,6 +20,8 @@ const icon = computed(() => {
       return faCircleMinus
     case 'success':
       return faCheckCircle
+    default:
+      return faCircleXmark
   }
 })
 </script>
