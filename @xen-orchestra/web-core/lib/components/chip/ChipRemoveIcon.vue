@@ -1,11 +1,12 @@
+<!-- v1.1.0 -->
 <template>
-  <ButtonIcon :color :disabled :icon="faCircleXmark" class="chip-remove-icon" size="small" />
+  <ButtonIcon v-if="!disabled" :color :disabled :icon="faXmark" class="chip-remove-icon" size="small" />
 </template>
 
 <script lang="ts" setup>
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import type { Color } from '@core/types/color.type'
-import { faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+import { faXmark } from '@fortawesome/free-solid-svg-icons'
 
 defineProps<{
   color: Color
