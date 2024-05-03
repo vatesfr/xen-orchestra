@@ -1,4 +1,3 @@
-import keyBy from 'lodash/keyBy.js'
 import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -204,19 +203,6 @@ export const create = defer(async function (
         )
       } else if (nAvailableLicenses < nPoolHosts) {
         throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
-      }
-
-      if (availableLicenses.some(license => !license.tags.includes('TRIAL'))) {
-        const xcpLicenseByHostId = keyBy(await this.getLicenses({ productType: 'xcpng' }), 'boundObjectId')
-        const hostIdsWithoutXcpLicense = poolHostIds.filter(id => {
-          const license = xcpLicenseByHostId[id]
-          return license === undefined || license.expires < now
-        })
-
-        const nHostWithoutXcpLicense = hostIdsWithoutXcpLicense.length
-        if (nHostWithoutXcpLicense > 0) {
-          throw new Error(`${nHostWithoutXcpLicense} hosts do not have XCP-ng Pro license`)
-        }
       }
 
       await asyncEach(

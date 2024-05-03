@@ -77,10 +77,7 @@ export default class Pools {
 
     const hasLinstorSr = some(_app.objects.all, { SR_type: 'linstor', $pool: target.uuid })
     if (hasLinstorSr) {
-      await Promise.all([
-        enforceHostsHaveLicense($defer, _app, 'xcpng', sourceIds),
-        enforceHostsHaveLicense($defer, _app, 'xostor', sourceIds),
-      ])
+      await enforceHostsHaveLicense($defer, _app, 'xostor', sourceIds)
     }
 
     // Find missing patches on the target.
