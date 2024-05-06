@@ -13,6 +13,7 @@
 
 - [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
 - [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
+- [SR/XOSTOR] Fix `an error has occured` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
 
 ### Packages to release
 

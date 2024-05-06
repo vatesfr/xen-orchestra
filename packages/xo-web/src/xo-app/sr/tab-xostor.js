@@ -143,12 +143,18 @@ export default class TabXostor extends Component {
   getResourceInfos = createSelector(
     () => this.props.healthCheck,
     healthCheck => {
-      if (healthCheck === undefined) {
+      // healthCheck.resources can be undefined if the user use an old version of the `linstor-manager` plugin
+      if (healthCheck?.resources === undefined) {
         return []
       }
 
-      return Object.keys(healthCheck.resources).flatMap(resourceName => {
-        return Object.entries(healthCheck.resources[resourceName].nodes).reduce((acc, [hostname, nodeInfo]) => {
+      const resourceNames = Object.keys(healthCheck.resources).filter(
+        // nodes can be undefined if the user use an old version of the `linstor-manager` plugin
+        resourceName => healthCheck.resources[resourceName].nodes !== undefined
+      )
+
+      return resourceNames.flatMap(resourceName =>
+        Object.entries(healthCheck.resources[resourceName].nodes).reduce((acc, [hostname, nodeInfo]) => {
           const volume = nodeInfo.volumes[0] // Max only one volume
           if (volume !== undefined) {
             const nodeStatus = healthCheck.nodes[hostname]
@@ -165,7 +171,7 @@ export default class TabXostor extends Component {
           }
           return acc
         }, [])
-      })
+      )
     }
   )
 
