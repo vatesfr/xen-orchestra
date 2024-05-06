@@ -1,5 +1,5 @@
 <template>
-  <UiIcon :icon class="icon" :class="props.state" />
+  <UiIcon :color :icon class="status-pill" />
 </template>
 
 <script lang="ts" setup>
