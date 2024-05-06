@@ -178,6 +178,7 @@ const messages = {
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
+  copyToClipboardVdiUuid: 'Copy VDI UUID',
   copyUuid: 'Copy {uuid}',
   copyValue: 'Copy {value}',
 

@@ -2,11 +2,11 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, TryXoa } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -42,14 +42,7 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('vdi'),
-    itemRenderer: ({ vdiId }) =>
-      vdiId !== '' && (
-        <Copiable data={vdiId}>
-          <Tooltip content={_('copyUuid', { uuid: vdiId })}>
-            <Vdi id={vdiId} />
-          </Tooltip>
-        </Copiable>
-      ),
+    itemRenderer: ({ vdiId }) => vdiId !== '' && <Vdi id={vdiId} />,
   },
   {
     name: _('inUse'),
@@ -107,6 +100,16 @@ export default class TabXostor extends Component {
       icon: 'favorite',
       label: _('setAsPreferred'),
       level: 'primary',
+    },
+  ]
+
+  _individualActionsResourceList = [
+    {
+      handler: ({ vdiId }) => copy(vdiId),
+      icon: 'clipboard',
+      label: _('copyToClipboardVdiUuid'),
+      level: 'secondary',
+      disabled: ({ vdiId }) => vdiId === '',
     },
   ]
 
@@ -229,7 +232,12 @@ export default class TabXostor extends Component {
                 <Icon icon='disk' /> {_('resourceList')}
               </CardHeader>
               <CardBlock>
-                <SortedTable collection={resourceInfos} columns={RESOURCE_COLUMNS} stateUrlParam='r' />
+                <SortedTable
+                  collection={resourceInfos}
+                  columns={RESOURCE_COLUMNS}
+                  stateUrlParam='r'
+                  individualActions={this._individualActionsResourceList}
+                />
               </CardBlock>
             </Card>
           </Col>
