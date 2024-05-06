@@ -12,18 +12,14 @@ const props = defineProps<{
   state: 'success' | 'partial' | 'failure'
 }>()
 
-const icon = computed(() => {
-  switch (props.state) {
-    case 'error':
-      return faCircleXmark
-    case 'warning':
-      return faCircleMinus
-    case 'success':
-      return faCheckCircle
-    default:
-      return faCircleXmark
-  }
-})
+const states = {
+  success: { icon: faCheckCircle, color: 'success' },
+  partial: { icon: faCircleMinus, color: 'warning' },
+  failure: { icon: faCircleXmark, color: 'error' },
+}
+
+const icon = computed(() => states[props.state].icon)
+const color = computed(() => states[props.state].color as Color)
 </script>
 
 <style scoped lang="postcss">
