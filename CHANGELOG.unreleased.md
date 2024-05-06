@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
-- [XOSTOR] Remove the limitation of having licensed hosts (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
+- [XOSTOR] Don't require host licenses to run XOSTOR (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
 
 ### Packages to release
 
