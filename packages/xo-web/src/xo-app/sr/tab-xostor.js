@@ -6,6 +6,7 @@ import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, TryXoa } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -41,7 +42,14 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('vdi'),
-    itemRenderer: ({ vdiId }) => vdiId !== '' && <Copiable data={vdiId}>{<Vdi id={vdiId} />}</Copiable>,
+    itemRenderer: ({ vdiId }) =>
+      vdiId !== '' && (
+        <Copiable data={vdiId}>
+          <Tooltip content={_('copyUuid', { uuid: vdiId })}>
+            <Vdi id={vdiId} />
+          </Tooltip>
+        </Copiable>
+      ),
   },
   {
     name: _('inUse'),
