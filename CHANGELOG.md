@@ -18,8 +18,8 @@
 
 ### Released packages
 
-- xo-server patch
-- xo-web minor
+- xo-server 5.142.2
+- xo-web 5.145.0
 
 ## **5.94.0** (2024-04-30)
 
