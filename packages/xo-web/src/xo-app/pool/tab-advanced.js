@@ -201,10 +201,10 @@ class PoolMaster extends Component {
 }))
 class SelectDefaultSr extends Component {
   render() {
-    const { defaultSr } = this.props
+    const { defaultSr, pool } = this.props
 
     return (
-      <XoSelect onChange={setDefaultSr} value={defaultSr} xoType='SR'>
+      <XoSelect onChange={setDefaultSr} value={defaultSr} xoType='SR' predicate={sr => sr.$pool === pool.id}>
         {defaultSr !== undefined ? <Sr id={defaultSr.id} /> : _('noValue')}
       </XoSelect>
     )
