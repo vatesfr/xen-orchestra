@@ -27,7 +27,9 @@ const icon = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.icon {
+.status-pill {
+  font-size: 1rem;
+}
   color: var(--icon-color);
 
   &.error {
