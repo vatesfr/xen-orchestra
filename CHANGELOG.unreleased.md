@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
+- [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
 
 ### Packages to release
 
@@ -30,5 +31,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
