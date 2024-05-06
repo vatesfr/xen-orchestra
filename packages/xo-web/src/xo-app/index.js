@@ -260,20 +260,7 @@ export const ICON_POOL_LICENSE = {
 
         hosts.forEach(host => {
           const hostId = host.id
-          const xcpngLicense = xcpngLicenseByBoundObjectId[hostId]
           const xostorLicenses = xostorLicensesByBoundObjectId[hostId]
-
-          if (xcpngLicense === undefined || xcpngLicense.expires < now) {
-            supportEnabled = false
-            alerts.push({
-              level: 'danger',
-              render: (
-                <p>
-                  {_('hostNoSupport')} <HostItem id={hostId} />
-                </p>
-              ),
-            })
-          }
 
           if (xostorLicenses === undefined) {
             supportEnabled = false
