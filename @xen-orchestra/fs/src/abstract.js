@@ -12,7 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -673,6 +673,10 @@ export default class RemoteHandlerAbstract {
 
   get isEncrypted() {
     return this.#encryptor.id !== 'NULL_ENCRYPTOR'
+  }
+
+  get encryptionAlgorithm() {
+    return this.#encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
   }
 }
 

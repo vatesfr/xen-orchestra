@@ -2,12 +2,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
-import {
-  DEFAULT_ENCRYPTION_ALGORITHM,
-  getHandler,
-  isLegacyEncryptionAlgorithm,
-  UNENCRYPTED_ALGORITHM,
-} from '@xen-orchestra/fs'
+import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
@@ -162,7 +157,7 @@ export default class {
       let encryption
 
       if (this._handlers[remote.id] !== undefined) {
-        const algorithm = this._handlers[remote.id]._encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+        const algorithm = this._handlers[remote.id].encryptionAlgorithm
         encryption = {
           algorithm,
           isLegacy: isLegacyEncryptionAlgorithm(algorithm),
