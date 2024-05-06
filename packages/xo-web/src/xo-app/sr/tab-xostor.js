@@ -1,6 +1,8 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Copiable from 'copiable'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
 import React from 'react'
@@ -98,6 +100,16 @@ export default class TabXostor extends Component {
       icon: 'favorite',
       label: _('setAsPreferred'),
       level: 'primary',
+    },
+  ]
+
+  _individualActionsResourceList = [
+    {
+      handler: ({ vdiId }) => copy(vdiId),
+      icon: 'clipboard',
+      label: _('copyToClipboardVdiUuid'),
+      level: 'secondary',
+      disabled: ({ vdiId }) => vdiId === '',
     },
   ]
 
@@ -226,7 +238,12 @@ export default class TabXostor extends Component {
                 <Icon icon='disk' /> {_('resourceList')}
               </CardHeader>
               <CardBlock>
-                <SortedTable collection={resourceInfos} columns={RESOURCE_COLUMNS} stateUrlParam='r' />
+                <SortedTable
+                  collection={resourceInfos}
+                  columns={RESOURCE_COLUMNS}
+                  stateUrlParam='r'
+                  individualActions={this._individualActionsResourceList}
+                />
               </CardBlock>
             </Card>
           </Col>
