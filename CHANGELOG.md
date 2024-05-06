@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [New XOSTOR] Display a warning when replication count is higher than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
+- [XOSTOR] Ability to copy VDI UUID in the resources table (PR [#7629](https://github.com/vatesfr/xen-orchestra/pull/7629))
+
+### Bug fixes
+
+- [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
+- [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
+- [SR/XOSTOR] Fix `an error has occured` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
+- [XOSTOR] Don't require host licenses to run XOSTOR (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
+
+### Released packages
+
+- xo-server patch
+- xo-web minor
+
 ## **5.94.0** (2024-04-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
