@@ -9,7 +9,7 @@ import { faCheckCircle, faCircleMinus, faCircleXmark } from '@fortawesome/free-s
 import type { Color } from '@/types'
 
 const props = defineProps<{
-  state: Color
+  state: 'success' | 'partial' | 'failure'
 }>()
 
 const icon = computed(() => {
