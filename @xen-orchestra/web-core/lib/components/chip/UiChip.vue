@@ -4,7 +4,7 @@
     <span class="content">
       <slot />
     </span>
-    <ChipRemoveIcon :color :disabled @click.stop="emit('remove')" />
+    <ChipRemoveIcon v-if="!disabled" :color @click.stop="emit('remove')" />
   </span>
 </template>
 
