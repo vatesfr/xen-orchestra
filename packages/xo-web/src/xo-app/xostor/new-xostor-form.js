@@ -522,7 +522,7 @@ const SummaryCard = decorate([
 
         return (totalSize * state.numberOfHostsWithDisks) / state.replication.value
       },
-      isReplicationValid: state => state.replication.value > state.numberOfHostsWithDisks,
+      replicationNotValid: state => state.replication.value > state.numberOfHostsWithDisks,
     },
   }),
   injectState,
@@ -550,7 +550,7 @@ const SummaryCard = decorate([
                   <Icon icon='alarm' /> {_('hostsNotSameNumberOfDisks')}
                 </p>
               )}
-              {state.isReplicationValid && (
+              {state.replicationNotValid && (
                 <p className='text-warning'>
                   <Icon icon='alarm' /> {_('replicationCountHigherThanHostsWithDisks')}
                 </p>
