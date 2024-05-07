@@ -1,6 +1,6 @@
 <template>
   <button class="description-toggle-button">
-    <UiIcon v-if="isCollapsedRef" :icon="faAngleDown" class="description-toggle-button__icon" />
+    <UiIcon v-if="!isCollapsedRef" :icon="faAngleDown" class="description-toggle-button__icon" />
     <UiIcon v-else :icon="faAngleUp" class="description-toggle-button__icon" />
   </button>
 </template>
