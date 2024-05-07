@@ -329,6 +329,8 @@ export default class TabAdvanced extends Component {
 
   _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
 
+  _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
+
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
@@ -394,6 +396,12 @@ export default class TabAdvanced extends Component {
                     <th>{_('autoPowerOn')}</th>
                     <td>
                       <Toggle value={pool.auto_poweron} onChange={this._onChangeAutoPoweron} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('migrationCompression')}</th>
+                    <td>
+                      <Toggle value={pool.migrationCompression} onChange={this._onChangeMigrationCompression} />
                     </td>
                   </tr>
                   <tr>
