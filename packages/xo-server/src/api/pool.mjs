@@ -19,7 +19,7 @@ export async function set({
   name_description: nameDescription,
   name_label: nameLabel,
   backupNetwork,
-  migrationCompression,
+  migration_compression: migrationCompression,
   migrationNetwork,
   suspendSr,
   crashDumpSr,
@@ -30,8 +30,7 @@ export async function set({
     auto_poweron !== undefined && pool.update_other_config('auto_poweron', String(auto_poweron)),
     nameDescription !== undefined && pool.set_name_description(nameDescription),
     nameLabel !== undefined && pool.set_name_label(nameLabel),
-    migrationCompression !== undefined &&
-      pool.update_other_config('migrationCompression', String(migrationCompression)),
+    migrationCompression !== undefined && pool.set_migration_compression(migrationCompression),
     migrationNetwork !== undefined && pool.update_other_config('xo:migrationNetwork', String(migrationNetwork)),
     backupNetwork !== undefined && pool.update_other_config('xo:backupNetwork', backupNetwork),
     suspendSr !== undefined && pool.$call('set_suspend_image_SR', suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef),
