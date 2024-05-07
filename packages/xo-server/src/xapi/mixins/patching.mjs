@@ -533,14 +533,14 @@ const methods = {
         beforeEvacuateVms: async () => {
           // On XS/CH, start by installing patches on all hosts
           if (!isXcp) {
-            Task.run({ properties: { name: `Installing XS patches` } }, async () => {
+            return Task.run({ properties: { name: `Installing XS patches` } }, async () => {
               await this.installPatches({ xsCredentials })
             })
           }
         },
         beforeRebootHost: async host => {
           if (isXcp) {
-            Task.run(
+            return Task.run(
               { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
               async () => {
                 await this.installPatches({ hosts: [host] })
