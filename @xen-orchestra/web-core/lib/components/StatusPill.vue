@@ -6,7 +6,7 @@
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import { computed } from 'vue'
 import { faCheckCircle, faCircleMinus, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
-import type { Color } from '@/types'
+import type { Color } from '@core/types/color.type'
 
 const props = defineProps<{
   state: 'success' | 'partial' | 'failure'
@@ -24,8 +24,6 @@ const color = computed(() => states[props.state].color as Color)
 
 <style scoped lang="postcss">
 .status-pill {
-  font-size: 1rem;
-}
   color: var(--icon-color);
 
   &.error {
