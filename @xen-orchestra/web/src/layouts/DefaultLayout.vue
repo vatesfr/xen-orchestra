@@ -10,7 +10,7 @@
         :icon="faBarsProgress"
         size="large"
       />
-      <UserLogo v-tooltip="{ content: $t('account-organization-more'), placement: 'bottom-end' }" size="medium" />
+      <AccountMenu />
     </template>
     <template #sidebar-content>Sidebar coming soon</template>
     <template #content-header>
@@ -29,10 +29,10 @@
 </template>
 
 <script lang="ts" setup>
+import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
-import UserLogo from '@core/components/user/UserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
