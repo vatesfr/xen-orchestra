@@ -1,6 +1,6 @@
 <template>
-  <tr class="mobile" v-if="isMobile" @click="handleCollapse">
-    <td class="description" colspan="5" v-if="isMobile">
+  <tr v-if="isMobile" class="mobile" @click="handleCollapse">
+    <td v-if="isMobile" class="description" colspan="5">
       <div v-tooltip class="ellipsis">
         <ArrowCollapseButton :is-collapsed="!isDescriptionCollapsedRef" />
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
@@ -13,7 +13,7 @@
       {{ tempDescription }}
     </td>
   </tr>
-  <tr class="alarm-details" colspan="5" v-if="isMobile">
+  <tr v-if="isMobile" class="alarm-details" colspan="5">
     <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
       <RelativeTime :date="alarm.timestamp" />
     </div>
@@ -24,7 +24,7 @@
     </td>
   </tr>
 
-  <tr class="desktop" v-if="isDesktop" @click="handleCollapse">
+  <tr v-if="isDesktop" class="desktop" @click="handleCollapse">
     <th class="table-header">
       <ArrowCollapseButton :is-collapsed="!isDescriptionCollapsedRef" />
       <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
@@ -62,20 +62,19 @@ import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 
+defineProps<{
+  alarm: XenApiAlarm<T>
+}>()
+
 const uiStore = useUiStore()
 const { isMobile, isDesktop } = storeToRefs(uiStore)
+const tempDescription =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.'
 const isDescriptionCollapsedRef = ref(true)
 
 function handleCollapse() {
   isDescriptionCollapsedRef.value = !isDescriptionCollapsedRef.value
 }
-
-defineProps<{
-  alarm: XenApiAlarm<T>
-}>()
-
-const tempDescription =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.'
 </script>
 
 <style lang="postcss" scoped>
