@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
-import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
+import AlarmRow from '@core/components/AlarmRow.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
