@@ -1,5 +1,6 @@
 <template>
   <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
+    <MultiProgressBar :progressBarDataProp="progressBarData" />
     <AppLogin />
   </div>
   <div v-else>
@@ -16,6 +17,7 @@
 </template>
 
 <script lang="ts" setup>
+import MultiProgressBar from '@core/components/MultiProgressBar.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
@@ -64,6 +66,12 @@ whenever(
 )
 
 useUnreachableHosts()
+
+const progressBarData = [
+  { value: 22, color: 'warning', legend: 'Legend 1' },
+  { value: 15, color: 'info', legend: 'Legend 2' },
+  { value: 12, color: 'success', legend: 'Legend 3' },
+]
 </script>
 
 <style lang="postcss" scoped>
