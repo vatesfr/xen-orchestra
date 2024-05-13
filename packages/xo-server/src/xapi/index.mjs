@@ -637,7 +637,7 @@ export default class Xapi extends XapiBase {
 
   @synchronized()
   _callInstallationPlugin(hostRef, vdi) {
-    return this.call('host.call_plugin', hostRef, 'install-supp-pack', 'install', { vdi }).catch(error => {
+    return this.callAsync('host.call_plugin', hostRef, 'install-supp-pack', 'install', { vdi }).catch(error => {
       if (error.code !== 'XENAPI_PLUGIN_FAILURE' || !error.params?.[2]?.includes?.('UPDATE_ALREADY_APPLIED')) {
         throw error
       }
@@ -1298,7 +1298,7 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const host = vm.$resident_on || this.pool.$master
 
-    return /* await */ this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
+    await this.callAsync('host.call_plugin', host.$ref, 'xscontainer', action, {
       vmuuid: vm.uuid,
       container: containerId,
     })
