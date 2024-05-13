@@ -212,7 +212,7 @@ curl \
 
 ## VM Export
 
-A VM can be exported as an XVA at `/rest/v0/vms/<uuid>.xva`.
+A VM can be exported in XVA format at `/rest/v0/vms/<uuid>.xva` or in OVA format at `/rest/v0/vms/<uuid>.xva`.
 
 By default, the XVA is not compressed, however the `compress` query parameter supports the following values:
 
@@ -228,7 +228,9 @@ curl \
 
 ## VM Import
 
-A VM can be imported by posting to `/rest/v0/pools/:id/vms`.
+> OVA import is not supported.
+
+A VM can be imported by posting an XVA to `/rest/v0/pools/:id/vms`.
 
 ```sh
 curl \

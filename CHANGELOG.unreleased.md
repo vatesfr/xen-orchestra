@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Support exporting VM in OVA format
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,6 +32,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->

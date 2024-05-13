@@ -245,7 +245,9 @@ The following optional query parameters are supported for VDI export:
 
 ## VM Import
 
-A VM can be imported by posting to `/rest/v0/pools/:id/vms`.
+> OVA import is not supported.
+
+A VM can be imported by posting an XVA to `/rest/v0/pools/:id/vms`.
 
 ```sh
 curl \
