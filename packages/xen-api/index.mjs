@@ -419,6 +419,9 @@ export class Xapi extends EventEmitter {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
 
+      // the promise will be used later
+      pTaskResult.catch(noop)
+
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
       }
@@ -486,6 +489,9 @@ export class Xapi extends EventEmitter {
     if (taskRef !== undefined) {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
+
+      // the promise will be used later
+      pTaskResult.catch(noop)
 
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
