@@ -196,10 +196,19 @@ export const create = defer(async function (
       if (nAvailableLicenses === 0) {
         availableLicenses = await Task.run(
           { properties: { name: 'Creating trial licenses', quantity: nPoolHosts } },
-          () =>
-            this.createXostorTrialLicenses({
-              quantity: nPoolHosts,
-            })
+          async () => {
+            try {
+              return await this.createXostorTrialLicenses({
+                quantity: nPoolHosts,
+              })
+            } catch (error) {
+              const trialAlreadyCreated = xostorLicenses.some(license => license.tags.includes('TRIAL'))
+              if (error.message === 'unknown error from the peer' && trialAlreadyCreated) {
+                throw new Error('XOSTOR trial licenses can only be created once')
+              }
+              throw error
+            }
+          }
         )
       } else if (nAvailableLicenses < nPoolHosts) {
         throw new Error(`Not enough XOSTOR licenses. Expected: ${nPoolHosts}, actual: ${nAvailableLicenses}`)
