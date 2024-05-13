@@ -31,8 +31,10 @@ class XostorLicensesForm extends Component {
   )
 
   bindXostorLicenses = async () => {
-    const { item: sr, userData } = this.props
-    const { hosts, xostorLicenses } = userData
+    const {
+      item: sr,
+      userData: { hosts, xostorLicenses },
+    } = this.props
 
     const now = Date.now()
     const xostorLicenseById = {}
@@ -41,10 +43,13 @@ class XostorLicensesForm extends Component {
     xostorLicenses.forEach(license => {
       xostorLicenseById[license.id] = license
 
-      if (xostorLicensesByHost[license.boundObjectId] === undefined) {
-        xostorLicensesByHost[license.boundObjectId] = []
+      const hostId = license.boundObjectId
+      if (hostId !== undefined) {
+        if (xostorLicensesByHost[hostId] === undefined) {
+          xostorLicensesByHost[hostId] = []
+        }
+        xostorLicensesByHost[hostId].push(license)
       }
-      xostorLicensesByHost[license.boundObjectId].push(license)
     })
 
     const hostsWithoutLicense = filter(hosts, host => {
@@ -85,13 +90,12 @@ class XostorLicensesForm extends Component {
 
     return (
       <div>
-        {supportEnabled && (
+        {alerts.length > 0 && <BulkIcons alerts={alerts} />}
+        {supportEnabled ? (
           <Tooltip content={_('xostorProSupportEnabled')}>
             <Icon icon='menu-support' className='text-success' />
           </Tooltip>
-        )}
-        {alerts.length > 0 && <BulkIcons alerts={alerts} />}
-        {!supportEnabled && (
+        ) : (
           <ActionButton btnStyle='primary' className='ml-1' handler={this.bindXostorLicenses} icon='connect'>
             {_('bindLicenses')}
           </ActionButton>
