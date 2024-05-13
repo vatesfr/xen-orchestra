@@ -27,8 +27,10 @@ const parseResult = result => {
 export default ({ dispatcher, url }) => {
   url = new URL('./xmlrpc', Object.assign(new URL('http://localhost'), url))
 
-  return async function (method, args) {
+  return async function (method, args, requestOpts) {
     const res = await request(url, {
+      ...requestOpts,
+
       dispatcher,
       body: formatXml(
         xmlRpcFormatter.format_methodCall({

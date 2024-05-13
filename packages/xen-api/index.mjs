@@ -773,10 +773,10 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  async _call(method, args = [], timeout = this._callTimeout(method, args)) {
+  async _call(method, args = [], { timeout = this._callTimeout(method, args), ...requestOpts } = {}) {
     const startTime = Date.now()
     try {
-      const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
+      const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args, requestOpts)), timeout)
       debug('%s: %s(...) [%s] ==> %s', this._humanId, method, ms(Date.now() - startTime), kindOf(result))
       return result
     } catch (error) {
@@ -1209,7 +1209,10 @@ export class Xapi extends EventEmitter {
               fromToken,
               EVENT_TIMEOUT + 0.1, // must be float for XML-RPC transport
             ],
-            EVENT_TIMEOUT * 1e3 * 1.1
+            {
+              blocking: true,
+              timeout: EVENT_TIMEOUT * 1e3 * 1.1,
+            }
           )
           this._lastEventFetchedTimestamp = Date.now()
           this._watchEventsError = undefined
@@ -1270,7 +1273,12 @@ export class Xapi extends EventEmitter {
 
       try {
         await this._connected
-        this._processEvents(await this._roCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
+        this._processEvents(
+          await this._call('event.next', undefined, {
+            blocking: true,
+            timeout: EVENT_TIMEOUT * 1e3,
+          })
+        )
       } catch (error) {
         if (error?.code === 'EVENTS_LOST') {
           await ignoreErrors.call(this._sessionCall('event.unregister', [types]))

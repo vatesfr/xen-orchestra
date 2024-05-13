@@ -9,8 +9,10 @@ import UnsupportedTransport from './_UnsupportedTransport.mjs'
 export default ({ dispatcher, url }) => {
   url = new URL('./jsonrpc', Object.assign(new URL('http://localhost'), url))
 
-  return async function (method, args) {
+  return async function (method, args, requestOpts) {
     const res = await request(url, {
+      ...requestOpts,
+
       dispatcher,
       body: format.request(0, method, args),
       headers: {
