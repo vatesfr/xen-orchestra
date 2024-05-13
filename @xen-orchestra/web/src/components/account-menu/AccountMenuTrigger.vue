@@ -1,8 +1,8 @@
 <template>
   <button
-    v-tooltip="{ content: $t('account-organization-more'), placement: 'bottom-end' }"
+    v-tooltip="active ? false : { content: $t('account-organization-more'), placement: 'bottom-end' }"
     :class="{ disabled: isDisabled, active }"
-    class="account-menu"
+    class="account-menu-trigger"
     type="button"
   >
     <UserLogo class="logo" size="medium" />
@@ -27,68 +27,33 @@ const isDisabled = useContext(DisabledContext)
 
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
-.account-menu {
+.account-menu-trigger {
   --background-color: transparent;
-
-  .logo {
-    --border-color: var(--color-purple-base);
-  }
-
-  .icon {
-    --color: var(--color-purple-base);
-  }
+  --accent-color: var(--color-purple-base);
 
   &:is(:hover, .hover, :focus-visible) {
     --background-color: var(--background-color-purple-20);
-
-    .logo {
-      --border-color: var(--color-purple-d20);
-    }
-
-    .icon {
-      --color: var(--color-purple-d20);
-    }
+    --accent-color: var(--color-purple-d20);
   }
 
   &:is(:active, .pressed) {
     --background-color: var(--background-color-purple-30);
-
-    .logo {
-      --border-color: var(--color-purple-d40);
-    }
-
-    .icon {
-      --color: var(--color-purple-d40);
-    }
+    --accent-color: var(--color-purple-d40);
   }
 
   &.active {
     --background-color: var(--background-color-purple-10);
-
-    .logo {
-      --border-color: var(--color-purple-base);
-    }
-
-    .icon {
-      --color: var(--color-purple-base);
-    }
+    --accent-color: var(--color-purple-base);
   }
 
   &.disabled {
     --background-color: transparent;
-
-    .logo {
-      --border-color: var(--color-grey-400);
-    }
-
-    .icon {
-      --color: var(--color-grey-400);
-    }
+    --accent-color: var(--color-grey-400);
   }
 }
 
 /* IMPLEMENTATION */
-.account-menu {
+.account-menu-trigger {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -102,13 +67,13 @@ const isDisabled = useContext(DisabledContext)
   &:not(.disabled) {
     cursor: pointer;
   }
+}
 
-  .logo {
-    border-color: var(--border-color);
-  }
+.logo {
+  border-color: var(--accent-color);
+}
 
-  .icon {
-    color: var(--color);
-  }
+.icon {
+  color: var(--accent-color);
 }
 </style>

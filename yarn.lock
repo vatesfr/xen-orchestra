@@ -4024,11 +4024,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/cookie@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@types/cookie/-/cookie-0.6.0.tgz#eac397f28bf1d6ae0ae081363eca2f425bedf0d5"
-  integrity sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==
-
 "@types/d3-time-format@^4.0.3":
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/@types/d3-time-format/-/d3-time-format-4.0.3.tgz#d6bc1e6b6a7db69cccfbbdd4c34b70632d9e9db2"
@@ -4907,22 +4902,13 @@
     "@types/webpack-dev-server" "^3"
     webpack-chain "^6.0.0"
 
-"@vueuse/core@10.9.0", "@vueuse/core@^10.7.1":
+"@vueuse/core@^10.7.1":
   version "10.9.0"
   resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-10.9.0.tgz#7d779a95cf0189de176fee63cee4ba44b3c85d64"
   integrity sha512-/1vjTol8SXnx6xewDEKfS0Ra//ncg4Hb0DaZiwKf7drgfMsKFExQ+FnnENcN6efPen+1kIzhLQoGSy0eDUVOMg==
   dependencies:
     "@types/web-bluetooth" "^0.0.20"
     "@vueuse/metadata" "10.9.0"
-    "@vueuse/shared" "10.9.0"
-    vue-demi ">=0.14.7"
-
-"@vueuse/integrations@^10.9.0":
-  version "10.9.0"
-  resolved "https://registry.yarnpkg.com/@vueuse/integrations/-/integrations-10.9.0.tgz#2b1a9556215ad3c1f96d39cbfbef102cf6e0ec05"
-  integrity sha512-acK+A01AYdWSvL4BZmCoJAcyHJ6EqhmkQEXbQLwev1MY7NBnS+hcEMx/BzVoR9zKI+UqEPMD9u6PsyAuiTRT4Q==
-  dependencies:
-    "@vueuse/core" "10.9.0"
     "@vueuse/shared" "10.9.0"
     vue-demi ">=0.14.7"
 
@@ -8071,7 +8057,7 @@ cookie@0.5.0, cookie@^0.5.0:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.5.0.tgz#d1f5d71adec6558c58f389987c366aa47e994f8b"
   integrity sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==
 
-cookie@0.6.0, cookie@^0.6.0:
+cookie@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.6.0.tgz#2798b04b071b0ecbff0dbb62a505a8efa4e19051"
   integrity sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==
@@ -22017,14 +22003,6 @@ unique-string@^2.0.0:
   integrity sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==
   dependencies:
     crypto-random-string "^2.0.0"
-
-universal-cookie@^6.1.3:
-  version "6.1.3"
-  resolved "https://registry.yarnpkg.com/universal-cookie/-/universal-cookie-6.1.3.tgz#891386460f4407f8443d416d07f7334440c5516c"
-  integrity sha512-AETYRrhpRgl9T1YtnODmQE32G81U3A+f3HO3ZeK7efbXqe3x+RNOW4RTpV0iff7zJWhGYJA6EI0Mm+w50aFTAw==
-  dependencies:
-    "@types/cookie" "^0.6.0"
-    cookie "^0.6.0"
 
 universalify@^0.1.0:
   version "0.1.2"
