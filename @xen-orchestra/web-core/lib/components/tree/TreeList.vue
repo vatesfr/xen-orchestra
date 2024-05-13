@@ -1,4 +1,4 @@
-<!-- v1.1.0 -->
+<!-- v1.1 -->
 <template>
   <ul class="tree-list">
     <slot />

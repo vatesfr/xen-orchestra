@@ -1,4 +1,4 @@
-<!-- v1.2.0 -->
+<!-- v1.2 -->
 <template>
   <span :class="[color, { light }]" class="ui-tag typo p3-regular">
     <slot name="icon">

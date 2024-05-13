@@ -1,9 +1,7 @@
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <div class="button-group">
-    <div class="line">
-      <slot />
-    </div>
+    <div class="line"><slot /></div>
     <div v-if="slots.tertiary" class="line">
       <slot name="tertiary" />
     </div>

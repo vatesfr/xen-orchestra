@@ -1,4 +1,4 @@
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <button :class="className" :disabled="busy || isDisabled" class="ui-button" type="button">
     <UiIcon :busy :icon="leftIcon" class="icon" fixed-width />

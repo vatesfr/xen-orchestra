@@ -1,4 +1,4 @@
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <span :class="classNames" class="ui-counter typo">
     <span class="inner">{{ value }}</span>

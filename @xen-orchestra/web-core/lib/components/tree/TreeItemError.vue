@@ -1,4 +1,4 @@
-<!-- v1.1.0 -->
+<!-- v1.1 -->
 <template>
   <li class="tree-item-error typo h6-semi-bold">
     <slot />

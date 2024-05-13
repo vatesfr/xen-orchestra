@@ -1,4 +1,4 @@
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
     <UiIcon :busy="busy" :icon="icon" />

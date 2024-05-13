@@ -1,4 +1,8 @@
-<!-- v1.0.0 -->
+<!-- VM v1.0 -->
+<!-- Host v1.0 -->
+<!-- SR v1.0 -->
+<!-- Backup Repository v1.0 -->
+<!-- Network v1.0 -->
 <template>
   <FontAwesomeLayers :class="[size, { disabled: stateConfig === undefined }]" class="object-icon">
     <UiIcon :icon="mainIcon" />

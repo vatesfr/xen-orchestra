@@ -1,4 +1,4 @@
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport :disabled="!shouldTeleport" to="body">

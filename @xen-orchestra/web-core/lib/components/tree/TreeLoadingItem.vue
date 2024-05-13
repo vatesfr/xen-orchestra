@@ -1,4 +1,4 @@
-<!-- v1.1.0 -->
+<!-- v1.1 -->
 <template>
   <li class="tree-loading-item">
     <div class="tree-loading-item-label-placeholder">

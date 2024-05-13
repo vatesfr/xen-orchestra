@@ -1,4 +1,3 @@
-<!-- v1.0.0 -->
 <template>
   <UiIcon :class="{ disabled }" :color :icon class="chip-icon" fixed-width />
 </template>

@@ -1,6 +1,6 @@
 <!-- Adapted from https://www.benmvp.com/blog/how-to-create-circle-svg-gradient-loading-spinner/ -->
 
-<!-- v1.0.0 -->
+<!-- v1.0 -->
 <template>
   <svg class="ui-spinner" fill="none" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
     <defs>
