@@ -219,6 +219,31 @@ describe('Task', function () {
     })
   })
 
+  describe('#set()', function () {
+    const name = 'progress'
+    const value = 10
+
+    it('throws when the task is not started', function () {
+      const task = createTask()
+      assert.throws(() => task.set(name, value), { message: 'task has not started yet' })
+    })
+
+    it(`emits an property message`, async function () {
+      const task = createTask()
+      await task.run(async () => {
+        await Task.run(() => {
+          task.set(name, value)
+
+          assertEvent(task, {
+            name,
+            type: 'property',
+            value,
+          })
+        })
+      })
+    })
+  })
+
   describe('.warning()', function () {
     it('does nothing when run outside a task', function () {
       Task.warning('foo')
@@ -236,6 +261,30 @@ describe('Task', function () {
       })
     })
   })
+
+  for (const type of ['info', 'warning']) {
+    describe(`#${type}()`, function () {
+      it('throws when the task is not started', function () {
+        const task = createTask()
+        assert.throws(() => task[type]('foo'), { message: 'task has not started yet' })
+      })
+
+      it(`emits an ${type} message`, async function () {
+        const task = createTask()
+        await task.run(async () => {
+          await Task.run(() => {
+            task[type]('foo')
+
+            assertEvent(task, {
+              data: undefined,
+              message: 'foo',
+              type,
+            })
+          })
+        })
+      })
+    })
+  }
 
   describe('#id', function () {
     it('can be set', function () {

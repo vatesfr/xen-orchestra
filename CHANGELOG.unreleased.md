@@ -34,6 +34,7 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- @vates/task minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
