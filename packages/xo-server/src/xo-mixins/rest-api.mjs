@@ -389,7 +389,7 @@ export default class RestApi {
     collections.tasks = {
       async getObject(id, req) {
         const { wait } = req.query
-        if (wait === undefined) {
+        if (wait !== undefined) {
           const { promise, resolve } = pDefer()
           const stopWatch = await app.tasks.watch(id, task => {
             if (wait !== 'result' || task.status !== 'pending') {
