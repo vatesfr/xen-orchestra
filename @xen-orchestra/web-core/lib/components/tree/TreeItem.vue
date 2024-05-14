@@ -1,3 +1,4 @@
+<!-- v1.1 -->
 <template>
   <li class="tree-item">
     <slot />

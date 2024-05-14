@@ -1,3 +1,4 @@
+<!-- v1.1 -->
 <template>
   <div class="tree-line">
     <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical" />

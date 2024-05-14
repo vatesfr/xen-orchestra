@@ -1,3 +1,4 @@
+<!-- v1.1 -->
 <template>
   <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div

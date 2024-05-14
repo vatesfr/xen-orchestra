@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <RouterLink v-if="route && !disabled" :to="route" class="user-link is-link typo p3-medium">
     <UserLogo class="logo" />
