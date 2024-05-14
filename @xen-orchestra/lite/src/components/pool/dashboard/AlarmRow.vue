@@ -13,7 +13,7 @@
       {{ tempDescription }}
     </td>
   </tr>
-  <tr v-if="isMobile" class="alarm-details" colspan="5">
+  <tr v-if="isMobile" class="alarm-details">
     <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
       <RelativeTime :date="alarm.timestamp" />
     </div>
