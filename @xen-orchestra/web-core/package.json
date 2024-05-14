@@ -22,7 +22,8 @@
     "placement.js": "^1.0.0-beta.5",
     "vue": "^3.4.13",
     "vue-i18n": "^9.9.0",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vue-echarts": "^6.6.8"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
