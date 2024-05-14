@@ -1,5 +1,5 @@
 <template>
-  <tbody v-if="isMobile" @click="handleCollapse()" class="alarm-row">
+  <tbody v-if="isMobile" class="alarm-row" @click="handleCollapse()">
     <tr>
       <td class="description" colspan="5">
         <div v-tooltip class="ellipsis">
@@ -28,7 +28,7 @@
     </tr>
   </tbody>
 
-  <tbody v-else @click="handleCollapse()" class="alarm-row">
+  <tbody v-else class="alarm-row" @click="handleCollapse()">
     <tr>
       <th class="table-header">
         <UiIcon :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
