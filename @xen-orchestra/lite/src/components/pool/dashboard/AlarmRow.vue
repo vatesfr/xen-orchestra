@@ -3,13 +3,17 @@
     <tr>
       <td class="description" colspan="5">
         <div v-tooltip class="ellipsis">
-          <UiIcon :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
+          <UiIcon
+            v-if="description.length > 0"
+            :icon="descriptionCollapsed ? faAngleDown : faAngleRight"
+            color="info"
+          />
           {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
         </div>
       </td>
     </tr>
 
-    <tr v-if="!descriptionCollapsed">
+    <tr v-if="!descriptionCollapsed && description.length > 0">
       <td class="description-content" colspan="5">
         {{ description }}
       </td>
@@ -31,7 +35,7 @@
   <tbody v-else class="alarm-row" @click="handleCollapse()">
     <tr>
       <th class="table-header">
-        <UiIcon :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
+        <UiIcon v-if="description.length > 0" :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
         <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
           <RelativeTime :date="alarm.timestamp" />
         </div>
@@ -47,7 +51,7 @@
         <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
       </td>
     </tr>
-    <tr v-if="!descriptionCollapsed">
+    <tr v-if="!descriptionCollapsed && description.length > 0">
       <td class="description-content" colspan="5">
         {{ description }}
       </td>
@@ -132,7 +136,7 @@ const [descriptionCollapsed, handleCollapse] = useToggle(true)
   padding-left: 2.5rem !important;
 
   @media (min-width: 768px) {
-    padding-left: 3rem !important;
+    padding-left: 2.5rem !important;
   }
 }
 
