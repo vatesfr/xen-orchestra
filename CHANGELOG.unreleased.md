@@ -18,6 +18,7 @@
 - [XOSTOR] Throw clearer error if attempt to create multiple trials (PR [#7649](https://github.com/vatesfr/xen-orchestra/pull/7649))
 - [V2V] Fix import stuck (PR [#7653](https://github.com/vatesfr/xen-orchestra/pull/7653))
 - [REST API] Don't wait for a new state of a task when the `wait` query string is not used
+- [Backup] Prevent VM (and not only its latest snapshot) from being migrated while they are backed up
 
 ### Packages to release
 
