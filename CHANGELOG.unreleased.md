@@ -30,5 +30,6 @@
 <!--packages-start-->
 
 - xen-api patch
+- xo-server patch
 
 <!--packages-end-->
