@@ -2,7 +2,7 @@
   <tr v-if="isMobile" class="mobile" @click="handleCollapse">
     <td class="description" colspan="5">
       <div v-tooltip class="ellipsis">
-        <ArrowCollapseButton :is-collapsed="!isDescriptionCollapsedRef" />
+        <ArrowCollapseButton :is-collapsed="isDescriptionCollapsedRef" />
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
