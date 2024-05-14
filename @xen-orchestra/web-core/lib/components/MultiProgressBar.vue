@@ -1,27 +1,27 @@
 <template>
   <div class="multi-progress-bar">
-    <div class="multi-progress-bar__wrapper">
+    <div class="wrapper">
       <div
         v-for="(barSegment, index) in progressBarDataRef"
         :key="index"
         :style="{ width: (barSegment.value / 50) * 100 + '%' }"
-        class="multi-progress-bar__wrapper__segment"
+        class="segment"
         :class="barSegment.color"
       >
-        {{ (barSegment.value / 50) * 100 }} %
+        {{ ((barSegment.value / 50) * 100).toFixed(2) }} %
       </div>
-      <div :style="{ width: availableSegmentValue + '%' }" class="multi-progress-bar__wrapper__segment available"></div>
+      <div :style="{ width: availableSegmentValue + '%' }" class="segment available"></div>
     </div>
-    <div class="multi-progress-bar__legends">
+    <div class="legends">
       <span
         v-for="(barSegment, index) in progressBarDataRef"
         :key="index"
         :style="{ width: (barSegment.value / 50) * 100 + '%' }"
-        class="multi-progress-bar__legends__legend"
-        ><span class="multi-progress-bar__legends__legend__dot" :class="barSegment.color"></span>
+        class="legend"
+        ><span class="dot" :class="barSegment.color"></span>
         {{ barSegment.legend }}
 
-        <span class="multi-progress-bar__legends__legend__unit">{{ barSegment.value }} GB</span>
+        <span class="unit">{{ barSegment.value }} GB</span>
       </span>
     </div>
   </div>
@@ -65,14 +65,14 @@ progressBarDataRef.value[progressBarDataRef.value.length - 1].value += available
   flex-direction: column;
   gap: 0.4rem;
 
-  &__wrapper {
+  & .wrapper {
     display: flex;
     height: 40px;
     border-radius: 0.8rem;
     overflow: hidden;
     width: 100%;
 
-    &__segment {
+    & .segment {
       flex-grow: 1;
       height: 100%;
       display: flex;
@@ -80,11 +80,11 @@ progressBarDataRef.value[progressBarDataRef.value.length - 1].value += available
       align-items: center;
       font-size: 1.3rem;
       font-weight: 600;
-      white-space: nowrap;
+      color: var(--color-grey-600);
     }
   }
 
-  &__legends {
+  & .legends {
     display: flex;
     font-size: 1.3rem;
     flex-direction: column;
@@ -97,7 +97,7 @@ progressBarDataRef.value[progressBarDataRef.value.length - 1].value += available
       gap: 1.6rem;
     }
 
-    &__legend {
+    & .legend {
       display: flex;
       align-items: center;
       gap: 0.8rem;
@@ -112,14 +112,14 @@ progressBarDataRef.value[progressBarDataRef.value.length - 1].value += available
         max-width: inherit;
       }
 
-      &__dot {
+      & .dot {
         width: 0.8rem;
         height: 0.8rem;
         min-width: 0.8rem;
         border-radius: 50%;
       }
 
-      &__unit {
+      & .unit {
         font-weight: 600;
         color: var(--color-grey-300);
         white-space: nowrap;
