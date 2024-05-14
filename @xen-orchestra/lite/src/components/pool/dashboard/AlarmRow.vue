@@ -1,52 +1,58 @@
 <template>
-  <tr v-if="isMobile" class="mobile" @click="handleCollapse">
-    <td class="description" colspan="5">
-      <div v-tooltip class="ellipsis">
-        <ArrowCollapseButton :is-collapsed="isDescriptionCollapsedRef" />
-        {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
-      </div>
-    </td>
-  </tr>
+  <tbody v-if="isMobile" @click="handleCollapse()" class="alarm-row">
+    <tr>
+      <td class="description" colspan="5">
+        <div v-tooltip class="ellipsis">
+          <UiIcon :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
+          {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
+        </div>
+      </td>
+    </tr>
 
-  <tr v-if="!isDescriptionCollapsedRef && isMobile" class="collapsible-description">
-    <td class="collapsible-description__content" colspan="5">
-      {{ tempDescription }}
-    </td>
-  </tr>
-  <tr v-if="isMobile" class="alarm-details">
-    <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
-      <RelativeTime :date="alarm.timestamp" />
-    </div>
-    <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
-    <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
-    <td class="object">
-      <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
-    </td>
-  </tr>
+    <tr v-if="!descriptionCollapsed">
+      <td class="description-content" colspan="5">
+        {{ description }}
+      </td>
+    </tr>
+    <tr class="alarm-details">
+      <td>
+        <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
+          <RelativeTime :date="alarm.timestamp" />
+        </div>
+      </td>
+      <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
+      <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
+      <td class="object">
+        <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
+      </td>
+    </tr>
+  </tbody>
 
-  <tr v-if="isDesktop" class="desktop" @click="handleCollapse">
-    <th class="table-header">
-      <ArrowCollapseButton :is-collapsed="!isDescriptionCollapsedRef" />
-      <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
-        <RelativeTime :date="alarm.timestamp" />
-      </div>
-    </th>
-    <td class="description">
-      <div v-tooltip class="ellipsis">
-        {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
-      </div>
-    </td>
-    <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
-    <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
-    <td class="object">
-      <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
-    </td>
-  </tr>
-  <tr v-if="!isDescriptionCollapsedRef && isDesktop" class="collapsible-description">
-    <td class="collapsible-description__content" colspan="5">
-      {{ tempDescription }}
-    </td>
-  </tr>
+  <tbody v-else @click="handleCollapse()" class="alarm-row">
+    <tr>
+      <th class="table-header">
+        <UiIcon :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
+        <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
+          <RelativeTime :date="alarm.timestamp" />
+        </div>
+      </th>
+      <td class="description">
+        <div v-tooltip class="ellipsis">
+          {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
+        </div>
+      </td>
+      <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
+      <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
+      <td class="object">
+        <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
+      </td>
+    </tr>
+    <tr v-if="!descriptionCollapsed">
+      <td class="description-content" colspan="5">
+        {{ description }}
+      </td>
+    </tr>
+  </tbody>
 </template>
 
 <script lang="ts" setup generic="T extends RawObjectType">
@@ -57,25 +63,25 @@ import { parseDateTime } from '@/libs/utils'
 import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
 import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
 import type { XenApiAlarm } from '@/types/xen-api'
-import ArrowCollapseButton from '@/components/pool/dashboard/ArrowCollapseButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
+import { useToggle } from '@vueuse/shared'
 import { ref } from 'vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 
 defineProps<{
   alarm: XenApiAlarm<T>
 }>()
 
 const uiStore = useUiStore()
-const { isMobile, isDesktop } = storeToRefs(uiStore)
-const tempDescription =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.'
-const [isDescriptionCollapsed, handleCollapse] = useToggle(true)
+const { isMobile } = storeToRefs(uiStore)
+const description = ref('')
+const [descriptionCollapsed, handleCollapse] = useToggle(true)
 </script>
 
 <style lang="postcss" scoped>
-.mobile,
-.desktop {
+.alarm-row {
   cursor: pointer;
 }
 
@@ -86,6 +92,9 @@ const [isDescriptionCollapsed, handleCollapse] = useToggle(true)
 
   @media (min-width: 768px) {
     padding-left: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
   }
 }
 
@@ -93,6 +102,13 @@ const [isDescriptionCollapsed, handleCollapse] = useToggle(true)
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  display: flex;
+  gap: 1.6rem;
+  align-items: center;
+
+  @media (min-width: 768px) {
+    display: inherit;
+  }
 }
 
 .level {
@@ -109,19 +125,19 @@ const [isDescriptionCollapsed, handleCollapse] = useToggle(true)
   padding-left: 0 !important;
 }
 
-.collapsible-description__content {
+.description-content {
   padding-top: 0 !important;
   border-top: none !important;
   font-size: 1.2rem;
-  padding-left: 3rem !important;
+  padding-left: 2.5rem !important;
 
   @media (min-width: 768px) {
-    padding-left: 3.5rem !important;
+    padding-left: 3rem !important;
   }
 }
 
 .alarm-details {
-  padding: 0 0 1rem 2.8rem;
+  padding: 0 0 1rem 2.5rem;
   display: flex;
   flex-wrap: wrap;
   align-items: end;
