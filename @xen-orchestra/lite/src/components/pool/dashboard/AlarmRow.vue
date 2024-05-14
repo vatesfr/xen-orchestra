@@ -70,11 +70,7 @@ const uiStore = useUiStore()
 const { isMobile, isDesktop } = storeToRefs(uiStore)
 const tempDescription =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.'
-const isDescriptionCollapsedRef = ref(true)
-
-function handleCollapse() {
-  isDescriptionCollapsedRef.value = !isDescriptionCollapsedRef.value
-}
+const [isDescriptionCollapsed, handleCollapse] = useToggle(true)
 </script>
 
 <style lang="postcss" scoped>
