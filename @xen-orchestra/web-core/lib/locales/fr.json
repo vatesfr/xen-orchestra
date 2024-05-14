@@ -1,6 +1,7 @@
 {
   "core": {
     "close": "Fermer",
+    "log-out": "Se déconnecter",
     "master": "Hôte primaire",
     "open": "Ouvrir",
     "quick-actions": "Actions rapides",

@@ -1,6 +1,7 @@
 {
   "core": {
     "close": "Close",
+    "log-out": "Log out",
     "master": "Primary host",
     "open": "Open",
     "quick-actions": "Quick actions",

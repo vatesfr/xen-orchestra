@@ -11,7 +11,7 @@
       {{ $t('send-us-feedback') }}
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
-      {{ $t('log-out') }}
+      {{ $t('core.log-out') }}
     </MenuItem>
   </MenuList>
 </template>
