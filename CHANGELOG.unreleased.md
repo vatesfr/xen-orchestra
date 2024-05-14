@@ -36,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
 - xen-api patch
 - xo-server minor
