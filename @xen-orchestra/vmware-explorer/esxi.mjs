@@ -440,10 +440,12 @@ export default class Esxi extends EventEmitter {
         </soapenv:Envelope>`,
     })
     const text = await res.text()
-    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/)
-
+    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/s)
+    if (matches === null) {
+      throw new Error(`can't get ${propertyName} of object ${id} (Type: ${type})`)
+    }
     return new Promise((resolve, reject) => {
-      xml2js.parseString(matches?.[1] ?? '', (err, res) => (err ? reject(err) : resolve(res.returnval)))
+      xml2js.parseString(matches[1], (err, res) => (err ? reject(err) : resolve(res.returnval)))
     })
   }
 
