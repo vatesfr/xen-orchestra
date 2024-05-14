@@ -46,6 +46,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/fs patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/xapi major
 - xen-api major
 - xo-cli minor
