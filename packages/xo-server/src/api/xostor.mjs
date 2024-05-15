@@ -202,7 +202,7 @@ export const create = defer(async function (
                 quantity: nPoolHosts,
               })
             } catch (error) {
-              const trialAlreadyCreated = xostorLicenses.some(license => license.tags.includes('TRIAL'))
+              const trialAlreadyCreated = xostorLicenses.some(license => license.tags?.includes('TRIAL'))
               // In case trial licenses have been already created, the updater receive an error 500
               if (error.message === 'unknown error from the peer' && trialAlreadyCreated) {
                 throw new Error('XOSTOR trial licenses can only be created once')
