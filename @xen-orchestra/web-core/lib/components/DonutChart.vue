@@ -6,7 +6,7 @@
 
     <ul class="chart-legends">
       <h3 v-if="title" class="chart-title">{{ title }}</h3>
-      <li class="legend" v-for="legend in chartFigures">
+      <li class="legend" v-for="legend in chartFigures" :key="legend.legend">
         <span class="legend-dot" :class="legend.color"></span><span class="legend-text">{{ legend.legend }}</span
         ><span class="legend-value">{{ legend.value }}</span>
       </li>
