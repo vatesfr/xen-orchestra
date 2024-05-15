@@ -15,7 +15,7 @@
 
 - @xen-orchestra/backups 0.48.1
 - @xen-orchestra/vmware-explorer 0.7.2
-- xo-server 5.143.0
+- xo-server 5.143.1
 
 ## **5.94.1** (2024-05-06)
 
