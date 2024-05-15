@@ -1,5 +1,7 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
+  "documentation-name": "Documentation {name}",
+  "support-name": "Support pro {name}",
   "tasks": {
     "quick-view": "Vue rapide des tâches (bientôt disponible)"
   }
