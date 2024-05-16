@@ -30,5 +30,6 @@
 <!--packages-start-->
 
 - xen-api patch
+- xo-server-backup-reports minor
 
 <!--packages-end-->
