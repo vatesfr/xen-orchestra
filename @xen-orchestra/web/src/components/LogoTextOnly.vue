@@ -2,7 +2,7 @@
   <svg
     :class="{ short }"
     :viewBox="short ? '65 622 125 64' : '65 622 735 64'"
-    class="logoTextOnly"
+    class="logo-text-only"
     xmlns="http://www.w3.org/2000/svg"
   >
     <g>
