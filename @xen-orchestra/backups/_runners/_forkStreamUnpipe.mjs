@@ -29,6 +29,10 @@ export function forkStreamUnpipe(source) {
     if (source.forks === 0) {
       debug('no more forks, destroying original stream')
       source.destroy(new Error('no more consumers for this stream'))
+    } else {
+      // a combination of stream.unpipe, onReadable and onData may stall stream here
+      // force it to flow again since we're piping it
+      source.resume()
     }
   })
   return fork

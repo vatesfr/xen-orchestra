@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup & Replication] Fix job stalling when failing to find a base VM
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
 - xo-server-load-balancer minor
