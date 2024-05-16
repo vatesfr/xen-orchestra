@@ -1,7 +1,9 @@
 <template>
   <CoreLayout>
     <template #app-logo>
-      <LogoTextOnly :short="uiStore.isMobile" class="logo" />
+      <RouterLink class="logo-link" to="/">
+        <LogoTextOnly :short="uiStore.isMobile" class="logo" />
+      </RouterLink>
     </template>
     <template #app-header>
       <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary">XO 5</UiButton>
@@ -12,7 +14,9 @@
       />
       <AccountMenu />
     </template>
-    <template #sidebar-content>Sidebar coming soon</template>
+    <template #sidebar-content>
+      <InfraPoolList />
+    </template>
     <template #content-header>
       <slot name="content-header" />
     </template>
@@ -30,6 +34,7 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
+import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
@@ -49,6 +54,12 @@ const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
+.logo-link {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+}
+
 .logo {
   height: 1.6rem;
 }
