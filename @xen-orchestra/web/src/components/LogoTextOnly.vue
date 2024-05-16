@@ -1,5 +1,10 @@
 <template>
-  <svg :class="{ short }" :viewBox="short ? '65 622 125 64' : '65 622 735 64'" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    :class="{ short }"
+    :viewBox="short ? '65 622 125 64' : '65 622 735 64'"
+    class="logoTextOnly"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <g>
       <polygon
         points="120.48 684.92 106.08 684.92 92.38 664.14 80.22 684.92 66.35 684.92 82.14 659.25 103.51 659.25 120.48 684.92"
@@ -57,6 +62,10 @@ defineProps<{ short?: boolean }>()
 </script>
 
 <style lang="postcss" scoped>
+.logoTextOnly {
+  fill: var(--color-grey-100);
+}
+
 .short {
   .o {
     transform: translateX(-140px);
