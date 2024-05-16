@@ -42,9 +42,9 @@ declare module 'vue-router/auto/routes' {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>
     '/dev/token': RouteRecordInfo<'/dev/token', '/dev/token', Record<never, never>, Record<never, never>>
-    '/host/:id': RouteRecordInfo<'/host/:id', '/host/:id', Record<never, never>, Record<never, never>>
-    '/pool/:id': RouteRecordInfo<'/pool/:id', '/pool/:id', Record<never, never>, Record<never, never>>
-    '/vm/:id': RouteRecordInfo<'/vm/:id', '/vm/:id', Record<never, never>, Record<never, never>>
+    '/host/[id]': RouteRecordInfo<'/host/[id]', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>
+    '/pool/[id]': RouteRecordInfo<'/pool/[id]', '/pool/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>
+    '/vm/[id]': RouteRecordInfo<'/vm/[id]', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>
   }
 }
 
