@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Netbox] Check Netbox version before attempting to synchronize (PR [#7716](https://github.com/vatesfr/xen-orchestra/pull/7716))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +34,6 @@
 - @vates/fuse-vhd patch
 - @xen-orchestra/vmware-explorer patch
 - xo-server-backup-reports major
+- xo-server-netbox minor
 
 <!--packages-end-->
