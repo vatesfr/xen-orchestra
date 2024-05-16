@@ -4,13 +4,24 @@ import SelectLicense from 'select-license'
 import { Host } from 'render-xo-item'
 
 class BindXostorLicensesModal extends BaseComponent {
-  licenseByHost = {}
-
-  get value() {
-    return this.licenseByHost
+  state = {
+    licenseByHost: {},
   }
 
-  onSelectLicense = hostId => event => (this.licenseByHost[hostId] = event.target.value)
+  get value() {
+    return this.state.licenseByHost
+  }
+
+  onSelectLicense =
+    hostId =>
+    ({ target: { value } }) => {
+      this.setState(prevState => ({
+        licenseByHost: {
+          ...prevState.licenseByHost,
+          [hostId]: value,
+        },
+      }))
+    }
 
   render() {
     return (
