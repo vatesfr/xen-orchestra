@@ -62,7 +62,7 @@ defineProps<{ short?: boolean }>()
 </script>
 
 <style lang="postcss" scoped>
-.logoTextOnly {
+.logo-text-only {
   fill: var(--color-grey-100);
 }
 
