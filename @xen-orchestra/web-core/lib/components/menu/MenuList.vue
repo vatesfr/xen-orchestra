@@ -1,11 +1,20 @@
 <!-- v1.0 -->
 <template>
-  <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport :disabled="!shouldTeleport" to="body">
-    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="menu-list" v-bind="$attrs">
+  <slot :is-open="isOpen" :open="open" name="trigger" :is-header="false" />
+  <MobileFullscreen :disabled="!hasTrigger" :isOpen="isOpen" @close="isOpen = false">
+    <template #header>
+      <slot name="trigger" :is-header="true" :is-open="false" :open="noop" />
+    </template>
+    <ul
+      v-if="!hasTrigger || isOpen"
+      ref="menu"
+      :class="{ horizontal, shadow, mobile: isMobile }"
+      class="menu-list"
+      v-bind="$attrs"
+    >
       <slot />
     </ul>
-  </Teleport>
+  </MobileFullscreen>
 </template>
 
 <script lang="ts" setup>
@@ -14,7 +23,10 @@ import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
 import placementJs, { type Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
-import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
+import { noop, onClickOutside, unrefElement, whenever } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import { useUiStore } from '@core/stores/ui.store'
+import MobileFullscreen from '@core/components/mobile-fullscreen/MobileFullscreen.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -31,6 +43,7 @@ defineOptions({
 })
 
 const slots = useSlots()
+const { isMobile } = storeToRefs(useUiStore())
 const isOpen = ref(false)
 const menu = ref()
 const isParentHorizontal = inject(
@@ -41,14 +54,13 @@ provide(
   IK_MENU_HORIZONTAL,
   computed(() => props.horizontal ?? false)
 )
-
 useContext(DisabledContext, () => props.disabled)
 
 let clearClickOutsideEvent: (() => void) | undefined
 
 const hasTrigger = useSlots().trigger !== undefined
 
-const shouldTeleport = hasTrigger && !inject(IK_MENU_TELEPORTED, false)
+const shouldTeleport = hasTrigger && !inject(IK_MENU_TELEPORTED, false) && !isMobile.value
 
 if (shouldTeleport) {
   provide(IK_MENU_TELEPORTED, true)
@@ -69,6 +81,9 @@ const open = (event: MouseEvent) => {
 
   isOpen.value = true
 
+  if (isMobile.value) {
+    return
+  }
   nextTick(() => {
     clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
       ignore: [event.currentTarget as HTMLElement],
@@ -99,6 +114,10 @@ const open = (event: MouseEvent) => {
 
   &.shadow {
     box-shadow: var(--shadow-300);
+  }
+
+  &:is(.mobile) {
+    width: 100%;
   }
 }
 </style>
