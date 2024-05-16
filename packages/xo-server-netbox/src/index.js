@@ -16,6 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
+const SUPPORTED_VERSION = '>=2.10 <4.0'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -105,7 +106,7 @@ class Netbox {
   }
 
   async test() {
-    await this.#fetchNetboxVersion()
+    await this.#checkNetboxVersion()
     await this.#checkCustomFields()
 
     const randomSuffix = Math.random().toString(36).slice(2, 11)
@@ -231,10 +232,19 @@ class Netbox {
     }
   }
 
+  async #checkNetboxVersion() {
+    await this.#fetchNetboxVersion()
+    if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, SUPPORTED_VERSION)) {
+      throw new Error(
+        `Netbox version ${this.#netboxVersion ?? '<2.10'} not supported. Please check https://xen-orchestra.com/docs/advanced.html#netbox`
+      )
+    }
+  }
+
   // ---------------------------------------------------------------------------
 
   async #synchronize(xoPools = this.#xoPools) {
-    await this.#fetchNetboxVersion()
+    await this.#checkNetboxVersion()
     await this.#checkCustomFields()
 
     log.info(`Synchronizing ${xoPools.length} pools with Netbox`, { pools: xoPools })

@@ -343,6 +343,11 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 ![](./assets/netbox.png)
 
+## Supported versions
+
+- 2.x
+- 3.x
+
 ### Netbox side
 
 - Go to your Netbox interface
