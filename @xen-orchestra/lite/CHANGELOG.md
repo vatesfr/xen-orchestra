@@ -2,7 +2,7 @@
 
 ## **next**
 
-- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account
+- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))
 
 ## **0.2.2** (2024-04-30)
 
