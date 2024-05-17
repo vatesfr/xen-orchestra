@@ -114,6 +114,9 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   physical_size: number
   physical_utilisation: number
   shared: boolean
+  sm_config: {
+    type?: string
+  }
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
