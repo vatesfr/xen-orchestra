@@ -2,6 +2,8 @@
 
 ## **next**
 
+- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account
+
 ## **0.2.2** (2024-04-30)
 
 - [Tree view] Update tree view with new components from design system (PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))

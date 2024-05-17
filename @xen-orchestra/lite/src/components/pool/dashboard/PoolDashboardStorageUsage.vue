@@ -33,8 +33,8 @@ const data = computed<{
   let maxSize = 0
   let usedSize = 0
 
-  srs.value.forEach(({ name_label, physical_size, physical_utilisation, uuid }) => {
-    if (physical_size < 0 || physical_utilisation < 0) {
+  srs.value.forEach(({ name_label, physical_size, physical_utilisation, uuid, sm_config }) => {
+    if (physical_size < 0 || physical_utilisation < 0 || sm_config.type === 'cd') {
       return
     }
 
