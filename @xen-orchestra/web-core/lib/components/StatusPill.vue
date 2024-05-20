@@ -22,18 +22,8 @@ const icon = computed(() => states[props.state].icon)
 const color = computed(() => states[props.state].color as Color)
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .status-pill {
-  color: var(--icon-color);
-
-  &.error {
-    --icon-color: var(--color-red-base);
-  }
-  &.warning {
-    --icon-color: var(--color-orange-base);
-  }
-  &.success {
-    --icon-color: var(--color-green-base);
-  }
+  font-size: 1rem;
 }
 </style>
