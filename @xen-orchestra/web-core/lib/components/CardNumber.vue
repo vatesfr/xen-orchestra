@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <div class="card-number">
     <span class="label">{{ label }}</span>
