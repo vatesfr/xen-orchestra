@@ -35,9 +35,7 @@ defineProps({
     font-weight: 600;
 
     & .unit {
-      font-size: 1.3rem;
       color: var(--color-grey-100);
-      font-weight: 500;
     }
   }
 }
