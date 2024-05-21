@@ -1,4 +1,5 @@
 <template>
+  <!-- legend v1.0.1 -->
   <li class="legend">
     <span class="ellipsis" :class="legend.color"></span><span class="label typo p3-regular">{{ legend.label }}</span
     ><UiIcon :icon="legend.info ? faCircleInfo : undefined" color="info" class="ui-icon" />
