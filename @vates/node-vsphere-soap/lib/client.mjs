@@ -17,7 +17,20 @@ import https from 'node:https'
 import util from 'util'
 import soap from 'soap'
 import Cookie from 'soap-cookie' // required for session persistence
+import { createLogger } from '@xen-orchestra/log'
 
+const { warn } = createLogger('xo:node-vsphere-soap:client')
+class VmwareError extends Error {
+  constructor(rawError) {
+    super(rawError.body)
+    const matches = rawError.body?.match(/<faultstring[^>]*>(.*)<\/faultstring>/im)
+    this.message = matches?.[1] ?? rawError.message
+    this.name = 'VmwareError'
+    this.stack = rawError.stack
+    // not putting the cause since the error failed to be stringified correctly down the road
+    warn(rawError)
+  }
+}
 // Client class
 // inherits from EventEmitter
 // possible events: connect, error, ready
@@ -140,8 +153,9 @@ Client.prototype._connect = function () {
     self.clientopts,
     function (err, client) {
       if (err) {
-        self.emit('error', err)
-        throw err
+        const vErr = new VmwareError(err)
+        self.emit('error', vErr)
+        throw vErr
       }
 
       self.client = client // save client for later use
@@ -150,8 +164,9 @@ Client.prototype._connect = function () {
         .runCommand('RetrieveServiceContent', { _this: 'ServiceInstance' })
         .once('result', function (result, raw, soapHeader) {
           if (!result.returnval) {
+            const vErr = new VmwareError(err)
             self.status = 'disconnected'
-            self.emit('error', raw)
+            self.emit('error', vErr)
             return
           }
 
@@ -208,7 +223,7 @@ Client.prototype._close = function () {
 function _soapErrorHandler(self, emitter, command, args, err) {
   err = err || { body: 'general error' }
 
-  if (err.body.match(/session is not authenticated/)) {
+  if (err.body?.match(/session is not authenticated/)) {
     self.status = 'disconnected'
     process.removeAllListeners('beforeExit')
 
@@ -220,16 +235,19 @@ function _soapErrorHandler(self, emitter, command, args, err) {
           emitter.emit('result', result, raw, soapHeader)
         })
         .once('error', function (err) {
-          emitter.emit('error', err.body)
-          throw err
+          const vErr = new VmwareError(err)
+          emitter.emit('error', vErr)
+          throw vErr
         })
     } else {
-      emitter.emit('error', err.body)
-      throw err
+      const vErr = new VmwareError(err)
+      emitter.emit('error', vErr)
+      throw vErr
     }
   } else {
-    emitter.emit('error', err.body)
-    throw err
+    const vErr = new VmwareError(err)
+    emitter.emit('error', vErr)
+    throw vErr
   }
 }
 
