@@ -3,42 +3,46 @@
   <div class="multi-progress-bar">
     <div class="wrapper">
       <div
-        v-for="(barSegment, index) in progressBarData"
+        v-for="(segment, index) in segments"
         :key="index"
-        :style="{ width: (barSegment.value / accurateMaxValue) * 100 + '%' }"
-        class="segment"
-        :class="barSegment.color"
+        :style="{ width: (segment.value / accurateMaxValue) * 100 + '%' }"
+        class="segment typo c4-semi-bold"
+        :class="segment.color"
       >
-        {{ ((barSegment.value / accurateMaxValue) * 100).toFixed(2) }} %
+        {{ ((segment.value / accurateMaxValue) * 100).toFixed(2) }} %
       </div>
-      <div :style="{ width: availableSegmentValue + '%' }" class="segment available"></div>
+      <div
+        v-if="availableSegmentValue > 0"
+        :style="{ width: availableSegmentValue + '%' }"
+        class="segment available typo c4-semi-bold"
+      ></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import type { Color } from '@core/types/color.type'
 
-type progressBarDataType = {
+type StackedBarDataType = {
   value: number
   color: Color
 }
 
 const props = defineProps<{
-  progressBarData: progressBarDataType[]
+  segments: StackedBarDataType[]
   maxValue: number
 }>()
 
-const progressBarData = ref<progressBarDataType[]>(props.progressBarData)
+const totalValue = computed(() => props.segments.reduce((acc, bar) => acc + bar.value, 0))
 
 const accurateMaxValue = computed(() => {
-  return props.maxValue > totalValue && props.maxValue !== 0 ? props.maxValue : totalValue
+  return props.maxValue > totalValue.value && props.maxValue !== 0 ? props.maxValue : totalValue.value
 })
 
-const totalValue = progressBarData.value.reduce((acc, bar) => acc + bar.value, 0)
-
-const availableSegmentValue = props.maxValue > totalValue ? props.maxValue - totalValue : 0
+const availableSegmentValue = computed(() => {
+  return props.maxValue > totalValue.value ? props.maxValue - totalValue.value : 0
+})
 </script>
 
 <style scoped lang="postcss">
@@ -61,8 +65,8 @@ const availableSegmentValue = props.maxValue > totalValue ? props.maxValue - tot
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 1.3rem;
-      font-weight: 600;
+      /* font-size: 1.3rem;
+      font-weight: 600; */
       color: var(--color-grey-600);
     }
   }
