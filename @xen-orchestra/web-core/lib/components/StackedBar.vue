@@ -65,8 +65,6 @@ const availableSegmentValue = computed(() => {
       display: flex;
       justify-content: center;
       align-items: center;
-      /* font-size: 1.3rem;
-      font-weight: 600; */
       color: var(--color-grey-600);
     }
   }
