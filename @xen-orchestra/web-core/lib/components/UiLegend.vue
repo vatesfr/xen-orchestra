@@ -1,7 +1,7 @@
 <template>
   <li class="legend">
     <span class="ellipsis" :class="legend.color"></span><span class="label">{{ legend.label }}</span
-    ><UiIcon :icon="faCircleInfo" color="info" class="ui-icon" />
+    ><UiIcon :icon="legend.info ? faCircleInfo : undefined" color="info" class="ui-icon" />
 
     <span class="value">{{ legend.value }}</span>
     <span class="unit">{{ legend.unit }}</span>
@@ -15,9 +15,10 @@ import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 defineProps<{
   legend: {
     value: number
-    color: Color | 'unknown'
+    color: Color | 'dark-blue' | 'disabled'
     label: string
     unit?: string
+    info?: boolean
   }
 }>()
 </script>
@@ -33,7 +34,7 @@ defineProps<{
     min-width: 0.8rem;
     border-radius: 50%;
 
-    &.info {
+    &.default {
       background-color: var(--color-purple-base);
     }
     &.success {
@@ -45,8 +46,11 @@ defineProps<{
     &.error {
       background-color: var(--color-red-base);
     }
-    &.unknown {
-      background-color: var(--background-color-purple-10);
+    &.disabled {
+      background-color: var(--color-grey-300);
+    }
+    &.dark-blue {
+      background-color: var(--color-grey-100);
     }
   }
 
@@ -58,7 +62,6 @@ defineProps<{
 
   & .ui-icon {
     font-size: 1.2rem;
-    margin-right: auto;
   }
 
   & .value,
@@ -66,6 +69,10 @@ defineProps<{
     font-weight: 600;
     font-size: 1.3rem;
     color: var(--color-grey-300);
+  }
+
+  & .value {
+    margin-left: auto;
   }
 }
 </style>
