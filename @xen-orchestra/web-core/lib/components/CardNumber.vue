@@ -15,7 +15,7 @@ defineProps({
 })
 </script>
 <style lang="postcss" scoped>
-.card-number {
+.card-numbers {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
