@@ -623,6 +623,29 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 - The host you want to remove must be a slave, not the master!
 :::
 
+## Storage Management
+
+![](./assets/xo5storageadvanced.png)
+
+### Maintenance mode
+
+Need to shutdown your storage for maintenance? In the SR's Advanced tab, use the "Enable maintenance mode" button.
+Maintenance mode will trigger two actions internally:
+
+- shutdown related VMs
+- disconnect the storage from your hosts
+
+![](./assets/SR-maintenance-mode.png)
+
+This way, you can do whatever is needed on the storage, and when done, re-enable it: all the hosts will be reconnected to it. No manual process to find all VMs related to this SR, shut them down, then disconnect all the PBDs.
+
+
+### Reclaim free space
+
+If your SAN supports it, Xen Orchestra can instruct your XCP-ng host to send a trim command to perform some cleaning.
+
+![](./assets/xo5reclaimfree.png)
+
 ## Visualizations
 
 Visualizations can help you to understand your XCP-ng/XenServer infrastructure, as well as correlate events and detect bottlenecks.
