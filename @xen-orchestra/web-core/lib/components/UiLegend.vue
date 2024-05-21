@@ -1,10 +1,10 @@
 <template>
   <li class="legend">
-    <span class="ellipsis" :class="legend.color"></span><span class="label">{{ legend.label }}</span
+    <span class="ellipsis" :class="legend.color"></span><span class="label typo p3-regular">{{ legend.label }}</span
     ><UiIcon :icon="legend.info ? faCircleInfo : undefined" color="info" class="ui-icon" />
 
-    <span class="value">{{ legend.value }}</span>
-    <span class="unit">{{ legend.unit }}</span>
+    <span class="value typo c3-semi-bold">{{ legend.value }}</span>
+    <span class="unit typo c3-semi-bold">{{ legend.unit }}</span>
   </li>
 </template>
 <script setup lang="ts">
@@ -55,8 +55,6 @@ defineProps<{
   }
 
   & .label {
-    font-size: 1.3rem;
-    font-weight: 400;
     color: var(--color-grey-000);
   }
 
@@ -66,8 +64,6 @@ defineProps<{
 
   & .value,
   & .unit {
-    font-weight: 600;
-    font-size: 1.3rem;
     color: var(--color-grey-300);
   }
 
