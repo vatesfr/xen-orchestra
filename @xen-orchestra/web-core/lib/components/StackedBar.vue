@@ -1,5 +1,5 @@
+<!-- v1.0.0 -->
 <template>
-  <!-- Stacked bar v1.0.0 -->
   <div class="multi-progress-bar">
     <div class="wrapper">
       <div
