@@ -292,7 +292,9 @@ const getTaskAdditionnalData = async (task, props) => {
 
 const metadataSubTaskPartial =
 `{{reportTask . true}}
-{{reportTemporalData end start formatDate}}{{reportError .}}{{reportWarnings warnings}}`
+{{reportTemporalData end start formatDate}}
+{{~reportError .}}
+{{~reportWarnings warnings}}`
 
 Handlebars.registerPartial(
   "metadataSubtask",
@@ -306,7 +308,9 @@ const metadataTemplate =
 - **Job name**: {{jobName}}
 - **Run ID**: {{log.id}}
 {{reportTemporalData log.end log.start formatDate}}
-{{reportSuccesses log.tasks tasksByStatus}}{{reportError log}}{{reportWarnings log.warnings}}
+{{reportSuccesses log.tasks tasksByStatus}}
+{{~reportError log}}
+{{~reportWarnings log.warnings}}
 {{#each tasksByStatus}}
 ---
 
@@ -315,7 +319,9 @@ const metadataTemplate =
 
 
 {{reportTask this false ../../log.jobName}}
-{{reportTemporalData this.end this.start ../../formatDate}}{{reportError this}}{{reportWarnings this.warnings}}
+{{reportTemporalData this.end this.start ../../formatDate}}
+{{~reportError this}}
+{{~reportWarnings this.warnings}}
 {{#each this.tasks}}
   {{>metadataSubtask formatDate=../../../formatDate}}
 {{/each}}
@@ -337,14 +343,17 @@ const vmSubTaskPartial =
 `{{#if subTaskLog}}
 - {{title}} ({{id}}) {{getIcon subTaskLog}}
   {{reportTemporalData subTaskLog.end subTaskLog.start formatDate}}
-  {{reportWarnings subTaskLog.warnings}} {{reportError subTaskLog}}
+  {{~reportWarnings subTaskLog.warnings}}
+  {{~reportError subTaskLog}}
 {{else}}
   - **{{operationLog.message}}** {{getIcon operationLog}}
     {{reportTemporalData operationLog.end operationLog.start formatDate}}
     {{#if operationLog.result.size}}
     - **Size**: {{formatSize operationLog.result.size}}
     - **Speed**: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}
-    {{/if}} {{reportWarnings operationLog.warnings}} {{reportError operationLog}}
+    {{/if}}
+    {{~reportWarnings operationLog.warnings}}
+    {{~reportError operationLog}}
 {{/if}}
 `
 
@@ -388,7 +397,8 @@ const vmTextPartial =
 
 - **UUID**: {{taskLog.data.id}}
 {{/if}}
-{{reportTemporalData taskLog.end taskLog.start formatDate}}{{reportWarnings taskLog.warnings}}
+{{reportTemporalData taskLog.end taskLog.start formatDate}}
+{{~reportWarnings taskLog.warnings}}
 `
 
 Handlebars.registerPartial(
@@ -456,7 +466,8 @@ const vmFailurePartial =
 
 - **UUID**: {{uuid}}
 - **Type**: {{taskLog.data.type}}
-{{reportTemporalData taskLog.end taskLog.start formatDate}}{{reportWarnings taskLog.warnings}}
+{{reportTemporalData taskLog.end taskLog.start formatDate}}
+{{~reportWarnings taskLog.warnings}}
 - **Error**: {{taskLog.result.message}}
 {{else}}
 {{>vmTextPartial formatDate=../formatDate}}
@@ -489,7 +500,7 @@ const vmTemplate =
 {{#if globalMergeSize}}
 - **Merge size**: {{formatSize globalMergeSize}}
 {{/if}}
-{{reportWarnings log.warnings}}
+{{~reportWarnings log.warnings}}
 
 {{#if tasksByStatus.failure.tasks}}
 {{>vmFailurePartial}}
@@ -504,7 +515,8 @@ const vmTemplate =
 {{>vmSuccessPartial}}
 {{/if}}
 {{else}}
-{{reportError log}}{{reportWarnings log.warnings}}
+{{~reportError log}}
+{{~reportWarnings log.warnings}}
 {{/if}}
 ---
 
@@ -988,8 +1000,8 @@ class BackupReportsXoPlugin {
   }
 
   async _sendReport({ mailReceivers, markdown, subject, success }) {
-     console.log("==========================")
-     console.log(markdown)
+    // console.log("==========================")
+    // console.log(markdown)
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
