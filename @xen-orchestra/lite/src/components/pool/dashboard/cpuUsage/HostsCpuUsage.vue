@@ -18,14 +18,14 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UsageBar from '@/components/UsageBar.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { getAvgCpuUsage } from '@/libs/utils'
-import { useHostCollection } from '@/stores/xen-api/host.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import { N_ITEMS } from '@/views/pool/PoolDashboardView.vue'
 import { computed, inject } from 'vue'
 
-const { hasError, isFetching } = useHostCollection()
+const { hasError, isFetching } = useHostStore().subscribe()
 
 const stats = inject(
   IK_HOST_STATS,

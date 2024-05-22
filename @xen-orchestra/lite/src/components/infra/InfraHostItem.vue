@@ -18,9 +18,9 @@
 <script lang="ts" setup>
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
@@ -34,13 +34,13 @@ const props = defineProps<{
   hostOpaqueRef: XenApiHost['$ref']
 }>()
 
-const { getByOpaqueRef } = useHostCollection()
+const { getByOpaqueRef } = useHostStore().subscribe()
 const host = computed(() => getByOpaqueRef(props.hostOpaqueRef))
 
-const { pool } = usePoolCollection()
+const { pool } = usePoolStore().subscribe()
 const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef)
 
-const { recordsByHostRef, isReady } = useVmCollection()
+const { recordsByHostRef, isReady } = useVmStore().subscribe()
 
 const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0)
 </script>

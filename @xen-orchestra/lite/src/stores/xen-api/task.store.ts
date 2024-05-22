@@ -3,13 +3,13 @@ import useCollectionFilter from '@/composables/collection-filter.composable'
 import useCollectionSorter from '@/composables/collection-sorter.composable'
 import useFilteredCollection from '@/composables/filtered-collection.composable'
 import useSortedCollection from '@/composables/sorted-collection.composable'
-import { useXenApiStoreSubscribableContext } from '@/composables/xen-api-store-subscribable-context.composable'
 import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
-import { createUseCollection } from '@/stores/xen-api/create-use-collection'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 
 export const useTaskStore = defineStore('xen-api-task', () => {
-  const context = useXenApiStoreSubscribableContext('task')
+  const { context: baseContext, ...configRest } = createXapiStoreConfig('task')
 
   const { compareFn } = useCollectionSorter<XenApiTask>({
     initialSorts: ['-created'],
@@ -19,7 +19,7 @@ export const useTaskStore = defineStore('xen-api-task', () => {
     initialFilters: ['!name_label:|(SR.scan host.call_plugin)', 'status:pending'],
   })
 
-  const sortedTasks = useSortedCollection(context.records, compareFn)
+  const sortedTasks = useSortedCollection(baseContext.records, compareFn)
 
   const pendingTasks = useFilteredCollection<XenApiTask>(sortedTasks, predicate)
 
@@ -32,11 +32,11 @@ export const useTaskStore = defineStore('xen-api-task', () => {
       })),
   })
 
-  return {
-    ...context,
+  const context = {
+    ...baseContext,
     pendingTasks,
     finishedTasks: useSortedCollection(finishedTasks, compareFn),
   }
-})
 
-export const useTaskCollection = createUseCollection(useTaskStore)
+  return createSubscribableStoreContext({ context, ...configRest }, {})
+})

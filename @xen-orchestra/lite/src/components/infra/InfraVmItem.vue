@@ -12,7 +12,7 @@
 <script lang="ts" setup>
 import type { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
@@ -23,7 +23,7 @@ const props = defineProps<{
   vmOpaqueRef: XenApiVm['$ref']
 }>()
 
-const { getByOpaqueRef } = useVmCollection()
+const { getByOpaqueRef } = useVmStore().subscribe()
 const vm = computed(() => getByOpaqueRef(props.vmOpaqueRef))
 const rootElement = ref()
 const isVisible = ref(false)

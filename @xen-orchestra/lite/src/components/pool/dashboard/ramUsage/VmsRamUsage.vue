@@ -14,14 +14,14 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UsageBar from '@/components/UsageBar.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { formatSize, parseRamUsage } from '@/libs/utils'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_VM_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import { N_ITEMS } from '@/views/pool/PoolDashboardView.vue'
 import { computed, inject } from 'vue'
 
-const { hasError, isFetching } = useVmCollection()
+const { hasError, isFetching } = useVmStore().subscribe()
 
 const stats = inject(
   IK_VM_STATS,
