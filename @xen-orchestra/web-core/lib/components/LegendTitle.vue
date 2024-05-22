@@ -2,16 +2,25 @@
 <template>
   <div class="legend-title typo c3-semi-bold">
     {{ title }}
-    <UiIcon :icon color="info" />
+    <UiIcon
+      v-tooltip="{
+        placement: 'top',
+        content: tooltip ? $t(tooltip) : '',
+      }"
+      :icon="tooltip ? faInfoCircle : undefined"
+      color="info"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{
   title: string
-  icon?: IconDefinition
+  tooltip?: string
 }>()
 </script>
 

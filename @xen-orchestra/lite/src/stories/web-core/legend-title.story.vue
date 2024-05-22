@@ -1,9 +1,9 @@
 <template>
   <ComponentStory
     v-slot="{ properties, settings }"
-    :params="[prop('title').type('string').required().widget(), prop('hasIcon').bool().widget().default(false)]"
+    :params="[prop('title').type('string').required().widget(), prop('tooltip').type('string').widget()]"
   >
-    <LegendTitle v-bind="properties">{{ settings.defaultSlot }}</LegendTitle>
+    <LegendTitle v-bind="properties">{{ settings.slot }}</LegendTitle>
   </ComponentStory>
 </template>
 
