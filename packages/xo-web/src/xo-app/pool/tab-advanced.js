@@ -364,6 +364,7 @@ export default class TabAdvanced extends Component {
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
+
     return (
       <div>
         <Container>
