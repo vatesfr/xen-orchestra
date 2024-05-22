@@ -34,7 +34,7 @@ const Xo = XoLib.default
 async function connect() {
   const { allowUnauthorized, server, token } = await config.load()
   if (server === undefined) {
-    const errorMessage = 'Please use `xo-cli --register` to associate with an XO instance first.\n\n' + help()
+    const errorMessage = 'Please use `xo-cli register` to associate with an XO instance first.\n\n' + help()
     throw errorMessage
   }
 
@@ -239,8 +239,8 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
-  $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
+  $name register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
+  $name register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
@@ -256,21 +256,21 @@ const help = wrap(
     --token <token>
       An authentication token to use instead of username/password.
 
-  $name --createToken <params>…
+  $name create-token <params>…
     Create an authentication token for XO API.
 
     <params>…
-      Accept the same parameters as --register, see its usage.
+      Accept the same parameters as register, see its usage.
 
-  $name --unregister
+  $name unregister
     Remove stored credentials.
 
-  $name --list-commands [--json] [<pattern>]...
+  $name list-commands [--json] [<pattern>]...
     Returns the list of available commands on the current XO instance.
 
     The patterns can be used to filter on command names.
 
-  $name --list-objects [--<property>]… [<property>=<value>]...
+  $name list-objects [--<property>]… [<property>=<value>]...
     Returns a list of XO objects.
 
     --<property>
@@ -395,24 +395,35 @@ $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
 const COMMANDS = { __proto__: null }
 
 async function main(args) {
-  if (!args || !args.length || args[0] === '-h') {
-    return help()
-  }
-
-  const fnName = args[0].replace(/^--|-\w/g, function (match) {
-    if (match === '--') {
-      return ''
+  let command = 'help'
+  let i = 0
+  const n = args.length
+  // eslint-disable-next-line no-unreachable-loop
+  while (i < n) {
+    const arg = args[i++]
+    if (arg === '--help' || arg === '-h') {
+      command = 'help'
+      break
+    } else {
+      command = arg
+      break
     }
-
-    return match[1].toUpperCase()
-  })
+  }
+  args = args.slice(i)
 
   try {
-    if (fnName in COMMANDS) {
-      return await COMMANDS[fnName](args.slice(1))
+    const key = command.replace(/^--/, '').replace(/(?!<^)[A-Z]/g, matches => '-' + matches[0].toLowerCase())
+    const fn = COMMANDS[key]
+    if (fn !== undefined) {
+      if (command !== key) {
+        console.warn('`%s` is deprecated and will be removed in the future, use `%s` subcommand instead', command, key)
+        console.warn('')
+      }
+
+      return await fn(args)
     }
 
-    return await COMMANDS.call(args).catch(error => {
+    return await COMMANDS.call([command, ...args]).catch(error => {
       if (!(error != null && error.code === 10 && 'errors' in error.data)) {
         throw error
       }
@@ -445,13 +456,13 @@ COMMANDS.rest = rest
 COMMANDS.help = help
 
 async function createToken(args) {
-  const { token } = await parseRegisterArgs(args, 'xo-cli --createToken')
+  const { token } = await parseRegisterArgs(args, 'xo-cli create-token')
 
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
 }
-COMMANDS.createToken = createToken
+COMMANDS['create-token'] = createToken
 
 async function register(args) {
   let { clientId } = await config.load()
@@ -539,7 +550,7 @@ async function listCommands(args) {
     await xo.close()
   }
 }
-COMMANDS.listCommands = listCommands
+COMMANDS['list-commands'] = listCommands
 
 async function listObjects(args) {
   const properties = getKeys(extractFlags(args))
@@ -567,7 +578,7 @@ async function listObjects(args) {
     await xo.close()
   }
 }
-COMMANDS.listObjects = listObjects
+COMMANDS['list-objects'] = listObjects
 
 function ensurePathParam(method, value) {
   if (typeof value !== 'string') {

@@ -31,6 +31,7 @@
 <!--packages-start-->
 
 - xen-api patch
+- xo-cli minor
 - xo-server minor
 - xo-server-backup-reports minor
 - xo-web minor
