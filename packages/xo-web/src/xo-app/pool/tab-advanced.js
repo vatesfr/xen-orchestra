@@ -9,6 +9,7 @@ import Icon from 'icon'
 import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -329,7 +330,9 @@ export default class TabAdvanced extends Component {
 
   _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
 
-  _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
+  _onChangeMigrationCompression = value => {
+    editPool(this.props.pool, { migrationCompression: value })
+  }
 
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
@@ -361,7 +364,6 @@ export default class TabAdvanced extends Component {
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
-
     return (
       <div>
         <Container>
@@ -401,7 +403,17 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('migrationCompression')}</th>
                     <td>
-                      <Toggle value={pool.migrationCompression} onChange={this._onChangeMigrationCompression} />
+                      <Tooltip
+                        content={
+                          pool.migrationCompression === undefined ? _('migrationCompressionDisabled') : undefined
+                        }
+                      >
+                        <Toggle
+                          value={pool.migrationCompression}
+                          onChange={this._onChangeMigrationCompression}
+                          disabled={pool.migrationCompression === undefined}
+                        />
+                      </Tooltip>
                     </td>
                   </tr>
                   <tr>

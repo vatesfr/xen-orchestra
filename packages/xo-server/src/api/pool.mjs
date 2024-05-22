@@ -19,7 +19,7 @@ export async function set({
   name_description: nameDescription,
   name_label: nameLabel,
   backupNetwork,
-  migration_compression: migrationCompression,
+  migrationCompression,
   migrationNetwork,
   suspendSr,
   crashDumpSr,

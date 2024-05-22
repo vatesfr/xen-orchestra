@@ -918,6 +918,7 @@ const messages = {
   crashDumpSr: 'Crash dump SR',
   defaultMigrationNetwork: 'Default migration network',
   migrationCompression: 'Migration compression',
+  migrationCompressionDisabled: 'Migration compression is not available on this pool',
   poolDisableHa: 'Disabling high availability',
   poolDisableHaConfirm: 'Are you sure you want to disable high availability on this pool?',
   poolEnableHa: 'Enabling high availability',
