@@ -1,5 +1,5 @@
+<!-- v1.0.1 -->
 <template>
-  <!-- v1.0.1 -->
   <div class="card-numbers" :class="{ column: size === 'medium' }">
     <span
       class="label typo c2-semi-bold"
