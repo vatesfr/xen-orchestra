@@ -270,6 +270,8 @@ if (ghRelease || deploy) {
   if (ghRelease) {
     console.log(`Adding LICENSE file to ${dist}`)
     await fs.copy(fileURLToPath(new URL('agpl-3.0.txt', import.meta.url)), path.join(dist, 'LICENSE'))
+    console.log(`Adding CHANGELOG.md file to ${dist}`)
+    await fs.copy(fileURLToPath(new URL('../CHANGELOG.md', import.meta.url)), path.join(dist, 'CHANGELOG.md'))
   }
 
   if (deploy) {

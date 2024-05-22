@@ -419,6 +419,9 @@ export class Xapi extends EventEmitter {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
 
+      // the promise will be used later
+      pTaskResult.catch(noop)
+
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
       }
@@ -486,6 +489,9 @@ export class Xapi extends EventEmitter {
     if (taskRef !== undefined) {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
+
+      // the promise will be used later
+      pTaskResult.catch(noop)
 
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
@@ -833,7 +839,7 @@ export class Xapi extends EventEmitter {
       this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID' && this._auth.password !== undefined,
     onRetry: () => this._sessionOpen(),
   }
-  async _sessionCall(method, args, timeout) {
+  async _sessionCall(method, args) {
     if (method.startsWith('session.')) {
       return Promise.reject(new Error('session.*() methods are disabled from this interface'))
     }
@@ -848,7 +854,7 @@ export class Xapi extends EventEmitter {
           newArgs.push.apply(newArgs, args)
         }
 
-        return this._call(method, newArgs, timeout)
+        return this._call(method, newArgs)
       }, this._sessionCallRetryOptions)
     } catch (error) {
       if (error?.code === 'SESSION_INVALID') {

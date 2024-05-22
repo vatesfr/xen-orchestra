@@ -42,7 +42,7 @@
     "test": "node--test"
   },
   "devDependencies": {
-    "sinon": "^17.0.1",
+    "sinon": "^18.0.0",
     "test": "^3.2.1"
   }
 }

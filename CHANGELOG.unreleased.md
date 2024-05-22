@@ -14,9 +14,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Console] Fix support of consoles behind an HTTP/HTTPS proxy [Forum#76935](https://xcp-ng.org/forum/post/76935')
-- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successfull) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,7 +30,9 @@
 
 <!--packages-start-->
 
+- xen-api patch
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-web minor
 
 <!--packages-end-->

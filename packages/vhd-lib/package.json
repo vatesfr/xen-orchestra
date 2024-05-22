@@ -25,7 +25,7 @@
     "async-iterator-to-stream": "^1.0.2",
     "decorator-synchronized": "^0.6.0",
     "fs-extra": "^11.1.0",
-    "limit-concurrency-decorator": "^0.5.0",
+    "limit-concurrency-decorator": "^0.6.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.21.0",
     "readable-stream": "^4.1.0",

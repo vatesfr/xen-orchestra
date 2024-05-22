@@ -1,7 +1,7 @@
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
-import { forEach, groupBy, startCase } from 'lodash'
+import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
 
@@ -74,8 +74,6 @@ const createDateFormatter = timezone =>
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
-const formatMethod = method => startCase(method.slice(method.indexOf('.') + 1))
-
 const formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
@@ -92,13 +90,9 @@ const formatSpeed = (bytes, milliseconds) =>
 
 const noop = Function.prototype
 
-const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
-const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
-
-const isSkippedError = error => error.message === UNHEALTHY_VDI_CHAIN_ERROR || error.message === NO_SUCH_OBJECT_ERROR
 
 // ===================================================================
 
@@ -225,11 +219,12 @@ class BackupReportsXoPlugin {
     this._xo.removeListener('job:terminated', this._eventListener)
   }
 
-  async _report(runJobId, { type, status } = {}, force) {
-    const xo = this._xo
+  async _report(runJobId, { type } = {}, force) {
     if (type === 'call') {
-      return this._legacyVmHandler(status)
+      // jobs that are not backups
+      return
     }
+    const xo = this._xo
 
     const log = await xo.getBackupNgLogs(runJobId)
     if (log === undefined) {
@@ -648,180 +643,6 @@ class BackupReportsXoPlugin {
           .join(', ')
       )
     }
-  }
-
-  _legacyVmHandler(status) {
-    const { calls, timezone, error } = status
-    const formatDate = createDateFormatter(timezone)
-
-    if (status.error !== undefined) {
-      const [globalStatus, icon] =
-        error.message === NO_VMS_MATCH_THIS_PATTERN ? ['Skipped', ICON_SKIPPED] : ['Failure', ICON_FAILURE]
-
-      let markdown = [
-        `##  Global status: ${globalStatus}`,
-        '',
-        `- **Start time**: ${formatDate(status.start)}`,
-        `- **End time**: ${formatDate(status.end)}`,
-        `- **Duration**: ${formatDuration(status.end - status.start)}`,
-        `- **Error**: ${error.message}`,
-        '---',
-        '',
-        `*${pkg.name} v${pkg.version}*`,
-      ]
-
-      markdown = markdown.join('\n')
-      return this._sendReport({
-        subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
-        markdown,
-        success: false,
-      })
-    }
-
-    const callIds = Object.keys(calls)
-
-    const nCalls = callIds.length
-    if (nCalls === 0) {
-      return
-    }
-
-    const oneCall = calls[callIds[0]]
-
-    const { _reportWhen: reportWhen = 'failure' } = oneCall.params
-    if (reportWhen === 'never') {
-      return
-    }
-
-    const { method } = oneCall
-    if (
-      method !== 'vm.deltaCopy' &&
-      method !== 'vm.rollingBackup' &&
-      method !== 'vm.rollingDeltaBackup' &&
-      method !== 'vm.rollingDrCopy' &&
-      method !== 'vm.rollingSnapshot'
-    ) {
-      return
-    }
-
-    const reportOnFailure = reportWhen === 'fail' || reportWhen === 'failure' // xo-web < 5 // xo-web >= 5
-
-    let globalMergeSize = 0
-    let globalTransferSize = 0
-    let nFailures = 0
-    let nSkipped = 0
-
-    const failedBackupsText = []
-    const skippedBackupsText = []
-    const successfulBackupText = []
-
-    forEach(calls, call => {
-      const { id = call.params.vm } = call.params
-
-      let vm
-      try {
-        vm = this._xo.getObject(id)
-      } catch (e) {}
-
-      const { end, start } = call
-      const duration = end - start
-      const text = [
-        `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
-        '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
-        `- **Start time**: ${formatDate(start)}`,
-        `- **End time**: ${formatDate(end)}`,
-        `- **Duration**: ${formatDuration(duration)}`,
-      ]
-
-      const { error } = call
-      if (error !== undefined) {
-        const { message } = error
-
-        if (isSkippedError(error)) {
-          ++nSkipped
-          skippedBackupsText.push(
-            ...text,
-            `- **Reason**: ${message === UNHEALTHY_VDI_CHAIN_ERROR ? UNHEALTHY_VDI_CHAIN_MESSAGE : message}`,
-            ''
-          )
-        } else {
-          ++nFailures
-          failedBackupsText.push(...text, `- **Error**: ${message}`, '')
-        }
-      } else if (!reportOnFailure) {
-        const { returnedValue } = call
-        if (returnedValue != null) {
-          const { mergeSize, transferSize } = returnedValue
-          if (transferSize !== undefined) {
-            globalTransferSize += transferSize
-            text.push(
-              `- **Transfer size**: ${formatSize(transferSize)}`,
-              `- **Transfer speed**: ${formatSpeed(transferSize, returnedValue.transferDuration)}`
-            )
-          }
-          if (mergeSize !== undefined) {
-            globalMergeSize += mergeSize
-            text.push(
-              `- **Merge size**: ${formatSize(mergeSize)}`,
-              `- **Merge speed**: ${formatSpeed(mergeSize, returnedValue.mergeDuration)}`
-            )
-          }
-        }
-
-        successfulBackupText.push(...text, '')
-      }
-    })
-
-    const globalSuccess = nFailures === 0 && nSkipped === 0
-    if (reportOnFailure && globalSuccess) {
-      return
-    }
-
-    const { tag } = oneCall.params
-    const duration = status.end - status.start
-    const nSuccesses = nCalls - nFailures - nSkipped
-    const globalStatus = globalSuccess ? `Success` : nFailures !== 0 ? `Failure` : `Skipped`
-
-    let markdown = [
-      `##  Global status: ${globalStatus}`,
-      '',
-      `- **Type**: ${formatMethod(method)}`,
-      `- **Start time**: ${formatDate(status.start)}`,
-      `- **End time**: ${formatDate(status.end)}`,
-      `- **Duration**: ${formatDuration(duration)}`,
-      `- **Successes**: ${nSuccesses} / ${nCalls}`,
-    ]
-    if (globalTransferSize !== 0) {
-      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
-    }
-    if (globalMergeSize !== 0) {
-      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
-    }
-    markdown.push('')
-
-    if (nFailures !== 0) {
-      markdown.push('---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '', ...failedBackupsText)
-    }
-
-    if (nSkipped !== 0) {
-      markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedBackupsText)
-    }
-
-    if (nSuccesses !== 0 && !reportOnFailure) {
-      markdown.push('---', '', `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`, '', ...successfulBackupText)
-    }
-
-    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-
-    markdown = markdown.join('\n')
-
-    return this._sendReport({
-      markdown,
-      subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
-        globalSuccess ? ICON_SUCCESS : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
-      }`,
-      success: globalSuccess,
-    })
   }
 }
 

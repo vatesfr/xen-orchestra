@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <UiIcon :class="className" :icon="icon" class="power-state-icon" />
 </template>

@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <div class="tab-list">
     <slot />

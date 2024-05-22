@@ -1,4 +1,3 @@
-<!-- v1.1.0 -->
 <template>
   <ButtonIcon :color :icon="faXmark" class="chip-remove-icon" size="small" />
 </template>
