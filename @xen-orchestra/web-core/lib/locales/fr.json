@@ -1,6 +1,11 @@
 {
   "core": {
     "close": "Fermer",
+    "coming-soon": "Bientôt disponible !",
+    "current": "Actuel",
+    "filter": "Filtrer",
+    "group": "Grouper",
+    "hide": "Masquer",
     "log-out": "Se déconnecter",
     "master": "Hôte primaire",
     "open": "Ouvrir",
@@ -10,6 +15,10 @@
       "lock": "Verrouiller la barre latérale",
       "open": "Ouvrir la barre latérale",
       "unlock": "Déverrouiller la barre latérale"
+    },
+    "sort": {
+      "ascending": "Trier par ordre croissant",
+      "descending": "Trier par ordre décroissant"
     }
   }
 }

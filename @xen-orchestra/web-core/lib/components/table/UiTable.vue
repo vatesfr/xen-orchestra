@@ -1,6 +1,6 @@
 <template>
   <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table typo p2-regular">
-    <slot foo="test" />
+    <slot />
   </table>
 </template>
 
