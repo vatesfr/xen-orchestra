@@ -32,16 +32,7 @@ const Xo = XoLib.default
 // ===================================================================
 
 async function connect() {
-  const { allowUnauthorized, server, token } = await config.load()
-  if (server === undefined) {
-    const errorMessage = 'Please use `xo-cli register` to associate with an XO instance first.\n\n' + help()
-    throw errorMessage
-  }
-
-  if (token === undefined) {
-    throw new Error('no token available')
-  }
-
+  const { allowUnauthorized, server, token } = await getServerConfig()
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url: server })
   await xo.open()
   try {
@@ -51,6 +42,27 @@ async function connect() {
     throw error
   }
   return xo
+}
+
+const CONFIG = { __proto__: null }
+async function getServerConfig() {
+  if (CONFIG.url !== undefined) {
+    const url = new URL(CONFIG.url)
+    const token = url.username
+    url.username = ''
+    return { allowUnauthorized: CONFIG.allowUnauthorized, server: url.href, token }
+  }
+
+  const { allowUnauthorized, server, token } = await config.load()
+  if (server === undefined) {
+    const error = 'Please use `xo-cli register` to associate with an XO instance first.\n\n' + help()
+    throw error
+  }
+  if (token === undefined) {
+    const error = 'no token available'
+    throw error
+  }
+  return { allowUnauthorized, server, token }
 }
 
 async function parseRegisterArgs(args, tokenDescription, client, acceptToken = false) {
@@ -239,6 +251,17 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
+  Global options:
+
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
+
+    --url <url>, -u <url>
+      Specify an XO instance instance to use for the command instead of relying
+      on the one registered.
+
+      The URL must include credentials: https://token@xo.company.net/
+
   $name register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
   $name register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
@@ -398,18 +421,31 @@ async function main(args) {
   let command = 'help'
   let i = 0
   const n = args.length
-  // eslint-disable-next-line no-unreachable-loop
   while (i < n) {
     const arg = args[i++]
-    if (arg === '--help' || arg === '-h') {
+    if (arg === '--allowUnauthorized' || arg === '--au') {
+      CONFIG.allowUnauthorized = true
+    } else if (arg === '--help' || arg === '-h') {
       command = 'help'
       break
+    } else if (arg === '--url' || arg === '-u') {
+      if (i === n) {
+        const error = 'missing value for option ' + arg
+        throw error
+      }
+      CONFIG.url = args[i++]
+    } else if (arg.slice(0, 6) === '--url=') {
+      CONFIG.url = arg.slice(6)
     } else {
       command = arg
       break
     }
   }
   args = args.slice(i)
+
+  const ctx = {
+    getServerConfig,
+  }
 
   try {
     const key = command.replace(/^--/, '').replace(/(?!<^)[A-Z]/g, matches => '-' + matches[0].toLowerCase())
@@ -420,10 +456,10 @@ async function main(args) {
         console.warn('')
       }
 
-      return await fn(args)
+      return await fn.call(ctx, args)
     }
 
-    return await COMMANDS.call([command, ...args]).catch(error => {
+    return await COMMANDS.call.call(ctx, [command, ...args]).catch(error => {
       if (!(error != null && error.code === 10 && 'errors' in error.data)) {
         throw error
       }
@@ -608,7 +644,7 @@ async function call(args) {
     // FIXME: do not use private properties.
     const baseUrl = xo._url.replace(/^ws/, 'http')
     const httpOptions = {
-      rejectUnauthorized: !(await config.load()).allowUnauthorized,
+      rejectUnauthorized: !(await getServerConfig()).allowUnauthorized,
     }
 
     const result = await xo.call(method, params)

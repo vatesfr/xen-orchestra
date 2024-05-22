@@ -20,6 +20,17 @@ npm install --global xo-cli
 > xo-cli help
 Usage:
 
+  Global options:
+
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
+
+    --url <url>, -u <url>
+      Specify an XO instance instance to use for the command instead of relying
+      on the one registered.
+
+      The URL must include credentials: https://token@xo.company.net/
+
   xo-cli register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
   xo-cli register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.

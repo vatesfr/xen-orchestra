@@ -9,6 +9,16 @@
 
 - [REST API] Support exporting VM in OVA format
 - [XOA/Licenses] Ability to manually bind XOSTOR licenses following new licenses (PR [#7573](https://github.com/vatesfr/xen-orchestra/pull/7573))
+- [xo-cli] Ability to connect to an XO instance without registering it first
+
+  This is helpful when using multiple instances especially when coupled with shell aliases:
+
+  ```sh
+  alias xo-dev='xo-cli --url https://token@dev.company.net'
+  alias xo-prod='xo-cli --url https://token@prod.company.net'
+
+  xo-prod vm.start id=e6572e82-983b-4780-a2a7-b19831fb7f45
+  ```
 
 ### Bug fixes
 
