@@ -493,9 +493,10 @@ BackupJob.defaultProps = {
 
 export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
-}))(({ vgpu, vgpuType }) => (
+  gpuGroup: createGetObject((_, props) => props.vgpu.gpuGroup),
+}))(({ vgpu, vgpuType, gpuGroup }) => (
   <span>
-    <Icon icon='vgpu' /> {vgpuType.modelName}
+    <Icon icon='vgpu' /> {renderXoItem(gpuGroup)}: {vgpuType.modelName}
   </span>
 ))
 
