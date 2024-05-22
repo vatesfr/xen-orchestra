@@ -7,13 +7,11 @@
 <script setup lang="ts">
 import { faFaceSmile } from '@fortawesome/free-solid-svg-icons'
 import UiIcon from '@core/components/icon/UiIcon.vue'
-defineProps({
-  title: String,
-  hasIcon: {
-    type: Boolean,
-    default: false,
-  },
-})
+interface Props {
+  title: string
+  hasIcon: boolean
+}
+defineProps<Props>()
 </script>
 <style lang="postcss" scoped>
 .legend-title {
