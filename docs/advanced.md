@@ -62,19 +62,19 @@ In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https:
 
 ### Example: How to create a Cloud Init template with Ubuntu 22.04 LTS?
 
-1. Create a VM  with e.g. 2 CPU, 8 GiB of RAM, 10 GiB of disk space, and install Ubuntu 22.04 LTS on it.
+1. Create a VM with e.g. 2 CPU, 8 GiB of RAM, 10 GiB of disk space, and install Ubuntu 22.04 LTS on it.
 2. Upon reboot, `apt update` and `apt upgrade` the machine.
 3. Install the [Guest Tools](https://docs.xcp-ng.org/vms/#%EF%B8%8F-guest-tools).
-4. Install the "cloud-initramfs-growroot" so that the VM can apply a Cloud Config:  
+4. Install the "cloud-initramfs-growroot" so that the VM can apply a Cloud Config:
    ```
    sudo apt install cloud-initramfs-growroot
    ```
-6. Run the command `sudo cloud-init clean`.
-8. Clear out the machine-id so it can be regenerated when the template is used:  
+5. Run the command `sudo cloud-init clean`.
+6. Clear out the machine-id so it can be regenerated when the template is used:
    ```
    sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id
    ```
-10. Shutdown the VM and create a template from that image.
+7. Shutdown the VM and create a template from that image.
 
 ### Usage
 
