@@ -39,7 +39,7 @@ Those ways can be also called modes: "performance" for 1 and "density" for numbe
 
 ## Configure a plan
 
-In this coming new view, you'll be able to configure a new load balancing plan, or edit an existing one.
+In this view, you can configure a new load balancing plan, or edit an existing one.
 
 A plan has:
 
@@ -61,7 +61,7 @@ VMs are placed to use all possible resources. This means balance the load to giv
 
 #### Density
 
-This time, the objective is to use the least hosts possible, and to concentrate your VMs. In this mode, you can choose to shutdown unused (and compatible) hosts.
+This time, the objective is to use the least hosts possible, and to concentrate your VMs. In this mode, unused (and compatible) hosts are shut down.
 
 #### Simple
 
@@ -83,6 +83,10 @@ For free memory, it will be triggered if there is **less** free RAM than the thr
 ### Exclusion
 
 If you want to prevent load balancing from triggering migrations on a particular host or VM, it is possible to exclude it from load balancing. It can be configured via the "Excluded hosts" parameter in each plan, and in the "Ignored VM tags" parameter which is common to every plan.
+
+### vCPU balancing
+
+With a performance plan, you can enable the "Balance vCPUs" option. When the pool's load is low (under 40% CPU usage), this option attempts to pre-emptively distribute your VMs across hosts to avoid excessive disparities in the number of vCPUs per CPU, instead of just waiting for a host to be overloaded. In this way, VMs are pre-positioned in a way that is likely to trigger less migrations when the load increases.
 
 ### Timing
 

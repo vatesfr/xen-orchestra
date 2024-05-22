@@ -1,8 +1,202 @@
 # ChangeLog
 
-## **5.92.1** (2024-03-06)
+## **5.94.2** (2024-05-15)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Console] Fix support of consoles behind an HTTP/HTTPS proxy [Forum#76935](https://xcp-ng.org/forum/post/76935')
+- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successfull) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
+- [XOSTOR] Throw clearer error if attempt to create multiple trials (PR [#7649](https://github.com/vatesfr/xen-orchestra/pull/7649))
+- [V2V] Fix import stuck (PR [#7653](https://github.com/vatesfr/xen-orchestra/pull/7653))
+- [REST API] Don't wait for a new state of a task when the `wait` query string is not used
+- [Backup] Prevent VM (and not only its latest snapshot) from being migrated while they are backed up
+
+### Released packages
+
+- @xen-orchestra/backups 0.48.1
+- @xen-orchestra/vmware-explorer 0.7.2
+- xo-server 5.143.1
+
+## **5.94.1** (2024-05-06)
+
+### Enhancements
+
+- [New XOSTOR] Display a warning when replication count is higher than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
+- [XOSTOR] Ability to copy VDI UUID in the resources table (PR [#7629](https://github.com/vatesfr/xen-orchestra/pull/7629))
+
+### Bug fixes
+
+- [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
+- [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
+- [SR/XOSTOR] Fix `an error has occured` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
+- [XOSTOR] Don't require host licenses to run XOSTOR (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
+
+### Released packages
+
+- xo-server 5.142.2
+- xo-web 5.145.0
+
+## **5.94.0** (2024-04-30)
+
+### Highlights
+
+- [Backups] Make health check timeout configurable: property `healthCheckTimeout` of config file (PR [#7561](https://github.com/vatesfr/xen-orchestra/pull/7561))
+- [Plugin/audit] Expose records in the REST API at `/rest/v0/plugins/audit/records`
+- [XOSTOR] List linstor resources in the XOSTOR tab of an SR's view (PR [#7542](https://github.com/vatesfr/xen-orchestra/pull/7542))
+- [i18n] Japanese translation (PR [#7582](https://github.com/vatesfr/xen-orchestra/pull/7582))
+- [Host/Advanced] Ability to `enable/disable` passthrough for PCIs [#7432](https://github.com/vatesfr/xen-orchestra/issues/7432) (PR [#7455](https://github.com/vatesfr/xen-orchestra/pull/7455))
+- [VM/Advanced] Ability to `attach/detach` PCIs to a VM [#7432](https://github.com/vatesfr/xen-orchestra/issues/7432) (PR [#7464](https://github.com/vatesfr/xen-orchestra/pull/7464))
+- [VM] At VM creation, warn if secure boot is on but pool is not setup for UEFI Secure Boot [#7500](https://github.com/vatesfr/xen-orchestra/issues/7500) (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
+- [Rolling Pool Update/Reboot] Use XO tasks for better reportability (PR [#7578](https://github.com/vatesfr/xen-orchestra/pull/7578))
+- [VMWare/Migration] Import from VSAN
+
+### Enhancements
+
+- [XOSTOR] Ability to manage XOSTOR interfaces (PR [#7547](https://github.com/vatesfr/xen-orchestra/pull/7547))
+- [XOSTOR] Require confirmation before creating SR because hosts toolstack will restart if packages need to be installed (PR [#7570](https://github.com/vatesfr/xen-orchestra/pull/7570))
+- [REST API] [Watch mode for the tasks collection](./packages/xo-server/docs/rest-api.md#all-tasks) (PR [#7565](https://github.com/vatesfr/xen-orchestra/pull/7565))
+- [Home/SR] Display _Pro Support_ status for XOSTOR SR (PR [#7601](https://github.com/vatesfr/xen-orchestra/pull/7601))
+- [XOSTOR] XOSTOR is no longer in BETA
+
+### Bug fixes
+
+- [Import/VMWare] Fix `Cannot read properties of undefined (reading 'match')`
+- [Plugin/load-balancer] Density plan will no longer try to migrate VMs to a host which is reaching critical memory or CPU usage (PR [#7544](https://github.com/vatesfr/xen-orchestra/pull/7544))
+- [VMWare/Migration] Don't use default proxy to query the source
+- [Import/VMWare] Remove additional whitespaces in host address
+- [Backup/HealthCheck] Health check failing with timeout while waiting for guest metrics on XO Proxy
+- [VM/Advanced] Fix error displayed when a non-admin user activates "auto power on" (PR [#7580](https://github.com/vatesfr/xen-orchestra/pull/7580))
+- [VM/Backups] Don't incorrectly list backup jobs using _Smart Mode_ if this VM has a `xo:no-bak` tag [#7527](https://github.com/vatesfr/xen-orchestra/issues/7527)
+- Fix support of XenServer 6.5 (broken in XO 5.93.0)
+- [VMWare/Import] Fix `Cannot create property 'xxx' on string 'yyy' when trying to import from ESXi
+- [Import/VMWare] Fix ERR_PREMATURE_CLOSE error with Xenserver hosts (PR [#7563](https://github.com/vatesfr/xen-orchestra/pull/7563))
+- [VMWare/Migration] Handle multiple datacenters (PR [#7553](https://github.com/vatesfr/xen-orchestra/pull/7553))
+- [XOSTOR/create] In the summary section, the warning message "Hosts do not have the same number of disks" now takes into consideration host without disks (PR [#7572](https://github.com/vatesfr/xen-orchestra/pull/7572))
+- [XOSTOR] Install or update packages on all hosts in the pool rather than just hosts with disks (PR [#7597](https://github.com/vatesfr/xen-orchestra/pull/7597))
+- [XOSTOR] Fix `LVM_ERROR(5)` during XOSTOR creation (PR [#7598](https://github.com/vatesfr/xen-orchestra/pull/7598))
+- [Pool/Advanced] Fix `an error has occurred` when no default SR is set on the pool (PR [#7616](https://github.com/vatesfr/xen-orchestra/pull/7616))
+- [XOSTOR/Create] Fix `UND_ERR_HEADERS_TIMEOUT` error when installing dependencies (PR [#7562](https://github.com/vatesfr/xen-orchestra/pull/7562))
+
+### Released packages
+
+- @vates/node-vsphere-soap 2.0.1
+- @vates/task 0.3.0
+- @xen-orchestra/audit-core 0.3.0
+- @xen-orchestra/xapi 5.0.1
+- @xen-orchestra/backups 0.48.0
+- @xen-orchestra/backups-cli 1.0.18
+- @xen-orchestra/immutable-backups 1.0.5
+- xo-server-audit 0.11.0
+- xo-server-load-balancer 0.9.1
+- @vates/xml 2.0.0
+- @vates/xml-rpc 1.0.0
+- xen-api 3.0.1
+- @xen-orchestra/mixins 0.15.0
+- @xen-orchestra/proxy 0.28.1
+- @xen-orchestra/vmware-explorer 0.7.1
+- xo-cli 0.27.1
+- xo-server 5.142.1
+- xo-web 5.144.0
+
+## **5.93.1** (2024.04-10)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Enhancements
+
+- [RPU] If a XOSTOR is present in the pool, _Rolling Pool Update_ is no longer available (PR [#7540](https://github.com/vatesfr/xen-orchestra/pull/7540))
+
+### Bug fixes
+
+- [REST API] Fix download of host's audit and logs broken in XO 5.93.0
+- [VM] Fix `unknown error` on export (broken in XO 5.93.0)
+- [Host/Advanced] Fix _Hyper Threading_ not correctly recognized if _Smartctl_ plugin returned an error [Forum#8675](https://xcp-ng.org/forum/topic/8675/ht-smt-detection-in-8-3-not-fully-working) (PR [#7525](https://github.com/vatesfr/xen-orchestra/pull/7525))
+- [VMWare/Migration] Use NFS datastore for import from XO5 (PR [#7530](https://github.com/vatesfr/xen-orchestra/pull/7530))
+- [VMWare/Migration] Fix `Can't import delta of a running VM without its parent vdi` when importing snapshotless VM (PR [#7530](https://github.com/vatesfr/xen-orchestra/pull/7530))
+- [VMWare/Migration] Don't fail all VMs if one does not have any disks (PR [#7530](https://github.com/vatesfr/xen-orchestra/pull/7530))
+- [Plugin/perf-alert] Fix important CPU & memory usage (broken in XO 5.93.0)
+- [New/VM] Correctly detects if the template requires a VTPM device
+
+### Released packages
+
+- @xen-orchestra/backups 0.47.0
+- @xen-orchestra/backups-cli 1.0.17
+- @xen-orchestra/immutable-backups 1.0.4
+- @xen-orchestra/proxy 0.27.2
+- @xen-orchestra/vmware-explorer 0.6.1
+- xo-server 5.140.1
+- xo-server-perf-alert 0.3.7
+- xo-web 5.142.1
+
+## **5.93.0** (2024-03-29)
+
+### Highlights
+
+- [User] Show authentication tokens last use datetime and IP address (PR [#7479](https://github.com/vatesfr/xen-orchestra/pull/7479))
+- [Console] In VM and Host Console tab, display console's zoom percentage (PR [#7452](https://github.com/vatesfr/xen-orchestra/pull/7452))
+- [Pool/Network] Automatically update network interfaces when network MTU is changed [Forum#8133](https://xcp-ng.org/forum/topic/8133/set-host-network-mtu-in-xen-orchestra) (PR [#7443](https://github.com/vatesfr/xen-orchestra/pull/7443)).
+- [Plugin/load-balancer] A parameter was added in performance mode to balance VMs on hosts depending on their number of vCPUs, when it does not cause performance issues [#5389](https://github.com/vatesfr/xen-orchestra/issues/5389) (PR [#7333](https://github.com/vatesfr/xen-orchestra/pull/7333))
+- [Pool/Advanced] Default SR can now also be configured from the pool's _Advanced_ tab [#7414](https://github.com/vatesfr/xen-orchestra/issues/7414) (PR [#7451](https://github.com/vatesfr/xen-orchestra/pull/7451))
+- [VMWare/Migration] Use NFS datastore from XO Remote to bypass VMFS6 lock (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Pool/Advanced] High availability can now be activated or deactivated, and the heartbeat SR can be configured during activation [#4731](https://github.com/vatesfr/xen-orchestra/issues/4731) (PR [#7503](https://github.com/vatesfr/xen-orchestra/pull/7503))
+- [OTP] Activate it now requires entering a one-time password to validate the setup and prevent user from being locked out (PR [#7480](https://github.com/vatesfr/xen-orchestra/pull/7480))
+- Use [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601) for numeric datetimes (PR [#7484](https://github.com/vatesfr/xen-orchestra/pull/7484))
+- [VM/Advanced] Display a warning if the VM does not support the selected firmware (PR [#7442](https://github.com/vatesfr/xen-orchestra/pull/7442))
+- [Remotes] Fix size reporting for huge remotes
+
+### Enhancements
+
+- [VM Creation] Automatically create a VTPM if the template requests it (Windows templates starting from XCP-ng 8.3) (PR [#7436](https://github.com/vatesfr/xen-orchestra/pull/7436))
+- [OTP] Accepts (ignores) whitespaces in the one-time password (some OTP applications add them for nicer display)
+- [VM/General] Show current VM tags without the need to search them in advanced creation tag selector [#7351](https://github.com/vatesfr/xen-orchestra/issues/7351) (PR [#7434](https://github.com/vatesfr/xen-orchestra/pull/7434))
+- [xo-cli] Supports signing in with one-time password (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
+- [App] Implement the initial PWA manifest for Xen Orchestra 5 (PR [#7462](https://github.com/vatesfr/xen-orchestra/pull/7462)).
+- [XOA/License] Ability to change the license assigned to an object already licensed (e.g. expired licenses) (PR [#7390](https://github.com/vatesfr/xen-orchestra/pull/7390))
+- [VMWare/Migration] Make one pass for the cold base disk and snapshots (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Remotes] S3 (Object storage) and remote encryption are production ready (PR [#7515](https://github.com/vatesfr/xen-orchestra/pull/7515))
+- [Template] Attempting to delete a template protected against accidental deletion displays a confirmation modal (PR [#7493](https://github.com/vatesfr/xen-orchestra/pull/7493))
+
+### Bug fixes
+
+- [ISO SR] During ISO migration, the destination SRs were not ISO SRs [#7392](https://github.com/vatesfr/xen-orchestra/issues/7392) (PR [#7431](https://github.com/vatesfr/xen-orchestra/pull/7431))
+- [VM/Migration] Fix VDIs that were not migrated to the destination SR (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
+- [Home/VM] VMs migration from the home view will no longer execute a [Migration with Storage Motion](https://github.com/vatesfr/xen-orchestra/blob/master/docs/manage_infrastructure.md#vm-migration-with-storage-motion-vmmigrate_send) unless it is necessary [Forum#8279](https://xcp-ng.org/forum/topic/8279/getting-errors-when-migrating-4-out-5-vmguest/)(PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
+- [VM/Migration] SR is no longer required if you select a migration network (PR [#7360](https://github.com/vatesfr/xen-orchestra/pull/7360))
+- [Backup] Fix `an error has occurred` when clicking on warning text in logs (PR [#7458](https://github.com/vatesfr/xen-orchestra/pull/7458))
+- [JSON-RPC API] Correctly require one-time password if configured for user (PR [#7459](https://github.com/vatesfr/xen-orchestra/pull/7459))
+- [VM/WarmMigration] Feature is for PREMIUM and SOURCE users (PR [#7514](https://github.com/vatesfr/xen-orchestra/pull/7514))
+- [VMWare/Migration] Handle raw CDROM
+- [XOSTOR Creation] The host toolstack is now restarted after installing the XOSTOR dependencies (PR [#7437](https://github.com/vatesfr/xen-orchestra/pull/7437))
+- [VMWare/Migration] Alignment of the end of delta on older ESXi (PR [#7487](https://github.com/vatesfr/xen-orchestra/pull/7487))
+- [Backup] Fix `no object with uuid or opaqueref` when running a health check (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
+- [Backup] Fix `task has already ended` when running a health check in a mirror backup (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
+- [Backup] Fix health check being stuck when using a different, non shared health check SR (PR [#7467](https://github.com/vatesfr/xen-orchestra/pull/7467))
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.6
+- xen-api 3.0.0
+- @vates/nbd-client 3.0.1
+- @vates/otp 1.1.0
+- @xen-orchestra/xapi 5.0.0
+- @xen-orchestra/backups-cli 1.0.16
+- @xen-orchestra/cr-seed-cli 1.0.1
+- @xen-orchestra/immutable-backups 1.0.3
+- @xen-orchestra/self-signed 0.2.1
+- xapi-explore-sr 0.4.3
+- xo-cli 0.27.0
+- xo-server-load-balancer 0.9.0
+- vhd-lib 4.9.2
+- @xen-orchestra/backups 0.46.1
+- @xen-orchestra/proxy 0.27.1
+- @xen-orchestra/vmware-explorer 0.6.0
+- xo-acl-resolver 0.5.0
+- xo-server 5.140.0
+- xo-web 5.142.0
+
+## **5.92.1** (2024-03-06)
 
 ### Enhancements
 
@@ -73,8 +267,6 @@
 - xo-web 5.139.0
 
 ## **5.91.2** (2024-02-09)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

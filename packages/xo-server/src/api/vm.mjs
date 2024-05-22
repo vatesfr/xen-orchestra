@@ -16,7 +16,7 @@ import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
+import { forEach, map, mapFilter, noop, parseSize, safeDateFormat } from '../utils.mjs'
 
 const log = createLogger('xo:vm')
 
@@ -424,6 +424,7 @@ const delete_ = defer(async function (
     delete_disks, // eslint-disable-line camelcase
     force,
     forceDeleteDefaultTemplate,
+    forceBlockedOperation,
     vm,
 
     deleteDisks = delete_disks,
@@ -467,7 +468,12 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.VM_destroy(vm._xapiRef, { deleteDisks, force, forceDeleteDefaultTemplate })
+  return xapi.VM_destroy(vm._xapiRef, {
+    deleteDisks,
+    force,
+    forceDeleteDefaultTemplate,
+    bypassBlockedOperation: forceBlockedOperation,
+  })
 })
 
 delete_.params = {
@@ -484,6 +490,11 @@ delete_.params = {
   },
 
   forceDeleteDefaultTemplate: {
+    optional: true,
+    type: 'boolean',
+  },
+
+  forceBlockedOperation: {
     optional: true,
     type: 'boolean',
   },
@@ -1214,11 +1225,9 @@ async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' })
   const stream =
     format === 'ova' ? await xapi.exportVmOva(vmRef) : (await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })).body
 
-  res.on('close', () => stream.destroy())
-  // Remove the filename as it is already part of the URL.
-  stream.headers['content-disposition'] = 'attachment'
+  res.on('close', () => stream.on('error', noop).destroy())
 
-  res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+  res.setHeader('content-disposition', 'attachment')
   stream.pipe(res)
 }
 
@@ -1382,9 +1391,28 @@ import_.resolve = {
 
 export { import_ as import }
 
-export async function importFromEsxi({ host, network, password, sr, sslVerify = true, stopSource = false, user, vm }) {
-  const task = await this.tasks.create({ name: `importing vm ${vm}` })
-  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, vm, sr, network, stopSource }))
+export async function importFromEsxi({
+  host,
+  network,
+  password,
+  sr,
+  sslVerify = true,
+  stopSource = false,
+  user,
+  vm,
+  workDirRemote,
+}) {
+  return importMultipleFromEsxi.call(this, {
+    host,
+    network,
+    password,
+    sr,
+    sslVerify,
+    stopSource,
+    user,
+    vms: [vm],
+    workDirRemote,
+  })
 }
 
 importFromEsxi.params = {
@@ -1396,6 +1424,7 @@ importFromEsxi.params = {
   stopSource: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
+  workDirRemote: { type: 'string', optional: true },
 }
 
 /**
@@ -1415,10 +1444,25 @@ export async function importMultipleFromEsxi({
   thin,
   user,
   vms,
+  workDirRemote,
 }) {
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
   let done = 0
   return task.run(async () => {
+    const PREFIX = '[vmware]'
+    const handlers = await Promise.all(
+      (await this.getAllRemotes())
+        .filter(({ name, enabled }) => enabled && name.toLocaleLowerCase().startsWith(PREFIX))
+        .map(remote => this.getRemoteHandler(remote))
+    )
+    const workDirRemoteHandler = workDirRemote ? await this.getRemoteHandler(workDirRemote) : undefined
+    const dataStoreToHandlers = {}
+    handlers.forEach(handler => {
+      const name = handler._remote.name
+      const dataStoreName = name.substring(PREFIX.length).trim()
+      dataStoreToHandlers[dataStoreName] = handler
+    })
+
     Task.set('total', vms.length)
     Task.set('done', 0)
     Task.set('progress', 0)
@@ -1439,6 +1483,8 @@ export async function importMultipleFromEsxi({
                 sr,
                 network,
                 stopSource,
+                dataStoreToHandlers,
+                workDirRemote: workDirRemoteHandler,
               })
               result[vm] = vmUuid
             } finally {
@@ -1497,6 +1543,7 @@ importMultipleFromEsxi.params = {
     type: 'array',
     uniqueItems: true,
   },
+  workDirRemote: { type: 'string', optional: true },
 }
 
 // -------------------------------------------------------------------
@@ -1601,32 +1648,48 @@ createInterface.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function attachPci({ vm, pciId }) {
-  await this.getXapiObject(vm).update_other_config('pci', pciId)
+// https://docs.xcp-ng.org/compute/#5-put-this-pci-device-into-your-vm
+const formatPciIds = pciIds => '0/' + pciIds.join(',0/')
+export async function attachPcis({ vm, pcis }) {
+  await this.checkPermissions(pcis.map(id => [id, 'administrate']))
+
+  const pciIds = pcis.map(id => this.getObject(id, 'PCI').pci_id)
+  const uniquePciIds = Array.from(new Set((vm.attachedPcis ?? []).concat(pciIds)))
+
+  await this.getXapiObject(vm).update_other_config('pci', formatPciIds(uniquePciIds))
 }
 
-attachPci.params = {
-  vm: { type: 'string' },
-  pciId: { type: 'string' },
+attachPcis.params = {
+  id: { type: 'string' },
+  pcis: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+  },
 }
-
-attachPci.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
+attachPcis.resolve = {
+  vm: ['id', 'VM', 'administrate'],
 }
 
 // -------------------------------------------------------------------
 
-export async function detachPci({ vm }) {
-  await this.getXapiObject(vm).update_other_config('pci', null)
+export async function detachPcis({ vm, pciIds }) {
+  const newAttachedPciIds = vm.attachedPcis.filter(id => !pciIds.includes(id))
+  await this.getXapiObject(vm).update_other_config(
+    'pci',
+    newAttachedPciIds.length === 0 ? null : formatPciIds(newAttachedPciIds)
+  )
 }
 
-detachPci.params = {
-  vm: { type: 'string' },
+detachPcis.params = {
+  id: { type: 'string' },
+  pciIds: { type: 'array', items: { type: 'string' } },
+}
+detachPcis.resolve = {
+  vm: ['id', 'VM', 'administrate'],
 }
 
-detachPci.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
-}
 // -------------------------------------------------------------------
 
 export function stats({ vm, granularity }) {

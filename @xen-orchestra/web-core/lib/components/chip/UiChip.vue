@@ -1,10 +1,11 @@
+<!-- v1.1 -->
 <template>
   <span :class="[color, { disabled }]" class="ui-chip typo p3-regular" @click="emit('edit')">
     <ChipIcon :color :disabled :icon />
     <span class="content">
       <slot />
     </span>
-    <ChipRemoveIcon :color :disabled @click.stop="emit('remove')" />
+    <ChipRemoveIcon v-if="!disabled" :color @click.stop="emit('remove')" />
   </span>
 </template>
 

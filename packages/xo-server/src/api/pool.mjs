@@ -116,6 +116,45 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function disableHa({ pool }) {
+  await this.getXapi(pool).disableHa()
+}
+
+disableHa.params = {
+  pool: {
+    type: 'string',
+  },
+}
+
+disableHa.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function enableHa({ pool, heartbeatSrs, configuration }) {
+  await this.getXapi(pool).enableHa(heartbeatSrs, configuration)
+}
+
+enableHa.params = {
+  pool: {
+    type: 'string',
+  },
+  heartbeatSrs: {
+    type: 'array',
+    items: { type: 'string' },
+  },
+  configuration: {
+    type: 'object',
+  },
+}
+
+enableHa.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 // Returns an array of missing new patches in the host
 // Returns an empty array if up-to-date
 export function listMissingPatches({ host }) {
@@ -189,7 +228,8 @@ export const rollingUpdate = async function ({ bypassBackupCheck = false, pool }
     await backupGuard.call(this, poolId)
   }
 
-  await this.rollingPoolUpdate(pool)
+  const task = this.tasks.create({ name: `Rolling pool update`, poolId, poolName: pool.name_label })
+  return task.run(async () => this.rollingPoolUpdate(pool))
 }
 
 rollingUpdate.params = {
@@ -213,8 +253,8 @@ export async function rollingReboot({ bypassBackupCheck, pool }) {
   } else {
     await backupGuard.call(this, poolId)
   }
-
-  await this.rollingPoolReboot(pool)
+  const task = this.tasks.create({ name: `Rolling pool reboot`, poolId, poolName: pool.name_label })
+  return task.run(async () => this.rollingPoolReboot(pool))
 }
 
 rollingReboot.params = {

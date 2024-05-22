@@ -1,9 +1,9 @@
-import { useXenApiStoreSubscribableContext } from '@/composables/xen-api-store-subscribable-context.composable'
-import { createUseCollection } from '@/stores/xen-api/create-use-collection'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 
 export const useSrStore = defineStore('xen-api-sr', () => {
-  return useXenApiStoreSubscribableContext('sr')
-})
+  const config = createXapiStoreConfig('sr')
 
-export const useSrCollection = createUseCollection(useSrStore)
+  return createSubscribableStoreContext(config, {})
+})

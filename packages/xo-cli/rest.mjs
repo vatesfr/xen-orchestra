@@ -11,8 +11,6 @@ import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
 
-import * as config from './config.mjs'
-
 const PREFIX = '/rest/v0/'
 
 function addPrefix(suffix) {
@@ -145,13 +143,7 @@ export async function rest(args) {
     _: [command, ...rest],
   } = getopts(args, { boolean: ['json'], stopEarly: true })
 
-  const { allowUnauthorized, server, token } = await config.load()
-
-  if (server === undefined) {
-    const errorMessage =
-      'Please use `xo-cli --register` to associate with an XO instance first.\n\nSee `xo-cli --help` for more info.'
-    throw errorMessage
-  }
+  const { allowUnauthorized, server, token } = await this.getServerConfig()
 
   const baseUrl = server
   const baseOpts = {
@@ -159,6 +151,7 @@ export async function rest(args) {
       cookie: 'authenticationToken=' + token,
     },
     rejectUnauthorized: !allowUnauthorized,
+    timeout: 0,
   }
 
   if (command === undefined || !(command in COMMANDS)) {

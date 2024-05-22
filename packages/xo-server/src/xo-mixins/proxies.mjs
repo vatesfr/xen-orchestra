@@ -191,7 +191,7 @@ export default class Proxy {
     return proxy
   }
 
-  async upgradeProxyAppliance(id, ignoreRunningJobs = false) {
+  async upgradeProxyAppliance(id, { force = false, ignoreRunningJobs = force }) {
     if (!ignoreRunningJobs) {
       const stream = await this.callProxyMethod(id, 'backup.listRunningJobs', undefined, { assertType: 'iterator' })
       const ids = []
@@ -203,15 +203,17 @@ export default class Proxy {
       }
     }
 
-    try {
-      // attempt to use the quick API upgrade
-      await this.callProxyMethod(id, 'appliance.updater.upgrade')
-    } catch (error) {
-      log.warn('failed to upgrade proxy via API', { error })
-
-      // fall back to the reboot upgrade (only available if the VM is known)
+    if (force) {
+      // reboot upgrade (only available if the VM is known)
       await this.updateProxyAppliance(id, { upgrade: true })
+    } else {
+      // quick API upgrade
+      await this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, {
+        timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
+      })
     }
+
+    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
@@ -237,21 +239,16 @@ export default class Proxy {
       await xapi.startVm(vmUuid)
     }
 
-    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
-
     await xapi._waitObjectState(vmUuid, vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined)
   }
 
-  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id)
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id, false)
   async getProxyApplianceUpdaterState(id) {
     try {
       // ensure the updater is using the expected channel otherwise the state will not be correct
       await this.callProxyMethod(id, 'appliance.updater.configure', { channel: await this._getChannel() })
     } catch (error) {
-      // this method does not exist on older versions of the proxy, simply ignore the error
-      if (error.code !== -32601) {
-        log.warn('failed to set proxy updater channel', { error })
-      }
+      log.warn('failed to set proxy updater channel', { error })
     }
 
     return this.callProxyMethod(id, 'appliance.updater.getState')

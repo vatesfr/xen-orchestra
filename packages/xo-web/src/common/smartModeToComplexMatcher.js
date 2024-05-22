@@ -5,7 +5,7 @@ import escapeRegExp from 'lodash/escapeRegExp.js'
 // complex-matcher pattern
 const pseudoValueToComplexMatcher = pattern => {
   if (typeof pattern === 'string') {
-    return new CM.RegExpNode(`^${escapeRegExp(pattern)}$`, 'i')
+    return new CM.RegExpNode(`^${escapeRegExp(pattern)}$`)
   }
 
   if (Array.isArray(pattern)) {

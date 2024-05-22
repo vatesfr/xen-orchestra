@@ -166,6 +166,9 @@ It takes the `data` as first argument and will return:
 - `false` if the node explicitly doesn't pass the filter
 - `undefined` if the filter doesn't apply to the node
 
+For basic filtering on label you can use the `useTreeFilter` composable which returns `filter` (`Ref<string>`) and a
+predefined `predicate` function (`(node: TreeNodeBase) => boolean | undefined`) which can be passed as an option.
+
 ## `defineTree` helper
 
 The `defineTree` helper creates a collection of definitions in a more convenient way.
@@ -395,7 +398,7 @@ Here are the rules to determine whether a node is visible or not.
     defineTree(members, ({ animals }) => defineTree(animals))
   )
 
-  const { nodes } = useTree(definitions)
+  const { nodes } = useTree(familyDefinitions)
 </script>
 
 <style lang="postcss" scoped>
@@ -511,7 +514,7 @@ Here are the rules to determine whether a node is visible or not.
   const predicate = ({ label }: { label: string }) => {
     const filterValue = filter.value?.trim().toLocaleLowerCase() ?? false
 
-    return !filterValue ? undefined : name.toLocaleLowerCase().includes(filterValue)
+    return !filterValue ? undefined : label.toLocaleLowerCase().includes(filterValue)
   }
 
   const definitions = defineTree(families, { predicate }, ({ members }) =>

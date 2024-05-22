@@ -2,7 +2,10 @@ import { createLogger } from '@xen-orchestra/log'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 
 import Disposable from 'promise-toolbox/Disposable'
+import humanFormat from 'human-format'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import mapValues from 'lodash/mapValues.js'
+import ms from 'ms'
 import { compose } from '@vates/compose'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
@@ -20,7 +23,7 @@ createCachedLookup().patchGlobal()
 
 const logger = createLogger('xo:backups:worker')
 catchGlobalErrors(logger)
-const { debug } = logger
+const { debug, info } = logger
 
 class BackupWorker {
   #config
@@ -149,6 +152,27 @@ process.on('message', async message => {
   debug('message received', { message })
 
   if (message.action === 'run') {
+    const resourceStart = process.resourceUsage()
+    const timeStart = process.hrtime.bigint()
+    info('starting backup')
+
+    process.on('exit', exitCode => {
+      const resourceUsage = mapValues(process.resourceUsage(), (end, key) => end - resourceStart[key])
+      const cpuTotal = resourceUsage.userCPUTime + resourceUsage.systemCPUTime
+      const duration = Number((process.hrtime.bigint() - timeStart) / 1000n) // in μs
+
+      info('process will exit', {
+        duration,
+        exitCode,
+        resourceUsage,
+        summary: {
+          duration: ms(duration / 1000),
+          cpuUsage: Math.round((100 * cpuTotal) / duration) + '%',
+          memoryUsage: humanFormat.bytes(resourceUsage.maxRSS * 1024),
+        },
+      })
+    })
+
     const backupWorker = new BackupWorker(message.data)
     try {
       const result = message.runWithLogs
@@ -177,6 +201,7 @@ process.on('message', async message => {
         status: 'failure',
       })
     } finally {
+      info('backup has ended')
       await ignoreErrors.call(backupWorker.debounceResource.flushAll())
       process.disconnect()
     }

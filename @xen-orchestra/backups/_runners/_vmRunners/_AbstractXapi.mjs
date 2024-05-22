@@ -240,6 +240,18 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       })
     }, 'writer.beforeBackup()')
 
+    const vm = this._vm
+
+    // block migration during the backup on the VM itself, not the latest snapshot
+    {
+      const { pool_migrate = null, migrate_send = null } = vm.blocked_operations
+
+      const reason = 'VM migration is blocked during backup'
+      await vm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
+
+      $defer(() => vm.update_blocked_operations({ pool_migrate, migrate_send }))
+    }
+
     await this._fetchJobSnapshots()
 
     await this._selectBaseVm()
@@ -247,7 +259,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const vm = this._vm
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
@@ -261,15 +272,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
 
       if (this._writers.size !== 0) {
-        const { pool_migrate = null, migrate_send = null } = this._exportedVm.blocked_operations
-
-        const reason = 'VM migration is blocked during backup'
-        await this._exportedVm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
-        try {
-          await this._copy()
-        } finally {
-          await this._exportedVm.update_blocked_operations({ pool_migrate, migrate_send })
-        }
+        await this._copy()
       }
     } finally {
       if (startAfter) {

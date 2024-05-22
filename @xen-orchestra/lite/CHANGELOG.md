@@ -2,6 +2,14 @@
 
 ## **next**
 
+- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))
+
+## **0.2.2** (2024-04-30)
+
+- [Tree view] Update tree view with new components from design system (PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))
+
+## **0.2.1** (2024-04-02)
+
 - Fix duplicate consoles after failed connection (PR [#7505](https://github.com/vatesfr/xen-orchestra/pull/7505))
 - [Tabs] Disable navigation to in-progress views (PR [7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
 

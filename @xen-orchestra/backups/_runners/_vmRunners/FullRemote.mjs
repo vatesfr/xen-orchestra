@@ -1,5 +1,3 @@
-import { decorateMethodsWith } from '@vates/decorate-with'
-import { defer } from 'golike-defer'
 import { AbstractRemote } from './_AbstractRemote.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
@@ -10,15 +8,9 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
   _getRemoteWriter() {
     return FullRemoteWriter
   }
-  async _run($defer) {
+  async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'full')
 
-    await this._callWriters(async writer => {
-      await writer.beforeBackup()
-      $defer(async () => {
-        await writer.afterBackup()
-      })
-    }, 'writer.beforeBackup()')
     if (transferList.length > 0) {
       for (const metadata of transferList) {
         const stream = await this._sourceRemoteAdapter.readFullVmBackup(metadata)
@@ -46,7 +38,3 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     }
   }
 }
-
-decorateMethodsWith(FullRemote, {
-  _run: defer,
-})

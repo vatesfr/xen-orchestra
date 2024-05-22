@@ -110,10 +110,6 @@ You can add this at the end of your config file:
 httpProxy = 'http://username:password@proxyAddress:port'
 ```
 
-## Log file
-
-On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
-
 ## Reverse proxy
 
 If you don't want to have Xen Orchestra exposed directly outside, or just integrating it with your existing infrastructure, you can use a Reverse Proxy.

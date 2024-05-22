@@ -1,0 +1,33 @@
+{
+  "private": false,
+  "name": "@vates/xml-rpc",
+  "description": "Parse and format XML-RPC messages, do not handle transport or XML",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/xml-rpc",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/xml-rpc",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vates/xml": "^2.0.0",
+    "test": "^3.3.0"
+  },
+  "exports": {
+    "./formatter": "./formatter.js",
+    "./parser": "./parser.js"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test": "node--test"
+  }
+}

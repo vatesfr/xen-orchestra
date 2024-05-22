@@ -15,6 +15,7 @@ import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, map, values } from 'lodash'
+import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -26,6 +27,8 @@ import {
 } from 'selectors'
 import {
   editPool,
+  enableHa,
+  disableHa,
   installSupplementalPackOnAllHosts,
   isSrWritable,
   rollingPoolReboot,
@@ -69,7 +72,7 @@ const BindLicensesButton = decorate([
         }
 
         const hostsWithoutLicense = poolHosts.filter(host => {
-          const license = this.state.xcpngLicenseByBoundObjectId[host.id]
+          const license = this.state.xcpngLicenseByBoundObjectId?.[host.id]
           return license === undefined || license.expires < Date.now()
         })
         const licenseIdByHost = await confirm({
@@ -198,13 +201,81 @@ class PoolMaster extends Component {
 }))
 class SelectDefaultSr extends Component {
   render() {
-    const { defaultSr } = this.props
+    const { defaultSr, pool } = this.props
 
     return (
-      <XoSelect onChange={setDefaultSr} value={defaultSr.id} xoType='SR'>
-        <Sr id={defaultSr.id} />
+      <XoSelect onChange={setDefaultSr} value={defaultSr} xoType='SR' predicate={sr => sr.$pool === pool.id}>
+        {defaultSr !== undefined ? <Sr id={defaultSr.id} /> : _('noValue')}
       </XoSelect>
     )
+  }
+}
+
+class EnableHaModal extends Component {
+  state = {
+    srs: Object.values(this.props.srs),
+  }
+
+  get value() {
+    return this.state.srs
+  }
+  render() {
+    return (
+      <div>
+        <strong>{_('poolHaSelectSrs')}</strong>
+        <br />
+        {_('poolHaSelectSrsDetails')}
+        <SelectSr
+          multi
+          value={this.state.srs}
+          onChange={srs => this.setState({ srs: srs.map(sr => sr.id) })}
+          predicate={sr => sr.shared && isSrWritable(sr)}
+        />
+      </div>
+    )
+  }
+}
+
+class ToggleHa extends Component {
+  // state.busy is used to prevent interaction with toggle while HA is being enabled or disabled
+  state = {
+    busy: false,
+  }
+
+  _onChange = async value => {
+    if (value) {
+      const haSrs = await confirm({
+        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} />,
+        title: _('poolEnableHa'),
+        icon: 'pool',
+      })
+
+      try {
+        this.setState({ busy: true })
+        await enableHa({
+          pool: this.props.pool,
+          heartbeatSrs: haSrs,
+          configuration: this.props.pool.ha_configuration ?? {},
+        })
+      } finally {
+        this.setState({ busy: false })
+      }
+    } else {
+      await confirm({
+        title: _('poolDisableHa'),
+        body: _('poolDisableHaConfirm'),
+      })
+      try {
+        this.setState({ busy: true })
+        await disableHa(this.props.pool)
+      } finally {
+        this.setState({ busy: false })
+      }
+    }
+  }
+
+  render() {
+    return <Toggle value={this.props.pool.HA_enabled} onChange={this._onChange} disabled={this.state.busy} />
   }
 }
 
@@ -326,8 +397,22 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                   <tr>
+                    <th>{_('poolHeartbeatSr')}</th>
+                    <td>
+                      <ul>
+                        {map(pool.haSrs, sr => (
+                          <li key={sr}>
+                            <Sr id={sr} />
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                  <tr>
                     <th>{_('poolHaStatus')}</th>
-                    <td>{pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}</td>
+                    <td>
+                      <ToggleHa pool={pool} />
+                    </td>
                   </tr>
                   <tr>
                     <th>{_('setpoolMaster')}</th>

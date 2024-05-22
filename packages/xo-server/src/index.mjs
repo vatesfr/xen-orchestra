@@ -759,7 +759,7 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
       const agent =
         server.httpProxy &&
         new ProxyAgent({
-          getProxyForUrl: () => httpProxy,
+          getProxyForUrl: () => server.httpProxy,
           rejectUnauthorized: !server.allowUnauthorized,
         })
 

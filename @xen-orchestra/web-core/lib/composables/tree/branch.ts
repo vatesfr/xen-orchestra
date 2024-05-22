@@ -28,31 +28,35 @@ export class Branch<
   }
 
   get children() {
-    return this.rawChildren.filter(child => child.isVisible)
+    return this.rawChildren.filter(child => !child.isExcluded)
   }
 
   get hasChildren() {
-    return this.children.length > 0
+    return this.rawChildren.length > 0
   }
 
   get passesFilterDownwards(): boolean {
     return this.passesFilter || this.rawChildren.some(child => child.passesFilterDownwards)
   }
 
-  get isVisible() {
-    if (this.passesFilterUpwards || this.passesFilterDownwards) {
+  get failsFilterDownwards(): boolean {
+    return this.passesFilter !== true && this.rawChildren.every(child => child.failsFilterDownwards)
+  }
+
+  get isExcluded() {
+    if (this.parent?.isExpanded === false) {
       return true
     }
 
-    if (this.passesFilter === false) {
-      return false
-    }
-
     if (!this.hasChildren) {
+      return true
+    }
+
+    if (this.passesFilterUpwards || this.passesFilterDownwards) {
       return false
     }
 
-    return this.parent?.isExpanded ?? true
+    return this.failsFilterDownwards
   }
 
   get isExpanded() {
@@ -117,15 +121,23 @@ export class Branch<
     }
   }
 
+  get shouldSelectChildren(): boolean {
+    return this.children.some(child => (child.isBranch ? child.shouldSelectChildren : !child.isSelected))
+  }
+
   toggleChildrenSelect(forcedValue?: boolean) {
     if (!this.context.allowMultiSelect) {
       console.warn('allowMultiSelect must be enabled to use toggleChildrenSelect')
       return
     }
 
-    const shouldSelect = forcedValue ?? !this.areChildrenFullySelected
+    const shouldSelect = forcedValue ?? this.shouldSelectChildren
     this.rawChildren.forEach(child => {
-      child.isBranch ? child.toggleChildrenSelect(shouldSelect) : child.toggleSelect(shouldSelect)
+      if (child.isBranch) {
+        child.toggleChildrenSelect(shouldSelect)
+      } else if (!child.isExcluded) {
+        child.toggleSelect(shouldSelect)
+      }
     })
   }
 }

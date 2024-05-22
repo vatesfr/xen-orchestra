@@ -1,8 +1,10 @@
+import authenticator from '../otp-authenticator.js'
 import asap from 'asap'
 import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
+import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -32,7 +34,7 @@ import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { Host, renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import WarmMigrationModal from './warm-migration-modal'
-import { alert, chooseAction, confirm } from '../modal'
+import { alert, chooseAction, confirm, form } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject, isAdmin } from 'selectors'
 import { getXoaPlan, SOURCES } from '../xoa-plans'
@@ -49,6 +51,8 @@ import {
 
 import parseNdJson from './_parseNdJson'
 import RollingPoolRebootModal from './rolling-pool-reboot-modal'
+
+import { NetworkCard } from '../../xo-app/xostor/new-xostor-form.js'
 
 // ===================================================================
 
@@ -591,32 +595,98 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
-export const subscribeXoTasks = createSubscription(async previousTasks => {
-  let filter = ''
-  // Deduplicate previous tasks and new tasks with a Map
-  const tasks = new Map()
-  if (previousTasks !== undefined) {
-    let lastUpdate = 0
-    previousTasks.forEach(task => {
-      if (task.updatedAt > lastUpdate) {
-        lastUpdate = task.updatedAt
+export const subscribeXoTasks = (() => {
+  let abortController
+  const cache = new Map()
+  const subscribers = new Set()
+
+  const basePath =
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href'
+
+  const clearCacheDelay = 6e5 // 10m
+  let clearCacheTimeout
+  function clearCache() {
+    cache.clear()
+  }
+
+  const notify = throttle(function () {
+    // The object needs to be different each time to ensure components refresh
+    const data = Array.from(cache.values())
+
+    for (const subscriber of subscribers) {
+      subscriber(data)
+    }
+  }, 100)
+
+  async function run() {
+    if (abortController !== undefined) {
+      return
+    }
+    abortController = new AbortController()
+    clearTimeout(clearCacheTimeout)
+
+    while (true) {
+      try {
+        // starts watching collection
+        const resWatch = await fetch(basePath + '&ndjson&watch', { signal: abortController.signal })
+
+        // fetches existing objects
+        const response = await fetch(basePath, { signal: abortController.signal })
+        const objects = await response.json()
+        cache.clear()
+        for (const object of objects) {
+          cache.set(object.id, object)
+        }
+        notify()
+
+        // handles events
+        let buf = ''
+        for await (const chunk of resWatch.body) {
+          buf += String.fromCharCode(...chunk)
+
+          let i
+          while ((i = buf.indexOf('\n')) !== -1) {
+            const line = buf.slice(0, i)
+            buf = buf.slice(i + 1)
+            const [event, object] = JSON.parse(line)
+            if (event === 'remove') {
+              cache.delete(object.id)
+            } else {
+              cache.set(object.id, object)
+            }
+          }
+          notify()
+        }
+      } catch (error) {
+        if (error === 'abort') {
+          break
+        }
+
+        console.error('monitor XO tasks', error)
       }
-      tasks.set(task.id, task)
+
+      await new Promise(resolve => setTimeout(resolve, 10e3))
+    }
+
+    abortController = undefined
+    clearCacheTimeout = setTimeout(clearCache, clearCacheDelay)
+  }
+
+  return function subscribeXoTasks(cb) {
+    subscribers.add(cb)
+
+    asap(() => cb(cache))
+
+    run()
+
+    return once(function unsubscribeXoTasks() {
+      subscribers.delete(cb)
+      if (subscribers.size === 0) {
+        abortController.abort('abort')
+      }
     })
-    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
   }
-
-  // Fetch new and updated tasks
-  const response = await fetch(
-    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
-  )
-  for (const task of await response.json()) {
-    tasks.set(task.id, task)
-  }
-
-  // Sort dates by start time
-  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
-})
+})()
 
 export const subscribeCloudXoConfigBackups = createSubscription(
   () => fetch('./rest/v0/cloud/xo-config/backups?fields=xoaId,createdAt,id,content_href').then(resp => resp.json()),
@@ -626,6 +696,41 @@ export const subscribeCloudXoConfigBackups = createSubscription(
 export const subscribeCloudXoConfig = createSubscription(() =>
   fetch('./rest/v0/cloud/xo-config').then(resp => resp.json())
 )
+
+const subscribeSrsXostorHealthCheck = {}
+export const subscribeXostorHealthCheck = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorHealthCheck[srId] === undefined) {
+    subscribeSrsXostorHealthCheck[srId] = createSubscription(() => _call('xostor.healthCheck', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
+  }
+
+  return subscribeSrsXostorHealthCheck[srId]
+}
+
+const subscribeSrsXostorInterfaces = {}
+export const subscribeXostorInterfaces = sr => {
+  const srId = resolveId(sr)
+
+  if (subscribeSrsXostorInterfaces[srId] === undefined) {
+    subscribeSrsXostorInterfaces[srId] = createSubscription(() => _call('xostor.getInterfaces', { sr: srId }), {
+      polling: 6e4, // To avoid spamming the linstor controller
+    })
+  }
+
+  return subscribeSrsXostorInterfaces[srId]
+}
+subscribeXostorInterfaces.forceRefresh = sr => {
+  if (sr === undefined) {
+    forEach(subscribeSrsXostorInterfaces, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeSrsXostorInterfaces[resolveId(sr)]
+  subscription?.forceRefresh()
+}
 
 // System ============================================================
 
@@ -807,6 +912,11 @@ export const forgetHost = host =>
   }).then(() => _call('host.forget', { host: resolveId(host) }))
 
 export const enableHost = host => _call('host.enable', { host: resolveId(host) })
+
+export const enableHa = ({ pool, heartbeatSrs, configuration }) =>
+  _call('pool.enableHa', { pool: resolveId(pool), heartbeatSrs, configuration })
+
+export const disableHa = pool => _call('pool.disableHa', { pool: resolveId(pool) })
 
 export const setDefaultSr = sr => _call('pool.setDefaultSr', { sr: resolveId(sr) })
 
@@ -1263,6 +1373,30 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 }
 
+export const hidePcis = async (pcis, hide) => {
+  try {
+    await confirm({
+      body: _('applyChangeOnPcis', { nPcis: pcis.length }),
+      // hide `true` means that we will disable dom0's PCI access, so we will "enable" the possibility of passthrough this PCI
+      title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
+    })
+  } catch (error) {
+    return
+  }
+  return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
+}
+
+export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', { id: resolveId(pci) })) === 'disabled'
+
+//  ATM, unknown date for the availablity on XS, since they are doing rolling release
+// FIXME: When XS release methods to do PCI passthrough, update this check
+export const isPciPassthroughAvailable = host =>
+  host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
+
+export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
+
+export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
 // Containers --------------------------------------------------------
 
 export const pauseContainer = (vm, container) => _call('docker.pause', { vm: resolveId(vm), container })
@@ -1572,17 +1706,21 @@ export const deleteTemplates = templates =>
     body: _('templateDeleteModalBody', { templates: templates.length }),
   }).then(async () => {
     const defaultTemplates = []
+    const protectedTemplates = []
     let nErrors = 0
+    const isDefaultTemplateError = error =>
+      incorrectState.is(error, {
+        expected: false,
+        property: 'isDefaultTemplate',
+      })
+
     await Promise.all(
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
-          if (
-            incorrectState.is(reason, {
-              expected: false,
-              property: 'isDefaultTemplate',
-            })
-          ) {
+          if (isDefaultTemplateError(reason)) {
             defaultTemplates.push(id)
+          } else if (forbiddenOperation.is(reason)) {
+            protectedTemplates.push(id)
           } else {
             nErrors++
           }
@@ -1590,42 +1728,56 @@ export const deleteTemplates = templates =>
       )
     )
 
-    const nDefaultTemplates = defaultTemplates.length
-    if (nDefaultTemplates === 0 && nErrors === 0) {
-      return
+    const nProtectedTemplates = protectedTemplates.length
+    let forceBlockedOperation = false
+
+    if (nProtectedTemplates !== 0) {
+      await confirm({
+        title: _('deleteProtectedTemplatesTitle', { nProtectedTemplates }),
+        body: _('deleteProtectedTemplatesMessage', { nProtectedTemplates }),
+      })
+      forceBlockedOperation = true
+      await Promise.all(
+        protectedTemplates.map(id =>
+          _call('vm.delete', {
+            id,
+            forceBlockedOperation,
+          }).catch(reason => {
+            if (isDefaultTemplateError(reason)) {
+              defaultTemplates.push(id)
+            } else {
+              nErrors++
+            }
+          })
+        )
+      )
     }
 
-    const showError = () =>
+    const nDefaultTemplates = defaultTemplates.length
+    if (nDefaultTemplates !== 0) {
+      await confirm({
+        title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+        body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+      })
+      await Promise.all(
+        defaultTemplates.map(id =>
+          _call('vm.delete', {
+            id,
+            forceDeleteDefaultTemplate: true,
+            forceBlockedOperation,
+          }).catch(() => {
+            nErrors++
+          })
+        )
+      )
+    }
+
+    if (nErrors !== 0) {
       error(
         _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
         _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
       )
-
-    return nDefaultTemplates === 0
-      ? showError()
-      : confirm({
-          title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
-          body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
-        })
-          .then(
-            () =>
-              Promise.all(
-                map(defaultTemplates, id =>
-                  _call('vm.delete', {
-                    id,
-                    forceDeleteDefaultTemplate: true,
-                  }).catch(() => {
-                    nErrors++
-                  })
-                )
-              ),
-            noop
-          )
-          .then(() => {
-            if (nErrors !== 0) {
-              showError()
-            }
-          }, noop)
+    }
   }, noop)
 
 export const snapshotVm = async (vm, name, saveMemory, description) => {
@@ -2545,9 +2697,7 @@ export const destroyTasks = tasks =>
 
 export const abortXoTask = async task => {
   const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
-  if (response.ok) {
-    subscribeXoTasks.forceRefresh()
-  } else {
+  if (!response.ok) {
     throw new Error(await response.text())
   }
 }
@@ -3296,17 +3446,29 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
-export const addOtp = secret =>
-  confirm({
-    title: _('addOtpConfirm'),
-    body: _('addOtpConfirmMessage'),
-  }).then(
-    () =>
-      _setUserPreferences({
-        otp: secret,
-      }),
-    noop
-  )
+// eslint-disable-next-line import/first
+import { AddOtpModal } from './add-otp-modal.js'
+export const addOtp = async secret => {
+  try {
+    let token
+    do {
+      token = await confirm({
+        title: _('addOtpConfirm'),
+        body: <AddOtpModal failedToken={token} secret={secret} user={xo.user} />,
+      })
+    } while (!(await authenticator.check(token, secret)))
+  } catch (error) {
+    if (error === undefined) {
+      // action canceled
+      return
+    }
+    throw error
+  }
+
+  return _setUserPreferences({
+    otp: secret,
+  })
+}
 
 export const removeOtp = user =>
   confirm({
@@ -3624,6 +3786,33 @@ export const updateXosanPacks = pool =>
 
 export const createXostorSr = params => _call('xostor.create', params)
 
+export const destroyXostorInterfaces = async (sr, ifaceNames) => {
+  const srId = resolveId(sr)
+  await Promise.all(ifaceNames.map(ifaceName => _call('xostor.destroyInterface', { sr: srId, name: ifaceName })))::tap(
+    () => subscribeXostorInterfaces.forceRefresh(sr)
+  )
+}
+
+export const createXostorInterface = async sr => {
+  const { interfaceName, networkId } = await form({
+    render: props => <NetworkCard {...props} insideModalForm sr={sr} />,
+    defaultValue: {
+      interfaceName: '',
+      networkId: undefined,
+    },
+    header: (
+      <span>
+        <Icon icon='add' /> {_('createInterface')}
+      </span>
+    ),
+  })
+
+  await _call('xostor.createInterface', { sr: resolveId(sr), network: networkId, name: interfaceName })::tap(() =>
+    subscribeXostorInterfaces.forceRefresh(sr)
+  )
+}
+export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr), ...params })
+
 // Licenses --------------------------------------------------------------------
 
 export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })
@@ -3662,11 +3851,16 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
-export const subscribeXcpngLicenses = createSubscription(() =>
-  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
-    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
-    : undefined
-)
+const createLicenseSubscription = productType =>
+  createSubscription(() =>
+    getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+      ? _call('xoa.licenses.getAll', { productType })
+      : undefined
+  )
+
+export const subscribeXcpngLicenses = createLicenseSubscription('xcpng')
+
+export const subscribeXostorLicenses = createLicenseSubscription('xostor')
 
 // Support --------------------------------------------------------------------
 

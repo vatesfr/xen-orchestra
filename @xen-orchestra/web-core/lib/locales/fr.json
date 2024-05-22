@@ -1,0 +1,15 @@
+{
+  "core": {
+    "close": "Fermer",
+    "log-out": "Se déconnecter",
+    "master": "Hôte primaire",
+    "open": "Ouvrir",
+    "quick-actions": "Actions rapides",
+    "sidebar": {
+      "close": "Fermer la barre latérale",
+      "lock": "Verrouiller la barre latérale",
+      "open": "Ouvrir la barre latérale",
+      "unlock": "Déverrouiller la barre latérale"
+    }
+  }
+}

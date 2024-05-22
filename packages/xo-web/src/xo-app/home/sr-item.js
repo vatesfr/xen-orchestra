@@ -1,4 +1,5 @@
 import _ from 'intl'
+import BulkIcons from 'bulk-icons'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
@@ -13,6 +14,7 @@ import { Text } from 'editable'
 import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { addTag, editSr, isSrShared, reconnectAllHostsSr, removeTag, setDefaultSr } from 'xo'
 import { connectStore, formatSizeShort, getIscsiPaths } from 'utils'
+import { injectState } from 'reaclette'
 
 import styles from './index.css'
 
@@ -61,6 +63,7 @@ import styles from './index.css'
     }
   ),
 })
+@injectState
 export default class SrItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
@@ -106,8 +109,16 @@ export default class SrItem extends Component {
     }
   }
 
+  getXostorLicenseInfo = createSelector(
+    () => this.props.state.xostorLicenseInfoByXostorId,
+    () => this.props.item,
+    (xostorLicenseInfoByXostorId, sr) => xostorLicenseInfoByXostorId?.[sr.id]
+  )
+
   render() {
     const { coalesceTask, container, expandAll, isDefaultSr, isHa, isShared, item: sr, selected } = this.props
+
+    const xostorLicenseInfo = this.getXostorLicenseInfo()
 
     return (
       <div className={styles.item}>
@@ -134,6 +145,12 @@ export default class SrItem extends Component {
                   </Tooltip>
                 )}
                 {sr.inMaintenanceMode && <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>}
+                {xostorLicenseInfo?.supportEnabled && (
+                  <Tooltip content={_('xostorProSupportEnabled')}>
+                    <Icon icon='pro-support' fixedWidth className='text-success ml-1' />
+                  </Tooltip>
+                )}
+                {xostorLicenseInfo?.alerts.length > 0 && <BulkIcons alerts={xostorLicenseInfo.alerts} />}
               </EllipsisContainer>
             </Col>
             <Col largeSize={1} className='hidden-md-down'>

@@ -75,8 +75,6 @@ Go into Settings/Logs view.
 
 ### CLI
 
-All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
-
 To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
 
 ```sh
@@ -113,6 +111,10 @@ If you have something completely different than that, or error messages, lost pa
 You can see your current network configuration by running `ifconfig` (default interface is called `enX0` or `eth0`). If you have an external firewall, please check that you allow the XOA's IP.
 
 You can modify the IP configuration with `xoa network static` (for a static IP address) or `xoa network dhcp` to use DHCP.
+
+### Stats not working
+
+If statistics (all VMs and hosts) are not showing for a specific pool, check if there is a _Backup network_ configured on your pool (setting is in the _Advanced_ tab of the pool) and make sure XO can access all hosts of the pool via this network.
 
 ### Memory
 
@@ -181,16 +183,6 @@ cp key.pem key.pem-old
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 360
 systemctl restart xo-server.service
 ```
-
-### Logs
-
-The system logs are visible by using this command:
-
-```sh
-tail -f /var/log/syslog
-```
-
-You can read more about logs [in the dedicated logs chapter](troubleshooting.md#logs).
 
 ### Ghost tasks
 

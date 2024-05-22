@@ -213,10 +213,6 @@ const methods = {
       )
     }
 
-    if (vm.platform.vtpm === 'true') {
-      await this.VTPM_create({ VM: vm.$ref })
-    }
-
     if (vgpuType !== undefined && gpuGroup !== undefined) {
       await this.createVgpu(vm, gpuGroup, vgpuType)
     }

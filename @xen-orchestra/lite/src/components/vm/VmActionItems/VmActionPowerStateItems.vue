@@ -67,13 +67,14 @@
 <script lang="ts" setup>
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { useHostMetricsCollection } from '@/stores/xen-api/host-metrics.store'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import {
   faCirclePlay,
@@ -93,10 +94,10 @@ const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef: getVm, isOperationPending } = useVmCollection()
-const { records: hosts } = useHostCollection()
-const { pool } = usePoolCollection()
-const { isHostRunning } = useHostMetricsCollection()
+const { getByOpaqueRef: getVm } = useVmStore().subscribe()
+const { records: hosts } = useHostStore().subscribe()
+const { pool } = usePoolStore().subscribe()
+const { isHostRunning } = useHostMetricsStore().subscribe()
 
 const vms = computed(() => props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined))
 
@@ -110,7 +111,7 @@ const areVmsSuspended = computed(() => vms.value.every(vm => vm.power_state === 
 const areVmsPaused = computed(() => vms.value.every(vm => vm.power_state === VM_POWER_STATE.PAUSED))
 
 const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
-  vms.value.some(vm => isOperationPending(vm, operation))
+  vms.value.some(vm => isVmOperationPending(vm, operation))
 
 const areVmsBusyToStart = computed(() => areOperationsPending(VM_OPERATION.START))
 const areVmsBusyToStartOnHost = computed(() => areOperationsPending(VM_OPERATION.START_ON))

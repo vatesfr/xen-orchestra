@@ -40,7 +40,7 @@ curl -b \
 You can use `xo-cli` to create an authentication token:
 
 ```bash
-$ xo-cli --createToken xoa.company.lan admin@admin.net
+$ xo-cli create-token xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
 Authentication token created
@@ -123,6 +123,8 @@ Content-Type: application/x-ndjson
 
 ## Task monitoring
 
+### Specific task
+
 When fetching a task record, the special `wait` query string can be used. If its value is `result` it will wait for the task to be resolved (either success or failure) before returning, otherwise it will wait for the next change of state.
 
 ```sh
@@ -130,6 +132,33 @@ curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.example.org/rest/v0/tasks/0lr4zljbe?wait=result'
 ```
+
+### All tasks
+
+A watch mode is available when fetching the collection as NDJSON by using both `ndjson` and `watch` query strings. Instead of sending the objects directly, each entry will be an array `[event, object]`. `event` can be either `remove` to mean that an object has been removed from the collection or `update` to mean that an object has been added to the collection or updated.
+
+In case of the `remove` event, only the `id` properties of the deleted object is available.
+
+The `fields` and `filter` parameters are supported.
+
+Example:
+
+```http
+GET /rest/v0/vms?fields=start,status&ndjson&watch HTTP/1.1
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+
+HTTP/1.1 200 OK
+Content-Type: application/x-ndjson
+
+["remove",{"href":"/rest/v0/tasks/0lv13orww"}]
+["update",{"start":1713194362080,"status":"pending","href":"/rest/v0/tasks/0lv13otzz"}]
+```
+
+> This request does not send existing tasks, only events. If you want to get the whole collection and keep it up-to-date, the correct way to do that is:
+>
+> 1. start a watch request
+> 2. fetch the whole collection via a normal request
+> 3. process events sent by the watch request to update the local cache
 
 ## Properties update
 
@@ -216,7 +245,9 @@ The following optional query parameters are supported for VDI export:
 
 ## VM Import
 
-A VM can be imported by posting to `/rest/v0/pools/:id/vms`.
+> OVA import is not supported.
+
+A VM can be imported by posting an XVA to `/rest/v0/pools/:id/vms`.
 
 ```sh
 curl \
@@ -229,7 +260,7 @@ curl \
 
 The `sr` query parameter can be used to specify on which SR the VM should be imported, if not specified, the default SR will be used.
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 ## VDI Import
 
@@ -248,7 +279,7 @@ curl \
   | cat
 ```
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 ### New VDI
 
@@ -263,7 +294,7 @@ curl \
   | cat
 ```
 
-> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be displayed.
 
 This request returns the UUID of the created VDI.
 
@@ -277,48 +308,41 @@ The following query parameters are supported to customize the created VDI:
 
 ### Available actions
 
-To see the actions available on a given object, get the collection at `/rest/v0/<type>/<uuid>/actions`.
+To see the actions available on objects of a specific collection, get the collection at `/rest/v0/<type>/_/actions`.
 
-The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters. Use `fields=params` to see it when fetching the collection.
+For example, to list all actions on a VM:
 
-For example, to list all actions on a given VM:
-
-```sh
-curl \
+```console
+$ curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions?fields=params'
-```
-
-Example response:
-
-```json
+  'https://xo.company.lan/rest/v0/vms/_/actions'
 [
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_shutdown"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/hard_reboot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/hard_shutdown"
-  },
-  {
-    "params": {
-      "name_label": {
-        "type": "string",
-        "optional": true
-      }
-    },
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/snapshot"
-  },
-  {
-    "href": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/start"
-  }
+"/rest/v0/vms/_/actions/clean_reboot",
+"/rest/v0/vms/_/actions/clean_shutdown",
+"/rest/v0/vms/_/actions/hard_reboot",
+"/rest/v0/vms/_/actions/hard_shutdown",
+"/rest/v0/vms/_/actions/snapshot",
+"/rest/v0/vms/_/actions/start"
 ]
 ```
+
+To see more information about a specific action, you can checkout its endpoint:
+
+```console
+$ curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/_/actions/snapshot'
+{
+  "params": {
+    "name_label": {
+      "type": "string",
+      "optional": true
+    }
+  }
+}
+```
+
+The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters.
 
 ### Start an action
 

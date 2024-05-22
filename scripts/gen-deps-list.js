@@ -29,6 +29,11 @@ let allPackages
 async function main(args, scriptName) {
   const toRelease = { __proto__: null }
 
+  const checkOrder = args[0] === '--check-order'
+  if (checkOrder) {
+    args.shift()
+  }
+
   const testMode = args[0] === '--test'
   if (testMode) {
     debug('reading packages from CLI')
@@ -59,6 +64,25 @@ async function main(args, scriptName) {
       return
     }
     await readPackagesFromChangelog(toRelease)
+  }
+
+  if (checkOrder) {
+    let prev
+    const names = Object.keys(toRelease)
+    for (const name of names) {
+      if (prev === undefined || name > prev) {
+        prev = name
+      } else {
+        // we know that `name` should be before `prev`, but we don't know at which place
+        //
+        // find the package that should be right after
+        const after = names.find(candidate => candidate > name)
+
+        throw new Error(
+          `invalid packages to release order in CHANGELOG.unreleased.md: ${name} should be above ${after}`
+        )
+      }
+    }
   }
 
   allPackages = keyBy(await getPackages(true), 'name')

@@ -353,4 +353,4 @@ Now, the audit plugin will record users' actions and upload the last record in t
 
 ## Debugging
 
-If you can't log in, please check the logs of `xo-server` while you attempt to connect. It will give you hints about the error encountered. You can do that with a `tail -f /var/log/syslog -n 100` on your XOA.
+If you can't log in, please [check the logs of `xo-server`](https://xen-orchestra.com/docs/troubleshooting.html#logs).

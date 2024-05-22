@@ -26,7 +26,7 @@ export type TreeNode<
 export type BaseTreeNodeOptions<TData extends object, TDiscriminator> = {
   discriminator?: TDiscriminator
   predicate?: (node: TreeNodeBase<TData, TDiscriminator>) => boolean | undefined
-  selectable?: boolean
+  selectable?: (data: TData) => boolean
   meta?: any
 }
 

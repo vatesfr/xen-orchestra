@@ -9,8 +9,9 @@ import semver from 'semver'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col, Row } from 'grid'
+import { confirm } from 'modal'
 import { createGetObjectsOfType } from 'selectors'
-import { find, first, map, mapValues, remove, size, some } from 'lodash'
+import { first, map, mapValues, remove, size, some } from 'lodash'
 import { createXostorSr, getBlockdevices } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
@@ -48,7 +49,7 @@ const diskHasChildren = disk => Array.isArray(disk.children) && disk.children.le
 const isDiskRecommendedType = disk => disk.type === 'disk' || disk.type.startsWith('raid')
 const isDiskMounted = disk => disk.mountpoint !== ''
 const isDiskRo = disk => disk.ro === '1'
-const isTapdevsDisk = disk => disk.name.startsWith('td')
+const isTapdevDisk = disk => disk.name.startsWith('td')
 const isWithinRecommendedHostRange = hosts => size(hosts) >= N_HOSTS_MIN && size(hosts) <= N_HOSTS_MAX
 const isXcpngHost = host => host?.productBrand === 'XCP-ng'
 const isHostRecentEnough = host => semver.satisfies(host?.version, `>=${MINIMAL_POOL_VERSION_FOR_XOSTOR}`)
@@ -62,7 +63,11 @@ const xostorDiskPredicate = disk =>
   !isDiskRo(disk) &&
   !isDiskMounted(disk) &&
   !diskHasChildren(disk) &&
-  !isTapdevsDisk(disk)
+  !isTapdevDisk(disk)
+const arePifsAttached = pifs => pifs.every(pif => pif.attached)
+const arePifsStatic = pifs => pifs.every(pif => pif.mode === 'Static' || pif.ipv6Mode === 'Static')
+const doesNetworkHavePifs = network => network.PIFs.length > 0
+const doPifsHaveIp = pifs => pifs.every(pif => pif.ip !== '' || (pif.ipv6.length > 0 && pif.ipv6.some(v6 => v6 !== '')))
 
 // ===================================================================
 
@@ -70,7 +75,7 @@ const StorageCard = decorate([
   injectState,
   ({ effects, state }) => (
     <Card>
-      <CardHeader>{_('storage')}</CardHeader>
+      <CardHeader>{_('newSrGeneral')}</CardHeader>
       <CardBlock>
         <Row>
           <Col>
@@ -146,6 +151,11 @@ const SettingsCard = decorate([
             <label>{_('ignoreFileSystems')}</label>
             <Toggle value={state.ignoreFileSystems} onChange={effects.onIgnoreFileSystemsChange} size='small' />
           </Col>
+          <Col>
+            <i>
+              <Icon icon='info' /> {_('ignoreFileSystemsInfo')}
+            </i>
+          </Col>
         </Row>
         {/* {state.displayAdvancedSettings && ( Advanced settings section )} */}
       </CardBlock>
@@ -204,9 +214,9 @@ const PoolCard = decorate([
           {state.poolHosts !== undefined && !state.isPoolXostorCompatible && (
             <div className='text-danger'>
               {/* FIXME: add link of the documentation when ready */}
-              <a href='#' rel='noreferrer' target='_blank'>
+              {/* <a href='#' rel='noreferrer' target='_blank'>
                 {_('objectDoesNotMeetXostorRequirements', { object: <PoolRenderItem id={state.poolId} /> })}
-              </a>
+              </a> */}
               <ul>
                 {!state.isXcpngHost && <li>{_('notXcpPool')}</li>}
                 {!state.poolIsWithinRecommendedHostRange && <li>{_('wrongNumberOfHosts')}</li>}
@@ -217,36 +227,105 @@ const PoolCard = decorate([
               </ul>
             </div>
           )}
-          <em>
-            <Icon icon='info' /> {_('xostorPackagesWillBeInstalled')}
-          </em>
+          <div>
+            <em>
+              <Icon icon='info' /> {_('xostorPackagesWillBeInstalled')}
+            </em>
+          </div>
+          <div className='text-warning'>
+            <em>
+              <Icon icon='alarm' /> {_('rpuNoLongerAvailableIfXostor')}
+            </em>
+          </div>
         </div>
       </CardBlock>
     </Card>
   ),
 ])
 
-const NetworkCard = decorate([
+export const NetworkCard = decorate([
+  connectStore({
+    networks: createGetObjectsOfType('network'),
+    pifsByNetwork: createGetObjectsOfType('PIF').groupBy('$network'),
+  }),
   provideState({
     initialState: () => ({ onlyShowXostorNetworks: true }),
     effects: {
       toggleState,
+      _onNetworkChange(_, network) {
+        this.props.onChange({
+          ...this.state._networkValues,
+          networkId: network?.id,
+        })
+      },
+      _onInterfaceNameChange(_, ev) {
+        this.props.onChange({
+          ...this.state._networkValues,
+          interfaceName: ev.target.value,
+        })
+      },
     },
     computed: {
       networksPredicate: (state, props) => network => {
-        const isOnPool = network.$pool === state.poolId
-        const pifs = network.PIFs
-        return state.onlyShowXostorNetworks
-          ? isOnPool && pifs.length > 0 && pifs.every(pifId => props.pifs[pifId].ip !== '')
-          : isOnPool
+        if (network.$pool !== (props.insideModalForm ? props.sr.$pool : state.poolId)) {
+          return false
+        }
+        const pifs = props.pifsByNetwork[network.id]
+        return (
+          !state.onlyShowXostorNetworks ||
+          (doesNetworkHavePifs(network) && arePifsStatic(pifs) && doPifsHaveIp(pifs) && arePifsAttached(pifs))
+        )
       },
+      networkHavePifs: (state, props) => doesNetworkHavePifs(props.networks[state._networkValues.networkId]),
+      pifsAreAttached: (state, props) => arePifsAttached(props.pifsByNetwork[state._networkValues.networkId]),
+      pifsAreStatic: (state, props) => arePifsStatic(props.pifsByNetwork[state._networkValues.networkId]),
+      pifsHaveIp: (state, props) => doPifsHaveIp(props.pifsByNetwork[state._networkValues.networkId]),
+      interfaceNameContainsWhiteSpace: state => state._networkValues.interfaceName.includes(' '),
+      interfaceNameReserved: state => state._networkValues.interfaceName.trim() === 'default',
+      networkCompatible: state =>
+        state.networkHavePifs && state.pifsAreStatic && state.pifsHaveIp && state.pifsAreAttached,
+      _networkValues: (state, props) => ({
+        interfaceName: props.insideModalForm ? props.value.interfaceName : state.interfaceName,
+        networkId: props.insideModalForm ? props.value.networkId : state.networkId,
+      }),
     },
   }),
   injectState,
-  ({ effects, state }) => (
+  ({ effects, state, insideModalForm }) => (
     <Card>
-      <CardHeader>{_('network')}</CardHeader>
+      <CardHeader>
+        {_('network')}
+        {!insideModalForm && _('optionalEntry')}
+      </CardHeader>
       <CardBlock>
+        {!insideModalForm && (
+          <i className='d-block'>
+            <Icon icon='info' /> {_('byDefaultManagementNetworkUsed')}
+          </i>
+        )}
+        <Row className='mb-1'>
+          <Col>
+            {_('interfaceName')}
+            <DebounceInput
+              className='form-control'
+              name='interfaceName'
+              onChange={effects._onInterfaceNameChange}
+              value={state._networkValues.interfaceName}
+            />
+            <ul className='text-danger'>
+              {state.interfaceNameReserved && (
+                <li>
+                  <Icon icon='alarm' /> {_('interfaceNameReserved')}
+                </li>
+              )}
+              {state.interfaceNameContainsWhiteSpace && (
+                <li>
+                  <Icon icon='alarm' /> {_('whiteSpaceNotAllowed')}
+                </li>
+              )}
+            </ul>
+          </Col>
+        </Row>
         <label>
           <input
             checked={state.onlyShowXostorNetworks}
@@ -257,11 +336,21 @@ const NetworkCard = decorate([
           {_('onlyShowXostorRequirements', { type: _('networks') })}
         </label>
         <SelectNetwork
-          disabled={!state.isPoolSelected}
-          onChange={effects.onNetworkChange}
+          disabled={!insideModalForm && !state.isPoolSelected}
+          onChange={effects._onNetworkChange}
           predicate={state.networksPredicate}
-          value={state.networkId}
+          value={state._networkValues.networkId}
         />
+        {state._networkValues.networkId !== undefined && !state.networkCompatible && (
+          <div className='text-danger'>
+            <ul>
+              {!state.networkHavePifs && <li>{_('networkNoPifs')}</li>}
+              {!state.pifsHaveIp && <li>{_('pifsNoIp')}</li>}
+              {!state.pifsAreStatic && <li>{_('pifsNotStatic')}</li>}
+              {!state.pifsAreAttached && <li>{_('pifsNotAttached')}</li>}
+            </ul>
+          </div>
+        )}
       </CardBlock>
     </Card>
   ),
@@ -390,8 +479,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
   const _isDiskRo = isDiskRo(disk)
   const _isDiskMounted = isDiskMounted(disk)
   const _diskHasChildren = diskHasChildren(disk)
-  const _isTapdevsDisk = isTapdevsDisk(disk)
-  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevsDisk
+  const _isTapdevDisk = isTapdevDisk(disk)
+  const isDiskValid = _isDiskRecommendedType && !_isDiskRo && !_isDiskMounted && !_diskHasChildren && !_isTapdevDisk
 
   return (
     <li className='list-group-item'>
@@ -411,8 +500,8 @@ const ItemSelectedDisks = ({ disk, onDiskRemove }) => {
             {!_isDiskRecommendedType && <li>{_('selectedDiskTypeIncompatibleXostor', { type: disk.type })}</li>}
             {_isDiskRo && <li>{_('diskIsReadOnly')}</li>}
             {_isDiskMounted && <li>{_('diskAlreadyMounted', { mountpoint: disk.mountpoint })}</li>}
-            {_diskHasChildren && <li>{_('diskHasChildren')}</li>}
-            {_isTapdevsDisk && <li>{_('isTapdevsDisk')}</li>}
+            {_diskHasChildren && <li>{_('diskHasExistingPartition')}</li>}
+            {_isTapdevDisk && <li>{_('isTapdevDisk')}</li>}
           </ul>
         </div>
       )}
@@ -433,6 +522,7 @@ const SummaryCard = decorate([
 
         return (totalSize * state.numberOfHostsWithDisks) / state.replication.value
       },
+      replicationNotValid: state => state.replication.value > state.numberOfHostsWithDisks,
     },
   }),
   injectState,
@@ -450,6 +540,7 @@ const SummaryCard = decorate([
                 {state.isProvisioningMissing && <li>{_('fieldRequired', { field: _('provisioning') })}</li>}
                 {state.isNameMissing && <li>{_('fieldRequired', { field: _('name') })}</li>}
                 {state.isDisksMissing && <li>{_('xostorDiskRequired')}</li>}
+                {state.isInterfaceNameMissing && <li>{_('interfaceNameRequired')}</li>}
               </ul>
             </div>
           ) : (
@@ -459,12 +550,17 @@ const SummaryCard = decorate([
                   <Icon icon='alarm' /> {_('hostsNotSameNumberOfDisks')}
                 </p>
               )}
+              {state.replicationNotValid && (
+                <p className='text-warning'>
+                  <Icon icon='alarm' /> {_('replicationCountHigherThanHostsWithDisks')}
+                </p>
+              )}
               <Row>
                 <Col size={6}>{_('keyValue', { key: _('name'), value: state.srName })}</Col>
                 <Col size={6}>
                   {_('keyValue', {
                     key: _('description'),
-                    value: srDescription === '' ? _('noValue') : srDescription,
+                    value: srDescription,
                   })}
                 </Col>
               </Row>
@@ -473,16 +569,18 @@ const SummaryCard = decorate([
                 <Col size={6}>{_('keyValue', { key: _('provisioning'), value: state.provisioning.label })}</Col>
               </Row>
               <Row>
-                <Col size={12}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
-                {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
-                {/* <Col size={6}>
-                  {_('keyValue', { key: _('network'), value: <NetworkRenderItem id={state.networkId} /> })}
-                </Col> */}
+                <Col size={6}>{_('keyValue', { key: _('pool'), value: <PoolRenderItem id={state.poolId} /> })}</Col>
+                <Col size={6}>
+                  {_('keyValue', {
+                    key: _('network'),
+                    value: state.networkId && <NetworkRenderItem id={state.networkId} />,
+                  })}
+                </Col>
               </Row>
               <Row>
                 <Col size={6}>{_('keyValue', { key: _('numberOfHosts'), value: state.numberOfHostsWithDisks })}</Col>
                 <Col size={6}>
-                  {_('keyValue', { key: _('approximateFinalSize'), value: formatSize(state.finalSize) })}
+                  {_('keyValue', { key: _('approximateSrCapacity'), value: formatSize(state.finalSize) })}
                 </Col>
               </Row>
             </div>
@@ -496,18 +594,17 @@ const SummaryCard = decorate([
 const NewXostorForm = decorate([
   connectStore({
     hostsByPoolId: createGetObjectsOfType('host').sort().groupBy('$pool'),
-    networks: createGetObjectsOfType('network'),
-    pifs: createGetObjectsOfType('PIF'),
   }),
   provideState({
     initialState: () => ({
-      _networkId: undefined,
       _createdSrUuid: undefined, // used for redirection when the storage has been created
       disksByHost: {},
       ignoreFileSystems: false,
+      interfaceName: '',
       provisioning: PROVISIONING_OPTIONS[0], // default value 'thin'
       poolId: undefined,
       hostId: undefined,
+      networkId: undefined,
       replication: REPLICATION_OPTIONS[1], // default value 2
       srDescription: '',
       srName: '',
@@ -521,7 +618,11 @@ const NewXostorForm = decorate([
         this.state.ignoreFileSystems = value
       },
       onPoolChange(_, pool) {
-        this.state.disksByHost = {}
+        const disksByHost = {}
+        this.props.hostsByPoolId[pool?.id]?.forEach(host => {
+          disksByHost[host.id] = []
+        })
+        this.state.disksByHost = disksByHost
         this.state.poolId = pool?.id
       },
       onReplicationChange(_, replication) {
@@ -530,14 +631,13 @@ const NewXostorForm = decorate([
       onProvisioningChange(_, provisioning) {
         this.state.provisioning = provisioning
       },
-      onNetworkChange(_, network) {
-        this.state._networkId = network?.id ?? null
+      onNetworkChange(_, { interfaceName, networkId }) {
+        this.state.interfaceName = interfaceName
+        this.state.networkId = networkId
       },
       onDiskChange(_, disk, hostId) {
         const { disksByHost } = this.state
-        if (disksByHost[hostId] === undefined) {
-          disksByHost[hostId] = []
-        }
+
         disksByHost[hostId].push(disk)
         this.state.disksByHost = { ...disksByHost }
       },
@@ -550,7 +650,29 @@ const NewXostorForm = decorate([
         }
       },
       async createXostorSr() {
-        const { disksByHost, ignoreFileSystems, srDescription, srName, provisioning, replication } = this.state
+        const {
+          disksByHost,
+          ignoreFileSystems,
+          interfaceName,
+          networkId,
+          srDescription,
+          srName,
+          provisioning,
+          replication,
+        } = this.state
+
+        await confirm({
+          title: _('xostorCreation'),
+          body: _('createXostoreConfirm'),
+        })
+
+        const preferredInterface =
+          networkId !== undefined
+            ? {
+                networkId,
+                name: interfaceName.trim(),
+              }
+            : undefined
 
         this.state._createdSrUuid = await createXostorSr({
           description: srDescription.trim() === '' ? undefined : srDescription.trim(),
@@ -559,32 +681,34 @@ const NewXostorForm = decorate([
           name: srName.trim() === '' ? undefined : srName.trim(),
           provisioning: provisioning.value,
           replication: replication.value,
+          preferredInterface,
         })
       },
     },
     computed: {
       // Private ==========
-      _disksByHostValues: state => Object.values(state.disksByHost).filter(disks => disks.length > 0),
-      _defaultNetworkId: (state, props) => props.networks?.[state._pifManagement?.$network]?.id,
-      _pifManagement: (state, props) => find(props.pifs, pif => pif.$pool === state.poolId && pif.management),
+      _disksByHostValues: state => Object.values(state.disksByHost),
       // Utils ============
       poolHosts: (state, props) => props.hostsByPoolId?.[state.poolId],
       isPoolSelected: state => state.poolId !== undefined,
-      numberOfHostsWithDisks: state => state._disksByHostValues.length,
+      numberOfHostsWithDisks: state => state._disksByHostValues.filter(disks => disks.length > 0).length,
       isReplicationMissing: state => state.replication === null,
       isProvisioningMissing: state => state.provisioning === null,
       isNameMissing: state => state.srName.trim() === '',
       isDisksMissing: state => state.numberOfHostsWithDisks === 0,
+      isInterfaceNameMissing: state => state.networkId !== undefined && state.interfaceName.trim() === '',
       isFormInvalid: state =>
-        state.isReplicationMissing || state.isProvisioningMissing || state.isNameMissing || state.isDisksMissing,
+        state.isReplicationMissing ||
+        state.isProvisioningMissing ||
+        state.isNameMissing ||
+        state.isDisksMissing ||
+        state.isInterfaceNameMissing,
       isXcpngHost: state => isXcpngHost(first(state.poolHosts)),
       getSrPath: state => () => `/srs/${state._createdSrUuid}`,
-      // State ============
-      networkId: state => (state._networkId === undefined ? state._defaultNetworkId : state._networkId),
     },
   }),
   injectState,
-  ({ effects, resetState, state, hostsByPoolId, networks, pifs }) => (
+  ({ effects, resetState, state, hostsByPoolId }) => (
     <Container>
       <Row>
         <Col size={6}>
@@ -595,13 +719,12 @@ const NewXostorForm = decorate([
         </Col>
       </Row>
       <Row>
-        <Col size={12}>
+        <Col size={6}>
           <PoolCard hostsByPoolId={hostsByPoolId} />
         </Col>
-        {/* FIXME: XOSTOR network management is not yet implemented at XOSTOR level */}
-        {/* <Col size={6}>
-            <NetworkCard networks={networks} pifs={pifs} />
-          </Col> */}
+        <Col size={6}>
+          <NetworkCard onChange={effects.onNetworkChange} />
+        </Col>
       </Row>
       <Row>
         <DisksCard />

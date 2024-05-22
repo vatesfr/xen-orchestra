@@ -18,13 +18,17 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSeparator from '@/components/ui/UiSeparator.vue'
-import { useHostMetricsCollection } from '@/stores/xen-api/host-metrics.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import { computed } from 'vue'
 
-const { isReady: isVmReady, records: vms, hasError: hasVmError } = useVmCollection()
+const { isReady: isVmReady, records: vms, hasError: hasVmError } = useVmStore().subscribe()
 
-const { isReady: isHostMetricsReady, records: hostMetrics, hasError: hasHostMetricsError } = useHostMetricsCollection()
+const {
+  isReady: isHostMetricsReady,
+  records: hostMetrics,
+  hasError: hasHostMetricsError,
+} = useHostMetricsStore().subscribe()
 
 const hasError = computed(() => hasVmError.value || hasHostMetricsError.value)
 

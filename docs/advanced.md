@@ -60,6 +60,22 @@ You only need to use a template of a VM with CloudInit installed inside it. [Che
 In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
 :::
 
+### Example: How to create a Cloud Init template with Ubuntu 22.04 LTS?
+
+1. Create a VM with e.g. 2 CPU, 8 GiB of RAM, 10 GiB of disk space, and install Ubuntu 22.04 LTS on it.
+2. Upon reboot, `apt update` and `apt upgrade` the machine.
+3. Install the [Guest Tools](https://docs.xcp-ng.org/vms/#%EF%B8%8F-guest-tools).
+4. Install the "cloud-initramfs-growroot" so that the VM can apply a Cloud Config:
+   ```
+   sudo apt install cloud-initramfs-growroot
+   ```
+5. Run the command `sudo cloud-init clean`.
+6. Clear out the machine-id so it can be regenerated when the template is used:
+   ```
+   sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id
+   ```
+7. Shutdown the VM and create a template from that image.
+
 ### Usage
 
 First, select your compatible template (CloudInit ready) and name it:
@@ -307,7 +323,7 @@ When the power outage is over, all you need to do is:
 
 Terraform is a cloud/platform agnostic tool for building, changing, and versioning infrastructure. Terraform can manage existing and popular service providers as well as custom in-house solutions (like Xen Orchestra). It can manage resources through their entire lifecycle or even manage infrastructure it didn't initially create.
 
-We sponsored a developer to build a [Xen Orchestra provider for Terraform](https://registry.terraform.io/providers/terra-farm/xenorchestra/latest), so you can use it as a central point for your whole virtualized infrastructure. The source code is [available on Github](https://github.com/terra-farm/terraform-provider-xenorchestra/), and contributions are welcome!
+We sponsored a developer to build a [Xen Orchestra provider for Terraform](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest), so you can use it as a central point for your whole virtualized infrastructure. The source code is [available on Github](https://github.com/vatesfr/terraform-provider-xenorchestra/), and contributions are welcome!
 
 :::tip
 Don't miss [our blog post series about it](https://xen-orchestra.com/blog/author/ddelnano/), written by Dom Del Nano, the original developer of this provider!

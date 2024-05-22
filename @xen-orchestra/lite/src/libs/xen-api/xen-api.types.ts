@@ -84,9 +84,12 @@ export type XenApiRecordEvent<Type extends ObjectType> =
 
 declare const __brand: unique symbol
 
+export type RecordRef<Type extends ObjectType> = string & { [__brand]: `${Type}Ref` }
+export type RecordUuid<Type extends ObjectType> = string & { [__brand]: `${Type}Uuid` }
+
 export interface XenApiRecord<Type extends ObjectType> {
-  $ref: string & { [__brand]: `${Type}Ref` }
-  uuid: string & { [__brand]: `${Type}Uuid` }
+  $ref: RecordRef<Type>
+  uuid: RecordUuid<Type>
 }
 
 export type RawXenApiRecord<T extends XenApiRecord<ObjectType>> = Omit<T, '$ref'>
@@ -114,6 +117,9 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   physical_size: number
   physical_utilisation: number
   shared: boolean
+  sm_config: {
+    type?: string
+  }
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {

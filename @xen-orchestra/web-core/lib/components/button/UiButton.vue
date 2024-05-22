@@ -1,5 +1,6 @@
+<!-- v1.0 -->
 <template>
-  <button :class="className" :disabled="busy || isDisabled" type="button" class="ui-button">
+  <button :class="className" :disabled="busy || isDisabled" class="ui-button" type="button">
     <UiIcon :busy :icon="leftIcon" class="icon" fixed-width />
     <slot />
     <UiIcon :icon="rightIcon" class="icon" fixed-width />
@@ -96,6 +97,7 @@ const className = computed(() => {
     &:is(:hover, .hover, :focus-visible) {
       --accent-color: var(--color-orange-d20);
     }
+
     &:is(:active, .pressed) {
       --accent-color: var(--color-orange-d40);
     }
@@ -115,6 +117,7 @@ const className = computed(() => {
     &:is(:active, .pressed) {
       --accent-color: var(--color-red-d40);
     }
+
     &:is(:disabled, .disabled) {
       --accent-color: var(--color-red-l60);
     }

@@ -146,7 +146,7 @@ export default decorate([
             .filter(version => !version.prerelease)
             .map(({ tag_name }) => ({
               label: tag_name,
-              value: tag_name.slice(1) + '-00', // Add this suffix to the version number to respect the required format for installation
+              value: tag_name.slice(1),
             }))
           return versionList
         } else {

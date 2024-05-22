@@ -9,13 +9,14 @@ import https from 'https'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import xml2js from 'xml2js'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
 
 export default class Esxi extends EventEmitter {
   #client
   #cookies
-  #dcPath
+  #dcPaths // map datastore name => datacenter name
   #host
   #httpsAgent
   #user
@@ -24,7 +25,7 @@ export default class Esxi extends EventEmitter {
 
   constructor(host, user, password, sslVerify) {
     super()
-    this.#host = host
+    this.#host = host.trim()
     this.#user = user
     this.#password = password
     if (!sslVerify) {
@@ -40,8 +41,7 @@ export default class Esxi extends EventEmitter {
         // this means that the server is connected and can answer API queries
         // you won't be able to download a file as long a the 'ready' event is not emitted
         this.#ready = true
-        const res = await this.search('Datacenter', ['name'])
-        this.#dcPath = Object.values(res)[0].name
+        await this.#computeDatacenters()
         this.emit('ready')
       } catch (error) {
         this.emit('error', error)
@@ -50,6 +50,29 @@ export default class Esxi extends EventEmitter {
     this.#client.on('error', err => {
       this.emit('error', err)
     })
+  }
+
+  async #computeDatacenters() {
+    this.#dcPaths = {}
+    // the datastore property is a collection of datastore id
+    const res = await this.search('Datacenter', ['name', 'datastore'])
+    await Promise.all(
+      Object.values(res).map(async ({ datastore, name }) => {
+        await Promise.all(
+          datastore.ManagedObjectReference.map(async ({ $value }) => {
+            // get the datastore name
+            const res = await this.fetchProperty('Datastore', $value, 'name')
+            this.#dcPaths[res._] = name
+          })
+        )
+      })
+    )
+  }
+
+  #findDatacenter(dataStore) {
+    notStrictEqual(this.#dcPaths, undefined)
+    notStrictEqual(this.#dcPaths[dataStore], undefined)
+    return this.#dcPaths[dataStore]
   }
 
   #exec(cmd, args) {
@@ -67,23 +90,11 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async #download(dataStore, path, range) {
-    strictEqual(this.#ready, true)
-    notStrictEqual(this.#dcPath, undefined)
-    const url = new URL('https://localhost')
-    url.host = this.#host
-    url.pathname = '/folder/' + path
-    url.searchParams.set('dcPath', this.#dcPath)
-    url.searchParams.set('dsName', dataStore)
-    const headers = {}
+  async #fetch(url, headers = {}) {
     if (this.#cookies) {
       headers.cookie = this.#cookies
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
-    }
-    if (range) {
-      headers['content-type'] = 'multipart/byteranges'
-      headers.Range = 'bytes=' + range
     }
     const res = await fetch(url, {
       agent: this.#httpsAgent,
@@ -103,6 +114,21 @@ export default class Esxi extends EventEmitter {
         .join('; ')
     }
     return res
+  }
+
+  async #download(dataStore, path, range) {
+    strictEqual(this.#ready, true)
+    const url = new URL('https://localhost')
+    url.host = this.#host
+    url.pathname = '/folder/' + path
+    url.searchParams.set('dcPath', this.#findDatacenter(dataStore))
+    url.searchParams.set('dsName', dataStore)
+    const headers = {}
+    if (range) {
+      headers['content-type'] = 'multipart/byteranges'
+      headers.Range = 'bytes=' + range
+    }
+    return this.#fetch(url, headers)
   }
 
   async download(dataStore, path, range) {
@@ -125,6 +151,8 @@ export default class Esxi extends EventEmitter {
 
   // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95
   async search(type, properties) {
+    // search types are limited to "ComputeResource", "Datacenter", "Datastore", "DistributedVirtualSwitch", "Folder", "HostSystem", "Network", "ResourcePool", "VirtualMachine"}
+    // from https://github.com/vmware/govmomi/issues/2595#issuecomment-966604502
     // get property collector
     const propertyCollector = this.#client.serviceContent.propertyCollector
     // get view manager
@@ -231,45 +259,62 @@ export default class Esxi extends EventEmitter {
   }
 
   async getAllVmMetadata() {
-    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime'])
+    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
-    return Object.keys(datas).map(id => {
-      const { config, storage, runtime } = datas[id]
-      if (storage === undefined) {
-        throw new Error(`source VM ${id} don't have any storage`)
-      }
-      const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
-        ? storage.perDatastoreUsage
-        : [storage.perDatastoreUsage]
-      return {
-        id,
-        nameLabel: config.name,
-        memory: +config.hardware.memoryMB * 1024 * 1024,
-        nCpus: +config.hardware.numCPU,
-        guestToolsInstalled: false,
-        firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-        powerState: runtime.powerState,
-        storage: perDatastoreUsage.reduce(
-          (prev, curr) => {
-            return {
-              used: prev.used + +curr.committed,
-              free: prev.free + +curr.uncommitted,
-            }
-          },
-          { used: 0, free: 0 }
-        ),
-      }
-    })
+    return Object.keys(datas)
+      .map(id => {
+        const { config, layoutEx, storage, runtime } = datas[id]
+        if (storage === undefined) {
+          return undefined
+        }
+        // vsan , maybe raw disk , that forbid access to a direct vmdk
+        // descriptor may exist though with a .vmdk extension
+        let hasAllExtentsListed = true
+
+        // structure of layoutEx is described in  https://developer.vmware.com/apis/1720/
+        layoutEx?.disk?.forEach(disk => {
+          // we can stop, even if only one disk is missing an extent
+          hasAllExtentsListed &&
+            disk.chain?.forEach(({ fileKey: fileKeys }) => {
+              // look for the disk extent data , not the descriptor
+              const fileExtent = layoutEx.file.find(file => {
+                return fileKeys.includes(file.key) && file.type === 'diskExtent'
+              })
+              hasAllExtentsListed = hasAllExtentsListed && fileExtent !== undefined
+            })
+        })
+        const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
+          ? storage.perDatastoreUsage
+          : [storage.perDatastoreUsage]
+        return {
+          id,
+          hasAllExtentsListed,
+          nameLabel: config.name,
+          memory: +config.hardware.memoryMB * 1024 * 1024,
+          nCpus: +config.hardware.numCPU,
+          guestToolsInstalled: false,
+          firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+          powerState: runtime.powerState,
+          storage: perDatastoreUsage.reduce(
+            (prev, curr) => {
+              return {
+                used: prev.used + +curr.committed,
+                free: prev.free + +curr.uncommitted,
+              }
+            },
+            { used: 0, free: 0 }
+          ),
+        }
+      })
+      .filter(_ => _ !== undefined)
   }
 
   async getTransferableVmMetadata(vmId) {
-    const search = await this.search('VirtualMachine', ['name', 'config', 'storage', 'runtime', 'snapshot'])
-    if (search[vmId] === undefined) {
-      throw new Error(`VM ${vmId} not found `)
-    }
-    const { config, runtime } = search[vmId]
-
-    const [, dataStore, vmxPath] = config.files.vmPathName.match(/^\[(.*)\] (.+.vmx)$/)
+    const [config, runtime] = await Promise.all([
+      this.fetchProperty('VirtualMachine', vmId, 'config'),
+      this.fetchProperty('VirtualMachine', vmId, 'runtime'),
+    ])
+    const [, dataStore, vmxPath] = config.files[0].vmPathName[0].match(/^\[(.*)\] (.+.vmx)$/)
     const res = await this.download(dataStore, vmxPath)
     const vmx = parseVmx(await res.text())
     // list datastores
@@ -294,12 +339,11 @@ export default class Esxi extends EventEmitter {
           if (typeof disk !== 'object') {
             continue
           }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          if (disk.deviceType?.match(/cdrom/i)) {
             continue
           }
-          // ide hard disk don't have deviceType, but cdroms have one
-          if (channelType === 'ide' && disk.deviceType === 'atapi-cdrom') {
+          // can be something other than a disk, like a controller card
+          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
             continue
           }
 
@@ -336,24 +380,106 @@ export default class Esxi extends EventEmitter {
     } catch (error) {
       // no vmsd file :fall back to a full withou snapshots
     }
-
     return {
-      name_label: config.name,
-      memory: +config.hardware.memoryMB * 1024 * 1024,
-      nCpus: +config.hardware.numCPU,
+      name_label: config.name[0],
+      memory: +config.hardware[0].memoryMB[0] * 1024 * 1024,
+      nCpus: +config.hardware[0].numCPU[0],
       guestToolsInstalled: false,
-      firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-      powerState: runtime.powerState,
+      firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
+      powerState: runtime.powerState[0],
       snapshots,
       disks,
       networks,
     }
   }
 
-  powerOff(vmId) {
-    return this.#exec('PowerOffVM_Task', { _this: vmId })
+  async powerOff(vmId) {
+    const res = await this.#exec('PowerOffVM_Task', { _this: vmId })
+    const taskId = res.returnval.$value
+    let state = 'running'
+    let info
+    for (let i = 0; i < 60 && state === 'running'; i++) {
+      // https://developer.vmware.com/apis/1720/
+      info = await this.fetchProperty('Task', taskId, 'info')
+      state = info.state[0]
+      if (state === 'running') {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    strictEqual(state, 'success', info.error ?? `fail to power off vm ${vmId}, state:${state}`)
+    return info
   }
   powerOn(vmId) {
     return this.#exec('PowerOnVM_Task', { _this: vmId })
+  }
+  async fetchProperty(type, id, propertyName) {
+    // the fetch method does not seems to be exposed by the wsdl
+    // inspired by the pyvmomi implementation ( StubAdapterAccessorImpl.py / InvokeAccessor)
+    const url = new URL('https://localhost/sdk')
+    url.host = this.#host
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Cookie: this.#client.authCookie.cookies,
+        SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
+      },
+      agent: this.#httpsAgent,
+      body: `<?xml version="1.0" encoding="UTF-8"?>
+        <soapenv:Envelope 
+          xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+          xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        >
+          <soapenv:Body>
+            <Fetch xmlns="urn:vim25">
+              <_this type="${type}">${id}</_this>
+              <prop >${propertyName}</prop>
+            </Fetch>
+          </soapenv:Body>
+        </soapenv:Envelope>`,
+    })
+    const text = await res.text()
+    const matches = text.match(/<FetchResponse[^>]*>(.*)<\/FetchResponse>/s)
+    if (matches === null) {
+      throw new Error(`can't get ${propertyName} of object ${id} (Type: ${type})`)
+    }
+    return new Promise((resolve, reject) => {
+      xml2js.parseString(matches[1], (err, res) => (err ? reject(err) : resolve(res.returnval)))
+    })
+  }
+
+  async export(vmId) {
+    const exported = await this.#exec('ExportVm', { _this: vmId })
+    const exportTaskId = exported.returnval.$value
+    let isReady = false
+    for (let i = 0; i < 10 && !isReady; i++) {
+      const state = await this.fetchProperty('HttpNfcLease', exportTaskId, 'state')
+      isReady = state._ === 'ready'
+      if (!isReady) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    if (!isReady) {
+      throw new Error('not ready')
+    }
+
+    const { deviceUrl: deviceUrls } = await this.fetchProperty('HttpNfcLease', exportTaskId, 'info')
+    const streams = {}
+    for (let { url, disk, targetId } of deviceUrls) {
+      url = url[0]
+      disk = disk[0]
+      // filter ram/cdrom/..
+      if (disk === 'true') {
+        // the url returned are in the form of https://*/ follower by a short lived link, default 5mn
+        const fullUrl = new URL(url)
+        fullUrl.host = this.#host
+        const vmdkres = await this.#fetch(fullUrl)
+        const stream = vmdkres.body
+        streams[targetId] = stream
+      }
+    }
+
+    return streams
   }
 }

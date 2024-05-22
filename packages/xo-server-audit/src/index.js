@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
@@ -278,6 +279,41 @@ class AuditXoPlugin {
           getRecords,
         },
       })
+    )
+
+    cleaners.push(
+      this._xo.registerRestApi(
+        {
+          records: {
+            ':id': {
+              _get: async (req, _, next) => {
+                const record = await this._auditCore.get(req.params.id)
+                if (record !== undefined) {
+                  return record
+                }
+                next()
+              },
+            },
+
+            _get: async function* ({ query }) {
+              const limit = query.limit === undefined ? Infinity : +query.limit
+              const filter = query.filter === undefined ? () => true : CM.parse(query.filter).createPredicate()
+
+              let i = 0
+              for await (const record of this._auditCore.getFrom(query.from)) {
+                if (++i > limit) {
+                  break
+                }
+
+                if (filter(record)) {
+                  yield record
+                }
+              }
+            }.bind(this),
+          },
+        },
+        '/plugins/audit'
+      )
     )
   }
 

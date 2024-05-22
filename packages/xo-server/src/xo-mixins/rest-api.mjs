@@ -6,8 +6,10 @@ import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
+import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
+import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
@@ -37,56 +39,52 @@ function compressMaybe(req, res) {
   return res
 }
 
-async function* makeObjectsStream(iterable, makeResult, json) {
-  // use Object.values() on non-iterable objects
-  if (
-    iterable != null &&
-    typeof iterable === 'object' &&
-    typeof iterable[Symbol.iterator] !== 'function' &&
-    typeof iterable[Symbol.asyncIterator] !== 'function'
-  ) {
-    iterable = Object.values(iterable)
-  }
-
-  if (json) {
-    yield '['
-    let first = true
-    for await (const object of iterable) {
-      if (first) {
-        first = false
-        yield '\n'
-      } else {
-        yield ',\n'
-      }
-      yield JSON.stringify(makeResult(object), null, 2)
-    }
-    yield '\n]\n'
-  } else {
-    for await (const object of iterable) {
-      yield JSON.stringify(makeResult(object))
-      yield '\n'
-    }
+async function* mapIterable(iterable, mapper) {
+  for await (const item of iterable) {
+    yield mapper(item)
   }
 }
 
-async function sendObjects(iterable, req, res, path = req.path) {
+async function* makeJsonStream(iterable) {
+  yield '['
+  let first = true
+  for await (const object of iterable) {
+    if (first) {
+      first = false
+      yield '\n'
+    } else {
+      yield ',\n'
+    }
+    yield JSON.stringify(object, null, 2)
+  }
+  yield '\n]\n'
+}
+
+async function* makeNdJsonStream(iterable) {
+  for await (const object of iterable) {
+    yield JSON.stringify(object)
+    yield '\n'
+  }
+}
+
+function makeObjectMapper(req, path = req.path) {
   const { query } = req
 
   const basePath = join(req.baseUrl, path)
   const makeUrl = ({ id }) => join(basePath, typeof id === 'number' ? String(id) : id)
 
-  let makeResult
+  let objectMapper
   let { fields } = query
   if (fields === undefined) {
-    makeResult = makeUrl
+    objectMapper = makeUrl
   } else if (fields === '*') {
-    makeResult = object => ({
+    objectMapper = object => ({
       ...object,
       href: makeUrl(object),
     })
   } else {
     fields = fields.split(',')
-    makeResult = object => {
+    objectMapper = object => {
       const url = makeUrl(object)
       object = pick(object, fields)
       object.href = url
@@ -94,10 +92,23 @@ async function sendObjects(iterable, req, res, path = req.path) {
     }
   }
 
-  const json = !Object.hasOwn(query, 'ndjson')
+  return function (entry) {
+    return objectMapper(typeof entry === 'string' ? { id: entry } : entry)
+  }
+}
+
+async function sendObjects(iterable, req, res, mapper) {
+  const json = !Object.hasOwn(req.query, 'ndjson')
+
+  if (mapper !== null) {
+    if (typeof mapper !== 'function') {
+      mapper = makeObjectMapper(req, ...Array.prototype.slice.call(arguments, 3))
+    }
+    iterable = mapIterable(iterable, mapper)
+  }
 
   res.setHeader('content-type', json ? 'application/json' : 'application/x-ndjson')
-  return pipeline(makeObjectsStream(iterable, makeResult, json, res), res)
+  return pipeline((json ? makeJsonStream : makeNdJsonStream)(iterable), res)
 }
 
 function handleArray(array, filter, limit) {
@@ -204,10 +215,12 @@ export default class RestApi {
         return object
       }
       function getObjects(filter, limit) {
-        return app.getObjects({
-          filter: every(this.isCorrectType, filter),
-          limit,
-        })
+        return Object.values(
+          app.getObjects({
+            filter: every(this.isCorrectType, filter),
+            limit,
+          })
+        )
       }
       async function messages(req, res) {
         const {
@@ -215,10 +228,12 @@ export default class RestApi {
           query,
         } = req
         await sendObjects(
-          app.getObjects({
-            filter: every(_ => _.type === 'message' && _.$object === id, handleOptionalUserFilter(query.filter)),
-            limit: ifDef(query.limit, Number),
-          }),
+          Object.values(
+            app.getObjects({
+              filter: every(_ => _.type === 'message' && _.$object === id, handleOptionalUserFilter(query.filter)),
+              limit: ifDef(query.limit, Number),
+            })
+          ),
           req,
           res,
           '/messages'
@@ -236,15 +251,19 @@ export default class RestApi {
         async 'audit.txt'(req, res) {
           const host = req.xapiObject
 
+          const response = await host.$xapi.getResource('/audit_log', { host })
+
           res.setHeader('content-type', 'text/plain')
-          await pipeline(await host.$xapi.getResource('/audit_log', { host }), compressMaybe(req, res))
+          await pipeline(response.body, compressMaybe(req, res))
         },
 
         async 'logs.tar'(req, res) {
           const host = req.xapiObject
 
+          const response = await host.$xapi.getResource('/host_logs_download', { host })
+
           res.setHeader('content-type', 'application/x-tar')
-          await pipeline(await host.$xapi.getResource('/host_logs_download', { host }), compressMaybe(req, res))
+          await pipeline(response.body, compressMaybe(req, res))
         },
 
         async missing_patches(req, res) {
@@ -367,7 +386,43 @@ export default class RestApi {
       },
     }
     collections.restore = {}
-    collections.tasks = {}
+    collections.tasks = {
+      async getObject(id, req) {
+        const { wait } = req.query
+        if (wait !== undefined) {
+          const { promise, resolve } = pDefer()
+          const stopWatch = await app.tasks.watch(id, task => {
+            if (wait !== 'result' || task.status !== 'pending') {
+              stopWatch()
+              resolve(task)
+            }
+          })
+          req.on('close', stopWatch)
+          return promise
+        } else {
+          return app.tasks.get(id)
+        }
+      },
+      getObjects(filter, limit) {
+        return app.tasks.list({ filter, limit })
+      },
+      watch(filter) {
+        const stream = new Readable({ objectMode: true, read: noop })
+        const onUpdate = object => {
+          if (filter === undefined || filter(object)) {
+            stream.push(['update', object])
+          }
+        }
+        const onRemove = id => {
+          stream.push(['remove', id])
+        }
+        app.tasks.on('update', onUpdate).on('remove', onRemove)
+        stream.on('close', () => {
+          app.tasks.off('update', onUpdate).off('remove', onRemove)
+        })
+        return stream[Symbol.asyncIterator]()
+      },
+    }
     collections.users = {
       getObject(id) {
         return app.getUser(id).then(getUserPublicProperties)
@@ -437,7 +492,7 @@ export default class RestApi {
 
     api.get(
       '/',
-      wrap((req, res) => sendObjects(collections, req, res))
+      wrap((req, res) => sendObjects(Object.values(collections), req, res))
     )
 
     // For compatibility redirect from /backups* to /backup
@@ -523,43 +578,12 @@ export default class RestApi {
       )
 
     api
-      .get(
-        '/tasks',
-        wrap(async (req, res) => {
-          const { filter, limit } = req.query
-          const tasks = app.tasks.list({
-            filter: handleOptionalUserFilter(filter),
-            limit: ifDef(limit, Number),
-          })
-          await sendObjects(tasks, req, res)
-        })
-      )
       .delete(
         '/tasks',
         wrap(async (req, res) => {
           await app.tasks.clearLogs()
           res.sendStatus(200)
         })
-      )
-      .get(
-        '/tasks/:id',
-        wrap(async (req, res) => {
-          const {
-            params: { id },
-            query: { wait },
-          } = req
-          if (wait !== undefined) {
-            const stopWatch = await app.tasks.watch(id, task => {
-              if (wait !== 'result' || task.status !== 'pending') {
-                stopWatch()
-                res.json(task)
-              }
-            })
-            req.on('close', stopWatch)
-          } else {
-            res.json(await app.tasks.get(id))
-          }
-        }, true)
       )
       .delete(
         '/tasks/:id',
@@ -589,12 +613,26 @@ export default class RestApi {
     api.get(
       '/:collection',
       wrap(async (req, res) => {
-        const { query } = req
-        await sendObjects(
-          await req.collection.getObjects(handleOptionalUserFilter(query.filter), ifDef(query.limit, Number)),
-          req,
-          res
-        )
+        const { collection, query } = req
+
+        const filter = handleOptionalUserFilter(query.filter)
+
+        if (Object.hasOwn(query, 'ndjson') && Object.hasOwn(query, 'watch')) {
+          const objectMapper = makeObjectMapper(req)
+          const entryMapper = entry => [entry[0], objectMapper(entry[1])]
+
+          try {
+            await sendObjects(collection.watch(filter), req, res, entryMapper)
+          } catch (error) {
+            // ignore premature close in watch mode
+            if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+              throw error
+            }
+          }
+          return
+        }
+
+        await sendObjects(await collection.getObjects(filter, ifDef(query.limit, Number)), req, res)
       })
     )
 
@@ -621,18 +659,21 @@ export default class RestApi {
       })
     )
     api.get(
-      '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
+      '/:collection(vms|vm-snapshots|vm-templates)/:object.:format(ova|xva)',
       wrap(async (req, res) => {
-        const { body, headers, statusCode, statusMessage } = await req.xapiObject.$export({
-          compress: req.query.compress,
-        })
+        const vm = req.xapiObject
 
-        res.writeHead(statusCode, statusMessage != null ? statusMessage : '', {
-          ...headers,
-          'content-disposition': 'attachment',
-        })
+        const stream =
+          req.params.format === 'ova'
+            ? await vm.$xapi.exportVmOva(vm.$ref)
+            : (
+                await vm.$export({
+                  compress: req.query.compress,
+                })
+              ).body
 
-        await pipeline(body, res)
+        res.setHeader('content-disposition', 'attachment')
+        await pipeline(stream, res)
       })
     )
 
@@ -705,7 +746,7 @@ export default class RestApi {
     )
 
     api.get(
-      '/:collection/:object/actions',
+      ['/:collection/_/actions', '/:collection/:object/actions'],
       wrap((req, res) => {
         const { actions } = req.collection
         return sendObjects(
@@ -715,6 +756,15 @@ export default class RestApi {
         )
       })
     )
+    api.get(['/:collection/_/actions/:action', '/:collection/:object/actions/:action'], (req, res, next) => {
+      const { action: id } = req.params
+      const action = req.collection.actions?.[id]
+      if (action === undefined) {
+        return next()
+      }
+
+      res.json({ ...action })
+    })
     api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
       const { action } = req.params
       const fn = req.collection.actions?.[action]

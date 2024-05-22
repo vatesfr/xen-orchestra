@@ -817,7 +817,7 @@ export default class Home extends Component {
         ? ComplexMatcher.setPropertyClause(
             filter,
             'tags',
-            new ComplexMatcher.Or(map(tags, tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')))
+            new ComplexMatcher.Or(map(tags, tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)))
           )
         : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)
     )

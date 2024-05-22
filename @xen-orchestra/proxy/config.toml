@@ -61,7 +61,7 @@ disableFileRemotes = true
 
 [xapiOptions]
 maxUncoalescedVdis = 1
-watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM']
+watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM', 'VM_guest_metrics']
 
 
 

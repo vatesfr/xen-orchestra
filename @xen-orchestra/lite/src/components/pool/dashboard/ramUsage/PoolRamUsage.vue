@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
+  <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
     <UiCardTitle>{{ $t('pool-ram-usage') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ $t('last-week') }}
@@ -12,26 +12,26 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, inject } from 'vue'
-import { formatSize } from '@/libs/utils'
-import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
-import type { LinearChartData } from '@/types/chart'
 import NoDataError from '@/components/NoDataError.vue'
-import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import SizeStatsSummary from '@/components/ui/SizeStatsSummary.vue'
-import { sumBy } from 'lodash-es'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
+import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import { formatSize } from '@/libs/utils'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import type { LinearChartData } from '@/types/chart'
 import { UiCardTitleLevel } from '@/types/enums'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { useHostMetricsCollection } from '@/stores/xen-api/host-metrics.store'
+import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
+import { sumBy } from 'lodash-es'
+import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
 
-const { runningHosts, isFetching, hasError } = useHostCollection()
-const { getHostMemory } = useHostMetricsCollection()
+const { runningHosts, isFetching, hasError } = useHostStore().subscribe()
+const { getHostMemory } = useHostMetricsStore().subscribe()
 
 const { t } = useI18n()
 

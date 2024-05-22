@@ -216,8 +216,8 @@ import { useModal } from '@/composables/modal.composable'
 import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { useNetworkCollection } from '@/stores/xen-api/network.store'
-import { useSrCollection } from '@/stores/xen-api/sr.store'
+import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { useSrStore } from '@/stores/xen-api/sr.store'
 import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
@@ -249,7 +249,7 @@ const { isMobile } = storeToRefs(uiStore)
 
 const xapi = useXenApiStore().getXapi()
 
-const { records: srs } = useSrCollection()
+const { records: srs } = useSrStore().subscribe()
 const filteredSrs = computed(() =>
   srs.value
     .filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
@@ -263,7 +263,7 @@ const filteredSrs = computed(() =>
     })
 )
 
-const { records: networks } = useNetworkCollection()
+const { records: networks } = useNetworkStore().subscribe()
 const filteredNetworks = computed(() =>
   [...networks.value].sort((network1, network2) => (network1.name_label < network2.name_label ? -1 : 1))
 )

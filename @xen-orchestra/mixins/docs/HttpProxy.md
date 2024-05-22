@@ -49,7 +49,7 @@ https://user:password@xo.company.lan
 Or create a dedicated token with `xo-cli`:
 
 ```console
-$ xo-cli --createToken xoa.company.lan admin@admin.net
+$ xo-cli create-token xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
 Authentication token created

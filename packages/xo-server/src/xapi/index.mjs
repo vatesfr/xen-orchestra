@@ -149,6 +149,22 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async disableHa() {
+    await this.call('pool.disable_ha')
+  }
+
+  // =================================================================
+
+  async enableHa(heartbeatSrs, configuration) {
+    await this.call(
+      'pool.enable_ha',
+      heartbeatSrs.map(srId => this.getObject(srId).$ref),
+      configuration
+    )
+  }
+
+  // =================================================================
+
   async joinPool(masterAddress, masterUsername, masterPassword, force = false) {
     try {
       await this.call(force ? 'pool.join_force' : 'pool.join', masterAddress, masterUsername, masterPassword)
@@ -354,7 +370,9 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      return await this.call('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '')
+      return await this.callAsync('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '').then(
+        extractOpaqueRef
+      )
     } finally {
       if (snapshotRef) {
         await this.VM_destroy(snapshotRef)

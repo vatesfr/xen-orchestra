@@ -107,9 +107,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { computed, watch } from 'vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
@@ -131,9 +131,9 @@ const { t, locale } = useI18n()
 
 usePageTitleStore().setTitle(() => t('settings'))
 
-const { pool } = usePoolCollection()
+const { pool } = usePoolStore().subscribe()
 
-const { getByOpaqueRef: getHost } = useHostCollection()
+const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 
 const poolMaster = computed(() => (pool.value ? getHost(pool.value.master) : undefined))
 const xcpVersion = computed(() => poolMaster.value?.software_version.product_version)

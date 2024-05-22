@@ -200,7 +200,7 @@ You can use the search field/filter with number comparisons:
 
 ### Available properties
 
-There isn't much documentation listing these (yet), but you can see all objects and their properties using `xo-cli --list-objects`. You can then use these properties for search in XOA.
+There isn't much documentation listing these (yet), but you can see all objects and their properties using `xo-cli list-objects`. You can then use these properties for search in XOA.
 
 Take a look at [the documentation](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli#xo-cli) for xo-cli :)
 
@@ -520,6 +520,15 @@ Also known as RPU, **this is the advised way to update your pool**. By just clic
 
 :::tip
 This powerful and fully automated mechanism requires some prerequisites: all your VMs disks must be on a one (or more) shared storage. Also, high-availability will be automatically disabled, as the XO load balancer plugin and backup jobs. Everything will be enabled back when it's done!
+:::
+
+:::warning
+XO will restart the hosts one by one and wait for each host to be up and running before continuing. However, if the host takes too much time to boot, the RPU will fail with an error. By default, XO will wait up to 20 minutes before failing. You can change that value in your `xo-server` config:
+
+```toml
+[xapiOptions]
+restartHostTimeout = '40 minutes'
+```
 :::
 
 ![](./assets/rpu1.png)

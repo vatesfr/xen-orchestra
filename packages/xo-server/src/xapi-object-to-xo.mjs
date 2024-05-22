@@ -99,6 +99,7 @@ const TRANSFORMS = {
     const cpuInfo = obj.cpu_info
     return {
       auto_poweron: obj.other_config.auto_poweron === 'true',
+      secureBootSetup: obj.custom_uefi_certificates !== undefined && obj.custom_uefi_certificates !== '',
       crashDumpSr: link(obj, 'crash_dump_SR'),
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
@@ -364,6 +365,7 @@ const TRANSFORMS = {
 
       addresses: normalizeVmNetworks(guestMetrics?.networks ?? {}),
       affinityHost: link(obj, 'affinity'),
+      attachedPcis: otherConfig.pci?.split(',')?.map(s => s.split('/')[1]),
       auto_poweron: otherConfig.auto_poweron === 'true',
       bios_strings: obj.bios_strings,
       blockedOperations: obj.blocked_operations,
@@ -400,7 +402,18 @@ const TRANSFORMS = {
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
+      isFirmwareSupported: (() => {
+        const restrictions = parseXml(obj.recommendations)?.restrictions?.restriction
 
+        if (restrictions === undefined) {
+          return true
+        }
+
+        const field = `supports-${obj.HVM_boot_params.firmware}`
+        const firmwareRestriction = restrictions.find(restriction => restriction.field === field)
+
+        return firmwareRestriction === undefined || firmwareRestriction.value !== 'no'
+      })(),
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
@@ -430,6 +443,7 @@ const TRANSFORMS = {
       installTime: metrics && toTimestamp(metrics.install_time),
       name_description: obj.name_description,
       name_label: obj.name_label,
+      needsVtpm: obj.platform.vtpm === 'true',
       notes: otherConfig['xo:notes'],
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,

@@ -23,7 +23,22 @@ esac
 
 if [ $# -ge 2 ]
 then
-  npm --save=false --workspaces=false version "$2"
+  version=$2
+
+  # Prevent bump if package.json has unsaved modifications
+  #
+  # Avoid double-bump in case a previous publication/commit failed and bump-pkg
+  # is run again before reverting changes.
+  if ! git diff-index --quiet HEAD package.json
+  then
+    printf '%s\n' \
+      "Changes detected in \`$pkg/package.json\`!" \
+      '' \
+      "Either revert them or run \`bump-pkg\` without \`$version\`" >&2
+    exit 1
+  fi
+
+  npm --save=false --workspaces=false version "$version"
   git checkout HEAD :/yarn.lock
 fi
 # if version is not passed, simply update other packages

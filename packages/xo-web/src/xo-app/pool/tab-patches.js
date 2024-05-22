@@ -169,23 +169,34 @@ const INSTALLED_PATCH_COLUMNS = [
   missingPatches: cb => subscribeHostMissingPatches(master, cb),
   userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
 }))
-@connectStore({
-  hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
-  poolHosts: createGetObjectsOfType('host').filter(
-    createSelector(
-      (_, props) => props.pool.id,
-      poolId => host => host.$pool === poolId
-    )
-  ),
-  runningVms: createGetObjectsOfType('VM').filter(
-    createSelector(
-      (_, props) => props.pool.id,
-      poolId => vm => vm.$pool === poolId && vm.power_state === 'Running'
-    )
-  ),
-  vbds: createGetObjectsOfType('VBD'),
-  vdis: createGetObjectsOfType('VDI'),
-  srs: createGetObjectsOfType('SR'),
+@connectStore(() => {
+  const getSrs = createGetObjectsOfType('SR')
+  const getPoolSrs = (state, props) =>
+    getSrs.filter(
+      createSelector(
+        (_, props) => props.pool.id,
+        poolId => sr => sr.$pool === poolId
+      )
+    )(state, props)
+  return {
+    hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
+    poolHosts: createGetObjectsOfType('host').filter(
+      createSelector(
+        (_, props) => props.pool.id,
+        poolId => host => host.$pool === poolId
+      )
+    ),
+    runningVms: createGetObjectsOfType('VM').filter(
+      createSelector(
+        (_, props) => props.pool.id,
+        poolId => vm => vm.$pool === poolId && vm.power_state === 'Running'
+      )
+    ),
+    vbds: createGetObjectsOfType('VBD'),
+    vdis: createGetObjectsOfType('VDI'),
+    srs: getSrs,
+    poolSrs: getPoolSrs,
+  }
 })
 export default class TabPatches extends Component {
   getNVmsRunningOnLocalStorage = createSelector(
@@ -203,6 +214,12 @@ export default class TabPatches extends Component {
         })
       ).length
   )
+
+  hasAXostor = createSelector(
+    () => this.props.poolSrs,
+    poolSrs => some(poolSrs, { SR_type: 'linstor' })
+  )
+
   render() {
     const {
       hostPatches,
@@ -217,6 +234,7 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
+    const hasAXostor = this.hasAXostor()
     const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
     return (
@@ -227,19 +245,23 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
+                  disabled={
+                    hasAXostor || isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost
+                  }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
                   tooltip={
-                    hasMultipleVmsRunningOnLocalStorage
-                      ? _('nVmsRunningOnLocalStorage', {
-                          nVms: this.getNVmsRunningOnLocalStorage(),
-                        })
-                      : isSingleHost
-                        ? _('multiHostPoolUpdate')
-                        : undefined
+                    hasAXostor
+                      ? _('rollingPoolUpdateDisabledBecauseXostorOnPool')
+                      : hasMultipleVmsRunningOnLocalStorage
+                        ? _('nVmsRunningOnLocalStorage', {
+                            nVms: this.getNVmsRunningOnLocalStorage(),
+                          })
+                        : isSingleHost
+                          ? _('multiHostPoolUpdate')
+                          : undefined
                   }
                 />
               )}

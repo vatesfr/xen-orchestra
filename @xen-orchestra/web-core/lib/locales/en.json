@@ -1,0 +1,15 @@
+{
+  "core": {
+    "close": "Close",
+    "log-out": "Log out",
+    "master": "Primary host",
+    "open": "Open",
+    "quick-actions": "Quick actions",
+    "sidebar": {
+      "close": "Close sidebar",
+      "lock": "Lock sidebar open",
+      "open": "Open sidebar",
+      "unlock": "Unlock sidebar"
+    }
+  }
+}
