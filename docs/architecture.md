@@ -138,15 +138,22 @@ This CLI is mainly used as a debug tool, there's no 100% guarantee on its stabil
 $ xo-cli --help
 Usage:
 
-  xo-cli --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
       Accept invalid certificate (e.g. self-signed).
 
-    --expiresIn duration
+    --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --otp <otp>
+      One-time password if required for this user.
+
+    --token <token>
+      An authentication token to use instead of username/password.
 
   xo-cli --createToken <params>…
     Create an authentication token for XO API.
@@ -171,8 +178,102 @@ Usage:
     <property>=<value>
       Restricted displayed objects to those matching the patterns.
 
-  xo-cli <command> [<name>=<value>]...
+  xo-cli <command> [--json] [<name>=<value>]...
     Executes a command on the current XO instance.
+
+    --json
+      Prints the result in JSON format.
+
+  xo-cli rest del <resource>
+    Delete the resource.
+
+    Examples:
+      xo-cli rest del tasks/<task id>
+      xo-cli rest del vms/<vm id>/tags/<tag>
+
+  xo-cli rest get <collection> [fields=<fields>] [filter=<filter>] [limit=<limit>]
+    List objects in a REST API collection.
+
+    <collection>
+      Full path of the collection to list
+
+    fields=<fields>
+      When provided, returns a collection of objects containing the requested
+      fields instead of the simply the objects' paths.
+
+      The field names must be separated by commas.
+
+    filter=<filter>
+      List only objects that match the filter
+
+      Syntax: https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax
+
+    limit=<limit>
+      Maximum number of objects to list, e.g. `limit=10`
+
+    Examples:
+      xo-cli rest get
+      xo-cli rest get tasks filter='status:pending'
+      xo-cli rest get vms fields=name_label,power_state
+
+  xo-cli rest get [--output <file>] <object> [wait | wait=result]
+    Show an object from the REST API.
+
+    --output <file>
+      If specified, the response will be saved in <file> instead of being parsed.
+
+      If <file> ends with `/`, it will be considered as the directory in which
+      to save the response, and the filename will be last part of the <object> path.
+
+    <object>
+      Full path of the object to show
+
+    wait
+      If the object is a task, waits for it to be updated before returning.
+
+    wait=result
+      If the object is a task, waits for it to be finished before returning.
+
+    Examples:
+      xo-cli rest get vms/<VM UUID>
+      xo-cli rest get tasks/<task id>/actions wait=result
+
+  xo-cli rest patch <object> <name>=<value>...
+    Update properties of an object (not all properties are writable).
+
+    <object>
+      Full path of the object to update
+
+    <name>=<value>...
+      Properties to update on the object
+
+    Examples:
+      xo-cli rest patch vms/<VM UUID> name_label='My VM' name_description='Its description
+
+  xo-cli rest post <action> <name>=<value>...
+    Execute an action.
+
+    <action>
+      Full path of the action to execute
+
+    <name>=<value>...
+      Paramaters to pass to the action
+
+    Examples:
+      xo-cli rest post tasks/<task id>/actions/abort
+      xo-cli rest post vms/<VM UUID>/actions/snapshot name_label='My snapshot'
+
+  xo-cli rest put <collection>/<item id> <name>=<value>...
+    Put a item in a collection
+
+    <collection>/<item id>
+      Full path of the item to add
+
+    <name>=<value>...
+      Properties of the item
+
+    Examples:
+      xo-cli rest put vms/<vm id>/tags/<tag>
 ```
 
 #### Register your XO instance
