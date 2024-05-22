@@ -7,13 +7,14 @@
       :busy="isBusy"
       :disabled="isDisabled"
       :icon
+      :link="props.link"
       @click="handleClick"
     >
       <slot />
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
+        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :link="props.link" :icon @click="open">
           <slot />
           <UiIcon :fixed-width="false" :icon="submenuIcon" class="submenu-icon" />
         </MenuTrigger>
@@ -40,6 +41,7 @@ const props = withDefaults(
     onClick?: () => any
     disabled?: boolean
     busy?: boolean
+    link?: string
   }>(),
   { disabled: undefined }
 )
@@ -64,6 +66,11 @@ const handleClick = async () => {
   isHandlingClick.value = true
   try {
     await props.onClick?.()
+
+    if (props.link) {
+      window.open(props.link, '_blank')
+    }
+
     closeMenu?.()
   } finally {
     isHandlingClick.value = false
