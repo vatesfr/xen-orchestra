@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Support exporting VM in OVA format
+- [XOA/Licenses] Ability to manually bind XOSTOR licenses following new licenses (PR [#7573](https://github.com/vatesfr/xen-orchestra/pull/7573))
 
 ### Bug fixes
 
@@ -30,6 +31,8 @@
 <!--packages-start-->
 
 - xen-api patch
+- xo-server minor
 - xo-server-backup-reports minor
+- xo-web minor
 
 <!--packages-end-->
