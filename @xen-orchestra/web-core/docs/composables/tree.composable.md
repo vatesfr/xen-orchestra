@@ -166,6 +166,9 @@ It takes the `data` as first argument and will return:
 - `false` if the node explicitly doesn't pass the filter
 - `undefined` if the filter doesn't apply to the node
 
+For basic filtering on label you can use the `useTreeFilter` composable which returns `filter` (`Ref<string>`) and a
+predefined `predicate` function (`(node: TreeNodeBase) => boolean | undefined`) which can be passed as an option.
+
 ## `defineTree` helper
 
 The `defineTree` helper creates a collection of definitions in a more convenient way.
