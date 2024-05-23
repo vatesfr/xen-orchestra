@@ -19,6 +19,7 @@
 
   xo-prod vm.start id=e6572e82-983b-4780-a2a7-b19831fb7f45
   ```
+- [VM] Yellow icon when VM is busy [#7593](https://github.com/vatesfr/xen-orchestra/issues/7593) (PR [#7680](https://github.com/vatesfr/xen-orchestra/pull/7680))
 
 ### Bug fixes
 
