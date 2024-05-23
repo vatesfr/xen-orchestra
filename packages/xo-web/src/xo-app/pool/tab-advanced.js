@@ -330,9 +330,7 @@ export default class TabAdvanced extends Component {
 
   _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
 
-  _onChangeMigrationCompression = value => {
-    editPool(this.props.pool, { migrationCompression: value })
-  }
+  _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
 
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
@@ -364,6 +362,7 @@ export default class TabAdvanced extends Component {
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
+    const isMigrationCompressionAvailable = pool.migrationCompression === undefined
 
     return (
       <div>
@@ -405,14 +404,12 @@ export default class TabAdvanced extends Component {
                     <th>{_('migrationCompression')}</th>
                     <td>
                       <Tooltip
-                        content={
-                          pool.migrationCompression === undefined ? _('migrationCompressionDisabled') : undefined
-                        }
+                        content={isMigrationCompressionAvailable ? _('migrationCompressionDisabled') : undefined}
                       >
                         <Toggle
                           value={pool.migrationCompression}
                           onChange={this._onChangeMigrationCompression}
-                          disabled={pool.migrationCompression === undefined}
+                          disabled={isMigrationCompressionAvailable}
                         />
                       </Tooltip>
                     </td>
