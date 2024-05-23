@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { formatSize } from '@/libs/utils'
 import type { HostStats } from '@/libs/xapi-stats'
@@ -23,7 +24,6 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import { UiCardTitleLevel } from '@/types/enums'
-import { useHostCollection } from '@/stores/xen-api/host.store'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -31,7 +31,7 @@ const { t } = useI18n()
 const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS)
-const { hasError, isFetching } = useHostCollection()
+const { hasError, isFetching } = useHostStore().subscribe()
 
 const data = computed<LinearChartData>(() => {
   const stats = hostLastWeekStats?.stats?.value

@@ -39,12 +39,12 @@ import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
 import PoolDashboardRamUsageChart from '@/components/pool/dashboard/ramUsage/PoolRamUsage.vue'
 import UiCardGroup from '@/components/ui/UiCardGroup.vue'
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
 import useFetchStats from '@/composables/fetch-stats.composable'
 import { GRANULARITY } from '@/libs/xapi-stats'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import { IK_HOST_LAST_WEEK_STATS, IK_HOST_STATS, IK_VM_STATS } from '@/types/injection-keys'
 import { differenceBy } from 'lodash-es'
 import { provide, watch } from 'vue'
@@ -52,8 +52,8 @@ import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('dashboard'))
 
-const { getStats: getHostStats, runningHosts } = useHostCollection()
-const { getStats: getVmStats, runningVms } = useVmCollection()
+const { getStats: getHostStats, runningHosts } = useHostStore().subscribe()
+const { getStats: getVmStats, runningVms } = useVmStore().subscribe()
 
 const {
   register: hostRegister,

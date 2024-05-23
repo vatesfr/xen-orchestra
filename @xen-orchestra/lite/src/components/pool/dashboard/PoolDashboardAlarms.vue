@@ -43,12 +43,12 @@ import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import UiTable from '@/components/ui/UiTable.vue'
-import { useAlarmCollection } from '@/stores/xen-api/alarm.store'
+import { useAlarmStore } from '@/stores/xen-api/alarm.store'
 import UiButton from '@core/components/button/UiButton.vue'
+import UiCounter from '@core/components/UiCounter.vue'
 
-const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollection({ defer: true })
+const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
 </script>
 
 <style lang="postcss" scoped>
@@ -63,14 +63,17 @@ const { records: alarms, start, isStarted, isReady, hasError } = useAlarmCollect
   align-items: center;
   gap: 3rem;
 }
+
 .text {
   .pre-start & {
     margin-bottom: 2rem;
   }
+
   .no-alarm & {
     color: var(--color-green-base);
   }
 }
+
 .table-container {
   max-height: 25rem;
   overflow: auto;

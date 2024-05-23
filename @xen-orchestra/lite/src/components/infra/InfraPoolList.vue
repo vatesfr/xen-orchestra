@@ -21,7 +21,7 @@
 <script lang="ts" setup>
 import InfraHostItems from '@/components/infra/InfraHostItems.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemError from '@core/components/tree/TreeItemError.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
@@ -29,5 +29,5 @@ import TreeList from '@core/components/tree/TreeList.vue'
 import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 
-const { isReady, hasError, pool } = usePoolCollection()
+const { isReady, hasError, pool } = usePoolStore().subscribe()
 </script>

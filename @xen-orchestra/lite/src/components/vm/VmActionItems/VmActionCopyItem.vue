@@ -11,10 +11,11 @@
 </template>
 
 <script lang="ts" setup>
+import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
@@ -25,7 +26,7 @@ const props = defineProps<{
   isSingleAction?: boolean
 }>()
 
-const { getByOpaqueRef, isOperationPending } = useVmCollection()
+const { getByOpaqueRef } = useVmStore().subscribe()
 
 const selectedVms = computed(() =>
   props.selectedRefs.map(vmRef => getByOpaqueRef(vmRef)).filter((vm): vm is XenApiVm => vm !== undefined)
@@ -38,7 +39,7 @@ const areAllSelectedVmsHalted = computed(
 )
 
 const areSomeSelectedVmsCloning = computed(() =>
-  selectedVms.value.some(vm => isOperationPending(vm, VM_OPERATION.CLONE))
+  selectedVms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))
 )
 
 const isDisabled = computed(() => {

@@ -1,5 +1,7 @@
+import type { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import { saveAs } from 'file-saver'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { castArray } from 'lodash-es'
 
 function stringifyCsvValue(value: any) {
   let res = ''
@@ -33,4 +35,16 @@ export function exportVmsAsJsonFile(vms: XenApiVm[], fileName: string) {
     }),
     fileName
   )
+}
+
+export const isVmOperationPending = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
+  const currentOperations = Object.values(vm.current_operations)
+
+  return castArray(operations).some(operation => currentOperations.includes(operation))
+}
+
+export const areSomeVmOperationAllowed = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
+  const allowedOperations = Object.values(vm.allowed_operations)
+
+  return castArray(operations).some(operation => allowedOperations.includes(operation))
 }

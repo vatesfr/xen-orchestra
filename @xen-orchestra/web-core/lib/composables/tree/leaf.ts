@@ -1,4 +1,5 @@
 import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
+import type { LeafStatuses } from '@core/composables/tree/types'
 
 export class Leaf<TData extends object = any, const TDiscriminator = any> extends TreeNodeBase<TData, TDiscriminator> {
   readonly isBranch = false
@@ -7,19 +8,23 @@ export class Leaf<TData extends object = any, const TDiscriminator = any> extend
     return this.passesFilter ?? false
   }
 
-  get isVisible() {
-    if (this.passesFilterUpwards) {
+  get failsFilterDownwards(): boolean {
+    return this.passesFilter === false
+  }
+
+  get isExcluded() {
+    if (this.parent?.isExpanded === false) {
       return true
     }
 
-    if (this.passesFilter === false) {
+    if (this.passesFilterUpwards) {
       return false
     }
 
-    return this.parent?.isExpanded ?? true
+    return this.passesFilter === false
   }
 
-  get labelClasses() {
+  get statuses(): LeafStatuses {
     return {
       active: this.isActive,
       selected: this.isSelected,

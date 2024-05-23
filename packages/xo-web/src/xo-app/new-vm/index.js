@@ -1813,7 +1813,7 @@ export default class NewVm extends BaseComponent {
                   </span>
                 )}
               </Item>
-            </SectionContent>
+            </SectionContent>,
           ],
           isAdmin && isHvm && (
             <SectionContent>

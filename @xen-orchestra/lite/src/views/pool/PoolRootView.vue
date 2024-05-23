@@ -10,10 +10,10 @@
 <script lang="ts" setup>
 import PoolHeader from '@/components/pool/PoolHeader.vue'
 import PoolTabBar from '@/components/pool/PoolTabBar.vue'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 
-const { pool } = usePoolCollection()
+const { pool } = usePoolStore().subscribe()
 
 usePageTitleStore().setObject(pool)
 </script>

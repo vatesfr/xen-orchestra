@@ -6,6 +6,7 @@ export class BranchDefinition<
   TChildDefinition extends TreeNodeDefinition = TreeNodeDefinition,
   const TDiscriminator = any,
 > extends TreeNodeDefinitionBase<TData, TDiscriminator> {
+  readonly isBranch = true
   children: TChildDefinition[]
 
   constructor(data: TData, options: TreeNodeOptions<TData, TDiscriminator>, children: TChildDefinition[]) {

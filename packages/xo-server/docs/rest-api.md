@@ -52,7 +52,7 @@ curl -b \
 You can use `xo-cli` to create an authentication token:
 
 ```sh
-$ xo-cli --createToken xoa.company.lan admin@admin.net
+$ xo-cli create-token xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
 Authentication token created
