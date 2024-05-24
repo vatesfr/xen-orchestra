@@ -746,7 +746,7 @@ const TRANSFORMS = {
   task(obj) {
     let applies_to
     if (obj.other_config.applies_to) {
-      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined).uuid
+      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined)?.uuid
     }
     return {
       allowedOperations: obj.allowed_operations,
