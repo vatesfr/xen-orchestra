@@ -1033,6 +1033,7 @@ const messages = {
   applyChangeOnPcis:
     'This operation will reboot the host in order to apply the change on the PCI{nPcis, plural, one {} other {s}}. Are you sure you want to continue?',
   className: 'Class name',
+  confirmForceRebootHost: 'Force reboot?',
   deviceName: 'Device name',
   enabled: 'Enabled',
   disksSystemHealthy: 'All disks are healthy ✅',
@@ -1040,6 +1041,7 @@ const messages = {
   editHostIscsiIqnMessage:
     'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
+  hostEvacuationFailed: 'The host evacuation failed, do you want to force reboot?',
   maintenanceHostModalMessage:
     'Are you sure you want to enter maintenance mode? This will migrate all the VMs running on this host to other hosts of the pool.',
   maintenanceHostModalTitle: 'Maintenance mode',

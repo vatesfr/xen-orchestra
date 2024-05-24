@@ -1373,7 +1373,7 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 }
 
-export const hidePcis = async (pcis, hide) => {
+export const hidePcis = async (pcis, hide, force) => {
   try {
     await confirm({
       body: _('applyChangeOnPcis', { nPcis: pcis.length }),
@@ -1381,8 +1381,20 @@ export const hidePcis = async (pcis, hide) => {
       title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
     })
   } catch (error) {
-    return
+    if (noHostsAvailableErrCheck(error)) {
+      try {
+        await confirm({
+          body: _('hostEvacuationFailed'),
+          title: _('confirmForceRebootHost'),
+        })
+
+        return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force })
+      } catch (error) {
+        return
+      }
+    }
   }
+
   return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
 }
 

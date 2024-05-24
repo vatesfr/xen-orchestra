@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
 
-export const disableDom0Access = defer(async function ($defer, { pcis, disable }) {
+export const disableDom0Access = defer(async function ($defer, { pcis, disable, force }) {
   await this.checkPermissions(pcis.map(id => [id, 'administrate']))
 
   const _pcis = pcis.map(id => this.getObject(id, 'PCI'))
@@ -25,12 +25,13 @@ export const disableDom0Access = defer(async function ($defer, { pcis, disable }
     }
   )
 
-  await xapi.rebootHost(_pcis[0].$host)
+  await xapi.rebootHost(_pcis[0].$host, force)
 })
 
 disableDom0Access.params = {
   pcis: { type: 'array', items: { type: 'string' } },
   disable: { type: 'boolean' },
+  force: { type: 'boolean'}
 }
 
 export async function getDom0AccessStatus({ pci }) {
