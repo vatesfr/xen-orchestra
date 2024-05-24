@@ -74,6 +74,7 @@ const createDateFormatter = timezone =>
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
+Handlebars.registerHelper('formatDuration', formatDuration)
 
 const formatSize = bytes =>
   humanFormat(bytes, {
@@ -109,16 +110,10 @@ const TITLE_BY_STATUS = {
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
 
-Handlebars.registerHelper('titleByStatus', function (status) {
+Handlebars.registerHelper('titleByStatus', function (status) { // To change maybe
   if (this && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](this.length)
   }
-})
-
-Handlebars.registerHelper('reportSuccesses', function (totalTasks, tasks) {
-  const n = totalTasks?.length ?? 0
-  const nSuccesses = tasks.success?.length ?? 0
-  if (n !== 0) return `- **Successes**: ${nSuccesses} / ${n}`
 })
 
 Handlebars.registerHelper('pluralizeStatus', function (status, pluralMark, number) {
@@ -137,24 +132,43 @@ const getTemporalDataMarkdown = (end, start, formatDate) => {
   return markdown
 }
 
-Handlebars.registerHelper('reportTemporalData', function (end, start, formatDate) {
-  const markdown = [`- **Start time**: ${formatDate(start)}`]
-  if (end !== undefined) {
-    markdown.push(`- **End time**: ${formatDate(end)}`)
-    const duration = end - start
-    if (duration >= 1) {
-      markdown.push(`- **Duration**: ${formatDuration(duration)}`)
-    }
-  }
-  return markdown.join('\n')
+Handlebars.registerHelper('executeFunction', function (fct, arg) { // TODO : maybe replace this by registering formatDate as a helper
+  return fct(arg)
 })
+
+Handlebars.registerHelper('reluSubtract', function (a, b, threshold) {
+  const res = a - b
+  return res >= threshold ? res : 0
+})
+
+const reportTemporalData =
+`- **Start time**: {{executeFunction formatDate start}}
+{{#if end}}
+- **End time**: {{executeFunction formatDate end}}
+{{#if (reluSubtract end start 1)}}
+- **Duration**: {{formatDuration (reluSubtract end start 1)}}
+{{/if}}
+{{/if}}`
+
+Handlebars.registerPartial(
+  "reportTemporalData",
+  reportTemporalData
+)
 
 const getWarningsMarkdown = (warnings = []) => warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
 
-Handlebars.registerHelper('reportWarnings', function (warnings = []) {
-  if (warnings.length)
-  return '\n' + warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`).join('\n')
-})
+const reportWarnings =
+`{{#if warnings.length}}
+
+{{#each warnings}}
+- **${ICON_WARNING} {{message}}
+{{/each}}
+{{/if}}`
+
+Handlebars.registerPartial(
+  "reportWarnings",
+  reportWarnings
+)
 
 
 const getErrorMarkdown = task => {
@@ -167,15 +181,44 @@ const getErrorMarkdown = task => {
   return `- **${label}**: ${message}`
 }
 
-Handlebars.registerHelper('reportError', function (task) {
-  let message
-  if (task.status === 'success' || (message = task.result?.message ?? task.result?.code) === undefined) {
-    return
+Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+  switch (operator) {
+    case '===':
+      return (v1 === v2) ? options.fn(this) : options.inverse(this);
+    case '!==':
+      return (v1 !== v2) ? options.fn(this) : options.inverse(this);
+    case '<':
+      return (v1 < v2) ? options.fn(this) : options.inverse(this);
+    case '<=':
+      return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+    case '>':
+      return (v1 > v2) ? options.fn(this) : options.inverse(this);
+    case '>=':
+      return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+    case '&&':
+      return (v1 && v2) ? options.fn(this) : options.inverse(this);
+    case '||':
+      return (v1 || v2) ? options.fn(this) : options.inverse(this);
+    default:
+      return options.inverse(this);
   }
+});
 
-  const label = task.status === 'skipped' ? 'Reason' : 'Error'
-  return `\n- **${label}**: ${message}`
-})
+const reportError =
+`{{#ifCond task.status '!==' 'success'}}
+{{#if task.result.message}}
+
+- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.message}}
+{{else if task.result.code}}
+
+- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.code}}
+{{/if}}
+{{/ifCond}}`
+
+Handlebars.registerPartial(
+  "reportError",
+  reportError
+)
 
 const MARKDOWN_BY_TYPE = {
   pool(task, { formatDate }) {
@@ -215,46 +258,43 @@ const MARKDOWN_BY_TYPE = {
 
 const getMarkdown = (task, props) => MARKDOWN_BY_TYPE[task.data?.type]?.(task, props)
 
-const BODY_TITLE_BY_TYPE = {
-  pool({ task }) {
-    const { id, pool = {}, poolMaster = {} } = task.data
-    const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
+Handlebars.registerHelper('getIcon', function (status) {
+  return STATUS_ICON[status]
 
-    return {
-      body: [
-        pool.uuid !== undefined ? `- **UUID**: ${pool.uuid}` : `- **ID**: ${id}`,
-      ],
-      title: `[pool] ${name}`,
-    }
-  },
-  xo({ jobName }) {
-    return {
-      body: [],
-      title: `[XO] ${jobName}`,
-    }
-  },
-  remote({ task }) {
-    return {
-      body: [`- **ID**: ${task.data.id}`],
-      title: `[remote] ${task.additionnalData.name}`,
-    }
-  },
-}
-
-Handlebars.registerHelper('reportTask', function (task, isSubTask, jobName='') {
-  const {title, body} = BODY_TITLE_BY_TYPE[task.data?.type]?.({task, jobName})
-  if (isSubTask) {
-    const icon = STATUS_ICON[task.status]
-    return [`- **${title}** ${icon}`, ...body].join('\n')
-  }
-  else {
-    return [`### ${title}`, ...body].join('\n')
-  }
 })
 
-Handlebars.registerHelper('getIcon', function (task) {
-  return STATUS_ICON[task.status]
-})
+const taskTitle =
+`{{#ifCond task.data.type '===' 'xo'}}
+[XO] {{jobName}}
+{{~/ifCond}}
+{{#ifCond task.data.type '===' 'remote'}}
+[remote] {{task.additionnalData.name}}
+{{~/ifCond}}
+{{#ifCond task.data.type '===' 'pool'}}
+[pool] {{#if task.data.pool.name_label ~}} {{task.data.pool.name_label}} {{~else if task.data?.poolMaster?.name_label ~}} {{task.data.poolMaster.name_label}} {{~else~}} ${UNKNOWN_ITEM} {{~/if}}
+{{~/ifCond}}`
+
+Handlebars.registerPartial(
+  "taskTitle",
+  taskTitle
+)
+
+const taskBody =
+`{{#ifCond task.data.type '===' 'remote'}}
+- **ID**: {{task.data.id}}
+{{/ifCond}}
+{{#ifCond task.data.type '===' 'pool'}}
+{{#if task.data.pool.uuid}}
+- **UUID**: {{task.data.pool.uuid}}
+{{else}}
+- **ID**: {{task.data.id}}
+{{/if}}
+{{/ifCond}}`
+
+Handlebars.registerPartial(
+  "taskBody",
+  taskBody
+)
 
 const toMarkdown = parts => {
   const lines = []
@@ -291,10 +331,14 @@ const getTaskAdditionnalData = async (task, props) => {
 // ===================================================================
 
 const metadataSubTaskPartial =
-`{{reportTask . true}}
-{{reportTemporalData end start formatDate}}
-{{~reportError .}}
-{{~reportWarnings warnings}}`
+`{{#*inline "indentedBlock"}}
+{{>taskBody task=.}}
+{{>reportTemporalData}}
+{{~>reportError task=.}}
+{{~>reportWarnings}}
+{{/inline}}
+- **{{>taskTitle task=. jobName=''}}** {{getIcon status}}
+  {{> indentedBlock}}`
 
 Handlebars.registerPartial(
   "metadataSubtask",
@@ -307,10 +351,12 @@ const metadataTemplate =
 - **Job ID**: {{log.jobId}}
 - **Job name**: {{jobName}}
 - **Run ID**: {{log.id}}
-{{reportTemporalData log.end log.start formatDate}}
-{{reportSuccesses log.tasks tasksByStatus}}
-{{~reportError log}}
-{{~reportWarnings log.warnings}}
+{{>reportTemporalData end=log.end start=log.start}}
+{{#if log.tasks.length}}
+- **Successes**: {{#if tasksByStatus.success.length ~}} {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
+{{/if}}
+{{~>reportError task=log}}
+{{~>reportWarnings warnings=log.warnings}}
 {{#each tasksByStatus}}
 ---
 
@@ -318,22 +364,20 @@ const metadataTemplate =
 {{#each this}}
 
 
-{{reportTask this false ../../log.jobName}}
-{{reportTemporalData this.end this.start ../../formatDate}}
-{{~reportError this}}
-{{~reportWarnings this.warnings}}
+### {{>taskTitle task=. jobName=../../log.jobName}}
+{{>taskBody task=.}}
+{{>reportTemporalData formatDate=../../formatDate}}
+{{~>reportError task=.}}
+{{~>reportWarnings warnings=this.warnings}}
 {{#each this.tasks}}
   {{>metadataSubtask formatDate=../../../formatDate}}
 {{/each}}
 {{/each}}
 {{/each}}
-
 ---
 
 *{{pkg.name}} v{{pkg.version}}*`
 
-// TODO : maybe reportWarnings should be a partial
-// TODO : handle subtask indentation
 // TODO : do a partial to mutualize templates
 // TODO : template for mail subject?
 
@@ -341,19 +385,19 @@ const metadataTemplate =
 
 const vmSubTaskPartial =
 `{{#if subTaskLog}}
-- {{title}} ({{id}}) {{getIcon subTaskLog}}
-  {{reportTemporalData subTaskLog.end subTaskLog.start formatDate}}
-  {{~reportWarnings subTaskLog.warnings}}
-  {{~reportError subTaskLog}}
+- **{{title}}** ({{id}}) {{getIcon subTaskLog.status}}
+  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
+  {{~>reportWarnings warnings=subTaskLog.warnings}}
+  {{~>reportError task=subTaskLog}}
 {{else}}
-  - **{{operationLog.message}}** {{getIcon operationLog}}
-    {{reportTemporalData operationLog.end operationLog.start formatDate}}
+  - **{{operationLog.message}}** {{getIcon operationLog.status}}
+    {{>reportTemporalData end=operationLog.end start=operationLog.start}}
     {{#if operationLog.result.size}}
     - **Size**: {{formatSize operationLog.result.size}}
     - **Speed**: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}
     {{/if}}
-    {{~reportWarnings operationLog.warnings}}
-    {{~reportError operationLog}}
+    {{~>reportWarnings warnings=operationLog.warnings}}
+    {{~>reportError task=operationLog}}
 {{/if}}
 `
 
@@ -364,8 +408,8 @@ Handlebars.registerPartial(
 
 const vmSubTextPartial =
 `{{#each snapshotSubtasks}}
-- **Snapshot** {{getIcon subTaskLog}}
-  {{reportTemporalData subTaskLog.end subTaskLog.start ../formatDate}}
+- **Snapshot** {{getIcon subTaskLog.status}}
+  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
 {{/each}}
 {{#if srsSubTasks}}
 - **SRs**
@@ -397,8 +441,8 @@ const vmTextPartial =
 
 - **UUID**: {{taskLog.data.id}}
 {{/if}}
-{{reportTemporalData taskLog.end taskLog.start formatDate}}
-{{~reportWarnings taskLog.warnings}}
+{{>reportTemporalData end=taskLog.end start=taskLog.start}}
+{{~>reportWarnings warnings=taskLog.warnings}}
 `
 
 Handlebars.registerPartial(
@@ -466,8 +510,8 @@ const vmFailurePartial =
 
 - **UUID**: {{uuid}}
 - **Type**: {{taskLog.data.type}}
-{{reportTemporalData taskLog.end taskLog.start formatDate}}
-{{~reportWarnings taskLog.warnings}}
+{{>reportTemporalData end=taskLog.end start=taskLog.start}}
+{{~>reportWarnings warnings=taskLog.warnings}}
 - **Error**: {{taskLog.result.message}}
 {{else}}
 {{>vmTextPartial formatDate=../formatDate}}
@@ -491,7 +535,7 @@ const vmTemplate =
 - **Job ID**: {{log.jobId}}
 - **Run ID**: {{log.id}}
 - **mode**: {{log.data.mode}}
-{{reportTemporalData log.end log.start formatDate}}
+{{>reportTemporalData end=log.end start=log.start}}
 {{#if log.tasks}}
 - **Successes**: {{tasksByStatus.success.count}} / {{tasksByStatus.vmTasks.count}}
 {{#if globalTransferSize}}
@@ -500,7 +544,7 @@ const vmTemplate =
 {{#if globalMergeSize}}
 - **Merge size**: {{formatSize globalMergeSize}}
 {{/if}}
-{{~reportWarnings log.warnings}}
+{{~>reportWarnings warnings=log.warnings}}
 
 {{#if tasksByStatus.failure.tasks}}
 {{>vmFailurePartial}}
@@ -515,8 +559,8 @@ const vmTemplate =
 {{>vmSuccessPartial}}
 {{/if}}
 {{else}}
-{{~reportError log}}
-{{~reportWarnings log.warnings}}
+{{~>reportError task=log}}
+{{~>reportWarnings warnings=log.warnings}}
 {{/if}}
 ---
 
@@ -525,6 +569,7 @@ const vmTemplate =
 // TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
 // TODO : do as titleByStatus for this template
 // TODO : better getIcon
+// TODO : remove pluralizeStatus
 
 // ===================================================================
 
@@ -593,7 +638,7 @@ class BackupReportsXoPlugin {
     ])
 
     if (job.type === 'backup' || job.type === 'mirrorBackup') {
-      return this._ngVmHandler(log, job, schedule, force)
+      return this._vmHandler(log, job, schedule, force)
     } else if (job.type === 'metadataBackup') {
       return this._metadataHandler(log, job, schedule, force)
     }
@@ -696,7 +741,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _ngVmHandler(log, { name: jobName, settings }, schedule, force) {
+  async _vmHandler(log, { name: jobName, settings }, schedule, force) {
     const xo = this._xo
 
     const mailReceivers = get(() => settings[''].reportRecipients)
@@ -1000,8 +1045,8 @@ class BackupReportsXoPlugin {
   }
 
   async _sendReport({ mailReceivers, markdown, subject, success }) {
-    // console.log("==========================")
-    // console.log(markdown)
+     console.log("==========================")
+     console.log(markdown)
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
