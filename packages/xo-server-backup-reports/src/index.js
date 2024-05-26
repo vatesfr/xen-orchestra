@@ -1,4 +1,4 @@
-import Handlebars from "handlebars"
+import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
@@ -51,7 +51,6 @@ export const testSchema = {
 
 // ===================================================================
 
-const INDENT = '  '
 const UNKNOWN_ITEM = 'Unknown'
 
 const ICON_FAILURE = '🚨'
@@ -102,7 +101,6 @@ const UNHEALTHY_VDI_CHAIN_MESSAGE =
 
 // ===================================================================
 
-const STATUS = ['failure', 'interrupted', 'skipped', 'success']
 const TITLE_BY_STATUS = {
   failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
   interrupted: n => `## ${n} Interrupted`,
@@ -110,7 +108,8 @@ const TITLE_BY_STATUS = {
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
 
-Handlebars.registerHelper('titleByStatus', function (status) { // To change maybe
+Handlebars.registerHelper('titleByStatus', function (status) {
+  // To change maybe
   if (this && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](this.length)
   }
@@ -120,19 +119,8 @@ Handlebars.registerHelper('pluralizeStatus', function (status, pluralMark, numbe
   return number > 1 ? status + pluralMark : status
 })
 
-const getTemporalDataMarkdown = (end, start, formatDate) => {
-  const markdown = [`- **Start time**: ${formatDate(start)}`]
-  if (end !== undefined) {
-    markdown.push(`- **End time**: ${formatDate(end)}`)
-    const duration = end - start
-    if (duration >= 1) {
-      markdown.push(`- **Duration**: ${formatDuration(duration)}`)
-    }
-  }
-  return markdown
-}
-
-Handlebars.registerHelper('executeFunction', function (fct, arg) { // TODO : maybe replace this by registering formatDate as a helper
+Handlebars.registerHelper('executeFunction', function (fct, arg) {
+  // TODO : maybe replace this by registering formatDate as a helper
   return fct(arg)
 })
 
@@ -141,8 +129,7 @@ Handlebars.registerHelper('reluSubtract', function (a, b, threshold) {
   return res >= threshold ? res : 0
 })
 
-const reportTemporalData =
-`- **Start time**: {{executeFunction formatDate start}}
+const reportTemporalData = `- **Start time**: {{executeFunction formatDate start}}
 {{#if end}}
 - **End time**: {{executeFunction formatDate end}}
 {{#if (reluSubtract end start 1)}}
@@ -150,62 +137,41 @@ const reportTemporalData =
 {{/if}}
 {{/if}}`
 
-Handlebars.registerPartial(
-  "reportTemporalData",
-  reportTemporalData
-)
+Handlebars.registerPartial('reportTemporalData', reportTemporalData)
 
-const getWarningsMarkdown = (warnings = []) => warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
-
-const reportWarnings =
-`{{#if warnings.length}}
+const reportWarnings = `{{#if warnings.length}}
 
 {{#each warnings}}
 - **${ICON_WARNING} {{message}}
 {{/each}}
 {{/if}}`
 
-Handlebars.registerPartial(
-  "reportWarnings",
-  reportWarnings
-)
-
-
-const getErrorMarkdown = task => {
-  let message
-  if (task.status === 'success' || (message = task.result?.message ?? task.result?.code) === undefined) {
-    return
-  }
-
-  const label = task.status === 'skipped' ? 'Reason' : 'Error'
-  return `- **${label}**: ${message}`
-}
+Handlebars.registerPartial('reportWarnings', reportWarnings)
 
 Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
   switch (operator) {
     case '===':
-      return (v1 === v2) ? options.fn(this) : options.inverse(this);
+      return v1 === v2 ? options.fn(this) : options.inverse(this)
     case '!==':
-      return (v1 !== v2) ? options.fn(this) : options.inverse(this);
+      return v1 !== v2 ? options.fn(this) : options.inverse(this)
     case '<':
-      return (v1 < v2) ? options.fn(this) : options.inverse(this);
+      return v1 < v2 ? options.fn(this) : options.inverse(this)
     case '<=':
-      return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+      return v1 <= v2 ? options.fn(this) : options.inverse(this)
     case '>':
-      return (v1 > v2) ? options.fn(this) : options.inverse(this);
+      return v1 > v2 ? options.fn(this) : options.inverse(this)
     case '>=':
-      return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+      return v1 >= v2 ? options.fn(this) : options.inverse(this)
     case '&&':
-      return (v1 && v2) ? options.fn(this) : options.inverse(this);
+      return v1 && v2 ? options.fn(this) : options.inverse(this)
     case '||':
-      return (v1 || v2) ? options.fn(this) : options.inverse(this);
+      return v1 || v2 ? options.fn(this) : options.inverse(this)
     default:
-      return options.inverse(this);
+      return options.inverse(this)
   }
-});
+})
 
-const reportError =
-`{{#ifCond task.status '!==' 'success'}}
+const reportError = `{{#ifCond task.status '!==' 'success'}}
 {{#if task.result.message}}
 
 - **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.message}}
@@ -215,56 +181,13 @@ const reportError =
 {{/if}}
 {{/ifCond}}`
 
-Handlebars.registerPartial(
-  "reportError",
-  reportError
-)
-
-const MARKDOWN_BY_TYPE = {
-  pool(task, { formatDate }) {
-    const { id, pool = {}, poolMaster = {} } = task.data
-    const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
-
-    return {
-      body: [
-        pool.uuid !== undefined ? `- **UUID**: ${pool.uuid}` : `- **ID**: ${id}`,
-        ...getTemporalDataMarkdown(task.end, task.start, formatDate),
-        getErrorMarkdown(task),
-      ],
-      title: `[pool] ${name}`,
-    }
-  },
-  xo(task, { formatDate, jobName }) {
-    return {
-      body: [...getTemporalDataMarkdown(task.end, task.start, formatDate), getErrorMarkdown(task)],
-      title: `[XO] ${jobName}`,
-    }
-  },
-  async remote(task, { formatDate, xo }) {
-    const id = task.data.id
-    const name = await xo.getRemote(id).then(
-      ({ name }) => name,
-      error => {
-        logger.warn(error)
-        return UNKNOWN_ITEM
-      }
-    )
-    return {
-      body: [`- **ID**: ${id}`, ...getTemporalDataMarkdown(task.end, task.start, formatDate), getErrorMarkdown(task)],
-      title: `[remote] ${name}`,
-    }
-  },
-}
-
-const getMarkdown = (task, props) => MARKDOWN_BY_TYPE[task.data?.type]?.(task, props)
+Handlebars.registerPartial('reportError', reportError)
 
 Handlebars.registerHelper('getIcon', function (status) {
   return STATUS_ICON[status]
-
 })
 
-const taskTitle =
-`{{#ifCond task.data.type '===' 'xo'}}
+const taskTitle = `{{#ifCond task.data.type '===' 'xo'}}
 [XO] {{jobName}}
 {{~/ifCond}}
 {{#ifCond task.data.type '===' 'remote'}}
@@ -274,13 +197,9 @@ const taskTitle =
 [pool] {{#if task.data.pool.name_label ~}} {{task.data.pool.name_label}} {{~else if task.data?.poolMaster?.name_label ~}} {{task.data.poolMaster.name_label}} {{~else~}} ${UNKNOWN_ITEM} {{~/if}}
 {{~/ifCond}}`
 
-Handlebars.registerPartial(
-  "taskTitle",
-  taskTitle
-)
+Handlebars.registerPartial('taskTitle', taskTitle)
 
-const taskBody =
-`{{#ifCond task.data.type '===' 'remote'}}
+const taskBody = `{{#ifCond task.data.type '===' 'remote'}}
 - **ID**: {{task.data.id}}
 {{/ifCond}}
 {{#ifCond task.data.type '===' 'pool'}}
@@ -291,28 +210,7 @@ const taskBody =
 {{/if}}
 {{/ifCond}}`
 
-Handlebars.registerPartial(
-  "taskBody",
-  taskBody
-)
-
-const toMarkdown = parts => {
-  const lines = []
-  let indentLevel = -1
-
-  const helper = part => {
-    if (typeof part === 'string') {
-      lines.push(`${INDENT.repeat(indentLevel)}${part}`)
-    } else if (Array.isArray(part)) {
-      ++indentLevel
-      part.forEach(helper)
-      --indentLevel
-    }
-  }
-  helper(parts)
-
-  return lines.join('\n')
-}
+Handlebars.registerPartial('taskBody', taskBody)
 
 const getTaskAdditionnalData = async (task, props) => {
   if (task.data?.type === 'remote') {
@@ -323,15 +221,14 @@ const getTaskAdditionnalData = async (task, props) => {
         return UNKNOWN_ITEM
       }
     )
-    return {name}
+    return { name }
   }
   return {}
 }
 
 // ===================================================================
 
-const metadataSubTaskPartial =
-`{{#*inline "indentedBlock"}}
+const metadataSubTaskPartial = `{{#*inline "indentedBlock"}}
 {{>taskBody task=.}}
 {{>reportTemporalData}}
 {{~>reportError task=.}}
@@ -340,13 +237,9 @@ const metadataSubTaskPartial =
 - **{{>taskTitle task=. jobName=''}}** {{getIcon status}}
   {{> indentedBlock}}`
 
-Handlebars.registerPartial(
-  "metadataSubtask",
-  metadataSubTaskPartial
-)
+Handlebars.registerPartial('metadataSubtask', metadataSubTaskPartial)
 
-const metadataTemplate =
-`##  Global status: {{log.status}}
+const metadataTemplate = `##  Global status: {{log.status}}
 
 - **Job ID**: {{log.jobId}}
 - **Job name**: {{jobName}}
@@ -378,13 +271,11 @@ const metadataTemplate =
 
 *{{pkg.name}} v{{pkg.version}}*`
 
-// TODO : do a partial to mutualize templates
-// TODO : template for mail subject?
+const compiledMetadataTemplate = Handlebars.compile(metadataTemplate)
 
 // ===================================================================
 
-const vmSubTaskPartial =
-`{{#if subTaskLog}}
+const vmSubTaskPartial = `{{#if subTaskLog}}
 - **{{title}}** ({{id}}) {{getIcon subTaskLog.status}}
   {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
   {{~>reportWarnings warnings=subTaskLog.warnings}}
@@ -401,13 +292,9 @@ const vmSubTaskPartial =
 {{/if}}
 `
 
-Handlebars.registerPartial(
-  "vmSubTaskPartial",
-  vmSubTaskPartial
-)
+Handlebars.registerPartial('vmSubTaskPartial', vmSubTaskPartial)
 
-const vmSubTextPartial =
-`{{#each snapshotSubtasks}}
+const vmSubTextPartial = `{{#each snapshotSubtasks}}
 - **Snapshot** {{getIcon subTaskLog.status}}
   {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
 {{/each}}
@@ -425,13 +312,9 @@ const vmSubTextPartial =
 {{/if}}
 `
 
-Handlebars.registerPartial(
-  "vmSubTextPartial",
-  vmSubTextPartial
-)
+Handlebars.registerPartial('vmSubTextPartial', vmSubTextPartial)
 
-const vmTextPartial =
-`
+const vmTextPartial = `
 {{#if vm}}
 ### {{vm.name_label}}
 
@@ -445,13 +328,9 @@ const vmTextPartial =
 {{~>reportWarnings warnings=taskLog.warnings}}
 `
 
-Handlebars.registerPartial(
-  "vmTextPartial",
-  vmTextPartial
-)
+Handlebars.registerPartial('vmTextPartial', vmTextPartial)
 
-const vmSuccessPartial =
-`---
+const vmSuccessPartial = `---
 
 ## {{tasksByStatus.success.count}} {{pluralizeStatus 'Success' 'es' tasksByStatus.success.count}}
 
@@ -461,13 +340,9 @@ const vmSuccessPartial =
 {{/each}}
 `
 
-Handlebars.registerPartial(
-  "vmSuccessPartial",
-  vmSuccessPartial
-)
+Handlebars.registerPartial('vmSuccessPartial', vmSuccessPartial)
 
-const vmInterruptedPartial =
-`---
+const vmInterruptedPartial = `---
 
 ## {{tasksByStatus.interrupted.count}} Interrupted
 
@@ -477,13 +352,9 @@ const vmInterruptedPartial =
 {{/each}}
 `
 
-Handlebars.registerPartial(
-  "vmInterruptedPartial",
-  vmInterruptedPartial
-)
+Handlebars.registerPartial('vmInterruptedPartial', vmInterruptedPartial)
 
-const vmSkippedPartial =
-`---
+const vmSkippedPartial = `---
 
 ## {{tasksByStatus.skipped.count}} Skipped
 
@@ -493,13 +364,9 @@ const vmSkippedPartial =
 {{/each}}
 `
 
-Handlebars.registerPartial(
-  "vmSkippedPartial",
-  vmSkippedPartial
-)
+Handlebars.registerPartial('vmSkippedPartial', vmSkippedPartial)
 
-const vmFailurePartial =
-`---
+const vmFailurePartial = `---
 
 ## {{tasksByStatus.failure.count}} {{pluralizeStatus 'Failure' 's' tasksByStatus.failure.count}}
 
@@ -524,13 +391,9 @@ const vmFailurePartial =
 {{/each}}
 `
 
-Handlebars.registerPartial(
-  "vmFailurePartial",
-  vmFailurePartial
-)
+Handlebars.registerPartial('vmFailurePartial', vmFailurePartial)
 
-const vmTemplate =
-`##  Global status: {{log.status}}
+const vmTemplate = `##  Global status: {{log.status}}
 
 - **Job ID**: {{log.jobId}}
 - **Run ID**: {{log.id}}
@@ -566,9 +429,12 @@ const vmTemplate =
 
 *{{pkg.name}} v{{pkg.version}}*`
 
+const compiledVmTemplate = Handlebars.compile(vmTemplate)
+
+// TODO : do a partial to mutualize templates
 // TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
 // TODO : do as titleByStatus for this template
-// TODO : better getIcon
+// TODO : getIcon could be a
 // TODO : remove pluralizeStatus
 
 // ===================================================================
@@ -652,91 +518,31 @@ class BackupReportsXoPlugin {
     const formatDate = createDateFormatter(schedule?.timezone)
 
     const tasksByStatus = groupBy(log.tasks, 'status')
-    const n = log.tasks?.length ?? 0
-    const nSuccesses = tasksByStatus.success?.length ?? 0
 
     if (!force && log.data.reportWhen === 'failure') {
       delete tasksByStatus.success
     }
 
-    // header
-    const markdown = [
-      `##  Global status: ${log.status}`,
-      '',
-      `- **Job ID**: ${log.jobId}`,
-      `- **Job name**: ${jobName}`,
-      `- **Run ID**: ${log.id}`,
-      ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-      n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
-      ...getWarningsMarkdown(log.warnings),
-      getErrorMarkdown(log),
-    ]
-
-    // body
-    for (const status of STATUS) {
-      const tasks = tasksByStatus[status]
-      if (tasks === undefined) {
-        continue
-      }
-
-      // tasks header
-      markdown.push('---', '', TITLE_BY_STATUS[status](tasks.length))
-
-      // tasks body
-      for (const task of tasks) {
-        const taskMarkdown = await getMarkdown(task, {
-          formatDate,
-          jobName: log.jobName,
-          xo,
-        })
-        if (taskMarkdown === undefined) {
-          continue
-        }
-
-        const { title, body } = taskMarkdown
-        const subMarkdown = [...body, ...getWarningsMarkdown(task.warnings)]
-
-        for (const subTask of task.tasks ?? []) {
-          const taskMarkdown = await getMarkdown(subTask, { formatDate, xo })
-          if (taskMarkdown === undefined) {
-            continue
-          }
-
-          const icon = STATUS_ICON[subTask.status]
-          const { title, body } = taskMarkdown
-          subMarkdown.push([`- **${title}** ${icon}`, [...body, ...getWarningsMarkdown(subTask.warnings)]])
-        }
-        markdown.push('', '', `### ${title}`, ...subMarkdown)
-      }
-    }
-
-    // footer
-
     for (const taskBatch of Object.values(tasksByStatus)) {
       for (const task of taskBatch) {
-        task.additionnalData = await getTaskAdditionnalData(task, {xo})
+        task.additionnalData = await getTaskAdditionnalData(task, { xo })
         for (const subTask of task.tasks) {
-          subTask.additionnalData = await getTaskAdditionnalData(subTask, {xo})
+          subTask.additionnalData = await getTaskAdditionnalData(subTask, { xo })
         }
       }
     }
 
-    console.log("---------------------------")
-    const template = Handlebars.compile(metadataTemplate)
-    console.log(template({
+    const markdown = compiledMetadataTemplate({
       jobName,
       log,
       pkg,
       tasksByStatus,
-      formatDate
-    }))
-
-
-    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
+      formatDate,
+    })
 
     return this._sendReport({
       subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${log.jobName} ${STATUS_ICON[log.status]}`,
-      markdown: toMarkdown(markdown),
+      markdown,
       success: log.status === 'success',
     })
   }
@@ -745,36 +551,10 @@ class BackupReportsXoPlugin {
     const xo = this._xo
 
     const mailReceivers = get(() => settings[''].reportRecipients)
-    const { reportWhen, mode } = log.data || {}
+    const { reportWhen } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
 
-    if (log.tasks === undefined) {
-      const markdown = [
-        `##  Global status: ${log.status}`,
-        '',
-        `- **Job ID**: ${log.jobId}`,
-        `- **Run ID**: ${log.id}`,
-        `- **mode**: ${mode}`,
-        ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-        getErrorMarkdown(log),
-        ...getWarningsMarkdown(log.warnings),
-        '---',
-        '',
-        `*${pkg.name} v${pkg.version}*`,
-      ]
-      return this._sendReport({
-        subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
-        mailReceivers,
-        markdown: toMarkdown(markdown),
-        success: false,
-      })
-    }
-
-    const failedTasksText = []
-    const skippedVmsText = []
-    const successfulVmsText = []
-    const interruptedVmsText = []
     const failedTasks = []
     const skippedVms = []
     const successfulVms = []
@@ -791,33 +571,20 @@ class BackupReportsXoPlugin {
       const { type, id } = taskLog.data ?? {}
       if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
         ++nFailures
-        failedTasksText.push(
-          // It will ensure that it will never be in a nested list
-          ''
-        )
 
         try {
           if (type === 'SR') {
             const { name_label: name, uuid } = xo.getObject(id)
-            failedTasks.push({taskLog, name, uuid})
-            failedTasksText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
+            failedTasks.push({ taskLog, name, uuid })
           } else {
             const { name } = await xo.getRemote(id)
-            failedTasks.push({taskLog, name, uuid: id})
-            failedTasksText.push(`### ${name}`, '', `- **UUID**: ${id}`)
+            failedTasks.push({ taskLog, name, uuid: id })
           }
         } catch (error) {
           logger.warn(error)
-          failedTasks.push({taskLog, name: UNKNOWN_ITEM, uuid: id})
-          failedTasksText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          failedTasks.push({ taskLog, name: UNKNOWN_ITEM, uuid: id })
         }
 
-        failedTasksText.push(
-          `- **Type**: ${type}`,
-          ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
-          ...getWarningsMarkdown(taskLog.warnings),
-          `- **Error**: ${taskLog.result.message}`
-        )
         continue
       }
 
@@ -834,20 +601,8 @@ class BackupReportsXoPlugin {
       try {
         vm = xo.getObject(id)
       } catch (e) {}
-      const text = [
-        // It will ensure that it will never be in a nested list
-        '',
-        `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
-        '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
-        ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
-        ...getWarningsMarkdown(taskLog.warnings),
-      ]
 
       const failedSubTasks = [] // not used ATM
-      const snapshotText = []
-      const srsText = []
-      const remotesText = []
       const snapshotSubtasks = []
       const srsSubTasks = []
       const remotesSubTasks = []
@@ -857,15 +612,10 @@ class BackupReportsXoPlugin {
           continue
         }
 
-        const icon = STATUS_ICON[subTaskLog.status]
         const type = subTaskLog.data?.type
-        const errorMarkdown = getErrorMarkdown(subTaskLog)
 
         if (subTaskLog.message === 'snapshot') {
-          snapshotSubtasks.push({subTaskLog})
-          snapshotText.push(`- **Snapshot** ${icon}`, [
-            ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
-          ])
+          snapshotSubtasks.push({ subTaskLog })
         } else if (type === 'remote') {
           const id = subTaskLog.data.id
           const remote = await xo.getRemote(id).catch(error => {
@@ -874,11 +624,6 @@ class BackupReportsXoPlugin {
           const title = remote !== undefined ? remote.name : `Remote Not found`
 
           remotesSubTasks.push({ subTaskLog, title, id })
-          remotesText.push(`- **${title}** (${id}) ${icon}`, [
-            ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
-            ...getWarningsMarkdown(subTaskLog.warnings),
-            errorMarkdown,
-          ])
 
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
@@ -891,11 +636,6 @@ class BackupReportsXoPlugin {
           } catch (e) {}
           const [srName, srUuid] = sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
           srsSubTasks.push({ subTaskLog, title: srName, id: srUuid })
-          srsText.push(`- **${srName}** (${srUuid}) ${icon}`, [
-            ...getTemporalDataMarkdown(subTaskLog.end, subTaskLog.start, formatDate),
-            ...getWarningsMarkdown(subTaskLog.warnings),
-            errorMarkdown,
-          ])
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
           }
@@ -922,131 +662,72 @@ class BackupReportsXoPlugin {
             return
           }
 
-          const operationText = [
-            `- **${operationLog.message}** ${STATUS_ICON[operationLog.status]}`,
-            [
-              ...getTemporalDataMarkdown(operationLog.end, operationLog.start, formatDate),
-              size > 0 && `- **Size**: ${formatSize(size)}`,
-              size > 0 && `- **Speed**: ${formatSpeed(size, operationLog.end - operationLog.start)}`,
-              ...getWarningsMarkdown(operationLog.warnings),
-              getErrorMarkdown(operationLog),
-            ],
-          ]
           if (type === 'remote') {
             remotesSubTasks.push({ operationLog })
-            remotesText.push(operationText)
           } else if (type === 'SR') {
             srsSubTasks.push({ operationLog })
-            srsText.push(operationText)
           }
         })
       }
 
-      const subText = [
-        ...snapshotText,
-        srsText.length !== 0 && `- **SRs**`,
-        srsText,
-        remotesText.length !== 0 && `- **Remotes**`,
-        remotesText,
-      ]
       if (taskLog.result !== undefined) {
         if (taskLog.status === 'skipped') {
           ++nSkipped
-          skippedVms.push({ taskLog, vm, message: taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR ? UNHEALTHY_VDI_CHAIN_MESSAGE : taskLog.result.message })
-          skippedVmsText.push(
-            ...text,
-            `- **Reason**: ${
+          skippedVms.push({
+            taskLog,
+            vm,
+            message:
               taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR
                 ? UNHEALTHY_VDI_CHAIN_MESSAGE
-                : taskLog.result.message
-            }`
-          )
+                : taskLog.result.message,
+          })
         } else {
           ++nFailures
           failedTasks.push({ taskLog, vm })
-          failedTasksText.push(...text, `- **Error**: ${taskLog.result.message}`)
         }
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
           failedTasks.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
-          failedTasksText.push(...text, ...subText)
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
           interruptedVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
-          interruptedVmsText.push(...text, ...subText)
         } else {
           ++nSuccesses
           successfulVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
-          successfulVmsText.push(...text, ...subText)
         }
       }
     }
 
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
-    const markdown = [
-      `##  Global status: ${log.status}`,
-      '',
-      `- **Job ID**: ${log.jobId}`,
-      `- **Run ID**: ${log.id}`,
-      `- **mode**: ${mode}`,
-      ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-      `- **Successes**: ${nSuccesses} / ${nVmTasks}`,
-      globalTransferSize !== 0 && `- **Transfer size**: ${formatSize(globalTransferSize)}`,
-      globalMergeSize !== 0 && `- **Merge size**: ${formatSize(globalMergeSize)}`,
-      ...getWarningsMarkdown(log.warnings),
-      '',
-    ]
-
-    if (nFailures !== 0) {
-      markdown.push('---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '', ...failedTasksText)
-    }
-
-    if (nSkipped !== 0) {
-      markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
-    }
-
-    if (nInterrupted !== 0) {
-      markdown.push('---', '', `## ${nInterrupted} Interrupted`, '', ...interruptedVmsText)
-    }
-
-    if (nSuccesses !== 0 && (force || reportWhen !== 'failure')) {
-      markdown.push('---', '', `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`, '', ...successfulVmsText)
-    }
-
-    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-
-    console.log("---------------------------")
-    const template = Handlebars.compile(vmTemplate)
-    console.log(template({
+    const markdown = compiledVmTemplate({
       jobName,
       log,
       pkg,
       tasksByStatus: {
-        failure: {tasks: failedTasks, count: nFailures},
-        skipped: {tasks: skippedVms, count: nSkipped},
-        interrupted: {tasks: interruptedVms, count: nInterrupted},
-        success: {tasks: (force || reportWhen !== 'failure') ? successfulVms : [], count: nSuccesses},
-        vmTasks: {count: nVmTasks},
+        failure: { tasks: failedTasks, count: nFailures },
+        skipped: { tasks: skippedVms, count: nSkipped },
+        interrupted: { tasks: interruptedVms, count: nInterrupted },
+        success: { tasks: force || reportWhen !== 'failure' ? successfulVms : [], count: nSuccesses },
+        vmTasks: { count: nVmTasks },
       },
       formatDate,
       globalMergeSize,
       globalTransferSize,
-    }))
-
+    })
 
     return this._sendReport({
       mailReceivers,
-      markdown: toMarkdown(markdown),
+      markdown,
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
       success: log.status === 'success',
     })
   }
 
   async _sendReport({ mailReceivers, markdown, subject, success }) {
-     console.log("==========================")
-     console.log(markdown)
+    // console.log("==========================")
+    // console.log(markdown)
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
