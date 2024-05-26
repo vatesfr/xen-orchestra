@@ -1,10 +1,12 @@
 import Handlebars from 'handlebars'
-import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
+import { metadataTemplate } from './templates/metadata'
+import { vmTemplate } from './templates/vm'
+import './templates/commons'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -51,13 +53,27 @@ export const testSchema = {
 
 // ===================================================================
 
+const compiledMetadataTemplate = Handlebars.compile(metadataTemplate)
+const compiledVmTemplate = Handlebars.compile(vmTemplate)
+
+// TODO : do a partial to mutualize templates
+// TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
+// TODO : do as titleByStatus for vm template
+// TODO : getIcon could probably be a partial
+// TODO : remove pluralizeStatus (or move it to vm template file)
+// TODO : maybe change titleByStatus (or move titleByStatus to metadata template file)
+// TODO : maybe replace executeFunction by registering formatDate as a helper
+// TODO : template for mail object (so we don't need to duplicate STATUS_ICON)
+// TODO : UNKNOWN_ITEM is duplicated
+
+// ===================================================================
+
 const UNKNOWN_ITEM = 'Unknown'
 
 const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
-const ICON_WARNING = '⚠️'
 
 const STATUS_ICON = {
   failure: ICON_FAILURE,
@@ -72,27 +88,6 @@ const createDateFormatter = timezone =>
     ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
-const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
-Handlebars.registerHelper('formatDuration', formatDuration)
-
-const formatSize = bytes =>
-  humanFormat(bytes, {
-    scale: 'binary',
-    unit: 'B',
-  })
-
-Handlebars.registerHelper('formatSize', formatSize)
-
-const formatSpeed = (bytes, milliseconds) =>
-  milliseconds > 0
-    ? humanFormat((bytes * 1e3) / milliseconds, {
-        scale: 'binary',
-        unit: 'B/s',
-      })
-    : 'N/A'
-
-Handlebars.registerHelper('formatSpeed', (bytes, start, end) => formatSpeed(bytes, end - start))
-
 const noop = Function.prototype
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
@@ -100,117 +95,6 @@ const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
 
 // ===================================================================
-
-const TITLE_BY_STATUS = {
-  failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interrupted`,
-  skipped: n => `## ${n} Skipped`,
-  success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
-}
-
-Handlebars.registerHelper('titleByStatus', function (status) {
-  // To change maybe
-  if (this && status in TITLE_BY_STATUS) {
-    return TITLE_BY_STATUS[status](this.length)
-  }
-})
-
-Handlebars.registerHelper('pluralizeStatus', function (status, pluralMark, number) {
-  return number > 1 ? status + pluralMark : status
-})
-
-Handlebars.registerHelper('executeFunction', function (fct, arg) {
-  // TODO : maybe replace this by registering formatDate as a helper
-  return fct(arg)
-})
-
-Handlebars.registerHelper('reluSubtract', function (a, b, threshold) {
-  const res = a - b
-  return res >= threshold ? res : 0
-})
-
-const reportTemporalData = `- **Start time**: {{executeFunction formatDate start}}
-{{#if end}}
-- **End time**: {{executeFunction formatDate end}}
-{{#if (reluSubtract end start 1)}}
-- **Duration**: {{formatDuration (reluSubtract end start 1)}}
-{{/if}}
-{{/if}}`
-
-Handlebars.registerPartial('reportTemporalData', reportTemporalData)
-
-const reportWarnings = `{{#if warnings.length}}
-
-{{#each warnings}}
-- **${ICON_WARNING} {{message}}
-{{/each}}
-{{/if}}`
-
-Handlebars.registerPartial('reportWarnings', reportWarnings)
-
-Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
-  switch (operator) {
-    case '===':
-      return v1 === v2 ? options.fn(this) : options.inverse(this)
-    case '!==':
-      return v1 !== v2 ? options.fn(this) : options.inverse(this)
-    case '<':
-      return v1 < v2 ? options.fn(this) : options.inverse(this)
-    case '<=':
-      return v1 <= v2 ? options.fn(this) : options.inverse(this)
-    case '>':
-      return v1 > v2 ? options.fn(this) : options.inverse(this)
-    case '>=':
-      return v1 >= v2 ? options.fn(this) : options.inverse(this)
-    case '&&':
-      return v1 && v2 ? options.fn(this) : options.inverse(this)
-    case '||':
-      return v1 || v2 ? options.fn(this) : options.inverse(this)
-    default:
-      return options.inverse(this)
-  }
-})
-
-const reportError = `{{#ifCond task.status '!==' 'success'}}
-{{#if task.result.message}}
-
-- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.message}}
-{{else if task.result.code}}
-
-- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.code}}
-{{/if}}
-{{/ifCond}}`
-
-Handlebars.registerPartial('reportError', reportError)
-
-Handlebars.registerHelper('getIcon', function (status) {
-  return STATUS_ICON[status]
-})
-
-const taskTitle = `{{#ifCond task.data.type '===' 'xo'}}
-[XO] {{jobName}}
-{{~/ifCond}}
-{{#ifCond task.data.type '===' 'remote'}}
-[remote] {{task.additionnalData.name}}
-{{~/ifCond}}
-{{#ifCond task.data.type '===' 'pool'}}
-[pool] {{#if task.data.pool.name_label ~}} {{task.data.pool.name_label}} {{~else if task.data?.poolMaster?.name_label ~}} {{task.data.poolMaster.name_label}} {{~else~}} ${UNKNOWN_ITEM} {{~/if}}
-{{~/ifCond}}`
-
-Handlebars.registerPartial('taskTitle', taskTitle)
-
-const taskBody = `{{#ifCond task.data.type '===' 'remote'}}
-- **ID**: {{task.data.id}}
-{{/ifCond}}
-{{#ifCond task.data.type '===' 'pool'}}
-{{#if task.data.pool.uuid}}
-- **UUID**: {{task.data.pool.uuid}}
-{{else}}
-- **ID**: {{task.data.id}}
-{{/if}}
-{{/ifCond}}`
-
-Handlebars.registerPartial('taskBody', taskBody)
 
 const getTaskAdditionnalData = async (task, props) => {
   if (task.data?.type === 'remote') {
@@ -225,218 +109,6 @@ const getTaskAdditionnalData = async (task, props) => {
   }
   return {}
 }
-
-// ===================================================================
-
-const metadataSubTaskPartial = `{{#*inline "indentedBlock"}}
-{{>taskBody task=.}}
-{{>reportTemporalData}}
-{{~>reportError task=.}}
-{{~>reportWarnings}}
-{{/inline}}
-- **{{>taskTitle task=. jobName=''}}** {{getIcon status}}
-  {{> indentedBlock}}`
-
-Handlebars.registerPartial('metadataSubtask', metadataSubTaskPartial)
-
-const metadataTemplate = `##  Global status: {{log.status}}
-
-- **Job ID**: {{log.jobId}}
-- **Job name**: {{jobName}}
-- **Run ID**: {{log.id}}
-{{>reportTemporalData end=log.end start=log.start}}
-{{#if log.tasks.length}}
-- **Successes**: {{#if tasksByStatus.success.length ~}} {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
-{{/if}}
-{{~>reportError task=log}}
-{{~>reportWarnings warnings=log.warnings}}
-{{#each tasksByStatus}}
----
-
-{{titleByStatus @key}}
-{{#each this}}
-
-
-### {{>taskTitle task=. jobName=../../log.jobName}}
-{{>taskBody task=.}}
-{{>reportTemporalData formatDate=../../formatDate}}
-{{~>reportError task=.}}
-{{~>reportWarnings warnings=this.warnings}}
-{{#each this.tasks}}
-  {{>metadataSubtask formatDate=../../../formatDate}}
-{{/each}}
-{{/each}}
-{{/each}}
----
-
-*{{pkg.name}} v{{pkg.version}}*`
-
-const compiledMetadataTemplate = Handlebars.compile(metadataTemplate)
-
-// ===================================================================
-
-const vmSubTaskPartial = `{{#if subTaskLog}}
-- **{{title}}** ({{id}}) {{getIcon subTaskLog.status}}
-  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
-  {{~>reportWarnings warnings=subTaskLog.warnings}}
-  {{~>reportError task=subTaskLog}}
-{{else}}
-  - **{{operationLog.message}}** {{getIcon operationLog.status}}
-    {{>reportTemporalData end=operationLog.end start=operationLog.start}}
-    {{#if operationLog.result.size}}
-    - **Size**: {{formatSize operationLog.result.size}}
-    - **Speed**: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}
-    {{/if}}
-    {{~>reportWarnings warnings=operationLog.warnings}}
-    {{~>reportError task=operationLog}}
-{{/if}}
-`
-
-Handlebars.registerPartial('vmSubTaskPartial', vmSubTaskPartial)
-
-const vmSubTextPartial = `{{#each snapshotSubtasks}}
-- **Snapshot** {{getIcon subTaskLog.status}}
-  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
-{{/each}}
-{{#if srsSubTasks}}
-- **SRs**
-{{#each srsSubTasks}}
-  {{>vmSubTaskPartial formatDate=../formatDate}}
-{{/each}}
-{{/if}}
-{{#if remotesSubTasks}}
-- **Remotes**
-{{#each remotesSubTasks}}
-  {{>vmSubTaskPartial formatDate=../formatDate}}
-{{/each}}
-{{/if}}
-`
-
-Handlebars.registerPartial('vmSubTextPartial', vmSubTextPartial)
-
-const vmTextPartial = `
-{{#if vm}}
-### {{vm.name_label}}
-
-- **UUID**: {{vm.uuid}}
-{{else}}
-### VM not found
-
-- **UUID**: {{taskLog.data.id}}
-{{/if}}
-{{>reportTemporalData end=taskLog.end start=taskLog.start}}
-{{~>reportWarnings warnings=taskLog.warnings}}
-`
-
-Handlebars.registerPartial('vmTextPartial', vmTextPartial)
-
-const vmSuccessPartial = `---
-
-## {{tasksByStatus.success.count}} {{pluralizeStatus 'Success' 'es' tasksByStatus.success.count}}
-
-{{#each tasksByStatus.success.tasks}}
-{{>vmTextPartial formatDate=../formatDate}}
-{{>vmSubTextPartial formatDate=../formatDate}}
-{{/each}}
-`
-
-Handlebars.registerPartial('vmSuccessPartial', vmSuccessPartial)
-
-const vmInterruptedPartial = `---
-
-## {{tasksByStatus.interrupted.count}} Interrupted
-
-{{#each tasksByStatus.interrupted.tasks}}
-{{>vmTextPartial formatDate=../formatDate}}
-{{>vmSubTextPartial formatDate=../formatDate}}
-{{/each}}
-`
-
-Handlebars.registerPartial('vmInterruptedPartial', vmInterruptedPartial)
-
-const vmSkippedPartial = `---
-
-## {{tasksByStatus.skipped.count}} Skipped
-
-{{#each tasksByStatus.skipped.tasks}}
-{{>vmTextPartial formatDate=../formatDate}}
-- **Reason**: {{message}}
-{{/each}}
-`
-
-Handlebars.registerPartial('vmSkippedPartial', vmSkippedPartial)
-
-const vmFailurePartial = `---
-
-## {{tasksByStatus.failure.count}} {{pluralizeStatus 'Failure' 's' tasksByStatus.failure.count}}
-
-{{#each tasksByStatus.failure.tasks}}
-{{#if uuid}}
-
-### {{name}}
-
-- **UUID**: {{uuid}}
-- **Type**: {{taskLog.data.type}}
-{{>reportTemporalData end=taskLog.end start=taskLog.start}}
-{{~>reportWarnings warnings=taskLog.warnings}}
-- **Error**: {{taskLog.result.message}}
-{{else}}
-{{>vmTextPartial formatDate=../formatDate}}
-{{#if taskLog.result}}
-- **Error**: {{taskLog.result.message}}
-{{else}}
-{{>vmSubTextPartial formatDate=../formatDate}}
-{{/if}}
-{{/if}}
-{{/each}}
-`
-
-Handlebars.registerPartial('vmFailurePartial', vmFailurePartial)
-
-const vmTemplate = `##  Global status: {{log.status}}
-
-- **Job ID**: {{log.jobId}}
-- **Run ID**: {{log.id}}
-- **mode**: {{log.data.mode}}
-{{>reportTemporalData end=log.end start=log.start}}
-{{#if log.tasks}}
-- **Successes**: {{tasksByStatus.success.count}} / {{tasksByStatus.vmTasks.count}}
-{{#if globalTransferSize}}
-- **Transfer size**: {{formatSize globalTransferSize}}
-{{/if}}
-{{#if globalMergeSize}}
-- **Merge size**: {{formatSize globalMergeSize}}
-{{/if}}
-{{~>reportWarnings warnings=log.warnings}}
-
-{{#if tasksByStatus.failure.tasks}}
-{{>vmFailurePartial}}
-{{/if}}
-{{#if tasksByStatus.skipped.tasks}}
-{{>vmSkippedPartial}}
-{{/if}}
-{{#if tasksByStatus.interrupted.tasks}}
-{{>vmInterruptedPartial}}
-{{/if}}
-{{#if tasksByStatus.success.tasks}}
-{{>vmSuccessPartial}}
-{{/if}}
-{{else}}
-{{~>reportError task=log}}
-{{~>reportWarnings warnings=log.warnings}}
-{{/if}}
----
-
-*{{pkg.name}} v{{pkg.version}}*`
-
-const compiledVmTemplate = Handlebars.compile(vmTemplate)
-
-// TODO : do a partial to mutualize templates
-// TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
-// TODO : do as titleByStatus for this template
-// TODO : getIcon could be a
-// TODO : remove pluralizeStatus
-
 // ===================================================================
 
 class BackupReportsXoPlugin {
