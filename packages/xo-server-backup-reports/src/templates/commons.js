@@ -47,8 +47,7 @@ Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
   }
 })
 
-const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
-Handlebars.registerHelper('formatDuration', formatDuration)
+Handlebars.registerHelper('formatDuration', milliseconds => moment.duration(milliseconds).humanize())
 
 const formatSize = bytes =>
   humanFormat(bytes, {
@@ -71,18 +70,12 @@ Handlebars.registerHelper('reluSubtract', function (a, b, threshold) {
   return res >= threshold ? res : 0
 })
 
-Handlebars.registerHelper('getIcon', function (status) {
-  return STATUS_ICON[status]
-})
+Handlebars.registerHelper('executeFunction', (fct, arg) => fct(arg))
 
-Handlebars.registerHelper('pluralizeStatus', function (status, pluralMark, number) {
-  return number > 1 ? status + pluralMark : status
-})
+// this could be a partial but it would be less clear
+Handlebars.registerHelper('getIcon', status => STATUS_ICON[status])
 
-Handlebars.registerHelper('executeFunction', function (fct, arg) {
-  return fct(arg)
-})
-
+// this could be a partial but it would be less clear
 Handlebars.registerHelper('titleByStatus', function (status) {
   if (this && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](this.length)

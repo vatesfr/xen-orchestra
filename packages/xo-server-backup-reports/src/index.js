@@ -4,8 +4,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
-import { metadataTemplate } from './templates/metadata'
-import { vmTemplate } from './templates/vm'
+import { metadataSubject, metadataTemplate } from './templates/metadata'
+import { vmSubject, vmTemplate } from './templates/vm'
 import './templates/commons'
 
 const logger = createLogger('xo:xo-server-backup-reports')
@@ -53,34 +53,14 @@ export const testSchema = {
 
 // ===================================================================
 
+const compiledMetadataSubject = Handlebars.compile(metadataSubject)
 const compiledMetadataTemplate = Handlebars.compile(metadataTemplate)
+const compiledVmSubject = Handlebars.compile(vmSubject)
 const compiledVmTemplate = Handlebars.compile(vmTemplate)
-
-// TODO : do a partial to mutualize templates
-// TODO : Dynamic Partials for vmSuccessPartial, vmInterruptedPArtial, etc...
-// TODO : do as titleByStatus for vm template
-// TODO : getIcon could probably be a partial
-// TODO : remove pluralizeStatus (or move it to vm template file)
-// TODO : maybe change titleByStatus (or move titleByStatus to metadata template file)
-// TODO : maybe replace executeFunction by registering formatDate as a helper
-// TODO : template for mail object (so we don't need to duplicate STATUS_ICON)
-// TODO : UNKNOWN_ITEM is duplicated
 
 // ===================================================================
 
 const UNKNOWN_ITEM = 'Unknown'
-
-const ICON_FAILURE = '🚨'
-const ICON_INTERRUPTED = '⚠️'
-const ICON_SKIPPED = '⏩'
-const ICON_SUCCESS = '✔'
-
-const STATUS_ICON = {
-  failure: ICON_FAILURE,
-  interrupted: ICON_INTERRUPTED,
-  skipped: ICON_SKIPPED,
-  success: ICON_SUCCESS,
-}
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormatter = timezone =>
@@ -93,8 +73,6 @@ const noop = Function.prototype
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
-
-// ===================================================================
 
 const getTaskAdditionnalData = async (task, props) => {
   if (task.data?.type === 'remote') {
@@ -204,17 +182,17 @@ class BackupReportsXoPlugin {
       }
     }
 
-    const markdown = compiledMetadataTemplate({
+    const context = {
       jobName,
       log,
       pkg,
       tasksByStatus,
       formatDate,
-    })
+    }
 
     return this._sendReport({
-      subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${log.jobName} ${STATUS_ICON[log.status]}`,
-      markdown,
+      subject: compiledMetadataSubject(context),
+      markdown: compiledMetadataTemplate(context),
       success: log.status === 'success',
     })
   }
@@ -274,7 +252,7 @@ class BackupReportsXoPlugin {
         vm = xo.getObject(id)
       } catch (e) {}
 
-      const failedSubTasks = [] // not used ATM
+      const failedSubTasks = [] // not used at the moment
       const snapshotSubtasks = []
       const srsSubTasks = []
       const remotesSubTasks = []
@@ -373,7 +351,7 @@ class BackupReportsXoPlugin {
 
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
-    const markdown = compiledVmTemplate({
+    const context = {
       jobName,
       log,
       pkg,
@@ -387,19 +365,17 @@ class BackupReportsXoPlugin {
       formatDate,
       globalMergeSize,
       globalTransferSize,
-    })
+    }
 
     return this._sendReport({
       mailReceivers,
-      markdown,
-      subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
+      markdown: compiledVmTemplate(context),
+      subject: compiledVmSubject(context),
       success: log.status === 'success',
     })
   }
 
   async _sendReport({ mailReceivers, markdown, subject, success }) {
-    // console.log("==========================")
-    // console.log(markdown)
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }

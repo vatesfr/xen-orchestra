@@ -17,8 +17,6 @@ const vmSubTaskPartial = `{{#if subTaskLog}}
 {{/if}}
 `
 
-Handlebars.registerPartial('vmSubTaskPartial', vmSubTaskPartial)
-
 const vmSubTextPartial = `{{#each snapshotSubtasks}}
 - **Snapshot** {{getIcon subTaskLog.status}}
   {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
@@ -37,8 +35,6 @@ const vmSubTextPartial = `{{#each snapshotSubtasks}}
 {{/if}}
 `
 
-Handlebars.registerPartial('vmSubTextPartial', vmSubTextPartial)
-
 const vmTextPartial = `
 {{#if vm}}
 ### {{vm.name_label}}
@@ -53,19 +49,15 @@ const vmTextPartial = `
 {{~>reportWarnings warnings=taskLog.warnings}}
 `
 
-Handlebars.registerPartial('vmTextPartial', vmTextPartial)
-
 const vmSuccessPartial = `---
 
-## {{tasksByStatus.success.count}} {{pluralizeStatus 'Success' 'es' tasksByStatus.success.count}}
+## {{tasksByStatus.success.count}} {{#ifCond tasksByStatus.success.count '>' 1~}} Successes {{~^~}} Success {{~/ifCond}}
 
 {{#each tasksByStatus.success.tasks}}
 {{>vmTextPartial formatDate=../formatDate}}
 {{>vmSubTextPartial formatDate=../formatDate}}
 {{/each}}
 `
-
-Handlebars.registerPartial('vmSuccessPartial', vmSuccessPartial)
 
 const vmInterruptedPartial = `---
 
@@ -77,8 +69,6 @@ const vmInterruptedPartial = `---
 {{/each}}
 `
 
-Handlebars.registerPartial('vmInterruptedPartial', vmInterruptedPartial)
-
 const vmSkippedPartial = `---
 
 ## {{tasksByStatus.skipped.count}} Skipped
@@ -89,11 +79,9 @@ const vmSkippedPartial = `---
 {{/each}}
 `
 
-Handlebars.registerPartial('vmSkippedPartial', vmSkippedPartial)
-
 const vmFailurePartial = `---
 
-## {{tasksByStatus.failure.count}} {{pluralizeStatus 'Failure' 's' tasksByStatus.failure.count}}
+## {{tasksByStatus.failure.count}} {{#ifCond tasksByStatus.failure.count '>' 1~}} Failures {{~^~}} Failure {{~/ifCond}}
 
 {{#each tasksByStatus.failure.tasks}}
 {{#if uuid}}
@@ -116,7 +104,15 @@ const vmFailurePartial = `---
 {{/each}}
 `
 
+Handlebars.registerPartial('vmSubTaskPartial', vmSubTaskPartial)
+Handlebars.registerPartial('vmSubTextPartial', vmSubTextPartial)
+Handlebars.registerPartial('vmTextPartial', vmTextPartial)
+Handlebars.registerPartial('vmSuccessPartial', vmSuccessPartial)
+Handlebars.registerPartial('vmInterruptedPartial', vmInterruptedPartial)
+Handlebars.registerPartial('vmSkippedPartial', vmSkippedPartial)
 Handlebars.registerPartial('vmFailurePartial', vmFailurePartial)
+
+export const vmSubject = `[Xen Orchestra] {{log.status}} − Backup report for {{jobName}} {{getIcon log.status}}`
 
 export const vmTemplate = `##  Global status: {{log.status}}
 

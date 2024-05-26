@@ -12,8 +12,6 @@ const taskTitle = `{{#ifCond task.data.type '===' 'xo'}}
 [pool] {{#if task.data.pool.name_label ~}} {{task.data.pool.name_label}} {{~else if task.data?.poolMaster?.name_label ~}} {{task.data.poolMaster.name_label}} {{~else~}} ${UNKNOWN_ITEM} {{~/if}}
 {{~/ifCond}}`
 
-Handlebars.registerPartial('taskTitle', taskTitle)
-
 const taskBody = `{{#ifCond task.data.type '===' 'remote'}}
 - **ID**: {{task.data.id}}
 {{/ifCond}}
@@ -25,8 +23,6 @@ const taskBody = `{{#ifCond task.data.type '===' 'remote'}}
 {{/if}}
 {{/ifCond}}`
 
-Handlebars.registerPartial('taskBody', taskBody)
-
 const metadataSubTaskPartial = `{{#*inline "indentedBlock"}}
 {{>taskBody task=.}}
 {{>reportTemporalData}}
@@ -36,7 +32,11 @@ const metadataSubTaskPartial = `{{#*inline "indentedBlock"}}
 - **{{>taskTitle task=. jobName=''}}** {{getIcon status}}
   {{> indentedBlock}}`
 
+Handlebars.registerPartial('taskTitle', taskTitle)
+Handlebars.registerPartial('taskBody', taskBody)
 Handlebars.registerPartial('metadataSubtask', metadataSubTaskPartial)
+
+export const metadataSubject = `[Xen Orchestra] {{log.status}} − Metadata backup report for {{log.jobName}} {{getIcon log.status}}`
 
 export const metadataTemplate = `##  Global status: {{log.status}}
 
