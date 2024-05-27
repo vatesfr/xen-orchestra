@@ -25,6 +25,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Settings/Remotes] Fixed remote encryption not displayed ([PR #7638](https://github.com/vatesfr/xen-orchestra/pull/7638))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -41,6 +43,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - xen-api patch
 - xo-cli minor
 - xo-server minor
