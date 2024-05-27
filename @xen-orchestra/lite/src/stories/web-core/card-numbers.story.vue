@@ -6,6 +6,7 @@
       prop('value').type('number').preset(0).widget(),
       prop('unit').type('string').preset('GB').widget(),
       prop('size').type('string').enum('small', 'medium').preset('small').widget(),
+      prop('max').type('number').widget(),
     ]"
     :presets="presets"
   >

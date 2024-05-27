@@ -2,8 +2,11 @@
 <template>
   <div class="card-numbers" :class="{ column: size === 'medium' }">
     <span class="label typo" :class="labelFontClass">{{ label }}</span>
-    <div class="value typo" :class="valueFontClass">
-      {{ value }}<span class="unit typo p2-medium">{{ unit }}</span>
+    <div class="values">
+      <div v-if="size === 'small' && max" class="value typo c2-semi-bold">{{ valueAsPercentage }}%</div>
+      <div class="value typo" :class="valueFontClass">
+        {{ value }}<span class="unit typo" :class="unitFontClass">{{ unit }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -14,6 +17,7 @@ interface CardNumbersProps {
   value: number
   unit?: string
   size: 'small' | 'medium'
+  max?: number
 }
 
 const props = withDefaults(defineProps<CardNumbersProps>(), {
@@ -30,6 +34,12 @@ const labelFontClass = computed(() => {
 })
 
 const valueFontClass = computed(() => (props.size === 'medium' ? 'h3-semi-bold' : 'c2-semi-bold'))
+
+const unitFontClass = computed(() => (props.size === 'medium' ? 'p2-medium' : 'c2-semi-bold'))
+
+const valueAsPercentage = computed(() => {
+  return props.max ? ((props.value / props.max) * 100).toFixed(1) : null
+})
 </script>
 <style lang="postcss" scoped>
 .card-numbers {
@@ -41,19 +51,25 @@ const valueFontClass = computed(() => (props.size === 'medium' ? 'h3-semi-bold' 
     color: var(--color-grey-100);
   }
 
-  & .value {
+  & .values {
     display: flex;
-    gap: 0.2rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.8rem;
 
-    & .value,
-    & .unit {
-      color: var(--color-grey-100);
+    & .value {
+      display: flex;
+      gap: 0.2rem;
+      align-items: center;
+
+      & .value,
+      & .unit {
+        color: var(--color-grey-100);
+      }
     }
-  }
 
-  & .grey-300 {
-    color: var(--color-grey-300);
+    & .grey-300 {
+      color: var(--color-grey-300);
+    }
   }
 }
 
