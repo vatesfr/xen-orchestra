@@ -421,7 +421,7 @@ ${monitorBodies.join('\n')}`
     )
   }
 
-  _parseDefinition(definition) {
+  _parseDefinition(definition, cache) {
     const { objectType } = definition
     const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
@@ -465,7 +465,6 @@ ${monitorBodies.join('\n')}`
       return parser
     }
     const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
-    const cache = {}
     return {
       ...definition,
       alarmId,
@@ -544,8 +543,9 @@ ${monitorBodies.join('\n')}`
   }
 
   _getMonitors() {
-    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }))
-      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' })))
+    const cache = {}
+    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }, cache))
+      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
       .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' })))
   }
 
