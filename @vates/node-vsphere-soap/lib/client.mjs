@@ -164,9 +164,8 @@ Client.prototype._connect = function () {
         .runCommand('RetrieveServiceContent', { _this: 'ServiceInstance' })
         .once('result', function (result, raw, soapHeader) {
           if (!result.returnval) {
-            const vErr = new VmwareError(err)
-            self.status = 'disconnected'
-            self.emit('error', vErr)
+            // this is a domain/server error return it as is 
+            self.emit('error', raw)
             return
           }
 
