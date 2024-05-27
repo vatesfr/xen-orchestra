@@ -2,10 +2,10 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('label').type('string').default('Label').widget(),
-      prop('value').type('number').default(0).widget(),
-      prop('unit').type('string').default('GB').widget(),
-      prop('size').type('string').enum('small', 'medium').default('small').widget(),
+      prop('label').type('string').preset('Label').widget(),
+      prop('value').type('number').preset(0).widget(),
+      prop('unit').type('string').preset('GB').widget(),
+      prop('size').type('string').enum('small', 'medium').preset('small').widget(),
     ]"
     :presets="presets"
   >
@@ -17,15 +17,4 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import CardNumbers from '@core/components/CardNumbers.vue'
-
-const presets = {
-  'Default Values': {
-    props: {
-      label: 'Label',
-      value: 0,
-      unit: 'GB',
-      size: 'small',
-    },
-  },
-}
 </script>

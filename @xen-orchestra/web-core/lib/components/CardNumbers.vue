@@ -1,25 +1,35 @@
-<!-- v1.0.1 -->
+<!-- v1.0 -->
 <template>
   <div class="card-numbers" :class="{ column: size === 'medium' }">
-    <span
-      class="label typo c2-semi-bold"
-      :class="{ 'c3-semi-bold': size === 'medium', 'grey-300': size === 'medium' }"
-      >{{ label }}</span
-    >
-    <div class="value typo c2-semi-bold" :class="{ 'h3-semi-bold': size === 'medium' }">
+    <span class="label typo" :class="labelFontClass">{{ label }}</span>
+    <div class="value typo" :class="valueFontClass">
       {{ value }}<span class="unit typo p2-medium">{{ unit }}</span>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { computed } from 'vue'
 interface CardNumbersProps {
   label: string
   value: number
   unit?: string
-  size?: 'small' | 'medium'
+  size: 'small' | 'medium'
 }
 
-defineProps<CardNumbersProps>()
+const props = withDefaults(defineProps<CardNumbersProps>(), {
+  size: 'small',
+})
+
+const labelFontClass = computed(() => {
+  return [
+    props.size === 'medium' ? 'c3-semi-bold' : 'c2-semi-bold',
+    {
+      'grey-300': props.size === 'medium',
+    },
+  ]
+})
+
+const valueFontClass = computed(() => (props.size === 'medium' ? 'h3-semi-bold' : 'c2-semi-bold'))
 </script>
 <style lang="postcss" scoped>
 .card-numbers {
