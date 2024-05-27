@@ -131,7 +131,7 @@ export default class PerformancePlan extends Plan {
         exceededAverages.cpu <= this._thresholds.cpu.low &&
         exceededAverages.memoryFree >= this._thresholds.memoryFree.low
       ) {
-        return
+        break
       }
 
       if (!vm.xenTools) {
