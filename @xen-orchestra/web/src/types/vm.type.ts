@@ -18,4 +18,5 @@ export type Vm = {
   power_state: VM_POWER_STATE
   addresses: Record<string, string>
   mainIpAddress: string
+  other: { disable_pv_vnc: string }
 }
