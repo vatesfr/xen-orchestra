@@ -64,7 +64,12 @@ export default class PerformancePlan extends Plan {
       }
     } else {
       if (this._balanceVcpus) {
-        await this._processVcpuPrepositionning()
+        for (const poolId of this._poolIds) {
+          const poolHosts = filter(hosts, host => host.$poolId === poolId)
+          if (poolHosts.length > 1) {
+            await this._processVcpuPrepositionning(poolHosts)
+          }
+        }
       }
     }
   }
