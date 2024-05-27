@@ -21,7 +21,7 @@
   ```
 
 - [VM] Yellow icon when VM is busy [#7593](https://github.com/vatesfr/xen-orchestra/issues/7593) (PR [#7680](https://github.com/vatesfr/xen-orchestra/pull/7680))
-- [Tasks] Wait a few seconds before estimating remaining time [#7689](https://github.com/vatesfr/xen-orchestra/issues/7689)
+- [Tasks] Wait a few seconds before estimating remaining time [#7689](https://github.com/vatesfr/xen-orchestra/issues/7689) (PR [#7691](https://github.com/vatesfr/xen-orchestra/pull/7691))
 
 ### Bug fixes
 
