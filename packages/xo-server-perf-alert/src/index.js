@@ -54,7 +54,12 @@ const VM_FUNCTIONS = {
       return {
         parseRow: data => {
           const memory = data.values[memoryBytesLegend.index]
-          usedMemoryRatio.push((memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory)
+          // some VM don't have this counter
+          usedMemoryRatio.push(
+            memoryKBytesFreeLegend === undefined
+              ? 0
+              : (memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory
+          )
         },
         getDisplayableValue,
         shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
