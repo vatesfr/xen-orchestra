@@ -62,10 +62,10 @@ export default class PerformancePlan extends Plan {
           hostsAverages: averages,
         })
       }
-    }
-
-    if (this._balanceVcpus) {
-      await this._processVcpuPrepositionning()
+    } else {
+      if (this._balanceVcpus) {
+        await this._processVcpuPrepositionning()
+      }
     }
   }
 
