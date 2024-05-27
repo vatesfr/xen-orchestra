@@ -7,7 +7,7 @@
         placement: 'top',
         content: tooltip ? $t(tooltip) : '',
       }"
-      :icon="tooltip ? faInfoCircle : undefined"
+      :icon="tooltip ? icon : undefined"
       color="info"
     />
   </div>
@@ -15,12 +15,13 @@
 
 <script setup lang="ts">
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
   title: string
   tooltip?: string
+  icon?: IconDefinition
 }>()
 </script>
 
