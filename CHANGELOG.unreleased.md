@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Add _Migration Compression_ toggle in the Pool advanced tab. (Only for XCP 8.3) [#7642](https://github.com/vatesfr/xen-orchestra/pull/7642)
+- [Pool/Advanced] Add _Migration Compression_ toggle in the Pool advanced tab. (Only for XCP 8.3) (PR [#7642](https://github.com/vatesfr/xen-orchestra/pull/7642))
 
 ### Bug fixes
 
