@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
 
-export const disableDom0Access = defer(async function ($defer, { pcis, disable, force }) {
+export const disableDom0Access = defer(async function ($defer, { pcis, disable, force = false }) {
   await this.checkPermissions(pcis.map(id => [id, 'administrate']))
 
   const _pcis = pcis.map(id => this.getObject(id, 'PCI'))
@@ -31,7 +31,7 @@ export const disableDom0Access = defer(async function ($defer, { pcis, disable, 
 disableDom0Access.params = {
   pcis: { type: 'array', items: { type: 'string' } },
   disable: { type: 'boolean' },
-  force: { type: 'boolean'}
+  force: { type: 'boolean', optional: true },
 }
 
 export async function getDom0AccessStatus({ pci }) {
