@@ -1380,22 +1380,21 @@ export const hidePcis = async (pcis, hide) => {
       // hide `true` means that we will disable dom0's PCI access, so we will "enable" the possibility of passthrough this PCI
       title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
     })
-  } catch (error) {
-    if (noHostsAvailableErrCheck(error)) {
-      try {
-        await confirm({
-          body: _('hostEvacuationFailed'),
-          title: _('confirmForceRebootHost'),
-        })
 
-        return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
-      } catch (error) {
-        return
+    try {
+      await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
+    } catch (err) {
+      if (!noHostsAvailable.is(err)) {
+        throw err
       }
-    }
-  }
 
-  return _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
+      await confirm({
+        body: _('hostEvacuationFailed'),
+        title: _('confirmForceRebootHost'),
+      })
+      await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
+    }
+  } catch (error) {}
 }
 
 export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', { id: resolveId(pci) })) === 'disabled'

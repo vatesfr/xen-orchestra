@@ -25,6 +25,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host/Advanced] Allow to force reboot PCI passthrough (PR [#7687](https://github.com/vatesfr/xen-orchestra/pull/7687))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
