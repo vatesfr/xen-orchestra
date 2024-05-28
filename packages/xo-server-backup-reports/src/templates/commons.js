@@ -65,10 +65,7 @@ const formatSpeed = (bytes, milliseconds) =>
     : 'N/A'
 Handlebars.registerHelper('formatSpeed', (bytes, start, end) => formatSpeed(bytes, end - start))
 
-Handlebars.registerHelper('reluSubtract', function (a, b, threshold) {
-  const res = a - b
-  return res >= threshold ? res : 0
-})
+Handlebars.registerHelper('subtract', (a, b) => a - b)
 
 Handlebars.registerHelper('executeFunction', (fct, arg) => fct(arg))
 
@@ -108,9 +105,9 @@ Handlebars.registerPartial('reportWarnings', reportWarnings)
 const reportTemporalData = `- **Start time**: {{executeFunction formatDate start}}
 {{#if end}}
 - **End time**: {{executeFunction formatDate end}}
-{{#if (reluSubtract end start 1)}}
-- **Duration**: {{formatDuration (reluSubtract end start 1)}}
-{{/if}}
+{{#ifCond (subtract end start) '>=' 1}}
+- **Duration**: {{formatDuration (subtract end start)}}
+{{/ifCond}}
 {{/if}}`
 
 Handlebars.registerPartial('reportTemporalData', reportTemporalData)
