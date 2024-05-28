@@ -118,7 +118,7 @@ export const vmTemplate = `##  Global status: {{log.status}}
 
 - **Job ID**: {{log.jobId}}
 - **Run ID**: {{log.id}}
-- **mode**: {{log.data.mode}}
+- **Mode**: {{log.data.mode}}
 {{>reportTemporalData end=log.end start=log.start}}
 {{#if log.tasks}}
 - **Successes**: {{tasksByStatus.success.count}} / {{tasksByStatus.vmTasks.count}}
