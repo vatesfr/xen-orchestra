@@ -2,7 +2,6 @@ import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 
-const ICON_WARNING = '⚠️'
 const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
@@ -78,36 +77,3 @@ Handlebars.registerHelper('titleByStatus', function (status) {
     return TITLE_BY_STATUS[status](this.length)
   }
 })
-
-// ===================================================================
-
-const reportError = `{{#ifCond task.status '!==' 'success'}}
-{{#if task.result.message}}
-
-- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.message}}
-{{else if task.result.code}}
-
-- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{task.result.code}}
-{{/if}}
-{{/ifCond}}`
-
-Handlebars.registerPartial('reportError', reportError)
-
-const reportWarnings = `{{#if warnings.length}}
-
-{{#each warnings}}
-- **${ICON_WARNING} {{message}}**
-{{/each}}
-{{/if}}`
-
-Handlebars.registerPartial('reportWarnings', reportWarnings)
-
-const reportTemporalData = `- **Start time**: {{executeFunction formatDate start}}
-{{#if end}}
-- **End time**: {{executeFunction formatDate end}}
-{{#ifCond (subtract end start) '>=' 1}}
-- **Duration**: {{formatDuration (subtract end start)}}
-{{/ifCond}}
-{{/if}}`
-
-Handlebars.registerPartial('reportTemporalData', reportTemporalData)

@@ -1,4 +1,4 @@
-##  Global status: {{log.status}}
+## Global status: {{log.status}}
 
 - **Job ID**: {{log.jobId}}
 - **Job name**: {{jobName}}
@@ -22,7 +22,7 @@
 {{~>reportError task=.}}
 {{~>reportWarnings warnings=this.warnings}}
 {{#each this.tasks}}
-  {{>metadataSubtask formatDate=../../../formatDate}}
+  {{>metadataSubTask formatDate=../../../formatDate}}
 {{/each}}
 {{/each}}
 {{/each}}

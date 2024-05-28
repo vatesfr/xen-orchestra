@@ -1,0 +1,12 @@
+
+{{#if vm}}
+### {{vm.name_label}}
+
+- **UUID**: {{vm.uuid}}
+{{else}}
+### VM not found
+
+- **UUID**: {{taskLog.data.id}}
+{{/if}}
+{{>reportTemporalData end=taskLog.end start=taskLog.start}}
+{{~>reportWarnings warnings=taskLog.warnings}}

@@ -3,11 +3,10 @@ import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
+import { extname, join, parse } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs';
 import pkg from '../package'
-// import { metadataSubject, metadataTemplate } from './templates/metadata'
-import { readFileSync } from 'node:fs';
-import { vmSubject, vmTemplate } from './templates/vm'
-import './templates/commons'
+import './helpers'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -53,24 +52,17 @@ export const testSchema = {
 }
 
 // ===================================================================
-const metadata = readFileSync('../templates/metadata')
-const metadataSubject = readFileSync('../templates/metadataSubject')
-const metadataSubTask = readFileSync('../templates/metadataSubTask')
-const taskBody = readFileSync('../templates/taskBody')
-const taskTitle = readFileSync('../templates/taskTitle')
 
-Handlebars.registerPartial('taskBody', taskBody)
-Handlebars.registerPartial('taskTitle', taskTitle)
-Handlebars.registerPartial('taskTitle', metadataSubTask)
+const handlebarsPartialFiles = readdirSync(join(__dirname, '../templates/partials/')).filter(filename => extname(filename) === '.hbs')
+for (const fileName of handlebarsPartialFiles) {
+  const partial = readFileSync(join(__dirname, `../templates/partials/${fileName}`)).toString()
+  Handlebars.registerPartial(parse(fileName).name, partial)
+}
 
-
-
-// ===================================================================
-
-const compiledMetadataSubject = Handlebars.compile(metadataSubject)
-const compiledMetadataTemplate = Handlebars.compile(metadata)
-const compiledVmSubject = Handlebars.compile(vmSubject)
-const compiledVmTemplate = Handlebars.compile(vmTemplate)
+const compiledMetadataSubject = Handlebars.compile(readFileSync(join(__dirname, '../templates/metadataSubject.hbs')).toString())
+const compiledMetadataTemplate = Handlebars.compile(readFileSync(join(__dirname, '../templates/metadata.hbs')).toString())
+const compiledVmSubject = Handlebars.compile(readFileSync(join(__dirname, '../templates/vmSubject.hbs')).toString())
+const compiledVmTemplate = Handlebars.compile(readFileSync(join(__dirname, '../templates/vm.hbs')).toString())
 
 // ===================================================================
 
