@@ -114,7 +114,7 @@ Handlebars.registerPartial('vmFailurePartial', vmFailurePartial)
 
 export const vmSubject = `[Xen Orchestra] {{log.status}} − Backup report for {{jobName}} {{getIcon log.status}}`
 
-export const vmTemplate = `##  Global status: {{log.status}}
+export const vmTemplate = `## Global status: {{log.status}}
 
 - **Job ID**: {{log.jobId}}
 - **Run ID**: {{log.id}}
