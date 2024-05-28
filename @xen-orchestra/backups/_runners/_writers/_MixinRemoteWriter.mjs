@@ -31,6 +31,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
           return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             fixMetadata: true,
+            removeTmp: true,
             logInfo: info,
             logWarn: (message, data) => {
               warn(message, data)
