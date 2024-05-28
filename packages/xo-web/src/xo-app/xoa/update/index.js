@@ -286,7 +286,7 @@ const Updates = decorate([
         {state.areProxiesOutOfDate && (
           <Row className='mb-1'>
             <Col>
-              <Link className='text-info' to='/proxies'>
+              <Link className='text-info' to='/proxies' rel='noreferrer' target='_blank'>
                 {_('upgradeNeededForProxies')}
               </Link>
             </Col>
@@ -325,7 +325,11 @@ const Updates = decorate([
                   )}
                   {state.isDisconnected && (
                     <p>
-                      <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
+                      <a
+                        href='https://xen-orchestra.com/docs/updater.html#troubleshooting'
+                        rel='noreferrer'
+                        target='_blank'
+                      >
                         {_('updaterTroubleshootingLink')}
                       </a>
                     </p>
