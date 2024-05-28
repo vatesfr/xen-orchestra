@@ -99,7 +99,7 @@ Handlebars.registerPartial('reportError', reportError)
 const reportWarnings = `{{#if warnings.length}}
 
 {{#each warnings}}
-- **${ICON_WARNING} {{message}}
+- **${ICON_WARNING} {{message}}**
 {{/each}}
 {{/if}}`
 
