@@ -4,7 +4,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
-import { metadataSubject, metadataTemplate } from './templates/metadata'
+// import { metadataSubject, metadataTemplate } from './templates/metadata'
+import { readFileSync } from 'node:fs';
 import { vmSubject, vmTemplate } from './templates/vm'
 import './templates/commons'
 
@@ -52,9 +53,22 @@ export const testSchema = {
 }
 
 // ===================================================================
+const metadata = readFileSync('../templates/metadata')
+const metadataSubject = readFileSync('../templates/metadataSubject')
+const metadataSubTask = readFileSync('../templates/metadataSubTask')
+const taskBody = readFileSync('../templates/taskBody')
+const taskTitle = readFileSync('../templates/taskTitle')
+
+Handlebars.registerPartial('taskBody', taskBody)
+Handlebars.registerPartial('taskTitle', taskTitle)
+Handlebars.registerPartial('taskTitle', metadataSubTask)
+
+
+
+// ===================================================================
 
 const compiledMetadataSubject = Handlebars.compile(metadataSubject)
-const compiledMetadataTemplate = Handlebars.compile(metadataTemplate)
+const compiledMetadataTemplate = Handlebars.compile(metadata)
 const compiledVmSubject = Handlebars.compile(vmSubject)
 const compiledVmTemplate = Handlebars.compile(vmTemplate)
 
