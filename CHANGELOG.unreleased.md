@@ -25,7 +25,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Host/Advanced] Allow to force reboot PCI passthrough (PR [#7687](https://github.com/vatesfr/xen-orchestra/pull/7687))
+- [Host/Advanced] Ability to force reboot a host if its VMs could not be evacuated after enabling/disabling PCI passthrough (PR [#7687](https://github.com/vatesfr/xen-orchestra/pull/7687))
 
 ### Packages to release
 

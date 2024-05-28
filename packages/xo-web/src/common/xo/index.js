@@ -1381,20 +1381,16 @@ export const hidePcis = async (pcis, hide) => {
       title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
     })
 
-    try {
-      await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
-    } catch (err) {
-      if (!noHostsAvailable.is(err)) {
-        throw err
-      }
-
+    await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
+  } catch (error) {
+    if (noHostsAvailable.is(error)) {
       await confirm({
         body: _('hostEvacuationFailed'),
         title: _('confirmForceRebootHost'),
       })
       await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
     }
-  } catch (error) {}
+  }
 }
 
 export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', { id: resolveId(pci) })) === 'disabled'
