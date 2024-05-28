@@ -26,7 +26,7 @@ const Upgrade = connectStore({
             </a>{' '}
             {_('or')}
             &nbsp;
-            <Link className='btn btn-success btn-lg' to='/xoa/update'>
+            <Link className='btn btn-success btn-lg' to='/xoa/update' rel='noreferrer' target='_blank'>
               <Icon icon='plan-trial' /> {_('tryIt')}
             </Link>
           </p>
