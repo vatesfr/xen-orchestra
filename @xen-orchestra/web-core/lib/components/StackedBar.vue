@@ -6,6 +6,14 @@
         v-for="(segment, index) in computedSegments"
         :key="index"
         ref="segmentRefs"
+        v-tooltip="
+          shouldShowTooltip(index)
+            ? {
+                placement: 'top',
+                content: $t(segment.percentage.toFixed(0) + '%'),
+              }
+            : false
+        "
         :style="{ width: segment.percentage + '%' }"
         class="segment typo c4-semi-bold"
         :class="segment.color"
@@ -24,6 +32,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Color } from '@core/types/color.type'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 type StackedBarDataType = {
   value: number
@@ -63,6 +72,12 @@ function setHideClass() {
       segment.classList.remove('hide-text')
     }
   })
+}
+
+function shouldShowTooltip(index: number): boolean {
+  if (segmentRefs.value === null) return false
+
+  return segmentRefs.value[index]?.classList.contains('hide-text')
 }
 
 onMounted(() => {
