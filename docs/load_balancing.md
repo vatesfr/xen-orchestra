@@ -84,10 +84,6 @@ For free memory, it will be triggered if there is **less** free RAM than the thr
 
 If you want to prevent load balancing from triggering migrations on a particular host or VM, it is possible to exclude it from load balancing. It can be configured via the "Excluded hosts" parameter in each plan, and in the "Ignored VM tags" parameter which is common to every plan.
 
-### vCPU balancing
-
-With a performance plan, you can enable the "Balance vCPUs" option. When the pool's load is low (under 40% CPU usage), this option attempts to pre-emptively distribute your VMs across hosts to avoid excessive disparities in the number of vCPUs per CPU, instead of just waiting for a host to be overloaded. In this way, VMs are pre-positioned in a way that is likely to trigger less migrations when the load increases.
-
 ### Timing
 
 The global situation (resource usage) is examined **every minute**.
@@ -95,6 +91,22 @@ The global situation (resource usage) is examined **every minute**.
 :::tip
 TODO: more details to come here
 :::
+
+### Performance submode
+
+With a performance plan, you can configurate a performance submode that will add features to the default behavior of the performance plan. These features are additional and do not replace the default behavior.
+
+#### Conservative (default)
+
+Default behavior of the performance plan.
+
+#### Preventive
+
+The default performance plan attempts to migrate VMs only when critical usage of CPU or memory is reached. This option also attempts to reduce the disparities of CPU usage between hosts in the pool. For example, it aims to avoid situations such as having one host at 60% CPU usage and other hosts at 10%, which is a situation would be allowed by the default behavior of the performance plan.
+
+#### vCPU balancing
+
+When the pool's load is low (under 40% CPU usage), this option attempts to pre-emptively distribute your VMs across hosts to avoid excessive disparities in the number of vCPUs per CPU, instead of just waiting for a host to be overloaded. In this way, VMs are pre-positioned in a way that is likely to trigger less migrations when the load increases.
 
 ## VM anti-affinity
 
