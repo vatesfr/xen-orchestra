@@ -1,5 +1,5 @@
+import { fetchMissingHostPatches } from '@/libs/host'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
 import type { XenApiPatch } from '@/types/xen-api'
 import { type Pausable, useTimeoutPoll, watchArray } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, reactive, toValue } from 'vue'
@@ -13,8 +13,6 @@ type HostConfig = {
 }
 
 export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
-  const hostStore = useHostStore()
-
   const configByHost = reactive(new Map()) as Map<string, HostConfig>
 
   const fetchHostPatches = async (hostRef: XenApiHost['$ref']) => {
@@ -24,7 +22,7 @@ export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
 
     const config = configByHost.get(hostRef)!
 
-    config.patches = await hostStore.fetchMissingPatches(hostRef)
+    config.patches = await fetchMissingHostPatches(hostRef)
     config.isLoaded = true
   }
 

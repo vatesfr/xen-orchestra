@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <div class="button-group">
     <div class="line"><slot /></div>

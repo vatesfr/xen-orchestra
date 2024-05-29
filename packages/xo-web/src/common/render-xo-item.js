@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
 import find from 'lodash/find.js'
+import isEmpty from 'lodash/isEmpty.js'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
@@ -142,7 +143,8 @@ export const Vm = decorate([
 
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/vms/${vm.id}`}>
-        <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {vm.name_label}
+        <Icon icon={isEmpty(vm.current_operations) ? `vm-${vm.power_state.toLowerCase()}` : 'vm-busy'} />{' '}
+        {vm.name_label}
         {container !== undefined && ` (${container.name_label})`}
       </LinkWrapper>
     )

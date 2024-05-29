@@ -1,3 +1,4 @@
+<!-- v1.0 -->
 <template>
   <FontAwesomeLayers class="vm-icon">
     <UiIcon :icon="faDisplay" />

@@ -200,7 +200,7 @@ You can use the search field/filter with number comparisons:
 
 ### Available properties
 
-There isn't much documentation listing these (yet), but you can see all objects and their properties using `xo-cli --list-objects`. You can then use these properties for search in XOA.
+There isn't much documentation listing these (yet), but you can see all objects and their properties using `xo-cli list-objects`. You can then use these properties for search in XOA.
 
 Take a look at [the documentation](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli#xo-cli) for xo-cli :)
 

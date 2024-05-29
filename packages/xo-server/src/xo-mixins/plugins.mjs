@@ -3,10 +3,10 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import mapToArray from 'lodash/map.js'
 import merge from 'lodash/merge.js'
 import noop from 'lodash/noop.js'
+import Obfuscate from '@vates/obfuscate'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
-import * as sensitiveValues from '../sensitive-values.mjs'
 import { PluginsMetadata } from '../models/plugin-metadata.mjs'
 
 // ===================================================================
@@ -136,7 +136,7 @@ export default class {
       keywords,
       unloadable,
       version,
-      configuration: sensitiveValues.obfuscate(configuration),
+      configuration: Obfuscate.obfuscate(configuration),
       configurationPresets,
       configurationSchema,
       testable,
@@ -193,7 +193,7 @@ export default class {
         configuration = merge({}, metadata.configuration, configuration)
       }
 
-      configuration = sensitiveValues.merge(configuration, metadata.configuration)
+      configuration = Obfuscate.merge(configuration, metadata.configuration)
     }
 
     await this._configurePlugin(plugin, configuration)

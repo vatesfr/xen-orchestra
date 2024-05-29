@@ -2,6 +2,10 @@
 
 ## **next**
 
+- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))
+- [Header] Add link to XOA when XOA is detected on the pool (PR [#7679](https://github.com/vatesfr/xen-orchestra/pull/7679))
+- Add german translation (based on the contribution made by [@borzel](https://github.com/borzel)) (PR [#7686](https://github.com/vatesfr/xen-orchestra/pull/7686))
+
 ## **0.2.2** (2024-04-30)
 
 - [Tree view] Update tree view with new components from design system (PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))

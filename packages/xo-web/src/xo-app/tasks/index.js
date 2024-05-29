@@ -144,10 +144,12 @@ const COLUMNS = [
       const started = task.created * 1000
       const { progress } = task
 
-      if (progress === 0 || progress === 1) {
-        return // not yet started or already finished
+      const elapsed = Date.now() - started
+      if (progress === 0 || progress === 1 || elapsed < 10e3) {
+        return // not yet started, already finished or too early to estimate end
       }
-      return <FormattedRelative value={started + (Date.now() - started) / progress} />
+
+      return <FormattedRelative value={started + elapsed / progress} />
     },
     name: _('taskEstimatedEnd'),
   },

@@ -1,11 +1,11 @@
 import { useModal } from '@/composables/modal.composable'
-import { useHostCollection } from '@/stores/xen-api/host.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'
 import { computed, ref, watch } from 'vue'
 
 export const useUnreachableHosts = () => {
-  const { records: hosts } = useHostCollection()
+  const { records: hosts } = useHostStore().subscribe()
   const unreachableHostsUrls = ref<Set<string>>(new Set())
 
   watch(hosts, (nextHosts, previousHosts) => {

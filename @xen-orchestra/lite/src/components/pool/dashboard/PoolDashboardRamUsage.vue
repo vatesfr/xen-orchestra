@@ -12,21 +12,21 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostCollection } from '@/stores/xen-api/host.store'
-import { useVmCollection } from '@/stores/xen-api/vm.store'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import HostsRamUsage from '@/components/pool/dashboard/ramUsage/HostsRamUsage.vue'
 import VmsRamUsage from '@/components/pool/dashboard/ramUsage/VmsRamUsage.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import { computed, inject } from 'vue'
-import type { ComputedRef } from 'vue'
-import type { HostStats, VmStats } from '@/libs/xapi-stats'
-import type { Stat } from '@/composables/fetch-stats.composable'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
+import type { Stat } from '@/composables/fetch-stats.composable'
+import type { HostStats, VmStats } from '@/libs/xapi-stats'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import { useVmStore } from '@/stores/xen-api/vm.store'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import type { ComputedRef } from 'vue'
+import { computed, inject } from 'vue'
 
-const { hasError: hasVmError } = useVmCollection()
-const { hasError: hasHostError } = useHostCollection()
+const { hasError: hasVmError } = useVmStore().subscribe()
+const { hasError: hasHostError } = useHostStore().subscribe()
 
 const vmStats = inject<ComputedRef<Stat<VmStats>[]>>(
   'vmStats',

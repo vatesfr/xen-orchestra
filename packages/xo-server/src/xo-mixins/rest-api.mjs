@@ -389,7 +389,7 @@ export default class RestApi {
     collections.tasks = {
       async getObject(id, req) {
         const { wait } = req.query
-        if (wait === undefined) {
+        if (wait !== undefined) {
           const { promise, resolve } = pDefer()
           const stopWatch = await app.tasks.watch(id, task => {
             if (wait !== 'result' || task.status !== 'pending') {
@@ -659,18 +659,21 @@ export default class RestApi {
       })
     )
     api.get(
-      '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
+      '/:collection(vms|vm-snapshots|vm-templates)/:object.:format(ova|xva)',
       wrap(async (req, res) => {
-        const { body, headers, statusCode, statusMessage } = await req.xapiObject.$export({
-          compress: req.query.compress,
-        })
+        const vm = req.xapiObject
 
-        res.writeHead(statusCode, statusMessage != null ? statusMessage : '', {
-          ...headers,
-          'content-disposition': 'attachment',
-        })
+        const stream =
+          req.params.format === 'ova'
+            ? await vm.$xapi.exportVmOva(vm.$ref)
+            : (
+                await vm.$export({
+                  compress: req.query.compress,
+                })
+              ).body
 
-        await pipeline(body, res)
+        res.setHeader('content-disposition', 'attachment')
+        await pipeline(stream, res)
       })
     )
 

@@ -5,6 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
+import Obfuscate from '@vates/obfuscate'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
@@ -22,7 +23,6 @@ import isReadOnlyCall from './_isReadOnlyCall.mjs'
 import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
-import replaceSensitiveValues from './_replaceSensitiveValues.mjs'
 import transports from './transports/index.mjs'
 
 // ===================================================================
@@ -419,6 +419,9 @@ export class Xapi extends EventEmitter {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
 
+      // the promise will be used later
+      pTaskResult.catch(noop)
+
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
       }
@@ -486,6 +489,9 @@ export class Xapi extends EventEmitter {
     if (taskRef !== undefined) {
       query.task_id = taskRef
       pTaskResult = this.watchTask(taskRef)
+
+      // the promise will be used later
+      pTaskResult.catch(noop)
 
       if (typeof $cancelToken.addHandler === 'function') {
         $cancelToken.addHandler(() => pTaskResult)
@@ -784,9 +790,7 @@ export class Xapi extends EventEmitter {
         method,
         params:
           // it pass server's credentials as param
-          method === 'session.login_with_password'
-            ? '* obfuscated *'
-            : replaceSensitiveValues(params, '* obfuscated *'),
+          method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(params, '* obfuscated *'),
       }
 
       debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
@@ -833,7 +837,7 @@ export class Xapi extends EventEmitter {
       this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID' && this._auth.password !== undefined,
     onRetry: () => this._sessionOpen(),
   }
-  async _sessionCall(method, args, timeout) {
+  async _sessionCall(method, args) {
     if (method.startsWith('session.')) {
       return Promise.reject(new Error('session.*() methods are disabled from this interface'))
     }
@@ -848,7 +852,7 @@ export class Xapi extends EventEmitter {
           newArgs.push.apply(newArgs, args)
         }
 
-        return this._call(method, newArgs, timeout)
+        return this._call(method, newArgs)
       }, this._sessionCallRetryOptions)
     } catch (error) {
       if (error?.code === 'SESSION_INVALID') {

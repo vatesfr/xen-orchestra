@@ -32,16 +32,7 @@ const Xo = XoLib.default
 // ===================================================================
 
 async function connect() {
-  const { allowUnauthorized, server, token } = await config.load()
-  if (server === undefined) {
-    const errorMessage = 'Please use `xo-cli --register` to associate with an XO instance first.\n\n' + help()
-    throw errorMessage
-  }
-
-  if (token === undefined) {
-    throw new Error('no token available')
-  }
-
+  const { allowUnauthorized, server, token } = await getServerConfig()
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url: server })
   await xo.open()
   try {
@@ -51,6 +42,27 @@ async function connect() {
     throw error
   }
   return xo
+}
+
+const CONFIG = { __proto__: null }
+async function getServerConfig() {
+  if (CONFIG.url !== undefined) {
+    const url = new URL(CONFIG.url)
+    const token = url.username
+    url.username = ''
+    return { allowUnauthorized: CONFIG.allowUnauthorized, server: url.href, token }
+  }
+
+  const { allowUnauthorized, server, token } = await config.load()
+  if (server === undefined) {
+    const error = 'Please use `xo-cli register` to associate with an XO instance first.\n\n' + help()
+    throw error
+  }
+  if (token === undefined) {
+    const error = 'no token available'
+    throw error
+  }
+  return { allowUnauthorized, server, token }
 }
 
 async function parseRegisterArgs(args, tokenDescription, client, acceptToken = false) {
@@ -239,8 +251,19 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
-  $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
+  Global options:
+
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
+
+    --url <url>, -u <url>
+      Specify an XO instance instance to use for the command instead of relying
+      on the one registered.
+
+      The URL must include credentials: https://token@xo.company.net/
+
+  $name register [--allowUnauthorized] [--expiresIn <duration>] [--otp <otp>] <XO-Server URL> <username> [<password>]
+  $name register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
@@ -256,21 +279,21 @@ const help = wrap(
     --token <token>
       An authentication token to use instead of username/password.
 
-  $name --createToken <params>…
+  $name create-token <params>…
     Create an authentication token for XO API.
 
     <params>…
-      Accept the same parameters as --register, see its usage.
+      Accept the same parameters as register, see its usage.
 
-  $name --unregister
+  $name unregister
     Remove stored credentials.
 
-  $name --list-commands [--json] [<pattern>]...
+  $name list-commands [--json] [<pattern>]...
     Returns the list of available commands on the current XO instance.
 
     The patterns can be used to filter on command names.
 
-  $name --list-objects [--<property>]… [<property>=<value>]...
+  $name list-objects [--<property>]… [<property>=<value>]...
     Returns a list of XO objects.
 
     --<property>
@@ -395,24 +418,48 @@ $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
 const COMMANDS = { __proto__: null }
 
 async function main(args) {
-  if (!args || !args.length || args[0] === '-h') {
-    return help()
+  let command = 'help'
+  let i = 0
+  const n = args.length
+  while (i < n) {
+    const arg = args[i++]
+    if (arg === '--allowUnauthorized' || arg === '--au') {
+      CONFIG.allowUnauthorized = true
+    } else if (arg === '--help' || arg === '-h') {
+      command = 'help'
+      break
+    } else if (arg === '--url' || arg === '-u') {
+      if (i === n) {
+        const error = 'missing value for option ' + arg
+        throw error
+      }
+      CONFIG.url = args[i++]
+    } else if (arg.slice(0, 6) === '--url=') {
+      CONFIG.url = arg.slice(6)
+    } else {
+      command = arg
+      break
+    }
+  }
+  args = args.slice(i)
+
+  const ctx = {
+    getServerConfig,
   }
 
-  const fnName = args[0].replace(/^--|-\w/g, function (match) {
-    if (match === '--') {
-      return ''
-    }
-
-    return match[1].toUpperCase()
-  })
-
   try {
-    if (fnName in COMMANDS) {
-      return await COMMANDS[fnName](args.slice(1))
+    const key = command.replace(/^--/, '').replace(/(?!<^)[A-Z]/g, matches => '-' + matches[0].toLowerCase())
+    const fn = COMMANDS[key]
+    if (fn !== undefined) {
+      if (command !== key) {
+        console.warn('`%s` is deprecated and will be removed in the future, use `%s` subcommand instead', command, key)
+        console.warn('')
+      }
+
+      return await fn.call(ctx, args)
     }
 
-    return await COMMANDS.call(args).catch(error => {
+    return await COMMANDS.call.call(ctx, [command, ...args]).catch(error => {
       if (!(error != null && error.code === 10 && 'errors' in error.data)) {
         throw error
       }
@@ -445,13 +492,13 @@ COMMANDS.rest = rest
 COMMANDS.help = help
 
 async function createToken(args) {
-  const { token } = await parseRegisterArgs(args, 'xo-cli --createToken')
+  const { token } = await parseRegisterArgs(args, 'xo-cli create-token')
 
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
 }
-COMMANDS.createToken = createToken
+COMMANDS['create-token'] = createToken
 
 async function register(args) {
   let { clientId } = await config.load()
@@ -539,7 +586,7 @@ async function listCommands(args) {
     await xo.close()
   }
 }
-COMMANDS.listCommands = listCommands
+COMMANDS['list-commands'] = listCommands
 
 async function listObjects(args) {
   const properties = getKeys(extractFlags(args))
@@ -567,7 +614,7 @@ async function listObjects(args) {
     await xo.close()
   }
 }
-COMMANDS.listObjects = listObjects
+COMMANDS['list-objects'] = listObjects
 
 function ensurePathParam(method, value) {
   if (typeof value !== 'string') {
@@ -597,7 +644,7 @@ async function call(args) {
     // FIXME: do not use private properties.
     const baseUrl = xo._url.replace(/^ws/, 'http')
     const httpOptions = {
-      rejectUnauthorized: !(await config.load()).allowUnauthorized,
+      rejectUnauthorized: !(await getServerConfig()).allowUnauthorized,
     }
 
     const result = await xo.call(method, params)

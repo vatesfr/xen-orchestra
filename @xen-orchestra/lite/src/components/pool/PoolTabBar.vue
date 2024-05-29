@@ -32,8 +32,8 @@
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import { usePoolCollection } from '@/stores/xen-api/pool.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import TabList from '@core/components/tab/TabList.vue'
 
-const { pool, isReady } = usePoolCollection()
+const { pool, isReady } = usePoolStore().subscribe()
 </script>

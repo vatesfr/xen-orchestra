@@ -2647,7 +2647,6 @@ const messages = {
   xostorCreation: 'XOSTOR creation',
   xostorDiskRequired: 'At least one disk is required',
   xostorDisksDropdownLabel: '({nDisks, number} disk{nDisks, plural, one {} other {s}}) {hostname}',
-  xostorMultipleLicenses: 'This XOSTOR has more than 1 license!',
   xostorPackagesWillBeInstalled: '"xcp-ng-release-linstor" and "xcp-ng-linstor" will be installed on each host',
   xostorReplicationWarning: 'If a disk dies, you will lose data',
 
@@ -2760,6 +2759,7 @@ const messages = {
   unlockNow: 'Unlock now!',
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
+  bindLicenses: 'Bind licenses',
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',

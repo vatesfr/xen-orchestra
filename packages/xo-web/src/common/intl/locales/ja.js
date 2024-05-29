@@ -93,7 +93,7 @@ export default {
   dashboardPage: 'ダッシュボード',
 
   // Original text: "Overview"
-  overviewDashboardPage: "オーバービュー",
+  overviewDashboardPage: 'オーバービュー',
 
   // Original text: "Visualizations"
   overviewVisualizationDashboardPage: '仮想マシン利用量',
@@ -171,7 +171,7 @@ export default {
   xosan: 'XOSAN',
 
   // Original text: "Overview"
-  backupOverviewPage: "オーバービュー",
+  backupOverviewPage: 'オーバービュー',
 
   // Original text: "New"
   backupNewPage: 'バックアップの作成',
@@ -210,7 +210,7 @@ export default {
   continuousReplication: 'Continuous Replication',
 
   // Original text: "Overview"
-  jobsOverviewPage: "ジョブの全体",
+  jobsOverviewPage: 'ジョブの全体',
 
   // Original text: "New"
   jobsNewPage: 'ジョブの追加',
@@ -246,10 +246,10 @@ export default {
   homeWelcomeText: 'XCP-ngのホスト、プールの追加',
 
   // Original text: "Some XCP-ng hosts have been registered but are not connected"
-  homeConnectServerText: "追加済みのXCP-ngホストに接続出来ません",
+  homeConnectServerText: '追加済みのXCP-ngホストに接続出来ません',
 
   // Original text: "Want some help?"
-  homeHelp: "サポートが必要ですか？",
+  homeHelp: 'サポートが必要ですか？',
 
   // Original text: "Add server"
   homeAddServer: 'サーバの追加',
@@ -264,7 +264,7 @@ export default {
   homeProSupport: 'プロフェッショナルサポート',
 
   // Original text: "There are no VMs!"
-  homeNoVms: "VMがありません!",
+  homeNoVms: 'VMがありません!',
 
   // Original text: "Or…"
   homeNoVmsOr: 'あるいは…',
@@ -375,10 +375,10 @@ export default {
   homeSortByType: 'タイプ',
 
   // Original text: "{displayed, number}x {icon} (on {total, number})"
-  homeDisplayedItems: "{displayed, number}x {icon} (on {total, number})",
+  homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems: "{selected, number}x {icon} selected (on {total, number})",
+  homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
 
   // Original text: "More"
   homeMore: 'More',
@@ -504,7 +504,7 @@ export default {
   selectIp: 'IPアドレスの選択……',
 
   // Original text: "Select IP pool(s)…"
-  selectIpPool: "IPプールの選択……",
+  selectIpPool: 'IPプールの選択……',
 
   // Original text: "Fill required informations."
   fillRequiredInformations: '必要情報を入力してください。',
@@ -585,10 +585,10 @@ export default {
   cronPattern: 'Cronのパターン:',
 
   // Original text: "Cannot edit backup"
-  backupEditNotFoundTitle: "バックアップが編集できません",
+  backupEditNotFoundTitle: 'バックアップが編集できません',
 
   // Original text: "Missing required info for edition"
-  backupEditNotFoundMessage: "編集のための必要情報がありません。",
+  backupEditNotFoundMessage: '編集のための必要情報がありません。',
 
   // Original text: "Successful"
   successfulJobCall: '成功しました',
@@ -663,7 +663,7 @@ export default {
   runJob: 'ジョブの実行',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose: "1回のみ実行しています。ログを確認してください。",
+  runJobVerbose: '1回のみ実行しています。ログを確認してください。',
 
   // Original text: "Started"
   jobStarted: 'スタートしました',
@@ -684,10 +684,10 @@ export default {
   scheduleEnableAfterCreation: '作成後、すぐに有効化する',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage: "スケジュール{name}({id})を編集しています。保存は、前回のスケジュール状態を上書きします。",
+  scheduleEditMessage: 'スケジュール{name}({id})を編集しています。保存は、前回のスケジュール状態を上書きします。',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage: "ジョブ{name} ({id})を編集しています。保存は、前回のジョブ状態を上書きします。",
+  jobEditMessage: 'ジョブ{name} ({id})を編集しています。保存は、前回のジョブ状態を上書きします。',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'スケジュールジョブがありません。',
@@ -699,7 +699,7 @@ export default {
   noSchedules: 'スケジュールがありません。',
 
   // Original text: "Select a xo-server API command"
-  jobActionPlaceHolder: "xo-server APIコマンドを選択してください。",
+  jobActionPlaceHolder: 'xo-server APIコマンドを選択してください。',
 
   // Original text: "Timeout (number of seconds after which a VM is considered failed)"
   jobTimeoutPlaceHolder: 'タイムアウト(VMが故障したと見なされるまでの秒数)',
@@ -717,10 +717,10 @@ export default {
   jobOwnerPlaceholder: 'ジョブのオーナー',
 
   // Original text: "This job's creator no longer exists"
-  jobUserNotFound: "このジョブの作成者は既にいません。",
+  jobUserNotFound: 'このジョブの作成者は既にいません。',
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound: "バックアップユーザが存在しません。",
+  backupUserNotFound: 'バックアップユーザが存在しません。',
 
   // Original text: "Backup owner"
   backupOwner: 'バックアップオーナー',
@@ -742,10 +742,10 @@ export default {
 
   // Original text: "Warning: local remotes will use limited XOA disk space. Only for advanced users."
   localRemoteWarningMessage:
-    "注意：ローカルリモートは、限定されたXOAディスク空間を利用します。アドバンスユーザのみの機能です。",
+    '注意：ローカルリモートは、限定されたXOAディスク空間を利用します。アドバンスユーザのみの機能です。',
 
   // Original text: "Warning: this feature works only with XenServer 6.5 or newer."
-  backupVersionWarning: "注意：この機能は、XenServer 6.5以上でのみ利用可能です。",
+  backupVersionWarning: '注意：この機能は、XenServer 6.5以上でのみ利用可能です。',
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VMs',
@@ -808,7 +808,7 @@ export default {
   remoteTestTip: 'リモートのテストをすると良いでしょう',
 
   // Original text: "Test Remote"
-  testRemote: "リモートのテスト",
+  testRemote: 'リモートのテスト',
 
   // Original text: "Test failed for {name}"
   remoteTestFailure: 'リモートテスト名：{name}',
@@ -829,10 +829,10 @@ export default {
   remoteTestName: 'テスト名',
 
   // Original text: "Remote name already exists!"
-  remoteTestNameFailure: "リモートテスト名は既に存在しています。",
+  remoteTestNameFailure: 'リモートテスト名は既に存在しています。',
 
   // Original text: "The remote appears to work correctly"
-  remoteTestSuccessMessage: "リモートテストは正常に動作しました",
+  remoteTestSuccessMessage: 'リモートテストは正常に動作しました',
 
   // Original text: "Connection failed"
   remoteConnectionFailed: '接続に失敗しました',
@@ -898,7 +898,7 @@ export default {
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
 
   // Original text: "Username"
-  remoteSmbPlaceHolderUsername: "ユーザ名",
+  remoteSmbPlaceHolderUsername: 'ユーザ名',
 
   // Original text: "Password"
   remoteSmbPlaceHolderPassword: 'パスワード',
@@ -922,7 +922,7 @@ export default {
   remoteS3PlaceHolderDirectory: 'Directory',
 
   // Original text : "Access key ID"
-  remoteS3PlaceHolderAccessKeyID: "Access key ID",
+  remoteS3PlaceHolderAccessKeyID: 'Access key ID',
 
   // Original text : "Paste secret here to change it"
   remoteS3PlaceHolderSecret: 'Paste secret here to change it',
@@ -991,7 +991,7 @@ export default {
   newSrAuth: '(要認証)',
 
   // Original text: "User Name"
-  newSrUsername: "ユーザ名",
+  newSrUsername: 'ユーザ名',
 
   // Original text: "Password"
   newSrPassword: 'パスワード',
@@ -1009,2509 +1009,2498 @@ export default {
   newSrCreate: '作成',
 
   // Original text: "Storage name"
-  newSrNamePlaceHolder: "ストレージ名",
+  newSrNamePlaceHolder: 'ストレージ名',
 
   // Original text: "Storage description"
-  newSrDescPlaceHolder: "ストレージの説明",
+  newSrDescPlaceHolder: 'ストレージの説明',
 
   // Original text: "Address"
-  newSrAddressPlaceHolder: "Address",
+  newSrAddressPlaceHolder: 'Address',
 
   // Original text: "[port]"
   newSrPortPlaceHolder: '[port]',
 
   // Original text: "Username"
-  newSrUsernamePlaceHolder: "Username",
+  newSrUsernamePlaceHolder: 'Username',
 
   // Original text: "Password"
-  newSrPasswordPlaceHolder:  "Password",
+  newSrPasswordPlaceHolder: 'Password',
 
   // Original text: "Device, e.g /dev/sda…"
-  newSrLvmDevicePlaceHolder:  "Device, e.g /dev/sda…",
+  newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda…',
 
   // Original text: "/path/to/directory"
-  newSrLocalPathPlaceHolder:  "/path/to/directory",
+  newSrLocalPathPlaceHolder: '/path/to/directory',
 
   // Original text: "Users/Groups"
-  subjectName:  "Users/Groups",
+  subjectName: 'Users/Groups',
 
   // Original text: "Object"
-  objectName:  "Object",
+  objectName: 'Object',
 
   // Original text: "No acls found"
-  aclNoneFound:  "No acls found",
+  aclNoneFound: 'No acls found',
 
   // Original text: "Role"
-  roleName:  "Role",
+  roleName: 'Role',
 
   // Original text: "Create"
-  aclCreate:  "Create",
+  aclCreate: 'Create',
 
   // Original text: "New Group Name"
-  newGroupName:  "New Group Name",
+  newGroupName: 'New Group Name',
 
   // Original text: "Create Group"
-  createGroup:  "Create Group",
+  createGroup: 'Create Group',
 
   // Original text: "Create"
-  createGroupButton:  "Create",
+  createGroupButton: 'Create',
 
   // Original text: "Delete Group"
-  deleteGroup:  "Delete Group",
+  deleteGroup: 'Delete Group',
 
   // Original text: "Are you sure you want to delete this group?"
-  deleteGroupConfirm:  "Are you sure you want to delete this group?",
+  deleteGroupConfirm: 'Are you sure you want to delete this group?',
 
   // Original text: "Remove user from Group"
-  removeUserFromGroup:  "Remove user from Group",
+  removeUserFromGroup: 'Remove user from Group',
 
   // Original text: "Are you sure you want to delete this user?"
-  deleteUserConfirm:  "Are you sure you want to delete this user?",
+  deleteUserConfirm: 'Are you sure you want to delete this user?',
 
   // Original text: "Delete User"
-  deleteUser:  "Delete User",
+  deleteUser: 'Delete User',
 
   // Original text: "no user"
-  noUser:  "no user",
+  noUser: 'no user',
 
   // Original text: "unknown user"
-  unknownUser:  "unknown user",
+  unknownUser: 'unknown user',
 
   // Original text: "No group found"
-  noGroupFound:  "No group found",
+  noGroupFound: 'No group found',
 
   // Original text: "Name"
-  groupNameColumn:  "Name",
+  groupNameColumn: 'Name',
 
   // Original text: "Users"
-  groupUsersColumn:  "Users",
+  groupUsersColumn: 'Users',
 
   // Original text: "Add User"
-  addUserToGroupColumn:  "Add User",
+  addUserToGroupColumn: 'Add User',
 
   // Original text: "Email"
-  userNameColumn:  "Email",
+  userNameColumn: 'Email',
 
   // Original text: "Permissions"
-  userPermissionColumn:  "Permissions",
+  userPermissionColumn: 'Permissions',
 
   // Original text: "Password"
-  userPasswordColumn:  "Password",
+  userPasswordColumn: 'Password',
 
   // Original text: "Email"
-  userName:  "Email",
+  userName: 'Email',
 
   // Original text: "Password"
-  userPassword:  "Password",
+  userPassword: 'Password',
 
   // Original text: "Create"
-  createUserButton:  "Create",
+  createUserButton: 'Create',
 
   // Original text: "No user found"
-  noUserFound:  "No user found",
+  noUserFound: 'No user found',
 
   // Original text: "User"
-  userLabel:  "User",
+  userLabel: 'User',
 
   // Original text: "Admin"
-  adminLabel:  "Admin",
+  adminLabel: 'Admin',
 
   // Original text: "No user in group"
-  noUserInGroup:  "No user in group",
+  noUserInGroup: 'No user in group',
 
   // Original text: "{users, number} user{users, plural, one {} other {s}}"
-  countUsers:  "{users, number} user{users, plural, one {} other {s}}",
+  countUsers: '{users, number} user{users, plural, one {} other {s}}',
 
   // Original text: "Select Permission"
-  selectPermission:  "Select Permission",
+  selectPermission: 'Select Permission',
 
   // Original text: "No plugins found"
-  noPlugins:  "No plugins found",
+  noPlugins: 'No plugins found',
 
   // Original text: "Auto-load at server start"
-  autoloadPlugin:  "Auto-load at server start",
+  autoloadPlugin: 'Auto-load at server start',
 
   // Original text: "Save configuration"
-  savePluginConfiguration:  "Save configuration",
+  savePluginConfiguration: 'Save configuration',
 
   // Original text: "Delete configuration"
-  deletePluginConfiguration:  "Delete configuration",
+  deletePluginConfiguration: 'Delete configuration',
 
   // Original text: "Plugin error"
-  pluginError:  "Plugin error",
+  pluginError: 'Plugin error',
 
   // Original text: "Unknown error"
-  unknownPluginError:  "Unknown error",
+  unknownPluginError: 'Unknown error',
 
   // Original text: "Purge plugin configuration"
-  purgePluginConfiguration:  "Purge plugin configuration",
+  purgePluginConfiguration: 'Purge plugin configuration',
 
   // Original text: "Are you sure you want to purge this configuration ?"
-  purgePluginConfigurationQuestion:  "Are you sure you want to purge this configuration ?",
+  purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration ?',
 
   // Original text: "Edit"
-  editPluginConfiguration:  "Edit",
+  editPluginConfiguration: 'Edit',
 
   // Original text: "Cancel"
-  cancelPluginEdition:  "Cancel",
+  cancelPluginEdition: 'Cancel',
 
   // Original text: "Plugin configuration"
-  pluginConfigurationSuccess:  "Plugin configuration",
+  pluginConfigurationSuccess: 'Plugin configuration',
 
   // Original text: "Plugin configuration successfully saved!"
-  pluginConfigurationChanges:  "Plugin configuration successfully saved!",
+  pluginConfigurationChanges: 'Plugin configuration successfully saved!',
 
   // Original text: "Predefined configuration"
-  pluginConfigurationPresetTitle:  "Predefined configuration",
+  pluginConfigurationPresetTitle: 'Predefined configuration',
 
   // Original text: "Choose a predefined configuration."
-  pluginConfigurationChoosePreset:  "Choose a predefined configuration.",
+  pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
 
   // Original text: "Apply"
-  applyPluginPreset:  "Apply",
+  applyPluginPreset: 'Apply',
 
   // Original text: "Save filter error"
-  saveNewUserFilterErrorTitle:  "Save filter error",
+  saveNewUserFilterErrorTitle: 'Save filter error',
 
   // Original text: "Bad parameter: name must be given."
-  saveNewUserFilterErrorBody:  "Bad parameter: name must be given.",
+  saveNewUserFilterErrorBody: 'Bad parameter: name must be given.',
 
   // Original text: "Name:"
-  filterName:  "Name:",
+  filterName: 'Name:',
 
   // Original text: "Value:"
-  filterValue:  "Value:",
+  filterValue: 'Value:',
 
   // Original text: "Save new filter"
-  saveNewFilterTitle:  "Save new filter",
+  saveNewFilterTitle: 'Save new filter',
 
   // Original text: "Set custom filters"
-  setUserFiltersTitle:  "Set custom filters",
+  setUserFiltersTitle: 'Set custom filters',
 
   // Original text: "Are you sure you want to set custom filters?"
-  setUserFiltersBody:  "Are you sure you want to set custom filters?",
+  setUserFiltersBody: 'Are you sure you want to set custom filters?',
 
   // Original text: "Remove custom filter"
-  removeUserFilterTitle:  "Remove custom filter",
+  removeUserFilterTitle: 'Remove custom filter',
 
   // Original text: "Are you sure you want to remove custom filter?"
-  removeUserFilterBody:  "Are you sure you want to remove custom filter?",
+  removeUserFilterBody: 'Are you sure you want to remove custom filter?',
 
   // Original text: "Default filter"
-  defaultFilter:  "Default filter",
+  defaultFilter: 'Default filter',
 
   // Original text: "Default filters"
-  defaultFilters:  "Default filters",
+  defaultFilters: 'Default filters',
 
   // Original text: "Custom filters"
-  customFilters:  "Custom filters",
+  customFilters: 'Custom filters',
 
   // Original text: "Customize filters"
-  customizeFilters:  "Customize filters",
+  customizeFilters: 'Customize filters',
 
   // Original text: "Save custom filters"
-  saveCustomFilters:  "Save custom filters",
+  saveCustomFilters: 'Save custom filters',
 
   // Original text: "Start"
-  startVmLabel:  "Start",
+  startVmLabel: 'Start',
 
   // Original text: "Recovery start"
-  recoveryModeLabel:  "Recovery start",
+  recoveryModeLabel: 'Recovery start',
 
   // Original text: "Suspend"
-  suspendVmLabel:  "Suspend",
+  suspendVmLabel: 'Suspend',
 
   // Original text: "Stop"
-  stopVmLabel:  "Stop",
+  stopVmLabel: 'Stop',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel:  "Force shutdown",
+  forceShutdownVmLabel: 'Force shutdown',
 
   // Original text: "Reboot"
-  rebootVmLabel:  "Reboot",
+  rebootVmLabel: 'Reboot',
 
   // Original text: "Force reboot"
-  forceRebootVmLabel:  "Force reboot",
+  forceRebootVmLabel: 'Force reboot',
 
   // Original text: "Delete"
-  deleteVmLabel:  "Delete",
+  deleteVmLabel: 'Delete',
 
   // Original text: "Migrate"
-  migrateVmLabel:  "Migrate",
+  migrateVmLabel: 'Migrate',
 
   // Original text: "Snapshot"
-  snapshotVmLabel:  "Snapshot",
+  snapshotVmLabel: 'Snapshot',
 
   // Original text: "Export"
-  exportVmLabel:  "Export",
+  exportVmLabel: 'Export',
 
   // Original text: "Resume"
-  resumeVmLabel:  "Resume",
+  resumeVmLabel: 'Resume',
 
   // Original text: "Copy"
-  copyVmLabel:  "Copy",
+  copyVmLabel: 'Copy',
 
   // Original text: "Clone"
-  cloneVmLabel:  "Clone",
+  cloneVmLabel: 'Clone',
 
   // Original text: "Fast clone"
-  fastCloneVmLabel:  "Fast clone",
+  fastCloneVmLabel: 'Fast clone',
 
   // Original text: "Convert to template"
-  convertVmToTemplateLabel:  "Convert to template",
+  convertVmToTemplateLabel: 'Convert to template',
 
   // Original text: "Console"
   vmConsoleLabel: 'Console',
 
   // Original text: "Rescan all disks"
-  srRescan:  "Rescan all disks",
+  srRescan: 'Rescan all disks',
 
   // Original text: "Connect to all hosts"
-  srReconnectAll:  "Connect to all hosts",
+  srReconnectAll: 'Connect to all hosts',
 
   // Original text: "Disconnect from all hosts"
-  srDisconnectAll:  "Disconnect from all hosts",
+  srDisconnectAll: 'Disconnect from all hosts',
 
   // Original text: "Forget this SR"
-  srForget:  "Forget this SR",
+  srForget: 'Forget this SR',
 
   // Original text: "Forget SRs"
-  srsForget:  "Forget SRs",
+  srsForget: 'Forget SRs',
 
   // Original text: "Remove this SR"
-  srRemoveButton:  "Remove this SR",
+  srRemoveButton: 'Remove this SR',
 
   // Original text: "No VDIs in this storage"
-  srNoVdis:  "No VDIs in this storage",
+  srNoVdis: 'No VDIs in this storage',
 
   // Original text: "Pool RAM usage:"
-  poolTitleRamUsage:  "Pool RAM usage:",
+  poolTitleRamUsage: 'Pool RAM usage:',
 
   // Original text: "{used} used on {total}"
-  poolRamUsage:  "{used} used on {total}",
+  poolRamUsage: '{used} used on {total}',
 
   // Original text: "Master:"
-  poolMaster:  "Master:",
+  poolMaster: 'Master:',
 
   // Original text: "Display all hosts of this pool"
-  displayAllHosts:  "Display all hosts of this pool",
+  displayAllHosts: 'Display all hosts of this pool',
 
   // Original text: "Display all storages of this pool"
-  displayAllStorages:  "Display all storages of this pool",
+  displayAllStorages: 'Display all storages of this pool',
 
   // Original text: "Display all VMs of this pool"
-  displayAllVMs:  "Display all VMs of this pool",
+  displayAllVMs: 'Display all VMs of this pool',
 
   // Original text: "Hosts"
-  hostsTabName:  "Hosts",
+  hostsTabName: 'Hosts',
 
   // Original text: "Vms"
-  vmsTabName:  "Vms",
+  vmsTabName: 'Vms',
 
   // Original text: "Srs"
-  srsTabName:  "Srs",
+  srsTabName: 'Srs',
 
   // Original text: "High Availability"
-  poolHaStatus:  "High Availability",
+  poolHaStatus: 'High Availability',
 
   // Original text: "Enabled"
-  poolHaEnabled:  "Enabled",
+  poolHaEnabled: 'Enabled',
 
   // Original text: "Disabled"
-  poolHaDisabled:  "Disabled",
+  poolHaDisabled: 'Disabled',
 
   // Original text: "Name"
-  hostNameLabel:  "Name",
+  hostNameLabel: 'Name',
 
   // Original text: "Description"
-  hostDescription:  "Description",
+  hostDescription: 'Description',
 
   // Original text: "Memory"
-  hostMemory:  "Memory",
+  hostMemory: 'Memory',
 
   // Original text: "No hosts"
-  noHost:  "No hosts",
+  noHost: 'No hosts',
 
   // Original text: "{used}% used ({free} free)"
-  memoryLeftTooltip:  "{used}% used ({free} free)",
+  memoryLeftTooltip: '{used}% used ({free} free)',
 
   // Original text: "PIF"
-  pif:  "PIF",
+  pif: 'PIF',
 
   // Original text: "Name"
-  poolNetworkNameLabel:  "Name",
+  poolNetworkNameLabel: 'Name',
 
   // Original text: "Description"
-  poolNetworkDescription:  "Description",
+  poolNetworkDescription: 'Description',
 
   // Original text: "PIFs"
-  poolNetworkPif:  "PIFs",
+  poolNetworkPif: 'PIFs',
 
   // Original text: "No networks"
-  poolNoNetwork:  "No networks",
+  poolNoNetwork: 'No networks',
 
   // Original text: "MTU"
-  poolNetworkMTU:  "MTU",
+  poolNetworkMTU: 'MTU',
 
   // Original text: "Connected"
-  poolNetworkPifAttached:  "Connected",
+  poolNetworkPifAttached: 'Connected',
 
   // Original text: "Disconnected"
-  poolNetworkPifDetached:  "Disconnected",
+  poolNetworkPifDetached: 'Disconnected',
 
   // Original text: "Show PIFs"
-  showPifs:  "Show PIFs",
+  showPifs: 'Show PIFs',
 
   // Original text: "Hide PIFs"
-  hidePifs:  "Hide PIFs",
+  hidePifs: 'Hide PIFs',
 
   // Original text: "Show details"
-  showDetails:  "Show details",
+  showDetails: 'Show details',
 
   // Original text: "Hide details"
-  hideDetails:  "Hide details",
+  hideDetails: 'Hide details',
 
   // Original text: "No stats"
-  poolNoStats:  "No stats",
+  poolNoStats: 'No stats',
 
   // Original text: "All hosts"
-  poolAllHosts:  "All hosts",
+  poolAllHosts: 'All hosts',
 
   // Original text: "Add SR"
-  addSrLabel:  "Add SR",
+  addSrLabel: 'Add SR',
 
   // Original text: "Add VM"
-  addVmLabel:  "Add VM",
+  addVmLabel: 'Add VM',
 
   // Original text: "Add Host"
-  addHostLabel:  "Add Host",
+  addHostLabel: 'Add Host',
 
   // Original text: "This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long."
   hostNeedsPatchUpdate:
-  "This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.",
+    'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall:  "This host cannot be added to the pool because it's missing some patches.",
+  hostNeedsPatchUpdateNoInstall: "This host cannot be added to the pool because it's missing some patches.",
 
   // Original text: "Adding host failed"
-  addHostErrorTitle:  "Adding host failed",
+  addHostErrorTitle: 'Adding host failed',
 
   // Original text: "Host patches could not be homogenized."
-  addHostNotHomogeneousErrorMessage:  "Host patches could not be homogenized.",
+  addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
 
   // Original text: "Disconnect"
-  disconnectServer:  "Disconnect",
+  disconnectServer: 'Disconnect',
 
   // Original text: "Start"
-  startHostLabel:  "Start",
+  startHostLabel: 'Start',
 
   // Original text: "Stop"
-  stopHostLabel:  "Stop",
+  stopHostLabel: 'Stop',
 
   // Original text: "Enable"
-  enableHostLabel:  "Enable",
+  enableHostLabel: 'Enable',
 
   // Original text: "Disable"
-  disableHostLabel:  "Disable",
+  disableHostLabel: 'Disable',
 
   // Original text: "Restart toolstack"
-  restartHostAgent:  "Restart toolstack",
+  restartHostAgent: 'Restart toolstack',
 
   // Original text: "Force reboot"
-  forceRebootHostLabel:  "Force reboot",
+  forceRebootHostLabel: 'Force reboot',
 
   // Original text: "Reboot"
-  rebootHostLabel:  "Reboot",
+  rebootHostLabel: 'Reboot',
 
   // Original text: "Error while restarting host"
-  noHostsAvailableErrorTitle:  "Error while restarting host",
+  noHostsAvailableErrorTitle: 'Error while restarting host',
 
   // Original text: "Some VMs cannot be migrated before restarting this host. Please try force reboot."
-  noHostsAvailableErrorMessage:
-  "Some VMs cannot be migrated before restarting this host. Please try force reboot.",
+  noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
 
   // Original text: "Error while restarting hosts"
-  failHostBulkRestartTitle:  "Error while restarting hosts",
+  failHostBulkRestartTitle: 'Error while restarting hosts',
 
   // Original text: "{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted."
   failHostBulkRestartMessage:
-  "{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.",
+    '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.',
 
   // Original text: "Reboot to apply updates"
-  rebootUpdateHostLabel:  "Reboot to apply updates",
+  rebootUpdateHostLabel: 'Reboot to apply updates',
 
   // Original text: "Emergency mode"
-  emergencyModeLabel:  "Emergency mode",
+  emergencyModeLabel: 'Emergency mode',
 
   // Original text: "Storage"
-  storageTabName:  "Storage",
+  storageTabName: 'Storage',
 
   // Original text: "Patches"
-  patchesTabName:  "Patches",
+  patchesTabName: 'Patches',
 
   // Original text: "Load average"
-  statLoad:  "Load average",
+  statLoad: 'Load average',
 
   // Original text: "RAM Usage: {memoryUsed}"
-  memoryHostState:  "RAM Usage: {memoryUsed}",
+  memoryHostState: 'RAM Usage: {memoryUsed}',
 
   // Original text: "Hardware"
-  hardwareHostSettingsLabel:  "Hardware",
+  hardwareHostSettingsLabel: 'Hardware',
 
   // Original text: "Address"
-  hostAddress:  "Address",
+  hostAddress: 'Address',
 
   // Original text: "Status"
-  hostStatus:  "Status",
+  hostStatus: 'Status',
 
   // Original text: "Build number"
-  hostBuildNumber:  "Build number",
+  hostBuildNumber: 'Build number',
 
   // Original text: "iSCSI name"
-  hostIscsiName:  "iSCSI name",
+  hostIscsiName: 'iSCSI name',
 
   // Original text: "Version"
-  hostXenServerVersion:  "Version",
+  hostXenServerVersion: 'Version',
 
   // Original text: "Enabled"
-  hostStatusEnabled:  "Enabled",
+  hostStatusEnabled: 'Enabled',
 
   // Original text: "Disabled"
-  hostStatusDisabled:  "Disabled",
+  hostStatusDisabled: 'Disabled',
 
   // Original text: "Power on mode"
-  hostPowerOnMode:  "Power on mode",
+  hostPowerOnMode: 'Power on mode',
 
   // Original text: "Host uptime"
-  hostStartedSince:  "Host uptime",
+  hostStartedSince: 'Host uptime',
 
   // Original text: "Toolstack uptime"
-  hostStackStartedSince:  "Toolstack uptime",
+  hostStackStartedSince: 'Toolstack uptime',
 
   // Original text: "CPU model"
-  hostCpusModel:  "CPU model",
+  hostCpusModel: 'CPU model',
 
   // Original text: "Core (socket)"
-  hostCpusNumber:  "Core (socket)",
+  hostCpusNumber: 'Core (socket)',
 
   // Original text: "Manufacturer info"
-  hostManufacturerinfo:  "Manufacturer info",
+  hostManufacturerinfo: 'Manufacturer info',
 
   // Original text: "BIOS info"
-  hostBiosinfo:  "BIOS info",
+  hostBiosinfo: 'BIOS info',
 
   // Original text: "Licence"
-  licenseHostSettingsLabel:  "Licence",
+  licenseHostSettingsLabel: 'Licence',
 
   // Original text: "Type"
-  hostLicenseType:  "Type",
+  hostLicenseType: 'Type',
 
   // Original text: "Socket"
-  hostLicenseSocket:  "Socket",
+  hostLicenseSocket: 'Socket',
 
   // Original text: "Expiry"
-  hostLicenseExpiry:  "Expiry",
+  hostLicenseExpiry: 'Expiry',
 
   // Original text: "Installed supplemental packs"
-  supplementalPacks:  "Installed supplemental packs",
+  supplementalPacks: 'Installed supplemental packs',
 
   // Original text: "Install new supplemental pack"
-  supplementalPackNew:  "Install new supplemental pack",
+  supplementalPackNew: 'Install new supplemental pack',
 
   // Original text: "Install supplemental pack on every host"
-  supplementalPackPoolNew:  "Install supplemental pack on every host",
+  supplementalPackPoolNew: 'Install supplemental pack on every host',
 
   // Original text: "{name} (by {author})"
-  supplementalPackTitle:  "{name} (by {author})",
+  supplementalPackTitle: '{name} (by {author})',
 
   // Original text: "Installation started"
-  supplementalPackInstallStartedTitle:  "Installation started",
+  supplementalPackInstallStartedTitle: 'Installation started',
 
   // Original text: "Installing new supplemental pack…"
-  supplementalPackInstallStartedMessage:  "Installing new supplemental pack…",
+  supplementalPackInstallStartedMessage: 'Installing new supplemental pack…',
 
   // Original text: "Installation error"
-  supplementalPackInstallErrorTitle:  "Installation error",
+  supplementalPackInstallErrorTitle: 'Installation error',
 
   // Original text: "The installation of the supplemental pack failed."
-  supplementalPackInstallErrorMessage:  "The installation of the supplemental pack failed.",
+  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
 
   // Original text: "Installation success"
-  supplementalPackInstallSuccessTitle:  "Installation success",
+  supplementalPackInstallSuccessTitle: 'Installation success',
 
   // Original text: "Supplemental pack successfully installed."
-  supplementalPackInstallSuccessMessage:  "Supplemental pack successfully installed.",
+  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
 
   // Original text: "Add a network"
-  networkCreateButton:  "Add a network",
+  networkCreateButton: 'Add a network',
 
   // Original text: "Add a bonded network"
-  networkCreateBondedButton:  "Add a bonded network",
+  networkCreateBondedButton: 'Add a bonded network',
 
   // Original text: "Device"
-  pifDeviceLabel:  "Device",
+  pifDeviceLabel: 'Device',
 
   // Original text: "Network"
-  pifNetworkLabel:  "Network",
+  pifNetworkLabel: 'Network',
 
   // Original text: "VLAN"
-  pifVlanLabel:  "VLAN",
+  pifVlanLabel: 'VLAN',
 
   // Original text: "Address"
-  pifAddressLabel:  "Address",
+  pifAddressLabel: 'Address',
 
   // Original text: "Mode"
-  pifModeLabel:  "Mode",
+  pifModeLabel: 'Mode',
 
   // Original text: "MAC"
-  pifMacLabel:  "MAC",
+  pifMacLabel: 'MAC',
 
   // Original text: "MTU"
   pifMtuLabel: 'MTU',
 
   // Original text: "Status"
-  pifStatusLabel:  "Status",
+  pifStatusLabel: 'Status',
 
   // Original text: "Connected"
-  pifStatusConnected:  "Connected",
+  pifStatusConnected: 'Connected',
 
   // Original text: "Disconnected"
-  pifStatusDisconnected:  "Disconnected",
+  pifStatusDisconnected: 'Disconnected',
 
   // Original text: "No physical interface detected"
-  pifNoInterface:  "No physical interface detected",
+  pifNoInterface: 'No physical interface detected',
 
   // Original text: "This interface is currently in use"
-  pifInUse:  "This interface is currently in use",
+  pifInUse: 'This interface is currently in use',
 
   // Original text: "Action"
-  pifAction:  "Action",
+  pifAction: 'Action',
 
   // Original text: "Default locking mode"
-  defaultLockingMode:  "Default locking mode",
+  defaultLockingMode: 'Default locking mode',
 
   // Original text: "Configure IP address"
-  pifConfigureIp:  "Configure IP address",
+  pifConfigureIp: 'Configure IP address',
 
   // Original text: "Invalid parameters"
-  configIpErrorTitle:  "Invalid parameters",
+  configIpErrorTitle: 'Invalid parameters',
 
   // Original text: "Static IP address"
-  staticIp:  "Static IP address",
+  staticIp: 'Static IP address',
 
   // Original text: "Netmask"
-  netmask:  "Netmask",
+  netmask: 'Netmask',
 
   // Original text: "DNS"
-  dns:  "DNS",
+  dns: 'DNS',
 
   // Original text: "Gateway"
-  gateway:  "Gateway",
+  gateway: 'Gateway',
 
   // Original text: "Add a storage"
-  addSrDeviceButton:  "Add a storage",
+  addSrDeviceButton: 'Add a storage',
 
   // Original text: "Name"
-  srNameLabel:  "Name",
+  srNameLabel: 'Name',
 
   // Original text: "Type"
-  srType:  "Type",
+  srType: 'Type',
 
   // Original text: "Action"
-  pbdAction:  "Action",
+  pbdAction: 'Action',
 
   // Original text: "Status"
-  pbdStatus:  "Status",
+  pbdStatus: 'Status',
 
   // Original text: "Connected"
-  pbdStatusConnected:  "Connected",
+  pbdStatusConnected: 'Connected',
 
   // Original text: "Disconnected"
-  pbdStatusDisconnected:  "Disconnected",
+  pbdStatusDisconnected: 'Disconnected',
 
   // Original text: "Connect"
-  pbdConnect:  "Connect",
+  pbdConnect: 'Connect',
 
   // Original text: "Disconnect"
-  pbdDisconnect:  "Disconnect",
+  pbdDisconnect: 'Disconnect',
 
   // Original text: "Forget"
-  pbdForget:  "Forget",
+  pbdForget: 'Forget',
 
   // Original text: "Shared"
-  srShared:  "Shared",
+  srShared: 'Shared',
 
   // Original text: "Not shared"
-  srNotShared:  "Not shared",
+  srNotShared: 'Not shared',
 
   // Original text: "No storage detected"
-  pbdNoSr:  "No storage detected",
+  pbdNoSr: 'No storage detected',
 
   // Original text: "Name"
-  patchNameLabel:  "Name",
+  patchNameLabel: 'Name',
 
   // Original text: "Install all patches"
-  patchUpdateButton:  "Install all patches",
+  patchUpdateButton: 'Install all patches',
 
   // Original text: "Description"
-  patchDescription:  "Description",
+  patchDescription: 'Description',
 
   // Original text: "Applied date"
-  patchApplied:  "Applied date",
+  patchApplied: 'Applied date',
 
   // Original text: "Size"
-  patchSize:  "Size",
+  patchSize: 'Size',
 
   // Original text: "Status"
-  patchStatus:  "Status",
+  patchStatus: 'Status',
 
   // Original text: "Applied"
-  patchStatusApplied:  "Applied",
+  patchStatusApplied: 'Applied',
 
   // Original text: "Missing patches"
-  patchStatusNotApplied:  "Missing patches",
+  patchStatusNotApplied: 'Missing patches',
 
   // Original text: "No patch detected"
-  patchNothing:  "No patch detected",
+  patchNothing: 'No patch detected',
 
   // Original text: "Release date"
-  patchReleaseDate:  "Release date",
+  patchReleaseDate: 'Release date',
 
   // Original text: "Guidance"
-  patchGuidance:  "Guidance",
+  patchGuidance: 'Guidance',
 
   // Original text: "Action"
-  patchAction:  "Action",
+  patchAction: 'Action',
 
   // Original text: "Applied patches"
-  hostAppliedPatches:  "Applied patches",
+  hostAppliedPatches: 'Applied patches',
 
   // Original text: "Missing patches"
-  hostMissingPatches:  "Missing patches",
+  hostMissingPatches: 'Missing patches',
 
   // Original text: "Host up-to-date!"
-  hostUpToDate:  "Host up-to-date!",
+  hostUpToDate: 'Host up-to-date!',
 
   // Original text: "Non-recommended patch install"
-  installPatchWarningTitle:  "Non-recommended patch install",
+  installPatchWarningTitle: 'Non-recommended patch install',
 
   // Original text: "This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway"
   installPatchWarningContent:
-  "This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway",
+    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
 
   // Original text: "Go to pool"
-  installPatchWarningReject:  "Go to pool",
+  installPatchWarningReject: 'Go to pool',
 
   // Original text: "Install"
-  installPatchWarningResolve:  "Install",
+  installPatchWarningResolve: 'Install',
 
   // Original text: "Refresh patches"
-  refreshPatches:  "Refresh patches",
+  refreshPatches: 'Refresh patches',
 
   // Original text: "Install pool patches"
-  installPoolPatches:  "Install pool patches",
+  installPoolPatches: 'Install pool patches',
 
   // Original text: "Default SR"
-  defaultSr:  "Default SR",
+  defaultSr: 'Default SR',
 
   // Original text: "Set as default SR"
-  setAsDefaultSr:  "Set as default SR",
+  setAsDefaultSr: 'Set as default SR',
 
   // Original text: "General"
-  generalTabName:  "General",
+  generalTabName: 'General',
 
   // Original text: "Stats"
-  statsTabName:  "Stats",
+  statsTabName: 'Stats',
 
   // Original text: "Console"
-  consoleTabName:  "Console",
+  consoleTabName: 'Console',
 
   // Original text: "Container"
-  containersTabName:  "Container",
+  containersTabName: 'Container',
 
   // Original text: "Snapshots"
-  snapshotsTabName:  "Snapshots",
+  snapshotsTabName: 'Snapshots',
 
   // Original text: "Logs"
-  logsTabName:  "Logs",
+  logsTabName: 'Logs',
 
   // Original text: "Advanced"
-  advancedTabName:  "Advanced",
+  advancedTabName: 'Advanced',
 
   // Original text: "Network"
-  networkTabName:  "Network",
+  networkTabName: 'Network',
 
   // Original text: "Disk{disks, plural, one {} other {s}}"
-  disksTabName:  "Disk{disks, plural, one {} other {s}}",
+  disksTabName: 'Disk{disks, plural, one {} other {s}}',
 
   // Original text: "halted"
-  powerStateHalted:  "halted",
+  powerStateHalted: 'halted',
 
   // Original text: "running"
-  powerStateRunning:  "running",
+  powerStateRunning: 'running',
 
   // Original text: "suspended"
-  powerStateSuspended:  "suspended",
+  powerStateSuspended: 'suspended',
 
   // Original text: "No Xen tools detected"
-  vmStatus:  "No Xen tools detected",
+  vmStatus: 'No Xen tools detected',
 
   // Original text: "No IPv4 record"
-  vmName:  "No IPv4 record",
+  vmName: 'No IPv4 record',
 
   // Original text: "No IP record"
-  vmDescription:  "No IP record",
+  vmDescription: 'No IP record',
 
   // Original text: "Started {ago}"
-  vmSettings:  "Started {ago}",
+  vmSettings: 'Started {ago}',
 
   // Original text: "Current status:"
-  vmCurrentStatus:  "Current status:",
+  vmCurrentStatus: 'Current status:',
 
   // Original text: "Not running"
-  vmNotRunning:  "Not running",
+  vmNotRunning: 'Not running',
 
   // Original text: "Halted {ago}"
-  vmHaltedSince:  "Halted {ago}",
+  vmHaltedSince: 'Halted {ago}',
 
   // Original text: "No Xen tools detected"
-  noToolsDetected:  "No Xen tools detected",
+  noToolsDetected: 'No Xen tools detected',
 
   // Original text: "No IPv4 record"
-  noIpv4Record:  "No IPv4 record",
+  noIpv4Record: 'No IPv4 record',
 
   // Original text: "No IP record"
-  noIpRecord:  "No IP record",
+  noIpRecord: 'No IP record',
 
   // Original text: "Started {ago}"
-  started:  "Started {ago}",
+  started: 'Started {ago}',
 
   // Original text: "Paravirtualization (PV)"
-  paraVirtualizedMode:  "Paravirtualization (PV)",
+  paraVirtualizedMode: 'Paravirtualization (PV)',
 
   // Original text: "Hardware virtualization (HVM)"
-  hardwareVirtualizedMode:  "Hardware virtualization (HVM)",
+  hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
 
   // Original text: "CPU usage"
-  statsCpu:  "CPU usage",
+  statsCpu: 'CPU usage',
 
   // Original text: "Memory usage"
-  statsMemory:  "Memory usage",
+  statsMemory: 'Memory usage',
 
   // Original text: "Network throughput"
-  statsNetwork:  "Network throughput",
+  statsNetwork: 'Network throughput',
 
   // Original text: "Stacked values"
-  useStackedValuesOnStats:  "Stacked values",
+  useStackedValuesOnStats: 'Stacked values',
 
   // Original text: "Disk throughput"
-  statDisk:  "Disk throughput",
+  statDisk: 'Disk throughput',
 
   // Original text: "Last 10 minutes"
-  statLastTenMinutes:  "Last 10 minutes",
+  statLastTenMinutes: 'Last 10 minutes',
 
   // Original text: "Last 2 hours"
-  statLastTwoHours:  "Last 2 hours",
+  statLastTwoHours: 'Last 2 hours',
 
   // Original text: "Last week"
-  statLastWeek:  "Last week",
+  statLastWeek: 'Last week',
 
   // Original text: "Last year"
-  statLastYear:  "Last year",
+  statLastYear: 'Last year',
 
   // Original text: "Copy"
-  copyToClipboardLabel:  "Copy",
+  copyToClipboardLabel: 'Copy',
 
   // Original text: "Ctrl+Alt+Del"
-  ctrlAltDelButtonLabel:  "Ctrl+Alt+Del",
+  ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
 
   // Original text: "Tip:"
-  tipLabel:  "Tip:",
+  tipLabel: 'Tip:',
 
   // Original text: "Hide infos"
-  hideHeaderTooltip:  "Hide infos",
+  hideHeaderTooltip: 'Hide infos',
 
   // Original text: "Show infos"
-  showHeaderTooltip:  "Show infos",
+  showHeaderTooltip: 'Show infos',
 
   // Original text: "Name"
-  containerName:  "Name",
+  containerName: 'Name',
 
   // Original text: "Command"
-  containerCommand:  "Command",
+  containerCommand: 'Command',
 
   // Original text: "Creation date"
-  containerCreated:  "Creation date",
+  containerCreated: 'Creation date',
 
   // Original text: "Status"
-  containerStatus:  "Status",
+  containerStatus: 'Status',
 
   // Original text: "Action"
-  containerAction:  "Action",
+  containerAction: 'Action',
 
   // Original text: "No existing containers"
-  noContainers:  "No existing containers",
+  noContainers: 'No existing containers',
 
   // Original text: "Stop this container"
-  containerStop:  "Stop this container",
+  containerStop: 'Stop this container',
 
   // Original text: "Start this container"
-  containerStart:  "Start this container",
+  containerStart: 'Start this container',
 
   // Original text: "Pause this container"
-  containerPause:  "Pause this container",
+  containerPause: 'Pause this container',
 
   // Original text: "Resume this container"
-  containerResume:  "Resume this container",
+  containerResume: 'Resume this container',
 
   // Original text: "Restart this container"
-  containerRestart:  "Restart this container",
+  containerRestart: 'Restart this container',
 
   // Original text: "Action"
-  vdiAction:  "Action",
+  vdiAction: 'Action',
 
   // Original text: "Attach disk"
-  vdiAttachDevice:  "Attach disk",
+  vdiAttachDevice: 'Attach disk',
 
   // Original text: "New disk"
-  vbdCreateDeviceButton:  "New disk",
+  vbdCreateDeviceButton: 'New disk',
 
   // Original text: "Boot order"
-  vdiBootOrder:  "Boot order",
+  vdiBootOrder: 'Boot order',
 
   // Original text: "Name"
-  vdiNameLabel:  "Name",
+  vdiNameLabel: 'Name',
 
   // Original text: "Description"
-  vdiNameDescription:  "Description",
+  vdiNameDescription: 'Description',
 
   // Original text: "Pool"
-  vdiPool:  "Pool",
+  vdiPool: 'Pool',
 
   // Original text: "Disconnect"
-  vdiDisconnect:  "Disconnect",
+  vdiDisconnect: 'Disconnect',
 
   // Original text: "Tags"
-  vdiTags:  "Tags",
+  vdiTags: 'Tags',
 
   // Original text: "Size"
-  vdiSize:  "Size",
+  vdiSize: 'Size',
 
   // Original text: "SR"
-  vdiSr:  "SR",
+  vdiSr: 'SR',
 
   // Original text: "VM"
-  vdiVm:  "VM",
+  vdiVm: 'VM',
 
   // Original text: "Migrate VDI"
-  vdiMigrate:  "Migrate VDI",
+  vdiMigrate: 'Migrate VDI',
 
   // Original text: "Destination SR:"
-  vdiMigrateSelectSr:  "Destination SR:",
+  vdiMigrateSelectSr: 'Destination SR:',
 
   // Original text: "No SR"
-  vdiMigrateNoSr:  "No SR",
+  vdiMigrateNoSr: 'No SR',
 
   // Original text: "A target SR is required to migrate a VDI"
-  vdiMigrateNoSrMessage:  "A target SR is required to migrate a VDI",
+  vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
 
   // Original text: "Forget"
-  vdiForget:  "Forget",
+  vdiForget: 'Forget',
 
   // Original text: "Remove VDI"
-  vdiRemove:  "Remove VDI",
+  vdiRemove: 'Remove VDI',
 
   // Original text: "No VDIs attached to Control Domain"
-  noControlDomainVdis:  "No VDIs attached to Control Domain",
+  noControlDomainVdis: 'No VDIs attached to Control Domain',
 
   // Original text: "Boot flag"
-  vbdBootableStatus:  "Boot flag",
+  vbdBootableStatus: 'Boot flag',
 
   // Original text: "Status"
-  vbdStatus:  "Status",
+  vbdStatus: 'Status',
 
   // Original text: "Connected"
-  vbdStatusConnected:  "Connected",
+  vbdStatusConnected: 'Connected',
 
   // Original text: "Disconnected"
-  vbdStatusDisconnected:  "Disconnected",
+  vbdStatusDisconnected: 'Disconnected',
 
   // Original text: "No disks"
-  vbdNoVbd:  "No disks",
+  vbdNoVbd: 'No disks',
 
   // Original text: "Connect VBD"
-  vbdConnect:  "Connect VBD",
+  vbdConnect: 'Connect VBD',
 
   // Original text: "Disconnect VBD"
-  vbdDisconnect:  "Disconnect VBD",
+  vbdDisconnect: 'Disconnect VBD',
 
   // Original text: "Bootable"
-  vbdBootable:  "Bootable",
+  vbdBootable: 'Bootable',
 
   // Original text: "Readonly"
-  vbdReadonly:  "Readonly",
+  vbdReadonly: 'Readonly',
 
   // Original text: "Action"
-  vbdAction:  "Action",
+  vbdAction: 'Action',
 
   // Original text: "Create"
-  vbdCreate:  "Create",
+  vbdCreate: 'Create',
 
   // Original text: "Disk name"
-  vbdNamePlaceHolder:  "Disk name",
+  vbdNamePlaceHolder: 'Disk name',
 
   // Original text: "Size"
-  vbdSizePlaceHolder:  "Size",
+  vbdSizePlaceHolder: 'Size',
 
   // Original text: "CD drive not completely installed"
-  cdDriveNotInstalled:  "CD drive not completely installed",
+  cdDriveNotInstalled: 'CD drive not completely installed',
 
   // Original text: "Stop and start the VM to install the CD drive"
-  cdDriveInstallation:  "Stop and start the VM to install the CD drive",
+  cdDriveInstallation: 'Stop and start the VM to install the CD drive',
 
   // Original text: "Save"
-  saveBootOption:  "Save",
+  saveBootOption: 'Save',
 
   // Original text: "Reset"
-  resetBootOption:  "Reset",
+  resetBootOption: 'Reset',
 
   // Original text: "New device"
-  vifCreateDeviceButton:  "New device",
+  vifCreateDeviceButton: 'New device',
 
   // Original text: "No interface"
-  vifNoInterface:  "No interface",
+  vifNoInterface: 'No interface',
 
   // Original text: "Device"
-  vifDeviceLabel:  "Device",
+  vifDeviceLabel: 'Device',
 
   // Original text: "MAC address"
-  vifMacLabel:  "MAC address",
+  vifMacLabel: 'MAC address',
 
   // Original text: "MTU"
-  vifMtuLabel:  "MTU",
+  vifMtuLabel: 'MTU',
 
   // Original text: "Network"
-  vifNetworkLabel:  "Network",
+  vifNetworkLabel: 'Network',
 
   // Original text: "Status"
-  vifStatusLabel:  "Status",
+  vifStatusLabel: 'Status',
 
   // Original text: "Connected"
-  vifStatusConnected:  "Connected",
+  vifStatusConnected: 'Connected',
 
   // Original text: "Disconnected"
-  vifStatusDisconnected:  "Disconnected",
+  vifStatusDisconnected: 'Disconnected',
 
   // Original text: "Connect"
-  vifConnect:  "Connect",
+  vifConnect: 'Connect',
 
   // Original text: "Disconnect"
-  vifDisconnect:  "Disconnect",
+  vifDisconnect: 'Disconnect',
 
   // Original text: "Remove"
-  vifRemove:  "Remove",
+  vifRemove: 'Remove',
 
   // Original text: "IP addresses"
-  vifIpAddresses:  "IP addresses",
+  vifIpAddresses: 'IP addresses',
 
   // Original text: "Auto-generated if empty"
-  vifMacAutoGenerate:  "Auto-generated if empty",
+  vifMacAutoGenerate: 'Auto-generated if empty',
 
   // Original text: "Allowed IPs"
-  vifAllowedIps:  "Allowed IPs",
+  vifAllowedIps: 'Allowed IPs',
 
   // Original text: "No IPs"
-  vifNoIps:  "No IPs",
+  vifNoIps: 'No IPs',
 
   // Original text: "Network locked"
-  vifLockedNetwork:  "Network locked",
+  vifLockedNetwork: 'Network locked',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps:  "Network locked and no IPs are allowed for this interface",
+  vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
 
   // Original text: "Network not locked"
-  vifUnLockedNetwork:  "Network not locked",
+  vifUnLockedNetwork: 'Network not locked',
 
   // Original text: "Unknown network"
-  vifUnknownNetwork:  "Unknown network",
+  vifUnknownNetwork: 'Unknown network',
 
   // Original text: "Action"
-  vifAction:  "Action",
+  vifAction: 'Action',
 
   // Original text: "Create"
-  vifCreate:  "Create",
+  vifCreate: 'Create',
 
   // Original text: "No snapshots"
-  noSnapshots:  "No snapshots",
+  noSnapshots: 'No snapshots',
 
   // Original text: "New snapshot"
-  snapshotCreateButton:  "New snapshot",
+  snapshotCreateButton: 'New snapshot',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel:  "Just click on the snapshot button to create one!",
+  tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
 
   // Original text: "Revert VM to this snapshot"
-  revertSnapshot:  "Revert VM to this snapshot",
+  revertSnapshot: 'Revert VM to this snapshot',
 
   // Original text: "Remove this snapshot"
-  deleteSnapshot:  "Remove this snapshot",
+  deleteSnapshot: 'Remove this snapshot',
 
   // Original text: "Create a VM from this snapshot"
-  copySnapshot:  "Create a VM from this snapshot",
+  copySnapshot: 'Create a VM from this snapshot',
 
   // Original text: "Export this snapshot"
-  exportSnapshot:  "Export this snapshot",
+  exportSnapshot: 'Export this snapshot',
 
   // Original text: "Creation date"
-  snapshotDate:  "Creation date",
+  snapshotDate: 'Creation date',
 
   // Original text: "Name"
-  snapshotName:  "Name",
+  snapshotName: 'Name',
 
   // Original text: "Name"
-  snapshotDescription:  "Name",
+  snapshotDescription: 'Name',
 
   // Original text: "Action"
-  snapshotAction:  "Action",
+  snapshotAction: 'Action',
 
   // Original text: "Quiesced snapshot"
-  snapshotQuiesce:  "Quiesced snapshot",
+  snapshotQuiesce: 'Quiesced snapshot',
 
   // Original text: "Remove all logs"
-  logRemoveAll:  "Remove all logs",
+  logRemoveAll: 'Remove all logs',
 
   // Original text: "No logs so far"
-  noLogs:  "No logs so far",
+  noLogs: 'No logs so far',
 
   // Original text: "Creation date"
-  logDate:  "Creation date",
+  logDate: 'Creation date',
 
   // Original text: "Name"
-  logName:  "Name",
+  logName: 'Name',
 
   // Original text: "Content"
-  logContent:  "Content",
+  logContent: 'Content',
 
   // Original text: "Action"
-  logAction:  "Action",
+  logAction: 'Action',
 
   // Original text: "Remove"
-  vmRemoveButton:  "Remove",
+  vmRemoveButton: 'Remove',
 
   // Original text: "Convert"
-  vmConvertButton:  "Convert",
+  vmConvertButton: 'Convert',
 
   // Original text: "Xen settings"
-  xenSettingsLabel:  "Xen settings",
+  xenSettingsLabel: 'Xen settings',
 
   // Original text: "Guest OS"
-  guestOsLabel:  "Guest OS",
+  guestOsLabel: 'Guest OS',
 
   // Original text: "Misc"
-  miscLabel:  "Misc",
+  miscLabel: 'Misc',
 
   // Original text: "UUID"
-  uuid:  "UUID",
+  uuid: 'UUID',
 
   // Original text: "Virtualization mode"
-  virtualizationMode:  "Virtualization mode",
+  virtualizationMode: 'Virtualization mode',
 
   // Original text: "CPU weight"
-  cpuWeightLabel:  "CPU weight",
+  cpuWeightLabel: 'CPU weight',
 
   // Original text: "Default ({value, number})"
-  defaultCpuWeight:  "Default ({value, number})",
+  defaultCpuWeight: 'Default ({value, number})',
 
   // Original text: "CPU cap"
-  cpuCapLabel:  "CPU cap",
+  cpuCapLabel: 'CPU cap',
 
   // Original text: "Default ({value, number})"
-  defaultCpuCap:  "Default ({value, number})",
+  defaultCpuCap: 'Default ({value, number})',
 
   // Original text: "PV args"
-  pvArgsLabel:  "PV args",
+  pvArgsLabel: 'PV args',
 
   // Original text: "Xen tools status"
-  xenToolsStatus:  "Xen tools status",
+  xenToolsStatus: 'Xen tools status',
 
   // Original text: "{status}"
-  xenToolsStatusValue:  "{status}",
+  xenToolsStatusValue: '{status}',
 
   // Original text: "OS name"
-  osName:  "OS name",
+  osName: 'OS name',
 
   // Original text: "OS kernel"
-  osKernel:  "OS kernel",
+  osKernel: 'OS kernel',
 
   // Original text: "Auto power on"
-  autoPowerOn:  "Auto power on",
+  autoPowerOn: 'Auto power on',
 
   // Original text: "HA"
-  ha:  "HA",
+  ha: 'HA',
 
   // Original text: "Affinity host"
-  vmAffinityHost:  "Affinity host",
+  vmAffinityHost: 'Affinity host',
 
   // Original text: "VGA"
-  vmVga:  "VGA",
+  vmVga: 'VGA',
 
   // Original text: "Video RAM"
-  vmVideoram:  "Video RAM",
+  vmVideoram: 'Video RAM',
 
   // Original text: "None"
-  noAffinityHost:  "None",
+  noAffinityHost: 'None',
 
   // Original text: "Original template"
-  originalTemplate:  "Original template",
+  originalTemplate: 'Original template',
 
   // Original text: "Unknown"
-  unknownOsName:  "Unknown",
+  unknownOsName: 'Unknown',
 
   // Original text: "Unknown"
-  unknownOsKernel:  "Unknown",
+  unknownOsKernel: 'Unknown',
 
   // Original text: "Unknown"
-  unknownOriginalTemplate:  "Unknown",
+  unknownOriginalTemplate: 'Unknown',
 
   // Original text: "VM limits"
-  vmLimitsLabel:  "VM limits",
+  vmLimitsLabel: 'VM limits',
 
   // Original text: "CPU limits"
-  vmCpuLimitsLabel:  "CPU limits",
+  vmCpuLimitsLabel: 'CPU limits',
 
   // Original text: "Topology"
-  vmCpuTopology:  "Topology",
+  vmCpuTopology: 'Topology',
 
   // Original text: "Default behavior"
-  vmChooseCoresPerSocket:  "Default behavior",
+  vmChooseCoresPerSocket: 'Default behavior',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
   vmSocketsWithCoresPerSocket:
-  "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket",
+    '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
 
   // Original text: "Incorrect cores per socket value"
-  vmCoresPerSocketIncorrectValue:  "Incorrect cores per socket value",
+  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
 
   // Original text: "Please change the selected value to fix it."
-  vmCoresPerSocketIncorrectValueSolution:  "Please change the selected value to fix it.",
+  vmCoresPerSocketIncorrectValueSolution: 'Please change the selected value to fix it.',
 
   // Original text: "Memory limits (min/max)"
-  vmMemoryLimitsLabel:  "Memory limits (min/max)",
+  vmMemoryLimitsLabel: 'Memory limits (min/max)',
 
   // Original text: "vCPUs max:"
-  vmMaxVcpus:  "vCPUs max:",
+  vmMaxVcpus: 'vCPUs max:',
 
   // Original text: "Memory max:"
-  vmMaxRam:  "Memory max:",
+  vmMaxRam: 'Memory max:',
 
   // Original text: "Long click to add a name"
-  vmHomeNamePlaceholder:  "Long click to add a name",
+  vmHomeNamePlaceholder: 'Long click to add a name',
 
   // Original text: "Long click to add a description"
-  vmHomeDescriptionPlaceholder:  "Long click to add a description",
+  vmHomeDescriptionPlaceholder: 'Long click to add a description',
 
   // Original text: "Click to add a name"
-  vmViewNamePlaceholder:  "Click to add a name",
+  vmViewNamePlaceholder: 'Click to add a name',
 
   // Original text: "Click to add a description"
-  vmViewDescriptionPlaceholder:  "Click to add a description",
+  vmViewDescriptionPlaceholder: 'Click to add a description',
 
   // Original text: "Click to add a name"
-  templateHomeNamePlaceholder:  "Click to add a name",
+  templateHomeNamePlaceholder: 'Click to add a name',
 
   // Original text: "Click to add a description"
-  templateHomeDescriptionPlaceholder:  "Click to add a description",
+  templateHomeDescriptionPlaceholder: 'Click to add a description',
 
   // Original text: "Delete template"
-  templateDelete:  "Delete template",
+  templateDelete: 'Delete template',
 
   // Original text: "Delete VM template{templates, plural, one {} other {s}}"
-  templateDeleteModalTitle:  "Delete VM template{templates, plural, one {} other {s}}",
+  templateDeleteModalTitle: 'Delete VM template{templates, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?"
-  templateDeleteModalBody:  "Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?",
+  templateDeleteModalBody:
+    'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
-  poolPanel:  "プール数{pools, plural, one {} other {s}}",
+  poolPanel: 'プール数{pools, plural, one {} other {s}}',
 
   // Original text: "Host{hosts, plural, one {} other {s}}"
-  hostPanel:  "ホスト数{hosts, plural, one {} other {s}}",
+  hostPanel: 'ホスト数{hosts, plural, one {} other {s}}',
 
   // Original text: "VM{vms, plural, one {} other {s}}"
-  vmPanel:  "VM数{vms, plural, one {} other {s}}",
+  vmPanel: 'VM数{vms, plural, one {} other {s}}',
 
   // Original text: "RAM Usage:"
-  memoryStatePanel:  "メモリ利用量:",
+  memoryStatePanel: 'メモリ利用量:',
 
   // Original text: "CPUs Usage"
-  cpuStatePanel:  "CPU利用量",
+  cpuStatePanel: 'CPU利用量',
 
   // Original text: "VMs Power state"
-  vmStatePanel:  "VMの稼働と停止率",
+  vmStatePanel: 'VMの稼働と停止率',
 
   // Original text: "Pending tasks"
-  taskStatePanel:  "実行待ちタスク数",
+  taskStatePanel: '実行待ちタスク数',
 
   // Original text: "Users"
-  usersStatePanel:  "ユーザ数",
+  usersStatePanel: 'ユーザ数',
 
   // Original text: "Storage state"
-  srStatePanel:  "Storage state",
+  srStatePanel: 'Storage state',
 
   // Original text: "{usage} (of {total})"
-  ofUsage:  "{usage} (of {total})",
+  ofUsage: '{usage} (of {total})',
 
   // Original text: "No storage"
-  noSrs:  "No storage",
+  noSrs: 'No storage',
 
   // Original text: "Name"
-  srName:  "Name",
+  srName: 'Name',
 
   // Original text: "Pool"
-  srPool:  "Pool",
+  srPool: 'Pool',
 
   // Original text: "Host"
-  srHost:  "Host",
+  srHost: 'Host',
 
   // Original text: "Type"
-  srFormat:  "Type",
+  srFormat: 'Type',
 
   // Original text: "Size"
-  srSize:  "Size",
+  srSize: 'Size',
 
   // Original text: "Usage"
-  srUsage:  "Usage",
+  srUsage: 'Usage',
 
   // Original text: "used"
-  srUsed:  "used",
+  srUsed: 'used',
 
   // Original text: "free"
-  srFree:  "free",
+  srFree: 'free',
 
   // Original text: "Storage Usage"
-  srUsageStatePanel:  "ストレージ(SR)利用量",
+  srUsageStatePanel: 'ストレージ(SR)利用量',
 
   // Original text: "Top 5 SR Usage (in %)"
-  srTopUsageStatePanel:  "ストレージ利用の上位5位(%換算)",
+  srTopUsageStatePanel: 'ストレージ利用の上位5位(%換算)',
 
   // Original text: "{running, number} running ({halted, number} halted)"
-  vmsStates:  "可動中：{running, number} 停止中：{halted, number}",
+  vmsStates: '可動中：{running, number} 停止中：{halted, number}',
 
   // Original text: "Clear selection"
-  dashboardStatsButtonRemoveAll:  "Clear selection",
+  dashboardStatsButtonRemoveAll: 'Clear selection',
 
   // Original text: "Add all hosts"
-  dashboardStatsButtonAddAllHost:  "Add all hosts",
+  dashboardStatsButtonAddAllHost: 'Add all hosts',
 
   // Original text: "Add all VMs"
-  dashboardStatsButtonAddAllVM:  "Add all VMs",
+  dashboardStatsButtonAddAllVM: 'Add all VMs',
 
   // Original text: "{value} {date, date, medium}"
-  weekHeatmapData:  "{value} {date, date, medium}",
+  weekHeatmapData: '{value} {date, date, medium}',
 
   // Original text: "No data."
-  weekHeatmapNoData:  "No data.",
+  weekHeatmapNoData: 'No data.',
 
   // Original text: "Weekly Heatmap"
-  weeklyHeatmap:  "Weekly Heatmap",
+  weeklyHeatmap: 'Weekly Heatmap',
 
   // Original text: "Weekly Charts"
-  weeklyCharts:  "Weekly Charts",
+  weeklyCharts: 'Weekly Charts',
 
   // Original text: "Synchronize scale:"
-  weeklyChartsScaleInfo:  "Synchronize scale:",
+  weeklyChartsScaleInfo: 'Synchronize scale:',
 
   // Original text: "Stats error"
-  statsDashboardGenericErrorTitle:  "Stats error",
+  statsDashboardGenericErrorTitle: 'Stats error',
 
   // Original text: "There is no stats available for:"
-  statsDashboardGenericErrorMessage:  "There is no stats available for:",
+  statsDashboardGenericErrorMessage: 'There is no stats available for:',
 
   // Original text: "No selected metric"
-  noSelectedMetric:  "No selected metric",
+  noSelectedMetric: 'No selected metric',
 
   // Original text: "Select"
-  statsDashboardSelectObjects:  "Select",
+  statsDashboardSelectObjects: 'Select',
 
   // Original text: "Loading…"
-  metricsLoading:  "Loading…",
+  metricsLoading: 'Loading…',
 
   // Original text: "Coming soon!"
-  comingSoon:  "Coming soon!",
+  comingSoon: 'Coming soon!',
 
   // Original text: "Orphaned snapshot VDIs"
-  orphanedVdis:  "Orphaned snapshot VDIs",
+  orphanedVdis: 'Orphaned snapshot VDIs',
 
   // Original text: "Orphaned VMs snapshot"
-  orphanedVms:  "Orphaned VMs snapshot",
+  orphanedVms: 'Orphaned VMs snapshot',
 
   // Original text: "No orphans"
-  noOrphanedObject:  "No orphans",
+  noOrphanedObject: 'No orphans',
 
   // Original text: "Remove all orphaned snapshot VDIs"
-  removeAllOrphanedObject:  "Remove all orphaned snapshot VDIs",
+  removeAllOrphanedObject: 'Remove all orphaned snapshot VDIs',
 
   // Original text: "VDIs attached to Control Domain"
-  vdisOnControlDomain:  "VDIs attached to Control Domain",
+  vdisOnControlDomain: 'VDIs attached to Control Domain',
 
   // Original text: "Name"
-  vmNameLabel:  "Name",
+  vmNameLabel: 'Name',
 
   // Original text: "Description"
-  vmNameDescription:  "Description",
+  vmNameDescription: 'Description',
 
   // Original text: "Resident on"
-  vmContainer:  "Resident on",
+  vmContainer: 'Resident on',
 
   // Original text: "Alarms"
-  alarmMessage:  "Alarms",
+  alarmMessage: 'Alarms',
 
   // Original text: "No alarms"
-  noAlarms:  "No alarms",
+  noAlarms: 'No alarms',
 
   // Original text: "Date"
-  alarmDate:  "Date",
+  alarmDate: 'Date',
 
   // Original text: "Content"
-  alarmContent:  "Content",
+  alarmContent: 'Content',
 
   // Original text: "Issue on"
-  alarmObject:  "Issue on",
+  alarmObject: 'Issue on',
 
   // Original text: "Pool"
-  alarmPool:  "Pool",
+  alarmPool: 'Pool',
 
   // Original text: "Remove all alarms"
-  alarmRemoveAll:  "Remove all alarms",
+  alarmRemoveAll: 'Remove all alarms',
 
   // Original text: "{used}% used ({free} left)"
-  spaceLeftTooltip:  "{used}% used ({free} left)",
+  spaceLeftTooltip: '{used}% used ({free} left)',
 
   // Original text: "Create a new VM on {select}"
-  newVmCreateNewVmOn:  "Create a new VM on {select}",
+  newVmCreateNewVmOn: 'Create a new VM on {select}',
 
   // Original text: "Create a new VM on {select1} or {select2}"
-  newVmCreateNewVmOn2:  "Create a new VM on {select1} or {select2}",
+  newVmCreateNewVmOn2: 'Create a new VM on {select1} or {select2}',
 
   // Original text: "You have no permission to create a VM"
-  newVmCreateNewVmNoPermission:  "You have no permission to create a VM",
+  newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
 
   // Original text: "Infos"
-  newVmInfoPanel:  "Infos",
+  newVmInfoPanel: 'Infos',
 
   // Original text: "Name"
-  newVmNameLabel:  "Name",
+  newVmNameLabel: 'Name',
 
   // Original text: "Template"
-  newVmTemplateLabel:  "Template",
+  newVmTemplateLabel: 'Template',
 
   // Original text: "Description"
-  newVmDescriptionLabel:  "Description",
+  newVmDescriptionLabel: 'Description',
 
   // Original text: "Performances"
-  newVmPerfPanel:  "Performances",
+  newVmPerfPanel: 'Performances',
 
   // Original text: "vCPUs"
-  newVmVcpusLabel:  "vCPUs",
+  newVmVcpusLabel: 'vCPUs',
 
   // Original text: "RAM"
-  newVmRamLabel:  "RAM",
+  newVmRamLabel: 'RAM',
 
   // Original text: "Static memory max"
-  newVmStaticMaxLabel:  "Static memory max",
+  newVmStaticMaxLabel: 'Static memory max',
 
   // Original text: "Dynamic memory min"
-  newVmDynamicMinLabel:  "Dynamic memory min",
+  newVmDynamicMinLabel: 'Dynamic memory min',
 
   // Original text: "Dynamic memory max"
-  newVmDynamicMaxLabel:  "Dynamic memory max",
+  newVmDynamicMaxLabel: 'Dynamic memory max',
 
   // Original text: "Install settings"
-  newVmInstallSettingsPanel:  "Install settings",
+  newVmInstallSettingsPanel: 'Install settings',
 
   // Original text: "ISO/DVD"
-  newVmIsoDvdLabel:  "ISO/DVD",
+  newVmIsoDvdLabel: 'ISO/DVD',
 
   // Original text: "Network"
-  newVmNetworkLabel:  "Network",
+  newVmNetworkLabel: 'Network',
 
   // Original text: "e.g: http://httpredir.debian.org/debian"
-  newVmInstallNetworkPlaceHolder:  "e.g: http://httpredir.debian.org/debian",
+  newVmInstallNetworkPlaceHolder: 'e.g: http://httpredir.debian.org/debian',
 
   // Original text: "PV Args"
-  newVmPvArgsLabel:  "PV Args",
+  newVmPvArgsLabel: 'PV Args',
 
   // Original text: "PXE"
-  newVmPxeLabel:  "PXE",
+  newVmPxeLabel: 'PXE',
 
   // Original text: "Interfaces"
-  newVmInterfacesPanel:  "Interfaces",
+  newVmInterfacesPanel: 'Interfaces',
 
   // Original text: "MAC"
-  newVmMacLabel:  "MAC",
+  newVmMacLabel: 'MAC',
 
   // Original text: "Add interface"
-  newVmAddInterface:  "Add interface",
+  newVmAddInterface: 'Add interface',
 
   // Original text: "Disks"
-  newVmDisksPanel:  "Disks",
+  newVmDisksPanel: 'Disks',
 
   // Original text: "SR"
-  newVmSrLabel:  "SR",
+  newVmSrLabel: 'SR',
 
   // Original text: "Size"
-  newVmSizeLabel:  "Size",
+  newVmSizeLabel: 'Size',
 
   // Original text: "Add disk"
-  newVmAddDisk:  "Add disk",
+  newVmAddDisk: 'Add disk',
 
   // Original text: "Summary"
-  newVmSummaryPanel:  "Summary",
+  newVmSummaryPanel: 'Summary',
 
   // Original text: "Create"
-  newVmCreate:  "Create",
+  newVmCreate: 'Create',
 
   // Original text: "Reset"
-  newVmReset:  "Reset",
+  newVmReset: 'Reset',
 
   // Original text: "Select template"
-  newVmSelectTemplate:  "Select template",
+  newVmSelectTemplate: 'Select template',
 
   // Original text: "SSH key"
-  newVmSshKey:  "SSH key",
+  newVmSshKey: 'SSH key',
 
   // Original text: "Config drive"
-  newVmConfigDrive:  "Config drive",
+  newVmConfigDrive: 'Config drive',
 
   // Original text: "Custom config"
-  newVmCustomConfig:  "Custom config",
+  newVmCustomConfig: 'Custom config',
 
   // Original text: "Boot VM after creation"
-  newVmBootAfterCreate:  "Boot VM after creation",
+  newVmBootAfterCreate: 'Boot VM after creation',
 
   // Original text: "Auto-generated if empty"
-  newVmMacPlaceholder:  "Auto-generated if empty",
+  newVmMacPlaceholder: 'Auto-generated if empty',
 
   // Original text: "CPU weight"
-  newVmCpuWeightLabel:  "CPU weight",
+  newVmCpuWeightLabel: 'CPU weight',
 
   // Original text: "Default: {value, number}"
-  newVmDefaultCpuWeight:  "Default: {value, number}",
+  newVmDefaultCpuWeight: 'Default: {value, number}',
 
   // Original text: "CPU cap"
-  newVmCpuCapLabel:  "CPU cap",
+  newVmCpuCapLabel: 'CPU cap',
 
   // Original text: "Default: {value, number}"
-  newVmDefaultCpuCap:  "Default: {value, number}",
+  newVmDefaultCpuCap: 'Default: {value, number}',
 
   // Original text: "Cloud config"
-  newVmCloudConfig:  "Cloud config",
+  newVmCloudConfig: 'Cloud config',
 
   // Original text: "Create VMs"
-  newVmCreateVms:  "Create VMs",
+  newVmCreateVms: 'Create VMs',
 
   // Original text: "Are you sure you want to create {nbVms, number} VMs?"
-  newVmCreateVmsConfirm:  "Are you sure you want to create {nbVms, number} VMs?",
+  newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms, number} VMs?',
 
   // Original text: "Multiple VMs:"
-  newVmMultipleVms:  "Multiple VMs:",
+  newVmMultipleVms: 'Multiple VMs:',
 
   // Original text: "Select a resource set:"
-  newVmSelectResourceSet:  "Select a resource set:",
+  newVmSelectResourceSet: 'Select a resource set:',
 
   // Original text: "Name pattern:"
-  newVmMultipleVmsPattern:  "Name pattern:",
+  newVmMultipleVmsPattern: 'Name pattern:',
 
   // Original text: "e.g.: \\{name\\}_%"
-  newVmMultipleVmsPatternPlaceholder:  "e.g.: \\{name\\}_%",
+  newVmMultipleVmsPatternPlaceholder: 'e.g.: \\{name\\}_%',
 
   // Original text: "First index:"
-  newVmFirstIndex:  "First index:",
+  newVmFirstIndex: 'First index:',
 
   // Original text: "Recalculate VMs number"
-  newVmNumberRecalculate:  "Recalculate VMs number",
+  newVmNumberRecalculate: 'Recalculate VMs number',
 
   // Original text: "Refresh VMs name"
-  newVmNameRefresh:  "Refresh VMs name",
+  newVmNameRefresh: 'Refresh VMs name',
 
   // Original text: "Affinity host"
-  newVmAffinityHost:  "Affinity host",
+  newVmAffinityHost: 'Affinity host',
 
   // Original text: "Advanced"
-  newVmAdvancedPanel:  "Advanced",
+  newVmAdvancedPanel: 'Advanced',
 
   // Original text: "Show advanced settings"
-  newVmShowAdvanced:  "Show advanced settings",
+  newVmShowAdvanced: 'Show advanced settings',
 
   // Original text: "Hide advanced settings"
-  newVmHideAdvanced:  "Hide advanced settings",
+  newVmHideAdvanced: 'Hide advanced settings',
 
   // Original text: "Share this VM"
-  newVmShare:  "Share this VM",
+  newVmShare: 'Share this VM',
 
   // Original text: "Resource sets"
-  resourceSets:  "Resource sets",
+  resourceSets: 'Resource sets',
 
   // Original text: "No resource sets."
-  noResourceSets:  "No resource sets.",
+  noResourceSets: 'No resource sets.',
 
   // Original text: "Loading resource sets"
-  loadingResourceSets:  "Loading resource sets",
+  loadingResourceSets: 'Loading resource sets',
 
   // Original text: "Resource set name"
-  resourceSetName:  "Resource set name",
+  resourceSetName: 'Resource set name',
 
   // Original text: "Recompute all limits"
-  recomputeResourceSets:  "Recompute all limits",
+  recomputeResourceSets: 'Recompute all limits',
 
   // Original text: "Save"
-  saveResourceSet:  "Save",
+  saveResourceSet: 'Save',
 
   // Original text: "Reset"
-  resetResourceSet:  "Reset",
+  resetResourceSet: 'Reset',
 
   // Original text: "Edit"
-  editResourceSet:  "Edit",
+  editResourceSet: 'Edit',
 
   // Original text: "Delete"
-  deleteResourceSet:  "Delete",
+  deleteResourceSet: 'Delete',
 
   // Original text: "Delete resource set"
-  deleteResourceSetWarning:  "Delete resource set",
+  deleteResourceSetWarning: 'Delete resource set',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion:  "Are you sure you want to delete this resource set?",
+  deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
 
   // Original text: "Missing objects:"
-  resourceSetMissingObjects:  "Missing objects:",
+  resourceSetMissingObjects: 'Missing objects:',
 
   // Original text: "vCPUs"
-  resourceSetVcpus:  "vCPUs",
+  resourceSetVcpus: 'vCPUs',
 
   // Original text: "Memory"
-  resourceSetMemory:  "Memory",
+  resourceSetMemory: 'Memory',
 
   // Original text: "Storage"
-  resourceSetStorage:  "Storage",
+  resourceSetStorage: 'Storage',
 
   // Original text: "Unknown"
-  unknownResourceSetValue:  "Unknown",
+  unknownResourceSetValue: 'Unknown',
 
   // Original text: "Available hosts"
-  availableHosts:  "Available hosts",
+  availableHosts: 'Available hosts',
 
   // Original text: "Excluded hosts"
-  excludedHosts:  "Excluded hosts",
+  excludedHosts: 'Excluded hosts',
 
   // Original text: "No hosts available."
-  noHostsAvailable:  "No hosts available.",
+  noHostsAvailable: 'No hosts available.',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:  "VMs created from this resource set shall run on the following hosts.",
+  availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
 
   // Original text: "Maximum CPUs"
-  maxCpus:  "Maximum CPUs",
+  maxCpus: 'Maximum CPUs',
 
   // Original text: "Maximum RAM (GiB)"
-  maxRam:  "Maximum RAM (GiB)",
+  maxRam: 'Maximum RAM (GiB)',
 
   // Original text: "Maximum disk space"
-  maxDiskSpace:  "Maximum disk space",
+  maxDiskSpace: 'Maximum disk space',
 
   // Original text: "IP pool"
-  ipPool:  "IP pool",
+  ipPool: 'IP pool',
 
   // Original text: "Quantity"
-  quantity:  "Quantity",
+  quantity: 'Quantity',
 
   // Original text: "No limits."
-  noResourceSetLimits:  "No limits.",
+  noResourceSetLimits: 'No limits.',
 
   // Original text: "Total:"
-  totalResource:  "Total:",
+  totalResource: 'Total:',
 
   // Original text: "Remaining:"
-  remainingResource:  "Remaining:",
+  remainingResource: 'Remaining:',
 
   // Original text: "Used:"
-  usedResource:  "Used:",
+  usedResource: 'Used:',
 
   // Original text: "New"
-  resourceSetNew:  "New",
+  resourceSetNew: 'New',
 
   // Original text: "Drop OVA or XVA files here to import Virtual Machines."
-  importVmsList:  "Drop OVA or XVA files here to import Virtual Machines.",
+  importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
 
   // Original text: "No selected VMs."
-  noSelectedVms:  "No selected VMs.",
+  noSelectedVms: 'No selected VMs.',
 
   // Original text: "To Pool:"
-  vmImportToPool:  "To Pool:",
+  vmImportToPool: 'To Pool:',
 
   // Original text: "To SR:"
-  vmImportToSr:  "To SR:",
+  vmImportToSr: 'To SR:',
 
   // Original text: "VM{nVms, plural, one {} other {s}}  to import"
-  vmsToImport:  "VM{nVms, plural, one {} other {s}}  to import",
+  vmsToImport: 'VM{nVms, plural, one {} other {s}}  to import',
 
   // Original text: "Reset"
-  importVmsCleanList:  "Reset",
+  importVmsCleanList: 'Reset',
 
   // Original text: "VM import success"
-  vmImportSuccess:  "VM import success",
+  vmImportSuccess: 'VM import success',
 
   // Original text: "VM import failed"
-  vmImportFailed:  "VM import failed",
+  vmImportFailed: 'VM import failed',
 
   // Original text: "Import starting…"
-  startVmImport:  "Import starting…",
+  startVmImport: 'Import starting…',
 
   // Original text: "Export starting…"
-  startVmExport:  "Export starting…",
+  startVmExport: 'Export starting…',
 
   // Original text: "Number of CPUs"
-  nCpus:  "Number of CPUs",
+  nCpus: 'Number of CPUs',
 
   // Original text: "Memory"
-  vmMemory:  "Memory",
+  vmMemory: 'Memory',
 
   // Original text: "Disk {position} ({capacity})"
-  diskInfo:  "Disk {position} ({capacity})",
+  diskInfo: 'Disk {position} ({capacity})',
 
   // Original text: "Disk description"
-  diskDescription:  "Disk description",
+  diskDescription: 'Disk description',
 
   // Original text: "No disks."
-  noDisks:  "No disks.",
+  noDisks: 'No disks.',
 
   // Original text: "No networks."
-  noNetworks:  "No networks.",
+  noNetworks: 'No networks.',
 
   // Original text: "Network {name}"
-  networkInfo:  "Network {name}",
+  networkInfo: 'Network {name}',
 
   // Original text: "No description available"
-  noVmImportErrorDescription:  "No description available",
+  noVmImportErrorDescription: 'No description available',
 
   // Original text: "Error:"
-  vmImportError:  "Error:",
+  vmImportError: 'Error:',
 
   // Original text: "{type} file:"
-  vmImportFileType:  "{type} file:",
+  vmImportFileType: '{type} file:',
 
   // Original text: "Please to check and/or modify the VM configuration."
-  vmImportConfigAlert:  "Please to check and/or modify the VM configuration.",
+  vmImportConfigAlert: 'Please to check and/or modify the VM configuration.',
 
   // Original text: "No pending tasks"
-  noTasks:  "No pending tasks",
+  noTasks: 'No pending tasks',
 
   // Original text: "Currently, there are not any pending XenServer tasks"
-  xsTasks:  "Currently, there are not any pending XenServer tasks",
+  xsTasks: 'Currently, there are not any pending XenServer tasks',
 
   // Original text: "Schedules"
-  backupSchedules:  "Schedules",
+  backupSchedules: 'Schedules',
 
   // Original text: "Get remote"
-  getRemote:  "Get remote",
+  getRemote: 'Get remote',
 
   // Original text: "List Remote"
-  listRemote:  "List Remote",
+  listRemote: 'List Remote',
 
   // Original text: "simple"
-  simpleBackup:  "simple",
+  simpleBackup: 'simple',
 
   // Original text: "delta"
-  delta:  "delta",
+  delta: 'delta',
 
   // Original text: "Restore Backups"
-  restoreBackups:  "Restore Backups",
+  restoreBackups: 'Restore Backups',
 
   // Original text: "Click on a VM to display restore options"
-  restoreBackupsInfo:  "Click on a VM to display restore options",
+  restoreBackupsInfo: 'Click on a VM to display restore options',
 
   // Original text: "Enabled"
-  remoteEnabled:  "Enabled",
+  remoteEnabled: 'Enabled',
 
   // Original text: "Error"
-  remoteError:  "Error",
+  remoteError: 'Error',
 
   // Original text: "No backup available"
-  noBackup:  "No backup available",
+  noBackup: 'No backup available',
 
   // Original text: "VM Name"
-  backupVmNameColumn:  "VM Name",
+  backupVmNameColumn: 'VM Name',
 
   // Original text: "Tags"
-  backupTags:  "Tags",
+  backupTags: 'Tags',
 
   // Original text: "Last Backup"
-  lastBackupColumn:  "Last Backup",
+  lastBackupColumn: 'Last Backup',
 
   // Original text: "Available Backups"
-  availableBackupsColumn:  "Available Backups",
+  availableBackupsColumn: 'Available Backups',
 
   // Original text: "Missing parameters"
-  backupRestoreErrorTitle:  "Missing parameters",
+  backupRestoreErrorTitle: 'Missing parameters',
 
   // Original text: "Choose a SR and a backup"
-  backupRestoreErrorMessage:  "Choose a SR and a backup",
+  backupRestoreErrorMessage: 'Choose a SR and a backup',
 
   // Original text: "Select default SR…"
-  backupRestoreSelectDefaultSr:  "Select default SR…",
+  backupRestoreSelectDefaultSr: 'Select default SR…',
 
   // Original text: "Choose a SR for each VDI"
-  backupRestoreChooseSrForEachVdis:  "Choose a SR for each VDI",
+  backupRestoreChooseSrForEachVdis: 'Choose a SR for each VDI',
 
   // Original text: "VDI"
-  backupRestoreVdiLabel:  "VDI",
+  backupRestoreVdiLabel: 'VDI',
 
   // Original text: "SR"
-  backupRestoreSrLabel:  "SR",
+  backupRestoreSrLabel: 'SR',
 
   // Original text: "Display backups"
-  displayBackup:  "Display backups",
+  displayBackup: 'Display backups',
 
   // Original text: "Import VM"
-  importBackupTitle:  "Import VM",
+  importBackupTitle: 'Import VM',
 
   // Original text: "Starting your backup import"
-  importBackupMessage:  "Starting your backup import",
+  importBackupMessage: 'Starting your backup import',
 
   // Original text: "VMs to backup"
-  vmsToBackup:  "VMs to backup",
+  vmsToBackup: 'VMs to backup',
 
   // Original text: "List remote backups"
-  listRemoteBackups:  "List remote backups",
+  listRemoteBackups: 'List remote backups',
 
   // Original text: "Restore backup files"
-  restoreFiles:  "Restore backup files",
+  restoreFiles: 'Restore backup files',
 
   // Original text: "Invalid options"
-  restoreFilesError:  "Invalid options",
+  restoreFilesError: 'Invalid options',
 
   // Original text: "Restore file from {name}"
-  restoreFilesFromBackup:  "Restore file from {name}",
+  restoreFilesFromBackup: 'Restore file from {name}',
 
   // Original text: "Select a backup…"
-  restoreFilesSelectBackup:  "Select a backup…",
+  restoreFilesSelectBackup: 'Select a backup…',
 
   // Original text: "Select a disk…"
-  restoreFilesSelectDisk:  "Select a disk…",
+  restoreFilesSelectDisk: 'Select a disk…',
 
   // Original text: "Select a partition…"
-  restoreFilesSelectPartition:  "Select a partition…",
+  restoreFilesSelectPartition: 'Select a partition…',
 
   // Original text: "Folder path"
-  restoreFilesSelectFolderPath:  "Folder path",
+  restoreFilesSelectFolderPath: 'Folder path',
 
   // Original text: "Select a file…"
-  restoreFilesSelectFiles:  "Select a file…",
+  restoreFilesSelectFiles: 'Select a file…',
 
   // Original text: "Content not found"
-  restoreFileContentNotFound:  "Content not found",
+  restoreFileContentNotFound: 'Content not found',
 
   // Original text: "No files selected"
-  restoreFilesNoFilesSelected:  "No files selected",
+  restoreFilesNoFilesSelected: 'No files selected',
 
   // Original text: "Selected files ({files}):"
-  restoreFilesSelectedFiles:  "Selected files ({files}):",
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
 
   // Original text: "Error while scanning disk"
-  restoreFilesDiskError:  "Error while scanning disk",
+  restoreFilesDiskError: 'Error while scanning disk',
 
   // Original text: "Select all this folder's files"
-  restoreFilesSelectAllFiles:  "Select all this folder's files",
+  restoreFilesSelectAllFiles: "Select all this folder's files",
 
   // Original text: "Unselect all files"
-  restoreFilesUnselectAll:  "Unselect all files",
+  restoreFilesUnselectAll: 'Unselect all files',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
-  emergencyShutdownHostsModalTitle:  "Emergency shutdown Host{nHosts, plural, one {} other {s}}",
+  emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
   emergencyShutdownHostsModalMessage:
-  "Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?",
+    'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Shutdown host"
-  stopHostModalTitle:  "Shutdown host",
+  stopHostModalTitle: 'Shutdown host',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
   stopHostModalMessage:
-  "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
+    "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
 
   // Original text: "Add host"
-  addHostModalTitle:  "Add host",
+  addHostModalTitle: 'Add host',
 
   // Original text: "Are you sure you want to add {host} to {pool}?"
-  addHostModalMessage:  "Are you sure you want to add {host} to {pool}?",
+  addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
 
   // Original text: "Restart host"
-  restartHostModalTitle:  "Restart host",
+  restartHostModalTitle: 'Restart host',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage:  "This will restart your host. Do you want to continue?",
+  restartHostModalMessage: 'This will restart your host. Do you want to continue?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
-  restartHostsAgentsModalTitle:  "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}",
+  restartHostsAgentsModalTitle:
+    'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
   restartHostsAgentsModalMessage:
-  "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?",
+    'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}}"
-  restartHostsModalTitle:  "Restart Host{nHosts, plural, one {} other {s}}",
+  restartHostsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
-  restartHostsModalMessage:
-  "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?",
+  restartHostsModalMessage: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
-  startVmsModalTitle:  "Start VM{vms, plural, one {} other {s}}",
+  startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
 
   // Original text: "Start a copy"
-  cloneAndStartVM:  "Start a copy",
+  cloneAndStartVM: 'Start a copy',
 
   // Original text: "Force start"
-  forceStartVm:  "Force start",
+  forceStartVm: 'Force start',
 
   // Original text: "Forbidden operation"
-  forceStartVmModalTitle:  "Forbidden operation",
+  forceStartVmModalTitle: 'Forbidden operation',
 
   // Original text: "Start operation for this vm is blocked."
-  blockedStartVmModalMessage:  "Start operation for this vm is blocked.",
+  blockedStartVmModalMessage: 'Start operation for this vm is blocked.',
 
   // Original text: "Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}."
-  blockedStartVmsModalMessage:  "Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.",
+  blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
 
   // Original text: "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage:
-  "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?",
+  startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information"
   failedVmsErrorMessage:
-  "{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information",
+    '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
 
   // Original text: "Start failed"
-  failedVmsErrorTitle:  "Start failed",
+  failedVmsErrorTitle: 'Start failed',
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
-  stopHostsModalTitle:  "Stop Host{nHosts, plural, one {} other {s}}",
+  stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-  "Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?",
+  stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
-  stopVmsModalTitle:  "Stop VM{vms, plural, one {} other {s}}",
+  stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage:
-  "Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?",
+  stopVmsModalMessage: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Restart VM"
-  restartVmModalTitle:  "Restart VM",
+  restartVmModalTitle: 'Restart VM',
 
   // Original text: "Are you sure you want to restart {name}?"
-  restartVmModalMessage:  "Are you sure you want to restart {name}?",
+  restartVmModalMessage: 'Are you sure you want to restart {name}?',
 
   // Original text: "Stop VM"
-  stopVmModalTitle:  "Stop VM",
+  stopVmModalTitle: 'Stop VM',
 
   // Original text: "Are you sure you want to stop {name}?"
-  stopVmModalMessage:  "Are you sure you want to stop {name}?",
+  stopVmModalMessage: 'Are you sure you want to stop {name}?',
 
   // Original text: "Restart VM{vms, plural, one {} other {s}}"
-  restartVmsModalTitle:  "Restart VM{vms, plural, one {} other {s}}",
+  restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-  "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?",
+  restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
-  snapshotVmsModalTitle:  "Snapshot VM{vms, plural, one {} other {s}}",
+  snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage:
-  "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?",
+  snapshotVmsModalMessage: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
-  deleteVmsModalTitle:  "Delete VM{vms, plural, one {} other {s}}",
+  deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
   deleteVmsModalMessage:
-  "Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED",
+    'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
 
   // Original text: "Delete VM"
-  deleteVmModalTitle:  "Delete VM",
+  deleteVmModalTitle: 'Delete VM',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-  "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED",
+  deleteVmModalMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
 
   // Original text: "Migrate VM"
-  migrateVmModalTitle:  "Migrate VM",
+  migrateVmModalTitle: 'Migrate VM',
 
   // Original text: "Select a destination host:"
-  migrateVmSelectHost:  "Select a destination host:",
+  migrateVmSelectHost: 'Select a destination host:',
 
   // Original text: "Select a migration network:"
-  migrateVmSelectMigrationNetwork:  "Select a migration network:",
+  migrateVmSelectMigrationNetwork: 'Select a migration network:',
 
   // Original text: "For each VIF, select a network:"
-  migrateVmSelectNetworks:  "For each VIF, select a network:",
+  migrateVmSelectNetworks: 'For each VIF, select a network:',
 
   // Original text: "Select a destination SR:"
-  migrateVmsSelectSr:  "Select a destination SR:",
+  migrateVmsSelectSr: 'Select a destination SR:',
 
   // Original text: "Select a destination SR for local disks:"
-  migrateVmsSelectSrIntraPool:  "Select a destination SR for local disks:",
+  migrateVmsSelectSrIntraPool: 'Select a destination SR for local disks:',
 
   // Original text: "Select a network on which to connect each VIF:"
-  migrateVmsSelectNetwork:  "Select a network on which to connect each VIF:",
+  migrateVmsSelectNetwork: 'Select a network on which to connect each VIF:',
 
   // Original text: "Smart mapping"
-  migrateVmsSmartMapping:  "Smart mapping",
+  migrateVmsSmartMapping: 'Smart mapping',
 
   // Original text: "VIF"
-  migrateVmVif:  "VIF",
+  migrateVmVif: 'VIF',
 
   // Original text: "Network"
-  migrateVmNetwork:  "Network",
+  migrateVmNetwork: 'Network',
 
   // Original text: "No target host"
-  migrateVmNoTargetHost:  "No target host",
+  migrateVmNoTargetHost: 'No target host',
 
   // Original text: "A target host is required to migrate a VM"
-  migrateVmNoTargetHostMessage:  "A target host is required to migrate a VM",
+  migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
 
   // Original text: "No default SR"
-  migrateVmNoDefaultSrError:  "No default SR",
+  migrateVmNoDefaultSrError: 'No default SR',
 
   // Original text: "Default SR not connected to host"
-  migrateVmNotConnectedDefaultSrError:  "Default SR not connected to host",
+  migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
 
   // Original text: "For each VDI, select an SR:"
-  chooseSrForEachVdisModalSelectSr:  "For each VDI, select an SR:",
+  chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR:',
 
   // Original text: "Select main SR…"
-  chooseSrForEachVdisModalMainSr:  "Select main SR…",
+  chooseSrForEachVdisModalMainSr: 'Select main SR…',
 
   // Original text: "VDI"
-  chooseSrForEachVdisModalVdiLabel:  "VDI",
+  chooseSrForEachVdisModalVdiLabel: 'VDI',
 
   // Original text: "SR*"
-  chooseSrForEachVdisModalSrLabel:  "SR*",
+  chooseSrForEachVdisModalSrLabel: 'SR*',
 
   // Original text: "* optional"
-  optionalEntry:  "* optional",
+  optionalEntry: '* optional',
 
   // Original text: "Delete VDI"
-  deleteVdiModalTitle:  "Delete VDI",
+  deleteVdiModalTitle: 'Delete VDI',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage:
-  "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST",
+  deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
 
   // Original text: "Revert your VM"
-  revertVmModalTitle:  "Revert your VM",
+  revertVmModalTitle: 'Revert your VM',
 
   // Original text: "Delete snapshot"
-  deleteSnapshotModalTitle:  "Delete snapshot",
+  deleteSnapshotModalTitle: 'Delete snapshot',
 
   // Original text: "Are you sure you want to delete this snapshot?"
-  deleteSnapshotModalMessage:  "Are you sure you want to delete this snapshot?",
+  deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
   revertVmModalMessage:
-  "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.",
+    'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
 
   // Original text: "Snapshot before"
-  revertVmModalSnapshotBefore:  "Snapshot before",
+  revertVmModalSnapshotBefore: 'Snapshot before',
 
   // Original text: "Import a {name} Backup"
-  importBackupModalTitle:  "Import a {name} Backup",
+  importBackupModalTitle: 'Import a {name} Backup',
 
   // Original text: "Start VM after restore"
-  importBackupModalStart:  "Start VM after restore",
+  importBackupModalStart: 'Start VM after restore',
 
   // Original text: "Select your backup…"
-  importBackupModalSelectBackup:  "Select your backup…",
+  importBackupModalSelectBackup: 'Select your backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:  "Are you sure you want to remove all orphaned snapshot VDIs?",
+  removeAllOrphanedModalWarning: 'Are you sure you want to remove all orphaned snapshot VDIs?',
 
   // Original text: "Remove all logs"
-  removeAllLogsModalTitle:  "Remove all logs",
+  removeAllLogsModalTitle: 'Remove all logs',
 
   // Original text: "Are you sure you want to remove all logs?"
-  removeAllLogsModalWarning:  "Are you sure you want to remove all logs?",
+  removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
 
   // Original text: "This operation is definitive."
-  definitiveMessageModal:  "This operation is definitive.",
+  definitiveMessageModal: 'This operation is definitive.',
 
   // Original text: "Previous SR Usage"
-  existingSrModalTitle:  "Previous SR Usage",
+  existingSrModalTitle: 'Previous SR Usage',
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
   existingSrModalText:
-  "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.",
+    'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
 
   // Original text: "Previous LUN Usage"
-  existingLunModalTitle:  "Previous LUN Usage",
+  existingLunModalTitle: 'Previous LUN Usage',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
   existingLunModalText:
-  "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.",
+    'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
 
   // Original text: "Replace current registration?"
-  alreadyRegisteredModal:  "Replace current registration?",
+  alreadyRegisteredModal: 'Replace current registration?',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
   alreadyRegisteredModalText:
-  "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?",
+    'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?',
 
   // Original text: "Ready for trial?"
-  trialReadyModal:  "Ready for trial?",
+  trialReadyModal: 'Ready for trial?',
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
   trialReadyModalText:
-  "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!",
+    'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
 
   // Original text: "Label"
-  serverLabel:  "Label",
+  serverLabel: 'Label',
 
   // Original text: "Host"
-  serverHost:  "Host",
+  serverHost: 'Host',
 
   // Original text: "Username"
-  serverUsername:  "Username",
+  serverUsername: 'Username',
 
   // Original text: "Password"
-  serverPassword:  "Password",
+  serverPassword: 'Password',
 
   // Original text: "Action"
-  serverAction:  "Action",
+  serverAction: 'Action',
 
   // Original text: "Read Only"
-  serverReadOnly:  "Read Only",
+  serverReadOnly: 'Read Only',
 
   // Original text: "Unauthorized Certificates"
-  serverUnauthorizedCertificates:  "Unauthorized Certificates",
+  serverUnauthorizedCertificates: 'Unauthorized Certificates',
 
   // Original text: "Allow Unauthorized Certificates"
-  serverAllowUnauthorizedCertificates:  "Allow Unauthorized Certificates",
+  serverAllowUnauthorizedCertificates: 'Allow Unauthorized Certificates',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
   serverUnauthorizedCertificatesInfo:
-  "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured.",
+    "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured.",
 
   // Original text: "username"
-  serverPlaceHolderUser:  "username",
+  serverPlaceHolderUser: 'username',
 
   // Original text: "password"
-  serverPlaceHolderPassword:  "password",
+  serverPlaceHolderPassword: 'password',
 
   // Original text: "address[:port]"
-  serverPlaceHolderAddress:  "address[:port]",
+  serverPlaceHolderAddress: 'address[:port]',
 
   // Original text: "label"
-  serverPlaceHolderLabel:  "label",
+  serverPlaceHolderLabel: 'label',
 
   // Original text: "Connect"
-  serverConnect:  "Connect",
+  serverConnect: 'Connect',
 
   // Original text: "Error"
-  serverError:  "Error",
+  serverError: 'Error',
 
   // Original text: "Adding server failed"
-  serverAddFailed:  "Adding server failed",
+  serverAddFailed: 'Adding server failed',
 
   // Original text: "Status"
-  serverStatus:  "Status",
+  serverStatus: 'Status',
 
   // Original text: "Connection failed. Click for more information."
-  serverConnectionFailed:  "Connection failed. Click for more information.",
+  serverConnectionFailed: 'Connection failed. Click for more information.',
 
   // Original text: "Connecting…"
-  serverConnecting:  "Connecting…",
+  serverConnecting: 'Connecting…',
 
   // Original text: "Authentication error"
-  serverAuthFailed:  "Authentication error",
+  serverAuthFailed: 'Authentication error',
 
   // Original text: "Unknown error"
-  serverUnknownError:  "Unknown error",
+  serverUnknownError: 'Unknown error',
 
   // Original text: "Invalid self-signed certificate"
-  serverSelfSignedCertError:  "Invalid self-signed certificate",
+  serverSelfSignedCertError: 'Invalid self-signed certificate',
 
   // Original text: "Do you want to accept self-signed certificate for this server even though it would decrease security?"
   serverSelfSignedCertQuestion:
-  "Do you want to accept self-signed certificate for this server even though it would decrease security?",
+    'Do you want to accept self-signed certificate for this server even though it would decrease security?',
 
   // Original text: "Copy VM"
-  copyVm:  "Copy VM",
+  copyVm: 'Copy VM',
 
   // Original text: "Are you sure you want to copy this VM to {SR}?"
-  copyVmConfirm:  "Are you sure you want to copy this VM to {SR}?",
+  copyVmConfirm: 'Are you sure you want to copy this VM to {SR}?',
 
   // Original text: "Name"
-  copyVmName:  "Name",
+  copyVmName: 'Name',
 
   // Original text: "Name pattern"
-  copyVmNamePattern:  "Name pattern",
+  copyVmNamePattern: 'Name pattern',
 
   // Original text: "If empty: name of the copied VM"
-  copyVmNamePlaceholder:  "If empty: name of the copied VM",
+  copyVmNamePlaceholder: 'If empty: name of the copied VM',
 
   // Original text: "e.g.: \"\\{name\\}_COPY\""
-  copyVmNamePatternPlaceholder:  "e.g.: \"\\{name\\}_COPY\"",
+  copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
 
   // Original text: "Select SR"
-  copyVmSelectSr:  "Select SR",
+  copyVmSelectSr: 'Select SR',
 
   // Original text: "Use compression"
-  copyVmCompress:  "Use compression",
+  copyVmCompress: 'Use compression',
 
   // Original text: "No target SR"
-  copyVmsNoTargetSr:  "No target SR",
+  copyVmsNoTargetSr: 'No target SR',
 
   // Original text: "A target SR is required to copy a VM"
-  copyVmsNoTargetSrMessage:  "A target SR is required to copy a VM",
+  copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
 
   // Original text: "Detach host"
-  detachHostModalTitle:  "Detach host",
+  detachHostModalTitle: 'Detach host',
 
   // Original text: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST."
   detachHostModalMessage:
-  "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.",
+    'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
 
   // Original text: "Detach"
-  detachHost:  "Detach",
+  detachHost: 'Detach',
 
   // Original text: "Forget host"
-  forgetHostModalTitle:  "Forget host",
+  forgetHostModalTitle: 'Forget host',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
   forgetHostModalMessage:
-  "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead.",
+    "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead.",
 
   // Original text: "Forget"
-  forgetHost:  "Forget",
+  forgetHost: 'Forget',
 
   // Original text: "Create network"
-  newNetworkCreate:  "Create network",
+  newNetworkCreate: 'Create network',
 
   // Original text: "Create bonded network"
-  newBondedNetworkCreate:  "Create bonded network",
+  newBondedNetworkCreate: 'Create bonded network',
 
   // Original text: "Interface"
-  newNetworkInterface:  "Interface",
+  newNetworkInterface: 'Interface',
 
   // Original text: "Name"
-  newNetworkName:  "Name",
+  newNetworkName: 'Name',
 
   // Original text: "Description"
-  newNetworkDescription:  "Description",
+  newNetworkDescription: 'Description',
 
   // Original text: "VLAN"
-  newNetworkVlan:  "VLAN",
+  newNetworkVlan: 'VLAN',
 
   // Original text: "No VLAN if empty"
-  newNetworkDefaultVlan:  "No VLAN if empty",
+  newNetworkDefaultVlan: 'No VLAN if empty',
 
   // Original text: "MTU"
-  newNetworkMtu:  "MTU",
+  newNetworkMtu: 'MTU',
 
   // Original text: "Default: 1500"
-  newNetworkDefaultMtu:  "Default: 1500",
+  newNetworkDefaultMtu: 'Default: 1500',
 
   // Original text: "Name required"
-  newNetworkNoNameErrorTitle:  "Name required",
+  newNetworkNoNameErrorTitle: 'Name required',
 
   // Original text: "A name is required to create a network"
-  newNetworkNoNameErrorMessage:  "A name is required to create a network",
+  newNetworkNoNameErrorMessage: 'A name is required to create a network',
 
   // Original text: "Bond mode"
-  newNetworkBondMode:  "Bond mode",
+  newNetworkBondMode: 'Bond mode',
 
   // Original text: "Delete network"
-  deleteNetwork:  "Delete network",
+  deleteNetwork: 'Delete network',
 
   // Original text: "Are you sure you want to delete this network?"
-  deleteNetworkConfirm:  "Are you sure you want to delete this network?",
+  deleteNetworkConfirm: 'Are you sure you want to delete this network?',
 
   // Original text: "This network is currently in use"
-  networkInUse:  "This network is currently in use",
+  networkInUse: 'This network is currently in use',
 
   // Original text: "Bonded"
-  pillBonded:  "Bonded",
+  pillBonded: 'Bonded',
 
   // Original text: "Host"
-  addHostSelectHost:  "Host",
+  addHostSelectHost: 'Host',
 
   // Original text: "No host"
-  addHostNoHost:  "No host",
+  addHostNoHost: 'No host',
 
   // Original text: "No host selected to be added"
-  addHostNoHostMessage:  "No host selected to be added",
+  addHostNoHostMessage: 'No host selected to be added',
 
   // Original text: "Xen Orchestra"
-  xenOrchestra:  "Xen Orchestra",
+  xenOrchestra: 'Xen Orchestra',
 
   // Original text: "No pro support provided!"
-  noProSupport:  "No pro support provided!",
+  noProSupport: 'No pro support provided!',
 
   // Original text: "Use in production at your own risks"
-  noProductionUse:  "Use in production at your own risks",
+  noProductionUse: 'Use in production at your own risks',
 
   // Original text: "You can download our turnkey appliance at {website}"
-  downloadXoaFromWebsite:  "You can download our turnkey appliance at {website}",
+  downloadXoaFromWebsite: 'You can download our turnkey appliance at {website}',
 
   // Original text: "Bug Tracker"
-  bugTracker:  "Bug Tracker",
+  bugTracker: 'Bug Tracker',
 
   // Original text: "Issues? Report it!"
-  bugTrackerText:  "Issues? Report it!",
+  bugTrackerText: 'Issues? Report it!',
 
   // Original text: "Community"
-  community:  "Community",
+  community: 'Community',
 
   // Original text: "Join our community forum!"
-  communityText:  "Join our community forum!",
+  communityText: 'Join our community forum!',
 
   // Original text: "Free Trial for Premium Edition!"
-  freeTrial:  "Free Trial for Premium Edition!",
+  freeTrial: 'Free Trial for Premium Edition!',
 
   // Original text: "Request your trial now!"
-  freeTrialNow:  "Request your trial now!",
+  freeTrialNow: 'Request your trial now!',
 
   // Original text: "Any issue?"
-  issues:  "Any issue?",
+  issues: 'Any issue?',
 
   // Original text: "Problem? Contact us!"
-  issuesText:  "Problem? Contact us!",
+  issuesText: 'Problem? Contact us!',
 
   // Original text: "Documentation"
-  documentation:  "Documentation",
+  documentation: 'Documentation',
 
   // Original text: "Read our official doc"
-  documentationText:  "Read our official doc",
+  documentationText: 'Read our official doc',
 
   // Original text: "Pro support included"
-  proSupportIncluded:  "Pro support included",
+  proSupportIncluded: 'Pro support included',
 
   // Original text: "Access your XO Account"
-  xoAccount:  "Access your XO Account",
+  xoAccount: 'Access your XO Account',
 
   // Original text: "Report a problem"
-  openTicket:  "Report a problem",
+  openTicket: 'Report a problem',
 
   // Original text: "Problem? Open a ticket!"
-  openTicketText:  "Problem? Open a ticket!",
+  openTicketText: 'Problem? Open a ticket!',
 
   // Original text: "Upgrade needed"
-  upgradeNeeded:  "Upgrade needed",
+  upgradeNeeded: 'Upgrade needed',
 
   // Original text: "Upgrade now!"
-  upgradeNow:  "Upgrade now!",
+  upgradeNow: 'Upgrade now!',
 
   // Original text: "Or"
-  or:  "Or",
+  or: 'Or',
 
   // Original text: "Try it for free!"
-  tryIt:  "Try it for free!",
+  tryIt: 'Try it for free!',
 
   // Original text: "This feature is available starting from {plan} Edition"
-  availableIn:  "This feature is available starting from {plan} Edition",
+  availableIn: 'This feature is available starting from {plan} Edition',
 
   // Original text: "This feature is not available in your version, contact your administrator to know more."
-  notAvailable:
-  "This feature is not available in your version, contact your administrator to know more.",
+  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
 
   // Original text: "Updates"
-  updateTitle:  "Updates",
+  updateTitle: 'Updates',
 
   // Original text: "Registration"
-  registration:  "Registration",
+  registration: 'Registration',
 
   // Original text: "Trial"
-  trial:  "Trial",
+  trial: 'Trial',
 
   // Original text: "Settings"
-  settings:  "Settings",
+  settings: 'Settings',
 
   // Original text: "Proxy settings"
-  proxySettings:  "Proxy settings",
+  proxySettings: 'Proxy settings',
 
   // Original text: "Host (myproxy.example.org)"
-  proxySettingsHostPlaceHolder:  "Host (myproxy.example.org)",
+  proxySettingsHostPlaceHolder: 'Host (myproxy.example.org)',
 
   // Original text: "Port (eg: 3128)"
-  proxySettingsPortPlaceHolder:  "Port (eg: 3128)",
+  proxySettingsPortPlaceHolder: 'Port (eg: 3128)',
 
   // Original text: "Username"
-  proxySettingsUsernamePlaceHolder:  "Username",
+  proxySettingsUsernamePlaceHolder: 'Username',
 
   // Original text: "Password"
-  proxySettingsPasswordPlaceHolder:  "Password",
+  proxySettingsPasswordPlaceHolder: 'Password',
 
   // Original text: "Your email account"
-  updateRegistrationEmailPlaceHolder:  "Your email account",
+  updateRegistrationEmailPlaceHolder: 'Your email account',
 
   // Original text: "Your password"
-  updateRegistrationPasswordPlaceHolder:  "Your password",
+  updateRegistrationPasswordPlaceHolder: 'Your password',
 
   // Original text: "Update"
-  update:  "Update",
+  update: 'Update',
 
   // Original text: "Refresh"
-  refresh:  "Refresh",
+  refresh: 'Refresh',
 
   // Original text: "Upgrade"
-  upgrade:  "Upgrade",
+  upgrade: 'Upgrade',
 
   // Original text: "No updater available for Community Edition"
-  noUpdaterCommunity:  "No updater available for Community Edition",
+  noUpdaterCommunity: 'No updater available for Community Edition',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}."
-  considerSubscribe:  "Please consider subscribe and try it with all features for free during 15 days on {link}.",
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on {link}.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
-  "Manual update could break your current installation due to dependencies issues, do it with caution",
+    'Manual update could break your current installation due to dependencies issues, do it with caution',
 
   // Original text: "Current version:"
-  currentVersion:  "Current version:",
+  currentVersion: 'Current version:',
 
   // Original text: "Register"
-  register:  "Register",
+  register: 'Register',
 
   // Original text: "Edit registration"
-  editRegistration:  "Edit registration",
+  editRegistration: 'Edit registration',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:  "Please, take time to register in order to enjoy your trial.",
+  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
 
   // Original text: "Start trial"
-  trialStartButton:  "Start trial",
+  trialStartButton: 'Start trial',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-  "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.",
+  trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:  "Your trial has been ended. Contact us or downgrade to Free version",
+  trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free version',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-  "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.",
+  trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
 
   // Original text: "No update information available"
-  noUpdateInfo:  "No update information available",
+  noUpdateInfo: 'No update information available',
 
   // Original text: "Update information may be available"
-  waitingUpdateInfo:  "Update information may be available",
+  waitingUpdateInfo: 'Update information may be available',
 
   // Original text: "Your XOA is up-to-date"
-  upToDate:  "Your XOA is up-to-date",
+  upToDate: 'Your XOA is up-to-date',
 
   // Original text: "You need to update your XOA (new version is available)"
-  mustUpgrade:  "You need to update your XOA (new version is available)",
+  mustUpgrade: 'You need to update your XOA (new version is available)',
 
   // Original text: "Your XOA is not registered for updates"
-  registerNeeded:  "Your XOA is not registered for updates",
+  registerNeeded: 'Your XOA is not registered for updates',
 
   // Original text: "Can't fetch update information"
-  updaterError:  "Can't fetch update information",
+  updaterError: "Can't fetch update information",
 
   // Original text: "Upgrade successful"
-  promptUpgradeReloadTitle:  "Upgrade successful",
+  promptUpgradeReloadTitle: 'Upgrade successful',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
   promptUpgradeReloadMessage:
-  "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?",
+    'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
 
   // Original text: "Xen Orchestra from the sources"
-  disclaimerTitle:  "Xen Orchestra from the sources",
+  disclaimerTitle: 'Xen Orchestra from the sources',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:  "You are using XO from the sources! That's great for a personal/non-profit usage.",
+  disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit usage.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-  "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:  "This version is not bundled with any support nor updates. Use it with caution for critical tasks.",
+  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
 
   // Original text: "Connect PIF"
-  connectPif:  "Connect PIF",
+  connectPif: 'Connect PIF',
 
   // Original text: "Are you sure you want to connect this PIF?"
-  connectPifConfirm:  "Are you sure you want to connect this PIF?",
+  connectPifConfirm: 'Are you sure you want to connect this PIF?',
 
   // Original text: "Disconnect PIF"
-  disconnectPif:  "Disconnect PIF",
+  disconnectPif: 'Disconnect PIF',
 
   // Original text: "Are you sure you want to disconnect this PIF?"
-  disconnectPifConfirm:  "Are you sure you want to disconnect this PIF?",
+  disconnectPifConfirm: 'Are you sure you want to disconnect this PIF?',
 
   // Original text: "Delete PIF"
-  deletePif:  "Delete PIF",
+  deletePif: 'Delete PIF',
 
   // Original text: "Are you sure you want to delete this PIF?"
-  deletePifConfirm:  "Are you sure you want to delete this PIF?",
+  deletePifConfirm: 'Are you sure you want to delete this PIF?',
 
   // Original text: "Connected"
-  pifConnected:  "Connected",
+  pifConnected: 'Connected',
 
   // Original text: "Disconnected"
-  pifDisconnected:  "Disconnected",
+  pifDisconnected: 'Disconnected',
 
   // Original text: "Physically connected"
-  pifPhysicallyConnected:  "Physically connected",
+  pifPhysicallyConnected: 'Physically connected',
 
   // Original text: "Physically disconnected"
-  pifPhysicallyDisconnected:  "Physically disconnected",
+  pifPhysicallyDisconnected: 'Physically disconnected',
 
   // Original text: "Username"
-  username:  "Username",
+  username: 'Username',
 
   // Original text: "Password"
-  password:  "Password",
+  password: 'Password',
 
   // Original text: "Language"
-  language:  "Language",
+  language: 'Language',
 
   // Original text: "Old password"
-  oldPasswordPlaceholder:  "Old password",
+  oldPasswordPlaceholder: 'Old password',
 
   // Original text: "New password"
-  newPasswordPlaceholder:  "New password",
+  newPasswordPlaceholder: 'New password',
 
   // Original text: "Confirm new password"
-  confirmPasswordPlaceholder:  "Confirm new password",
+  confirmPasswordPlaceholder: 'Confirm new password',
 
   // Original text: "Confirmation password incorrect"
-  confirmationPasswordError:  "Confirmation password incorrect",
+  confirmationPasswordError: 'Confirmation password incorrect',
 
   // Original text: "Password does not match the confirm password."
-  confirmationPasswordErrorBody:  "Password does not match the confirm password.",
+  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
 
   // Original text: "Password changed"
-  pwdChangeSuccess:  "Password changed",
+  pwdChangeSuccess: 'Password changed',
 
   // Original text: "Your password has been successfully changed."
-  pwdChangeSuccessBody:  "Your password has been successfully changed.",
+  pwdChangeSuccessBody: 'Your password has been successfully changed.',
 
   // Original text: "Incorrect password"
-  pwdChangeError:  "Incorrect password",
+  pwdChangeError: 'Incorrect password',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody:  "The old password provided is incorrect. Your password has not been changed.",
+  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
 
   // Original text: "OK"
-  changePasswordOk:  "OK",
+  changePasswordOk: 'OK',
 
   // 'Forget all authentication tokens'
   forgetTokens: '全ての認証トークン破棄',
@@ -3526,37 +3515,37 @@ export default {
   forgetTokensError: '認証トークンの破棄の最中にエラーが発生しました。',
 
   // Original text: "SSH keys"
-  sshKeys:  "SSH keys",
+  sshKeys: 'SSH keys',
 
   // Original text: "New SSH key"
-  newSshKey:  "New SSH key",
+  newSshKey: 'New SSH key',
 
   // Original text: "Delete"
-  deleteSshKey:  "Delete",
+  deleteSshKey: 'Delete',
 
   // Original text: "No SSH keys"
-  noSshKeys:  "No SSH keys",
+  noSshKeys: 'No SSH keys',
 
   // Original text: "New SSH key"
-  newSshKeyModalTitle:  "New SSH key",
+  newSshKeyModalTitle: 'New SSH key',
 
   // Original text: "Invalid key"
-  sshKeyErrorTitle:  "Invalid key",
+  sshKeyErrorTitle: 'Invalid key',
 
   // Original text: "An SSH key requires both a title and a key."
-  sshKeyErrorMessage:  "An SSH key requires both a title and a key.",
+  sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
 
   // Original text: "Title"
-  title:  "Title",
+  title: 'Title',
 
   // Original text: "Key"
-  key:  "Key",
+  key: 'Key',
 
   // Original text: "Delete SSH key"
-  deleteSshKeyConfirm:  "Delete SSH key",
+  deleteSshKeyConfirm: 'Delete SSH key',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage:  "Are you sure you want to delete the SSH key {title}?",
+  deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
 
   // 'Add OTP authentication'
   addOtpConfirm: 'ワンタイムパスワード(OTP)認証を追加します',
@@ -3570,329 +3559,327 @@ export default {
   OtpAuthentication: 'OTP authentication',
 
   // Original text: "Others"
-  others:  "Others",
+  others: 'Others',
 
   // Original text: "Loading logs…"
-  loadingLogs:  "Loading logs…",
+  loadingLogs: 'Loading logs…',
 
   // Original text: "User"
-  logUser:  "User",
+  logUser: 'User',
 
   // Original text: "Method"
-  logMethod:  "Method",
+  logMethod: 'Method',
 
   // Original text: "Params"
-  logParams:  "Params",
+  logParams: 'Params',
 
   // Original text: "Message"
-  logMessage:  "Message",
+  logMessage: 'Message',
 
   // Original text: "Error"
-  logError:  "Error",
+  logError: 'Error',
 
   // Original text: "Display details"
-  logDisplayDetails:  "Display details",
+  logDisplayDetails: 'Display details',
 
   // Original text: "Date"
-  logTime:  "Date",
+  logTime: 'Date',
 
   // Original text: "No stack trace"
-  logNoStackTrace:  "No stack trace",
+  logNoStackTrace: 'No stack trace',
 
   // Original text: "No params"
-  logNoParams:  "No params",
+  logNoParams: 'No params',
 
   // Original text: "Delete log"
-  logDelete:  "Delete log",
+  logDelete: 'Delete log',
 
   // Original text: "Delete all logs"
-  logDeleteAll:  "Delete all logs",
+  logDeleteAll: 'Delete all logs',
 
   // Original text: "Delete all logs"
-  logDeleteAllTitle:  "Delete all logs",
+  logDeleteAllTitle: 'Delete all logs',
 
   // Original text: "Are you sure you want to delete all the logs?"
-  logDeleteAllMessage:  "Are you sure you want to delete all the logs?",
+  logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
 
   // Original text: "Click to enable"
-  logIndicationToEnable:  "Click to enable",
+  logIndicationToEnable: 'Click to enable',
 
   // Original text: "Click to disable"
-  logIndicationToDisable:  "Click to disable",
+  logIndicationToDisable: 'Click to disable',
 
   // Original text: "Report a bug"
-  reportBug:  "Report a bug",
+  reportBug: 'Report a bug',
 
   // Original text: "Name"
-  ipPoolName:  "Name",
+  ipPoolName: 'Name',
 
   // Original text: "IPs"
-  ipPoolIps:  "IPs",
+  ipPoolIps: 'IPs',
 
   // Original text: "IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)"
-  ipPoolIpsPlaceholder:  "IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)",
+  ipPoolIpsPlaceholder: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)',
 
   // Original text: "Networks"
-  ipPoolNetworks:  "Networks",
+  ipPoolNetworks: 'Networks',
 
   // Original text: "No IP pools"
-  ipsNoIpPool:  "No IP pools",
+  ipsNoIpPool: 'No IP pools',
 
   // Original text: "Create"
-  ipsCreate:  "Create",
+  ipsCreate: 'Create',
 
   // Original text: "Delete all IP pools"
-  ipsDeleteAllTitle:  "Delete all IP pools",
+  ipsDeleteAllTitle: 'Delete all IP pools',
 
   // Original text: "Are you sure you want to delete all the IP pools?"
-  ipsDeleteAllMessage:  "Are you sure you want to delete all the IP pools?",
+  ipsDeleteAllMessage: 'Are you sure you want to delete all the IP pools?',
 
   // Original text: "VIFs"
-  ipsVifs:  "VIFs",
+  ipsVifs: 'VIFs',
 
   // Original text: "Not used"
-  ipsNotUsed:  "Not used",
+  ipsNotUsed: 'Not used',
 
   // Original text: "unknown VIF"
-  ipPoolUnknownVif:  "unknown VIF",
+  ipPoolUnknownVif: 'unknown VIF',
 
   // Original text: "Name already exists"
-  ipPoolNameAlreadyExists:  "Name already exists",
+  ipPoolNameAlreadyExists: 'Name already exists',
 
   // Original text: "Keyboard shortcuts"
-  shortcutModalTitle:  "Keyboard shortcuts",
+  shortcutModalTitle: 'Keyboard shortcuts',
 
   // Original text: "Global"
-  shortcut_XoApp:  "Global",
+  shortcut_XoApp: 'Global',
 
   // Original text: "Go to hosts list"
-  shortcut_GO_TO_HOSTS:  "Go to hosts list",
+  shortcut_GO_TO_HOSTS: 'Go to hosts list',
 
   // Original text: "Go to pools list"
-  shortcut_GO_TO_POOLS:  "Go to pools list",
+  shortcut_GO_TO_POOLS: 'Go to pools list',
 
   // Original text: "Go to VMs list"
-  shortcut_GO_TO_VMS:  "Go to VMs list",
+  shortcut_GO_TO_VMS: 'Go to VMs list',
 
   // Original text: "Go to SRs list"
-  shortcut_GO_TO_SRS:  "Go to SRs list",
+  shortcut_GO_TO_SRS: 'Go to SRs list',
 
   // Original text: "Create a new VM"
-  shortcut_CREATE_VM:  "Create a new VM",
+  shortcut_CREATE_VM: 'Create a new VM',
 
   // Original text: "Unfocus field"
-  shortcut_UNFOCUS:  "Unfocus field",
+  shortcut_UNFOCUS: 'Unfocus field',
 
   // Original text: "Show shortcuts key bindings"
-  shortcut_HELP:  "Show shortcuts key bindings",
+  shortcut_HELP: 'Show shortcuts key bindings',
 
   // Original text: "Home"
-  shortcut_Home:  "Home",
+  shortcut_Home: 'Home',
 
   // Original text: "Focus search bar"
-  shortcut_SEARCH:  "Focus search bar",
+  shortcut_SEARCH: 'Focus search bar',
 
   // Original text: "Next item"
-  shortcut_NAV_DOWN:  "Next item",
+  shortcut_NAV_DOWN: 'Next item',
 
   // Original text: "Previous item"
-  shortcut_NAV_UP:  "Previous item",
+  shortcut_NAV_UP: 'Previous item',
 
   // Original text: "Select item"
-  shortcut_SELECT:  "Select item",
+  shortcut_SELECT: 'Select item',
 
   // Original text: "Open"
-  shortcut_JUMP_INTO:  "Open",
+  shortcut_JUMP_INTO: 'Open',
 
   // Original text: "VM"
-  settingsAclsButtonTooltipVM:  "VM",
+  settingsAclsButtonTooltipVM: 'VM',
 
   // Original text: "Hosts"
-  settingsAclsButtonTooltiphost:  "Hosts",
+  settingsAclsButtonTooltiphost: 'Hosts',
 
   // Original text: "Pool"
-  settingsAclsButtonTooltippool:  "Pool",
+  settingsAclsButtonTooltippool: 'Pool',
 
   // Original text: "SR"
-  settingsAclsButtonTooltipSR:  "SR",
+  settingsAclsButtonTooltipSR: 'SR',
 
   // Original text: "Network"
-  settingsAclsButtonTooltipnetwork:  "Network",
+  settingsAclsButtonTooltipnetwork: 'Network',
 
   // Original text: "No config file selected"
-  noConfigFile:  "No config file selected",
+  noConfigFile: 'No config file selected',
 
   // Original text: "Try dropping a config file here, or click to select a config file to upload."
-  importTip:
-  "Try dropping a config file here, or click to select a config file to upload.",
+  importTip: 'Try dropping a config file here, or click to select a config file to upload.',
 
   // Original text: "Config"
-  config:  "Config",
+  config: 'Config',
 
   // Original text: "Import"
-  importConfig:  "Import",
+  importConfig: 'Import',
 
   // Original text: "Config file successfully imported"
-  importConfigSuccess:  "Config file successfully imported",
+  importConfigSuccess: 'Config file successfully imported',
 
   // Original text: "Error while importing config file"
-  importConfigError:  "Error while importing config file",
+  importConfigError: 'Error while importing config file',
 
   // Original text: "Export"
-  exportConfig:  "Export",
+  exportConfig: 'Export',
 
   // Original text: "Download current config"
-  downloadConfig:  "Download current config",
+  downloadConfig: 'Download current config',
 
   // Original text: "No config import available for Community Edition"
-  noConfigImportCommunity:  "No config import available for Community Edition",
+  noConfigImportCommunity: 'No config import available for Community Edition',
 
   // Original text: "Reconnect all hosts"
-  srReconnectAllModalTitle:  "Reconnect all hosts",
+  srReconnectAllModalTitle: 'Reconnect all hosts',
 
   // Original text: "This will reconnect this SR to all its hosts."
-  srReconnectAllModalMessage:  "This will reconnect this SR to all its hosts.",
+  srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
 
   // Original text: "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR)."
   srsReconnectAllModalMessage:
-  "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).",
+    'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).',
 
   // Original text: "Disconnect all hosts"
-  srDisconnectAllModalTitle:  "Disconnect all hosts",
+  srDisconnectAllModalTitle: 'Disconnect all hosts',
 
   // Original text: "This will disconnect this SR from all its hosts."
-  srDisconnectAllModalMessage:  "This will disconnect this SR from all its hosts.",
+  srDisconnectAllModalMessage: 'This will disconnect this SR from all its hosts.',
 
   // Original text: "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR)."
   srsDisconnectAllModalMessage:
-  "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).",
+    'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
 
   // Original text: "Forget SR"
-  srForgetModalTitle:  "Forget SR",
+  srForgetModalTitle: 'Forget SR',
 
   // Original text: "Forget selected SRs"
-  srsForgetModalTitle:  "Forget selected SRs",
+  srsForgetModalTitle: 'Forget selected SRs',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage:  "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
+  srForgetModalMessage: "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
   srsForgetModalMessage:
-  "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed.",
+    "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed.",
 
   // Original text: "Disconnected"
-  srAllDisconnected:  "Disconnected",
+  srAllDisconnected: 'Disconnected',
 
   // Original text: "Partially connected"
-  srSomeConnected:  "Partially connected",
+  srSomeConnected: 'Partially connected',
 
   // Original text: "Connected"
-  srAllConnected:  "Connected",
+  srAllConnected: 'Connected',
 
   // Original text: "XOSAN"
-  xosanTitle:  "XOSAN",
+  xosanTitle: 'XOSAN',
 
   // Original text: "Xen Orchestra SAN SR"
-  xosanSrTitle:  "Xen Orchestra SAN SR",
+  xosanSrTitle: 'Xen Orchestra SAN SR',
 
   // Original text: "Select local SRs (lvm)"
-  xosanAvailableSrsTitle:  "Select local SRs (lvm)",
+  xosanAvailableSrsTitle: 'Select local SRs (lvm)',
 
   // Original text: "Suggestions"
-  xosanSuggestions:  "Suggestions",
+  xosanSuggestions: 'Suggestions',
 
   // Original text: "Name"
-  xosanName:  "Name",
+  xosanName: 'Name',
 
   // Original text: "Host"
-  xosanHost:  "Host",
+  xosanHost: 'Host',
 
   // Original text: "Hosts"
-  xosanHosts:  "Hosts",
+  xosanHosts: 'Hosts',
 
   // Original text: "Volume ID"
-  xosanVolumeId:  "Volume ID",
+  xosanVolumeId: 'Volume ID',
 
   // Original text: "Size"
-  xosanSize:  "Size",
+  xosanSize: 'Size',
 
   // Original text: "Used space"
-  xosanUsedSpace:  "Used space",
+  xosanUsedSpace: 'Used space',
 
   // Original text: "XOSAN pack needs to be installed on each host of the pool."
-  xosanNeedPack:  "XOSAN pack needs to be installed on each host of the pool.",
+  xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
 
   // Original text: "Install it now!"
-  xosanInstallIt:  "Install it now!",
+  xosanInstallIt: 'Install it now!',
 
   // Original text: "Some hosts need their toolstack to be restarted before you can create an XOSAN"
-  xosanNeedRestart:  "Some hosts need their toolstack to be restarted before you can create an XOSAN",
+  xosanNeedRestart: 'Some hosts need their toolstack to be restarted before you can create an XOSAN',
 
   // Original text: "Restart toolstacks"
-  xosanRestartAgents:  "Restart toolstacks",
+  xosanRestartAgents: 'Restart toolstacks',
 
   // Original text: "Pool master is not running"
-  xosanMasterOffline:  "Pool master is not running",
+  xosanMasterOffline: 'Pool master is not running',
 
   // Original text: "Install XOSAN pack on {pool}"
-  xosanInstallPackTitle:  "Install XOSAN pack on {pool}",
+  xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
 
   // Original text: "Select at least 2 SRs"
-  xosanSelect2Srs:  "Select at least 2 SRs",
+  xosanSelect2Srs: 'Select at least 2 SRs',
 
   // Original text: "Layout"
-  xosanLayout:  "Layout",
+  xosanLayout: 'Layout',
 
   // Original text: "Redundancy"
-  xosanRedundancy:  "Redundancy",
+  xosanRedundancy: 'Redundancy',
 
   // Original text: "Capacity"
-  xosanCapacity:  "Capacity",
+  xosanCapacity: 'Capacity',
 
   // Original text: "Available space"
-  xosanAvailableSpace:  "Available space",
+  xosanAvailableSpace: 'Available space',
 
   // Original text: "* Can fail without data loss"
-  xosanDiskLossLegend:  "* Can fail without data loss",
+  xosanDiskLossLegend: '* Can fail without data loss',
 
   // Original text: "Create"
-  xosanCreate:  "Create",
+  xosanCreate: 'Create',
 
   // Original text: "Installing XOSAN. Please wait…"
-  xosanInstalling:  "Installing XOSAN. Please wait…",
+  xosanInstalling: 'Installing XOSAN. Please wait…',
 
   // Original text: "No XOSAN available for Community Edition"
-  xosanCommunity:  "No XOSAN available for Community Edition",
+  xosanCommunity: 'No XOSAN available for Community Edition',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin:  "Install cloud plugin first",
+  xosanInstallCloudPlugin: 'Install cloud plugin first',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin:  "Load cloud plugin first",
+  xosanLoadCloudPlugin: 'Load cloud plugin first',
 
   // Original text: "Loading…"
-  xosanLoading:  "Loading…",
+  xosanLoading: 'Loading…',
 
   // Original text: "XOSAN is not available at the moment"
-  xosanNotAvailable:  "XOSAN is not available at the moment",
+  xosanNotAvailable: 'XOSAN is not available at the moment',
 
   // Original text: "Register for the XOSAN beta"
-  xosanRegisterBeta:  "Register for the XOSAN beta",
+  xosanRegisterBeta: 'Register for the XOSAN beta',
 
   // Original text: "You have successfully registered for the XOSAN beta. Please wait until your request has been approved."
   xosanSuccessfullyRegistered:
-  "You have successfully registered for the XOSAN beta. Please wait until your request has been approved.",
+    'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
 
   // Original text: "Install XOSAN pack on these hosts:"
-  xosanInstallPackOnHosts:  "Install XOSAN pack on these hosts:",
+  xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
 
   // Original text: "Install {pack} v{version}?"
-  xosanInstallPack:  "Install {pack} v{version}?",
+  xosanInstallPack: 'Install {pack} v{version}?',
 
   // Original text: "No compatible XOSAN pack found for your XenServer versions."
-  xosanNoPackFound:  "No compatible XOSAN pack found for your XenServer versions.",
+  xosanNoPackFound: 'No compatible XOSAN pack found for your XenServer versions.',
 
   // Original text: "At least one of these version requirements must be satisfied by all the hosts in this pool:"
-  xosanPackRequirements:
-  "At least one of these version requirements must be satisfied by all the hosts in this pool:",
+  xosanPackRequirements: 'At least one of these version requirements must be satisfied by all the hosts in this pool:',
 }

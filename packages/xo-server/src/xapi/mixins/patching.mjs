@@ -7,7 +7,6 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { extractOpaqueRef } from '@xen-orchestra/xapi'
 import { parseXml as parseXmlTree } from '@vates/xml/parse'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { xmlRpcParser } from '@vates/xml-rpc/parser'
@@ -358,7 +357,7 @@ const methods = {
 
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
       task: this.task_create('Patch upload', patchInfo.name),
-    }).then(extractOpaqueRef)
+    })
 
     return this._getOrWaitObject(patchRef)
   },
@@ -533,14 +532,14 @@ const methods = {
         beforeEvacuateVms: async () => {
           // On XS/CH, start by installing patches on all hosts
           if (!isXcp) {
-            Task.run({ properties: { name: `Installing XS patches` } }, async () => {
+            return Task.run({ properties: { name: `Installing XS patches` } }, async () => {
               await this.installPatches({ xsCredentials })
             })
           }
         },
         beforeRebootHost: async host => {
           if (isXcp) {
-            Task.run(
+            return Task.run(
               { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
               async () => {
                 await this.installPatches({ hosts: [host] })
