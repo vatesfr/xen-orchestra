@@ -409,7 +409,7 @@ export default class TabAdvanced extends Component {
                         <Toggle
                           value={pool.migrationCompression}
                           onChange={this._onChangeMigrationCompression}
-                          disabled={isMigrationCompressionAvailable}
+                          disabled={!isMigrationCompressionAvailable}
                         />
                       </Tooltip>
                     </td>
