@@ -1,4 +1,4 @@
-<!-- v1.0-->
+<!-- v1.0 -->
 <template>
   <div class="stacked-bar">
     <div class="wrapper">
@@ -10,7 +10,7 @@
           shouldShowTooltip(index)
             ? {
                 placement: 'top',
-                content: $t(segment.percentage.toFixed(0) + '%'),
+                content: `${segment.percentage.toFixed(0)} %`,
               }
             : false
         "
@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Color } from '@core/types/color.type'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { vTooltip } from '@core/directives/tooltip.directive'
 
 type StackedBarDataType = {
@@ -72,6 +73,12 @@ function setHideClass() {
       segment.classList.remove('hide-text')
     }
   })
+}
+
+function shouldShowTooltip(index: number): boolean {
+  if (segmentRefs.value === null) return false
+
+  return segmentRefs.value[index]?.classList.contains('hide-text')
 }
 
 function shouldShowTooltip(index: number): boolean {
