@@ -11,6 +11,11 @@ function epsiEqual(a, b, epsi = 0.001) {
   return Math.abs(a - b) <= Math.min(absA, absB) * epsi || (absA <= epsi && absB <= epsi)
 }
 
+// Constants for below-thresholds optimization
+const AGGRESSIVENESS_RATE = 1.5 // high-threshold ratio
+const AGGRESSIVENESS_RATE_LOW = 1.25 // low-threshold ratio
+const SIGNIFICANCE_THRESHOLD = 25 // don't optimize hosts under 25% CPU
+
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
@@ -21,6 +26,13 @@ export default class PerformancePlan extends Plan {
       return (
         objectAverages.cpu >= this._thresholds.cpu.high || objectAverages.memoryFree <= this._thresholds.memoryFree.high
       )
+    })
+  }
+
+  _checkResourcesAverages(objects, averages, poolAverage) {
+    return filter(objects, object => {
+      const objectAverages = averages[object.id]
+      return objectAverages.cpu / poolAverage >= AGGRESSIVENESS_RATE && objectAverages.cpu >= SIGNIFICANCE_THRESHOLD
     })
   }
 
@@ -37,8 +49,10 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
+    // Step 1 : anti-affinity
     await this._processAntiAffinity()
 
+    // Step 2 : optimize host that exceed CPU threshold
     const hosts = this._getHosts()
     const results = await this._getHostStatsAverages({
       hosts,
@@ -63,7 +77,48 @@ export default class PerformancePlan extends Plan {
         })
       }
     } else {
-      if (this._balanceVcpus) {
+      // Step 3 : optimize hosts whose load differs too much from the rest of the pool (if option is enabled)
+      if (this._performanceSubmode === 'preventive') {
+        for (const poolId of this._poolIds) {
+          const poolHosts = filter(hosts, host => host.$poolId === poolId)
+          if (poolHosts.length <= 1) {
+            continue
+          }
+          // get a list of hosts to optimize
+          const results = await this._getHostStatsAverages({
+            hosts: poolHosts,
+            toOptimizeOnly: true,
+            checkAverages: true,
+          })
+          if (results) {
+            const { averages, toOptimize, poolAverage } = results
+            const thresholds = {
+              cpu: { high: poolAverage * AGGRESSIVENESS_RATE, low: poolAverage * AGGRESSIVENESS_RATE_LOW },
+              memoryFree: this._thresholds.memoryFree,
+            }
+            debug(`Balancing below threshold on pool ${poolId} ; `)
+            debug(
+              `Pool average CPU : ${poolAverage} ; High threshold: ${thresholds.cpu.high} ; Low threshold: ${thresholds.cpu.low}`
+            )
+            toOptimize.sort((a, b) => -this._sortHosts(a, b, thresholds))
+            for (const exceededHost of toOptimize) {
+              const availableHosts = filter(poolHosts, host => host.id !== exceededHost.id)
+              debug(`Try to optimize Host (${exceededHost.id}).`)
+              debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
+
+              // Search bests combinations for the worst host.
+              await this._optimize({
+                exceededHost,
+                hosts: availableHosts,
+                hostsAverages: averages,
+                thresholds,
+              })
+            }
+          }
+        }
+      }
+      // Step 4 : vCPU prepositionning (if option is enable. Incompatible with step 3 option)
+      if (this._performanceSubmode === 'vCpuPrepositionning') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
           if (poolHosts.length > 1) {
@@ -74,16 +129,16 @@ export default class PerformancePlan extends Plan {
     }
   }
 
-  _getThresholdState(averages) {
+  _getThresholdState(averages, thresholds = this._thresholds) {
     return {
-      cpu: averages.cpu >= this._thresholds.cpu.high,
-      mem: averages.memoryFree <= this._thresholds.memoryFree.high,
+      cpu: averages.cpu >= thresholds.cpu.high,
+      mem: averages.memoryFree <= thresholds.memoryFree.high,
     }
   }
 
-  _sortHosts(aAverages, bAverages) {
-    const aState = this._getThresholdState(aAverages)
-    const bState = this._getThresholdState(bAverages)
+  _sortHosts(aAverages, bAverages, thresholds = this._thresholds) {
+    const aState = this._getThresholdState(aAverages, thresholds)
+    const bState = this._getThresholdState(bAverages, thresholds)
 
     // A. Same state.
     if (aState.mem === bState.mem && aState.cpu === bState.cpu) {
@@ -107,7 +162,7 @@ export default class PerformancePlan extends Plan {
     return !aState.cpu ? -1 : 1
   }
 
-  async _optimize({ exceededHost, hosts, hostsAverages }) {
+  async _optimize({ exceededHost, hosts, hostsAverages, thresholds = this._thresholds }) {
     const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
 
@@ -132,10 +187,7 @@ export default class PerformancePlan extends Plan {
     const fmtSrcHost = `${exceededHost.id} "${exceededHost.name_label}"`
     for (const vm of vms) {
       // Stop migration if we are below low threshold.
-      if (
-        exceededAverages.cpu <= this._thresholds.cpu.low &&
-        exceededAverages.memoryFree >= this._thresholds.memoryFree.low
-      ) {
+      if (exceededAverages.cpu <= thresholds.cpu.low && exceededAverages.memoryFree >= thresholds.memoryFree.low) {
         break
       }
 
@@ -182,10 +234,10 @@ export default class PerformancePlan extends Plan {
       // is reached on the destination.
       // It's not the same idea regarding the memory usage, we can migrate if the low threshold is reached,
       // but we avoid the migration in the critical (high) threshold case.
-      const state = this._getThresholdState(exceededAverages)
+      const state = this._getThresholdState(exceededAverages, thresholds)
       if (
-        destinationAverages.cpu + vmAverages.cpu >= this._thresholds.cpu.low ||
-        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.memoryFree.high ||
+        destinationAverages.cpu + vmAverages.cpu >= thresholds.cpu.low ||
+        destinationAverages.memoryFree - vmAverages.memory <= thresholds.memoryFree.high ||
         (!state.cpu &&
           !state.memory &&
           (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
