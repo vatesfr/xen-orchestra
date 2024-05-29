@@ -1,15 +1,15 @@
-<!-- v1.0.0 -->
+<!-- v1.0-->
 <template>
-  <div class="multi-progress-bar">
+  <div class="stacked-bar">
     <div class="wrapper">
       <div
         v-for="(segment, index) in segments"
         :key="index"
-        :style="{ width: (segment.value / accurateMaxValue) * 100 + '%' }"
+        :style="{ width: segmentValueAsPercentage(segment.value) + '%' }"
         class="segment typo c4-semi-bold"
         :class="segment.color"
       >
-        {{ ((segment.value / accurateMaxValue) * 100).toFixed(2) }} %
+        {{ segmentValueAsPercentage(segment.value).toFixed(2) }} %
       </div>
       <div
         v-if="availableSegmentValue > 0"
@@ -43,46 +43,53 @@ const accurateMaxValue = computed(() => {
 const availableSegmentValue = computed(() => {
   return props.maxValue > totalValue.value ? props.maxValue - totalValue.value : 0
 })
+
+const segmentValueAsPercentage = computed(() => {
+  return (segmentValue: number) => {
+    return (segmentValue / accurateMaxValue.value) * 100
+  }
+})
 </script>
 
 <style scoped lang="postcss">
-.multi-progress-bar {
+.stacked-bar {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
 
-  & .wrapper {
-    display: flex;
-    height: 40px;
-    border-radius: 0.8rem;
-    overflow: hidden;
-    width: 100%;
+.wrapper {
+  display: flex;
+  height: 40px;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  width: 100%;
+}
 
-    & .segment {
-      flex-grow: 1;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: var(--color-grey-600);
-    }
+.segment {
+  flex-grow: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-grey-600);
+  background-color: var(--segment-background-color);
+
+  &.info {
+    --segment-background-color: var(--color-purple-base);
   }
-}
-
-.info {
-  background-color: var(--color-purple-base);
-}
-.success {
-  background-color: var(--color-green-base);
-}
-.warning {
-  background-color: var(--color-orange-base);
-}
-.error {
-  background-color: var(--color-red-base);
-}
-.available {
-  background-color: var(--background-color-purple-10);
+  &.success {
+    --segment-background-color: var(--color-green-base);
+  }
+  &.warning {
+    --segment-background-color: var(--color-orange-base);
+  }
+  &.error {
+    --segment-background-color: var(--color-red-base);
+  }
+  &.available {
+    --segment-background-color: var(--background-color-purple-10);
+  }
 }
 </style>
