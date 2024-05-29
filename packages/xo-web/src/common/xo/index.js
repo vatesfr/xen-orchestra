@@ -1374,22 +1374,26 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
 }
 
 export const hidePcis = async (pcis, hide) => {
+  await confirm({
+    body: _('applyChangeOnPcis', { nPcis: pcis.length }),
+    // hide `true` means that we will disable dom0's PCI access, so we will "enable" the possibility of passthrough this PCI
+    title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
+  })
   try {
-    await confirm({
-      body: _('applyChangeOnPcis', { nPcis: pcis.length }),
-      // hide `true` means that we will disable dom0's PCI access, so we will "enable" the possibility of passthrough this PCI
-      title: _(hide ? 'pcisEnable' : 'pcisDisable', { nPcis: pcis.length }),
-    })
-
     await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide })
   } catch (error) {
-    if (noHostsAvailable.is(error)) {
+    if (!noHostsAvailable.is(error)) {
+      throw error
+    }
+    try {
       await confirm({
         body: _('hostEvacuationFailed'),
         title: _('confirmForceRebootHost'),
       })
-      await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
+    } catch (_) {
+      throw error // throw original error if user doesn't want to force
     }
+    await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
   }
 }
 
