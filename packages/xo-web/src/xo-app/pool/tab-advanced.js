@@ -404,7 +404,7 @@ export default class TabAdvanced extends Component {
                     <th>{_('migrationCompression')}</th>
                     <td>
                       <Tooltip
-                        content={isMigrationCompressionAvailable ? _('migrationCompressionDisabled') : undefined}
+                        content={isMigrationCompressionAvailable ? undefined : _('migrationCompressionDisabled')}
                       >
                         <Toggle
                           value={pool.migrationCompression}
