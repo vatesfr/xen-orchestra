@@ -5,11 +5,12 @@
       <div
         v-for="(segment, index) in computedSegments"
         :key="index"
+        ref="segmentRefs"
         :style="{ width: segment.percentage + '%' }"
         class="segment typo c4-semi-bold"
         :class="segment.color"
       >
-        {{ segment.percentage.toFixed(0) }} %
+        <span class="segment-text">{{ segment.percentage.toFixed(0) }} %</span>
       </div>
       <div
         v-if="availableSegmentValue > 0"
@@ -21,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Color } from '@core/types/color.type'
 
 type StackedBarDataType = {
@@ -33,6 +34,9 @@ const props = defineProps<{
   segments: StackedBarDataType[]
   maxValue: number
 }>()
+
+const segmentRefs = ref<HTMLElement[] | null>(null)
+const minWidth = 40
 
 const totalValue = computed(() => props.segments.reduce((acc, bar) => acc + bar.value, 0))
 
@@ -49,6 +53,25 @@ const computedSegments = computed(() => {
     ...segment,
     percentage: (segment.value / accurateMaxValue.value) * 100,
   }))
+})
+
+function setHideClass() {
+  segmentRefs.value?.forEach((segment: HTMLElement) => {
+    if (segment.offsetWidth < minWidth) {
+      segment.classList.add('hide-text')
+    } else {
+      segment.classList.remove('hide-text')
+    }
+  })
+}
+
+onMounted(() => {
+  setHideClass()
+  window.addEventListener('resize', setHideClass)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', setHideClass)
 })
 </script>
 
@@ -74,6 +97,7 @@ const computedSegments = computed(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  white-space: nowrap;
   color: var(--color-grey-600);
   background-color: var(--segment-background-color);
 
@@ -92,5 +116,10 @@ const computedSegments = computed(() => {
   &.available {
     --segment-background-color: var(--background-color-purple-10);
   }
+}
+
+/* Hide text if segment is too narrow */
+.hide-text .segment-text {
+  display: none;
 }
 </style>
