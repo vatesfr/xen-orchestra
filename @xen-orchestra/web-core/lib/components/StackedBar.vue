@@ -3,13 +3,13 @@
   <div class="stacked-bar">
     <div class="wrapper">
       <div
-        v-for="(segment, index) in segments"
+        v-for="(segment, index) in computedSegments"
         :key="index"
-        :style="{ width: segmentValueAsPercentage(segment.value) + '%' }"
+        :style="{ width: segment.percentage + '%' }"
         class="segment typo c4-semi-bold"
         :class="segment.color"
       >
-        {{ segmentValueAsPercentage(segment.value).toFixed(2) }} %
+        {{ segment.percentage.toFixed(0) }} %
       </div>
       <div
         v-if="availableSegmentValue > 0"
@@ -44,19 +44,22 @@ const availableSegmentValue = computed(() => {
   return props.maxValue > totalValue.value ? props.maxValue - totalValue.value : 0
 })
 
-const segmentValueAsPercentage = computed(() => {
-  return (segmentValue: number) => {
-    return (segmentValue / accurateMaxValue.value) * 100
-  }
+const computedSegments = computed(() => {
+  return props.segments.map(segment => ({
+    ...segment,
+    percentage: (segment.value / accurateMaxValue.value) * 100,
+  }))
 })
 </script>
 
 <style scoped lang="postcss">
 .stacked-bar {
+.stacked-bar {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
 }
 
 .wrapper {
@@ -66,7 +69,38 @@ const segmentValueAsPercentage = computed(() => {
   overflow: hidden;
   width: 100%;
 }
+.wrapper {
+  display: flex;
+  height: 40px;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  width: 100%;
+}
 
+.segment {
+  flex-grow: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-grey-600);
+  background-color: var(--segment-background-color);
+
+  &.info {
+    --segment-background-color: var(--color-purple-base);
+  }
+  &.success {
+    --segment-background-color: var(--color-green-base);
+  }
+  &.warning {
+    --segment-background-color: var(--color-orange-base);
+  }
+  &.error {
+    --segment-background-color: var(--color-red-base);
+  }
+  &.available {
+    --segment-background-color: var(--background-color-purple-10);
+  }
 .segment {
   flex-grow: 1;
   height: 100%;
