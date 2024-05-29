@@ -10,7 +10,7 @@ import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.
 import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
 
-const { warn } = createLogger('xo:server:xapi-objects-to-xo')
+const { debug, warn } = createLogger('xo:server:xapi-objects-to-xo')
 
 // ===================================================================
 
@@ -746,7 +746,13 @@ const TRANSFORMS = {
   task(obj) {
     let applies_to
     if (obj.other_config.applies_to) {
-      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined)?.uuid
+      const object = obj.$xapi.getObject(obj.other_config.applies_to, undefined)
+      if (object === undefined) {
+        debug(
+          `Undefined object while trying to get object : ${obj.other_config.applies_to} (linked to object ${obj.$id})`
+        )
+      }
+      applies_to = object?.uuid
     }
     return {
       allowedOperations: obj.allowed_operations,
