@@ -46,6 +46,7 @@
 
 <!--packages-start-->
 
+- @vates/obfuscate minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/xapi major

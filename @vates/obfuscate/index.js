@@ -1,9 +1,18 @@
-import mapValues from 'lodash/mapValues.js'
+'use strict'
+
+function mapValues(object, iteratee) {
+  const result = {}
+  for (const key of Object.keys(object)) {
+    result[key] = iteratee(object[key], key, object)
+  }
+  return result
+}
 
 // this random value is used to obfuscate real data
 const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
+exports.OBFUSCATED_VALUE = OBFUSCATED_VALUE
 
-export const merge = (newValue, oldValue) => {
+function merge(newValue, oldValue) {
   if (newValue === OBFUSCATED_VALUE) {
     return oldValue
   }
@@ -23,14 +32,16 @@ export const merge = (newValue, oldValue) => {
   const iteratee = (v, k) => merge(v, oldValue[k])
   return isArray ? newValue.map(iteratee) : mapValues(newValue, iteratee)
 }
+exports.merge = merge
 
-export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
+const obfuscate = value => replace(value, OBFUSCATED_VALUE)
+exports.obfuscate = obfuscate
 
 const SENSITIVE_PARAMS = ['token', 'passphrase', /password/i, 'encryptionKey']
 const isSensitiveParam = name =>
   SENSITIVE_PARAMS.some(pattern => (typeof pattern === 'string' ? pattern === name : pattern.test(name)))
 
-export function replace(value, replacement) {
+function replace(value, replacement) {
   function helper(value, name) {
     if (typeof value === 'string' && isSensitiveParam(name)) {
       return replacement
@@ -45,3 +56,4 @@ export function replace(value, replacement) {
 
   return helper(value)
 }
+exports.replace = replace

@@ -1,4 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import Obfuscate from '@vates/obfuscate'
 import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
@@ -7,7 +8,6 @@ import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
-import * as sensitiveValues from '../sensitive-values.mjs'
 import patch from '../patch.mjs'
 import { Remotes } from '../models/remote.mjs'
 
@@ -17,7 +17,7 @@ const { warn } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
-  remote.url = format(sensitiveValues.obfuscate(parsedUrl))
+  remote.url = format(Obfuscate.obfuscate(parsedUrl))
   return remote
 }
 
@@ -279,7 +279,7 @@ export default class {
 
     // url is handled separately to take care of obfuscated values
     if (typeof url === 'string') {
-      remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
+      remote.url = format(Obfuscate.merge(parse(url), parse(remote.url)))
     }
 
     patch(remote, props)

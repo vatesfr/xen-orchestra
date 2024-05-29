@@ -1,4 +1,5 @@
 import emitAsync from '@xen-orchestra/emit-async'
+import Obfuscate from '@vates/obfuscate'
 import { createLogger } from '@xen-orchestra/log'
 
 import cloneDeep from 'lodash/cloneDeep.js'
@@ -9,7 +10,6 @@ import { AsyncLocalStorage } from 'async_hooks'
 import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
-import * as sensitiveValues from '../sensitive-values.mjs'
 import Connection from '../connection.mjs'
 import { noop, serializeError } from '../utils.mjs'
 
@@ -321,7 +321,7 @@ export default class Api {
       userName,
       userIp: connection.get('user_ip', undefined),
       method: name,
-      params: sensitiveValues.replace(params, '* obfuscated *'),
+      params: Obfuscate.replace(params, '* obfuscated *'),
       timestamp: Date.now(),
     }
 

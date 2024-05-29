@@ -1,6 +1,6 @@
 import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
+import Obfuscate from '@vates/obfuscate'
 
-import * as sensitiveValues from './sensitive-values.mjs'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
@@ -584,7 +584,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: sensitiveValues.replace(obj.device_config, '* obfuscated *'),
+      device_config: Obfuscate.replace(obj.device_config, '* obfuscated *'),
       otherConfig: obj.other_config,
     }
   },
