@@ -33,7 +33,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Color } from '@core/types/color.type'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { vTooltip } from '@core/directives/tooltip.directive'
 
 type StackedBarDataType = {
   value: number
@@ -73,12 +72,6 @@ function setHideClass() {
       segment.classList.remove('hide-text')
     }
   })
-}
-
-function shouldShowTooltip(index: number): boolean {
-  if (segmentRefs.value === null) return false
-
-  return segmentRefs.value[index]?.classList.contains('hide-text')
 }
 
 function shouldShowTooltip(index: number): boolean {
