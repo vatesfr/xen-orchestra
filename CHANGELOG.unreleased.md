@@ -28,6 +28,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Settings/Remotes] Fixed remote encryption not displayed ([PR #7638](https://github.com/vatesfr/xen-orchestra/pull/7638))
+- [Backups] Unblock VM migration operations when not properly handled by a previous backup run [Forum#77857](https://xcp-ng.org/forum/post/77857)
 
 ### Packages to release
 
@@ -45,6 +46,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/xapi major
 - xen-api major
