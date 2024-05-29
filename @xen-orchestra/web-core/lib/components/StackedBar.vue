@@ -54,13 +54,11 @@ const computedSegments = computed(() => {
 
 <style scoped lang="postcss">
 .stacked-bar {
-.stacked-bar {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
-}
 
 .wrapper {
   display: flex;
@@ -69,38 +67,7 @@ const computedSegments = computed(() => {
   overflow: hidden;
   width: 100%;
 }
-.wrapper {
-  display: flex;
-  height: 40px;
-  border-radius: 0.8rem;
-  overflow: hidden;
-  width: 100%;
-}
 
-.segment {
-  flex-grow: 1;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--color-grey-600);
-  background-color: var(--segment-background-color);
-
-  &.info {
-    --segment-background-color: var(--color-purple-base);
-  }
-  &.success {
-    --segment-background-color: var(--color-green-base);
-  }
-  &.warning {
-    --segment-background-color: var(--color-orange-base);
-  }
-  &.error {
-    --segment-background-color: var(--color-red-base);
-  }
-  &.available {
-    --segment-background-color: var(--background-color-purple-10);
-  }
 .segment {
   flex-grow: 1;
   height: 100%;
