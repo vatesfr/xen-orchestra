@@ -7,7 +7,7 @@ import { defineConfig, loadEnv } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const { VITE_XO_REST_BASE_URL, VITE_XO_REST_UNSECURE } = loadEnv(mode, process.cwd())
+  const { VITE_XO_REST_HOST } = loadEnv(mode, process.cwd())
 
   return {
     base: './',
@@ -28,9 +28,12 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        '/api': {
+          target: `ws://${VITE_XO_REST_HOST}`,
+          ws: true,
+        },
         '/rest': {
-          secure: VITE_XO_REST_UNSECURE !== 'true',
-          target: VITE_XO_REST_BASE_URL,
+          target: `http://${VITE_XO_REST_HOST}`,
         },
       },
     },

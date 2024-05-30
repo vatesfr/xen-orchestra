@@ -30,17 +30,12 @@ const vmPowerState = computed(() =>
   vm.value !== undefined ? (vm.value.power_state.toLocaleLowerCase() as VmState) : undefined
 )
 
-const baseUrl = import.meta.env.VITE_XO_REST_BASE_URL
-
 const url = computed(() => {
   if (vm.value === undefined) {
     return
   }
 
-  const _url = new URL(`${baseUrl}/api/consoles/${vm.value.id}`)
-  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-
-  return _url
+  return new URL(`/api/consoles/${vm.value.id}`, window.location.origin.replace(/^http/, 'ws'))
 })
 
 const isVmConsoleAvailable = computed(
