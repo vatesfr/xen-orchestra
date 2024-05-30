@@ -1,5 +1,49 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [REST API] Support exporting VM in OVA format
+- [XOA/Licenses] Ability to manually bind XOSTOR licenses following new licenses (PR [#7573](https://github.com/vatesfr/xen-orchestra/pull/7573))
+- [xo-cli] Ability to connect to an XO instance without registering it first
+
+  This is helpful when using multiple instances especially when coupled with shell aliases:
+
+  ```sh
+  alias xo-dev='xo-cli --url https://token@dev.company.net'
+  alias xo-prod='xo-cli --url https://token@prod.company.net'
+
+  xo-prod vm.start id=e6572e82-983b-4780-a2a7-b19831fb7f45
+  ```
+
+- [VM] Yellow icon when VM is busy [#7593](https://github.com/vatesfr/xen-orchestra/issues/7593) (PR [#7680](https://github.com/vatesfr/xen-orchestra/pull/7680))
+- [Tasks] Wait a few seconds before estimating remaining time [#7689](https://github.com/vatesfr/xen-orchestra/issues/7689) (PR [#7691](https://github.com/vatesfr/xen-orchestra/pull/7691))
+- [Pool/Advanced] Add _Migration Compression_ toggle in the Pool advanced tab. (Only for XCP 8.3) (PR [#7642](https://github.com/vatesfr/xen-orchestra/pull/7642))
+
+### Bug fixes
+
+- [Settings/Remotes] Fixed remote encryption not displayed ([PR #7638](https://github.com/vatesfr/xen-orchestra/pull/7638))
+- [Backups] Unblock VM migration operations when not properly handled by a previous backup run [Forum#77857](https://xcp-ng.org/forum/post/77857)
+
+### Released packages
+
+- @xen-orchestra/fs 4.1.7
+- @vates/obfuscate 0.1.0
+- xen-api 4.0.0
+- @vates/nbd-client 3.0.2
+- @xen-orchestra/xapi 6.0.0
+- @xen-orchestra/backups 0.49.0
+- @xen-orchestra/backups-cli 1.0.19
+- @xen-orchestra/cr-seed-cli 1.0.2
+- @xen-orchestra/immutable-backups 1.0.6
+- @xen-orchestra/proxy 0.28.2
+- xapi-explore-sr 0.4.4
+- xo-cli 0.28.0
+- xo-server 5.144.0
+- xo-server-backup-reports 0.19.0
+- xo-web 5.146.0
+
 ## **5.94.2** (2024-05-15)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
