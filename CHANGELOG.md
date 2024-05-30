@@ -43,6 +43,7 @@
 - xo-server 5.144.0
 - xo-server-backup-reports 0.19.0
 - xo-web 5.146.0
+- @xen-orchestra/web patch
 
 ## **5.94.2** (2024-05-15)
 
