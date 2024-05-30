@@ -2,8 +2,9 @@
 <template>
   <div class="card-numbers" :class="size">
     <span class="label typo" :class="labelFontClass">{{ label }}</span>
-    <div class="values">
+    <div class="values" :class="size">
       <span v-if="size === 'small' && max" class="value typo c2-semi-bold">{{ valueAsPercentage }}%</span>
+
       <div class="value typo" :class="valueFontClass">
         {{ value }}<span class="unit typo" :class="unitFontClass">{{ unit }}</span>
       </div>
@@ -55,6 +56,7 @@ const valueAsPercentage = computed(() => {
 .card-numbers {
   display: flex;
   gap: 0.8rem;
+  width: fit-content;
 
   &.medium {
     flex-direction: column;
@@ -70,6 +72,11 @@ const valueAsPercentage = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  align-items: flex-end;
+
+  &.medium {
+    align-items: flex-start;
+  }
 }
 
 .value {
