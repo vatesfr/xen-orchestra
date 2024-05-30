@@ -27,14 +27,4 @@
 
 <!--packages-start-->
 
-- @vates/obfuscate minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs patch
-- @xen-orchestra/xapi major
-- xen-api major
-- xo-cli minor
-- xo-server minor
-- xo-server-backup-reports minor
-- xo-web minor
-
 <!--packages-end-->
