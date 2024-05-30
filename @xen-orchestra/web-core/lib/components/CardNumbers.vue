@@ -55,7 +55,6 @@ const valueAsPercentage = computed(() => {
 .card-numbers {
   display: flex;
   gap: 0.8rem;
-  justify-content: space-between;
 
   &.medium {
     flex-direction: column;
