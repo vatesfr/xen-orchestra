@@ -2,13 +2,12 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('label').type('string').preset('Label').widget(),
-      prop('value').type('number').preset(0).widget(),
-      prop('unit').type('string').preset('GB').widget(),
-      prop('size').type('string').enum('small', 'medium').preset('small').widget(),
-      prop('max').type('number').widget(),
+      prop('label').str().required().preset('Label').widget(),
+      prop('value').num().required().preset(0).widget(),
+      prop('size').str().required().enum('small', 'medium').preset('small').widget(),
+      prop('unit').str().preset('GB').widget(),
+      prop('max').num().widget(),
     ]"
-    :presets="presets"
   >
     <CardNumbers v-bind="properties" />
   </ComponentStory>
