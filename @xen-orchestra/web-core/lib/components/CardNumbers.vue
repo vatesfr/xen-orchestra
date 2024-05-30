@@ -11,15 +11,15 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="TSize extends 'small' | 'medium'">
 import { computed } from 'vue'
 
 interface CardNumbersProps {
   label: string
   value: number
+  size: TSize
   unit?: string
-  size: 'small' | 'medium'
-  max?: number
+  max?: TSize extends 'small' ? number : never
 }
 
 const props = defineProps<CardNumbersProps>()
