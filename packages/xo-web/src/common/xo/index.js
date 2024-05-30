@@ -2216,7 +2216,7 @@ export const exportVm = async vm => {
   await confirm({
     body: (
       <div>
-        <a href={fullUrl} onClick={_info}>
+        <a href={fullUrl} target='_blank' rel='noreferrer' onClick={_info}>
           {_('downloadVm')}
         </a>{' '}
         <ActionButton handler={copytoClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />

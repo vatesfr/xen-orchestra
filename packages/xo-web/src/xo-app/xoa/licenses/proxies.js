@@ -25,7 +25,10 @@ class ProxyLicensesForm extends Component {
           level: 'danger',
           render: (
             <p>
-              {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+              {_('proxyUnknownVm')}{' '}
+              <a href='https://xen-orchestra.com/' target='_blank' rel='noreferrer'>
+                {_('contactUs')}
+              </a>
             </p>
           ),
         })

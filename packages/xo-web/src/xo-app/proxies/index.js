@@ -169,7 +169,10 @@ const COLUMNS = [
       if (proxy.vmUuid === undefined) {
         return (
           <span className='text-danger'>
-            {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('proxyUnknownVm')}{' '}
+            <a href='https://xen-orchestra.com/' target='_blank' rel='noreferrer'>
+              {_('contactUs')}
+            </a>
           </span>
         )
       }

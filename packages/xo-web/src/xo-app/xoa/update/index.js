@@ -325,7 +325,11 @@ const Updates = decorate([
                   )}
                   {state.isDisconnected && (
                     <p>
-                      <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
+                      <a
+                        href='https://xen-orchestra.com/docs/updater.html#troubleshooting'
+                        target='_blank'
+                        rel='noreferrer'
+                      >
                         {_('updaterTroubleshootingLink')}
                       </a>
                     </p>

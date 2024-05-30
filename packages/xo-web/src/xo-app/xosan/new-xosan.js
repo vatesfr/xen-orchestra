@@ -286,7 +286,11 @@ export default class NewXosan extends Component {
       return (
         <em>
           {_('xosanSourcesDisclaimer', {
-            link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>,
+            link: (
+              <a href='https://xen-orchestra.com' target='_blank' rel='noreferrer'>
+                https://xen-orchestra.com
+              </a>
+            ),
           })}
         </em>
       )
@@ -448,7 +452,11 @@ export default class NewXosan extends Component {
                         <div className='alert alert-danger'>
                           {_('xosanDisperseWarning', {
                             link: (
-                              <a href='https://xen-orchestra.com/docs/xosan.html#xosan-types'>
+                              <a
+                                href='https://xen-orchestra.com/docs/xosan.html#xosan-types'
+                                target='_blank'
+                                rel='noreferrer'
+                              >
                                 https://xen-orchestra.com/docs/xosan.html#xosan-types
                               </a>
                             ),

@@ -20,6 +20,8 @@ const Upgrade = connectStore({
           <p>
             <a
               href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`}
+              target='_blank'
+              rel='noreferrer'
               className='btn btn-primary btn-lg'
             >
               <Icon icon='plan-upgrade' /> {_('upgradeNow')}

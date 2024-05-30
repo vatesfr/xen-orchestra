@@ -340,7 +340,11 @@ export default class XoApp extends Component {
           <p>{_('disclaimerText1')}</p>
           <p>
             {_('disclaimerText2')}{' '}
-            <a href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'>
+            <a
+              href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
               XOA (turnkey appliance)
             </a>
           </p>
