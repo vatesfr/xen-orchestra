@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/web-core",
   "type": "module",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "exports": {
     "./*": {
       "types": "./lib/*",
@@ -38,5 +38,8 @@
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
   }
 }
