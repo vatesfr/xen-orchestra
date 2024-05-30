@@ -1,6 +1,5 @@
 import { asyncEach } from '@vates/async-each'
 import { defer } from 'golike-defer'
-import { noHostsAvailable } from 'xo-common/api-errors.js'
 
 export const disableDom0Access = defer(async function ($defer, { pcis, disable, forceReboot = false }) {
   await this.checkPermissions(pcis.map(id => [id, 'administrate']))
@@ -25,9 +24,6 @@ export const disableDom0Access = defer(async function ($defer, { pcis, disable, 
       stopOnError: false,
     }
   )
-  if (!forceReboot) {
-    throw noHostsAvailable()
-  }
 
   await xapi.rebootHost(_pcis[0].$host, forceReboot)
 })
