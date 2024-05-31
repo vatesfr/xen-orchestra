@@ -20,11 +20,17 @@
 - [VM] Yellow icon when VM is busy [#7593](https://github.com/vatesfr/xen-orchestra/issues/7593) (PR [#7680](https://github.com/vatesfr/xen-orchestra/pull/7680))
 - [Tasks] Wait a few seconds before estimating remaining time [#7689](https://github.com/vatesfr/xen-orchestra/issues/7689) (PR [#7691](https://github.com/vatesfr/xen-orchestra/pull/7691))
 - [Pool/Advanced] Add _Migration Compression_ toggle in the Pool advanced tab. (Only for XCP 8.3) (PR [#7642](https://github.com/vatesfr/xen-orchestra/pull/7642))
+- [Plugin/load-balancer] Added an option in the plugin configuration to balance CPU usage on hosts before it reaches too high values (performance plan only) (PR [#7698](https://github.com/vatesfr/xen-orchestra/pull/7698))
+- [V2V] Select template before import (PR [#7566](https://github.com/vatesfr/xen-orchestra/pull/7566))
 
 ### Bug fixes
 
 - [Settings/Remotes] Fixed remote encryption not displayed ([PR #7638](https://github.com/vatesfr/xen-orchestra/pull/7638))
 - [Backups] Unblock VM migration operations when not properly handled by a previous backup run [Forum#77857](https://xcp-ng.org/forum/post/77857)
+- [Backup & Replication] Fix job stalling when failing to find a base VM
+- [REST API] Host logs are in tar+gzip format, the path is now `/host/:uuid/logs.tgz` [#7703](https://github.com/vatesfr/xen-orchestra/issues/7703)
+- [Plugin/perf-alert] Reduce the number of queries to the hosts [#7692](https://github.com/vatesfr/xen-orchestra/issues/7692)
+- [Host/Advanced] Ability to force reboot a host if its VMs could not be evacuated after enabling/disabling PCI passthrough (PR [#7687](https://github.com/vatesfr/xen-orchestra/pull/7687))
 
 ### Released packages
 
@@ -33,17 +39,22 @@
 - xen-api 4.0.0
 - @vates/nbd-client 3.0.2
 - @xen-orchestra/xapi 6.0.0
-- @xen-orchestra/backups 0.49.0
 - @xen-orchestra/backups-cli 1.0.19
 - @xen-orchestra/cr-seed-cli 1.0.2
 - @xen-orchestra/immutable-backups 1.0.6
-- @xen-orchestra/proxy 0.28.2
 - xapi-explore-sr 0.4.4
 - xo-cli 0.28.0
-- xo-server 5.144.0
 - xo-server-backup-reports 0.19.0
-- xo-web 5.146.0
-- @xen-orchestra/web patch
+- @vates/node-vsphere-soap 2.1.0
+- @xen-orchestra/backups 0.49.1
+- @xen-orchestra/web-core 0.0.2
+- @xen-orchestra/proxy 0.28.3
+- @xen-orchestra/vmware-explorer 0.8.0
+- xo-server 5.144.1
+- xo-server-load-balancer 0.10.0
+- xo-server-perf-alert 0.3.8
+- xo-web 5.147.0
+- @xen-orchestra/web 0.0.3
 
 ## **5.94.2** (2024-05-15)
 
