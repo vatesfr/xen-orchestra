@@ -1,16 +1,9 @@
 <!-- v1.0 -->
 <template>
-  <li class="legend">
-    <span class="circle" :class="circleColorClass"></span><span class="label typo p3-regular">{{ label }}</span
-    ><UiIcon
-      v-tooltip="{
-        placement: 'top',
-        content: tooltip ? $t(tooltip) : '',
-      }"
-      :icon="tooltip ? faCircleInfo : undefined"
-      color="info"
-      class="ui-icon"
-    />
+  <li :class="color" class="ui-legend">
+    <UiIcon :icon="faCircle" class="circle-icon" />
+    <span class="label typo p3-regular"><slot /></span>
+    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="info" />
 
     <span class="value-and-unit typo c3-semi-bold">{{ value }} {{ unit }}</span>
   </li>
@@ -18,80 +11,58 @@
 
 <script setup lang="ts">
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import { faCircleInfo, faCircle } from '@fortawesome/free-solid-svg-icons'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { computed } from 'vue'
 
-const props = defineProps<{
+type LegendColor = 'default' | 'success' | 'warning' | 'error' | 'disabled' | 'dark-blue'
+
+defineProps<{
+  color: LegendColor
   value?: number
-  state: 'success' | 'warning' | 'error' | 'disabled' | 'dark-blue' | 'default'
-  label: string
   unit?: string
   tooltip?: string
 }>()
-
-const circleColorClass = computed(() => {
-  switch (props.state) {
-    case 'success':
-      return 'success'
-    case 'warning':
-      return 'warning'
-    case 'error':
-      return 'error'
-    case 'disabled':
-      return 'disabled'
-    case 'dark-blue':
-      return 'dark-blue'
-    default:
-      return 'default'
-  }
-})
 </script>
 
 <style lang="postcss" scoped>
-.legend {
+/* COLOR VARIANTS */
+.ui-legend {
+  &.success {
+    --circle-color: var(--color-green-base);
+  }
+  &.warning {
+    --circle-color: var(--color-orange-base);
+  }
+  &.error {
+    --circle-color: var(--color-red-base);
+  }
+  &.default {
+    --circle-color: var(--color-purple-base);
+  }
+  &.disabled {
+    --circle-color: var(--color-grey-300);
+  }
+  &.dark-blue {
+    --circle-color: var(--color-grey-100);
+  }
+}
+/* IMPLEMENTATION */
+.ui-legend {
   display: flex;
   align-items: center;
   gap: 0.8rem;
 }
-
-.circle {
-  width: 0.8rem;
-  height: 0.8rem;
-  min-width: 0.8rem;
-  border-radius: 50%;
-  background-color: var(--label-color);
-
-  &.success {
-    --label-color: var(--color-green-base);
-  }
-  &.warning {
-    --label-color: var(--color-orange-base);
-  }
-  &.error {
-    --label-color: var(--color-red-base);
-  }
-  &.default {
-    --label-color: var(--color-purple-base);
-  }
-  &.disabled {
-    --label-color: var(--color-grey-300);
-  }
-  &.dark-blue {
-    --label-color: var(--color-grey-100);
-  }
+.circle-icon {
+  font-size: 0.8rem;
+  color: var(--circle-color);
 }
-
+.tooltip-icon {
+  font-size: 1.2rem;
+}
 .label {
   color: var(--color-grey-000);
 }
-
-.ui-icon {
-  font-size: 1.2rem;
-}
-
 .value-and-unit {
   color: var(--color-grey-300);
-  margin-left: auto;
 }
 </style>

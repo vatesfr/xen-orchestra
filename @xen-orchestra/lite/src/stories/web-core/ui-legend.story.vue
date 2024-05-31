@@ -1,24 +1,27 @@
 <template>
   <ComponentStory
-    v-slot="{ properties }"
+    v-slot="{ properties, settings }"
     :params="[
-      prop('value').type('number').widget().preset(4).required(),
-      prop('state')
-        .type('string')
+      prop('color')
+        .type('LegendColor')
+        .required()
         .preset('default')
         .enum('default', 'success', 'warning', 'error', 'disabled', 'dark-blue')
         .widget(),
-      prop('label').type('string').preset('Legend label').widget(),
-      prop('unit').type('string').preset('GB').widget(),
-      prop('tooltip').type('string').widget(),
+      prop('value').num().widget().preset(4),
+      prop('unit').str().preset('GB').widget(),
+      prop('tooltip').str().widget(),
+      slot(),
+      setting('slot').preset('Legend label').widget(text()),
     ]"
   >
-    <UiLegend v-bind="properties" />
+    <UiLegend v-bind="properties">{{ settings.slot }}</UiLegend>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop, slot, setting } from '@/libs/story/story-param'
 import UiLegend from '@core/components/UiLegend.vue'
+import { text } from '@/libs/story/story-widget'
 </script>
