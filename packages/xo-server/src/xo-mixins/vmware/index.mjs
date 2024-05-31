@@ -29,15 +29,8 @@ export default class MigrateVm {
     return esxi.getAllVmMetadata()
   }
 
-  async #createVmAndNetworks($defer, { metadata, networkId, xapi }) {
-    const {
-      guestId,
-      firmware,
-      memory,
-      name_label,
-      networks,
-      nCpus,
-    } = metadata
+  async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
+    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
     return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
@@ -194,7 +187,7 @@ export default class MigrateVm {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
     await this.#importDisks($defer, { esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
