@@ -1393,7 +1393,7 @@ export const hidePcis = async (pcis, hide) => {
     } catch (_) {
       throw error // throw original error if user doesn't want to force
     }
-    await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, force: true })
+    await _call('pci.disableDom0Access', { pcis: resolveIds(pcis), disable: hide, forceReboot: true })
   }
 }
 
