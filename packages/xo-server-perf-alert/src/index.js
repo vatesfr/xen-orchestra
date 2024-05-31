@@ -701,7 +701,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         .then(res => res.body.text())
         .then(text => JSON5.parse(text))
     }
-    // reuse an ecisting /in flight query
+    // reuse an existing/in flight query
     const json = await hostCache[host.uuid]
     const results = {
       meta: { ...json.meta, legend: [] },
