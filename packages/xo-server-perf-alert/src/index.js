@@ -700,6 +700,10 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         })
         .then(res => res.body.text())
         .then(text => JSON5.parse(text))
+        .catch(err => {
+          delete hostCache[host.uuid]
+          throw err
+        })
     }
     // reuse an existing/in flight query
     const json = await hostCache[host.uuid]
