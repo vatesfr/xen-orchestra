@@ -34,8 +34,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
 - @vates/node-vsphere-soap minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
 - xo-server-load-balancer minor
