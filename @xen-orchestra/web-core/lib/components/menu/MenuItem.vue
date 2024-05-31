@@ -1,20 +1,19 @@
 <!-- v1.0 -->
 <template>
-  <li class="menu-item">
+  <li class="menu-item" :href="handleClick">
     <MenuTrigger
       v-if="!$slots.submenu"
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
       :icon
-      :link="props.link"
       @click="handleClick"
     >
       <slot />
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :link="props.link" :icon @click="open">
+        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
           <UiIcon :fixed-width="false" :icon="submenuIcon" class="submenu-icon" />
         </MenuTrigger>
@@ -31,6 +30,7 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
+import { openUrl } from '@core/utils/open-url.utils'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
@@ -41,7 +41,8 @@ const props = withDefaults(
     onClick?: () => any
     disabled?: boolean
     busy?: boolean
-    link?: string
+    url?: string
+    targetBlank?: boolean
   }>(),
   { disabled: undefined }
 )
@@ -65,13 +66,12 @@ const handleClick = async () => {
 
   isHandlingClick.value = true
   try {
-    await props.onClick?.()
-
-    if (props.link) {
-      window.open(props.link, '_blank')
+    if (props.url) {
+      openUrl(props.url, props.targetBlank)
+    } else if (props.onClick) {
+      await props.onClick()
+      closeMenu?.()
     }
-
-    closeMenu?.()
   } finally {
     isHandlingClick.value = false
   }
