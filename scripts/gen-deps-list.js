@@ -210,7 +210,7 @@ function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
     return false
   }
 
-  if (['xo-web', 'xo-server', '@xen-orchestra/proxy'].includes(name)) {
+  if (['xo-web', 'xo-server', '@xen-orchestra/lite', '@xen-orchestra/proxy', '@xen-orchestra/web'].includes(name)) {
     debug('forced release due to dependency update', {
       package: name,
       dependency: depName,
