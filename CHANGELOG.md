@@ -45,7 +45,6 @@
 - xapi-explore-sr 0.4.4
 - xo-cli 0.28.0
 - xo-server-backup-reports 0.19.0
-- @xen-orchestra/web patch
 - @vates/node-vsphere-soap 2.1.0
 - @xen-orchestra/backups 0.49.1
 - @xen-orchestra/web-core 0.0.2
@@ -55,6 +54,7 @@
 - xo-server-load-balancer 0.10.0
 - xo-server-perf-alert 0.3.8
 - xo-web 5.147.0
+- @xen-orchestra/web 0.0.3
 
 ## **5.94.2** (2024-05-15)
 
