@@ -1,15 +1,8 @@
 <!-- v1.0 -->
 <template>
   <div class="legend-title typo c3-semi-bold">
-    {{ title }}
-    <UiIcon
-      v-tooltip="{
-        placement: 'top',
-        content: tooltip ? tooltip : '',
-      }"
-      :icon="tooltip ? icon : undefined"
-      color="info"
-    />
+    <slot />
+    <UiIcon v-tooltip="iconTooltip ?? false" :icon color="info" class="tooltip-icon" />
   </div>
 </template>
 
@@ -19,8 +12,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
-  title: string
-  tooltip?: string
+  iconTooltip?: string
   icon?: IconDefinition
 }>()
 </script>
@@ -33,7 +25,7 @@ defineProps<{
   align-items: center;
 }
 
-.ui-icon {
-  font-size: 1.6rem;
+.tooltip-icon {
+  font-size: 1.2rem;
 }
 </style>
