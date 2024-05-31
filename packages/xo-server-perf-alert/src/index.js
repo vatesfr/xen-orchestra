@@ -3,7 +3,7 @@ import { createSchedule } from '@xen-orchestra/cron'
 import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
-
+import assert from 'node:assert'
 const logger = createLogger('xo:xo-server-perf-alert')
 
 const XAPI_TO_XENCENTER = {
@@ -54,7 +54,12 @@ const VM_FUNCTIONS = {
       return {
         parseRow: data => {
           const memory = data.values[memoryBytesLegend.index]
-          usedMemoryRatio.push((memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory)
+          // some VM don't have this counter
+          usedMemoryRatio.push(
+            memoryKBytesFreeLegend === undefined
+              ? 0
+              : (memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory
+          )
         },
         getDisplayableValue,
         shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
@@ -421,7 +426,7 @@ ${monitorBodies.join('\n')}`
     )
   }
 
-  _parseDefinition(definition) {
+  _parseDefinition(definition, cache) {
     const { objectType } = definition
     const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
@@ -496,7 +501,7 @@ ${monitorBodies.join('\n')}`
 
                 if (typeFunction.createGetter === undefined) {
                   // Stats via RRD
-                  result.rrd = await this.getRrd(result.object, observationPeriod)
+                  result.rrd = await this.getRrd(result.object, observationPeriod, cache)
                   if (result.rrd !== null) {
                     const data = parseData(result.rrd, result.object.uuid)
                     Object.assign(result, {
@@ -543,8 +548,9 @@ ${monitorBodies.join('\n')}`
   }
 
   _getMonitors() {
-    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }))
-      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' })))
+    const cache = {}
+    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }, cache))
+      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
       .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' })))
   }
 
@@ -672,28 +678,63 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
     }
   }
 
-  async getRrd(xapiObject, secondsAgo) {
+  async getRrd(xapiObject, secondsAgo, hostCache = {}) {
     const host = xapiObject.$type === 'host' ? xapiObject : xapiObject.$resident_on
     if (host == null) {
       return null
     }
-    // we get the xapi per host, because the alarms can check VMs in various pools
     const xapi = this._xo.getXapi(host.uuid)
-    const serverTimestamp = await getServerTimestamp(xapi, host)
-    const payload = {
-      host,
-      query: {
-        cf: 'AVERAGE',
-        host: (xapiObject.$type === 'host').toString(),
-        json: 'true',
-        start: serverTimestamp - secondsAgo,
-      },
+    if (hostCache[host.uuid] === undefined) {
+      hostCache[host.uuid] = getServerTimestamp(xapi, host)
+        .then(serverTimestamp => {
+          const payload = {
+            host,
+            query: {
+              cf: 'AVERAGE',
+              host: 'true',
+              json: 'true',
+              start: serverTimestamp - secondsAgo,
+            },
+          }
+          return xapi.getResource('/rrd_updates', payload)
+        })
+        .then(res => res.body.text())
+        .then(text => JSON5.parse(text))
+        .catch(err => {
+          delete hostCache[host.uuid]
+          throw err
+        })
     }
-    if (xapiObject.$type === 'VM') {
-      payload.vm_uuid = xapiObject.uuid
+    // reuse an existing/in flight query
+    const json = await hostCache[host.uuid]
+    const results = {
+      meta: { ...json.meta, legend: [] },
+      data: [],
     }
-    // JSON is not well formed, can't use the default node parser
-    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).body.text())
+    if (json.data.length > 0) {
+      // copy only the data relevant the object
+      const data = [...json.data]
+
+      let firstPass = true
+      json.meta.legend.forEach((legend, index) => {
+        const [, , /* type */ uuidInStat /* metricType */] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
+        if (uuidInStat !== xapiObject.uuid) {
+          return
+        }
+        results.meta.legend.push(legend)
+        let timestampIndex = 0
+        for (const { t, values } of data) {
+          if (firstPass) {
+            results.data.push({ t, values: [] })
+          }
+          assert.strictEqual(results.data[timestampIndex].t, t)
+          results.data[timestampIndex].values.push(values[index])
+          timestampIndex++
+        }
+        firstPass = false
+      })
+    }
+    return results
   }
 }
 
