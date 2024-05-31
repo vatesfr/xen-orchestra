@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup & Replication] Fix job stalling when failing to find a base VM
+- [REST API] Host logs are in tar+gzip format, the path is now `/host/:uuid/logs.tgz` [#7703](https://github.com/vatesfr/xen-orchestra/issues/7703)
 
 ### Packages to release
 
@@ -36,5 +37,6 @@
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
 - xo-server-load-balancer minor
+- xo-web patch
 
 <!--packages-end-->
