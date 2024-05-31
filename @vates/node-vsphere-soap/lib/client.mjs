@@ -164,7 +164,8 @@ Client.prototype._connect = function () {
         .runCommand('RetrieveServiceContent', { _this: 'ServiceInstance' })
         .once('result', function (result, raw, soapHeader) {
           if (!result.returnval) {
-            // this is a domain/server error return it as is 
+            // this is a domain/server error return it as is
+            self.status = 'disconnected'
             self.emit('error', raw)
             return
           }
