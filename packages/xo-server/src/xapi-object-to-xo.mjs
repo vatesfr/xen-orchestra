@@ -751,8 +751,9 @@ const TRANSFORMS = {
         debug(
           `Undefined object while trying to get object : ${obj.other_config.applies_to} (linked to object ${obj.$id})`
         )
+      } else {
+        applies_to = object.uuid
       }
-      applies_to = object?.uuid
     }
     return {
       allowedOperations: obj.allowed_operations,
