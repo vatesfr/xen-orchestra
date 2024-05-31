@@ -3,9 +3,9 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
-import { defer } from 'golike-defer'
+import { Disposable } from 'promise-toolbox'
 
-async function _importDiskChain(
+const importDiskChain = Disposable.factory(async function* importDiskChain(
   $defer,
   { esxi, dataStoreToHandlers, sr, vm, chainByNode, vdi, parentVhd, userdevice }
 ) {
@@ -19,7 +19,7 @@ async function _importDiskChain(
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
     if (isFull) {
-      vhd = await VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
+      vhd = yield VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
         thin: false,
         esxi,
         dataStoreToHandlers,
@@ -28,7 +28,7 @@ async function _importDiskChain(
       if (parentVhd === undefined) {
         throw new Error(`Can't import delta of a running VM without its parent VHD`)
       }
-      vhd = await openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
+      vhd = yield openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
         lookMissingBlockInParent: isFullImport, // only look to missing block on full import
         esxi,
         dataStoreToHandlers,
@@ -66,24 +66,18 @@ async function _importDiskChain(
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
   }
   return { vdi, vhd }
-}
+})
 
-const importDiskChain = defer(_importDiskChain)
-
-export const importDisksFromDatastore = async function importDisksFromDatastore({
-  esxi,
-  dataStoreToHandlers,
-  vm,
-  chainsByNodes,
-  sr,
-  vhds = [],
-}) {
+export const importDisksFromDatastore = async function importDisksFromDatastore(
+  $defer,
+  { esxi, dataStoreToHandlers, vm, chainsByNodes, sr, vhds = [] }
+) {
   return await Promise.all(
     Object.keys(chainsByNodes).map(async (node, userdevice) =>
       Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
         const chainByNode = chainsByNodes[node]
         const { vdi, vhd: parentVhd } = vhds[userdevice] ?? {}
-        return importDiskChain({ esxi, dataStoreToHandlers, vm, chainByNode, userdevice, sr, parentVhd, vdi })
+        return importDiskChain($defer, { esxi, dataStoreToHandlers, vm, chainByNode, userdevice, sr, parentVhd, vdi })
       })
     )
   )

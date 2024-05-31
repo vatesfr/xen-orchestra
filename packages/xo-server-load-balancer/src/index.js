@@ -91,19 +91,22 @@ export const configurationSchema = {
             },
           },
 
+          // when UI will allow it, put balanceVcpu option outside performance mode
+          // balanceVcpus is an incorrect name kept for compatibility with past configurationSchema
           balanceVcpus: {
-            type: 'boolean',
-            title: 'Balance vCPUs',
-            description: 'pre-position VMs on hosts to balance vCPU/CPU ratio (performance plan only)',
+            enum: [false, 'preventive', true],
+            enumNames: [
+              'Conservative: only balance hosts when exceeding CPU or memory thresholds (default)',
+              'Preventive: balance hosts when exceeding thresholds and when pool CPU values are too disparate',
+              'vCPU balancing: balance hosts when exceeding thresholds and pre-position VMs on hosts to balance vCPU/CPU ratio',
+            ],
+            title: 'Performance plan behaviour',
+            description: 'Optionnal features for performance plan',
+            default: false,
           },
         },
 
         required: ['name', 'mode', 'pools'],
-        // when UI will allow it, remove this anyOf and hide balanceVcpu option outside performance mode
-        anyOf: [
-          { properties: { mode: { const: 'Performance mode' } } },
-          { properties: { balanceVcpus: { const: false } } },
-        ],
       },
 
       minItems: 1,

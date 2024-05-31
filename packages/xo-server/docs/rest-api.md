@@ -212,7 +212,7 @@ curl \
 
 ## VM Export
 
-A VM can be exported in XVA format at `/rest/v0/vms/<uuid>.xva` or in OVA format at `/rest/v0/vms/<uuid>.xva`.
+A VM can be exported in XVA format at `/rest/v0/vms/<uuid>.xva` or in OVA format at `/rest/v0/vms/<uuid>.ova`.
 
 By default, the XVA is not compressed, however the `compress` query parameter supports the following values:
 

@@ -5,6 +5,7 @@
     "typed-router.d.ts",
     "src/**/*",
     "src/**/*.vue",
+    "../web-core/env.d.ts",
     "../web-core/lib/**/*",
     "../web-core/lib/**/*.vue"
   ],

@@ -97,7 +97,7 @@ function computeResourcesAverageWithWeight(averages1, averages2, ratio) {
   return averages
 }
 
-function computePoolAverageCpu(hostsStats) {
+function computeAverageCpu(hostsStats) {
   const hostsStatsArray = Object.values(hostsStats)
   const totalNbCpus = hostsStatsArray.reduce((sum, host) => sum + host.nCpus, 0)
   const weightedSum = hostsStatsArray.reduce((sum, host) => sum + host.cpu * host.nCpus, 0)
@@ -142,7 +142,9 @@ export default class Plan {
       },
     }
     this._antiAffinityTags = antiAffinityTags
-    this._balanceVcpus = balanceVcpus
+    // balanceVcpus variable name was kept for compatibility with past configuration schema
+    this._performanceSubmode =
+      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositionning' : balanceVcpus
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
@@ -168,14 +170,16 @@ export default class Plan {
   // Get hosts to optimize.
   // ===================================================================
 
-  async _getHostStatsAverages({ hosts, toOptimizeOnly = false }) {
+  async _getHostStatsAverages({ hosts, toOptimizeOnly = false, checkAverages = false }) {
     const hostsStats = await this._getHostsStats(hosts, 'minutes')
 
     const avgNow = computeResourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
     let toOptimize
     if (toOptimizeOnly) {
       // Check if a resource utilization exceeds threshold.
-      toOptimize = this._checkResourcesThresholds(hosts, avgNow)
+      toOptimize = checkAverages
+        ? this._checkResourcesAverages(hosts, avgNow, computeAverageCpu(avgNow))
+        : this._checkResourcesThresholds(hosts, avgNow)
       if (toOptimize.length === 0) {
         debug('No hosts to optimize.')
         return
@@ -187,7 +191,9 @@ export default class Plan {
 
     if (toOptimizeOnly) {
       // Check in the last 30 min interval with ratio.
-      toOptimize = this._checkResourcesThresholds(toOptimize, avgWithRatio)
+      toOptimize = checkAverages
+        ? this._checkResourcesAverages(toOptimize, avgWithRatio, computeAverageCpu(avgWithRatio))
+        : this._checkResourcesThresholds(toOptimize, avgWithRatio)
       if (toOptimize.length === 0) {
         debug('No hosts to optimize.')
         return
@@ -197,6 +203,7 @@ export default class Plan {
     return {
       toOptimize,
       averages: avgWithRatio,
+      ...(checkAverages && { poolAverage: computeAverageCpu(avgWithRatio) }),
     }
   }
 
@@ -304,16 +311,12 @@ export default class Plan {
   // vCPU pre-positionning helpers
   // ===================================================================
 
-  async _processVcpuPrepositionning() {
+  async _processVcpuPrepositionning(hosts) {
     const promises = []
 
-    const allHosts = await this._getHosts()
-    if (allHosts.length <= 1) {
-      return
-    }
-    const idToHost = keyBy(allHosts, 'id')
+    const idToHost = keyBy(hosts, 'id')
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
-    const hostList = this._getVCPUHosts(allHosts, allVms)
+    const hostList = this._getVCPUHosts(hosts, allVms)
     const idealVcpuPerCpuRatio =
       hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
 
@@ -330,8 +333,8 @@ export default class Plan {
     }
 
     // execute prepositionning only if the pool is not loaded too much
-    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
-    const poolAverageCpu = computePoolAverageCpu(hostsAverages)
+    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts })
+    const poolAverageCpu = computeAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {
       debugVcpuBalancing(`Pool too much loaded for vCPU prepositionning: ${poolAverageCpu}% CPU used`)
       return
@@ -350,7 +353,7 @@ export default class Plan {
       [
         host => -vcpuPerCpuRatio(host),
         // Find hosts with the most memory used
-        // TODO: if memory is nearly the same between two hosts, ignore this criteria and decide based on CPU usage (do the same in other sortBy)
+        // TODO: if memory is nearly the same between two hosts, ignore this criteria and decide based on CPU usage (do the same in other sortBy, see epsiEqual)
         host => hostsAverages[host.id].memoryFree,
       ]
     )

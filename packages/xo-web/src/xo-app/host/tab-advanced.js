@@ -172,7 +172,7 @@ const downloadLogs = async uuid => {
     title: _('hostDownloadLogs'),
     body: _('hostDownloadLogsContainEntireHostLogs'),
   })
-  window.open(`./rest/v0/hosts/${uuid}/logs.tar`)
+  window.open(`./rest/v0/hosts/${uuid}/logs.tgz`)
 }
 
 const forceReboot = host => restartHost(host, true)

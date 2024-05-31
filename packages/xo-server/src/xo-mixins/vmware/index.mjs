@@ -29,8 +29,15 @@ export default class MigrateVm {
     return esxi.getAllVmMetadata()
   }
 
-  async #createVmAndNetworks({ metadata, networkId, xapi }) {
-    const { firmware, memory, name_label, networks, nCpus } = metadata
+  async #createVmAndNetworks($defer, { metadata, networkId, xapi }) {
+    const {
+      guestId,
+      firmware,
+      memory,
+      name_label,
+      networks,
+      nCpus,
+    } = metadata
     return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
@@ -40,12 +47,14 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           memory_static_min: memory,
-          name_description: 'from esxi',
+          name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
+          platform: { ...template.platform },
           VCPUs_at_startup: nCpus,
           VCPUs_max: nCpus,
         })
       )
+      $defer.onFailure(() => xapi.call('VM.destroy', vm.$ref))
       await Promise.all([
         vm.update_HVM_boot_params('firmware', firmware),
         vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
@@ -56,8 +65,8 @@ export default class MigrateVm {
       const vifDevices = await xapi.call('VM.get_allowed_VIF_devices', vm.$ref)
 
       await Promise.all(
-        networks.map((network, i) =>
-          xapi.VIF_create(
+        networks.map(async (network, i) => {
+          const ref = await xapi.VIF_create(
             {
               device: vifDevices[i],
               network: this._app.getXapiObject(networkId).$ref,
@@ -67,7 +76,8 @@ export default class MigrateVm {
               MAC: network.macAddress,
             }
           )
-        )
+          $defer.onFailure(() => xapi.call('VIF.destroy', ref))
+        })
       )
       return vm
     })
@@ -77,8 +87,7 @@ export default class MigrateVm {
     return `xo-vm-tmp/${uuidv4()}.vmdk`
   }
 
-  @decorateWith(deferrable)
-  async _importDisksExportVm($defer, { workDirRemote, vmId, vm, sr, esxi }) {
+  async #importDisksExportVm($defer, { workDirRemote, vmId, vm, sr, esxi }) {
     const streams = await esxi.export(`${vmId}`)
     await Promise.all(
       Object.entries(streams).map(async ([key, stream], userdevice) => {
@@ -95,6 +104,7 @@ export default class MigrateVm {
           virtual_size: vhd.footer.currentSize,
         }
         const vdi = await importVdiThroughXva(vdiMetadata, vhd, sr.$xapi, sr)
+        $defer.onFailure(() => sr.$xapi.call('VDI.destroy', vdi.$ref))
         const vbd = await sr.$xapi.VBD_create({
           VDI: vdi.$ref,
           VM: vm.$ref,
@@ -106,11 +116,11 @@ export default class MigrateVm {
     )
   }
 
-  async #importDisks({ esxi, dataStoreToHandlers, metadata, sr, stopSource, vm, vmId, workDirRemote }) {
+  async #importDisks($defer, { esxi, dataStoreToHandlers, metadata, sr, stopSource, vm, vmId, workDirRemote }) {
     const { disks, powerState, snapshots } = metadata
     if (disks.some(({ usingVsan }) => usingVsan)) {
       Task.info('Some VM storages use VSAN, fall back to compatible API')
-      return this._importDisksExportVm({ workDirRemote, vmId, vm, sr, esxi })
+      return this.#importDisksExportVm($defer, { workDirRemote, vmId, vm, sr, esxi })
     }
 
     const isRunning = powerState !== 'poweredOff'
@@ -136,7 +146,7 @@ export default class MigrateVm {
       coldChainsByNodes[key] = chainCopy
     })
 
-    const vhds = await importDisksFromDatastore({
+    const vhds = await importDisksFromDatastore($defer, {
       esxi,
       dataStoreToHandlers,
       vm,
@@ -146,7 +156,7 @@ export default class MigrateVm {
     })
     if (isRunning && stopSource) {
       await esxi.powerOff(vmId)
-      await importDisksFromDatastore({
+      await importDisksFromDatastore($defer, {
         esxi,
         dataStoreToHandlers,
         vm,
@@ -169,6 +179,7 @@ export default class MigrateVm {
       network: networkId,
       vm: vmId,
       stopSource,
+      template: templateId,
       dataStoreToHandlers,
       workDirRemote,
     }
@@ -176,16 +187,17 @@ export default class MigrateVm {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
     const sr = app.getXapiObject(srId)
+    const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
     const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    const vm = await this.#createVmAndNetworks({ metadata, networkId, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, xapi })
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
-    await this.#importDisks({ esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
+    await this.#importDisks($defer, { esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
 
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label

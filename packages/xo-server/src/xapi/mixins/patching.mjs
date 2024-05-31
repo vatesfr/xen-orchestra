@@ -7,7 +7,6 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { extractOpaqueRef } from '@xen-orchestra/xapi'
 import { parseXml as parseXmlTree } from '@vates/xml/parse'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { xmlRpcParser } from '@vates/xml-rpc/parser'
@@ -358,7 +357,7 @@ const methods = {
 
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
       task: this.task_create('Patch upload', patchInfo.name),
-    }).then(extractOpaqueRef)
+    })
 
     return this._getOrWaitObject(patchRef)
   },

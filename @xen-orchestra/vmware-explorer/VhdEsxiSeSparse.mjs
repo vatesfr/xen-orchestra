@@ -77,7 +77,10 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     const datastore = openDatastore(datastoreName, opts)
     const vhd = new VhdEsxiSeSparse(datastore, path, parentVhd, opts)
     await vhd.readHeaderAndFooter()
-    return vhd
+    return {
+      value: vhd,
+      dispose: () => vhd.dispose(),
+    }
   }
 
   get path() {
@@ -133,8 +136,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
       // no stream
       if (this.#stream === undefined) {
         const end = this.footer.currentSize
-        const res = await this.#datastore.getStream(this.#path, start, end)
-        this.#stream = res.body
+        this.#stream = await this.#datastore.getStream(this.#path, start, end)
         this.#streamOffset = start
       }
 
@@ -251,10 +253,10 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   async readBlock(blockId) {
     let changed = false
     const grainOffsets = this.#grainIndex.get(blockId) // may be undefined if the child contains block and lookMissingBlockInParent=true
-
     // negative value indicate that it's not an offset
     // SE_SPARSE_GRAIN_NON_ALLOCATED means we have to look into the parent data
-    const isLocallyFull = !grainOffsets.some(value => value === -SE_SPARSE_GRAIN_NON_ALLOCATED)
+    const isLocallyFull =
+      grainOffsets !== undefined && !grainOffsets.some(value => value === -SE_SPARSE_GRAIN_NON_ALLOCATED)
 
     let parentBuffer, parentBlock
     // don't read from parent is current block is already completly described
@@ -302,5 +304,9 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
           buffer: parentBuffer,
         }
       : parentBlock
+  }
+
+  async dispose() {
+    await this.#stream?.destroy()
   }
 }

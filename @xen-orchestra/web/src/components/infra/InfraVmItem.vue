@@ -1,6 +1,6 @@
 <template>
   <TreeItem>
-    <TreeItemLabel :route="`/vm/${vm.id}`" no-indent>
+    <TreeItemLabel :route="`/vm/${vm.id}/console`" no-indent>
       {{ vm.name_label }}
       <template #icon>
         <ObjectIcon :state="vm.power_state.toLocaleLowerCase() as POWER_STATE" size="small" type="vm" />
