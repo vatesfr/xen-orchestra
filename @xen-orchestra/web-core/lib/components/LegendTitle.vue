@@ -5,7 +5,7 @@
     <UiIcon
       v-tooltip="{
         placement: 'top',
-        content: tooltip ? $t(tooltip) : '',
+        content: tooltip ? tooltip : '',
       }"
       :icon="tooltip ? icon : undefined"
       color="info"

@@ -4,7 +4,7 @@
     :params="[
       prop('title').type('string').required().preset('Title text').widget(),
       prop('tooltip').type('string').widget(),
-      prop('icon').type('IconDefininition').preset(faInfoCircle).widget(),
+      iconProp(),
     ]"
   >
     <LegendTitle v-bind="properties">{{ settings.slot }}</LegendTitle>
@@ -13,7 +13,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
+import { prop, iconProp } from '@/libs/story/story-param'
 import LegendTitle from '@core/components/LegendTitle.vue'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 </script>
