@@ -36,6 +36,7 @@
 - @vates/node-vsphere-soap minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/web-core patch
 - xo-server patch
 - xo-server-load-balancer minor
 - xo-web patch
