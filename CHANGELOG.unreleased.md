@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @vates/node-vsphere-soap minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
