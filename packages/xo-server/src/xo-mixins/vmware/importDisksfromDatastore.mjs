@@ -4,8 +4,9 @@ import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVh
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 import { defer } from 'golike-defer'
+import { Disposable } from 'promise-toolbox'
 
-async function _importDiskChain(
+const _importDiskChain = Disposable.factory(async function* _importDiskChain(
   $defer,
   { esxi, dataStoreToHandlers, sr, vm, chainByNode, vdi, parentVhd, userdevice }
 ) {
@@ -19,7 +20,7 @@ async function _importDiskChain(
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
     if (isFull) {
-      vhd = await VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
+      vhd = yield VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
         thin: false,
         esxi,
         dataStoreToHandlers,
@@ -28,7 +29,7 @@ async function _importDiskChain(
       if (parentVhd === undefined) {
         throw new Error(`Can't import delta of a running VM without its parent VHD`)
       }
-      vhd = await openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
+      vhd = yield openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
         lookMissingBlockInParent: isFullImport, // only look to missing block on full import
         esxi,
         dataStoreToHandlers,
@@ -66,7 +67,7 @@ async function _importDiskChain(
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
   }
   return { vdi, vhd }
-}
+})
 
 const importDiskChain = defer(_importDiskChain)
 

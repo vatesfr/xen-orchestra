@@ -29,7 +29,10 @@ export default class VhdEsxiRaw extends VhdAbstract {
     const datastore = openDatastore(datastoreName, opts)
     const vhd = new VhdEsxiRaw(datastore, path, opts)
     await vhd.readHeaderAndFooter()
-    return vhd
+    return {
+      value: vhd,
+      dispose: () => vhd.dispose(),
+    }
   }
 
   get header() {
@@ -203,6 +206,9 @@ export default class VhdEsxiRaw extends VhdAbstract {
       stream.length = this.footer.currentSize
       return stream
     })
+  }
+  async dispose() {
+    await this.#stream?.destroy()
   }
 }
 

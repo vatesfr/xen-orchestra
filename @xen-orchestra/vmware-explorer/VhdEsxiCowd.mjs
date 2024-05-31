@@ -21,7 +21,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
     const datastore = openDatastore(datastoreName, opts)
     const vhd = new VhdEsxiCowd(datastore, path, parentVhd, opts)
     await vhd.readHeaderAndFooter()
-    return vhd
+    return { value: vhd, dispose: () => {} }
   }
   constructor(datastore, path, parentVhd, { lookMissingBlockInParent = true } = {}) {
     super()
