@@ -9,7 +9,6 @@
 
 - [Plugin/load-balancer] Added an option in the plugin configuration to balance CPU usage on hosts before it reaches too high values (performance plan only) (PR [#7698](https://github.com/vatesfr/xen-orchestra/pull/7698))
 - [V2V] Select template before import (PR [#7566](https://github.com/vatesfr/xen-orchestra/pull/7566))
-- [REST API] Support exporting VM in OVA format- [V2V] Improve error handling during migration (PR [#7654](https://github.com/vatesfr/xen-orchestra/pull/7654))
 
 ### Bug fixes
 
