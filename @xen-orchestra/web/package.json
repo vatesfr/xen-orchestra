@@ -1,13 +1,14 @@
 {
   "name": "@xen-orchestra/web",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "prepublishOnly": "yarn run build-only"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^2.1.1",

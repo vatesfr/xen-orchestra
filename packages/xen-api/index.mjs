@@ -5,6 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
 import noop from 'lodash/noop.js'
+import Obfuscate from '@vates/obfuscate'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
@@ -22,7 +23,6 @@ import isReadOnlyCall from './_isReadOnlyCall.mjs'
 import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
-import replaceSensitiveValues from './_replaceSensitiveValues.mjs'
 import transports from './transports/index.mjs'
 
 // ===================================================================
@@ -790,9 +790,7 @@ export class Xapi extends EventEmitter {
         method,
         params:
           // it pass server's credentials as param
-          method === 'session.login_with_password'
-            ? '* obfuscated *'
-            : replaceSensitiveValues(params, '* obfuscated *'),
+          method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(params, '* obfuscated *'),
       }
 
       debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
