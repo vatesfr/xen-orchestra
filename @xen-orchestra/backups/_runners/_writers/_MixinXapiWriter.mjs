@@ -1,4 +1,3 @@
-import { extractOpaqueRef } from '@xen-orchestra/xapi'
 import assert from 'node:assert/strict'
 
 import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
@@ -49,23 +48,18 @@ export const MixinXapiWriter = (BaseClass = Object) =>
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
               healthCheckVmRef = await Task.run(
                 { name: 'cloning-vm' },
-                async () =>
-                  await xapi
-                    .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
-                    .then(extractOpaqueRef)
+                async () => await xapi.callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
               )
             } else {
               healthCheckVmRef = await Task.run(
                 { name: 'copying-vm' },
                 async () =>
-                  await xapi
-                    .callAsync(
-                      'VM.copy',
-                      this._targetVmRef,
-                      `Health Check - ${baseVm.name_label}`,
-                      this._healthCheckSr.$ref
-                    )
-                    .then(extractOpaqueRef)
+                  await xapi.callAsync(
+                    'VM.copy',
+                    this._targetVmRef,
+                    `Health Check - ${baseVm.name_label}`,
+                    this._healthCheckSr.$ref
+                  )
               )
             }
             const healthCheckVm =

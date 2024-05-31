@@ -4,11 +4,11 @@ import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { verifyTotp } from '@vates/otp'
+import Obfuscate from '@vates/obfuscate'
 
 import patch from '../patch.mjs'
 import { Tokens } from '../models/token.mjs'
 import { forEach, generateToken } from '../utils.mjs'
-import { replace } from '../sensitive-values.mjs'
 
 // ===================================================================
 
@@ -150,7 +150,7 @@ export default class {
       {
         type: 'xo:authentication:authenticateUser',
         name: 'XO user authentication',
-        credentials: replace(credentials),
+        credentials: Obfuscate.replace(credentials, '* obfuscated *'),
         userData,
       },
       {

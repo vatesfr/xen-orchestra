@@ -289,7 +289,7 @@ export default class XapiStats {
   _isCacheStale(hostUuid, step, timestamp) {
     const byHost = this.#hostCache[hostUuid]?.[step]
     // cache is empty or too old
-    return byHost === undefined || byHost.timestamp + step < timestamp
+    return byHost === undefined || byHost.timestamp + step <= timestamp
   }
 
   // Execute one http request on a XenServer for get stats

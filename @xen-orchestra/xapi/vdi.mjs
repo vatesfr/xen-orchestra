@@ -6,7 +6,6 @@ import { decorateClass } from '@vates/decorate-with'
 import { finished } from 'node:stream'
 import { strict as assert } from 'node:assert'
 
-import extractOpaqueRef from './_extractOpaqueRef.mjs'
 import MultiNbdClient from '@vates/nbd-client/multi.mjs'
 import { createNbdVhdStream, createNbdRawStream } from 'vhd-lib/createStreamNbd.js'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
@@ -16,7 +15,7 @@ const { warn } = createLogger('xo:xapi:vdi')
 const noop = Function.prototype
 class Vdi {
   async clone(vdiRef) {
-    return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
+    return await this.callAsync('VDI.clone', vdiRef)
   }
 
   async destroy(vdiRef) {

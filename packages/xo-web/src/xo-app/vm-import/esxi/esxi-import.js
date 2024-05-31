@@ -12,7 +12,7 @@ import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
 import { Password, Select, Toggle } from 'form'
-import { SelectNetwork, SelectRemote, SelectPool, SelectSr } from 'select-objects'
+import { SelectNetwork, SelectRemote, SelectPool, SelectSr, SelectVmTemplate } from 'select-objects'
 
 import VmData from './vm-data'
 import { getRedirectionUrl } from '../utils'
@@ -33,6 +33,7 @@ class EsxiImport extends Component {
     skipSslVerify: false,
     stopSource: false,
     stopOnError: true,
+    template: undefined,
     user: '',
     workDirRemote: undefined,
   }
@@ -75,6 +76,7 @@ class EsxiImport extends Component {
       stopSource,
       stopOnError,
       user,
+      template,
       vms,
       workDirRemote,
     } = this.state
@@ -87,6 +89,7 @@ class EsxiImport extends Component {
       sslVerify: !skipSslVerify,
       stopOnError,
       stopSource,
+      template: template.id,
       user,
       vms: vms.map(vm => vm.value),
       workDirRemote: workDirRemote?.id,
@@ -286,6 +289,19 @@ class EsxiImport extends Component {
             </InputCol>
           </Row>
         )}
+        <Row>
+          <LabelCol>{_('originalTemplate')}</LabelCol>
+          <InputCol>
+            <SelectVmTemplate
+              autoSelectSingleOption={false}
+              disabled={isEmpty(pool)}
+              hasSelectAll
+              multi={false}
+              onChange={this.linkState('template')}
+              required
+            />
+          </InputCol>
+        </Row>
 
         {!isEmpty(vms) && (
           <div>

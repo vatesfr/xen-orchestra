@@ -8,7 +8,6 @@ import * as Mixins from './_Mixins.mjs'
 
 const { warn } = createLogger('xo:xapi')
 
-export { default as extractOpaqueRef } from './_extractOpaqueRef.mjs'
 export { default as isDefaultTemplate } from './isDefaultTemplate.mjs'
 
 // VDI formats. (Raw is not available for delta vdi.)

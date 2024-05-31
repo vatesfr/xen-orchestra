@@ -9,6 +9,7 @@ import Icon from 'icon'
 import renderXoItem, { Network, Sr } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -329,6 +330,8 @@ export default class TabAdvanced extends Component {
 
   _onChangeAutoPoweron = value => editPool(this.props.pool, { auto_poweron: value })
 
+  _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
+
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
@@ -359,6 +362,7 @@ export default class TabAdvanced extends Component {
     const { crashDumpSr } = pool
     const crashDumpSrPredicate = this._getCrashDumpSrPredicate()
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
+    const isMigrationCompressionAvailable = pool.migrationCompression !== undefined
 
     return (
       <div>
@@ -394,6 +398,20 @@ export default class TabAdvanced extends Component {
                     <th>{_('autoPowerOn')}</th>
                     <td>
                       <Toggle value={pool.auto_poweron} onChange={this._onChangeAutoPoweron} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('migrationCompression')}</th>
+                    <td>
+                      <Tooltip
+                        content={isMigrationCompressionAvailable ? undefined : _('migrationCompressionDisabled')}
+                      >
+                        <Toggle
+                          value={pool.migrationCompression}
+                          onChange={this._onChangeMigrationCompression}
+                          disabled={!isMigrationCompressionAvailable}
+                        />
+                      </Tooltip>
                     </td>
                   </tr>
                   <tr>

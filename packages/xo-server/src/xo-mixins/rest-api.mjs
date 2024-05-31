@@ -257,13 +257,13 @@ export default class RestApi {
           await pipeline(response.body, compressMaybe(req, res))
         },
 
-        async 'logs.tar'(req, res) {
+        async 'logs.tgz'(req, res) {
           const host = req.xapiObject
 
           const response = await host.$xapi.getResource('/host_logs_download', { host })
 
-          res.setHeader('content-type', 'application/x-tar')
-          await pipeline(response.body, compressMaybe(req, res))
+          res.setHeader('content-type', 'application/gzip')
+          await pipeline(response.body, (req, res))
         },
 
         async missing_patches(req, res) {

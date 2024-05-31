@@ -7,25 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Support exporting VM in OVA format
-- [XOA/Licenses] Ability to manually bind XOSTOR licenses following new licenses (PR [#7573](https://github.com/vatesfr/xen-orchestra/pull/7573))
-- [xo-cli] Ability to connect to an XO instance without registering it first
-
-  This is helpful when using multiple instances especially when coupled with shell aliases:
-
-  ```sh
-  alias xo-dev='xo-cli --url https://token@dev.company.net'
-  alias xo-prod='xo-cli --url https://token@prod.company.net'
-
-  xo-prod vm.start id=e6572e82-983b-4780-a2a7-b19831fb7f45
-  ```
-- [VM] Yellow icon when VM is busy [#7593](https://github.com/vatesfr/xen-orchestra/issues/7593) (PR [#7680](https://github.com/vatesfr/xen-orchestra/pull/7680))
+- [Plugin/load-balancer] Added an option in the plugin configuration to balance CPU usage on hosts before it reaches too high values (performance plan only) (PR [#7698](https://github.com/vatesfr/xen-orchestra/pull/7698))
+- [V2V] Select template before import (PR [#7566](https://github.com/vatesfr/xen-orchestra/pull/7566))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Settings/Remotes] Fixed remote encryption not displayed ([PR #7638](https://github.com/vatesfr/xen-orchestra/pull/7638))
+- [Backup & Replication] Fix job stalling when failing to find a base VM
+- [REST API] Host logs are in tar+gzip format, the path is now `/host/:uuid/logs.tgz` [#7703](https://github.com/vatesfr/xen-orchestra/issues/7703)
 
 ### Packages to release
 
@@ -43,11 +33,10 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/fs patch
-- xen-api patch
-- xo-cli minor
-- xo-server minor
-- xo-server-backup-reports minor
-- xo-web minor
+- @xen-orchestra/backups patch
+- @xen-orchestra/vmware-explorer minor
+- xo-server patch
+- xo-server-load-balancer minor
+- xo-web patch
 
 <!--packages-end-->

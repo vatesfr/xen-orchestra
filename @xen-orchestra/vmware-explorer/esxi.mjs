@@ -385,7 +385,9 @@ export default class Esxi extends EventEmitter {
       memory: +config.hardware[0].memoryMB[0] * 1024 * 1024,
       nCpus: +config.hardware[0].numCPU[0],
       guestToolsInstalled: false,
-      firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware[0], // bios or uefi
+      guestId: config.guestId[0],
+      guestFullName: config.guestFullName,
+      firmware: config.firmware[0] === 'efi' ? 'uefi' : config.firmware, // bios or uefi
       powerState: runtime.powerState[0],
       snapshots,
       disks,

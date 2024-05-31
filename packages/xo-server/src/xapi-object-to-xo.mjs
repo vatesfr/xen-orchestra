@@ -1,6 +1,6 @@
 import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
+import Obfuscate from '@vates/obfuscate'
 
-import * as sensitiveValues from './sensitive-values.mjs'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
@@ -10,7 +10,7 @@ import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.
 import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
 
-const { warn } = createLogger('xo:server:xapi-objects-to-xo')
+const { debug, warn } = createLogger('xo:server:xapi-objects-to-xo')
 
 // ===================================================================
 
@@ -112,6 +112,7 @@ const TRANSFORMS = {
       tags: obj.tags,
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
+      migrationCompression: obj.migration_compression,
       xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
       otherConfig: obj.other_config,
       cpus: {
@@ -584,7 +585,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: sensitiveValues.replace(obj.device_config, '* obfuscated *'),
+      device_config: Obfuscate.replace(obj.device_config, '* obfuscated *'),
       otherConfig: obj.other_config,
     }
   },
@@ -746,7 +747,14 @@ const TRANSFORMS = {
   task(obj) {
     let applies_to
     if (obj.other_config.applies_to) {
-      applies_to = obj.$xapi.getObject(obj.other_config.applies_to, undefined).uuid
+      const object = obj.$xapi.getObject(obj.other_config.applies_to, undefined)
+      if (object === undefined) {
+        debug(
+          `Unknown other_config.applies_to reference ${obj.other_config.applies_to} in task ${obj.$id}`
+        )
+      } else {
+        applies_to = object.uuid
+      }
     }
     return {
       allowedOperations: obj.allowed_operations,

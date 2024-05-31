@@ -1,0 +1,23 @@
+{
+  "private": false,
+  "name": "@vates/obfuscate",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/obfuscate",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/obfuscate",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}
