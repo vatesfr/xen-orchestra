@@ -17,6 +17,7 @@
 - [Backup & Replication] Fix job stalling when failing to find a base VM
 - [REST API] Host logs are in tar+gzip format, the path is now `/host/:uuid/logs.tgz` [#7703](https://github.com/vatesfr/xen-orchestra/issues/7703)
 - [Plugin/perf-alert] Reduce the number of queries to the hosts [#7692](https://github.com/vatesfr/xen-orchestra/issues/7692)
+- [Host/Advanced] Ability to force reboot a host if its VMs could not be evacuated after enabling/disabling PCI passthrough (PR [#7687](https://github.com/vatesfr/xen-orchestra/pull/7687))
 
 ### Packages to release
 
@@ -41,6 +42,6 @@
 - xo-server patch
 - xo-server-load-balancer minor
 - xo-server-perf-alert patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
