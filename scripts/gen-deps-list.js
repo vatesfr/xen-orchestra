@@ -163,11 +163,16 @@ async function readPackagesFromChangelog(toRelease) {
  */
 function handlePackageDependencies(packageName, packageNextVersion) {
   Object.values(allPackages).forEach(
-    ({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
+    ({ package: { name, version, dependencies, devDependencies, optionalDependencies, peerDependencies } }) => {
       let releaseWeight
 
       if (
-        shouldPackageBeReleased(name, { ...dependencies, ...optionalDependencies }, packageName, packageNextVersion)
+        shouldPackageBeReleased(
+          name,
+          { ...dependencies, ...devDependencies, ...optionalDependencies },
+          packageName,
+          packageNextVersion
+        )
       ) {
         releaseWeight = RELEASE_WEIGHT.PATCH
 
