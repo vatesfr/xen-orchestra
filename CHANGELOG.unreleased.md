@@ -27,6 +27,4 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/vmware-explorer patch
-- xo-server patch
 <!--packages-end-->

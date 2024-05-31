@@ -49,12 +49,12 @@
 - @xen-orchestra/backups 0.49.1
 - @xen-orchestra/web-core 0.0.2
 - @xen-orchestra/proxy 0.28.3
-- @xen-orchestra/vmware-explorer 0.8.0
-- xo-server 5.144.1
 - xo-server-load-balancer 0.10.0
 - xo-server-perf-alert 0.3.8
 - xo-web 5.147.0
 - @xen-orchestra/web 0.0.3
+- @xen-orchestra/vmware-explorer 0.8.1
+- xo-server 5.144.2
 
 ## **5.94.2** (2024-05-15)
 
