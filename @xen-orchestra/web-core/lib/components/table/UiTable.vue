@@ -1,5 +1,5 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table typo p2-regular">
+  <table :class="{ 'vertical-border': verticalBorder, error: hasError }" class="ui-table typo p2-regular">
     <slot />
   </table>
 </template>
@@ -8,7 +8,7 @@
 import { provide } from 'vue'
 
 const props = defineProps<{
-  color?: 'error'
+  hasError?: boolean
   name?: string
   verticalBorder?: boolean
 }>()
@@ -17,17 +17,27 @@ provide('tableName', props.name)
 </script>
 
 <style lang="postcss" scoped>
+/* BACKGROUND COLOR VARIANTS */
+.ui-table {
+  --background-color: var(--background-color-primary);
+
+  &.error {
+    background-color: var(--background-color-red-10);
+  }
+}
+
+/* IMPLEMENTATION */
 .ui-table {
   width: 100%;
   border-spacing: 0;
-  background-color: var(--background-color-primary);
+  background-color: var(--background-color);
   line-height: 2.4rem;
   color: var(--color-grey-200);
 
   :deep(th),
   :deep(td) {
     padding: 1rem;
-    border-top: 1px solid var(--color-grey-500);
+    border-top: 0.1rem solid var(--color-grey-500);
     text-align: left;
   }
 
@@ -48,16 +58,12 @@ provide('tableName', props.name)
   &.vertical-border {
     :deep(th),
     :deep(td) {
-      border-right: 1px solid var(--color-grey-500);
+      border-right: 0.1rem solid var(--color-grey-500);
 
       &:last-child {
         border-right: none;
       }
     }
   }
-}
-
-.error {
-  background-color: var(--background-color-red-10);
 }
 </style>

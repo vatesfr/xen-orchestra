@@ -1,5 +1,6 @@
+<!-- v1.0 -->
 <template>
-  <MenuList :disabled="disabled" placement="bottom-start" shadow>
+  <MenuList :disabled placement="bottom-start" shadow>
     <template #trigger="{ open, isOpen }">
       <th
         :class="{ interactive, disabled, focus: isOpen }"
@@ -11,19 +12,19 @@
             <UiIcon :icon />
             <slot />
           </span>
-          <UiIcon v-if="currentInteraction !== undefined" :icon="currentInteraction.icon" />
+          <UiIcon :icon="currentInteraction?.icon" />
         </div>
       </th>
     </template>
     <MenuItem
       v-for="interaction in interactions"
       v-tooltip="$t('core.coming-soon')"
-      :disabled="interaction.disabled"
       :key="interaction.id"
+      :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >
       <UiIcon :icon="interaction.icon" />{{ interaction.label }}
-      <i v-if="currentInteraction?.id === interaction.id" class="current-interaction">
+      <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo p3-regular-italic">
         {{ $t('core.current').toLowerCase() }}
       </i>
     </MenuItem>
@@ -65,18 +66,18 @@ const props = withDefaults(
 const { t } = useI18n()
 const router = useRouter()
 
-const interactions: readonly Interaction[] = [
+const interactions = computed<Interaction[]>(() => [
   { id: 'sort-asc', icon: faArrowDown, label: t('core.sort.ascending'), disabled: true },
   { id: 'sort-desc', icon: faArrowUp, label: t('core.sort.descending'), disabled: true },
   { id: 'group', icon: faLayerGroup, label: t('core.group'), disabled: true },
   { id: 'filter', icon: faFilter, label: t('core.filter'), disabled: true },
   { id: 'hide', icon: faEyeSlash, label: t('core.hide'), disabled: true },
-]
+])
 
 const tableName = inject<string>('tableName')
 
 const currentInteraction = computed(() =>
-  interactions.find(interaction => router.currentRoute.value.query[columnName] === interaction.id)
+  interactions.value.find(interaction => router.currentRoute.value.query[columnName] === interaction.id)
 )
 
 const columnName = `${tableName}__${props.id}`
@@ -91,32 +92,43 @@ const updateInteraction = (interaction: Interaction) => {
 </script>
 
 <style lang="postcss" scoped>
+/* COLOR VARIANTS */
+.column-header.interactive {
+  --color: var(--color-purple-base);
+  --background-color: var(--background-color-primary);
+
+  &.focus {
+    --color: var(--color-purple-base);
+    --background-color: var(--background-color-purple-10);
+  }
+
+  &:hover {
+    --color: var(--color-purple-d20);
+    --background-color: var(--background-color-purple-20);
+  }
+
+  &:active {
+    --color: var(--color-purple-d40);
+    --background-color: var(--background-color-purple-30);
+  }
+
+  &.disabled {
+    --color: var(--color-grey-400);
+    --background-color: var(--background-color-secondary);
+  }
+}
+/* IMPLEMENTATION */
 .column-header.interactive {
   cursor: pointer;
-  color: var(--color-purple-base);
-
-  &:is(.focus) {
-    background-color: var(--background-color-purple-10);
-  }
-  &:is(:hover) {
-    background-color: var(--background-color-purple-20);
-    color: var(--color-purple-d20);
-  }
-  &:is(:active) {
-    background-color: var(--background-color-purple-30);
-    color: var(--color-purple-d40);
-  }
-
-  &:is(.disabled) {
-    background-color: var(--background-color-secondary);
-    color: var(--color-grey-400);
+  color: var(--color);
+  background-color: var(--background-color);
+  &.disabled {
     cursor: not-allowed;
   }
 }
 
 .current-interaction {
   color: var(--color-grey-300);
-  font-size: 1.4rem;
 }
 
 .content {
