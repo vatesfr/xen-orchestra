@@ -7,7 +7,7 @@
       </template>
     </TreeItemLabel>
     <template v-if="hasVMs" #sublist>
-      <InfraVmList :host-id="host.id" />
+      <InfraVmList :container-id="host.id" for="host" />
     </template>
   </TreeItem>
 </template>

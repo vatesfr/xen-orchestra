@@ -3,7 +3,7 @@ import type { XoObjectType } from '@/types/xo-object.type'
 export const restApiConfig: Record<XoObjectType, { path: string; fields: string }> = {
   VM: {
     path: 'vms',
-    fields: 'id,name_label,power_state,$container,other',
+    fields: 'id,name_label,power_state,$container,$pool,other',
   },
   host: {
     path: 'hosts',
