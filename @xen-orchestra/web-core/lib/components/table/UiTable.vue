@@ -1,5 +1,5 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder, error: hasError }" class="ui-table typo p2-regular">
+  <table :class="{ 'vertical-border': verticalBorder }" class="ui-table typo p2-regular">
     <slot />
   </table>
 </template>
@@ -8,7 +8,6 @@
 import { provide } from 'vue'
 
 const props = defineProps<{
-  hasError?: boolean
   name?: string
   verticalBorder?: boolean
 }>()
@@ -17,20 +16,10 @@ provide('tableName', props.name)
 </script>
 
 <style lang="postcss" scoped>
-/* BACKGROUND COLOR VARIANTS */
-.ui-table {
-  --background-color: var(--background-color-primary);
-
-  &.error {
-    background-color: var(--background-color-red-10);
-  }
-}
-
-/* IMPLEMENTATION */
 .ui-table {
   width: 100%;
   border-spacing: 0;
-  background-color: var(--background-color);
+  background-color: var(--background-color-primary);
   line-height: 2.4rem;
   color: var(--color-grey-200);
 

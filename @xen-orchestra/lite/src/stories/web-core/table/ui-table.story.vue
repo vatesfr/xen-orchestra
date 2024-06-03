@@ -1,12 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[
-      prop('hasError').bool().default(false).widget(),
-      prop('name').str().widget(),
-      prop('verticalBorder').bool().default(false).widget(),
-      slot(),
-    ]"
+    :params="[prop('name').str().widget(), prop('verticalBorder').bool().default(false).widget(), slot()]"
   >
     <UiTable v-bind="properties" shadow>
       <thead>
