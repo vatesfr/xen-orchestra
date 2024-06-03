@@ -31,6 +31,6 @@ const uiStore = useUiStore()
   background-color: var(--background-color-secondary);
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1002;
 }
 </style>
