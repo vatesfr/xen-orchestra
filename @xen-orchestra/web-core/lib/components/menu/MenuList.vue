@@ -1,7 +1,7 @@
 <!-- v1.0 -->
 <template>
   <slot :is-open="isOpen" :open name="trigger" :is-header="false" />
-  <MobileFullscreen :disabled="!hasTrigger" :isOpen="isOpen" @close="isOpen = false">
+  <MobileFullscreen :disabled="!hasTrigger" :is-open="isOpen" @close="isOpen = false">
     <template #header>
       <slot name="trigger" :is-header="true" :is-open="false" :open="noop" />
     </template>
