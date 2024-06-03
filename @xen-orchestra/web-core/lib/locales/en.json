@@ -1,6 +1,11 @@
 {
   "core": {
     "close": "Close",
+    "coming-soon": "Coming soon!",
+    "current": "Current",
+    "filter": "Filter",
+    "group": "Group",
+    "hide": "Hide",
     "log-out": "Log out",
     "master": "Primary host",
     "open": "Open",
@@ -10,6 +15,10 @@
       "lock": "Lock sidebar open",
       "open": "Open sidebar",
       "unlock": "Unlock sidebar"
+    },
+    "sort": {
+      "ascending": "Sort ascending",
+      "descending": "Sort descending"
     }
   }
 }
