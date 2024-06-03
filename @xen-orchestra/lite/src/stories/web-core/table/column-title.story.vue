@@ -10,7 +10,7 @@
       slot(),
     ]"
   >
-    <UiTable vertical-border shadow name="story">
+    <UiTable vertical-border name="story">
       <thead>
         <tr>
           <ColumnTitle v-bind="properties" id="vm">{{ settings.slot }}</ColumnTitle>
