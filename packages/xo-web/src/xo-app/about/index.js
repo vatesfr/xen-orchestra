@@ -175,7 +175,7 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <Link to='/xoa/update' target='_blank' rel='noreferrer'>
+                  <Link to='/xoa/update'>
                     <h2>{_('freeTrial')}</h2>
                     {_('freeTrialNow')}
                   </Link>
