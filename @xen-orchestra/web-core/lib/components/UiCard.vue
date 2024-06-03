@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-card" :style="{ flexDirection: direction, padding: padding ? '2.4rem' : 0 }">
+  <div class="ui-card" :style="{ flexDirection: direction }">
     <slot />
   </div>
 </template>
@@ -7,7 +7,6 @@
 <script lang="ts" setup>
 type Props = {
   direction: 'column' | 'row'
-  padding: boolean
 }
 
 defineProps<Props>()
@@ -19,9 +18,10 @@ defineProps<Props>()
   border-radius: 0.8rem;
   box-shadow: var(--shadow-200);
   background-color: var(--background-color-primary);
-  border: 1px solid var(--color-grey-500);
+  border: 0.1rem solid var(--color-grey-500);
   gap: 2.4rem;
   width: 100%;
   height: 100%;
+  padding: 2.4rem;
 }
 </style>
