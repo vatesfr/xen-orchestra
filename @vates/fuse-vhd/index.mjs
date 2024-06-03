@@ -1,7 +1,10 @@
 import LRU from 'lru-cache'
 import Fuse from 'fuse-native'
+import { createLogger } from '@xen-orchestra/log'
 import { VhdSynthetic } from 'vhd-lib'
 import { Disposable, fromCallback } from 'promise-toolbox'
+
+const { warn } = createLogger('vates:fuse-vhd')
 
 // build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
@@ -52,7 +55,10 @@ export const mount = Disposable.factory(async function* mount(handler, diskPath,
     },
     read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
-        return vhd.readRawData(pos, len, cache, buf).then(cb)
+        return vhd.readRawData(pos, len, cache, buf).then(cb, error => {
+          warn('read error', { path, len, pos, error })
+          cb(Fuse.EIO)
+        })
       }
       throw new Error(`read file ${path} not exists`)
     },
