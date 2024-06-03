@@ -6,7 +6,7 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary">XO 5</UiButton>
+      <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary" @click="openUrl('/', true)">XO 5</UiButton>
       <ButtonIcon
         v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
         :icon="faBarsProgress"
@@ -44,6 +44,7 @@ import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import { openUrl } from '@core/utils/open-url.utils'
 import { faArrowUpRightFromSquare, faBarsProgress, faCity } from '@fortawesome/free-solid-svg-icons'
 
 const uiStore = useUiStore()
