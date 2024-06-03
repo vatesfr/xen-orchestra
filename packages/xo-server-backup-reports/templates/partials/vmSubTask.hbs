@@ -1,10 +1,10 @@
 {{#if subTaskLog}}
-- **{{title}}** ({{id}}) {{getIcon subTaskLog.status}}
+- **{{{title}}}** ({{{id}}}) {{getIcon subTaskLog.status}}
   {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
   {{>reportWarnings task=subTaskLog}}
   {{>reportError task=subTaskLog}}
 {{else}}
-  - **{{operationLog.message}}** {{getIcon operationLog.status}}
+  - **{{{operationLog.message}}}** {{getIcon operationLog.status}}
     {{>reportTemporalData end=operationLog.end start=operationLog.start}}
     {{#if operationLog.result.size}}
     - **Size**: {{formatSize operationLog.result.size}}

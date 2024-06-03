@@ -1,11 +1,11 @@
-## Global status: {{log.status}}
+## Global status: {{{log.status}}}
 
-- **Job ID**: {{log.jobId}}
-- **Run ID**: {{log.id}}
-- **Mode**: {{log.data.mode}}
+- **Job ID**: {{{log.jobId}}}
+- **Run ID**: {{{log.id}}}
+- **Mode**: {{{log.data.mode}}}
 {{>reportTemporalData end=log.end start=log.start}}
 {{#if log.tasks}}
-- **Successes**: {{tasksByStatus.success.count}} / {{tasksByStatus.vmTasks.count}}
+- **Successes**: {{{tasksByStatus.success.count}}} / {{{tasksByStatus.vmTasks.count}}}
 {{#if globalTransferSize}}
 - **Transfer size**: {{formatSize globalTransferSize}}
 {{/if}}
@@ -32,4 +32,4 @@
 {{/if}}
 ---
 
-*{{pkg.name}} v{{pkg.version}}*
+*{{{pkg.name}}} v{{{pkg.version}}}*

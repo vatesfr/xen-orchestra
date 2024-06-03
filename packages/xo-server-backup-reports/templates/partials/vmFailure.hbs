@@ -1,21 +1,21 @@
 ---
 
-## {{tasksByStatus.failure.count}} {{#ifCond tasksByStatus.failure.count '>' 1~}} Failures {{~^~}} Failure {{~/ifCond}}
+## {{{tasksByStatus.failure.count}}} {{#ifCond tasksByStatus.failure.count '>' 1~}} Failures {{~^~}} Failure {{~/ifCond}}
 
 {{#each tasksByStatus.failure.tasks}}
 {{#if uuid}}
 
-### {{name}}
+### {{{name}}}
 
-- **UUID**: {{uuid}}
-- **Type**: {{taskLog.data.type}}
+- **UUID**: {{{uuid}}}
+- **Type**: {{{taskLog.data.type}}}
 {{>reportTemporalData end=taskLog.end start=taskLog.start}}
 {{>reportWarnings task=taskLog}}
-- **Error**: {{taskLog.result.message}}
+- **Error**: {{{taskLog.result.message}}}
 {{else}}
 {{>vmText formatDate=../formatDate}}
 {{#if taskLog.result}}
-- **Error**: {{taskLog.result.message}}
+- **Error**: {{{taskLog.result.message}}}
 {{else}}
 {{>vmSubText formatDate=../formatDate}}
 {{/if}}
