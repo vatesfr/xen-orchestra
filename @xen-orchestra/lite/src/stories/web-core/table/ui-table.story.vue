@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[prop('name').str().widget(), prop('verticalBorder').bool().default(false).widget(), slot()]"
   >
-    <UiTable v-bind="properties" shadow>
+    <UiTable v-bind="properties">
       <thead>
         <tr>
           <ColumnTitle id="vm" :icon="faDesktop">vm</ColumnTitle>
