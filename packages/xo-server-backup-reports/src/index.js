@@ -4,7 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { extname, join, parse } from 'node:path'
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs'
 import pkg from '../package'
 import './helpers'
 
@@ -53,16 +53,26 @@ export const testSchema = {
 
 // ===================================================================
 
-const handlebarsPartialFiles = readdirSync(join(__dirname, '../templates/partials/')).filter(filename => extname(filename) === '.hbs')
+const handlebarsPartialFiles = readdirSync(join(__dirname, '../templates/partials/')).filter(
+  filename => extname(filename) === '.hbs'
+)
 for (const fileName of handlebarsPartialFiles) {
   const partial = readFileSync(join(__dirname, `../templates/partials/${fileName}`)).toString()
   Handlebars.registerPartial(parse(fileName).name, partial)
 }
 
-const compiledMetadataSubject = Handlebars.compile(readFileSync(join(__dirname, '../templates/metadataSubject.hbs')).toString())
-const compiledMetadataTemplate = Handlebars.compile(readFileSync(join(__dirname, '../templates/metadata.hbs')).toString())
-const compiledVmSubject = Handlebars.compile(readFileSync(join(__dirname, '../templates/vmSubject.hbs')).toString())
-const compiledVmTemplate = Handlebars.compile(readFileSync(join(__dirname, '../templates/vm.hbs')).toString())
+const compiledMetadataSubject = Handlebars.compile(
+  readFileSync(join(__dirname, '../templates/metadataSubject.hbs')).toString().replace(/\n$/, '')
+)
+const compiledMetadataTemplate = Handlebars.compile(
+  readFileSync(join(__dirname, '../templates/metadata.hbs')).toString().replace(/\n$/, '')
+)
+const compiledVmSubject = Handlebars.compile(
+  readFileSync(join(__dirname, '../templates/vmSubject.hbs')).toString().replace(/\n$/, '')
+)
+const compiledVmTemplate = Handlebars.compile(
+  readFileSync(join(__dirname, '../templates/vm.hbs')).toString().replace(/\n$/, '')
+)
 
 // ===================================================================
 
@@ -223,7 +233,7 @@ class BackupReportsXoPlugin {
     let nSuccesses = 0
     let nInterrupted = 0
 
-    for (const taskLog of log.tasks) {
+    for (const taskLog of log.tasks ?? []) {
       const { type, id } = taskLog.data ?? {}
       if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
         ++nFailures

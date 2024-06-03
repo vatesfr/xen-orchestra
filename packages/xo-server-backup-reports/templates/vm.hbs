@@ -12,7 +12,7 @@
 {{#if globalMergeSize}}
 - **Merge size**: {{formatSize globalMergeSize}}
 {{/if}}
-{{~>reportWarnings warnings=log.warnings}}
+{{>reportWarnings task=log}}
 
 {{#if tasksByStatus.failure.tasks}}
 {{>vmFailure}}
@@ -27,8 +27,8 @@
 {{>vmSuccess}}
 {{/if}}
 {{else}}
-{{~>reportError task=log}}
-{{~>reportWarnings warnings=log.warnings}}
+{{>reportError task=log}}
+{{>reportWarnings task=log}}
 {{/if}}
 ---
 

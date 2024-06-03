@@ -7,8 +7,8 @@
 {{#if log.tasks.length}}
 - **Successes**: {{#if tasksByStatus.success.length ~}} {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
 {{/if}}
-{{~>reportError task=log}}
-{{~>reportWarnings warnings=log.warnings}}
+{{>reportError task=log}}
+{{>reportWarnings task=log}}
 {{#each tasksByStatus}}
 ---
 
@@ -19,8 +19,8 @@
 ### {{>taskTitle task=. jobName=../../log.jobName}}
 {{>taskBody task=.}}
 {{>reportTemporalData formatDate=../../formatDate}}
-{{~>reportError task=.}}
-{{~>reportWarnings warnings=this.warnings}}
+{{>reportError task=.}}
+{{>reportWarnings task=this}}
 {{#each this.tasks}}
   {{>metadataSubTask formatDate=../../../formatDate}}
 {{/each}}

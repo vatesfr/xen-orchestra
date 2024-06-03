@@ -9,4 +9,4 @@
 - **UUID**: {{taskLog.data.id}}
 {{/if}}
 {{>reportTemporalData end=taskLog.end start=taskLog.start}}
-{{~>reportWarnings warnings=taskLog.warnings}}
+{{>reportWarnings task=taskLog}}
