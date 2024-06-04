@@ -41,6 +41,7 @@ defineProps<{
   display: flex;
   gap: 0.8rem;
   align-items: center;
+  height: fit-content;
 }
 
 .title-and-counter {
