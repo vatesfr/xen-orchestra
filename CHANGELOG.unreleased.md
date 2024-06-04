@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- @vates/fuse-vhd patch
+
 <!--packages-end-->
