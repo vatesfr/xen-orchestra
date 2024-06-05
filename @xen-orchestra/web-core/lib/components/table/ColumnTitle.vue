@@ -1,0 +1,150 @@
+<!-- v1.0 -->
+<template>
+  <MenuList :disabled placement="bottom-start" shadow>
+    <template #trigger="{ open, isOpen }">
+      <th
+        :class="{ interactive, disabled, focus: isOpen }"
+        class="column-header"
+        @click="ev => (interactive ? open(ev) : noop())"
+      >
+        <div class="content">
+          <span class="label">
+            <UiIcon :icon />
+            <slot />
+          </span>
+          <UiIcon :icon="currentInteraction?.icon" />
+        </div>
+      </th>
+    </template>
+    <MenuItem
+      v-for="interaction in interactions"
+      v-tooltip="$t('core.coming-soon')"
+      :key="interaction.id"
+      :disabled="interaction.disabled"
+      :on-click="() => updateInteraction(interaction)"
+    >
+      <UiIcon :icon="interaction.icon" />{{ interaction.label }}
+      <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo p3-regular-italic">
+        {{ $t('core.current').toLowerCase() }}
+      </i>
+    </MenuItem>
+  </MenuList>
+</template>
+
+<script lang="ts" setup>
+import MenuList from '@core/components/menu/MenuList.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import UiIcon from '@core/components/icon/UiIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { faArrowDown, faArrowUp, faEyeSlash, faFilter, faLayerGroup } from '@fortawesome/free-solid-svg-icons'
+import { noop } from '@vueuse/core'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { computed, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+type InteractionId = 'sort-asc' | 'sort-desc' | 'group' | 'filter' | 'hide'
+type Interaction = {
+  disabled?: boolean
+  id: InteractionId
+  icon: IconDefinition
+  label: string
+}
+
+const props = withDefaults(
+  defineProps<{
+    id?: string
+    icon?: IconDefinition
+    interactive?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    disabled: false,
+    interactive: true,
+  }
+)
+const { t } = useI18n()
+const router = useRouter()
+
+const interactions = computed<Interaction[]>(() => [
+  { id: 'sort-asc', icon: faArrowDown, label: t('core.sort.ascending'), disabled: true },
+  { id: 'sort-desc', icon: faArrowUp, label: t('core.sort.descending'), disabled: true },
+  { id: 'group', icon: faLayerGroup, label: t('core.group'), disabled: true },
+  { id: 'filter', icon: faFilter, label: t('core.filter'), disabled: true },
+  { id: 'hide', icon: faEyeSlash, label: t('core.hide'), disabled: true },
+])
+
+const tableName = inject<string>('tableName')
+
+const currentInteraction = computed(() =>
+  interactions.value.find(interaction => router.currentRoute.value.query[columnName] === interaction.id)
+)
+
+const columnName = `${tableName}__${props.id}`
+
+const updateInteraction = (interaction: Interaction) => {
+  router.replace({
+    query: {
+      [columnName]: interaction.id,
+    },
+  })
+}
+</script>
+
+<style lang="postcss" scoped>
+/* COLOR VARIANTS */
+.column-header.interactive {
+  --color: var(--color-purple-base);
+  --background-color: var(--background-color-primary);
+
+  &.focus {
+    --color: var(--color-purple-base);
+    --background-color: var(--background-color-purple-10);
+  }
+
+  &:hover {
+    --color: var(--color-purple-d20);
+    --background-color: var(--background-color-purple-20);
+  }
+
+  &:active {
+    --color: var(--color-purple-d40);
+    --background-color: var(--background-color-purple-30);
+  }
+
+  &.disabled {
+    --color: var(--color-grey-400);
+    --background-color: var(--background-color-secondary);
+  }
+}
+/* IMPLEMENTATION */
+.column-header.interactive {
+  cursor: pointer;
+  color: var(--color);
+  background-color: var(--background-color);
+  &.disabled {
+    cursor: not-allowed;
+  }
+}
+
+.current-interaction {
+  color: var(--color-grey-300);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-icon {
+  cursor: pointer;
+}
+</style>

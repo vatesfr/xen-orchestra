@@ -16,7 +16,7 @@ import {
   subscribeNotifications,
   subscribePermissions,
   subscribeProxies,
-  subscribeProxiesApplianceUpdaterState,
+  subscribeProxyApplianceUpdaterState,
   subscribeResourceSets,
   subscribeSrsUnhealthyVdiChainsLength,
   VDIS_TO_COALESCE_LIMIT,
@@ -194,7 +194,7 @@ export default class Menu extends Component {
     }))
 
     const unsubs = map(this.props.proxyIds, proxyId =>
-      subscribeProxiesApplianceUpdaterState(proxyId, ({ state: proxyState = '' }) => {
+      subscribeProxyApplianceUpdaterState(proxyId, ({ state: proxyState = '' }) => {
         this.setState(state => ({
           proxyStates: {
             ...state.proxyStates,

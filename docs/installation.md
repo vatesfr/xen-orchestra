@@ -22,9 +22,10 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 - Check your router's DHCP leases for an `xoa` lease
 
 :::tip
+
 - Default Web UI credentials are `admin@admin.net` / `admin`
 - Default console/SSH credentials are not set, you need to set them [as described here](troubleshooting.md#set-or-recover-xoa-vm-password).
-:::
+  :::
 
 ### Registration
 
@@ -86,13 +87,13 @@ As you may have seen in other parts of the documentation, XO is composed of two 
 
 #### NodeJS
 
-XO requires Node.js 18.
+XO requires [Node.js](https://en.wikipedia.org/wiki/Node.js), **please always use [latest LTS](https://github.com/nodejs/release?tab=readme-ov-file#release-schedule)**.
 
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```console
 $ node -v
-v18.18.0
+v20.14.0
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.

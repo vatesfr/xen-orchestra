@@ -1,0 +1,8 @@
+---
+
+## {{{tasksByStatus.success.count}}} {{#ifCond tasksByStatus.success.count '>' 1~}} Successes {{~^~}} Success {{~/ifCond}}
+
+{{#each tasksByStatus.success.tasks}}
+{{>vmText formatDate=../formatDate}}
+{{>vmSubText formatDate=../formatDate}}
+{{/each}}
