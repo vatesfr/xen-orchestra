@@ -5,6 +5,7 @@ import hrp from 'http-request-plus'
 import isEmpty from 'lodash/isEmpty.js'
 import omit from 'lodash/omit.js'
 import parseSetCookie from 'set-cookie-parser'
+import pRetry from 'promise-toolbox/retry'
 import pumpify from 'pumpify'
 import some from 'lodash/some.js'
 import split2 from 'split2'
@@ -208,9 +209,15 @@ export default class Proxy {
       await this.updateProxyAppliance(id, { upgrade: true })
     } else {
       // quick API upgrade
-      await this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, {
-        timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
-      })
+      await pRetry(
+        () =>
+          this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, {
+            timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
+          }),
+
+        // the call can fail with ECONNRESET due to xoa-updater or xo-proxy restarting
+        { delay: 5e3, tries: 3, when: { code: 'ECONNRESET' } }
+      )
     }
 
     this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
