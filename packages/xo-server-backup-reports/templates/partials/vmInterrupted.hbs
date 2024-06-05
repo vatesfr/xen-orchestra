@@ -1,0 +1,8 @@
+---
+
+## {{{tasksByStatus.interrupted.count}}} Interrupted
+
+{{#each tasksByStatus.interrupted.tasks}}
+{{>vmText formatDate=../formatDate}}
+{{>vmSubText formatDate=../formatDate}}
+{{/each}}

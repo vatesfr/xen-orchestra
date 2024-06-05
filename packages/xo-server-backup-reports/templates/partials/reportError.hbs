@@ -1,0 +1,7 @@
+{{#ifCond task.status '!==' 'success'}}
+{{#if task.result.message}}
+- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{{task.result.message}}}
+{{else if task.result.code}}
+- **{{#ifCond task.status '===' 'skipped'~}} Reason {{~^~}} Error {{~/ifCond}}**: {{{task.result.code}}}
+{{/if}}
+{{/ifCond}}

@@ -28,5 +28,6 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- xo-server-backup-reports major
 
 <!--packages-end-->
