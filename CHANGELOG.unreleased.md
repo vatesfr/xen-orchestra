@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,6 +30,7 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- @xen-orchestra/vmware-explorer patch
 - xo-server-backup-reports major
 
 <!--packages-end-->
