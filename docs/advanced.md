@@ -345,8 +345,9 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 ## Supported versions
 
-- 2.x
-- 3.x
+- `>= 2.10`
+- `3.x`
+- `4.x`
 
 ### Netbox side
 
