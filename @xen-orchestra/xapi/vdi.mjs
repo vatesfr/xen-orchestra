@@ -82,6 +82,13 @@ class Vdi {
     }
   }
 
+  async enableChangeBlockTracking(ref){
+    return this.call('VDI.enable_cbt', ref)
+  }
+  async disableChangeBlockTracking(ref){
+    return this.call('VDI.disable_cbt', ref)
+  }
+
   async exportContent(
     ref,
     { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
