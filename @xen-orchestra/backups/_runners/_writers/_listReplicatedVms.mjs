@@ -1,5 +1,7 @@
+import { DATETIME, JOB_ID, REPLICATED_TO_SR_UUID, SCHEDULE_ID, VM_UUID } from '../../_otherConfig.mjs'
+
 const getReplicatedVmDatetime = vm => {
-  const { 'xo:backup:datetime': datetime = vm.name_label.slice(-17, -1) } = vm.other_config
+  const { [DATETIME]: datetime = vm.name_label.slice(-17, -1) } = vm.other_config
   return datetime
 }
 
@@ -16,11 +18,11 @@ export function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
       !object.is_a_snapshot &&
       !object.is_a_template &&
       'start' in object.blocked_operations &&
-      (oc['xo:backup:job'] === scheduleOrJobId || oc['xo:backup:schedule'] === scheduleOrJobId) &&
-      oc['xo:backup:sr'] === srUuid &&
-      (oc['xo:backup:vm'] === vmUuid ||
+      (oc[JOB_ID] === scheduleOrJobId || oc[SCHEDULE_ID] === scheduleOrJobId) &&
+      oc[REPLICATED_TO_SR_UUID] === srUuid &&
+      (oc[VM_UUID] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
-        oc['xo:backup:vm'] === undefined)
+        oc[VM_UUID] === undefined)
     ) {
       vms[object.$id] = object
     }
