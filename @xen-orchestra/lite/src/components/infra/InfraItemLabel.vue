@@ -24,6 +24,10 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import type { RouteLocationRaw } from 'vue-router'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 defineProps<{
   icon: IconDefinition
   route: RouteLocationRaw

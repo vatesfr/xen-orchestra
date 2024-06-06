@@ -10,7 +10,7 @@
       </p>
       <ul class="list">
         <li v-for="({ url, label }, index) in labelWithUrl" :key="index">
-          <a :href="url.href" target="_blank">
+          <a :href="url.href" rel="noopener noreferrer" target="_blank">
             {{ label }}
           </a>
         </li>

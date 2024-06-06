@@ -2,11 +2,11 @@
   <UiModal @submit.prevent="handleSubmit()">
     <ConfirmModalLayout :icon="faSatellite">
       <template #title>
-        <i18n-t keypath="confirm-delete" scope="global" tag="div">
+        <I18nT keypath="confirm-delete" scope="global" tag="div">
           <span :class="textClass">
             {{ $t('n-vms', { n: vmRefs.length }) }}
           </span>
-        </i18n-t>
+        </I18nT>
       </template>
 
       <template #subtitle>

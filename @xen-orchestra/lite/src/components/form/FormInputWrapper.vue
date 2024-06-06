@@ -5,7 +5,13 @@
         <UiIcon :icon />
         {{ label }}
       </label>
-      <a v-if="learnMoreUrl !== undefined" :href="learnMoreUrl" class="learn-more-url" target="_blank">
+      <a
+        v-if="learnMoreUrl !== undefined"
+        :href="learnMoreUrl"
+        class="learn-more-url"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
         <UiIcon :icon="faInfoCircle" />
         <span>{{ $t('learn-more') }}</span>
       </a>
