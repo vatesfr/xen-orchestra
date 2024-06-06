@@ -138,7 +138,12 @@ ${APP_NAME} v${APP_VERSION}
 
   // dont delay require to stopping phase because deps may no longer be there (eg on uninstall)
   const { default: fromCallback } = await import('promise-toolbox/fromCallback')
-  app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
+  app.hooks.on('stop', async () => {
+    await fromCallback(cb => httpServer.stop(cb))
+
+    // idle connections will prevent xo-proxy from stopping
+    httpServer.closeIdleConnections()
+  })
 
   await app.hooks.start()
 
