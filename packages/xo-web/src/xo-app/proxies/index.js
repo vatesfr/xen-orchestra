@@ -276,9 +276,12 @@ const Proxies = decorate([
     initialState: () => ({
       upgradesByProxy: {},
       licensesByVmUuid: {},
+      fetchUpgradesTimeout: undefined,
     }),
     effects: {
       async initialize({ fetchProxyUpgrades }) {
+        fetchProxyUpgrades()
+
         this.state.licensesByVmUuid = groupBy(
           await getLicenses({ productType: 'xoproxy' }).catch(error => {
             console.warn(error)
@@ -286,22 +289,34 @@ const Proxies = decorate([
           }),
           'boundObjectId'
         )
-        return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
       },
-      async fetchProxyUpgrades(effects, proxies) {
-        const upgradesByProxy = { ...this.state.upgradesByProxy }
-        await Promise.all(
-          proxies.map(async id => {
-            upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(e => ({
-              state: 'error',
-              message: _('proxyUpgradesError'),
-            }))
-          })
-        )
-        this.state.upgradesByProxy = upgradesByProxy
+      finalize() {
+        clearTimeout(this.state.fetchUpgradesTimeout)
+      },
+      async fetchProxyUpgrades({ fetchProxyUpgrades }) {
+        clearTimeout(this.state.fetchUpgradesTimeout)
+
+        try {
+          const upgradesByProxy = { ...this.state.upgradesByProxy }
+          await Promise.all(
+            this.props.proxies.map(async ({ id }) => {
+              upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(e => ({
+                state: 'error',
+                message: _('proxyUpgradesError'),
+              }))
+            })
+          )
+          this.state.upgradesByProxy = upgradesByProxy
+        } catch (error) {
+          console.warn('fetchProxyUpgrades', error)
+        }
+
+        this.state.fetchUpgradesTimeout = setTimeout(fetchProxyUpgrades, 30e3)
       },
       async deployProxy({ fetchProxyUpgrades }, proxy) {
-        return fetchProxyUpgrades([await deployProxy(proxy)])
+        await deployProxy(proxy)
+
+        return fetchProxyUpgrades()
       },
       async upgradeAppliance({ fetchProxyUpgrades }, id, options) {
         try {
@@ -324,7 +339,7 @@ const Proxies = decorate([
 
           await upgradeProxyAppliance(id, { ignoreRunningJobs: true })
         }
-        return fetchProxyUpgrades([id])
+        return fetchProxyUpgrades()
       },
     },
     computed: {
