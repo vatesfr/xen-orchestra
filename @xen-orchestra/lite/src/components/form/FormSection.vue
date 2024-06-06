@@ -25,7 +25,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:collapsed', value: boolean): void
+  'update:collapsed': [value: boolean]
 }>()
 
 const isCollapsed = useVModel(props, 'collapsed', emit)
