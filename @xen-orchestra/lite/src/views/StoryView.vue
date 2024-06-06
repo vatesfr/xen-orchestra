@@ -24,5 +24,3 @@ const title = computed(() => {
 
 usePageTitleStore().setTitle(title)
 </script>
-
-<style lang="postcss" scoped></style>

@@ -6,7 +6,7 @@
       <button type="submit">Register token</button>
     </form>
 
-    <button class="clear-token" @click="clearToken">Clear token</button>
+    <button type="button" class="clear-token" @click="clearToken">Clear token</button>
   </div>
 </template>
 

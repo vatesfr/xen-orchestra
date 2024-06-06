@@ -11,5 +11,3 @@ import { storeToRefs } from 'pinia'
 const tooltipStore = useTooltipStore()
 const { tooltips } = storeToRefs(tooltipStore)
 </script>
-
-<style scoped></style>

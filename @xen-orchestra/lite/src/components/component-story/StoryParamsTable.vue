@@ -4,8 +4,6 @@
   </table>
 </template>
 
-<script lang="ts" setup></script>
-
 <style lang="postcss" scoped>
 .story-params-table {
   border-spacing: 0;

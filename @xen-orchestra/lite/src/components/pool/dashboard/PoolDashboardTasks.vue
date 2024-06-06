@@ -13,5 +13,3 @@ import { useTaskStore } from '@/stores/xen-api/task.store'
 
 const { pendingTasks } = useTaskStore().subscribe()
 </script>
-
-<style lang="postcss" scoped></style>

@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <th>Setting</th>
-        <th><!--Widget--></th>
+        <th><!-- Widget --></th>
         <th>Help</th>
       </tr>
     </thead>
@@ -53,7 +53,7 @@ const emit = defineEmits<{
 const model = useVModel(props, 'modelValue', emit)
 </script>
 
-<style lang="postcss">
+<style lang="postcss" scoped>
 .reset-all {
   text-align: right;
   padding-top: 1.2rem;

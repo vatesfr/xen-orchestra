@@ -16,5 +16,3 @@ const date = computed(() => new Date(parseDateTime(props.date)))
 const now = useNow({ interval: 1000 })
 const relativeTime = useRelativeTime(date, now)
 </script>
-
-<style lang="postcss" scoped></style>

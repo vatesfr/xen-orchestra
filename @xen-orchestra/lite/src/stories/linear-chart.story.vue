@@ -126,5 +126,3 @@ const presets = {
   },
 }
 </script>
-
-<style lang="postcss" scoped></style>

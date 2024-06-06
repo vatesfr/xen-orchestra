@@ -54,5 +54,3 @@ const handleCopy = async () => {
   await xapiStore.getXapi().vm.clone(vmRefsToClone)
 }
 </script>
-
-<style lang="postcss" scoped></style>

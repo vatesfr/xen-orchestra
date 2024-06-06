@@ -39,5 +39,3 @@ import { iconProp, slot } from '@/libs/story/story-param'
 import UiButton from '@core/components/button/UiButton.vue'
 import { faRoute } from '@fortawesome/free-solid-svg-icons'
 </script>
-
-<style lang="postcss" scoped></style>

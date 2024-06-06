@@ -15,5 +15,3 @@ import BasicModalLayout from '@/components/ui/modals/layouts/BasicModalLayout.vu
 import { setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 </script>
-
-<style lang="postcss" scoped></style>

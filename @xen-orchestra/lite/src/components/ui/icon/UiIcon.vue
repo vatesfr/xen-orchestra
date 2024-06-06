@@ -17,5 +17,3 @@ withDefaults(
   { fixedWidth: true }
 )
 </script>
-
-<style lang="postcss" scoped></style>
