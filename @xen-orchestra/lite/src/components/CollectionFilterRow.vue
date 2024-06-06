@@ -54,8 +54,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: NewFilter): void
-  (event: 'remove', filterId: number): void
+  'update:modelValue': [value: NewFilter]
+  remove: [filterId: number]
 }>()
 
 const { t } = useI18n()

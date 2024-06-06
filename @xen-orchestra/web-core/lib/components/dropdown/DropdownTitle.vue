@@ -29,7 +29,7 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  (event: 'toggleSelectAll', value: boolean): void
+  toggleSelectAll: [value: boolean]
 }>()
 </script>
 

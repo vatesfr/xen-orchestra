@@ -85,7 +85,7 @@ const { name: contextColor } = useContext(ColorContext, () => props.color)
 const inputElement = ref()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: any): void
+  'update:modelValue': [value: any]
 }>()
 
 const value = useVModel(props, 'modelValue', emit)

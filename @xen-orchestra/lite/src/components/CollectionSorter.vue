@@ -34,9 +34,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'toggleSortDirection', property: string): void
-  (event: 'addSort', property: string, isAscending: boolean): void
-  (event: 'removeSort', property: string): void
+  toggleSortDirection: [property: string]
+  addSort: [property: string, isAscending: boolean]
+  removeSort: [property: string]
 }>()
 
 const openModal = () => {

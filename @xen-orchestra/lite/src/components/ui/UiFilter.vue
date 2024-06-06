@@ -14,8 +14,8 @@ import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { faRemove } from '@fortawesome/free-solid-svg-icons'
 
 const emit = defineEmits<{
-  (event: 'edit'): void
-  (event: 'remove'): void
+  edit: []
+  remove: []
 }>()
 </script>
 

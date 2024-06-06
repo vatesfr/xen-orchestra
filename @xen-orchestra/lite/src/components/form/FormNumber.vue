@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: number | undefined): void
+  'update:modelValue': [value: number | undefined]
 }>()
 
 const localValue = ref('')

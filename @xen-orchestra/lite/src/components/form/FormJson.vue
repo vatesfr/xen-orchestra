@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: any): void
+  'update:modelValue': [value: any]
 }>()
 
 const model = useVModel(props, 'modelValue', emit)
