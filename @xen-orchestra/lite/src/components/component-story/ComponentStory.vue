@@ -89,6 +89,18 @@ import { uniqueId, upperFirst } from 'lodash-es'
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 
+const props = defineProps<{
+  params: (Param | ModelParam)[]
+  presets?: Record<
+    string,
+    {
+      props?: Record<string, any>
+      settings?: Record<string, any>
+    }
+  >
+  fullWidthComponent?: boolean
+}>()
+
 enum TAB {
   NONE,
   PROPS,
@@ -103,18 +115,6 @@ const tab = (tab: TAB, params: Param[]) =>
     active: computed(() => selectedTab.value === tab),
     disabled: computed(() => params.length === 0),
   })
-
-const props = defineProps<{
-  params: (Param | ModelParam)[]
-  presets?: Record<
-    string,
-    {
-      props?: Record<string, any>
-      settings?: Record<string, any>
-    }
-  >
-  fullWidthComponent?: boolean
-}>()
 
 const modelParams = computed(() => props.params.filter(isModelParam))
 

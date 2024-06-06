@@ -9,11 +9,11 @@ import markdown from '@/libs/markdown'
 import { useEventListener } from '@vueuse/core'
 import { computed, type Ref, ref } from 'vue'
 
-const rootElement = ref() as Ref<HTMLElement>
-
 const props = defineProps<{
   content: string
 }>()
+
+const rootElement = ref() as Ref<HTMLElement>
 
 const html = computed(() => markdown.parse(props.content ?? ''))
 

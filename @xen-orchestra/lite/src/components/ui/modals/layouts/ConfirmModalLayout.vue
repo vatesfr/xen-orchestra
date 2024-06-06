@@ -43,14 +43,14 @@ defineProps<{
   icon?: IconDefinition
 }>()
 
-const { textClass } = useContext(ColorContext)
-
 defineSlots<{
   title: () => void
   subtitle: () => void
   default: () => void
   buttons: () => void
 }>()
+
+const { textClass } = useContext(ColorContext)
 </script>
 
 <style lang="postcss" scoped>
