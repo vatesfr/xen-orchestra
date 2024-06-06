@@ -5,7 +5,7 @@
 <style lang="postcss" scoped>
 .ui-separator {
   border: none;
-  border-top: 1px solid var(--color-grey-500);
-  border-right: 1px solid var(--color-grey-500);
+  border-top: var(--color-grey-500) solid 1px;
+  border-right: var(--color-grey-500) solid 1px;
 }
 </style>
