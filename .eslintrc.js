@@ -110,6 +110,11 @@ module.exports = {
             defineExposeLast: true,
           },
         ],
+        'vue/no-duplicate-attr-inheritance': 'error',
+        'vue/no-static-inline-styles': 'error',
+        'vue/no-template-target-blank': 'error',
+        'vue/component-name-in-template-casing': ['error', 'PascalCase', { registeredComponentsOnly: false }],
+        'vue/no-ref-object-reactivity-loss': 'error',
       },
     },
     {

@@ -4,7 +4,7 @@
   </div>
   <div v-else>
     <AppHeader v-if="uiStore.hasUi" />
-    <div style="display: flex">
+    <div class="container">
       <AppNavigation v-if="uiStore.hasUi" />
       <main class="main" :class="{ 'no-ui': !uiStore.hasUi }">
         <RouterView />
@@ -67,6 +67,10 @@ useUnreachableHosts()
 </script>
 
 <style lang="postcss" scoped>
+.container {
+  display: flex;
+}
+
 .main {
   overflow: auto;
   flex: 1;
