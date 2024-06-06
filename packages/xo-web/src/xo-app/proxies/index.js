@@ -279,7 +279,13 @@ const Proxies = decorate([
     }),
     effects: {
       async initialize({ fetchProxyUpgrades }) {
-        this.state.licensesByVmUuid = groupBy(await getLicenses({ productType: 'xoproxy' }), 'boundObjectId')
+        this.state.licensesByVmUuid = groupBy(
+          await getLicenses({ productType: 'xoproxy' }).catch(error => {
+            console.warn(error)
+            return []
+          }),
+          'boundObjectId'
+        )
         return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
       },
       async fetchProxyUpgrades(effects, proxies) {

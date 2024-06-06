@@ -32,5 +32,6 @@
 - @vates/fuse-vhd patch
 - @xen-orchestra/vmware-explorer patch
 - xo-server-backup-reports major
+- xo-web patch
 
 <!--packages-end-->
