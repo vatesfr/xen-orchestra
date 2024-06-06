@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/vmware-explorer patch
 - xo-server-backup-reports major
 - xo-web patch

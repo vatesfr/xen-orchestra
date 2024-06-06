@@ -95,6 +95,9 @@ ${pkg.name} v${pkg.version}`
     },
     method: 'POST',
     rejectUnauthorized: false,
+
+    // Default 5s timeout (since Node 19) is problematic with long running requests
+    timeout: 0,
   }
 
   const call = async ({ method, params }) => {
