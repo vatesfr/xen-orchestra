@@ -3,7 +3,7 @@
   <div class="ui-input">
     <UiIcon class="left-icon" :icon="leftIcon" />
     <input :id v-model="model" type="search" :disabled v-bind="$attrs" class="typo p1-regular" />
-    <UiIcon v-if="!disabled && model" class="right-icon" :icon="faXmark" @click="model = undefined" />
+    <UiIcon v-if="!disabled && hasModel" class="right-icon" :icon="faXmark" @click="model = ''" />
   </div>
 </template>
 
@@ -11,6 +11,7 @@
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 
 defineProps<{
   id: string
@@ -19,6 +20,8 @@ defineProps<{
 }>()
 
 const model = defineModel<string>()
+
+const hasModel = computed(() => model.value !== undefined && model.value.trim() !== '')
 </script>
 
 <style lang="postcss" scoped>
