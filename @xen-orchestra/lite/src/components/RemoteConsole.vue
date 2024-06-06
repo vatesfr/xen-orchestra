@@ -9,13 +9,13 @@ import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
 
-const N_TOTAL_TRIES = 8
-const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
-
 const props = defineProps<{
   location: string
   isConsoleAvailable: boolean
 }>()
+
+const N_TOTAL_TRIES = 8
+const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
 
 const vmConsoleContainer = ref<HTMLDivElement>()
 const xenApiStore = useXenApiStore()

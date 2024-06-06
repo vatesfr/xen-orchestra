@@ -103,6 +103,13 @@ module.exports = {
         'vue/require-macro-variable-name': 'error',
         'vue/html-button-has-type': 'error',
         'vue/define-emits-declaration': ['error', 'type-literal'],
+        'vue/define-macros-order': [
+          'error',
+          {
+            order: ['defineOptions', 'defineProps', 'defineEmits', 'defineModel', 'defineSlots'],
+            defineExposeLast: true,
+          },
+        ],
       },
     },
     {

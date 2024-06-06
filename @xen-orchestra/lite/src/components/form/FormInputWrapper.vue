@@ -38,8 +38,6 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'
 import { computed, provide, useSlots } from 'vue'
 
-const slots = useSlots()
-
 const props = withDefaults(
   defineProps<{
     label?: string
@@ -54,6 +52,8 @@ const props = withDefaults(
   }>(),
   { disabled: undefined }
 )
+
+const slots = useSlots()
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)

@@ -16,6 +16,10 @@ import placementJs, { type Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const props = withDefaults(
   defineProps<{
     horizontal?: boolean
@@ -25,10 +29,6 @@ const props = withDefaults(
   }>(),
   { disabled: undefined }
 )
-
-defineOptions({
-  inheritAttrs: false,
-})
 
 const slots = useSlots()
 const isOpen = ref(false)

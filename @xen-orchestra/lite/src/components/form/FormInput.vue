@@ -80,13 +80,13 @@ const props = withDefaults(
   { disabled: undefined }
 )
 
-const { name: contextColor } = useContext(ColorContext, () => props.color)
-
-const inputElement = ref()
-
 const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
+
+const { name: contextColor } = useContext(ColorContext, () => props.color)
+
+const inputElement = ref()
 
 const value = useVModel(props, 'modelValue', emit)
 const isEmpty = computed(() => props.modelValue == null || String(props.modelValue).trim() === '')
