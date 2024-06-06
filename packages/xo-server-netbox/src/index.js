@@ -207,7 +207,13 @@ class Netbox {
     if (uuidCustomField === undefined) {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
-    const { content_types: types } = uuidCustomField
+    var types = [];
+    if (_semver.default.gt(this.#netboxVersion, '4.0.0')) {
+      types.push({object_types: types} = uuidCustomField);
+    }
+    else {
+      types.push({content_types: types} = uuidCustomField);
+    }
     const typesWithUuid = TYPES_WITH_UUID
     if (this.#syncUsers) {
       typesWithUuid.push('tenancy.tenant')
