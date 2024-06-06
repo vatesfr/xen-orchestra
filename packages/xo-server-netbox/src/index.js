@@ -16,7 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
-const SUPPORTED_VERSION = '>=2.10 <4.0'
+const SUPPORTED_VERSION = '>=2.10 <5.0'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -208,7 +208,7 @@ class Netbox {
     if (uuidCustomField === undefined) {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
-    const { content_types: types } = uuidCustomField
+    const types = uuidCustomField.object_types ?? uuidCustomField.content_types
     const typesWithUuid = TYPES_WITH_UUID
     if (this.#syncUsers) {
       typesWithUuid.push('tenancy.tenant')
