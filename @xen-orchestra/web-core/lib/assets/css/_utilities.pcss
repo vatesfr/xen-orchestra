@@ -1,0 +1,12 @@
+/*
+ * See https://www.tpgi.com/the-anatomy-of-visually-hidden/
+ * for reference
+ */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
