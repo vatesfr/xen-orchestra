@@ -1,4 +1,4 @@
-<!-- v.1.0 -->
+<!-- v1.0 -->
 <template>
   <div class="card-title">
     <div class="left-blok">
