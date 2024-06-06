@@ -314,7 +314,7 @@ const Proxies = decorate([
           console.warn('fetchProxyUpgrades', error)
         }
 
-        this.state.fetchUpgradesTimeout = setTimeout(fetchProxyUpgrades, 30e3)
+        this.state.fetchUpgradesTimeout = setTimeout(fetchProxyUpgrades, 5e3)
       },
       async deployProxy({ fetchProxyUpgrades }, proxy) {
         await deployProxy(proxy)

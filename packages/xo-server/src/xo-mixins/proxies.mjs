@@ -209,15 +209,32 @@ export default class Proxy {
       await this.updateProxyAppliance(id, { upgrade: true })
     } else {
       // quick API upgrade
-      await pRetry(
-        () =>
-          this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, {
-            timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
-          }),
+      const opts = {
+        timeout: this._app.config.getDuration('xo-proxy.xoaUpgradeTimeout'),
+      }
+      for (let i = 0; i < 3; ++i) {
+        console.log('call ', i)
 
-        // the call can fail with ECONNRESET due to xoa-updater or xo-proxy restarting
-        { delay: 5e3, tries: 3, when: { code: 'ECONNRESET' } }
-      )
+        try {
+          // the call can fail with ECONNRESET due to xoa-updater or xo-proxy restarting (due to a previous loop)
+          const result = await pRetry(() => this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, opts), {
+            delay: 2e3,
+            tries: 10,
+            when: e => e.code === 'ECONNREFUSED' || e.message.includes('ECONNREFUSED'),
+          })
+
+          console.log('result', result)
+        } catch (error) {
+          console.log('error', error)
+
+          if (
+            // connection can break due to xoa-updater or xo-proxy restarting
+            !(error.code === 'ECONNRESET' || error.message.includes('ECONNRESET'))
+          ) {
+            throw error
+          }
+        }
+      }
     }
 
     this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
