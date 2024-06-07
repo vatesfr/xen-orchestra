@@ -377,7 +377,7 @@ Backup health check ensures the backups are ready to be restored.
 
 #### Check for boot
 
-XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a disaster recovery of continous replication and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
+XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a disaster recovery or continuous replication and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
 
 A VM without guest tools will fail its health check.
 
