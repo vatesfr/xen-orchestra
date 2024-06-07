@@ -15,13 +15,13 @@ defineProps<Props>()
 <style lang="postcss" scoped>
 .ui-card {
   display: flex;
-  border-radius: 0.8rem;
+  gap: 2.4rem;
+  padding: 2.4rem;
+  width: 100%;
+  height: 100%;
   box-shadow: var(--shadow-200);
   background-color: var(--background-color-primary);
   border: 0.1rem solid var(--color-grey-500);
-  gap: 2.4rem;
-  width: 100%;
-  height: 100%;
-  padding: 2.4rem;
+  border-radius: 0.8rem;
 }
 </style>
