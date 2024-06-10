@@ -35,5 +35,3 @@ const handleSnapshot = () => {
   return useXenApiStore().getXapi().vm.snapshot(vmRefsToSnapshot)
 }
 </script>
-
-<style lang="postcss" scoped></style>

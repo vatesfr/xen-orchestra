@@ -22,5 +22,3 @@ import { slot } from '@/libs/story/story-param'
 import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 </script>
-
-<style lang="postcss" scoped></style>

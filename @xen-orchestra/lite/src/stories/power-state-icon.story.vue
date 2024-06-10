@@ -19,5 +19,3 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 </script>
-
-<style lang="postcss" scoped></style>

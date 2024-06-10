@@ -30,5 +30,3 @@ defineProps<{
 
 const modal = inject(IK_MODAL)!
 </script>
-
-<style lang="postcss" scoped></style>

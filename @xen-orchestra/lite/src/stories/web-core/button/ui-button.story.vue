@@ -69,5 +69,3 @@ import { choice } from '@/libs/story/story-widget'
 import UiButton from '@core/components/button/UiButton.vue'
 import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>
-
-<style lang="postcss" scoped></style>

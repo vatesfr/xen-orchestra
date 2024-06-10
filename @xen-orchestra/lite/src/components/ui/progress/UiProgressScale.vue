@@ -17,7 +17,7 @@ withDefaults(
 )
 </script>
 
-<style lang="postcss">
+<style lang="postcss" scoped>
 .unit {
   color: var(--color-grey-300);
   display: flex;

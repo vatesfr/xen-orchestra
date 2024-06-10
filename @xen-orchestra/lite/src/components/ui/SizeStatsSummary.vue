@@ -20,6 +20,7 @@
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import { formatSize, percent } from '@/libs/utils'
 import { computed } from 'vue'
@@ -34,6 +35,7 @@ const percentUsed = computed(() => percent(props.usage, props.size))
 
 const isDisplayed = computed(() => !isNaN(percentUsed.value) && !isNaN(percentFree.value))
 </script>
+
 <style lang="postcss" scoped>
 .summary {
   display: flex;

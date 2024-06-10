@@ -6,8 +6,6 @@
   </table>
 </template>
 
-<script lang="ts" setup></script>
-
 <style lang="postcss" scoped>
 .ui-key-value-list {
   border-spacing: 0;

@@ -9,5 +9,3 @@ import { provide } from 'vue'
 
 provide(IK_INPUT_TYPE, 'textarea')
 </script>
-
-<style lang="postcss" scoped></style>

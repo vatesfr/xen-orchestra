@@ -2,8 +2,6 @@
   <pre class="ui-raw"><slot /></pre>
 </template>
 
-<script lang="ts" setup></script>
-
 <style lang="postcss" scoped>
 .ui-raw {
   background-color: var(--color-grey-500);

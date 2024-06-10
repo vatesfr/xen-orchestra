@@ -10,6 +10,7 @@
     <VmsCpuUsage />
   </UiCard>
 </template>
+
 <script lang="ts" setup>
 import HostsCpuUsage from '@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue'
 import VmsCpuUsage from '@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue'

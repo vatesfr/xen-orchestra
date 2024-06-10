@@ -11,5 +11,3 @@ import { provide } from 'vue'
 
 provide(IK_INPUT_TYPE, 'select')
 </script>
-
-<style lang="postcss" scoped></style>

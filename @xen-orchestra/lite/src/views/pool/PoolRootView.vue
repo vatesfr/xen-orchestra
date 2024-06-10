@@ -17,5 +17,3 @@ const { pool } = usePoolStore().subscribe()
 
 usePageTitleStore().setObject(pool)
 </script>
-
-<style lang="postcss" scoped></style>

@@ -10,6 +10,7 @@
     {{ $t(isSingleAction ? 'export-vm' : 'export-vms') }}
   </MenuItem>
 </template>
+
 <script lang="ts" setup>
 import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
