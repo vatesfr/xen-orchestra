@@ -217,17 +217,13 @@ export default class Proxy {
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
-    const xenstoreData = {}
-    if (httpProxy !== undefined) {
-      xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
-    }
-    if (upgrade) {
-      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(await this._getChannel())
-    }
-
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
-    await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
+    await xapi.getObject(vmUuid).update_xenstore_data({
+      'vm-data/xoa-updater-channel': upgrade ? JSON.stringify(await this._getChannel()) : undefined,
+
+      'vm-data/xoa-updater-proxy-url': httpProxy && JSON.stringify(httpProxy),
+    })
 
     try {
       await xapi.rebootVm(vmUuid)
