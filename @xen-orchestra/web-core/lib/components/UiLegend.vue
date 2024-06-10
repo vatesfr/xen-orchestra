@@ -3,7 +3,13 @@
   <li :class="color" class="ui-legend">
     <UiIcon :icon="faCircle" class="circle-icon" />
     <span class="label typo p3-regular"><slot /></span>
-    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="info" />
+    <UiIcon
+      v-if="tooltip"
+      v-tooltip="tooltip"
+      :icon="faCircleInfo"
+      class="tooltip-icon"
+      color="info"
+    />
 
     <span class="value-and-unit typo c3-semi-bold">{{ value }} {{ unit }}</span>
   </li>

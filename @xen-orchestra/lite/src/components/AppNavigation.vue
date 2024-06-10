@@ -1,6 +1,11 @@
 <template>
   <Transition name="slide">
-    <nav v-if="isDesktop || isOpen" ref="navElement" :class="{ collapsible: isMobile }" class="app-navigation">
+    <nav
+      v-if="isDesktop || isOpen"
+      ref="navElement"
+      :class="{ collapsible: isMobile }"
+      class="app-navigation"
+    >
       <StoryMenu v-if="$route.meta.hasStoryNav" />
       <InfraPoolList v-else />
     </nav>

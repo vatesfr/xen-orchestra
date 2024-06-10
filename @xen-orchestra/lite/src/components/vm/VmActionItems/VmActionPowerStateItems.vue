@@ -1,11 +1,21 @@
 <template>
-  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" :icon="faPlay" @click="xenApi.vm.start(vmRefs)">
+  <MenuItem
+    :busy="areVmsBusyToStart"
+    :disabled="!areVmsHalted"
+    :icon="faPlay"
+    @click="xenApi.vm.start(vmRefs)"
+  >
     {{ $t('start') }}
   </MenuItem>
   <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" :icon="faServer">
     {{ $t('start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" :icon="faServer" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+      <MenuItem
+        v-for="host in hosts"
+        :key="host.$ref"
+        :icon="faServer"
+        @click="xenApi.vm.startOn(vmRefs, host.$ref)"
+      >
         <div class="wrapper">
           {{ host.name_label }}
           <div>
@@ -16,10 +26,20 @@
       </MenuItem>
     </template>
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" :icon="faPause" @click="xenApi.vm.pause(vmRefs)">
+  <MenuItem
+    :busy="areVmsBusyToPause"
+    :disabled="!areVmsRunning"
+    :icon="faPause"
+    @click="xenApi.vm.pause(vmRefs)"
+  >
     {{ $t('pause') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" :icon="faMoon" @click="xenApi.vm.suspend(vmRefs)">
+  <MenuItem
+    :busy="areVmsBusyToSuspend"
+    :disabled="!areVmsRunning"
+    :icon="faMoon"
+    @click="xenApi.vm.suspend(vmRefs)"
+  >
     {{ $t('suspend') }}
   </MenuItem>
   <MenuItem

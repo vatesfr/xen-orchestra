@@ -22,7 +22,7 @@
     <thead>
       <tr>
         <td v-if="isSelectable">
-          <input v-model="areAllSelected" type="checkbox" />
+          <input v-model="areAllSelected" type="checkbox">
         </td>
         <slot name="head-row" />
       </tr>
@@ -30,7 +30,7 @@
     <tbody>
       <tr v-for="item in filteredAndSortedCollection" :key="item.$ref">
         <td v-if="isSelectable">
-          <input v-model="selected" :value="item.$ref" type="checkbox" />
+          <input v-model="selected" :value="item.$ref" type="checkbox">
         </td>
         <slot :item name="body-row" />
       </tr>

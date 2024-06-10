@@ -4,7 +4,12 @@
     <div class="tree-loading-item-label-placeholder">
       <div class="link-placeholder">
         <template v-if="depth > 1">
-          <TreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
+          <TreeLine
+            v-for="i in depth - 1"
+            :key="i"
+            :right="i === depth - 1"
+            full-height
+          />
         </template>
         <UiIcon :icon class="icon" />
         <div class="loader">&nbsp;</div>

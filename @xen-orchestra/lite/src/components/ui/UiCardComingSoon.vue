@@ -2,7 +2,7 @@
   <UiCard class="ui-card-coming-soon">
     <UiCardTitle>{{ title }}</UiCardTitle>
     <div class="content">
-      <img alt="" src="@/assets/under-construction.svg" />
+      <img alt="" src="@/assets/under-construction.svg">
     </div>
     <div class="content">{{ $t('coming-soon') }}</div>
   </UiCard>

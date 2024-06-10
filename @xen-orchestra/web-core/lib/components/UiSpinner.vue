@@ -2,7 +2,12 @@
 
 <!-- v1.0 -->
 <template>
-  <svg class="ui-spinner" fill="none" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    class="ui-spinner"
+    fill="none"
+    viewBox="0 0 400 400"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <defs>
       <linearGradient :id="secondHalfId">
         <stop offset="0%" stop-color="currentColor" stop-opacity="0" />

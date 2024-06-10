@@ -1,6 +1,6 @@
 <template>
   <!-- eslint-disable vue/no-v-html -->
-  <pre class="code-highlight hljs"><code v-html="codeAsHtml"></code></pre>
+  <pre class="code-highlight hljs"><code v-html="codeAsHtml" /></pre>
   <!-- eslint-enable vue/no-v-html -->
 </template>
 

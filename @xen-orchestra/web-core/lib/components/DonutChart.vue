@@ -1,7 +1,12 @@
 <!-- v1.1 -->
 <template>
   <svg class="donut-chart" viewBox="0 0 100 100">
-    <circle class="segment" cx="50" cy="50" r="40" />
+    <circle
+      class="segment"
+      cx="50"
+      cy="50"
+      r="40"
+    />
     <circle
       v-for="(segment, index) in computedSegments"
       :key="index"
@@ -13,7 +18,13 @@
       cy="50"
       r="40"
     />
-    <UiIcon :icon height="24" width="24" x="38" y="38" />
+    <UiIcon
+      :icon
+      height="24"
+      width="24"
+      x="38"
+      y="38"
+    />
   </svg>
 </template>
 

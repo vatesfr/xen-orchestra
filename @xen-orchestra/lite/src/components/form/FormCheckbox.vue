@@ -7,7 +7,7 @@
       :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
       v-bind="$attrs"
-    />
+    >
     <span class="fake-checkbox">
       <UiIcon :fixed-width="false" :icon class="icon" />
     </span>

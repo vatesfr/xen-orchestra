@@ -5,7 +5,7 @@
         <div class="form-widgets">
           <FormWidget :label="$t('sort-by')">
             <select v-model="newSortProperty">
-              <option v-if="!newSortProperty"></option>
+              <option v-if="!newSortProperty" />
               <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
                 {{ sort.label ?? property }}
               </option>

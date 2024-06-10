@@ -38,7 +38,7 @@
       :required
       class="input"
       v-bind="$attrs"
-    />
+    >
     <span v-if="before !== undefined" class="before">
       <template v-if="typeof before === 'string'">{{ before }}</template>
       <UiIcon v-else :icon="before" class="before" />
