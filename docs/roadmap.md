@@ -24,7 +24,7 @@ Items in this list are already undergoing development, but are not yet available
 
 This is the initial concept phase, where we discuss the general approach and how to make the feature real:
 
-- Packer plugin for XO API (already working for XCP\*ng API)
+- Packer plugin for XO API (already working for XCP-ng API)
 - Firewall orchestration to provide adaptative/auto\*ated network segmentation
 - More automation in DR cases
 
