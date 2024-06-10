@@ -343,7 +343,7 @@ export default class XoApp extends Component {
             <a
               href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
               target='_blank'
-              rel='noopener noreferrer'
+              rel='noreferrer'
             >
               XOA (turnkey appliance)
             </a>
