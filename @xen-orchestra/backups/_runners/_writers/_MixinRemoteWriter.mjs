@@ -31,7 +31,6 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
           return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             fixMetadata: true,
-            removeTmp: true,
             logInfo: info,
             logWarn: (message, data) => {
               warn(message, data)
@@ -39,6 +38,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             },
             lock: false,
             mergeBlockConcurrency: this._config.mergeBlockConcurrency,
+            removeTmp: true,
           })
         })
       } catch (error) {
