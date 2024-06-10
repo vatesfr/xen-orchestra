@@ -239,4 +239,6 @@ updateApplianceSettings.params = {
     type: ['string', 'null'],
     optional: true,
   },
+  register: { type: 'boolean', optional: true },
+  xoaPassword: { type: 'string', optional: true },
 }

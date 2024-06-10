@@ -216,12 +216,19 @@ export default class Proxy {
     this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
   }
 
-  async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
+  async updateProxyAppliance(id, { httpProxy, register = false, upgrade = false, xoaPassword }) {
+    let credentials
+    if (register) {
+      const { registrationEmail: email, registrationToken } = await this._app.getApplianceRegistration()
+      credentials = JSON.stringify({ email, registrationToken })
+    }
+
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data({
+      'vm-data/system-account-xoa-password': xoaPassword,
       'vm-data/xoa-updater-channel': upgrade ? JSON.stringify(await this._getChannel()) : undefined,
-
+      'vm-data/xoa-updater-credentials': credentials,
       'vm-data/xoa-updater-proxy-url': httpProxy && JSON.stringify(httpProxy),
     })
 
