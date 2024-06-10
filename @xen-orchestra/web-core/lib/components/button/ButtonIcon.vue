@@ -1,11 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <button
-    :class="[color, size, { disabled, active }]"
-    :disabled
-    class="button-icon"
-    type="button"
-  >
+  <button :class="[color, size, { disabled, active }]" :disabled class="button-icon" type="button">
     <UiIcon :icon class="icon" />
     <span v-if="dot" class="dot" />
   </button>

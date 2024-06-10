@@ -2,13 +2,7 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport :disabled="!shouldTeleport" to="body">
-    <ul
-      v-if="!hasTrigger || isOpen"
-      ref="menu"
-      :class="{ horizontal, shadow }"
-      class="menu-list"
-      v-bind="$attrs"
-    >
+    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="menu-list" v-bind="$attrs">
       <slot />
     </ul>
   </Teleport>

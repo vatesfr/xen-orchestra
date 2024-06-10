@@ -9,12 +9,7 @@
     <TabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</TabItem>
     <MenuList placement="bottom" shadow>
       <template #trigger="{ open, isOpen }">
-        <TabItem
-          :active="isOpen"
-          :disabled="presets === undefined"
-          class="preset-tab"
-          @click="open"
-        >
+        <TabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <UiIcon :icon="faSliders" />
           Presets
         </TabItem>
@@ -44,12 +39,7 @@
           </template>
         </UiCardTitle>
         <div class="events-log">
-          <CodeHighlight
-            v-for="event in eventLogRows"
-            :key="event.id"
-            :code="event.args"
-            class="event-log"
-          />
+          <CodeHighlight v-for="event in eventLogRows" :key="event.id" :code="event.args" class="event-log" />
         </div>
       </UiCard>
     </div>

@@ -3,12 +3,7 @@
     <TreeItemLabel :icon="faServer" :no-indent="!hasVMs" :route="`/host/${host.id}`">
       {{ host.name_label }}
       <template #addons>
-        <UiIcon
-          v-if="isMaster"
-          v-tooltip="$t('core.master')"
-          :icon="faStar"
-          color="warning"
-        />
+        <UiIcon v-if="isMaster" v-tooltip="$t('core.master')" :icon="faStar" color="warning" />
       </template>
     </TreeItemLabel>
     <template v-if="hasVMs" #sublist>

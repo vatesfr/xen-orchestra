@@ -1,5 +1,5 @@
 <template>
-  <hr class="ui-separator">
+  <hr class="ui-separator" />
 </template>
 
 <style lang="postcss" scoped>
