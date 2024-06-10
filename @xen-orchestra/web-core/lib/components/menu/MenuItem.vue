@@ -13,13 +13,7 @@
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger
-          :active="isOpen"
-          :busy="isBusy"
-          :disabled="isDisabled"
-          :icon
-          @click="open"
-        >
+        <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
           <UiIcon :fixed-width="false" :icon="submenuIcon" class="submenu-icon" />
         </MenuTrigger>
@@ -31,8 +25,8 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'

@@ -6,9 +6,9 @@
       </template>
 
       <FormInputWrapper
-        light
-        learn-more-url="https://xcp-ng.org/blog/2018/12/19/zstd-compression-for-xcp-ng/"
         :label="$t('select-compression')"
+        learn-more-url="https://xcp-ng.org/blog/2018/12/19/zstd-compression-for-xcp-ng/"
+        light
       >
         <FormSelect v-model="compressionType">
           <option
@@ -32,20 +32,18 @@
 </template>
 
 <script lang="ts" setup>
-import { faDisplay } from '@fortawesome/free-solid-svg-icons'
-import { inject, ref } from 'vue'
-
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
-import { IK_MODAL } from '@/types/injection-keys'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
-
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useXenApiStore } from '@/stores/xen-api.store'
+import { IK_MODAL } from '@/types/injection-keys'
+import { faDisplay } from '@fortawesome/free-solid-svg-icons'
+import { inject, ref } from 'vue'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]

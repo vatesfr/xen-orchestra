@@ -3,13 +3,7 @@
   <li :class="color" class="ui-legend">
     <UiIcon :icon="faCircle" class="circle-icon" />
     <span class="label typo p3-regular"><slot /></span>
-    <UiIcon
-      v-if="tooltip"
-      v-tooltip="tooltip"
-      :icon="faCircleInfo"
-      class="tooltip-icon"
-      color="info"
-    />
+    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="info" />
 
     <span class="value-and-unit typo c3-semi-bold">{{ value }} {{ unit }}</span>
   </li>
@@ -17,8 +11,8 @@
 
 <script setup lang="ts">
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import { faCircleInfo, faCircle } from '@fortawesome/free-solid-svg-icons'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { faCircleInfo, faCircle } from '@fortawesome/free-solid-svg-icons'
 
 type LegendColor = 'default' | 'success' | 'warning' | 'error' | 'disabled' | 'dark-blue'
 

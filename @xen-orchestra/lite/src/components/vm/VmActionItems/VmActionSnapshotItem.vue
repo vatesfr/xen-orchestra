@@ -1,10 +1,5 @@
 <template>
-  <MenuItem
-    :busy="areSomeVmsSnapshoting"
-    :disabled="isDisabled"
-    :icon="faCamera"
-    @click="handleSnapshot"
-  >
+  <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
     {{ $t('snapshot') }}
   </MenuItem>
 </template>
@@ -13,8 +8,8 @@
 import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

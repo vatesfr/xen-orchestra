@@ -1,34 +1,29 @@
 <template>
-  <UiCard class="linear-chart" :color="hasError ? 'error' : undefined">
+  <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
     <UiCardTitle>{{ $t('network-throughput') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ $t('last-week') }}
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
-    <LinearChart
-      v-else
-      :data
-      :max-value="customMaxValue"
-      :value-formatter="customValueFormatter"
-    />
+    <LinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { computed, defineAsyncComponent, inject } from 'vue'
+import NoDataError from '@/components/NoDataError.vue'
+import UiCard from '@/components/ui/UiCard.vue'
+import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
+import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
 import type { HostStats } from '@/libs/xapi-stats'
-import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
-import type { LinearChartData } from '@/types/chart'
-import { map } from 'lodash-es'
-import NoDataError from '@/components/NoDataError.vue'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
+import { useHostStore } from '@/stores/xen-api/host.store'
+import type { LinearChartData } from '@/types/chart'
 import { UiCardTitleLevel } from '@/types/enums'
+import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
+import { map } from 'lodash-es'
+import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

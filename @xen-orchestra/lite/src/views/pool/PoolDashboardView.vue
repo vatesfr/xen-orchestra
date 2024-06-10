@@ -27,9 +27,8 @@
 </template>
 
 <script lang="ts" setup>
-import PoolDashboardAlarms from '@/components/pool/dashboard/PoolDashboardAlarms.vue'
-import PoolDashboardTasks from '@/components/pool/dashboard/PoolDashboardTasks.vue'
 import PoolCpuUsageChart from '@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue'
+import PoolDashboardAlarms from '@/components/pool/dashboard/PoolDashboardAlarms.vue'
 import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
 import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
 import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
@@ -37,6 +36,7 @@ import PoolDashboardNetworkChart from '@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
+import PoolDashboardTasks from '@/components/pool/dashboard/PoolDashboardTasks.vue'
 import PoolDashboardRamUsageChart from '@/components/pool/dashboard/ramUsage/PoolRamUsage.vue'
 import UiCardGroup from '@/components/ui/UiCardGroup.vue'
 import useFetchStats from '@/composables/fetch-stats.composable'

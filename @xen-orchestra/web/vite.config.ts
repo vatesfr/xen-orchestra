@@ -1,7 +1,7 @@
-import vueI18n from '@intlify/unplugin-vue-i18n/vite'
-import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import { resolve } from 'path'
+import vueI18n from '@intlify/unplugin-vue-i18n/vite'
+import vue from '@vitejs/plugin-vue'
 import vueRouter from 'unplugin-vue-router/vite'
 import { defineConfig, loadEnv } from 'vite'
 

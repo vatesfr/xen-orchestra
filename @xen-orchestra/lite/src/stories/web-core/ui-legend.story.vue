@@ -22,6 +22,6 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot, setting } from '@/libs/story/story-param'
-import UiLegend from '@core/components/UiLegend.vue'
 import { text } from '@/libs/story/story-widget'
+import UiLegend from '@core/components/UiLegend.vue'
 </script>

@@ -79,6 +79,26 @@ module.exports = {
         XO_LITE_GIT_HEAD: true,
       },
       rules: {
+        'import/order': [
+          'error',
+          {
+            groups: ['builtin', 'object', 'internal', ['type', 'external']],
+            alphabetize: {
+              order: 'asc',
+              caseInsensitive: true,
+            },
+            pathGroups: [
+              {
+                pattern: '@/**',
+                group: 'internal',
+              },
+              {
+                pattern: '@core/**',
+                group: 'internal',
+              },
+            ],
+          },
+        ],
         'no-void': ['error', { allowAsStatement: true }],
         'n/no-missing-import': 'off', // using 'import' plugin instead, to support TS aliases
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler

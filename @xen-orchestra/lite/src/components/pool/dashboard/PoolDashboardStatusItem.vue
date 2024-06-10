@@ -21,8 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
 import ProgressCircle from '@/components/ProgressCircle.vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   label: string

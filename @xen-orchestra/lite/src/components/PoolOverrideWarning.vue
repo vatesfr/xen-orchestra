@@ -19,7 +19,7 @@
         <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
         </I18nT>
-        <br>
+        <br />
         {{ $t('click-to-return-default-pool') }}
       </p>
     </div>
@@ -27,12 +27,11 @@
 </template>
 
 <script lang="ts" setup>
-import { faWarning } from '@fortawesome/free-solid-svg-icons'
-import { useSessionStorage } from '@vueuse/core'
-
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { faWarning } from '@fortawesome/free-solid-svg-icons'
+import { useSessionStorage } from '@vueuse/core'
 
 defineProps<{
   asTooltip?: boolean
