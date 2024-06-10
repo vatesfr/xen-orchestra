@@ -1,7 +1,7 @@
 <template>
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
-      <img alt="XO Lite" src="../assets/logo-title.svg" />
+      <img alt="XO Lite" src="../assets/logo-title.svg">
       <PoolOverrideWarning />
       <p v-if="isHostIsSlaveErr(error)" class="error">
         <UiIcon :icon="faExclamationCircle" />
@@ -10,7 +10,12 @@
       </p>
       <template v-else>
         <FormInputWrapper>
-          <FormInput v-model="login" name="login" readonly type="text" />
+          <FormInput
+            v-model="login"
+            name="login"
+            readonly
+            type="text"
+          />
         </FormInputWrapper>
         <FormInput
           ref="passwordRef"

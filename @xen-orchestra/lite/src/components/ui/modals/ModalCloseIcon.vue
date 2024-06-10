@@ -1,5 +1,10 @@
 <template>
-  <UiIcon :class="textClass" :icon="faXmark" class="modal-close-icon" @click="modal?.decline()" />
+  <UiIcon
+    :class="textClass"
+    :icon="faXmark"
+    class="modal-close-icon"
+    @click="modal?.decline()"
+  />
 </template>
 
 <script lang="ts" setup>

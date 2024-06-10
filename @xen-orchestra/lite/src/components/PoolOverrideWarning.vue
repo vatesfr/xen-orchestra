@@ -19,7 +19,7 @@
         <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
         </I18nT>
-        <br />
+        <br>
         {{ $t('click-to-return-default-pool') }}
       </p>
     </div>

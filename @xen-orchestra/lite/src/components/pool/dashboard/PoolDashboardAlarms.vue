@@ -14,7 +14,7 @@
         <UiButton @click="start">{{ $t('load-now') }}</UiButton>
       </div>
       <div>
-        <img alt="" src="@/assets/server-status.svg" />
+        <img alt="" src="@/assets/server-status.svg">
       </div>
     </div>
     <NoDataError v-else-if="hasError" />
@@ -23,9 +23,9 @@
     </div>
     <div v-else-if="alarms.length === 0" class="no-alarm">
       <div>
-        <img alt="" src="@/assets/server-status.svg" />
+        <img alt="" src="@/assets/server-status.svg">
       </div>
-      <p class="text typo h4-medium">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
+      <p class="text typo h4-medium">{{ $t('all-good') }}<br>{{ $t('no-alarm-triggered') }}</p>
     </div>
     <div v-else class="table-container">
       <UiTable>

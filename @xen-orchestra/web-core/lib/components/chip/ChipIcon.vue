@@ -1,5 +1,11 @@
 <template>
-  <UiIcon :class="{ disabled }" :color :icon class="chip-icon" fixed-width />
+  <UiIcon
+    :class="{ disabled }"
+    :color
+    :icon
+    class="chip-icon"
+    fixed-width
+  />
 </template>
 
 <script lang="ts" setup>

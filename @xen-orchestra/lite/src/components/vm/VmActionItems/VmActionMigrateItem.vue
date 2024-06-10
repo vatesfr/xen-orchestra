@@ -2,8 +2,8 @@
   <MenuItem
     v-tooltip="
       selectedRefs.length > 0 &&
-      !isMigratable &&
-      $t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
+        !isMigratable &&
+        $t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
     "
     :busy="isMigrating"
     :disabled="isParentDisabled || !isMigratable"

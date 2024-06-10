@@ -24,7 +24,12 @@
         <td class="no-tasks" colspan="5">{{ $t('no-tasks') }}</td>
       </tr>
       <template v-else>
-        <TaskRow v-for="task in pendingTasks" :key="task.uuid" :task is-pending />
+        <TaskRow
+          v-for="task in pendingTasks"
+          :key="task.uuid"
+          :task
+          is-pending
+        />
         <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task />
       </template>
     </tbody>
