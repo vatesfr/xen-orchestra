@@ -66,13 +66,13 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
 
-    if (settings.deleteFirst) {
+    if (settings.deleteFirst && settings.copyRetention > 1) {
       await this._deleteOldEntries()
     }
   }
 
   async cleanup() {
-    if (!this._settings.deleteFirst) {
+    if (!this._settings.deleteFirst || this._settings.copyRetention === 1) {
       await this._deleteOldEntries()
     }
   }
