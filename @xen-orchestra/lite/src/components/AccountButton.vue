@@ -1,7 +1,12 @@
 <template>
   <MenuList placement="bottom-end" shadow>
     <template #trigger="{ open, isOpen }">
-      <button type="button" :class="{ active: isOpen }" class="account-button" @click="open">
+      <button
+        type="button"
+        :class="{ active: isOpen }"
+        class="account-button"
+        @click="open"
+      >
         <UiIcon :icon="faCircleUser" class="user-icon" />
         <UiIcon :icon="faAngleDown" class="dropdown-icon" />
       </button>

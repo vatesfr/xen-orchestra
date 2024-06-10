@@ -18,8 +18,8 @@
     </template>
     <MenuItem
       v-for="interaction in interactions"
-      v-tooltip="$t('core.coming-soon')"
       :key="interaction.id"
+      v-tooltip="$t('core.coming-soon')"
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >

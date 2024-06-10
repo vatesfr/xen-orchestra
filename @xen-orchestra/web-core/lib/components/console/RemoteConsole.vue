@@ -1,6 +1,6 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="remote-console">
-    <div ref="consoleContainer" class="console"></div>
+    <div ref="consoleContainer" class="console" />
   </div>
 </template>
 

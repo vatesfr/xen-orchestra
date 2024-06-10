@@ -1,5 +1,10 @@
 <template>
-  <FormInput :before="faCode" :model-value="jsonValue" readonly @click="openModal()" />
+  <FormInput
+    :before="faCode"
+    :model-value="jsonValue"
+    readonly
+    @click="openModal()"
+  />
 </template>
 
 <script lang="ts" setup>

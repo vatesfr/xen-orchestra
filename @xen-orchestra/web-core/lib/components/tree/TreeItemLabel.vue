@@ -22,7 +22,12 @@
         @click="toggle()"
       />
       <TreeLine v-else-if="!noIndent" />
-      <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
+      <a
+        v-tooltip="{ selector: '.text' }"
+        :href
+        class="link typo p2-medium"
+        @click="navigate"
+      >
         <slot name="icon">
           <UiIcon :icon class="icon" />
         </slot>

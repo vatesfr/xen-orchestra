@@ -85,9 +85,9 @@
           :class="{ selected: colorMode === colorModeOption }"
           @click="colorMode = colorModeOption"
         >
-          <img v-if="colorModeOption === 'light'" src="@/assets/color-mode-light.svg" alt="Color mode light" />
-          <img v-else-if="colorModeOption === 'dark'" src="@/assets/color-mode-dark.svg" alt="Color mode dark" />
-          <img v-else src="@/assets/color-mode-auto.svg" alt="Color mode auto" />
+          <img v-if="colorModeOption === 'light'" src="@/assets/color-mode-light.svg" alt="Color mode light">
+          <img v-else-if="colorModeOption === 'dark'" src="@/assets/color-mode-dark.svg" alt="Color mode dark">
+          <img v-else src="@/assets/color-mode-auto.svg" alt="Color mode auto">
           <span>
             <UiIcon v-if="colorMode === colorModeOption" :icon="faCheck" />
             {{ $t(`theme-${colorModeOption}`) }}

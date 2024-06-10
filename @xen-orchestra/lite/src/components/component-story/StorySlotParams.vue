@@ -4,7 +4,7 @@
       <tr>
         <th>Slot</th>
         <th>Slots props</th>
-        <th></th>
+        <th />
       </tr>
     </thead>
     <tbody>
