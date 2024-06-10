@@ -1,10 +1,5 @@
 <template>
-  <MenuItem
-    :busy="areSomeVmsSnapshoting"
-    :disabled="isDisabled"
-    :icon="faCamera"
-    @click="handleSnapshot"
-  >
+  <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
     {{ $t('snapshot') }}
   </MenuItem>
 </template>

@@ -18,12 +18,7 @@
       </tr>
     </tfoot>
     <tbody>
-      <tr
-        v-for="param in params"
-        :key="param.name"
-        :class="{ required: param.isRequired() }"
-        class="row"
-      >
+      <tr v-for="param in params" :key="param.name" :class="{ required: param.isRequired() }" class="row">
         <th class="name">
           {{ param.getFullName() }}
           <sup

@@ -2,7 +2,7 @@
   <div class="collection-filter-row">
     <span class="or">{{ $t('or') }}</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
-      <input v-model="newFilter.content">
+      <input v-model="newFilter.content" />
     </FormWidget>
     <template v-else>
       <FormWidget :before="currentFilterIcon">
@@ -29,7 +29,7 @@
         </select>
       </FormWidget>
       <FormWidget v-else-if="hasValueInput" :after="valueInputAfter" :before="valueInputBefore">
-        <input v-model="newFilter.builder.value">
+        <input v-model="newFilter.builder.value" />
       </FormWidget>
     </template>
     <UiActionButton v-if="!newFilter.isAdvanced" :icon="faPencil" @click="enableAdvancedMode" />

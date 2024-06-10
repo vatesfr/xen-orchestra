@@ -1,11 +1,6 @@
 <template>
   <UiSpinner v-if="busy" class="ui-icon" />
-  <FontAwesomeIcon
-    v-else-if="icon !== undefined"
-    :icon="icon"
-    class="ui-icon"
-    :fixed-width="fixedWidth"
-  />
+  <FontAwesomeIcon v-else-if="icon !== undefined" :icon="icon" class="ui-icon" :fixed-width="fixedWidth" />
 </template>
 
 <script lang="ts" setup>

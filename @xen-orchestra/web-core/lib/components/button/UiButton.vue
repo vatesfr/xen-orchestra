@@ -1,17 +1,7 @@
 <!-- v1.0 -->
 <template>
-  <button
-    :class="className"
-    :disabled="busy || isDisabled"
-    class="ui-button"
-    type="button"
-  >
-    <UiIcon
-      :busy
-      :icon="leftIcon"
-      class="icon"
-      fixed-width
-    />
+  <button :class="className" :disabled="busy || isDisabled" class="ui-button" type="button">
+    <UiIcon :busy :icon="leftIcon" class="icon" fixed-width />
     <slot />
     <UiIcon :icon="rightIcon" class="icon" fixed-width />
   </button>

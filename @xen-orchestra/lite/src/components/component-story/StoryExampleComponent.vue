@@ -18,9 +18,9 @@
     <div>Optional string prop: {{ imOptional }}</div>
     <div>Optional string prop with default: {{ imOptionalWithDefault }}</div>
     Input for default v-model:
-    <input :value="modelValue" @input="emit('update:modelValue', ($event.target as HTMLInputElement)?.value)">
+    <input :value="modelValue" @input="emit('update:modelValue', ($event.target as HTMLInputElement)?.value)" />
     Input for v-model:customModel:
-    <input :value="customModel" @input="emit('update:customModel', ($event.target as HTMLInputElement)?.value)">
+    <input :value="customModel" @input="emit('update:customModel', ($event.target as HTMLInputElement)?.value)" />
     Event with no arguments:
     <button type="button" @click="emit('click')">Click me</button>
     Event with argument:

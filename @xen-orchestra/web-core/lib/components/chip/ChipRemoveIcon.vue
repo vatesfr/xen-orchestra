@@ -1,10 +1,5 @@
 <template>
-  <ButtonIcon
-    :color
-    :icon="faXmark"
-    class="chip-remove-icon"
-    size="small"
-  />
+  <ButtonIcon :color :icon="faXmark" class="chip-remove-icon" size="small" />
 </template>
 
 <script lang="ts" setup>

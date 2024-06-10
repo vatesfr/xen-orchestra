@@ -1,12 +1,7 @@
 <!-- Adapted from https://www.benmvp.com/blog/how-to-create-circle-svg-gradient-loading-spinner/ -->
 
 <template>
-  <svg
-    class="ui-spinner"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 400 400"
-    fill="none"
-  >
+  <svg class="ui-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
     <defs>
       <linearGradient :id="secondHalfId">
         <stop offset="0%" stop-opacity="0" stop-color="currentColor" />

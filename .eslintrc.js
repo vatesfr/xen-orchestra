@@ -89,13 +89,13 @@ module.exports = {
         'vue/attribute-hyphenation': 'error',
         'vue/component-definition-name-casing': 'error',
         'vue/first-attribute-linebreak': 'error',
-        'vue/html-closing-bracket-newline': 'error',
+        'vue/html-closing-bracket-newline': 'off', // Conflicts with Prettier
         'vue/html-closing-bracket-spacing': 'error',
         'vue/html-end-tags': 'error',
-        'vue/html-indent': 'error',
+        'vue/html-indent': 'off', // Conflicts with Prettier
         'vue/html-quotes': 'error',
-        'vue/html-self-closing': 'error',
-        'vue/max-attributes-per-line': ['error', { singleline: 3, multiline: 1 }],
+        'vue/html-self-closing': ['error', { html: { void: 'always', normal: 'always', component: 'always' } }],
+        'vue/max-attributes-per-line': 'off', // Conflicts with Prettier
         'vue/multiline-html-element-content-newline': 'error',
         'vue/mustache-interpolation-spacing': 'error',
         'vue/no-multi-spaces': 'error',

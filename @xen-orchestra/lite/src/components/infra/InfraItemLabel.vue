@@ -5,12 +5,7 @@
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a
-        v-tooltip="{ selector: '.text' }"
-        :href
-        class="link"
-        @click="navigate"
-      >
+      <a v-tooltip="{ selector: '.text' }" :href class="link" @click="navigate">
         <UiIcon :icon class="icon" />
         <div class="text typo h6-medium">
           <slot />
