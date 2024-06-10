@@ -19,7 +19,12 @@
   <div v-else-if="isBooleanWidget(widget)">
     <FormCheckbox v-model="model" />
   </div>
-  <FormInput v-else-if="isNumberWidget(widget)" v-model.number="model" type="number" class="typo p2-regular" />
+  <FormInput
+    v-else-if="isNumberWidget(widget)"
+    v-model.number="model"
+    type="number"
+    class="typo p2-regular"
+  />
   <FormInput v-else-if="isTextWidget(widget)" v-model="model" class="typo p2-regular" />
   <FormJson v-else-if="isObjectWidget(widget)" v-model="model" class="typo p2-regular" />
 </template>
