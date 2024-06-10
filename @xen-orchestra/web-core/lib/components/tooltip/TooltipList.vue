@@ -1,11 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <AppTooltip
-    v-for="tooltip in tooltips"
-    :key="tooltip.key"
-    :options="tooltip.options"
-    :target="tooltip.target"
-  />
+  <AppTooltip v-for="tooltip in tooltips" :key="tooltip.key" :options="tooltip.options" :target="tooltip.target" />
 </template>
 
 <script lang="ts" setup>

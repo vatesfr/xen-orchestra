@@ -9,12 +9,7 @@
           <p>{{ $t('allow-self-signed-ssl') }}</p>
           <ul>
             <li v-for="url in urls" :key="url">
-              <a
-                :href="url"
-                class="link"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
+              <a :href="url" class="link" rel="noopener noreferrer" target="_blank">
                 {{ url }}
               </a>
             </li>

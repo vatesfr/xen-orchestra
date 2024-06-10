@@ -8,12 +8,7 @@
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <UiIcon
-      v-if="arrow"
-      :color="disabled ? undefined : 'info'"
-      :icon="faAngleRight"
-      class="right-icon"
-    />
+    <UiIcon v-if="arrow" :color="disabled ? undefined : 'info'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="ui-status-panel">
-    <img :src="imageSource" alt="" class="image">
+    <img :src="imageSource" alt="" class="image" />
     <p v-if="title !== undefined" class="title typo h2-black">{{ title }}</p>
     <p v-if="subtitle !== undefined" class="subtitle typo h3-medium">{{ subtitle }}</p>
     <slot />

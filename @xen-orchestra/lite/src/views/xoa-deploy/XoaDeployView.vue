@@ -1,7 +1,7 @@
 <template>
   <TitleBar :icon="faDownload">{{ $t('deploy-xoa') }}</TitleBar>
   <div v-if="deploying" class="status">
-    <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra">
+    <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
     <!-- Error -->
     <template v-if="error !== undefined">
@@ -40,12 +40,7 @@
         <UiIcon :icon="faExclamationCircle" />
         {{ $t('keep-page-open') }}
       </p>
-      <UiButton
-        :disabled="vmRef === undefined"
-        color="error"
-        level="secondary"
-        @click="cancel()"
-      >
+      <UiButton :disabled="vmRef === undefined" color="error" level="secondary" @click="cancel()">
         {{ $t('cancel') }}
       </UiButton>
     </template>
@@ -146,23 +141,13 @@
               :label="$t('admin-password')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
-              <FormInput
-                v-model="xoaPwd"
-                type="password"
-                required
-                :placeholder="$t('password')"
-              />
+              <FormInput v-model="xoaPwd" type="password" required :placeholder="$t('password')" />
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('admin-password-confirm')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
-              <FormInput
-                v-model="xoaPwdConfirm"
-                type="password"
-                required
-                :placeholder="$t('password')"
-              />
+              <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="$t('password')" />
             </FormInputWrapper>
           </div>
         </FormSection>
@@ -170,7 +155,10 @@
         <FormSection :label="$t('xoa-ssh-account')">
           <div class="row">
             <FormInputWrapper :label="$t('ssh-account')">
-              <label><span>{{ $t('disabled') }}</span><FormToggle v-model="enableSshAccount" /><span>{{ $t('enabled') }}</span></label>
+              <label
+                ><span>{{ $t('disabled') }}</span
+                ><FormToggle v-model="enableSshAccount" /><span>{{ $t('enabled') }}</span></label
+              >
             </FormInputWrapper>
           </div>
           <div class="row">

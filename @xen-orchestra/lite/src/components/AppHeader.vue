@@ -1,13 +1,8 @@
 <template>
   <header class="app-header">
-    <UiIcon
-      v-if="isMobile"
-      ref="navigationTrigger"
-      :icon="faBars"
-      class="toggle-navigation"
-    />
+    <UiIcon v-if="isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
     <RouterLink :to="{ name: 'home' }">
-      <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg">
+      <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg" />
       <TextLogo v-else />
     </RouterLink>
     <slot />

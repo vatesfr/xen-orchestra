@@ -1,18 +1,8 @@
 <template>
-  <UiButton
-    v-if="xoaFound"
-    :left-icon="faArrowUpRightFromSquare"
-    class="xoa-button"
-    @click="openXoa()"
-  >
+  <UiButton v-if="xoaFound" :left-icon="faArrowUpRightFromSquare" class="xoa-button" @click="openXoa()">
     {{ $t('access-xoa') }}
   </UiButton>
-  <UiButton
-    v-else
-    :left-icon="faDownload"
-    class="xoa-button"
-    @click="openXoaDeploy()"
-  >
+  <UiButton v-else :left-icon="faDownload" class="xoa-button" @click="openXoaDeploy()">
     {{ $t('deploy-xoa') }}
   </UiButton>
 </template>
