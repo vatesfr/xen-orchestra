@@ -70,11 +70,11 @@ import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import {
   faCirclePlay,

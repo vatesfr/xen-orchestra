@@ -6,9 +6,9 @@
 
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from '@/components/ObjectNotFoundWrapper.vue'
-import { useHostStore } from '@/stores/xen-api/host.store'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'

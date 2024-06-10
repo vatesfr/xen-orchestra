@@ -1,3 +1,5 @@
+import { useModal } from '@/composables/modal.composable'
+import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type {
   ObjectType,
   ObjectTypeToRecord,
@@ -18,8 +20,6 @@ import type {
 import { buildXoObject, typeToRawType } from '@/libs/xen-api/xen-api.utils'
 import { JSONRPCClient } from 'json-rpc-2.0'
 import { castArray } from 'lodash-es'
-import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
-import { useModal } from '@/composables/modal.composable'
 
 export default class XenApi {
   private client: JSONRPCClient

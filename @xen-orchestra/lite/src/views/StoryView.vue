@@ -6,11 +6,11 @@
 </template>
 
 <script lang="ts" setup>
+import TitleBar from '@/components/TitleBar.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { faBook } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { faBook } from '@fortawesome/free-solid-svg-icons'
-import TitleBar from '@/components/TitleBar.vue'
 
 const { currentRoute } = useRouter()
 

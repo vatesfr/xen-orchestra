@@ -16,9 +16,9 @@
 </template>
 
 <script lang="ts" setup>
-import StackedBar from '@core/components/stacked-bar/StackedBar.vue'
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
+import StackedBar from '@core/components/stacked-bar/StackedBar.vue'
 
 const segments = [
   { value: 30, color: 'success' },

@@ -16,10 +16,10 @@
 </template>
 
 <script lang="ts" setup>
+import type { VmState } from '@core/types/object-icon.type'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import type { VmState } from '@core/types/object-icon.type'
 import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{

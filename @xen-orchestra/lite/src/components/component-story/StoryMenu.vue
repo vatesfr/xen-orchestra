@@ -8,8 +8,8 @@
 <script lang="ts" setup>
 import StoryMenuTree from '@/components/component-story/StoryMenuTree.vue'
 import UiTitle from '@/components/ui/UiTitle.vue'
-import { type RouteRecordNormalized, useRoute, useRouter } from 'vue-router'
 import { ref } from 'vue'
+import { type RouteRecordNormalized, useRoute, useRouter } from 'vue-router'
 
 const { getRoutes } = useRouter()
 

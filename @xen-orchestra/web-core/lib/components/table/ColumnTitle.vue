@@ -32,16 +32,16 @@
 </template>
 
 <script lang="ts" setup>
-import MenuList from '@core/components/menu/MenuList.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faArrowDown, faArrowUp, faEyeSlash, faFilter, faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/core'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed, inject } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 type InteractionId = 'sort-asc' | 'sort-desc' | 'group' | 'filter' | 'hide'
 type Interaction = {

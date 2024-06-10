@@ -11,12 +11,12 @@
 </template>
 
 <script lang="ts" setup>
-import RemoteConsole from '@core/components/console/RemoteConsole.vue'
 import VmHeader from '@/components/vm/VmHeader.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { RecordId } from '@/types/xo-object.type'
 import type { VmState } from '@core/types/object-icon.type'
+import RemoteConsole from '@core/components/console/RemoteConsole.vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router/auto'
 

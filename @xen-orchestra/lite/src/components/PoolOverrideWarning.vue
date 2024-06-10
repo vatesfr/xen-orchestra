@@ -27,12 +27,11 @@
 </template>
 
 <script lang="ts" setup>
-import { faWarning } from '@fortawesome/free-solid-svg-icons'
-import { useSessionStorage } from '@vueuse/core'
-
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { faWarning } from '@fortawesome/free-solid-svg-icons'
+import { useSessionStorage } from '@vueuse/core'
 
 defineProps<{
   asTooltip?: boolean
