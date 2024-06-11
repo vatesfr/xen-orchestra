@@ -61,6 +61,8 @@ const Element = ({ highlight, href, others, tooltip, total, value }) => (
   <Tooltip content={tooltip}>
     <a
       href={href}
+      target='_blank'
+      rel='noreferrer'
       className={classNames('usage-element', highlight && 'usage-element-highlight', others && 'usage-element-others')}
       style={{ width: (value / total) * 100 + '%' }}
     />

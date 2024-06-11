@@ -142,7 +142,11 @@ export default class About extends Component {
                   <h4 className='text-info'>
                     {_('getSupport', {
                       website: (
-                        <a href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
+                        <a
+                          href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'
+                          target='_blank'
+                          rel='noreferrer'
+                        >
                           https://xen-orchestra.com
                         </a>
                       ),
@@ -152,14 +156,14 @@ export default class About extends Component {
               </Row>
               <Row>
                 <Col mediumSize={6}>
-                  <a href='https://github.com/vatesfr/xen-orchestra/issues/new/choose'>
+                  <a href='https://github.com/vatesfr/xen-orchestra/issues/new/choose' target='_blank' rel='noreferrer'>
                     <Icon icon='bug' size={4} />
                     <h4>{_('bugTracker')}</h4>
                   </a>
                   <p className='text-muted'>{_('bugTrackerText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xcp-ng.org/forum/category/12/xen-orchestra'>
+                  <a href='https://xcp-ng.org/forum/category/12/xen-orchestra' target='_blank' rel='noreferrer'>
                     <Icon icon='group' size={4} />
                     <h4>{_('community')}</h4>
                   </a>
@@ -179,14 +183,14 @@ export default class About extends Component {
               </Row>
               <Row>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/'>
+                  <a href='https://xen-orchestra.com/' target='_blank' rel='noreferrer'>
                     <Icon icon='help' size={4} />
                     <h4>{_('issues')}</h4>
                   </a>
                   <p className='text-muted'>{_('issuesText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/docs'>
+                  <a href='https://xen-orchestra.com/docs' target='_blank' rel='noreferrer'>
                     <Icon icon='user' size={4} />
                     <h4>{_('documentation')}</h4>
                   </a>
@@ -199,19 +203,21 @@ export default class About extends Component {
               <Row>
                 <Col>
                   <h2 className='text-success'>{_('proSupportIncluded')}</h2>
-                  <a href='https://xen-orchestra.com/#!/member/products'>{_('xoAccount')}</a>
+                  <a href='https://xen-orchestra.com/#!/member/products' target='_blank' rel='noreferrer'>
+                    {_('xoAccount')}
+                  </a>
                 </Col>
               </Row>
               <Row>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/#!/member/support'>
+                  <a href='https://xen-orchestra.com/#!/member/support' target='_blank' rel='noreferrer'>
                     <Icon icon='help' size={4} />
                     <h4>{_('openTicket')}</h4>
                   </a>
                   <p className='text-muted'>{_('openTicketText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/docs'>
+                  <a href='https://xen-orchestra.com/docs' target='_blank' rel='noreferrer'>
                     <Icon icon='user' size={4} />
                     <h4>{_('documentation')}</h4>
                   </a>

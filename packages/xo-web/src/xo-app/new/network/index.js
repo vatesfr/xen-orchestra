@@ -309,7 +309,11 @@ const NewNetwork = decorate([
                     <div>
                       <em>
                         <Icon icon='info' />{' '}
-                        <a href='https://xen-orchestra.com/docs/sdn_controller.html#requirements'>
+                        <a
+                          href='https://xen-orchestra.com/docs/sdn_controller.html#requirements'
+                          target='_blank'
+                          rel='noreferrer'
+                        >
                           {_('newNetworkSdnControllerTip')}
                         </a>
                       </em>
