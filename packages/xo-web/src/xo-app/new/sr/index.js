@@ -80,8 +80,16 @@ class SelectScsiId extends Component {
   state = { value: null }
 
   render() {
+    const scsiId = this.props.options[0]?.scsiId
+    console.log('ID:', this.props.options[0]?.scsiId)
     return (
-      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} id={this.props.scsiId} />
+      <Select
+        clearable={false}
+        onChange={this._handleChange}
+        options={this._getOptions()}
+        value={this.state.value}
+        id={scsiId}
+      />
     )
   }
 }
@@ -688,7 +696,6 @@ export default class New extends Component {
                         {!isEmpty(hbaDevices) ? (
                           <SelectScsiId
                             options={hbaDevices}
-                            id={this.props.scsiId}
                             onChange={this._handleSrHbaSelection}
                           />
                         ) : (
