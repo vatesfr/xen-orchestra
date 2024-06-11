@@ -1,64 +1,52 @@
 <!-- v1.0 -->
 <template>
   <div class="card-title">
-    <div class="left-blok">
-      <div class="title-and-counter">
-        <span class="typo h6-medium"><slot name="left"></slot></span>
-        <UiCounter v-if="count" class="count" :value="count" :color="counterColor" />
-      </div>
-      <span class="typo p3-regular bottom-left"><slot name="bottom-left"></slot></span>
-    </div>
+    <div class="main-content">
+      <div class="title typo h6-medium"><slot></slot></div>
 
-    <div class="right-blok">
-      <span class="typo h7-semi-bold right"> <slot name="right"></slot></span>
-      <slot></slot>
+      <div v-if="$slots.info" class="info typo h7-semi-bold"><slot name="info"></slot></div>
     </div>
+    <p v-if="$slots.description" class="description typo p3-regular">
+      <slot name="description"></slot>
+    </p>
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiCounter from '@core/components/UiCounter.vue'
-import type { CounterColor } from '@core/types/color.type'
-
-defineProps<{
-  count?: number
-  counterColor?: CounterColor
+defineSlots<{
+  default: () => void
+  info: () => void
+  description: () => void
 }>()
 </script>
 
 <style lang="postcss" scoped>
 .card-title {
   display: flex;
-  justify-content: space-between;
-}
-
-.left-blok {
-  display: flex;
   flex-direction: column;
 }
 
-.right-blok {
+.main-content {
   display: flex;
-  gap: 0.8rem;
+  gap: 1.6rem;
   align-items: center;
-  height: fit-content;
 }
 
-.title-and-counter {
+.title {
   display: flex;
   align-items: center;
   gap: 1.6rem;
 }
 
-.right {
+.info {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
   color: var(--color-purple-base);
 }
 
-.bottom-left {
+.description {
   color: var(--color-grey-300);
-}
-
-.count {
-  font-size: 1.6rem;
 }
 </style>
