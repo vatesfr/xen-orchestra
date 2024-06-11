@@ -81,7 +81,7 @@ class SelectScsiId extends Component {
 
   render() {
     return (
-      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} />
+      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} id={this.props.scsiId} />
     )
   }
 }
@@ -686,7 +686,11 @@ export default class New extends Component {
                       <label>{_('newSrLun')}</label>
                       <div>
                         {!isEmpty(hbaDevices) ? (
-                          <SelectScsiId options={hbaDevices} onChange={this._handleSrHbaSelection} />
+                          <SelectScsiId
+                            options={hbaDevices}
+                            id={this.props.scsiId}
+                            onChange={this._handleSrHbaSelection}
+                          />
                         ) : (
                           <em>{_('newSrNoHba')}</em>
                         )}
