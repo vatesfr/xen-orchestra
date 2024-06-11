@@ -29,8 +29,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'addFilter', filter: string): void
-  (event: 'removeFilter', filter: string): void
+  addFilter: [filter: string]
+  removeFilter: [filter: string]
 }>()
 
 const openModal = (editedFilter?: string) => {

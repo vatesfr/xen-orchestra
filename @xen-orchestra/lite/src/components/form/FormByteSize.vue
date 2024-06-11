@@ -22,7 +22,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: number): number
+  'update:modelValue': [value: number]
 }>()
 
 const availablePrefixes: Prefix<'binary'>[] = ['Ki', 'Mi', 'Gi']

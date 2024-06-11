@@ -105,8 +105,8 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 })
 
 const emit = defineEmits<{
-  (event: 'reset'): void
-  (event: 'update:modelValue', value: any): void
+  reset: []
+  'update:modelValue': [value: any]
 }>()
 
 const model = useVModel(props, 'modelValue', emit)

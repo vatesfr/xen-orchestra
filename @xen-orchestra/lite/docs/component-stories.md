@@ -130,10 +130,10 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  (event: 'click'): void
-  (event: 'clickWithArg', id: string): void
-  (event: 'update:modelValue', value: string): void
-  (event: 'update:customModel', value: number): void
+  click: []
+  clickWithArg: [id: string]
+  'update:modelValue': [value: string]
+  'update:customModel': [value: number]
 }>()
 
 const moonDistance = 384400

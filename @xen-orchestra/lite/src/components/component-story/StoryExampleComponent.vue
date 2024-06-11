@@ -46,10 +46,10 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: string): void
-  (event: 'update:customModel', value: string): void
-  (event: 'click'): void
-  (event: 'clickWithArg', id: string): void
+  'update:modelValue': [value: string]
+  'update:customModel': [value: string]
+  click: []
+  clickWithArg: [id: string]
 }>()
 </script>
 

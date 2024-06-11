@@ -35,7 +35,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'toggle-directory', directory: string): void
+  'toggle-directory': [directory: string]
 }>()
 
 const isOpen = (directory: string) => props.openedDirectories.has(directory)

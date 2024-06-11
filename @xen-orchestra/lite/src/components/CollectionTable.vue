@@ -60,7 +60,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', selectedRefs: T['$ref'][]): void
+  'update:modelValue': [selectedRefs: T['$ref'][]]
 }>()
 
 const isSelectable = computed(() => props.modelValue !== undefined)

@@ -25,8 +25,8 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  (event: 'edit'): void
-  (event: 'remove'): void
+  edit: []
+  remove: []
 }>()
 </script>
 

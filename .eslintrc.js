@@ -102,6 +102,7 @@ module.exports = {
         'vue/prefer-true-attribute-shorthand': 'error',
         'vue/require-macro-variable-name': 'error',
         'vue/html-button-has-type': 'error',
+        'vue/define-emits-declaration': ['error', 'type-literal'],
       },
     },
     {
