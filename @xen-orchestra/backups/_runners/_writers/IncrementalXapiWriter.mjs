@@ -66,19 +66,27 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
 
-    if (settings.deleteFirst && settings.copyRetention > 1) {
-      await this._deleteOldEntries()
+    if (settings.deleteFirst) {
+      if (settings.copyRetention > 1) {
+        await this._deleteOldEntries(this._oldEntries)
+        this._oldEntries = []
+      }
+      // avoids deleting base VM
+      else if (this._oldEntries.length > 1) {
+        await this._deleteOldEntries(this._oldEntries.slice(0, -1))
+        this._oldEntries = [this._oldEntries[this._oldEntries.length - 1]]
+      }
     }
   }
 
   async cleanup() {
-    if (!this._settings.deleteFirst || this._settings.copyRetention === 1) {
-      await this._deleteOldEntries()
+    if (!this._settings.deleteFirst || this._oldEntries) {
+      await this._deleteOldEntries(this._oldEntries)
     }
   }
 
-  async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+  async _deleteOldEntries(oldEntries) {
+    return asyncMapSettled(oldEntries, vm => vm.$destroy())
   }
 
   #decorateVmMetadata(backup) {
