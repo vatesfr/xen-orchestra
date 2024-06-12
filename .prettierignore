@@ -1,2 +1,3 @@
 # Ignore all handlebars files:
 **/*.hbs
+/@xen-orchestra/web/typed-router.d.ts
