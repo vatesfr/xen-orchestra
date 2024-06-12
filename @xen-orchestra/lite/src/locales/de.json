@@ -1,7 +1,6 @@
 {
   "about": "Über",
   "access-xoa": "Access XOA",
-  "active": "Aktiv",
   "add": "Hinzufügen",
   "add-filter": "Filter hinzufügen",
   "add-or": "+Oder",
@@ -110,8 +109,11 @@
   "go-back": "Zurück",
   "gzip": "gzip",
   "here": "Hier",
+  "host": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv"
+  },
   "hosts": "Hosts",
-  "inactive": "Inaktiv",
   "invalid-field": "Ungültiges Feld",
   "keep-me-logged": "Angemeldet bleiben",
   "keep-page-open": "Fenster bis zum Ende der Installation nicht Aktualisieren oder Schließen.",
@@ -227,6 +229,10 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs in Benutzung",
   "version": "Version",
+  "vm": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv"
+  },
   "vm-is-running": "Die VM ist eingeschalten",
   "vm-running": "VM eingeschalten | VMs eingeschalten",
   "vms": "VMs",
