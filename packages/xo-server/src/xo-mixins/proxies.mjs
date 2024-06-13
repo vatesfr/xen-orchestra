@@ -218,8 +218,8 @@ export default class Proxy {
         try {
           // the call can fail with ECONNRESET due to xoa-updater or xo-proxy restarting (due to a previous loop)
           const result = await pRetry(() => this.callProxyMethod(id, 'appliance.updater.upgrade', undefined, opts), {
-            delay: 2e3,
-            tries: 10,
+            delay: 3e3,
+            tries: 20,
             when: e => e.code === 'ECONNREFUSED' || e.message.includes('ECONNREFUSED'),
           })
 
