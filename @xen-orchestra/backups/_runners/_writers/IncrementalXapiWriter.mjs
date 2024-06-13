@@ -9,7 +9,7 @@ import { Task } from '../../Task.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
-import { REPLICATED_TO_SR_UUID, COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
+import { COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
 
 import assert from 'node:assert'
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
@@ -19,9 +19,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // @todo use an index if possible
     // @todo : this seems similare to decorateVmMetadata
 
-    const replicatedVdis = Object.values(sr.$xapi.objects.all)
+    const replicatedVdis = sr.$VDIs
       .filter(({ other_config }) => {
-        return other_config?.[REPLICATED_TO_SR_UUID] === sr.$id && baseUuidToSrcVdi.has(other_config?.[COPY_OF])
+        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+        return baseUuidToSrcVdi.has(other_config?.[COPY_OF])
       })
       .map(({ other_config }) => other_config?.[COPY_OF])
       .filter(_ => !!_)
@@ -96,8 +97,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       // full vdi don't have a base
       .filter(_ => !!_)
     // @todo use index ?
-    const replicatedVdis = Object.values(sr.$xapi.objects.all).filter(({ other_config }) => {
-      return other_config?.[REPLICATED_TO_SR_UUID] === sr.$id && sourceVdiUuids.includes(other_config?.[COPY_OF])
+
+    const replicatedVdis = sr.$VDIs.filter(({ other_config }) => {
+      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+      return sourceVdiUuids.includes(other_config?.[COPY_OF])
     })
 
     Object.values(backup.vdis).forEach(vdi => {

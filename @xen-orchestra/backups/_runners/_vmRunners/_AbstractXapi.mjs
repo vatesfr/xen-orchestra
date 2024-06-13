@@ -228,12 +228,16 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
-          // @todo is there a better way to filter out vbd attaching disk to dom0 ?
-          const vbds = vdi.$VBDs.filter(({ currently_attached }) => !currently_attached)
-          if (vbds.length > 0) {
+          if (vdi.$VBDs.length > 0) {
+            const vbds = vdi.$VBDs
             // only one VM linked to this vdi
-            assert.strictEqual(vbds.length, 1)
-            const vmRefVdi = vbds[0].VM
+            // this will throw error for VDI still attached to control domain
+            assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
+            const vm = vbds[0].$VM
+            assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
+            assert.strictEqual(vm.is_control_domain, false, `VM can't be a DOM0 VM`) // don't delete a VM (especially a control domain)
+
+            const vmRefVdi = vm.$ref
             // same vm than other vdi of the same batch
             assert.ok(
               vmRef === undefined || vmRef === vmRefVdi,
@@ -245,10 +249,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         if (vmRef !== undefined) {
           return xapi.VM_destroy(vmRef)
         } else {
-          // disconnect (from dom0)
           return asyncMap(
-            vdis.map(async ({ $ref, $VBDs }) => {
-              await asyncMap($VBDs, ({ $ref }) => xapi.VBD_destroy($ref))
+            vdis.map(async ({ $ref }) => {
               await xapi.VDI_destroy($ref)
             })
           )
