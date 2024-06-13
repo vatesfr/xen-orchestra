@@ -37,13 +37,6 @@ import {
 import { useVModel } from '@vueuse/core'
 import { defineAsyncComponent } from 'vue'
 
-const FormJson = defineAsyncComponent(() => import('@/components/form/FormJson.vue'))
-const FormSelect = defineAsyncComponent(() => import('@/components/form/FormSelect.vue'))
-const FormCheckbox = defineAsyncComponent(() => import('@/components/form/FormCheckbox.vue'))
-const FormInput = defineAsyncComponent(() => import('@/components/form/FormInput.vue'))
-const FormInputWrapper = defineAsyncComponent(() => import('@/components/form/FormInputWrapper.vue'))
-const FormRadio = defineAsyncComponent(() => import('@/components/form/FormRadio.vue'))
-
 const props = defineProps<{
   widget: Widget
   modelValue: any
@@ -53,6 +46,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
+
+const FormJson = defineAsyncComponent(() => import('@/components/form/FormJson.vue'))
+const FormSelect = defineAsyncComponent(() => import('@/components/form/FormSelect.vue'))
+const FormCheckbox = defineAsyncComponent(() => import('@/components/form/FormCheckbox.vue'))
+const FormInput = defineAsyncComponent(() => import('@/components/form/FormInput.vue'))
+const FormInputWrapper = defineAsyncComponent(() => import('@/components/form/FormInputWrapper.vue'))
+const FormRadio = defineAsyncComponent(() => import('@/components/form/FormRadio.vue'))
 
 const model = useVModel(props, 'modelValue', emit)
 </script>

@@ -29,8 +29,6 @@
 </template>
 
 <script lang="ts" setup>
-const moonDistance = 384400
-
 withDefaults(
   defineProps<{
     imString: string
@@ -51,6 +49,8 @@ const emit = defineEmits<{
   click: []
   clickWithArg: [id: string]
 }>()
+
+const moonDistance = 384400
 </script>
 
 <style lang="postcss" scoped>

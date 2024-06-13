@@ -14,14 +14,14 @@ import { IK_MODAL } from '@/types/injection-keys'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { inject } from 'vue'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const props = defineProps<{
   color?: Color
   disabled?: boolean
 }>()
-
-defineOptions({
-  inheritAttrs: false,
-})
 
 const modal = inject(IK_MODAL)!
 
