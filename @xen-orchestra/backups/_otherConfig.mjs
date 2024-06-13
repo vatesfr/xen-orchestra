@@ -32,30 +32,26 @@ async function listVdiRefs(xapi, vmRef) {
   return xapi.VM_getDisks(vmRef)
 }
 
-async function applyToVmAndVdis(xapi, vmRef, cb){
+async function applyToVmAndVdis(xapi, vmRef, fn) {
   const vdiRefs = await listVdiRefs(xapi, vmRef)
-  return Promise.all([
-    cb('VM', vmRef),
-    ...vdiRefs.map(vdiRef => cb('VDI', vdiRef))
-  ])
-  
+  return Promise.all([fn('VM', vmRef), ...vdiRefs.map(vdiRef => fn('VDI', vdiRef))])
 }
 
-async function getDeltaChainLength(xapi, type, ref){
-  const otherConfig = await xapi.getField(type, ref, 'other_config')  
-    return Number(otherConfig[DELTA_CHAIN_LENGTH] ?? 0)
+async function getDeltaChainLength(xapi, type, ref) {
+  const otherConfig = await xapi.getField(type, ref, 'other_config')
+  return Number(otherConfig[DELTA_CHAIN_LENGTH] ?? 0)
 }
 
 /**
  * set the delta chain lenght ( number of delta since last base backup) to a VM and its associated VDIs
- * 
- * @param {Xapi} xapi 
- * @param {String} vmRef 
- * @param {Number} length 
+ *
+ * @param {Xapi} xapi
+ * @param {String} vmRef
+ * @param {Number} length
  * @returns {Promise}
  */
 export async function setVmDeltaChainLength(xapi, vmRef, length) {
-  return applyToVmAndVdis(xapi, vmRef, async (type, ref)=> {
+  return applyToVmAndVdis(xapi, vmRef, async (type, ref) => {
     await xapi.setFieldEntry(type, ref, 'other_config', DELTA_CHAIN_LENGTH, String(length))
   })
 }
@@ -63,47 +59,46 @@ export async function setVmDeltaChainLength(xapi, vmRef, length) {
 /**
  * Compute the delta chain length of a VM and its associated VDIs
  * if there is a discrependcy, use, the highest value
- * @param {Xapi} xapi 
- * @param {String} vmRef 
+ * @param {Xapi} xapi
+ * @param {String} vmRef
  * @returns {Promise}
  */
-export async function getVmDeltaChainLength(xapi,vmRef){
-  const lengths = await applyToVmAndVdis(xapi,vmRef,async (type, ref)=> getDeltaChainLength(xapi, type, ref) )
+export async function getVmDeltaChainLength(xapi, vmRef) {
+  const lengths = await applyToVmAndVdis(xapi, vmRef, async (type, ref) => getDeltaChainLength(xapi, type, ref))
   return Math.max(...lengths)
 }
 
 /**
- * 
+ *
  * Reset the other_config field of a VM and its VDIs
- * 
- * @param {Xapi} xapi 
- * @param {String} vmRef 
+ *
+ * @param {Xapi} xapi
+ * @param {String} vmRef
  * @returns {Promise}
  */
 export function resetVmOtherConfig(xapi, vmRef) {
-  return applyToVmAndVdis(xapi, vmRef, (type, ref)=> {
+  return applyToVmAndVdis(xapi, vmRef, (type, ref) => {
     return xapi.setFieldEntries(type, ref, 'other_config', {
-    [DATETIME]: null,
-    [DELTA_CHAIN_LENGTH]: null,
-    [EXPORTED_SUCCESSFULLY]: null,
-    [JOB_ID]: null,
-    [SCHEDULE_ID]: null,
-    [VM_UUID]: null,
-    // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
+      [DATETIME]: null,
+      [DELTA_CHAIN_LENGTH]: null,
+      [EXPORTED_SUCCESSFULLY]: null,
+      [JOB_ID]: null,
+      [SCHEDULE_ID]: null,
+      [VM_UUID]: null,
+      // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
+    })
   })
-})
-  
 }
 
 /**
- * 
+ *
  * used to ensure compatibiliy with the previous snapshots that were having the config stored only into VM
- * 
- * @param {Xapi} xapi 
- * @param {String} vmRef 
+ *
+ * @param {Xapi} xapi
+ * @param {String} vmRef
  * @returns {Promise}
  */
-export async function populateVdisOtherConfig(xapi, vmRef){
+export async function populateVdisOtherConfig(xapi, vmRef) {
   const otherConfig = await xapi.getField('VM', vmRef, 'other_config')
   const {
     [DATETIME]: datetime,
@@ -115,26 +110,26 @@ export async function populateVdisOtherConfig(xapi, vmRef){
     [VM_UUID]: vmUuid,
   } = otherConfig
 
-  return applyToVmAndVdis(xapi, vmRef, (type, ref)=> xapi.setFieldEntries(type, ref, 'other_config', {
-   [DATETIME]: datetime,
-    [DELTA_CHAIN_LENGTH]: chainLength,
-    [EXPORTED_SUCCESSFULLY]: successfully,
-    [JOB_ID]: jobId,
-    [REPLICATED_TO_SR_UUID]: replicatedTo,
-    [SCHEDULE_ID]: scheduleId,
-    [VM_UUID]: vmUuid,
-  }))
-
-
+  return applyToVmAndVdis(xapi, vmRef, (type, ref) =>
+    xapi.setFieldEntries(type, ref, 'other_config', {
+      [DATETIME]: datetime,
+      [DELTA_CHAIN_LENGTH]: chainLength,
+      [EXPORTED_SUCCESSFULLY]: successfully,
+      [JOB_ID]: jobId,
+      [REPLICATED_TO_SR_UUID]: replicatedTo,
+      [SCHEDULE_ID]: scheduleId,
+      [VM_UUID]: vmUuid,
+    })
+  )
 }
 
 /**
- * 
+ *
  * set the other_config key related to a backup of a VM and its associated VDIs
- * 
- * @param {Xapi} xapi 
- * @param {String} vmRef 
- * @param {*} settings 
+ *
+ * @param {Xapi} xapi
+ * @param {String} vmRef
+ * @param {*} settings
  * @returns {PRomise}
  */
 export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, scheduleId, vmUuid, srUuid = null, ...other }) {
@@ -144,25 +139,27 @@ export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, schedule
   assert.notEqual(vmUuid, undefined)
   // srUuid is nullish for backup
   assert.equal(Object.keys(other).length, 0)
-  
-  return applyToVmAndVdis(xapi, vmRef, (type, ref)=> xapi.setFieldEntries(type, ref, 'other_config', {
-    [REPLICATED_TO_SR_UUID]: srUuid,
-    [DATETIME]: formatDateTime(timestamp),
-    [JOB_ID]: jobId,
-    [SCHEDULE_ID]: scheduleId,
-    [VM_UUID]: vmUuid,
-  }))
 
+  return applyToVmAndVdis(xapi, vmRef, (type, ref) =>
+    xapi.setFieldEntries(type, ref, 'other_config', {
+      [REPLICATED_TO_SR_UUID]: srUuid,
+      [DATETIME]: formatDateTime(timestamp),
+      [JOB_ID]: jobId,
+      [SCHEDULE_ID]: scheduleId,
+      [VM_UUID]: vmUuid,
+    })
+  )
 }
 /**
- * 
+ *
  * mark the export of he VM and its VDIs as successfull
- * 
- * @param {Xapi} xapi 
- * @param {String} vmRef 
+ *
+ * @param {Xapi} xapi
+ * @param {String} vmRef
  * @returns {Promise}
  */
 export async function markExportSuccessfull(xapi, vmRef) {
-  return applyToVmAndVdis(xapi, vmRef,  (type, ref)=>  xapi.setFieldEntry(type, ref, 'other_config', EXPORTED_SUCCESSFULLY, 'true'),
+  return applyToVmAndVdis(xapi, vmRef, (type, ref) =>
+    xapi.setFieldEntry(type, ref, 'other_config', EXPORTED_SUCCESSFULLY, 'true')
   )
 }
