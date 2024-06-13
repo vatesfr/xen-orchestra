@@ -106,7 +106,6 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
       if (sourceVdiUuids.length > 0) {
-        vdi.SR = sr.$ref
         const baseReplicatedTo = replicatedVdis.find(
           replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
         )
@@ -115,6 +114,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       } else {
         vdi.baseVdi = undefined
       }
+      // ensure the VDI are created on the target SR
+      vdi.SR = sr.$ref
     })
 
     return backup
