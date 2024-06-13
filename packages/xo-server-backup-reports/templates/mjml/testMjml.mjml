@@ -1,0 +1,94 @@
+<mjml>
+  <mj-head>
+    <mj-title>Backup report</mj-title>
+    <mj-font name="Poppins" href="https://fonts.vates.fr/csspoppins?family=Poppins:300,500"></mj-font>
+    <mj-breakpoint width="530px" />
+    <mj-attributes>
+      <mj-all font-family="Poppins, Helvetica, sans-serif" color="#fffce4"></mj-all>
+      <mj-divider border-color="#fffce4" border-width="1px"></mj-divider>
+      <mj-button font-size="16px" background-color="#be1621"></mj-button>
+    </mj-attributes>
+    <mj-style inline="inline">
+      a { color: #fffce4; } a:hover { color: #be1621; } p { color: #fffce4; font-weight: 200; line-height:22px; } h3 {
+      font-weight: 500; margin-top: 0; margin-bottom: 13px; font-size: 20px; } h3 a { color: #fffce4; text-decoration:
+      none; } h3 a:hover { color: #be1621; border-bottom:1px solid #be1621; } .edition { font-weight: normal; font-size:
+      11px; border-radius: 10px; padding:2px 10px; min-width: 20px; color: #fffce4 !important; margin-left: 1px; }
+      .feature-text { font-size: 14px; } .xoa-premium { background: #4A276B; } .xoa-enterprise { background: #1E7554; }
+      .xoa-starter { background: #6064D1; } .xoa-free { background: #3E3F52; } .proxy { background: #857222; } .preview,
+      .draft { background: #B33610; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#1A1B38">
+    <mj-wrapper background-color="#1A1B38">
+      <mj-section padding="0 0 10px 0"> </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text align="center" font-size="32px" font-weight="500" padding="0px" font-size="18px" line-height="24px"
+            >Metadata backup report</mj-text
+          >
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="80%">
+          <mj-divider border-width="2px" padding-top="25px"></mj-divider>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+            <h2>Global status : {{log.status}}</h2>
+            <ul>
+              <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
+              <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
+              <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
+              {{>reportTemporalDataMjml end=log.end start=log.start}} {{#if log.tasks.length}}
+              <li>
+                <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.length ~}}
+                {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
+              </li>
+              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
+            </ul>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      {{#each tasksByStatus}}
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-divider border-width="1px"></mj-divider>
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+            <h3>{{titleByStatus @key}}</h3>
+            {{#each this}}
+            <h4>{{>taskTitle task=. jobName=../../log.jobName}}</h4>
+            {{>taskBodyMjml task=.}} {{>reportTemporalDataMjml formatDate=../../formatDate}} {{>reportErrorMjml task=.}}
+            {{>reportWarningsMjml task=this}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{#each this.tasks}}
+      <mj-section padding="0px">
+        <mj-column width="85%" border="1px solid">
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+            {{>metadataSubTaskMjml formatDate=../../../formatDate}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      {{/each}} {{/each}} {{/each}}
+
+      <mj-section>
+        <mj-column width="100%">
+          <mj-divider border-width="2px"></mj-divider>
+          <mj-text align="left" font-size="14px" font-style="italic" font-weight="300" line-height="0px"
+            >{{pkg.name}} v{{pkg.version}}</mj-text
+          >
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0px">
+        <mj-column width="40%">
+          <mj-image align="left" width="250px" href="https://vates.fr" src="./image.png"></mj-image>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

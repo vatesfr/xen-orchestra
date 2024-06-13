@@ -1,0 +1,8 @@
+---
+
+## {{{tasksByStatus.skipped.count}}} Skipped
+
+{{#each tasksByStatus.skipped.tasks}}
+{{>vmText formatDate=../formatDate}}
+- **Reason**: {{{message}}}
+{{/each}}

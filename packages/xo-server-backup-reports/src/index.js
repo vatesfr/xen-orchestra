@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars'
+import mjml2html from 'mjml'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
@@ -73,6 +74,17 @@ const compiledVmSubject = Handlebars.compile(
 const compiledVmTemplate = Handlebars.compile(
   readFileSync(join(__dirname, '../templates/vm.hbs')).toString().replace(/\n$/, '')
 )
+
+// ===================================================================
+
+const handlebarsMjmlPartialFiles = readdirSync(join(__dirname, '../templates/mjml/partials/')).filter(
+  filename => extname(filename) === '.hbs'
+)
+for (const fileName of handlebarsMjmlPartialFiles) {
+  const partial = readFileSync(join(__dirname, `../templates/mjml/partials/${fileName}`)).toString()
+  Handlebars.registerPartial(parse(fileName).name, partial)
+}
+const compiledMjml = Handlebars.compile(readFileSync(join(__dirname, '../templates/mjml/testMjml.mjml')).toString())
 
 // ===================================================================
 
@@ -206,9 +218,16 @@ class BackupReportsXoPlugin {
       formatDate,
     }
 
+    /*
+    console.log('-----')
+    console.log(compiledMjml(context))
+    console.log('=====')
+    */
+
     return this._sendReport({
       subject: compiledMetadataSubject(context),
       markdown: compiledMetadataTemplate(context),
+      mjml: mjml2html(compiledMjml(context)).html,
       success: log.status === 'success',
     })
   }
@@ -391,7 +410,13 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _sendReport({ mailReceivers, markdown, subject, success }) {
+  async _sendReport({ mailReceivers, markdown, mjml, subject, success }) {
+    /*
+    console.log('-----')
+    console.log(mjml)
+    console.log('=====')
+    console.log(markdown)
+    */
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -404,7 +429,8 @@ class BackupReportsXoPlugin {
           : xo.sendEmail({
               to: mailReceivers,
               subject,
-              markdown,
+              html: mjml,
+              text: markdown,
             })),
       this._xmppReceivers !== undefined &&
         (xo.sendEmail === undefined

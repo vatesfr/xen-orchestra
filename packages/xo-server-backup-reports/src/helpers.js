@@ -15,10 +15,10 @@ const STATUS_ICON = {
 }
 
 const TITLE_BY_STATUS = {
-  failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interrupted`,
-  skipped: n => `## ${n} Skipped`,
-  success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
+  failure: n => `${n} Failure${n === 1 ? '' : 's'}`,
+  interrupted: n => `${n} Interrupted`,
+  skipped: n => `${n} Skipped`,
+  success: n => `${n} Success${n === 1 ? '' : 'es'}`,
 }
 
 // ===================================================================
