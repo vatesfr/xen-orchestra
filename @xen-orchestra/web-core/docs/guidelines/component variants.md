@@ -121,28 +121,18 @@ For example, for a **secondary level**, **green color** and **medium size** butt
 - `vts-button--secondary`
 - `vts-button--secondary--medium`
 
-## `useCssVariant` composable
+## `useCssClass` composable
 
-The `useCssVariant` composable makes it easy to generate these CSS classes based on the `props` passed to the component.
-
-```ts
-type Props = Record<string, boolean | string | number>
-```
-
-| Parameter         | Required | Type                             | Description                           |
-|-------------------|:--------:|----------------------------------|---------------------------------------|
-| `baseClass`       |    ✓     | `string`                         | The base CSS class of the component   |
-| `config.props`    |    ✓     | `Props`                          | The props of the component            |
-| `config.variants` |    ✓     | `MaybeArray<keyof Props>[]`      | The variant groups of the component   |
-| `config.extras`   |          | `MaybeRefOrGetter<VueClassProp>` | Extra classes to add to the component |
+The `useCssClass` composable makes it easy to generate these CSS classes based on the `props` passed to the component.
 
 ```ts
-const className = useCssVariant('vts-button', {
+const className = useCssClass('vts-button', {
   props,
   variants: ['color', 'level', ['level', 'size']],
-  extras: () => ({ active: props.active })
 })
 ```
+
+See [useCssClass](../composables/css-class.composable.md) for full documentation.
 
 ##
 
