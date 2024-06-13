@@ -220,13 +220,14 @@ The \`transport-email\` plugin for *Xen Orchestra* server seems to be working fi
     })
   }
 
-  _sendEmail({ from, to, cc, bcc, subject, markdown, attachments }) {
+  _sendEmail({ from, to, cc, bcc, html, subject, markdown, attachments }) {
     return this._send(
       removeUndefined({
         from,
         to,
         cc,
         bcc,
+        html,
         subject,
         markdown,
         attachments,
