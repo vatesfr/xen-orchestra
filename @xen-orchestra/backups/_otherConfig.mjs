@@ -45,17 +45,41 @@ async function getDeltaChainLength(xapi, type, ref){
   const otherConfig = await xapi.getField(type, ref, 'other_config')  
     return Number(otherConfig[DELTA_CHAIN_LENGTH] ?? 0)
 }
+
+/**
+ * set the delta chain lenght ( number of delta since last base backup) to a VM and its associated VDIs
+ * 
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @param {Number} length 
+ * @returns {Promise}
+ */
 export async function setVmDeltaChainLength(xapi, vmRef, length) {
   return applyToVmAndVdis(xapi, vmRef, async (type, ref)=> {
     await xapi.setFieldEntry(type, ref, 'other_config', DELTA_CHAIN_LENGTH, String(length))
   })
 }
 
+/**
+ * Compute the delta chain length of a VM and its associated VDIs
+ * if there is a discrependcy, use, the highest value
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @returns {Promise}
+ */
 export async function getVmDeltaChainLength(xapi,vmRef){
   const lengths = await applyToVmAndVdis(xapi,vmRef,async (type, ref)=> getDeltaChainLength(xapi, type, ref) )
   return Math.max(...lengths)
 }
 
+/**
+ * 
+ * Reset the other_config field of a VM and its VDIs
+ * 
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @returns {Promise}
+ */
 export function resetVmOtherConfig(xapi, vmRef) {
   return applyToVmAndVdis(xapi, vmRef, (type, ref)=> {
     return xapi.setFieldEntries(type, ref, 'other_config', {
@@ -71,8 +95,14 @@ export function resetVmOtherConfig(xapi, vmRef) {
   
 }
 
-// used to ensure compatibiliy with the previous snapshots
-// that were having the config stored only into VM
+/**
+ * 
+ * used to ensure compatibiliy with the previous snapshots that were having the config stored only into VM
+ * 
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @returns {Promise}
+ */
 export async function populateVdisOtherConfig(xapi, vmRef){
   const otherConfig = await xapi.getField('VM', vmRef, 'other_config')
   const {
@@ -98,6 +128,15 @@ export async function populateVdisOtherConfig(xapi, vmRef){
 
 }
 
+/**
+ * 
+ * set the other_config key related to a backup of a VM and its associated VDIs
+ * 
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @param {*} settings 
+ * @returns {PRomise}
+ */
 export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, scheduleId, vmUuid, srUuid = null, ...other }) {
   assert.notEqual(timestamp, undefined)
   assert.notEqual(jobId, undefined)
@@ -115,6 +154,14 @@ export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, schedule
   }))
 
 }
+/**
+ * 
+ * mark the export of he VM and its VDIs as successfull
+ * 
+ * @param {Xapi} xapi 
+ * @param {String} vmRef 
+ * @returns {Promise}
+ */
 export async function markExportSuccessfull(xapi, vmRef) {
   return applyToVmAndVdis(xapi, vmRef,  (type, ref)=>  xapi.setFieldEntry(type, ref, 'other_config', EXPORTED_SUCCESSFULLY, 'true'),
   )
