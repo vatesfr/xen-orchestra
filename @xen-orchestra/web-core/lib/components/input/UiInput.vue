@@ -88,7 +88,7 @@ const id = computed(() => uniqueId('input-'))
   outline: none;
   width: 100%;
   height: 4rem;
-  padding: 0.8rem 4.8rem;
+  padding: 0.8rem 1.6rem 0.8rem 4.8rem;
   color: var(--color-grey-000);
   background-color: var(--background-color);
 
