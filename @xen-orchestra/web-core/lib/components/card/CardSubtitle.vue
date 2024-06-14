@@ -1,10 +1,17 @@
 <!-- v1.0 -->
 <template>
   <div class="card-subtitle">
-    <span class="typo h7-semi-bold"><slot name="left" /></span>
-    <span class="typo p3-medium"><slot name="right" /></span>
+    <span class="typo h7-semi-bold"><slot /></span>
+    <span class="typo p3-medium"><slot name="info" /></span>
   </div>
 </template>
+
+<script setup lang="ts">
+defineSlots<{
+  default: () => void
+  info: () => void
+}>()
+</script>
 
 <style lang="postcss" scoped>
 .card-subtitle {

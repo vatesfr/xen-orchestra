@@ -3,13 +3,14 @@
     v-slot="{ settings }"
     :params="[
       slot(),
-      setting('leftSlotContent').preset('Legend subtitle').widget(text()),
-      setting('rightSlotContent').preset('Info').widget(text()),
+      slot('info').help('Meant to receive an info text'),
+      setting('defaultSlotContent').preset('Subtitle').widget(text()),
+      setting('infoSlotContent').preset('Info').widget(text()),
     ]"
   >
     <CardSubtitle
-      ><template #left>{{ settings.leftSlotContent }}</template>
-      <template #right>{{ settings.rightSlotContent }}</template>
+      >{{ settings.defaultSlotContent }}
+      <template #info>{{ settings.infoSlotContent }}</template>
     </CardSubtitle>
   </ComponentStory>
 </template>
