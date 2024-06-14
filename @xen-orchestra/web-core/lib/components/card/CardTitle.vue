@@ -7,7 +7,7 @@
       <div v-if="$slots.info" class="info typo h7-semi-bold"><slot name="info"></slot></div>
     </div>
     <p v-if="$slots.description" class="description typo p3-regular">
-      <slot name="description"></slot>
+      <slot name="description" />
     </p>
   </div>
 </template>
