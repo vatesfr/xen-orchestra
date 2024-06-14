@@ -2,9 +2,8 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      slot(),
-      slot('info').help('Meant to receive an info text'),
-      slot('link').help('Meant to receive a tertiary button'),
+      slot().help('Meant to receive the title and a UiCounter'),
+      slot('info').help('Meant to receive an info text and / or a tertiary UiButton'),
       slot('description').help('Meant to receive a description text, will be displayed under the title'),
       setting('defaultSlotContent').preset('Title').widget(text()),
       setting('infoSlotContent').preset('Info').widget(text()),
