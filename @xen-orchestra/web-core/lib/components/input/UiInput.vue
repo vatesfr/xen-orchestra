@@ -1,22 +1,30 @@
 <!-- WIP -->
 <template>
   <div class="ui-input">
-    <UiIcon class="left-icon" :icon="leftIcon" />
-    <input :id v-model="model" type="search" :disabled v-bind="$attrs" class="typo p1-regular" />
-    <UiIcon v-if="!disabled && hasModel" class="right-icon" :icon="faXmark" @click="model = ''" />
+    <UiIcon class="before" :icon="beforeIcon" />
+    <input
+      :id="uniqueId('input-')"
+      v-model="model"
+      :class="{ 'has-after': !disabled && hasModel }"
+      type="search"
+      :disabled
+      v-bind="$attrs"
+      class="typo p1-regular"
+    />
+    <UiIcon v-if="!disabled && hasModel" class="after" :icon="faXmark" @click="model = ''" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import { uniqueId } from '@core/utils/unique-id.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 defineProps<{
-  id: string
   disabled?: boolean
-  leftIcon?: IconDefinition
+  beforeIcon?: IconDefinition
 }>()
 
 const model = defineModel<string>()
@@ -81,9 +89,13 @@ input {
   outline: none;
   width: 100%;
   height: 4rem;
-  padding: 0.8rem 4.8rem;
+  padding: 0.8rem 1.6rem 0.8rem 4.8rem;
   color: var(--color-grey-000);
   background-color: var(--background-color);
+
+  &.has-after {
+    padding-inline-end: 4.8rem;
+  }
 
   &:is(:disabled, .disabled) {
     cursor: not-allowed;
@@ -102,20 +114,20 @@ input {
   position: relative;
 }
 
-.left-icon,
-.right-icon {
+.before,
+.after {
   position: absolute;
   inset-block: 1.2rem;
   color: var(--color-grey-400);
 }
 
-.left-icon {
+.before {
   inset-inline-start: 1.6rem;
   pointer-events: none;
   z-index: 1;
 }
 
-.right-icon {
+.after {
   inset-inline-end: 1.6rem;
   cursor: pointer;
 }
