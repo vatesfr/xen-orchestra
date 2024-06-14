@@ -4,7 +4,7 @@
     <div class="main-content">
       <div class="title typo h6-medium"><slot /></div>
 
-      <div v-if="$slots.info" class="info typo h7-semi-bold"><slot name="info"></slot></div>
+      <div v-if="$slots.info" class="info typo h7-semi-bold"><slot name="info" /></div>
     </div>
     <p v-if="$slots.description" class="description typo p3-regular">
       <slot name="description" />

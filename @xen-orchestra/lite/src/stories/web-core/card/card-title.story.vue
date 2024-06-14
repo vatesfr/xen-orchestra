@@ -10,12 +10,12 @@
       setting('descriptionSlotContent').preset('Description').widget(text()),
     ]"
   >
-    <CardTitle v-bind="properties"
-      >{{ settings.defaultSlotContent }}<UiCounter :value="3" color="danger" size="medium" />
-      <template #info
-        >{{ settings.infoSlotContent
-        }}<UiButton level="tertiary" size="extra-small" :right-icon="faAngleRight">See all</UiButton></template
-      >
+    <CardTitle v-bind="properties">
+      {{ settings.defaultSlotContent }}<UiCounter :value="3" color="danger" size="medium" />
+      <template #info>
+        {{ settings.infoSlotContent
+        }}<UiButton level="tertiary" size="extra-small" :right-icon="faAngleRight">See all</UiButton>
+      </template>
       <template #description>{{ settings.descriptionSlotContent }}</template>
     </CardTitle>
   </ComponentStory>
