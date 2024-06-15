@@ -16,6 +16,7 @@
 
 - [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
 - [Tasks] Log pending and failed API calls as XO tasks, eventually they will replaced logs in Settings/Logs
+- [Pool] Fix `Text data outside of root node` when installing patches
 
 ### Packages to release
 

@@ -7,9 +7,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { parseXml as parseXmlTree } from '@vates/xml/parse'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
-import { xmlRpcParser } from '@vates/xml-rpc/parser'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
@@ -310,8 +308,7 @@ const methods = {
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
       // With throw in case of error with XCP-ng>=8.2.1
-      const xml = await this.callAsync('host.call_plugin', host.$ref, 'updater.py', 'update', {})
-      const result = JSON.parse(xmlRpcParser.parse_value(parseXmlTree(xml)))
+      const result = await this.callAsync('host.call_plugin', host.$ref, 'updater.py', 'update', {})
 
       // Defined and different than 0 in case of error with XCP-ng<8.2.1
       const { exit } = result
