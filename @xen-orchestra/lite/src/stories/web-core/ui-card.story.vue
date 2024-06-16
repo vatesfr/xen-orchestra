@@ -1,8 +1,5 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties }"
-    :params="[prop('direction').preset('column').enum('column', 'row').required().widget()]"
-  >
+  <ComponentStory v-slot="{ properties }" :params="[prop('horizontal').bool().widget()]">
     <UiCard v-bind="properties"><UiTag>Content</UiTag><UiTag>Content</UiTag><UiTag>Content</UiTag></UiCard>
   </ComponentStory>
 </template>
