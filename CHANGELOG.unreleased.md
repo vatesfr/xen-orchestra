@@ -9,6 +9,7 @@
 
 - [Netbox] Check Netbox version before attempting to synchronize (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
 - [Netbox] Support Netbox 4 (Thanks [@ChrisMcNichol](https://github.com/ChrisMcNichol)!) (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
+- [Create/SR] Display scsiId and Lun during storage creation (PR [#7742](https://github.com/vatesfr/xen-orchestra/pull/7742))
 
 ### Bug fixes
 
@@ -37,6 +38,7 @@
 - @xen-orchestra/vmware-explorer patch
 - xo-server-backup-reports major
 - xo-server-netbox minor
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
