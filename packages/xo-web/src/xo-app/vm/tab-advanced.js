@@ -1100,15 +1100,15 @@ export default class TabAdvanced extends Component {
                     <th>{_('secureBoot')}</th>
                     <td>
                       <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
-                      <a
-                        className='text-muted'
-                        href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
-                        rel='noopener noreferrer'
-                        style={{ display: 'block' }}
-                        target='_blank'
-                      >
-                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                      </a>
+                      {/* <a
+                          className='text-muted'
+                          href= waiting for link to be provided by Samuel
+                          rel='noreferrer'
+                          style={{ display: 'block' }}
+                          target='_blank'
+                        >
+                          <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                        </a> */}
                     </td>
                   </tr>
                 )}
