@@ -54,8 +54,8 @@ class SelectScsiId extends Component {
   _getOptions = createSelector(
     () => this.props.options,
     options =>
-      map(options, ({ id, path, scsiId, serial, size, vendor }) => ({
-        label: `${vendor} ${id}: ${serial} - ${path} (${formatSize(size)})`,
+      map(options, ({ id, path, scsiId, size, vendor }) => ({
+        label: `${vendor} ${id}: ${scsiId} - ${path} (${formatSize(size)})`,
         value: scsiId,
       }))
   )
@@ -80,16 +80,8 @@ class SelectScsiId extends Component {
   state = { value: null }
 
   render() {
-    const scsiId = this.props.options[0]?.scsiId
-    console.log('ID:', this.props.options[0]?.scsiId)
     return (
-      <Select
-        clearable={false}
-        onChange={this._handleChange}
-        options={this._getOptions()}
-        value={this.state.value}
-        id={scsiId}
-      />
+      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} />
     )
   }
 }
@@ -694,10 +686,7 @@ export default class New extends Component {
                       <label>{_('newSrLun')}</label>
                       <div>
                         {!isEmpty(hbaDevices) ? (
-                          <SelectScsiId
-                            options={hbaDevices}
-                            onChange={this._handleSrHbaSelection}
-                          />
+                          <SelectScsiId options={hbaDevices} onChange={this._handleSrHbaSelection} />
                         ) : (
                           <em>{_('newSrNoHba')}</em>
                         )}
