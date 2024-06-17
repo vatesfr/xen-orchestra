@@ -96,6 +96,11 @@ const props = defineProps<{
   modelValue: Record<string, any>
 }>()
 
+const emit = defineEmits<{
+  reset: []
+  'update:modelValue': [value: any]
+}>()
+
 const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
   if (p1.isRequired() === p2.isRequired()) {
     return 0
@@ -103,11 +108,6 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 
   return p1.isRequired() ? -1 : 1
 })
-
-const emit = defineEmits<{
-  reset: []
-  'update:modelValue': [value: any]
-}>()
 
 const model = useVModel(props, 'modelValue', emit)
 

@@ -68,10 +68,6 @@ import { useUiStore } from '@core/stores/ui.store'
 import { faAngleDoubleLeft, faAngleLeft, faBars } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-const sidebarStore = useSidebarStore()
-const panelStore = usePanelStore()
-const uiStore = useUiStore()
-
 const slots = defineSlots<{
   'app-logo'(): any
   'app-header'(): any
@@ -83,6 +79,10 @@ const slots = defineSlots<{
   'panel-header'(): any
   'panel-content'(): any
 }>()
+
+const sidebarStore = useSidebarStore()
+const panelStore = usePanelStore()
+const uiStore = useUiStore()
 
 const isPanelVisible = computed(() => {
   if (!slots['panel-header'] && !slots['panel-content']) {

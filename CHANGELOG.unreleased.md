@@ -16,6 +16,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
+- [Tasks] Log pending and failed API calls as XO tasks, eventually they will replaced logs in Settings/Logs
+- [Pool] Fix `Text data outside of root node` when installing patches
 
 ### Packages to release
 
@@ -34,11 +36,18 @@
 <!--packages-start-->
 
 - @vates/fuse-vhd patch
+- @vates/task minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/proxy-cli patch
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
+- xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
-- xo-server minor
+- xo-server-transport-email minor
 - xo-web patch
+- xo-server minor
+
 
 <!--packages-end-->

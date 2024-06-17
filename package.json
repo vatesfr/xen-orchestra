@@ -8,6 +8,8 @@
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
     "@limegrass/eslint-plugin-import-alias": "^1.1.0",
+    "@typescript-eslint/parser": "^7.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.12.0",
     "@vates/async-each": "^1.0.0",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
@@ -38,9 +40,10 @@
     "promise-toolbox": "^0.21.0",
     "semver": "^7.3.6",
     "sorted-object": "^2.0.1",
-    "turbo": "^1.7.2",
+    "turbo": "^2.0.3",
     "vue": "^2.7.14",
-    "vuepress": "^1.4.1"
+    "vuepress": "^1.4.1",
+    "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
     "node": ">=14",
@@ -96,15 +99,15 @@
   },
   "private": true,
   "scripts": {
-    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build --scope xo-server --scope xo-server-'*' --scope xo-web",
-    "build:xo-lite": "turbo run build --scope @xen-orchestra/lite",
+    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build --filter xo-server --filter xo-server-'*' --filter xo-web",
+    "build:xo-lite": "turbo run build --filter @xen-orchestra/lite",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "docs:dev": "NODE_OPTIONS=--openssl-legacy-provider vuepress dev docs",
     "docs:build": "NODE_OPTIONS=--openssl-legacy-provider vuepress build docs",
     "prepare": "husky install",
-    "prettify": "prettier --ignore-path .gitignore --ignore-unknown --write .",
+    "prettify": "prettier --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\" && scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
@@ -114,5 +117,5 @@
     "@*/*",
     "packages/*"
   ],
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.22"
 }

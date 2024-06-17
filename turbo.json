@@ -1,9 +1,9 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputMode": "errors-only",
+      "outputLogs": "errors-only",
       "outputs": ["dist/**"]
     },
     "dev": {
@@ -12,7 +12,7 @@
     },
     "test": {
       "dependsOn": ["build"],
-      "outputMode": "errors-only"
+      "outputLogs": "errors-only"
     }
   }
 }

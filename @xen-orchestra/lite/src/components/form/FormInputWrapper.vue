@@ -5,7 +5,13 @@
         <UiIcon :icon />
         {{ label }}
       </label>
-      <a v-if="learnMoreUrl !== undefined" :href="learnMoreUrl" class="learn-more-url" target="_blank">
+      <a
+        v-if="learnMoreUrl !== undefined"
+        :href="learnMoreUrl"
+        class="learn-more-url"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
         <UiIcon :icon="faInfoCircle" />
         <span>{{ $t('learn-more') }}</span>
       </a>
@@ -38,8 +44,6 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'
 import { computed, provide, useSlots } from 'vue'
 
-const slots = useSlots()
-
 const props = withDefaults(
   defineProps<{
     label?: string
@@ -54,6 +58,8 @@ const props = withDefaults(
   }>(),
   { disabled: undefined }
 )
+
+const slots = useSlots()
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)

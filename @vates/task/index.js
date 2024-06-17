@@ -3,6 +3,10 @@
 const assert = require('node:assert').strict
 const { AsyncLocalStorage } = require('node:async_hooks')
 
+function alreadyEnded() {
+  throw new Error('task has already ended')
+}
+
 // define a read-only, non-enumerable, non-configurable property
 function define(object, property, value) {
   Object.defineProperty(object, property, { value })
@@ -21,18 +25,11 @@ const asyncStorage = global[asyncStorageKey] ?? (global[asyncStorageKey] = new A
 
 const getTask = () => asyncStorage.getStore()
 
-exports.Task = class Task {
+class Task {
   static get abortSignal() {
     const task = getTask()
     if (task !== undefined) {
       return task.#abortController.signal
-    }
-  }
-
-  static info(message, data) {
-    const task = getTask()
-    if (task !== undefined) {
-      task.#emit('info', { data, message })
     }
   }
 
@@ -55,20 +52,6 @@ exports.Task = class Task {
     }
 
     return new Task(opts).run(() => fn.apply(thisArg, args))
-  }
-
-  static set(name, value) {
-    const task = getTask()
-    if (task !== undefined) {
-      task.#emit('property', { name, value })
-    }
-  }
-
-  static warning(message, data) {
-    const task = getTask()
-    if (task !== undefined) {
-      task.#emit('warning', { data, message })
-    }
   }
 
   static wrap(opts, fn) {
@@ -127,9 +110,7 @@ exports.Task = class Task {
         this.#emit('abortionRequested', { reason: signal.reason })
 
         if (!this.#running) {
-          const status = FAILURE
-          this.#status = status
-          this.#emit('end', { result: signal.reason, status })
+          this.#end(FAILURE, signal.reason)
         }
       }
     })
@@ -140,10 +121,24 @@ exports.Task = class Task {
   }
 
   #emit(type, data) {
+    assert.equal(this.#startData, undefined, 'task has not started yet')
+
     data.id = this.id
     data.timestamp = Date.now()
     data.type = type
     this.#onProgress(data)
+  }
+
+  #end(status, result) {
+    assert.equal(this.#status, PENDING)
+
+    this.#status = status
+    this.#emit('end', { status, result })
+    this.#onProgress = alreadyEnded
+  }
+
+  info(message, data) {
+    this.#emit('info', { data, message })
   }
 
   #maybeStart() {
@@ -157,8 +152,7 @@ exports.Task = class Task {
   async run(fn) {
     const result = await this.runInside(fn)
     if (this.status === PENDING) {
-      this.#status = SUCCESS
-      this.#emit('end', { status: SUCCESS, result })
+      this.#end(SUCCESS, result)
     }
     return result
   }
@@ -172,16 +166,25 @@ exports.Task = class Task {
     this.#maybeStart()
 
     try {
-      const result = await asyncStorage.run(this, fn)
+      const result = await asyncStorage.run(this, fn, this)
       this.#running = false
       return result
     } catch (result) {
-      const status = FAILURE
-
-      this.#status = status
-      this.#emit('end', { status, result })
+      this.#end(FAILURE, result)
       throw result
     }
+  }
+
+  set(name, value) {
+    assert.equal(this.status, PENDING)
+
+    this.#emit('property', { name, value })
+  }
+
+  warning(message, data) {
+    assert.equal(this.status, PENDING)
+
+    this.#emit('warning', { data, message })
   }
 
   wrap(fn) {
@@ -195,6 +198,18 @@ exports.Task = class Task {
     const task = this
     return function taskRunInside() {
       return task.runInside(() => fn.apply(this, arguments))
+    }
+  }
+}
+exports.Task = Task
+
+// setup static aliases
+for (const name of ['info', 'set', 'warning']) {
+  const method = Task.prototype[name]
+  Task[name] = function () {
+    const task = getTask()
+    if (task !== undefined) {
+      return method.apply(task, arguments)
     }
   }
 }

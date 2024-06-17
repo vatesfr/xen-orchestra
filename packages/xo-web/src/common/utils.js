@@ -668,7 +668,13 @@ export const adminOnly = Component =>
 // ===================================================================
 
 export const TryXoa = ({ page }) => (
-  <a href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}>{_('tryXoa')}</a>
+  <a
+    href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}
+    target='_blank'
+    rel='noreferrer'
+  >
+    {_('tryXoa')}
+  </a>
 )
 
 // ===================================================================

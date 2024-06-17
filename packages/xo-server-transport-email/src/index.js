@@ -169,7 +169,7 @@ class TransportEmailPlugin {
     const transport = createTransport({ ...transportConf, ...this._staticConfig.transport }, { from })
     transport.use('compile', (mail, cb) => {
       const data = mail?.data
-      if (data == null || data.markdown == null || data.html !== undefined) {
+      if (data == null || data.markdown == null || (data.html != null && data.text != null)) {
         return cb()
       }
 
@@ -180,10 +180,14 @@ class TransportEmailPlugin {
 
         markdown = String(markdown)
 
-        data.html = this._marked.parse(markdown)
-        if (data.text === undefined) {
+        if (data.html == null) {
+          data.html = this._marked.parse(markdown)
+        }
+
+        if (data.text == null) {
           data.text = markdown
         }
+
         cb()
       })
     })
@@ -216,13 +220,14 @@ The \`transport-email\` plugin for *Xen Orchestra* server seems to be working fi
     })
   }
 
-  _sendEmail({ from, to, cc, bcc, subject, markdown, attachments }) {
+  _sendEmail({ from, to, cc, bcc, html, subject, markdown, attachments }) {
     return this._send(
       removeUndefined({
         from,
         to,
         cc,
         bcc,
+        html,
         subject,
         markdown,
         attachments,

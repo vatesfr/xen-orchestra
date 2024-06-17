@@ -1,39 +1,34 @@
-import assert from 'node:assert'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { importIncrementalVm, TAG_BACKUP_SR, TAG_BASE_DELTA, TAG_COPY_SRC } from '../../_incrementalVm.mjs'
+import { importIncrementalVm } from '../../_incrementalVm.mjs'
 import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
-import find from 'lodash/find.js'
+import { COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
 
+import assert from 'node:assert'
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
-  async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
-    assert.notStrictEqual(baseVm, undefined)
+  async checkBaseVdis(baseUuidToSrcVdi) {
     const sr = this._sr
-    const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).find(
-      vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
-    )
-    if (replicatedVm === undefined) {
-      return baseUuidToSrcVdi.clear()
-    }
 
-    const xapi = replicatedVm.$xapi
-    const replicatedVdis = new Set(
-      await asyncMap(await replicatedVm.$getDisks(), async vdiRef => {
-        const otherConfig = await xapi.getField('VDI', vdiRef, 'other_config')
-        return otherConfig[TAG_COPY_SRC]
+    // @todo use an index if possible
+    // @todo : this seems similare to decorateVmMetadata
+
+    const replicatedVdis = sr.$VDIs
+      .filter(({ other_config }) => {
+        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+        return baseUuidToSrcVdi.has(other_config?.[COPY_OF])
       })
-    )
+      .map(({ other_config }) => other_config?.[COPY_OF])
+      .filter(_ => !!_)
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
-      if (!replicatedVdis.has(uuid)) {
+      if (!replicatedVdis.includes(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
       }
     }
@@ -89,46 +84,38 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   #decorateVmMetadata(backup) {
     const { _warmMigration } = this._settings
     const sr = this._sr
-    const xapi = sr.$xapi
     const vm = backup.vm
-    vm.other_config[TAG_COPY_SRC] = vm.uuid
-    const remoteBaseVmUuid = vm.other_config[TAG_BASE_DELTA]
-    let baseVm
-    if (remoteBaseVmUuid) {
-      baseVm = find(
-        xapi.objects.all,
-        obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
-      )
 
-      if (!baseVm) {
-        throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
-      }
-    }
-    const baseVdis = {}
-    baseVm?.$VBDs.forEach(vbd => {
-      const vdi = vbd.$VDI
-      if (vdi !== undefined) {
-        baseVdis[vbd.VDI] = vbd.$VDI
-      }
-    })
-
-    vm.other_config[TAG_COPY_SRC] = vm.uuid
+    vm.other_config[COPY_OF] = vm.uuid
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
+    // extracting the uuid of each delta vdi on the source
+    // get all in one pass, since there is a lot of objects
+    const sourceVdiUuids = Object.values(backup.vdis)
+      .map(({ other_config }) => other_config[BASE_DELTA_VDI])
+      // full vdi don't have a base
+      .filter(_ => !!_)
+    // @todo use index ?
+
+    const replicatedVdis = sr.$VDIs.filter(({ other_config }) => {
+      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+      return sourceVdiUuids.includes(other_config?.[COPY_OF])
+    })
 
     Object.values(backup.vdis).forEach(vdi => {
-      vdi.other_config[TAG_COPY_SRC] = vdi.uuid
-      vdi.SR = sr.$ref
-      // vdi.other_config[TAG_BASE_DELTA] is never defined on a suspend vdi
-      if (vdi.other_config[TAG_BASE_DELTA]) {
-        const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
-        const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
-        if (!baseVdi) {
-          throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
-        }
-        vdi.baseVdi = baseVdi
+      vdi.other_config[COPY_OF] = vdi.uuid
+      if (sourceVdiUuids.length > 0) {
+        const baseReplicatedTo = replicatedVdis.find(
+          replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
+        )
+        assert.notStrictEqual(baseReplicatedTo, undefined)
+        vdi.baseVdi = baseReplicatedTo
+      } else {
+        vdi.baseVdi = undefined
       }
+      // ensure the VDI are created on the target SR
+      vdi.SR = sr.$ref
     })
 
     return backup
@@ -164,14 +151,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           'Start operation for this vm is blocked, clone it if you want to use it.'
         )
       ),
-      targetVm.update_other_config({
-        [TAG_BACKUP_SR]: srUuid,
-
-        // these entries need to be added in case of offline backup
-        'xo:backup:datetime': formatDateTime(timestamp),
-        'xo:backup:job': job.id,
-        'xo:backup:schedule': scheduleId,
-        [TAG_BASE_DELTA]: vm.uuid,
+      setVmOtherConfig(xapi, targetVmRef, {
+        timestamp,
+        jobId: job.id,
+        scheduleId,
+        vmUuid: vm.uuid,
+        srUuid,
       }),
     ])
   }

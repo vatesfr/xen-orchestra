@@ -14,13 +14,13 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { computed, provide } from 'vue'
 import VueCharts from 'vue-echarts'
 
-const Y_AXIS_MAX_VALUE = 200
-
 const props = defineProps<{
   data: LinearChartData
   valueFormatter?: ValueFormatter
   maxValue?: number
 }>()
+
+const Y_AXIS_MAX_VALUE = 200
 
 const valueFormatter = computed<ValueFormatter>(() => {
   const formatter = props.valueFormatter

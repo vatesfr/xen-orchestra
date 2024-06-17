@@ -1,2 +1,6 @@
-# Ignore all handlebars files:
+# Ignore Handlebars files because partials are not currently supported
+# https://github.com/prettier/prettier/issues/11834
 **/*.hbs
+
+# Generated files
+/@xen-orchestra/web/typed-router.d.ts

@@ -132,7 +132,10 @@ const XOSAN_COLUMNS = [
       if (license === undefined) {
         return (
           <span className='text-danger'>
-            {_('xosanUnknownSr')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('xosanUnknownSr')}{' '}
+            <a href='https://xen-orchestra.com/' target='_blank' rel='noreferrer'>
+              {_('contactUs')}
+            </a>
           </span>
         )
       }
@@ -141,7 +144,10 @@ const XOSAN_COLUMNS = [
       if (license === null) {
         return (
           <span className='text-danger'>
-            {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('xosanMultipleLicenses')}{' '}
+            <a href='https://xen-orchestra.com/' target='_blank' rel='noreferrer'>
+              {_('contactUs')}
+            </a>
           </span>
         )
       }

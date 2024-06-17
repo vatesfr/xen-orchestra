@@ -16,9 +16,9 @@
     <div class="wrapper">
       <UiIcon :icon="faWarning" />
       <p v-if="!asTooltip">
-        <i18n-t keypath="you-are-currently-on">
+        <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
-        </i18n-t>
+        </I18nT>
         <br />
         {{ $t('click-to-return-default-pool') }}
       </p>

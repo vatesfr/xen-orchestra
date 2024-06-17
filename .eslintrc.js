@@ -49,16 +49,17 @@ module.exports = {
     },
     {
       files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
+      parser: 'vue-eslint-parser',
       parserOptions: {
         sourceType: 'module',
+        parser: '@typescript-eslint/parser',
       },
       plugins: ['import'],
       extends: [
         'plugin:import/recommended',
         'plugin:import/typescript',
-        'plugin:vue/vue3-recommended',
-        '@vue/eslint-config-typescript/recommended',
-        '@vue/eslint-config-prettier',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:vue/vue3-essential',
       ],
       settings: {
         'import/resolver': {
@@ -73,24 +74,76 @@ module.exports = {
           },
         },
       },
+      globals: {
+        XO_LITE_VERSION: true,
+        XO_LITE_GIT_HEAD: true,
+      },
       rules: {
-        'no-void': 'off',
+        'no-void': ['error', { allowAsStatement: true }],
         'n/no-missing-import': 'off', // using 'import' plugin instead, to support TS aliases
+        'no-redeclare': 'off', // automatically checked by the TypeScript compiler
+        'no-dupe-class-members': 'off', // automatically checked by the TypeScript compiler
         '@typescript-eslint/no-explicit-any': 'off',
-        'vue/require-default-prop': 'off', // https://github.com/vuejs/eslint-plugin-vue/issues/2051
         'vue/multi-word-component-names': 'off',
+        // Vue 3 - Strongly Recommended
+        'vue/attribute-hyphenation': 'error',
+        'vue/component-definition-name-casing': 'error',
+        'vue/first-attribute-linebreak': 'error',
+        'vue/html-closing-bracket-newline': 'off', // Conflicts with Prettier
+        'vue/html-closing-bracket-spacing': 'error',
+        'vue/html-end-tags': 'error',
+        'vue/html-indent': 'off', // Conflicts with Prettier
+        'vue/html-quotes': 'error',
+        'vue/html-self-closing': ['error', { html: { void: 'always', normal: 'always', component: 'always' } }],
+        'vue/max-attributes-per-line': 'off', // Conflicts with Prettier
+        'vue/multiline-html-element-content-newline': 'error',
+        'vue/mustache-interpolation-spacing': 'error',
+        'vue/no-multi-spaces': 'error',
+        'vue/no-spaces-around-equal-signs-in-attribute': 'error',
+        'vue/no-template-shadow': 'error',
+        'vue/prop-name-casing': 'error',
+        'vue/require-default-prop': 'off', // https://github.com/vuejs/eslint-plugin-vue/issues/2051
+        'vue/require-explicit-emits': 'error',
+        'vue/require-prop-types': 'error',
+        'vue/singleline-html-element-content-newline': 'off',
+        'vue/v-bind-style': 'error',
+        'vue/v-on-event-hyphenation': ['error', 'always', { autofix: true }],
+        'vue/v-on-style': 'error',
+        'vue/v-slot-style': 'error',
+        // Vue 3 - Recommended
+        'vue/attributes-order': 'error',
+        'vue/no-lone-template': 'error',
+        'vue/no-multiple-slot-args': 'error',
+        'vue/no-v-html': 'error',
+        'vue/this-in-template': 'error',
+        // Vue 3 - Uncategorized
         'vue/block-order': ['error', { order: ['template', 'script', 'style'] }],
         'vue/block-tag-newline': ['error', { singleline: 'consistent', multiline: 'always', maxEmptyLines: 0 }],
         'vue/component-api-style': ['error', ['script-setup']],
+        'vue/component-name-in-template-casing': ['error', 'PascalCase', { registeredComponentsOnly: false }],
         'vue/custom-event-name-casing': ['error', 'camelCase'],
+        'vue/define-emits-declaration': ['error', 'type-literal'],
+        'vue/define-macros-order': [
+          'error',
+          {
+            order: ['defineOptions', 'defineProps', 'defineEmits', 'defineModel', 'defineSlots'],
+            defineExposeLast: true,
+          },
+        ],
         'vue/define-props-declaration': ['error', 'type-based'],
         'vue/enforce-style-attribute': ['error', { allow: ['scoped', 'module'] }],
+        'vue/html-button-has-type': 'error',
         'vue/html-comment-content-newline': ['error', { singleline: 'never', multiline: 'always' }],
         'vue/html-comment-content-spacing': ['error', 'always'],
+        'vue/no-duplicate-attr-inheritance': 'error',
         'vue/no-empty-component-block': 'error',
         'vue/no-multiple-objects-in-class': 'error',
+        'vue/no-ref-object-reactivity-loss': 'error',
         'vue/no-required-prop-with-default': 'error',
+        'vue/no-static-inline-styles': 'error',
+        'vue/no-template-target-blank': 'error',
         'vue/no-undef-components': ['error', { ignorePatterns: ['RouterLink', 'RouterView', 'I18nT'] }],
+        'vue/no-undef-properties': 'error',
         'vue/no-unused-refs': 'error',
         'vue/no-use-v-else-with-v-for': 'error',
         'vue/no-useless-mustaches': 'error',
@@ -101,8 +154,7 @@ module.exports = {
         'vue/prefer-separate-static-class': 'error',
         'vue/prefer-true-attribute-shorthand': 'error',
         'vue/require-macro-variable-name': 'error',
-        'vue/html-button-has-type': 'error',
-        'vue/define-emits-declaration': ['error', 'type-literal'],
+        'vue/valid-define-options': 'error',
       },
     },
     {

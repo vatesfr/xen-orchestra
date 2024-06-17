@@ -1,6 +1,5 @@
 import groupBy from 'lodash/groupBy.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import omit from 'lodash/omit.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
@@ -10,43 +9,16 @@ import { defer } from 'golike-defer'
 import { cancelableMap } from './_cancelableMap.mjs'
 import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
-
-// in `other_config` of an incrementally replicated VM, contains the UUID of the source VM
-export const TAG_BASE_DELTA = 'xo:base_delta'
-
-// in `other_config` of an incrementally replicated VM, contains the UUID of the target SR used for replication
-//
-// added after the complete replication
-export const TAG_BACKUP_SR = 'xo:backup:sr'
-
-// in other_config of VDIs of an incrementally replicated VM, contains the UUID of the source VDI
-export const TAG_COPY_SRC = 'xo:copy_of'
+import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export async function exportIncrementalVm(
   vm,
-  baseVm,
-  {
-    cancelToken = CancelToken.none,
-
-    // Sets of UUIDs of VDIs that must be exported as full.
-    fullVdisRequired = new Set(),
-
-    disableBaseTags = false,
-    nbdConcurrency = 1,
-    preferNbd,
-  } = {}
+  baseVdis = {},
+  { cancelToken = CancelToken.none, nbdConcurrency = 1, preferNbd } = {}
 ) {
   // refs of VM's VDIs → base's VDIs.
-  const baseVdis = {}
-  baseVm &&
-    baseVm.$VBDs.forEach(vbd => {
-      let vdi, snapshotOf
-      if ((vdi = vbd.$VDI) && (snapshotOf = vdi.$snapshot_of) && !fullVdisRequired.has(snapshotOf.uuid)) {
-        baseVdis[vdi.snapshot_of] = vdi
-      }
-    })
 
   const streams = {}
   const vdis = {}
@@ -67,13 +39,16 @@ export async function exportIncrementalVm(
     }
 
     // Look for a snapshot of this vdi in the base VM.
-    const baseVdi = baseVdis[vdi.snapshot_of]
+    const baseVdi = baseVdis[vdi.$snapshot_of.uuid]
 
     vdis[vdiRef] = {
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [BASE_DELTA_VDI]: baseVdi?.uuid,
+        [VM_UUID]:
+          vm.$snapshot_of?.uuid ?? // vm is a snapshot
+          vm.uuid, // vm is a not snapshot
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
@@ -120,13 +95,6 @@ export async function exportIncrementalVm(
       vifs,
       vm: {
         ...vm,
-        other_config:
-          baseVm && !disableBaseTags
-            ? {
-                ...vm.other_config,
-                [TAG_BASE_DELTA]: baseVm.uuid,
-              }
-            : omit(vm.other_config, TAG_BASE_DELTA),
       },
     },
     'streams',
@@ -205,7 +173,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       newVdi = await xapi.getRecord('VDI', await vdi.baseVdi.$clone())
       $defer.onFailure(() => newVdi.$destroy())
 
-      await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
+      await newVdi.update_other_config(COPY_OF, vdi.uuid)
       if (vdi.virtual_size > newVdi.virtual_size) {
         await newVdi.$callAsync('resize', vdi.virtual_size)
       }
