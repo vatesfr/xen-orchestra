@@ -1,8 +1,6 @@
 import { asyncEach } from '@vates/async-each'
-import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream'
-import findLast from 'lodash/findLast.js'
 import isVhdDifferencingDisk from 'vhd-lib/isVhdDifferencingDisk.js'
 import keyBy from 'lodash/keyBy.js'
 import mapValues from 'lodash/mapValues.js'
@@ -15,9 +13,15 @@ import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs
 import { IncrementalXapiWriter } from '../_writers/IncrementalXapiWriter.mjs'
 import { Task } from '../../Task.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
+import {
+  DATETIME,
+  DELTA_CHAIN_LENGTH,
+  EXPORTED_SUCCESSFULLY,
+  setVmDeltaChainLength,
+  markExportSuccessfull,
+} from '../../_otherConfig.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
-
 const noop = Function.prototype
 
 export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXapi {
@@ -30,17 +34,14 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
   }
 
   async _copy() {
-    const baseVm = this._baseVm
+    const baseVdis = this._baseVdis
     const vm = this._vm
     const exportedVm = this._exportedVm
-    const fullVdisRequired = this._fullVdisRequired
 
-    const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
-
+    const isFull = Object.values(baseVdis).length === 0 || Object.values(baseVdis).some(_ => !_)
     await this._callWriters(writer => writer.prepare({ isFull }), 'writer.prepare()')
 
-    const deltaExport = await exportIncrementalVm(exportedVm, baseVm, {
-      fullVdisRequired,
+    const deltaExport = await exportIncrementalVm(exportedVm, baseVdis, {
       nbdConcurrency: this._settings.nbdConcurrency,
       preferNbd: this._settings.preferNbd,
     })
@@ -90,18 +91,13 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       'writer.updateUuidAndChain()'
     )
 
-    this._baseVm = exportedVm
-
-    if (baseVm !== undefined) {
-      await exportedVm.update_other_config(
-        'xo:backup:deltaChainLength',
-        String(+(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1)
-      )
-    }
+    if (!isFull) {
+      await setVmDeltaChainLength(this._xapi, exportedVm.$ref, (this._deltaChainLength ?? 0) + 1)
+    } // on a full the delta chain will be null
 
     // not the case if offlineBackup
     if (exportedVm.is_a_snapshot) {
-      await exportedVm.update_other_config('xo:backup:exported', 'true')
+      await markExportSuccessfull(this._xapi, exportedVm.$ref)
     }
 
     const size = Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0)
@@ -119,43 +115,62 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
   async _selectBaseVm() {
     const xapi = this._xapi
 
-    let baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
-    if (baseVm === undefined) {
-      debug('no base VM found')
-      return
+    // filter _jobSnapshotVdis to have only the last successfully exported vdi
+    // compute delta chain length
+    // fill baseUuidToSrcVdi with this data
+
+    const exportedVdis = this._jobSnapshotVdis.filter(
+      _ => EXPORTED_SUCCESSFULLY in _.other_config && DATETIME in _.other_config
+    )
+    let lastSuccessfullBackup
+    let lastExportedVdis = []
+    for (const exportedVdi of exportedVdis) {
+      if (lastSuccessfullBackup === undefined || lastSuccessfullBackup < exportedVdi.other_config[DATETIME]) {
+        lastExportedVdis = []
+        lastSuccessfullBackup = exportedVdi.other_config[DATETIME]
+      }
+      if (lastSuccessfullBackup === exportedVdi.other_config[DATETIME]) {
+        lastExportedVdis.push(exportedVdi)
+      }
     }
 
+    this._baseVdis = {}
+    if (lastExportedVdis.length === 0) {
+      debug('no base VDIS found', {
+        jobLength: this._jobSnapshotVdis.length,
+        lastSuccessfullBackup,
+        exportedLength: exportedVdis.length,
+      })
+      return
+    }
+    const deltaChainLength = Math.max(
+      ...lastExportedVdis.map(({ other_config }) => Number(other_config[DELTA_CHAIN_LENGTH] ?? 0))
+    )
     const fullInterval = this._settings.fullInterval
-    const deltaChainLength = +(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
-    if (!(fullInterval === 0 || fullInterval > deltaChainLength)) {
-      debug('not using base VM becaust fullInterval reached')
+    if ( fullInterval !== 0 && fullInterval < deltaChainLength + 1) {
+      debug('not using base VM because fullInterval reached', { fullInterval, deltaChainLength, eq: fullInterval < deltaChainLength + 1, dc1: deltaChainLength + 1 })
       return
     }
 
     const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
-    // resolve full record
-    baseVm = await xapi.getRecord('VM', baseVm.$ref)
-
-    const baseUuidToSrcVdi = new Map()
-    await asyncMap(await baseVm.$getDisks(), async baseRef => {
-      const [baseUuid, snapshotOf] = await Promise.all([
-        xapi.getField('VDI', baseRef, 'uuid'),
-        xapi.getField('VDI', baseRef, 'snapshot_of'),
-      ])
+    const baseUuidToSrcVdiUuid = new Map()
+    for (const lastExportedVdi of lastExportedVdis) {
+      const baseUuid = lastExportedVdi.uuid
+      const snapshotOf = lastExportedVdi.snapshot_of
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
-        baseUuidToSrcVdi.set(baseUuid, srcVdi.uuid)
+        baseUuidToSrcVdiUuid.set(baseUuid, srcVdi.uuid)
       } else {
         debug('ignore snapshot VDI because no longer present on VM', {
           vdi: baseUuid,
         })
       }
-    })
+    }
 
-    const presentBaseVdis = new Map(baseUuidToSrcVdi)
+    const presentBaseVdis = new Map(baseUuidToSrcVdiUuid)
     await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseVm),
+      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis),
       'writer.checkBaseVdis()',
       false
     )
@@ -164,24 +179,22 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       debug('no base VM found')
       return
     }
-
-    const fullVdisRequired = new Set()
-    baseUuidToSrcVdi.forEach((srcVdiUuid, baseUuid) => {
+    baseUuidToSrcVdiUuid.forEach((srcVdiUuid, baseUuid) => {
       if (presentBaseVdis.has(baseUuid)) {
         debug('found base VDI', {
           base: baseUuid,
           vdi: srcVdiUuid,
         })
+        this._baseVdis[srcVdiUuid] = lastExportedVdis.find(vdi => vdi.uuid === baseUuid)
       } else {
         debug('missing base VDI', {
           base: baseUuid,
           vdi: srcVdiUuid,
         })
-        fullVdisRequired.add(srcVdiUuid)
+        // this will force a full for this vdi
+        this._baseVdis[srcVdiUuid] = undefined
       }
     })
-
-    this._baseVm = baseVm
-    this._fullVdisRequired = fullVdisRequired
+    this._deltaChainLength = deltaChainLength
   }
 }

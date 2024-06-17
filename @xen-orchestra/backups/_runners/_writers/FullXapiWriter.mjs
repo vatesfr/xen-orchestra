@@ -1,6 +1,5 @@
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
-import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
@@ -9,6 +8,7 @@ import { Task } from '../../Task.mjs'
 import { AbstractFullWriter } from './_AbstractFullWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
+import { setVmOtherConfig } from '../../_otherConfig.mjs'
 
 export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
   constructor(props) {
@@ -76,14 +76,12 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
           'Start operation for this vm is blocked, clone it if you want to use it.'
         )
       ),
-      targetVm.update_other_config({
-        'xo:backup:sr': srUuid,
-
-        // these entries need to be added in case of offline backup
-        'xo:backup:datetime': formatDateTime(timestamp),
-        'xo:backup:job': job.id,
-        'xo:backup:schedule': scheduleId,
-        'xo:backup:vm': vm.uuid,
+      setVmOtherConfig(xapi, targetVmRef, {
+        timestamp,
+        jobId: job.id,
+        scheduleId,
+        srUuid,
+        vmUuid: vm.uuid,
       }),
     ])
 
