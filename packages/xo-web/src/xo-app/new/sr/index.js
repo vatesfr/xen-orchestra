@@ -54,8 +54,8 @@ class SelectScsiId extends Component {
   _getOptions = createSelector(
     () => this.props.options,
     options =>
-      map(options, ({ id, path, scsiId, size, vendor }) => ({
-        label: `${vendor} ${id}: ${scsiId} - ${path} (${formatSize(size)})`,
+      map(options, ({ id, path, scsiId, size, vendor, lun }) => ({
+        label: `${vendor} ${id}: ${scsiId} - LUN: ${lun} - ${path} (${formatSize(size)})`,
         value: scsiId,
       }))
   )
