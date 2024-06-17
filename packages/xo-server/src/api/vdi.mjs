@@ -103,7 +103,7 @@ set.params = {
   // size of VDI
   size: { type: ['integer', 'string'], optional: true },
 
-  cbt:{type: 'boolean', optional: true}
+  cbt:{ type: 'boolean', optional: true }
 }
 
 set.resolve = {
