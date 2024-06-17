@@ -136,7 +136,7 @@ const COLUMNS_VM_PV = [
     sortCriteria: 'vdi.size',
   },
   {
-    itemRenderer: ({ vdi }) =><Toggle value={vdi.cbt_enabled} onChange={cbt=>setCbt(vdi, cbt)}/>,
+    itemRenderer: ({ vdi }) => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,
     name: _('vbdCbt'),
     sortCriteria:  ({ vdi }) => vdi.cbt_enabled === true ? 1 : 0,
   },
