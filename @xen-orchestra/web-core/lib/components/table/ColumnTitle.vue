@@ -19,7 +19,7 @@
     <MenuItem
       v-for="interaction in interactions"
       :key="interaction.id"
-      v-tooltip="$t('core.coming-soon')"
+      v-tooltip="$t('coming-soon')"
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >

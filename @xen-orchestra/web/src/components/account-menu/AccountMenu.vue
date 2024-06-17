@@ -24,7 +24,7 @@
       </a>
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="logout" @click="logout()">
-      {{ $t('core.log-out') }}
+      {{ $t('log-out') }}
     </MenuItem>
   </MenuList>
 </template>

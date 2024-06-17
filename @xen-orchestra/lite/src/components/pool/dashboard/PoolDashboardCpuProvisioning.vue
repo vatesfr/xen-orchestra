@@ -17,7 +17,7 @@
     <div v-else-if="isReady" :class="state" class="progress-item">
       <UiProgressBar :max-value="maxValue" :value color="custom" />
       <UiProgressScale :max-value="maxValue" :steps="1" unit="%" />
-      <UiProgressLegend :label="$t('vcpus')" :value="`${value}%`" />
+      <UiProgressLegend :label="$t('vcpus')" :value="$n(value / 100, 'percent')" />
       <UiCardFooter class="ui-card-footer">
         <template #left>
           <p>{{ $t('vcpus-used') }}</p>

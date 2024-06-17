@@ -11,7 +11,7 @@
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ $t('here') }} →
+        {{ `${$t('here')} →` }}
       </a>
     </p>
   </UiStatusPanel>

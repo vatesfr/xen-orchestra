@@ -1,4 +1,4 @@
-<template>Chargement en cours...</template>
+<template>{{ $t('loading-in-progress') }}</template>
 
 <script lang="ts" setup>
 import { usePoolStore } from '@/stores/xen-api/pool.store'

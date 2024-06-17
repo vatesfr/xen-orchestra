@@ -1,24 +1,46 @@
 {
-  "core": {
-    "close": "Close",
-    "coming-soon": "Coming soon!",
-    "current": "Current",
-    "filter": "Filter",
-    "group": "Group",
-    "hide": "Hide",
-    "log-out": "Log out",
-    "master": "Primary host",
-    "open": "Open",
-    "quick-actions": "Quick actions",
-    "sidebar": {
-      "close": "Close sidebar",
-      "lock": "Lock sidebar open",
-      "open": "Open sidebar",
-      "unlock": "Unlock sidebar"
-    },
-    "sort": {
-      "ascending": "Sort ascending",
-      "descending": "Sort descending"
-    }
-  }
+  "alarms": "Alarms",
+
+  "bytes.ki": "KiB",
+  "bytes.mi": "MiB",
+  "bytes.gi": "GiB",
+
+  "coming-soon": "Coming soon!",
+  "console": "Console",
+
+  "core.close": "Close",
+  "core.current": "Current",
+  "core.filter": "Filter",
+  "core.group": "Group",
+  "core.hide": "Hide",
+  "core.open": "Open",
+  "core.quick-actions": "Quick actions",
+
+  "core.select.all": "Select all",
+  "core.select.none": "Select none",
+
+  "core.sidebar.close": "Close sidebar",
+  "core.sidebar.lock": "Lock sidebar open",
+  "core.sidebar.open": "Open sidebar",
+  "core.sidebar.unlock": "Unlock sidebar",
+
+  "core.sort.ascending": "Sort ascending",
+  "core.sort.descending": "Sort descending",
+
+  "dark-mode.enable": "Enable dark mode",
+  "dark-mode.disable": "Disable dark mode",
+  "dark-mode.auto": "Auto dark mode",
+
+  "dashboard": "Dashboard",
+  "documentation-name": "{name} documentation",
+  "loading-in-progress": "Loading in progress…",
+  "log-out": "Log out",
+  "master": "Primary host",
+  "network": "Network",
+  "power-on-for-console": "Power on your VM to access its console",
+  "stats": "Stats",
+  "storage": "Storage",
+  "support-name": "{name} pro support",
+  "system": "System",
+  "tasks": "Tasks"
 }

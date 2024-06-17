@@ -66,13 +66,13 @@
                   :value="sr"
                   :class="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3 ? 'warning' : 'success'"
                 >
-                  {{ sr.name_label }} -
+                  {{ `${sr.name_label} -` }}
                   {{
                     $t('n-gb-left', {
                       n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
                     })
                   }}
-                  <span v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</span>
+                  <template v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</template>
                 </option>
               </FormSelect>
             </FormInputWrapper>

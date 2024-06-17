@@ -9,8 +9,12 @@
       <slot />
     </div>
     <div v-if="onToggleSelectAll" class="buttons">
-      <span v-if="selected !== 'all'" @click="emit('toggleSelectAll', true)">Select all</span>
-      <span v-if="selected !== 'none'" @click="emit('toggleSelectAll', false)">Deselect all</span>
+      <span v-if="selected !== 'all'" @click="emit('toggleSelectAll', true)">
+        {{ $t('core.select.all') }}
+      </span>
+      <span v-if="selected !== 'none'" @click="emit('toggleSelectAll', false)">
+        {{ $t('core.select.none') }}
+      </span>
     </div>
   </div>
 </template>

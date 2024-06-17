@@ -1,18 +1,18 @@
 <template>
   <div v-if="isDisplayed" class="summary typo c2-semi-bold">
     <div class="summary-card">
-      <p>{{ $t('total-used') }}:</p>
+      <p>{{ $t('total-used:') }}</p>
       <div class="summary-value">
-        <p>{{ percentUsed }}%</p>
+        <p>{{ $n(percentUsed / 100, 'percent') }}</p>
         <p>
           {{ formatSize(usage) }}
         </p>
       </div>
     </div>
     <div class="summary-card">
-      <p>{{ $t('total-free') }}:</p>
+      <p>{{ $t('total-free:') }}</p>
       <div class="summary-value">
-        <p>{{ percentFree }}%</p>
+        <p>{{ $n(percentFree / 100, 'percent') }}</p>
         <p>
           {{ formatSize(free) }}
         </p>

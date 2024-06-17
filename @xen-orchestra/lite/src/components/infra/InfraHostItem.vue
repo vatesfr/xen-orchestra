@@ -3,7 +3,7 @@
     <TreeItemLabel :icon="faServer" :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }">
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <UiIcon v-if="isPoolMaster" v-tooltip="$t('core.master')" :icon="faStar" color="warning" />
+        <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
         <UiCounter v-if="isReady" v-tooltip="$t('vm-running', { count: vmCount })" :value="vmCount" color="info" />
       </template>
     </TreeItemLabel>
