@@ -43,6 +43,11 @@ const NO_LOG_METHODS = {
   // 2024-02-05: Work-around: in case of XO Proxy errors, `proxy.getApplianceUpdaterState` will
   // flood the logs.
   'proxy.getApplianceUpdaterState': true,
+
+  // 2024-07-09 work-around to avoid flood of MESSAGE_METHOD_UNKNOWN and failed XO tasks
+  // because following methods are not available in XAPIs older than 8.3,
+  'pool.getGuestSecureBootReadiness': true,
+  'vm.getSecurebootReadiness': true,
 }
 
 const PERMISSIONS = {

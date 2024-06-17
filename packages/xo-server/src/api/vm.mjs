@@ -540,6 +540,20 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
+export function getSecurebootReadiness({ vm }) {
+  return this.getXapi(vm).call('VM.get_secureboot_readiness', vm._xapiRef)
+}
+
+getSecurebootReadiness.params = {
+  id: { type: 'string' },
+}
+
+getSecurebootReadiness.resolve = {
+  vm: ['id', 'VM', 'view'],
+}
+
+// -------------------------------------------------------------------
+
 export async function migrate({
   bypassAssert = false,
   force,
@@ -784,6 +798,8 @@ set.params = {
   },
 
   suspendSr: { type: ['string', 'null'], optional: true },
+
+  uefiMode: { enum: ['setup', 'user'], optional: true },
 
   xenStoreData: {
     description: 'properties that should be set or deleted (if null) in the VM XenStore',
