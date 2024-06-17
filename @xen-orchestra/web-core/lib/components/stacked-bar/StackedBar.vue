@@ -6,8 +6,7 @@
       :key="index"
       :color="segment.color"
       :percentage="segment.percentage"
-    >
-    </StackedBarSegment>
+    />
   </div>
 </template>
 

@@ -8,6 +8,8 @@
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
     "@limegrass/eslint-plugin-import-alias": "^1.1.0",
+    "@typescript-eslint/parser": "^7.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.12.0",
     "@vates/async-each": "^1.0.0",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
@@ -40,7 +42,8 @@
     "sorted-object": "^2.0.1",
     "turbo": "^2.0.3",
     "vue": "^2.7.14",
-    "vuepress": "^1.4.1"
+    "vuepress": "^1.4.1",
+    "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
     "node": ">=14",

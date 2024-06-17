@@ -22,7 +22,7 @@
           :readonly="isConnecting"
           required
         />
-        <LoginError :error="error" />
+        <LoginError :error />
         <label class="remember-me-label">
           <FormCheckbox v-model="rememberMe" />
           {{ $t('keep-me-logged') }}
