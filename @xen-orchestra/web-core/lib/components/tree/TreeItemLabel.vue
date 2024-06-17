@@ -51,6 +51,10 @@ import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 defineProps<{
   icon?: IconDefinition
   route: RouteLocationRaw

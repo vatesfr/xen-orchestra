@@ -9,7 +9,7 @@
         .widget(),
     ]"
   >
-    <PowerStateIcon style="font-size: 10rem" v-bind="properties" />
+    <PowerStateIcon class="icon" v-bind="properties" />
   </ComponentStory>
 </template>
 
@@ -19,3 +19,9 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 </script>
+
+<style lang="postcss" scoped>
+.icon {
+  font-size: 10rem;
+}
+</style>

@@ -86,7 +86,7 @@ import UiCounter from '@core/components/UiCounter.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
-import { computed, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, onBeforeMount, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 
 const props = defineProps<{
@@ -133,15 +133,17 @@ const slotParams = computed(() => props.params.filter(isSlotParam))
 
 const selectedTab = ref<TAB>(TAB.NONE)
 
-if (propParams.value.length !== 0) {
-  selectedTab.value = TAB.PROPS
-} else if (eventParams.value.length !== 0) {
-  selectedTab.value = TAB.EVENTS
-} else if (slotParams.value.length !== 0) {
-  selectedTab.value = TAB.SLOTS
-} else if (settingParams.value.length !== 0) {
-  selectedTab.value = TAB.SETTINGS
-}
+onBeforeMount(() => {
+  if (propParams.value.length !== 0) {
+    selectedTab.value = TAB.PROPS
+  } else if (eventParams.value.length !== 0) {
+    selectedTab.value = TAB.EVENTS
+  } else if (slotParams.value.length !== 0) {
+    selectedTab.value = TAB.SLOTS
+  } else if (settingParams.value.length !== 0) {
+    selectedTab.value = TAB.SETTINGS
+  }
+})
 
 const propValues = ref<Record<string, any>>({})
 const settingValues = ref<Record<string, any>>({})
