@@ -11,6 +11,17 @@ Lexicon:
 
 ## Components SHOULD be named according to their name in the DS (Design System)
 
+## Components SHOULD be kept short and be split into multiple subcomponents if necessary, stored in the same directory
+
+✅ Good
+
+```
+/components/
+  /square/
+    /Square.vue
+    /SquareIcon.vue
+```
+
 ## Components from DS MUST start with an HTML comment containing the implemented version
 
 In the form `v<x>.<y>` (`z` is reserved to DS versioning)
@@ -35,6 +46,8 @@ In the form `v<x>.<y>` (`z` is reserved to DS versioning)
 
 ## Subcomponents MUST NOT have a version number
 
+If a component from the DS is split into multiple subcomponents, only the main component will have a version number
+
 ## Components MUST be stored in their own directory
 
 ❌ Bad
@@ -47,20 +60,11 @@ In the form `v<x>.<y>` (`z` is reserved to DS versioning)
 
 ## Component tags MUST follow `template`, `script` then `style` order, separated with an empty line
 
-## Components SHOULD be kept short and be split into multiple Subcomponents if necessary, stored in the same directory
-
-✅ Good
-
-```
-/components/
-  /square/
-    /Square.vue
-    /SquareIcon.vue
-```
-
 ## Class names MUST use kebab-case
 
-## Component root element MUST have a class name based on the component name, prefixed with `vts-`
+## Component root element's class name MUST be named after the component name, prefixed with `vts-`
+
+If no style is applied to the root element, the class name will be omitted
 
 ❌ Bad
 
@@ -101,7 +105,7 @@ In the form `v<x>.<y>` (`z` is reserved to DS versioning)
 ```vue
 <template>
   <div class="vts-square">
-    <Icon :icon="faSmile" class="vts-square-icon" />
+    <Icon :icon="faSmile" class="square-icon" />
     <div class="component-label"><slot /></div>
   </div>
 </template>
@@ -186,7 +190,7 @@ With meaningful class names + scoped styles, in most cases it will not be necess
 </template>
 ```
 
-## Component MUST use `defineSlots` when another slot than `default` is used or slot has props
+## Component MUST use `defineSlots` when slots are used
 
 ❌ Bad
 
@@ -213,36 +217,14 @@ With meaningful class names + scoped styles, in most cases it will not be necess
 <template>
   <div class="vts-foobar">
     <slot />
-  </div>
-</template>
-```
-
-```vue
-<template>
-  <div class="vts-foobar">
-    <slot foo="bar" />
-  </div>
-</template>
-
-<script lang="ts" setup>
-defineSlots<{
-  default(props: { foo: string }): any
-}>()
-</script>
-```
-
-```vue
-<template>
-  <div class="vts-foobar">
-    <slot />
-    <slot name="footer" />
+    <slot name="footer" foo="bar" />
   </div>
 </template>
 
 <script lang="ts" setup>
 defineSlots<{
   default(): any
-  footer(): any
+  footer(props: { foo: string }): any
 }>()
 </script>
 ```
