@@ -111,8 +111,8 @@
   "gzip": "gzip",
   "here": "Ici",
   "host": {
-    "active": "Actif | Actifs",
-    "inactive": "Inactif | Inactifs"
+    "active": "Actif | Actif | Actifs",
+    "inactive": "Inactif | Inactif | Inactifs"
   },
   "hosts": "Hôtes",
   "invalid-field": "Champ invalide",
@@ -231,8 +231,8 @@
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vm": {
-    "active": "Active | Actives",
-    "inactive": "Inactive | Inactives"
+    "active": "Active | Active | Actives",
+    "inactive": "Inactive | Inactive | Inactives"
   },
   "vm-is-running": "La VM est en cours d'exécution",
   "vm-running": "VM en cours d'exécution | VMs en cours d'exécution",
