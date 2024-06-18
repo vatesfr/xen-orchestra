@@ -147,6 +147,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           await vm.$assertHealthyVdiChains()
         }
 
+        // enable CBT on all disks
+        const diskRefs = await xapi.VM_getDisks(vm.$ref)
+        await Promise.all(await diskRefs.map(diskRef => xapi.VDI_enableChangeBlockTracking(diskRef)))
+
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoreNobakVdis: true,
           name_label: this._getSnapshotNameLabel(vm),
@@ -208,7 +212,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     const xapi = this._xapi
-    await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
+    await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
 
       const datetimes = Object.keys(snapshotPerDatetime)
@@ -222,7 +226,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // ensure we never delete the last one
       const retention = Math.max(settings.snapshotRetention ?? 0, 1)
 
-      return asyncMap(getOldEntries(retention, datetimes), async datetime => {
+      await asyncMap(getOldEntries(retention, datetimes), async datetime => {
         const vdis = snapshotPerDatetime[datetime]
 
         let vmRef
@@ -234,8 +238,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             // this will throw error for VDI still attached to control domain
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vm = vbds[0].$VM
+            assert.strictEqual(vm.is_control_domain, false, `Disk is still attached to DOM0 VM`) // don't delete a VM (especially a control domain)
             assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
-            assert.strictEqual(vm.is_control_domain, false, `VM can't be a DOM0 VM`) // don't delete a VM (especially a control domain)
 
             const vmRefVdi = vm.$ref
             // same vm than other vdi of the same batch
@@ -257,6 +261,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+
+    // now that we use CBT, we can destroy the data of the snapshot used for this backup
+    // going back to a previous version of XO not supporting CBT will create a full backup
+    // this will only do something after snapshot and transfer
+    if (this._exportedVm?.is_a_snapshot && this._settings.snapshotRetention === 0) {
+      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
+      await xapi.call('VM.destroy', this._exportedVm.$ref)
+      for (const vdiRef of vdiRefs) {
+        try {
+          await xapi.VDI_dataDestroy(vdiRef)
+          Task.info(`Snapshot data has been purged`, { vdiRef })
+        } catch (error) {
+          Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
+        }
+      }
+    }
   }
 
   async copy() {

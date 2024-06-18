@@ -19,13 +19,13 @@ exports.createNbdRawStream = function createRawStream(nbdClient) {
   return stream
 }
 
-exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStream) {
+exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStream, { changedBlocks, vdiInfos } = {}) {
   const vhd = new VhdNbd(nbdClient, {
     vhdStream: sourceStream,
+    vdiInfos,
+    changedBlocks,
   })
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
-  const stream = await vhd.stream()
-  stream._nbd = true
   return vhd.stream()
 }

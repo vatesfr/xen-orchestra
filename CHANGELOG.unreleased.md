@@ -12,6 +12,7 @@
 - [Migration] Disable CBT when needed during a disk/VM migration (PR [#7756](https://github.com/vatesfr/xen-orchestra/pull/7756))
 - [Disks] Show and edit the use of CBT (Change Block Tracking) in disks (PR [#7732](https://github.com/vatesfr/xen-orchestra/pull/7732))
 - [Create/SR] Display SCSI ID and LUN during HBA storage creation (PR [#7742](https://github.com/vatesfr/xen-orchestra/pull/7742))
+- [Backups] Implements Change Block Tracking (CBT) (PR [#7750](https://github.com/vatesfr/xen-orchestra/pull/7750))
 
 ### Bug fixes
 
@@ -45,6 +46,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
