@@ -53,38 +53,38 @@ export const testSchema = {
 }
 
 // ===================================================================
+// Handlebars partials
 
-const handlebarsPartialFiles = readdirSync(join(__dirname, '../templates/partials/')).filter(
-  filename => extname(filename) === '.hbs'
-)
-for (const fileName of handlebarsPartialFiles) {
-  const partial = readFileSync(join(__dirname, `../templates/partials/${fileName}`)).toString()
-  Handlebars.registerPartial(parse(fileName).name, partial)
+const registerPartials = path => {
+  const handlebarsPartialFiles = readdirSync(join(__dirname, path)).filter(filename => extname(filename) === '.hbs')
+  for (const fileName of handlebarsPartialFiles) {
+    const partial = readFileSync(join(__dirname, `${path}${fileName}`)).toString()
+    Handlebars.registerPartial(parse(fileName).name, partial)
+  }
 }
 
-const compiledMetadataSubject = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/metadataSubject.hbs')).toString().replace(/\n$/, '')
-)
-const compiledMetadataTemplate = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/metadata.hbs')).toString().replace(/\n$/, '')
-)
-const compiledVmSubject = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/vmSubject.hbs')).toString().replace(/\n$/, '')
-)
-const compiledVmTemplate = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/vm.hbs')).toString().replace(/\n$/, '')
-)
+registerPartials('../templates/markdown/partials/')
+registerPartials('../templates/mjml/partials/')
 
 // ===================================================================
+// Handlebars templates
 
-const handlebarsMjmlPartialFiles = readdirSync(join(__dirname, '../templates/mjml/partials/')).filter(
-  filename => extname(filename) === '.hbs'
-)
-for (const fileName of handlebarsMjmlPartialFiles) {
-  const partial = readFileSync(join(__dirname, `../templates/mjml/partials/${fileName}`)).toString()
-  Handlebars.registerPartial(parse(fileName).name, partial)
+const readCompileHbs = path => Handlebars.compile(readFileSync(join(__dirname, path)).toString().replace(/\n$/, ''))
+
+const templates = {
+  subject: {
+    metadata: readCompileHbs('../templates/metadataSubject.hbs'),
+    vm: readCompileHbs('../templates/vmSubject.hbs'),
+  },
+  markdown: {
+    metadata: readCompileHbs('../templates/markdown/metadata.hbs'),
+    vm: readCompileHbs('../templates/markdown/vm.hbs'),
+  },
+  mjml: {
+    metadata: readCompileHbs('../templates/mjml/metadata.hbs'),
+    vm: readCompileHbs('../templates/mjml/vm.hbs'),
+  },
 }
-const compiledMjml = Handlebars.compile(readFileSync(join(__dirname, '../templates/mjml/testMjml.mjml')).toString())
 
 // ===================================================================
 
@@ -220,14 +220,14 @@ class BackupReportsXoPlugin {
 
     /*
     console.log('-----')
-    console.log(compiledMjml(context))
+    console.log(templates.mjml.metadata(context))
     console.log('=====')
     */
 
     return this._sendReport({
-      subject: compiledMetadataSubject(context),
-      markdown: compiledMetadataTemplate(context),
-      mjml: mjml2html(compiledMjml(context)).html,
+      subject: templates.subject.metadata(context),
+      markdown: templates.markdown.metadata(context),
+      html: mjml2html(templates.mjml.metadata(context)).html,
       success: log.status === 'success',
     })
   }
@@ -401,22 +401,27 @@ class BackupReportsXoPlugin {
       globalMergeSize,
       globalTransferSize,
     }
+    /*
+    console.log('-----')
+    console.log(templates.mjml.vm(context))
+    console.log('=====')
+    */
 
     return this._sendReport({
       mailReceivers,
-      markdown: compiledVmTemplate(context),
-      subject: compiledVmSubject(context),
+      markdown: templates.markdown.vm(context),
+      html: mjml2html(templates.mjml.vm(context)).html,
+      subject: templates.subject.vm(context),
       success: log.status === 'success',
     })
   }
 
-  async _sendReport({ mailReceivers, markdown, mjml, subject, success }) {
-    /*
-    console.log('-----')
-    console.log(mjml)
-    console.log('=====')
-    console.log(markdown)
-    */
+  async _sendReport({ mailReceivers, markdown, html, subject, success }) {
+    // console.log('-----')
+    // console.log(html)
+    // console.log('=====')
+    // console.log(markdown)
+
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -429,7 +434,7 @@ class BackupReportsXoPlugin {
           : xo.sendEmail({
               to: mailReceivers,
               subject,
-              html: mjml,
+              html,
               text: markdown,
             })),
       this._xmppReceivers !== undefined &&

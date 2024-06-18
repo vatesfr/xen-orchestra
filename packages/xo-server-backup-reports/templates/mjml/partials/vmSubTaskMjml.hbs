@@ -1,0 +1,27 @@
+{{#if subTaskLog}}
+  <mj-section padding="0px">
+    <mj-column width="90%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        <span style="font-weight: bold">{{title}}</span> ({{id}}) {{getIcon subTaskLog.status}}
+        {{>reportTemporalDataMjml end=subTaskLog.end start=subTaskLog.start}}
+        {{>reportWarningsMjml task=subTaskLog}}
+        {{>reportErrorMjml task=subTaskLog}}
+      </mj-text>
+    </mj-column>
+  </mj-section>
+{{else}}
+    <mj-section padding="0px">
+      <mj-column width="80%" border="1px solid">
+        <mj-text font-size="16px" font-weight="300" line-height="24px">
+          <span style="font-weight: bold">{{operationLog.message}}</span> {{getIcon operationLog.status}}
+          {{>reportTemporalDataMjml end=operationLog.end start=operationLog.start}}
+          {{#if operationLog.result.size}}
+            <li><span style="font-weight: bold">Size</span>: {{formatSize operationLog.result.size}}</li>
+            <li><span style="font-weight: bold">Speed</span>: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}</li>
+          {{/if}}
+          {{>reportWarningsMjml task=operationLog}}
+          {{>reportErrorMjml task=operationLog}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+{{/if}}

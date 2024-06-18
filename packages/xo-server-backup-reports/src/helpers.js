@@ -72,8 +72,8 @@ Handlebars.registerHelper('executeFunction', (fct, arg) => fct(arg))
 Handlebars.registerHelper('getIcon', status => STATUS_ICON[status])
 
 // this could be a partial but it would be less clear
-Handlebars.registerHelper('titleByStatus', function (status) {
-  if (this && status in TITLE_BY_STATUS) {
-    return TITLE_BY_STATUS[status](this.length)
+Handlebars.registerHelper('titleByStatus', function (status, tasks) {
+  if (tasks && status in TITLE_BY_STATUS) {
+    return TITLE_BY_STATUS[status](tasks.length)
   }
 })
