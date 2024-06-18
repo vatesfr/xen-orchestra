@@ -5,16 +5,16 @@
       <h6 class="typo h6-semi-bold">{{ label }}</h6>
       <div class="status-line typo p1-regular">
         <div class="bullet" />
-        <div class="label">Active</div>
+        <div class="label">{{ activeLabel }}</div>
         <div class="count">{{ active }}</div>
       </div>
       <div class="status-line typo p1-regular">
         <div class="bullet inactive" />
-        <div class="label">Inactive</div>
+        <div class="label">{{ inactiveLabel }}</div>
         <div class="count">{{ inactive }}</div>
       </div>
       <div class="total typo c2-semi-bold">
-        Total <span>{{ total }}</span>
+        {{ $t('total') }} <span>{{ total }}</span>
       </div>
     </div>
   </div>
@@ -28,6 +28,8 @@ const props = defineProps<{
   label: string
   active: number
   total: number
+  activeLabel: string
+  inactiveLabel: string
 }>()
 
 const inactive = computed(() => props.total - props.active)

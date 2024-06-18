@@ -110,6 +110,10 @@
   "go-back": "Revenir en arrière",
   "gzip": "gzip",
   "here": "Ici",
+  "host": {
+    "active": "Actif | Actif | Actifs",
+    "inactive": "Inactif | Inactif | Inactifs"
+  },
   "hosts": "Hôtes",
   "invalid-field": "Champ invalide",
   "keep-me-logged": "Rester connecté",
@@ -217,6 +221,7 @@
   "theme-light": "Clair",
   "this-vm-cant-be-migrated": "Cette VM ne peut pas être migrée",
   "top-#": "Top {n}",
+  "total": "Total",
   "total-cpus": "Total CPUs",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
@@ -225,6 +230,10 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
+  "vm": {
+    "active": "Active | Active | Actives",
+    "inactive": "Inactive | Inactive | Inactives"
+  },
   "vm-is-running": "La VM est en cours d'exécution",
   "vm-running": "VM en cours d'exécution | VMs en cours d'exécution",
   "vms": "VMs",
