@@ -2,9 +2,9 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      model().type('string'),
+      model().type('string').preset(''),
       prop('disabled').bool().widget(),
-      iconProp('before-icon').preset(faMagnifyingGlass).type('IconDefinition'),
+      iconProp().preset(faMagnifyingGlass).type('IconDefinition'),
     ]"
   >
     <UiInput placeholder="Enter your search" v-bind="properties" />
