@@ -2,7 +2,7 @@
 <template>
   <div class="card-subtitle">
     <span class="typo h7-semi-bold"><slot /></span>
-    <span class="typo p3-medium"><slot name="info" /></span>
+    <span v-if="$slots.info" class="typo p3-medium"><slot name="info" /></span>
   </div>
 </template>
 

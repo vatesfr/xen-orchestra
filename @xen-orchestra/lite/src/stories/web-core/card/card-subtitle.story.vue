@@ -8,8 +8,8 @@
       setting('infoSlotContent').preset('Info').widget(text()),
     ]"
   >
-    <CardSubtitle
-      >{{ settings.defaultSlotContent }}
+    <CardSubtitle>
+      {{ settings.defaultSlotContent }}
       <template #info>{{ settings.infoSlotContent }}</template>
     </CardSubtitle>
   </ComponentStory>
