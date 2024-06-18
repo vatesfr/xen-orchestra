@@ -1055,43 +1055,41 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 {vm.boot.firmware === 'uefi' && (
-                  <div>
-                    <tr>
-                      <th>{_('secureBoot')}</th>
-                      <td>
-                        <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
-                        <a
-                          className='text-muted'
-                          href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
-                          rel='noreferrer'
-                          style={{ display: 'block' }}
-                          target='_blank'
-                        >
-                          <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>{_('secureBootStatus')}</th>
-                      {vm.secureBootStatus === 'SETUP_MODE' || vm.secureBootStatus === 'CERTS_INCOMPLETE' ? (
-                        <td>
-                          <a
-                            className='text-muted'
-                            /* href=link to be provided by Samuel  */
-                            rel='noreferrer'
-                            style={{ display: 'block' }}
-                            target='_blank'
-                          >
-                            <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                          </a>
-                          <p>{secureBootStatusInfo}</p>
-                        </td>
-                      ) : (
-                        <p>{secureBootStatusInfo}</p>
-                      )}
-                    </tr>
-                  </div>
+                  <tr>
+                    <th>{_('secureBoot')}</th>
+                    <td>
+                      <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
+                      <a
+                        className='text-muted'
+                        href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                        rel='noreferrer'
+                        style={{ display: 'block' }}
+                        target='_blank'
+                      >
+                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                      </a>
+                    </td>
+                  </tr>
                 )}
+                <tr>
+                  <th>{_('secureBootStatus')}</th>
+                  {vm.secureBootStatus === 'SETUP_MODE' || vm.secureBootStatus === 'CERTS_INCOMPLETE' ? (
+                    <td>
+                      <a
+                        className='text-muted'
+                        /* href=link to be provided by Samuel  */
+                        rel='noreferrer'
+                        style={{ display: 'block' }}
+                        target='_blank'
+                      >
+                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                      </a>
+                      <p>{secureBootStatusInfo}</p>
+                    </td>
+                  ) : (
+                    <p>{secureBootStatusInfo}</p>
+                  )}
+                </tr>
                 <tr>
                   <th>{_('vtpm')}</th>
                   <td>
