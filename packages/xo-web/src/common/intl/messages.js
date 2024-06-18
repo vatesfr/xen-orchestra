@@ -1445,7 +1445,13 @@ const messages = {
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   infoUnknownPciOnNonRunningVm:
     "When a VM is offline, it's not attached to any host, and therefore, it's impossible to determine the associated PCI devices, as it depends on the hardware environment in which it would be deployed.",
+  noSecureBoot: 'This pool was not setup for Guest UEFI SecureBoot yet',
+  notSetupForSecureBoot: 'This pool was not setup for Guest UEFI SecureBoot yet',
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
+  propagateCertificatesTitle: 'Propagate certificates',
+  propagateCertificatesConfirm:
+    "This will overwrite the VM's UEFI certificates with certificates defined at the pool level. Continue?",
+  propagateCertificates: "Copy the pool's default UEFI certificates to the VM",
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',

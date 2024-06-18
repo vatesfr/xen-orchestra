@@ -669,6 +669,21 @@ export default class TabAdvanced extends Component {
     return isPciPassthroughAvailable(host) ? undefined : _('onlyAvailableXcp8.3OrHigher')
   }
 
+  _setUefiMode = async () => {
+    const { vm } = this.props
+    const confirmNeeded =
+      vm.secureBootReadiness === 'DISABLED' ||
+      vm.secureBootReadiness === 'READY' ||
+      vm.secureBootReadiness === 'READY_NO_DBX'
+    if (confirmNeeded) {
+      await confirm({
+        title: _('propagateCertificatesTitle'),
+        body: <p>{_('propagateCertificatesConfirm')}</p>,
+      })
+    }
+    return vm.uefiMode('user')
+  }
+
   render() {
     const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
@@ -1105,6 +1120,32 @@ export default class TabAdvanced extends Component {
                       >
                         <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
                       </a>
+                    </td>
+                  </tr>
+                )}
+                {vm.boot.firmware === 'uefi' && vm.secureBoot === true && (
+                  <tr>
+                    <th>{_('propagateCertificatesTitle')} </th>
+                    <td>
+                      <ActionButton
+                        btnStyle='primary'
+                        disabled={vmPool.guestSecureBootReadiness === 'NOT_READY'}
+                        handler={this._setUefiMode}
+                        icon='vm-clone'
+                      >
+                        {_('propagateCertificates')}
+                      </ActionButton>
+                      {vmPool.secureBoot === 'NOT_READY' && (
+                        <a
+                          className='text-warning'
+                          href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot' /* Link to be corrected, waiting for Samuel */
+                          rel='noreferrer'
+                          style={{ display: 'block' }}
+                          target='_blank'
+                        >
+                          <Icon icon='alarm' /> {_('noSecureBoot')}
+                        </a>
+                      )}
                     </td>
                   </tr>
                 )}

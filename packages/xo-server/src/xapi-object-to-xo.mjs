@@ -103,6 +103,7 @@ const TRANSFORMS = {
       crashDumpSr: link(obj, 'crash_dump_SR'),
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
+      guestSecureBootReadiness: obj.guest_secureboot_readiness,
       HA_enabled: Boolean(obj.ha_enabled),
 
       // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
@@ -452,12 +453,14 @@ const TRANSFORMS = {
       power_state: obj.power_state,
       hasVendorDevice: obj.has_vendor_device,
       resourceSet,
+      secureBootReadiness: obj.secureboot_readiness,
       snapshots: link(obj, 'snapshots'),
       startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       secureBoot: obj.platform.secureboot === 'true',
       suspendSr: link(obj, 'suspend_SR'),
       tags: obj.tags,
+      uefiMode: obj.uefi_mode,
       VIFs: link(obj, 'VIFs'),
       VTPMs: link(obj, 'VTPMs'),
       virtualizationMode: domainType,
@@ -749,9 +752,7 @@ const TRANSFORMS = {
     if (obj.other_config.applies_to) {
       const object = obj.$xapi.getObject(obj.other_config.applies_to, undefined)
       if (object === undefined) {
-        debug(
-          `Unknown other_config.applies_to reference ${obj.other_config.applies_to} in task ${obj.$id}`
-        )
+        debug(`Unknown other_config.applies_to reference ${obj.other_config.applies_to} in task ${obj.$id}`)
       } else {
         applies_to = object.uuid
       }
