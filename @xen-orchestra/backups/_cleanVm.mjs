@@ -11,6 +11,7 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import handlerPath from '@xen-orchestra/fs/path'
+import assert from 'node:assert'
 
 const { DISK_TYPES } = Constants
 
@@ -69,7 +70,7 @@ const noop = Function.prototype
 
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir, logWarn) => {
-  const vhds = new Set()
+  let vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
 
@@ -110,7 +111,8 @@ const listVhds = async (handler, vmDir, logWarn) => {
         }
       )
   )
-
+  // sort by path to ensure we handle parent before childs
+  vhds = new Set([...vhds].sort())
   return { vhds, interruptedVhds, aliases }
 }
 
@@ -199,20 +201,22 @@ export async function cleanVm(
   const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir, logWarn)
 
   // remove broken VHDs
-  await asyncMap(vhds, async path => {
+  // handle in order to ensure we handle parent before child
+  for (const path of vhds) {
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
-          const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
-          vhdParents[path] = parent
-          if (parent in vhdChildren) {
+          const parentPath = resolve('/', dirname(path), vhd.header.parentUnicodeName)
+          assert.notStrictEqual(parentPath, path, `vhd must not be chained with itself ${path}`)
+          vhdParents[path] = parentPath
+          if (parentPath in vhdChildren) {
             const error = new Error('this script does not support multiple VHD children')
-            error.parent = parent
-            error.child1 = vhdChildren[parent]
+            error.parent = parentPath
+            error.child1 = vhdChildren[parentPath]
             error.child2 = path
             throw error // should we throw?
           }
-          vhdChildren[parent] = path
+          vhdChildren[parentPath] = path
         }
         // Detect VHDs with the same UUIDs
         //
@@ -239,10 +243,10 @@ export async function cleanVm(
       logWarn('VHD check error', { path, error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
         logInfo('deleting broken VHD', { path })
-        return VhdAbstract.unlink(handler, path)
+        await VhdAbstract.unlink(handler, path)
       }
     }
-  })
+  }
 
   // remove interrupted merge states for missing VHDs
   for (const interruptedVhd of interruptedVhds.keys()) {
