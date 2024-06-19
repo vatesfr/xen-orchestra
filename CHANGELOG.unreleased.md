@@ -46,7 +46,6 @@
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-server-transport-email minor
-- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
