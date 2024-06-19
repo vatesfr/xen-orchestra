@@ -476,10 +476,15 @@ export default class RestApi {
       }
     })
     api.param('object', async (req, res, next) => {
+      const { collection } = req
+      if (collection === undefined || collection.getObject === undefined) {
+        return next('route')
+      }
+
       const id = req.params.object
       try {
         // eslint-disable-next-line require-atomic-updates
-        req.object = await req.collection.getObject(id, req)
+        req.object = await collection.getObject(id, req)
         return next()
       } catch (error) {
         if (noSuchObject.is(error, { id })) {
