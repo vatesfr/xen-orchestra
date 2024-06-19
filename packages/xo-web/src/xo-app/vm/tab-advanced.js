@@ -688,7 +688,7 @@ export default class TabAdvanced extends Component {
       CERTS_INCOMPLETE: _('secureBootWantedButCertificatesMissing'),
     }
 
-    const secureBootStatusInfo = secureBootStatusMessages[vm.secureBootReadiness]
+    const secureBootStatusInfo = secureBootStatusMessages[vm.getSecureBootReadiness]
 
     return (
       <Container>
@@ -1071,25 +1071,39 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                <tr>
-                  <th>{_('secureBootStatus')}</th>
-                  {vm.secureBootStatus === 'SETUP_MODE' || vm.secureBootStatus === 'CERTS_INCOMPLETE' ? (
-                    <td>
-                      <a
-                        className='text-muted'
-                        /* href=link to be provided by Samuel  */
-                        rel='noreferrer'
-                        style={{ display: 'block' }}
-                        target='_blank'
-                      >
-                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                      </a>
+                {vm.boot.firmware === 'uefi' && vm.secureBoot === true && (
+                  <tr>
+                    <th>{_('secureBootStatus')}</th>
+                    {vm.getSecureBootReadiness === 'SETUP_MODE' || vm.getSecureBootReadiness === 'CERTS_INCOMPLETE' ? (
+                      <td>
+                        {host.productBrand === 'XCP-ng' ? (
+                          <a
+                            className='text-muted'
+                            /* href=link to be provided by Samuel  */
+                            rel='noreferrer'
+                            style={{ display: 'block' }}
+                            target='_blank'
+                          >
+                            <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                          </a>
+                        ) : (
+                          <a
+                            className='text-muted'
+                            /* href=link to be provided by Samuel  */
+                            rel='noreferrer'
+                            style={{ display: 'block' }}
+                            target='_blank'
+                          >
+                            <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                          </a>
+                        )}
+                        <p>{secureBootStatusInfo}</p>
+                      </td>
+                    ) : (
                       <p>{secureBootStatusInfo}</p>
-                    </td>
-                  ) : (
-                    <p>{secureBootStatusInfo}</p>
-                  )}
-                </tr>
+                    )}
+                  </tr>
+                )}
                 <tr>
                   <th>{_('vtpm')}</th>
                   <td>

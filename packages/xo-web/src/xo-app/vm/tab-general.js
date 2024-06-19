@@ -12,7 +12,7 @@ import HomeTags from 'home-tags'
 import renderXoItem, { VmTemplate } from 'render-xo-item'
 import sanitizeHtml from 'sanitize-html'
 import Tooltip from 'tooltip'
-import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
+import { addTag, editVm, editVmNotes, getSecureBootReadiness, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -273,6 +273,13 @@ const GeneralTab = decorate([
         <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
+        {/* <Row className='text-xs-center'>
+          <Col>
+            <h6>{_('secureBootStatus')}</h6>
+            <p>{getSecureBootReadiness()}</p>
+          </Col>
+        </Row>
+        <br /> */}
         <Row>
           <Col>
             <h2 className='text-xs-center'>

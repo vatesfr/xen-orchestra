@@ -541,6 +541,10 @@ class Vm {
     return Object.keys(disks)
   }
 
+  async getSecureBootReadiness(vmRef) {
+    return this.call('VM.getSecureBootReadiness', vmRef)
+  }
+
   async import(stream, srRef, onVmCreation = undefined) {
     const taskRef = await this.task_create('VM import')
     const query = {}
