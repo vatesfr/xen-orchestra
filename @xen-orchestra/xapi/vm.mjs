@@ -691,6 +691,11 @@ class Vm {
 
     return ref
   }
+
+  async disableChangeBlockTracking(vmRef) {
+    const vdiRefs = await this.VM_getDisks(vmRef)
+    await Promise.all(vdiRefs.map(vdiRef => this.VDI_disableChangeBlockTracking(vdiRef)))
+  }
 }
 export default Vm
 

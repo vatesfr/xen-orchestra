@@ -1033,6 +1033,26 @@ export default class Xapi extends XapiBase {
       )
     } catch (error) {
       const { code } = error
+      if (code === 'VDI_CBT_ENABLED') {
+        // 20240629 we need to disable CBT on all disks of the VM since the xapi
+        // checks all disk of a VM even to migrate only one disk
+        if (vdi.VBDs.length === 0) {
+          await this.VDI_disableChangeBlockTracking(vdi.$ref)
+        } else {
+          if (vdi.VBDs.length > 1) {
+            // no implicit workaround if vdi is multi attached
+            throw error
+          }
+          const vbd = this.getObject(vdi.VBDs[0])
+          await this.VM_disableChangeBlockTracking(vbd.VM)
+        }
+        const newVdi = await this.moveVdi(vdiId, srId, false)
+
+        // cbt will be re enabled when need on next backup
+        // after a migration the next delta backup is always a base copy
+        // and this will only enabled cbt on needed disks
+        return newVdi
+      }
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
       }
