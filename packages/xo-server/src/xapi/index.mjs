@@ -17,7 +17,7 @@ import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd, vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
-import { cancelable, CancelToken, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, CancelToken, fromEvents, ignoreErrors, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -605,14 +605,32 @@ export default class Xapi extends XapiBase {
     ]
 
     if (!bypassAssert) {
-      await this.callAsync('VM.assert_can_migrate', ...params)
+      try {
+        await this.callAsync('VM.assert_can_migrate', ...params)
+      } catch (err) {
+        if (err.code !== 'VDI_CBT_ENABLED') {
+          throw err
+        }
+      }
     }
-
-    const loop = () =>
-      this.callAsync('VM.migrate_send', ...params)::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
-        pDelay(1e4).then(loop)
-      )
-
+    const loop = async () => {
+      try {
+        await this.callAsync('VM.migrate_send', ...params)
+      } catch (err) {
+        if (err.code === 'VDI_CBT_ENABLED') {
+          // as of 20240619, CBT must be disabled on all disks to allow migration to go through
+          // it will be re enabled if needed by backups
+          // the next backup after a storage migration will be a full backup
+          await this.VM_disableChangeBlockTracking(vm.$ref)
+          return loop()
+        }
+        if (err.code === 'TOO_MANY_STORAGE_MIGRATES') {
+          await pDelay(1e4)
+          return loop()
+        }
+        throw err
+      }
+    }
     return loop().then(noop)
   }
 
