@@ -340,18 +340,12 @@ class SDNController extends EventEmitter {
       fileRead(join(certDirectory, CA_CERT)),
     ])
     this._tlsHelper.updateCertificates(this._clientKey, this._clientCert, this._caCert)
-    const updatedPools = []
+
     await Promise.all(
-      map(this.privateNetworks, async privateNetworks => {
-        await Promise.all(
-          privateNetworks.getPools().map(async pool => {
-            if (!updatedPools.includes(pool)) {
-              const xapi = this._xo.getXapi(pool)
-              await this._installCaCertificateIfNeeded(xapi)
-              updatedPools.push(pool)
-            }
-          })
-        )
+      map(this._xo.getAllXapis(), async xapi => {
+        if (xapi.status === 'connected') {
+          await this._installCaCertificateIfNeeded(xapi)
+        }
       })
     )
   }
