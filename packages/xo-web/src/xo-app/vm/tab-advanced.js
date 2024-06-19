@@ -69,6 +69,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
+import { subscribeVmSecurebootReadiness } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -518,6 +519,9 @@ const NIC_TYPE_OPTIONS = [
   },
 ]
 
+@addSubscriptions({
+  vmSecurebootReadiness: subscribeVmSecurebootReadiness,
+})
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup')))
@@ -689,7 +693,9 @@ export default class TabAdvanced extends Component {
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
     const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
-    const secureBootStatusInfo = SECUREBOOT_STATUS_MESSAGES[vm.getSecureBootReadiness]
+    const secureBootStatusInfo = SECUREBOOT_STATUS_MESSAGES[vm.getSecurebootReadiness]
+
+    console.log(this.props.vmSecurebootReadiness)
 
     return (
       <Container>

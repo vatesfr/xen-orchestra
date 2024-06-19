@@ -732,6 +732,10 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
+export const subscribeVmSecurebootReadiness = createSubscription(() =>
+  _call('vm.getSecurebootReadiness', { id: '7a14409a-eca8-bf90-5e0b-846d6a98954e' })
+)
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')

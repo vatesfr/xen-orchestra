@@ -540,15 +540,15 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function getSecureBootReadiness({ vm }) {
-  await this.getXapi(vm).getSecureBootReadiness(vm._xapiId)
+export async function getSecurebootReadiness({ vm }) {
+  await this.getXapi(vm).VM_getSecurebootReadiness(vm._xapiId)
 }
 
-getSecureBootReadiness.params = {
+getSecurebootReadiness.params = {
   id: { type: 'string' },
 }
 
-getSecureBootReadiness.resolve = {
+getSecurebootReadiness.resolve = {
   vm: ['id', 'VM', 'view'],
 }
 

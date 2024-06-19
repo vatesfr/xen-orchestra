@@ -541,7 +541,7 @@ class Vm {
     return Object.keys(disks)
   }
 
-  async getSecureBootReadiness(vmRef) {
+  async getSecurebootReadiness(vmRef) {
     return this.call('VM.get_secureboot_readiness', vmRef)
   }
 
