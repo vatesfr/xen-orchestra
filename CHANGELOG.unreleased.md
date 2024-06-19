@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,5 +33,6 @@
 
 - @xen-orchestra/xapi major
 - xo-server minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
