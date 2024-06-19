@@ -11,6 +11,7 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SelectBootFirmware from 'select-boot-firmware'
 import SelectCoresPerSocket from 'select-cores-per-socket'
+import semver from 'semver'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
@@ -188,6 +189,15 @@ const PCI_ACTIONS = [
     level: 'danger',
   },
 ]
+
+const SECUREBOOT_STATUS_MESSAGES = {
+  DISABLED: _('secureBootStatusNotEnforced'),
+  FIRST_BOOT: _('secureBootStatusPending'),
+  READY: _('secureBootStatus'),
+  READY_NO_DBX: _('secureBootStatusNoDbx'),
+  SETUP_MODE: _('secureBootWantedButDisabled'),
+  CERTS_INCOMPLETE: _('secureBootWantedButCertificatesMissing'),
+}
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -674,21 +684,12 @@ export default class TabAdvanced extends Component {
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
+    const host = this.props.vmHosts[vm.$container]
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const vtpmId = vm.VTPMs[0]
     const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
-
-    const secureBootStatusMessages = {
-      DISABLED: _('secureBootStatusNotEnforced'),
-      FIRST_BOOT: _('secureBootStatusPending'),
-      READY: _('secureBootStatus'),
-      READY_NO_DBX: _('secureBootStatusNoDbx'),
-      SETUP_MODE: _('secureBootWantedButDisabled'),
-      CERTS_INCOMPLETE: _('secureBootWantedButCertificatesMissing'),
-    }
-
-    const secureBootStatusInfo = secureBootStatusMessages[vm.getSecureBootReadiness]
+    const secureBootStatusInfo = SECUREBOOT_STATUS_MESSAGES[vm.getSecureBootReadiness]
 
     return (
       <Container>
@@ -1071,37 +1072,26 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                {vm.boot.firmware === 'uefi' && vm.secureBoot === true && (
+                {vm.boot.firmware === 'uefi' && semver.satisfies(host?.version, '>=8.3.0') && (
                   <tr>
                     <th>{_('secureBootStatus')}</th>
-                    {vm.getSecureBootReadiness === 'SETUP_MODE' || vm.getSecureBootReadiness === 'CERTS_INCOMPLETE' ? (
-                      <td>
-                        {host.productBrand === 'XCP-ng' ? (
+                    <td>
+                      {secureBootStatusInfo}
+                      {(secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.SETUP_MODE ||
+                        secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.CERTS_INCOMPLETE ||
+                        secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.READY_NO_DBX) &&
+                        host?.productBrand === 'XCP-ng' && (
                           <a
-                            className='text-muted'
+                            className='text-warning'
                             /* href=link to be provided by Samuel  */
                             rel='noreferrer'
                             style={{ display: 'block' }}
                             target='_blank'
                           >
-                            <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                          </a>
-                        ) : (
-                          <a
-                            className='text-muted'
-                            /* href=link to be provided by Samuel  */
-                            rel='noreferrer'
-                            style={{ display: 'block' }}
-                            target='_blank'
-                          >
-                            <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                            <Icon icon='alarm' /> {_('secureBootLinkToDocumentationMessage')}
                           </a>
                         )}
-                        <p>{secureBootStatusInfo}</p>
-                      </td>
-                    ) : (
-                      <p>{secureBootStatusInfo}</p>
-                    )}
+                    </td>
                   </tr>
                 )}
                 <tr>

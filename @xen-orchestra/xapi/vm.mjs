@@ -542,7 +542,7 @@ class Vm {
   }
 
   async getSecureBootReadiness(vmRef) {
-    return this.call('VM.getSecureBootReadiness', vmRef)
+    return this.call('VM.get_secureboot_readiness', vmRef)
   }
 
   async import(stream, srRef, onVmCreation = undefined) {

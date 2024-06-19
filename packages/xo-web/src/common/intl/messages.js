@@ -1233,7 +1233,7 @@ const messages = {
   noIpRecord: 'No IP record',
   secureBootEnforced: 'Secure boot enforced',
   secureBootStatus: 'Secure boot status',
-  secureBootStatusNoDbx: 'Secure boot enforced, but no dbx present.',
+  secureBootStatusNoDbx: 'Secure boot enforced, but no dbx present',
   secureBootStatusNotEnforced: 'Secure boot not enforced',
   secureBootStatusPending: 'Secure boot enforced, pending first boot',
   secureBootWantedButCertificatesMissing: 'Secure boot wanted, but some EFI certificates are missing',
