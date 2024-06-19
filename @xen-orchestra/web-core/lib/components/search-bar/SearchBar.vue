@@ -1,23 +1,26 @@
-<!-- v1.0 -->
+<!-- v1.1 -->
 <template>
   <form class="search-bar" @submit.prevent="emit('search', value)">
     <label :for="id" class="typo p2-regular label" :class="uiStore.desktopOnlyClass">
       {{ $t('core.search-bar.label') }}
     </label>
-    <UiInput :id v-model="value" :left-icon="faMagnifyingGlass" :placeholder="$t('core.search-bar.placeholder')" />
-    <UiButton v-if="uiStore.isDesktop" type="submit">{{ $t('core.search') }}</UiButton>
-    <!-- TODO: use UiSeparator when available -->
-    <hr v-if="uiStore.isDesktop" class="separator" />
-    <UiButton
-      v-if="uiStore.isDesktop"
-      v-tooltip="$t('core.coming-soon')"
-      level="secondary"
-      :left-icon="faFilter"
-      disabled
-    >
-      {{ $t('core.search-bar.use-query-builder') }}
-    </UiButton>
-    <ButtonIcon v-else :icon="faFilter" />
+    <UiInput
+      :id
+      v-model="value"
+      :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
+      :placeholder="$t('core.search-bar.placeholder')"
+    />
+    <template v-if="uiStore.isDesktop">
+      <UiButton type="submit">{{ $t('core.search') }}</UiButton>
+      <UiSeparator class="separator" />
+      <UiButton v-tooltip="$t('core.coming-soon')" level="secondary" :left-icon="faFilter" disabled>
+        {{ $t('core.search-bar.use-query-builder') }}
+      </UiButton>
+    </template>
+    <template v-else>
+      <ButtonIcon type="submit" :icon="faMagnifyingGlass" />
+      <ButtonIcon disabled :icon="faFilter" />
+    </template>
   </form>
 </template>
 
@@ -25,6 +28,7 @@
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import UiInput from '@core/components/input/UiInput.vue'
+import UiSeparator from '@core/components/UiSeparator.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'

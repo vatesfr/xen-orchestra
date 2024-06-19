@@ -2,8 +2,8 @@
   <ComponentStory v-slot="{ properties }" :params="[event('search').args({ value: 'string' })]">
     <SearchBar id="search-bar" v-bind="properties" @search="(value: string) => (filter = value)" />
 
-    <p style="margin-top: 1rem">Example data:</p>
-    <ul style="padding: 1rem">
+    <p class="text">Example data:</p>
+    <ul class="data-list">
       <li v-for="vm in vms" :key="vm.id">{{ vm.label }}</li>
     </ul>
   </ComponentStory>
@@ -129,3 +129,13 @@ const definitions = defineTree(data, {
 
 const { nodes: vms } = useTree(definitions, { expand: false })
 </script>
+
+<style lang="postcss" scoped>
+.text {
+  margin-top: 1rem;
+}
+
+.data-list {
+  padding: 1rem;
+}
+</style>
