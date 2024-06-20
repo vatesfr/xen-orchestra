@@ -25,8 +25,8 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot, setting } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import CardTitle from '@core/components/card/CardTitle.vue'
 import UiButton from '@core/components/button/UiButton.vue'
+import CardTitle from '@core/components/card/CardTitle.vue'
 import UiCounter from '@core/components/UiCounter.vue'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 </script>
