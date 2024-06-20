@@ -732,9 +732,25 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
-export const subscribeVmSecurebootReadiness = createSubscription(() =>
-  _call('vm.getSecurebootReadiness', { id: '7a14409a-eca8-bf90-5e0b-846d6a98954e' })
-)
+const subscribeVmSecurebootReadiness = {}
+export const subscribeSecurebootReadiness = vm => {
+  const vmId = resolveId(vm)
+
+  if (subscribeVmSecurebootReadiness[vmId] === undefined) {
+    subscribeVmSecurebootReadiness[vmId] = createSubscription(() => _call('vm.getSecurebootReadiness', { vm: vmId }))
+  }
+
+  return subscribeVmSecurebootReadiness[vmId]
+}
+subscribeSecurebootReadiness.forceRefresh = vm => {
+  if (vm === undefined) {
+    forEach(subscribeVmSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeVmSecurebootReadiness[resolveId(vm)]
+  subscription?.forceRefresh()
+}
 
 // System ============================================================
 
