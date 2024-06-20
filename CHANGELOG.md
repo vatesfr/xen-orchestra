@@ -1,5 +1,19 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Tasks] Log pending and failed API calls as XO tasks, eventually they will replace logs in Settings/Logs
+
+### Bug fixes
+
+- [Pool] Fix `Text data outside of root node` when installing XCP-ng patches
+
+### Released packages
+
+- xo-server 5.145.0
+
 ## **5.95.0** (2024-05-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

@@ -15,8 +15,6 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
-- [Tasks] Log pending and failed API calls as XO tasks, eventually they will replaced logs in Settings/Logs
-- [Pool] Fix `Text data outside of root node` when installing patches
 - [Backups] Fix EEXIST error after an interrupted mirror backup job ([PR #7694](https://github.com/vatesfr/xen-orchestra/pull/7694))
 
 ### Packages to release
@@ -42,7 +40,6 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
-- xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-server-transport-email minor
