@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **5.95.1** (2024-06-20)
 
 ### Enhancements
 
