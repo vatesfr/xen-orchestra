@@ -85,7 +85,7 @@
     "helmet": "^3.9.0",
     "highland": "^2.11.1",
     "http-proxy": "^1.16.2",
-    "http-request-plus": "^1.0.0",
+    "http-request-plus": "^1.0.3",
     "http-server-plus": "^1.0.0",
     "human-format": "^1.0.0",
     "iterable-backoff": "^0.1.0",
