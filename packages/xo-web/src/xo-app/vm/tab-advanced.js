@@ -519,9 +519,9 @@ const NIC_TYPE_OPTIONS = [
   },
 ]
 
-@addSubscriptions({
-  vmSecurebootReadiness: subscribeSecurebootReadiness,
-})
+@addSubscriptions(({ vm }) => ({
+  vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+}))
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup')))
