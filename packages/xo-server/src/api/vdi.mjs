@@ -66,14 +66,6 @@ export const set = defer(async function ($defer, params) {
 
     await xapi.resizeVdi(ref, size)
   }
-  if('cbt' in params){
-    if(params.cbt === true){
-      await xapi.VDI_enableChangeBlockTracking(ref)
-    }
-    if(params.cbt === false){
-      await xapi.VDI_disableChangeBlockTracking(ref) 
-    }
-  } 
 
   // Other fields.
   const object = {
@@ -102,8 +94,6 @@ set.params = {
 
   // size of VDI
   size: { type: ['integer', 'string'], optional: true },
-
-  cbt:{type: 'boolean', optional: true}
 }
 
 set.resolve = {

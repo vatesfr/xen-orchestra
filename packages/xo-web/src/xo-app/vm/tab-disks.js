@@ -55,7 +55,6 @@ import {
   isVmRunning,
   migrateVdi,
   setBootableVbd,
-  setCbt,
   subscribeResourceSets,
 } from 'xo'
 import { Card, CardHeader, CardBlock } from 'card'
@@ -134,12 +133,6 @@ const COLUMNS_VM_PV = [
     itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
     sortCriteria: 'vdi.size',
-  },
-
-  {
-    itemRenderer: ({ vdi }) =><Toggle value={vdi.cbt_enabled} onChange={cbt=>setCbt(vdi, cbt)}/>,
-    name: _('vbdCbt'),
-    sortCriteria:  ({ vdi }) => vdi.cbt_enabled === true ? 1 : 0,
   },
   {
     component: VdiSr,

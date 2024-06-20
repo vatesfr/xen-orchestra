@@ -692,9 +692,9 @@ class Vm {
     return ref
   }
 
-  async disableChangeBlockTracking(vmRef) {
+  async disableChangedBlockTracking(vmRef) {
     const vdiRefs = await this.VM_getDisks(vmRef)
-    await Promise.all(vdiRefs.map(vdiRef => this.VDI_disableChangeBlockTracking(vdiRef)))
+    await Promise.all(vdiRefs.map(vdiRef => this.call('VDI.disable_cbt', vdiRef)))
   }
 }
 export default Vm
