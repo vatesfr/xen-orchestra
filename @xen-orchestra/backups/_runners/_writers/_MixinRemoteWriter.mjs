@@ -38,6 +38,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
             },
             lock: false,
             mergeBlockConcurrency: this._config.mergeBlockConcurrency,
+            removeTmp: true,
           })
         })
       } catch (error) {

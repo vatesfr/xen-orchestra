@@ -3,7 +3,7 @@ import sum from 'lodash/sum.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { Constants, openVhd, VhdAbstract, VhdFile } from 'vhd-lib'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
-import { dirname, resolve } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
@@ -179,7 +179,8 @@ export async function cleanVm(
   vmDir,
   {
     fixMetadata,
-    remove,
+    remove = false,
+    removeTmp = remove,
     merge,
     mergeBlockConcurrency,
     mergeLimiter = defaultMergeLimiter,
@@ -200,6 +201,10 @@ export async function cleanVm(
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
+    if(removeTmp && basename(path)[0] === '.'){
+      logInfo('deleting temporary VHD', { path })
+        return VhdAbstract.unlink(handler, path)
+    }
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
