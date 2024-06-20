@@ -4,10 +4,10 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import { computed } from 'vue'
+import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCheckCircle, faCircleMinus, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
-import type { Color } from '@core/types/color.type'
+import { computed } from 'vue'
 
 type Props = {
   state: 'success' | 'partial' | 'failure'

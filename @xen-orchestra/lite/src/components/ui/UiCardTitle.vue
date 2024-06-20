@@ -11,9 +11,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import { UiCardTitleLevel } from '@/types/enums'
+import UiCounter from '@core/components/UiCounter.vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{

@@ -16,6 +16,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import StatusPill from '@core/components/StatusPill.vue'
 import { prop } from '@/libs/story/story-param'
+import StatusPill from '@core/components/StatusPill.vue'
 </script>

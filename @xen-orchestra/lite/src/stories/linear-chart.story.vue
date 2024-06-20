@@ -13,12 +13,12 @@
 </template>
 
 <script lang="ts" setup>
-// eslint-disable-next-line import/no-named-as-default
-import humanFormat from 'human-format'
-import type { LinearChartData } from '@/types/chart'
 import LinearChart from '@/components/charts/LinearChart.vue'
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
+import type { LinearChartData } from '@/types/chart'
+// eslint-disable-next-line import/no-named-as-default
+import humanFormat from 'human-format'
 
 const byteFormatter = (value: number) => humanFormat.bytes(value)
 

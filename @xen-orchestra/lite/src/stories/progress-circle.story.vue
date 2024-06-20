@@ -9,8 +9,8 @@
 </template>
 
 <script lang="ts" setup>
-import ProgressCircle from '@/components/ProgressCircle.vue'
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import ProgressCircle from '@/components/ProgressCircle.vue'
 import { prop } from '@/libs/story/story-param'
 
 const presets = {

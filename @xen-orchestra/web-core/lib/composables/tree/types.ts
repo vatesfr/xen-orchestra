@@ -1,9 +1,9 @@
-import { useTree } from '@core/composables/tree.composable'
 import type { Branch } from '@core/composables/tree/branch'
 import type { BranchDefinition } from '@core/composables/tree/branch-definition'
 import type { Leaf } from '@core/composables/tree/leaf'
 import type { LeafDefinition } from '@core/composables/tree/leaf-definition'
 import type { TreeNodeBase } from '@core/composables/tree/tree-node-base'
+import { useTree } from '@core/composables/tree.composable'
 
 export type TreeNodeId = string | number
 

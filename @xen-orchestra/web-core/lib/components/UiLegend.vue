@@ -11,8 +11,8 @@
 
 <script setup lang="ts">
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import { faCircleInfo, faCircle } from '@fortawesome/free-solid-svg-icons'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { faCircleInfo, faCircle } from '@fortawesome/free-solid-svg-icons'
 
 type LegendColor = 'default' | 'success' | 'warning' | 'error' | 'disabled' | 'dark-blue'
 

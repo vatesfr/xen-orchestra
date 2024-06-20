@@ -107,23 +107,23 @@
 </template>
 
 <script lang="ts" setup>
+import FormSelect from '@/components/form/FormSelect.vue'
+import TitleBar from '@/components/TitleBar.vue'
+import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import UiCard from '@/components/ui/UiCard.vue'
+import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import UiKeyValueList from '@/components/ui/UiKeyValueList.vue'
+import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
+import { locales } from '@/i18n'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { computed, watch } from 'vue'
-import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import type { BasicColorSchema } from '@vueuse/core'
 import { useUiStore } from '@core/stores/ui.store'
-import { storeToRefs } from 'pinia'
-import { useI18n } from 'vue-i18n'
-import { locales } from '@/i18n'
 import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
-import FormSelect from '@/components/form/FormSelect.vue'
-import TitleBar from '@/components/TitleBar.vue'
-import UiCard from '@/components/ui/UiCard.vue'
-import UiKeyValueList from '@/components/ui/UiKeyValueList.vue'
-import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
+import type { BasicColorSchema } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
+import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const xoLiteVersion = XO_LITE_VERSION
 const xoLiteGitHead = XO_LITE_GIT_HEAD

@@ -1,5 +1,5 @@
-import { computed, unref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
+import { computed, unref } from 'vue'
 
 export default function useSortedCollection<T>(
   collection: MaybeRef<T[]>,

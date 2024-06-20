@@ -19,10 +19,10 @@
 </template>
 
 <script lang="ts" setup>
-import { faDollarSign } from '@fortawesome/free-solid-svg-icons'
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import { colorProp, iconProp, model, prop } from '@/libs/story/story-param'
+import { faDollarSign } from '@fortawesome/free-solid-svg-icons'
 
 const presets = {
   $100: {
