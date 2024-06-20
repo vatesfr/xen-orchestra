@@ -2,6 +2,8 @@
 
 ## **5.95.1** (2024-06-20)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Enhancements
 
 - [Tasks] Log pending and failed API calls as XO tasks, eventually they will replace logs in Settings/Logs
@@ -15,8 +17,6 @@
 - xo-server 5.145.0
 
 ## **5.95.0** (2024-05-31)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
