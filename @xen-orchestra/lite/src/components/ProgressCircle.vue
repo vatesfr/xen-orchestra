@@ -8,7 +8,9 @@
       class="progress-circle-fill"
       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
     />
-    <text class="progress-circle-text" text-anchor="middle" x="50%" y="50%">{{ progress }}%</text>
+    <text class="progress-circle-text" text-anchor="middle" x="50%" y="50%">
+      {{ $n(progress / 100, 'percent') }}
+    </text>
   </svg>
 </template>
 

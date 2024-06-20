@@ -27,6 +27,15 @@ export default createI18n({
   locale: localStorage.getItem('lang') ?? 'en',
   fallbackLocale: 'en',
   messages,
+  missing: (locale, key, vm) => {
+    if (!import.meta.env.DEV) {
+      return key
+    }
+
+    console.warn(`i18n key not found: ${key}`, `Used in ${vm?.type.__name ?? 'unknown component'}`)
+
+    return `🌎❗⟨${key}⟩`
+  },
   datetimeFormats: {
     en: {
       date_short: {
@@ -152,6 +161,29 @@ export default createI18n({
       time: {
         hour: '2-digit',
         minute: '2-digit',
+      },
+    },
+  },
+  numberFormats: {
+    en: {
+      percent: {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      },
+    },
+    fr: {
+      percent: {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      },
+    },
+    de: {
+      percent: {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
       },
     },
   },

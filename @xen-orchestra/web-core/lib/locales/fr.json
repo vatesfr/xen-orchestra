@@ -1,24 +1,46 @@
 {
-  "core": {
-    "close": "Fermer",
-    "coming-soon": "Bientôt disponible !",
-    "current": "Actuel",
-    "filter": "Filtrer",
-    "group": "Grouper",
-    "hide": "Masquer",
-    "log-out": "Se déconnecter",
-    "master": "Hôte primaire",
-    "open": "Ouvrir",
-    "quick-actions": "Actions rapides",
-    "sidebar": {
-      "close": "Fermer la barre latérale",
-      "lock": "Verrouiller la barre latérale",
-      "open": "Ouvrir la barre latérale",
-      "unlock": "Déverrouiller la barre latérale"
-    },
-    "sort": {
-      "ascending": "Trier par ordre croissant",
-      "descending": "Trier par ordre décroissant"
-    }
-  }
+  "alarms": "Alarmes",
+
+  "bytes.ki": "Kio",
+  "bytes.mi": "Mio",
+  "bytes.gi": "Gio",
+
+  "coming-soon": "Bientôt disponible !",
+  "console": "Console",
+
+  "core.close": "Fermer",
+  "core.current": "Actuel",
+  "core.filter": "Filtrer",
+  "core.group": "Grouper",
+  "core.hide": "Masquer",
+  "core.open": "Ouvrir",
+  "core.quick-actions": "Actions rapides",
+
+  "core.select.all": "Tout sélectionner",
+  "core.select.none": "Tout désélectionner",
+
+  "core.sidebar.close": "Fermer la barre latérale",
+  "core.sidebar.lock": "Verrouiller la barre latérale",
+  "core.sidebar.open": "Ouvrir la barre latérale",
+  "core.sidebar.unlock": "Déverrouiller la barre latérale",
+
+  "core.sort.ascending": "Trier par ordre croissant",
+  "core.sort.descending": "Trier par ordre décroissant",
+
+  "dark-mode.enable": "Activer le mode sombre",
+  "dark-mode.disable": "Désactiver le mode sombre",
+  "dark-mode.auto": "Mode sombre automatique",
+
+  "dashboard": "Tableau de bord",
+  "documentation-name": "Documentation {name}",
+  "loading-in-progress": "Chargement en cours…",
+  "log-out": "Se déconnecter",
+  "master": "Hôte primaire",
+  "network": "Réseau",
+  "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "stats": "Stats",
+  "storage": "Stockage",
+  "support-name": "Support pro {name}",
+  "system": "Système",
+  "tasks": "Tâches"
 }

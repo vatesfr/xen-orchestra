@@ -10,7 +10,10 @@
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
-    <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
+    <td class="level typo h7-semi-bold">
+      <!-- Using `Math.min` because `alarm.level` can be `Infinity` -->
+      {{ $n(Math.min(alarm.level, 1), 'percent') }}
+    </td>
     <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
     <td class="object">
       <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />

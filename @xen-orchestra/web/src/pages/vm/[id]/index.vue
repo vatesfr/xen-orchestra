@@ -1,6 +1,6 @@
 <template>
   <DefaultLayout>
-    <template #content> Coming soon</template>
+    <template #content>{{ $t('coming-soon') }}</template>
   </DefaultLayout>
 </template>
 

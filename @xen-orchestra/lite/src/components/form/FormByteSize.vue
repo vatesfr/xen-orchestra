@@ -2,9 +2,9 @@
   <FormInputGroup>
     <FormNumber v-model="sizeInput" :max-decimals="3" />
     <FormSelect v-model="prefixInput">
-      <option v-for="currentPrefix in availablePrefixes" :key="currentPrefix" :value="currentPrefix">
-        {{ currentPrefix }}B
-      </option>
+      <option value="Ki">{{ $t('bytes.ki') }}</option>
+      <option value="Mi">{{ $t('bytes.mi') }}</option>
+      <option value="Gi">{{ $t('bytes.gi') }}</option>
     </FormSelect>
   </FormInputGroup>
 </template>

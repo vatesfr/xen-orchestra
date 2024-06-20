@@ -3,7 +3,9 @@
   <div class="card-numbers" :class="size">
     <span class="label typo" :class="labelFontClass">{{ label }}</span>
     <div class="values" :class="size">
-      <span v-if="size === 'small' && max" class="value typo c2-semi-bold">{{ valueAsPercentage }}%</span>
+      <span v-if="size === 'small' && max" class="value typo c2-semi-bold">
+        {{ $n(valueAsPercentage, 'percent') }}
+      </span>
 
       <div class="value typo" :class="valueFontClass">
         {{ value }}<span class="unit typo" :class="unitFontClass">{{ unit }}</span>
@@ -33,10 +35,10 @@ const unitFontClass = computed(() => (props.size === 'medium' ? 'p2-medium' : 'c
 
 const valueAsPercentage = computed(() => {
   if (props.max === undefined) {
-    return
+    return 0
   }
 
-  return ((props.value / props.max) * 100).toFixed(1)
+  return props.value / props.max
 })
 </script>
 
