@@ -13,6 +13,11 @@ const logger = createLogger('xo:xo-server-auth-ldap')
 
 const { escape } = Filter.prototype
 
+function isDnField(field) {
+  const normalized = field.toLowerCase().trim()
+  return normalized === 'dn' || normalized === 'distinguishedname'
+}
+
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
   filter.replace(VAR_RE, (_, name) => {
@@ -401,17 +406,23 @@ class AuthLdap {
 
         const xoGroupMembers = xoGroup.users === undefined ? [] : xoGroup.users.slice(0)
 
+        const { userAttribute } = membersMapping
+        const search = isDnField(userAttribute)
+          ? memberId => client.search(memberId, { scope: 'base' })
+          : memberId =>
+              client.search(this._searchBase, {
+                scope: 'sub',
+                filter: `(${escape(userAttribute)}=${escape(memberId)})`,
+                sizeLimit: 1,
+              })
         for (const memberId of ldapGroupMembers) {
           const {
             searchEntries: [ldapUser],
-          } = await client.search(this._searchBase, {
-            scope: 'sub',
-            filter: `(${escape(membersMapping.userAttribute)}=${escape(memberId)})`,
-            sizeLimit: 1,
-          })
+          } = await search(memberId)
+
           if (ldapUser === undefined) {
             logger.error(
-              `LDAP user ${memberId} belongs to group ${groupLdapName} but could not be found by searching ${membersMapping.userAttribute}=${memberId} in ${this._searchBase}`
+              `LDAP user ${memberId} belongs to group ${groupLdapName} but could not be found by searching ${userAttribute}=${memberId} in ${this._searchBase}`
             )
             continue
           }

@@ -25,6 +25,7 @@
 - [Netbox] Fix "Netbox error could not be retrieved" when an error occurs on Netbox's side (PR [#7758](https://github.com/vatesfr/xen-orchestra/pull/7758))
 - [XOSTOR] Fix the _Approximate SR Capacity_ sometimes showing as 0 if not all hosts had disks (PR [#7765](https://github.com/vatesfr/xen-orchestra/pull/7765))
 - [VM/Advanced] Ignore `Firmware not supported` warning for UEFI boot firmware [Forum#8878](https://xcp-ng.org/forum/topic/8878/uefi-firmware-not-supported) (PR [#7767](https://github.com/vatesfr/xen-orchestra/pull/7767))
+- [LDAP] Fix users being removed from groups when synchronizing groups (PR [#7759](https://github.com/vatesfr/xen-orchestra/pull/7759))
 
 ### Packages to release
 
@@ -52,6 +53,7 @@
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xo-server minor
+- xo-server-auth-ldap patch
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-server-transport-email minor
