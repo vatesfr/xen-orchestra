@@ -12854,7 +12854,7 @@ http-proxy@^1.16.2, http-proxy@^1.17.0, http-proxy@^1.18.1:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^1.0.0, http-request-plus@^1.0.2:
+http-request-plus@^1.0.0, http-request-plus@^1.0.2, http-request-plus@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-1.0.3.tgz#34392950412b95056e05192fe7da15ec2c547c3b"
   integrity sha512-566RDaiBFQ7xfEE01Kw+qjNSBD+a893gJArx/PtQg9Bex5TxGedav7nOOBJzB2/+ZbZ5mMt5aHdiju1sJB2qBw==
