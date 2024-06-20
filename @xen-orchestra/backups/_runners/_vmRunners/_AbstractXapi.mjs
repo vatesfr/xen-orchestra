@@ -146,10 +146,15 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
-
-        // enable CBT on all disks
-        const diskRefs = await xapi.VM_getDisks(vm.$ref)
-        await Promise.all(await diskRefs.map(diskRef => xapi.VDI_enableChangeBlockTracking(diskRef)))
+        if (settings.preferNbd) {
+          try {
+            // enable CBT on all disks if possible
+            const diskRefs = await xapi.VM_getDisks(vm.$ref)
+            await Promise.all(diskRefs.map(diskRef => xapi.call('VDI.enable_cbt', diskRef)))
+          } catch (error) {
+            Task.info(`couldn't enable CBT`, error)
+          }
+        }
 
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoreNobakVdis: true,
@@ -164,7 +169,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           vmUuid: vm.uuid,
         })
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
-
         return this._exportedVm.uuid
       })
     } else {
@@ -265,15 +269,21 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // now that we use CBT, we can destroy the data of the snapshot used for this backup
     // going back to a previous version of XO not supporting CBT will create a full backup
     // this will only do something after snapshot and transfer
-    if (this._exportedVm?.is_a_snapshot && this._settings.snapshotRetention === 0) {
+    if (
+      this._exportedVm?.is_a_snapshot &&
+      this._settings.snapshotRetention === 0 &&
+      this._settings.preferNbd &&
+      this.config.purgeSnapshotData
+    ) {
+      Task.info('will delete snapshot data')
       const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
       await xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
         try {
           await xapi.VDI_dataDestroy(vdiRef)
-          Task.info(`Snapshot data has been purged`, { vdiRef })
+          Task.info(`Snapshot data has been deleted`, { vdiRef })
         } catch (error) {
-          Task.warning(`Couldn't purge snapshot data`, { error, vdiRef })
+          Task.warning(`Couldn't deleted snapshot data`, { error, vdiRef })
         }
       }
     }
