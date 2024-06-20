@@ -410,17 +410,26 @@ class AuthLdap {
             sizeLimit: 1,
           })
           if (ldapUser === undefined) {
+            logger.error(
+              `LDAP user ${memberId} belongs to group ${groupLdapName} but could not be found by searching ${membersMapping.userAttribute}=${memberId} in ${this._searchBase}`
+            )
             continue
           }
 
           const xoUser = xoUsers.find(user => user.authProviders.ldap.id === ldapUser[this._userIdAttribute])
           if (xoUser === undefined) {
+            logger.debug(
+              `LDAP user ${ldapUser[this._userIdAttribute]} belongs to group ${groupLdapName} but the corresponding XO user could not be found`
+            )
             continue
           }
           // If the user exists in XO, should be a member of the LDAP-provided
           // group but isn't: add it
           const userIdIndex = xoGroupMembers.findIndex(id => id === xoUser.id)
           if (userIdIndex !== -1) {
+            logger.debug(
+              `LDAP user ${ldapUser[this._userIdAttribute]} belongs to group ${groupLdapName} and is already a member of the corresponding XO group ${xoGroup.name}`
+            )
             xoGroupMembers.splice(userIdIndex, 1)
             continue
           }
