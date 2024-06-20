@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <li class="menu-item" :href="handleClick">
+  <li class="menu-item">
     <MenuTrigger
       v-if="!$slots.submenu"
       :active="isBusy"
@@ -25,12 +25,11 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
-import { openUrl } from '@core/utils/open-url.utils'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
@@ -41,8 +40,6 @@ const props = withDefaults(
     onClick?: () => any
     disabled?: boolean
     busy?: boolean
-    url?: string
-    targetBlank?: boolean
   }>(),
   { disabled: undefined }
 )
@@ -66,12 +63,8 @@ const handleClick = async () => {
 
   isHandlingClick.value = true
   try {
-    if (props.url) {
-      openUrl(props.url, props.targetBlank)
-    } else if (props.onClick) {
-      await props.onClick()
-      closeMenu?.()
-    }
+    await props.onClick?.()
+    closeMenu?.()
   } finally {
     isHandlingClick.value = false
   }
