@@ -10,6 +10,7 @@
 - [SR/XOSTOR] Add _State_ column to the _Resource List_ table (PR [#7784](https://github.com/vatesfr/xen-orchestra/pull/7784))
 - [REST API] VDIs of a VM, or a VM snapshot, or a VM template, can now be fetched easily by appending `/vdis` at the VM's endpoint
 - [REST API] Expose servers at the `/rest/v0/servers` endpoint
+- [Backups] Implements Change Block Tracking (CBT) (PR [#7750](https://github.com/vatesfr/xen-orchestra/pull/7750))
 
 ### Bug fixes
 
@@ -34,7 +35,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - vhd-lib minor
 - xo-server minor
 - xo-web minor
