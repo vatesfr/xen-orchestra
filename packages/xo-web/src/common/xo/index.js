@@ -2361,6 +2361,10 @@ export const migrateVdi = (vdi, sr, resourceSet) =>
     sr_id: resolveId(sr),
   })
 
+  export const setCbt = (vdi, cbt) =>
+    _call('vdi.set', { id: resolveId(vdi), cbt })
+  
+
 // VBD ---------------------------------------------------------------
 
 export const connectVbd = vbd => _call('vbd.connect', { id: resolveId(vbd) })

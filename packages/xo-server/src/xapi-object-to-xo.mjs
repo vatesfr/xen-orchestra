@@ -632,6 +632,7 @@ const TRANSFORMS = {
     const vdi = {
       type: 'VDI',
 
+      cbt_enabled: obj.cbt_enabled,
       missing: obj.missing,
       name_description: obj.name_description,
       name_label: obj.name_label,
