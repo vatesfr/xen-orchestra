@@ -39,7 +39,6 @@ class Netbox {
   #allowUnauthorized
   #endpoint
   #intervalToken
-  #loaded
   #netboxVersion
   #xoPools
   #removeApiMethods
@@ -60,7 +59,7 @@ class Netbox {
     this.getObjects = xo.getObjects.bind(xo)
   }
 
-  configure(configuration) {
+  configure(configuration, state) {
     this.#endpoint = trimEnd(configuration.endpoint, '/')
     if (!/^https?:\/\//.test(this.#endpoint)) {
       this.#endpoint = 'http://' + this.#endpoint
@@ -72,7 +71,7 @@ class Netbox {
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
 
     // We don't want to start the auto-sync if the plugin isn't loaded
-    if (this.#loaded) {
+    if (state.loaded) {
       clearInterval(this.#intervalToken)
       if (this.#syncInterval !== undefined) {
         this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
@@ -94,15 +93,11 @@ class Netbox {
     if (this.#syncInterval !== undefined) {
       this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
     }
-
-    this.#loaded = true
   }
 
   unload() {
     this.#removeApiMethods()
     clearInterval(this.#intervalToken)
-
-    this.#loaded = false
   }
 
   async test() {
