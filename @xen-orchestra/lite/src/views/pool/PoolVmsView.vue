@@ -1,7 +1,7 @@
 <template>
   <UiCard class="pool-vms-view">
     <UiCardTitle subtitle>
-      VMs
+      {{ $t('vms') }}
       <template v-if="isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>

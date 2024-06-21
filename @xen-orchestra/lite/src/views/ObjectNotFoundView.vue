@@ -1,6 +1,6 @@
 <template>
   <div>
-    <img alt="Not found" src="../assets/object-not-found.svg" />
+    <img alt="" src="../assets/object-not-found.svg" />
     <p class="text">{{ $t('object-not-found', { id }) }}</p>
     <UiButton @click="router.push({ name: 'home' })">{{ $t('back-pool-dashboard') }}</UiButton>
   </div>

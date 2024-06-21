@@ -9,6 +9,8 @@
 
 - [Netbox] Check Netbox version before attempting to synchronize (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
 - [Netbox] Support Netbox 4 (Thanks [@ChrisMcNichol](https://github.com/ChrisMcNichol)!) (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
+- [Migration] Disable CBT when needed during a disk/VM migration (PR [#7756](https://github.com/vatesfr/xen-orchestra/pull/7756))
+- [Disks] Show and edit the use of CBT (Change Block Tracking) in disks (PR [#7732](https://github.com/vatesfr/xen-orchestra/pull/7732))
 - [Create/SR] Display SCSI ID and LUN during HBA storage creation (PR [#7742](https://github.com/vatesfr/xen-orchestra/pull/7742))
 
 ### Bug fixes
@@ -16,8 +18,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
-- [Tasks] Log pending and failed API calls as XO tasks, eventually they will replaced logs in Settings/Logs
-- [Pool] Fix `Text data outside of root node` when installing patches
+- [Backups] Fix EEXIST error after an interrupted mirror backup job ([PR #7694](https://github.com/vatesfr/xen-orchestra/pull/7694))
+- [Netbox] Fix "Netbox error could not be retrieved" when an error occurs on Netbox's side (PR [#7758](https://github.com/vatesfr/xen-orchestra/pull/7758))
 
 ### Packages to release
 
@@ -42,10 +44,11 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-server-transport-email minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

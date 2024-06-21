@@ -4,9 +4,21 @@
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="!isReady" />
     <template v-else>
-      <PoolDashboardStatusItem :active="activeHostsCount" :label="$t('hosts')" :total="totalHostsCount" />
+      <PoolDashboardStatusItem
+        :active="activeHostsCount"
+        :label="$t('hosts')"
+        :active-label="$t('host.active', activeHostsCount)"
+        :inactive-label="$t('host.inactive', totalHostsCount - activeHostsCount)"
+        :total="totalHostsCount"
+      />
       <UiSeparator />
-      <PoolDashboardStatusItem :active="activeVmsCount" :label="$t('vms')" :total="totalVmsCount" />
+      <PoolDashboardStatusItem
+        :active="activeVmsCount"
+        :label="$t('vms')"
+        :active-label="$t('vm.active', activeVmsCount)"
+        :inactive-label="$t('vm.inactive', totalVmsCount - activeVmsCount)"
+        :total="totalVmsCount"
+      />
     </template>
   </UiCard>
 </template>

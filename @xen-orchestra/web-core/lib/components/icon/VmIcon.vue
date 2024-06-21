@@ -7,8 +7,8 @@
 </template>
 
 <script lang="ts" setup>
-import PowerStateIcon from '@core/components/PowerStateIcon.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import PowerStateIcon from '@core/components/PowerStateIcon.vue'
 import type { POWER_STATE } from '@core/types/power-state.type'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeLayers } from '@fortawesome/vue-fontawesome'

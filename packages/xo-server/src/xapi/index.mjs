@@ -17,7 +17,7 @@ import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd, vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
-import { cancelable, CancelToken, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, CancelToken, fromEvents, ignoreErrors, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -605,14 +605,33 @@ export default class Xapi extends XapiBase {
     ]
 
     if (!bypassAssert) {
-      await this.callAsync('VM.assert_can_migrate', ...params)
+      try {
+        await this.callAsync('VM.assert_can_migrate', ...params)
+      } catch (err) {
+        if (err.code !== 'VDI_CBT_ENABLED') {
+          // cbt disabling is handled later, by the migrate_end call
+          throw err
+        }
+      }
     }
-
-    const loop = () =>
-      this.callAsync('VM.migrate_send', ...params)::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
-        pDelay(1e4).then(loop)
-      )
-
+    const loop = async () => {
+      try {
+        await this.callAsync('VM.migrate_send', ...params)
+      } catch (err) {
+        if (err.code === 'VDI_CBT_ENABLED') {
+          // as of 20240619, CBT must be disabled on all disks to allow migration to go through
+          // it will be re enabled if needed by backups
+          // the next backup after a storage migration will be a full backup
+          await this.VM_disableChangedBlockTracking(vm.$ref)
+          return loop()
+        }
+        if (err.code === 'TOO_MANY_STORAGE_MIGRATES') {
+          await pDelay(1e4)
+          return loop()
+        }
+        throw err
+      }
+    }
     return loop().then(noop)
   }
 
@@ -1033,6 +1052,27 @@ export default class Xapi extends XapiBase {
       )
     } catch (error) {
       const { code } = error
+      if (code === 'VDI_CBT_ENABLED') {
+        // 20240629 we need to disable CBT on all disks of the VM since the xapi
+        // checks all disk of a VM even to migrate only one disk
+        if (vdi.VBDs.length === 0) {
+          await this.call('VDI.disable_cbt', vdi.$ref)
+        } else {
+          if (vdi.VBDs.length > 1) {
+            // no implicit workaround if vdi is multi attached
+            throw error
+          }
+          const vbd = this.getObject(vdi.VBDs[0])
+          await this.VM_disableChangedBlockTracking(vbd.VM)
+        }
+
+        // cbt will be re enabled when needed on next backup
+        // after a migration the next delta backup is always a base copy
+        // and this will only enabled cbt on needed disks
+
+        // retry
+        return this.moveVdi(vdiId, srId, false)
+      }
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
       }

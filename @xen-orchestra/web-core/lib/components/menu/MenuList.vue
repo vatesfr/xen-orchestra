@@ -12,9 +12,9 @@
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
+import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 import placementJs, { type Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
-import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 
 defineOptions({
   inheritAttrs: false,

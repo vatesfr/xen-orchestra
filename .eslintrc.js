@@ -79,6 +79,26 @@ module.exports = {
         XO_LITE_GIT_HEAD: true,
       },
       rules: {
+        'import/order': [
+          'error',
+          {
+            groups: ['builtin', 'object', 'internal', ['type', 'external']],
+            alphabetize: {
+              order: 'asc',
+              caseInsensitive: true,
+            },
+            pathGroups: [
+              {
+                pattern: '@/**',
+                group: 'internal',
+              },
+              {
+                pattern: '@core/**',
+                group: 'internal',
+              },
+            ],
+          },
+        ],
         'no-void': ['error', { allowAsStatement: true }],
         'n/no-missing-import': 'off', // using 'import' plugin instead, to support TS aliases
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler
@@ -155,6 +175,59 @@ module.exports = {
         'vue/prefer-true-attribute-shorthand': 'error',
         'vue/require-macro-variable-name': 'error',
         'vue/valid-define-options': 'error',
+      },
+    },
+    // Specific rules for XO i18n-related files
+    {
+      files: [
+        '@xen-orchestra/lite/**/*.{vue,ts,json}',
+        '@xen-orchestra/web/**/*.{vue,ts,json}',
+        '@xen-orchestra/web-core/**/*.{vue,ts,json}',
+      ],
+      extends: ['plugin:@intlify/vue-i18n/base'],
+      settings: {
+        'vue-i18n': {
+          localeDir: [
+            '@xen-orchestra/lite/src/locales/*.json',
+            '@xen-orchestra/web/src/locales/*.json',
+            '@xen-orchestra/web-core/lib/locales/*.json',
+          ],
+          messageSyntaxVersion: '^9.9.0',
+        },
+      },
+      rules: {
+        strict: 'off',
+        'no-irregular-whitespace': 'off',
+        '@intlify/vue-i18n/no-deprecated-i18n-component': 'error',
+        '@intlify/vue-i18n/no-deprecated-i18n-place-attr': 'error',
+        '@intlify/vue-i18n/no-deprecated-i18n-places-prop': 'error',
+        '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error',
+        '@intlify/vue-i18n/no-deprecated-tc': 'error',
+        '@intlify/vue-i18n/no-html-messages': 'error',
+        '@intlify/vue-i18n/no-i18n-t-path-prop': 'error',
+        '@intlify/vue-i18n/no-missing-keys': 'error',
+        '@intlify/vue-i18n/no-raw-text': [
+          'error',
+          {
+            ignoreText: ['Xen Orchestra Lite', 'Xen Orchestra', 'XO Lite', 'XCP-ng', 'XO 5', '404', '⚠️'],
+          },
+        ],
+        '@intlify/vue-i18n/no-v-html': 'error',
+        '@intlify/vue-i18n/valid-message-syntax': 'error',
+        '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
+        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de'] }],
+      },
+    },
+    // Specific rules for XO dev-related files
+    {
+      files: [
+        '@xen-orchestra/lite/src/stories/**/*',
+        '@xen-orchestra/lite/src/components/component-story/**/*',
+        '@xen-orchestra/web/src/pages/dev/**/*',
+        '@xen-orchestra/lite/src/views/story/**/*',
+      ],
+      rules: {
+        '@intlify/vue-i18n/no-raw-text': 'off',
       },
     },
     {

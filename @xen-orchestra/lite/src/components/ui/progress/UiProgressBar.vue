@@ -17,7 +17,7 @@ const props = withDefaults(
   { color: 'info', maxValue: 100 }
 )
 
-const progressWithUnit = computed(() => {
+const cssFillWidth = computed(() => {
   const progress = (props.value / props.maxValue) * 100
   return `${progress}%`
 })
@@ -49,7 +49,7 @@ const progressWithUnit = computed(() => {
 }
 
 .fill {
-  width: v-bind(progressWithUnit);
+  width: v-bind(cssFillWidth);
   height: var(--progress-bar-height, 0.4rem);
   transition: width 1s ease-in-out;
   background-color: var(--progress-bar-color);

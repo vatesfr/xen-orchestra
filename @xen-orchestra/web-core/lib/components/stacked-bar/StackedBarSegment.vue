@@ -5,7 +5,9 @@
     :style="{ width: percentage + '%' }"
     class="stacked-bar-segment typo c4-semi-bold"
   >
-    <div ref="ellipsisElement" :class="{ hidden }" class="ellipsis">{{ percentage.toFixed(0) }} %</div>
+    <div ref="ellipsisElement" :class="{ hidden }" class="ellipsis">
+      {{ $n(percentage / 100, 'percent') }}
+    </div>
   </div>
 </template>
 

@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ColorContext } from '@/context'
 import { useContext } from '@/composables/context.composable'
+import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { computed } from 'vue'
 

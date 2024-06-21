@@ -1,6 +1,6 @@
 <template>
   <p class="unit typo p3-regular">
-    <span>0{{ unit }}</span>
+    <span>{{ `0${unit}` }}</span>
     <span v-for="step in steps" :key="step"> {{ Math.round((maxValue / (steps + 1)) * step) }}{{ unit }} </span>
     <span>{{ maxValue }}{{ unit }}</span>
   </p>

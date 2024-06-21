@@ -10,7 +10,7 @@
       class="progress-item"
     >
       <UiProgressBar :value="item.value" color="custom" />
-      <UiProgressLegend :label="item.label" :value="item.badgeLabel ?? `${item.value}%`" />
+      <UiProgressLegend :label="item.label" :value="item.badgeLabel ?? $n(item.value / 100, 'percent')" />
     </div>
     <slot :total-percent="computedData.totalPercentUsage" name="footer" />
   </div>

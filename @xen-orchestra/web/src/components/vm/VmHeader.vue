@@ -4,22 +4,22 @@
     <h4 v-tooltip class="typo h4-medium title">{{ name }}</h4>
   </div>
   <TabList>
-    <TabItem disabled>Dashboard</TabItem>
-    <TabItem active>Console</TabItem>
-    <TabItem disabled>Alarms</TabItem>
-    <TabItem disabled>Stats</TabItem>
-    <TabItem disabled>System</TabItem>
-    <TabItem disabled>Network</TabItem>
-    <TabItem disabled>Storage</TabItem>
-    <TabItem disabled>Tasks</TabItem>
+    <TabItem disabled>{{ $t('dashboard') }}</TabItem>
+    <TabItem active>{{ $t('console') }}</TabItem>
+    <TabItem disabled>{{ $t('alarms') }}</TabItem>
+    <TabItem disabled>{{ $t('stats') }}</TabItem>
+    <TabItem disabled>{{ $t('system') }}</TabItem>
+    <TabItem disabled>{{ $t('network') }}</TabItem>
+    <TabItem disabled>{{ $t('storage') }}</TabItem>
+    <TabItem disabled>{{ $t('tasks') }}</TabItem>
   </TabList>
 </template>
 
 <script lang="ts" setup>
+import type { VmState } from '@core/types/object-icon.type'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import type { VmState } from '@core/types/object-icon.type'
 import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{

@@ -10,7 +10,10 @@
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
-    <td class="level typo h7-semi-bold">{{ alarm.level * 100 }}%</td>
+    <td class="level typo h7-semi-bold">
+      <!-- Using `Math.min` because `alarm.level` can be `Infinity` -->
+      {{ $n(Math.min(alarm.level, 1), 'percent') }}
+    </td>
     <td class="on">{{ $t('on-object', { object: alarm.cls }) }}</td>
     <td class="object">
       <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
@@ -21,11 +24,11 @@
 <script lang="ts" setup generic="T extends RawObjectType">
 import ObjectLink from '@/components/ObjectLink.vue'
 import RelativeTime from '@/components/RelativeTime.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { parseDateTime } from '@/libs/utils'
 import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
 import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
 import type { XenApiAlarm } from '@/types/xen-api'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{
   alarm: XenApiAlarm<T>

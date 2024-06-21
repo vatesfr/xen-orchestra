@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n'
 
 const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
 
-const { t } = useI18n()
+const { t, n } = useI18n()
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS)
 
@@ -88,5 +88,5 @@ const isStatFetched = computed(() => {
 
 const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
-const customValueFormatter: ValueFormatter = value => `${value}%`
+const customValueFormatter: ValueFormatter = value => n(value / 100, 'percent')
 </script>

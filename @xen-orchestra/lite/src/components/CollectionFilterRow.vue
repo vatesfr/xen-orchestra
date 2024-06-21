@@ -7,7 +7,7 @@
     <template v-else>
       <FormWidget :before="currentFilterIcon">
         <select v-model="newFilter.builder.property">
-          <option v-if="!newFilter.builder.property" value="">- {{ $t('property') }} -</option>
+          <option v-if="!newFilter.builder.property" value="">{{ `- ${$t('property')} -` }}</option>
           <option v-for="(filter, property) in availableFilters" :key="property" :value="property">
             {{ filter.label ?? property }}
           </option>

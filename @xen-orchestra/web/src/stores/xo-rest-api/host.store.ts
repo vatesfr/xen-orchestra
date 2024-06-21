@@ -1,7 +1,7 @@
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import type { Host } from '@/types/host.type'
 import type { RecordId } from '@/types/xo-object.type'
+import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
 import { defineStore } from 'pinia'

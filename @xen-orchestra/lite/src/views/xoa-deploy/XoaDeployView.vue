@@ -66,13 +66,13 @@
                   :value="sr"
                   :class="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3 ? 'warning' : 'success'"
                 >
-                  {{ sr.name_label }} -
+                  {{ `${sr.name_label} -` }}
                   {{
                     $t('n-gb-left', {
                       n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
                     })
                   }}
-                  <span v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</span>
+                  <template v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</template>
                 </option>
               </FormSelect>
             </FormInputWrapper>
@@ -215,9 +215,9 @@ import UiRaw from '@/components/ui/UiRaw.vue'
 import { useModal } from '@/composables/modal.composable'
 import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'

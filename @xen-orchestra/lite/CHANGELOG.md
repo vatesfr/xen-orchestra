@@ -2,6 +2,8 @@
 
 ## **next**
 
+- [Pool/Dashboard] Add missing translations for hosts and VMs statuses (PR [#7744](https://github.com/vatesfr/xen-orchestra/pull/7744))
+
 ## **0.2.3** (2024-05-31)
 
 - [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))

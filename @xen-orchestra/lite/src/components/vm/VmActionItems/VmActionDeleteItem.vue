@@ -11,11 +11,11 @@
 
 <script lang="ts" setup>
 import { useModal } from '@/composables/modal.composable'
-import { useVmStore } from '@/stores/xen-api/vm.store'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 

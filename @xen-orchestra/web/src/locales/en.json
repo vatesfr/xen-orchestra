@@ -1,9 +1,4 @@
 {
-  "account-organization-more": "Account, organization & more...",
-  "documentation-name": "{name} documentation",
-  "power-on-for-console": "Power on your VM to access its console",
-  "support-name": "{name} pro support",
-  "tasks": {
-    "quick-view": "Tasks' quick view (coming soon)"
-  }
+  "account-organization-more": "Account, organization & more…",
+  "tasks.quick-view": "Tasks' quick view (coming soon)"
 }
