@@ -42,7 +42,8 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
-- xo-server patch
+- @xen-orchestra/xapi minor
+- xo-server minor
 - xo-server-backup-reports major
 - xo-server-netbox minor
 - xo-server-transport-email minor
