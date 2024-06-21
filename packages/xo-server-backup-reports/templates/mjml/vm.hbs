@@ -23,7 +23,7 @@
               <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
               <li><span style="font-weight: bold">Mode</span>: {{log.data.mode}}</li>
-              {{>reportTemporalDataMjml end=log.end start=log.start}}
+              {{>reportTemporalData end=log.end start=log.start}}
               {{#if log.tasks}}
               <li>
                 <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.tasks.length ~}}
@@ -35,39 +35,26 @@
               {{#if globalMergeSize}}
               <li><span style="font-weight: bold">Merge size</span>: {{formatSize globalMergeSize}}</li>
               {{/if}}
-              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
+              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
             </ul>
           </mj-text>
         </mj-column>
       </mj-section>
 
       {{#if tasksByStatus.failure.tasks}}
-        {{>vmFailureMjml}}
+        {{>vmFailure}}
       {{/if}}
       {{#if tasksByStatus.skipped.tasks}}
-        {{>vmSkippedMjml}}
+        {{>vmSkipped}}
       {{/if}}
       {{#if tasksByStatus.interrupted.tasks}}
-        {{>vmInterruptedMjml}}
+        {{>vmInterrupted}}
       {{/if}}
       {{#if tasksByStatus.success.tasks}}
-        {{>vmSuccessMjml}}
+        {{>vmSuccess}}
       {{/if}}
 
-      <mj-section>
-        <mj-column width="100%">
-          <mj-divider border-width="2px"></mj-divider>
-          <mj-text align="left" font-size="14px" font-style="italic" font-weight="300" line-height="0px"
-            >{{pkg.name}} v{{pkg.version}}</mj-text
-          >
-        </mj-column>
-      </mj-section>
-
-      <mj-section padding="0px">
-        <mj-column width="40%">
-          <mj-image align="left" width="250px" href="https://vates.fr" src="./image.png"></mj-image>
-        </mj-column>
-      </mj-section>
+    {{>mjmlFooter}}
     </mj-wrapper>
   </mj-body>
 </mjml>

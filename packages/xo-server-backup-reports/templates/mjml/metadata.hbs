@@ -23,60 +23,57 @@
               <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
               <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
-              {{>reportTemporalDataMjml end=log.end start=log.start}} {{#if log.tasks.length}}
+              {{>reportTemporalData end=log.end start=log.start}} {{#if log.tasks.length}}
               <li>
                 <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.length ~}}
                 {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
               </li>
-              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
+              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
             </ul>
           </mj-text>
         </mj-column>
       </mj-section>
 
       {{#each tasksByStatus}}
-      <mj-section padding="0px">
-        <mj-column width="100%">
-          <mj-divider border-width="1px"></mj-divider>
-          <mj-text font-size="16px" font-weight="300" line-height="24px">
-            <h2>{{titleByStatus @key .}}</h2>
-          </mj-text>
-        </mj-column>
-      </mj-section>
-      {{#each this}}
-      <mj-section padding="0px">
-        <mj-column width="100%">
-          <mj-text font-size="16px" font-weight="300" line-height="24px">
-            <h3>{{>taskTitle task=. jobName=../../log.jobName}}</h3>
-            {{>taskBodyMjml task=.}} {{>reportTemporalDataMjml formatDate=../../formatDate}} {{>reportErrorMjml task=.}}
-            {{>reportWarningsMjml task=this}}
-          </mj-text>
-        </mj-column>
-      </mj-section>
-      {{#each this.tasks}}
-      <mj-section padding="0px">
-        <mj-column width="85%" border="1px solid">
-          <mj-text font-size="16px" font-weight="300" line-height="24px">
-            {{>metadataSubTaskMjml formatDate=../../../formatDate}}
-          </mj-text>
-        </mj-column>
-      </mj-section>
-      {{/each}} {{/each}} {{/each}}
+        <mj-section padding="0px">
+          <mj-column width="100%">
+            <mj-divider border-width="1px"></mj-divider>
+            <mj-text font-size="16px" font-weight="300" line-height="24px">
+              <h2>{{titleByStatus @key .}}</h2>
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        {{#each this}}
+          <mj-section padding-bottom="0px">
+            <mj-column width="100%">
+              <mj-text font-size="16px" font-weight="300" line-height="24px">
+                <h3>{{>taskTitle task=. jobName=../../log.jobName}}</h3>
+                <ul>
+                  {{>taskBody task=.}} {{>reportTemporalData formatDate=../../formatDate}} {{>reportError task=.}}
+                  {{>reportWarnings task=this}}
+                </ul>
+              </mj-text>
+            </mj-column>
+          </mj-section>
+          {{#each this.tasks}}
+            <mj-section padding="0px">
+              <mj-column width="85%" border="1px solid #fffce4">
+                <mj-text font-size="16px" font-weight="300" line-height="24px">
+                  <span style="font-weight:bold">{{>taskTitle task=. jobName=''}}</span> {{getIcon status}}
+                  <ul>
+                    {{>taskBody task=.}}
+                    {{>reportTemporalData formatDate=../../../formatDate}}
+                    {{>reportError task=.}}
+                    {{>reportWarnings task =.}}
+                  </ul>
+                </mj-text>
+              </mj-column>
+            </mj-section>
+          {{/each}}
+        {{/each}}
+      {{/each}}
 
-      <mj-section>
-        <mj-column width="100%">
-          <mj-divider border-width="2px"></mj-divider>
-          <mj-text align="left" font-size="14px" font-style="italic" font-weight="300" line-height="0px"
-            >{{pkg.name}} v{{pkg.version}}</mj-text
-          >
-        </mj-column>
-      </mj-section>
-
-      <mj-section padding="0px">
-        <mj-column width="40%">
-          <mj-image align="left" width="250px" href="https://vates.fr" src="./image.png"></mj-image>
-        </mj-column>
-      </mj-section>
+    {{>mjmlFooter}}
     </mj-wrapper>
   </mj-body>
 </mjml>

@@ -8,12 +8,12 @@
 </mj-section>
 
 {{#each tasksByStatus.skipped.tasks}}
-  <mj-section padding="0px">
+  <mj-section padding-bottom="0px">
     <mj-column width="100%">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
-          {{>vmTextMjml formatDate=../formatDate}}
-          <li><span style="font-weight: bold">Reason</span>: {{message}}</li>
-          </ul>
+        {{>vmText formatDate=../formatDate}}
+        <li><span style="font-weight: bold">Reason</span>: {{message}}</li>
+        </ul>
       </mj-text>
     </mj-column>
   </mj-section>

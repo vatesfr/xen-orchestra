@@ -8,5 +8,5 @@
 <ul>
   <li><span style="font-weight: bold">UUID</span>: {{taskLog.data.id}}</li>
 {{/if}}
-{{>reportTemporalDataMjml end=taskLog.end start=taskLog.start}}
-{{>reportWarningsMjml task=taskLog}}
+{{>reportTemporalData end=taskLog.end start=taskLog.start}}
+{{>reportWarnings task=taskLog}}

@@ -1,13 +1,14 @@
 import Handlebars from 'handlebars'
-import mjml2html from 'mjml'
 import moment from 'moment-timezone'
+import pkg from '../package'
 import { createLogger } from '@xen-orchestra/log'
+import { extname, join, parse } from 'node:path'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import { extname, join, parse } from 'node:path'
+import { helpers } from './helpers'
 import { readdirSync, readFileSync } from 'node:fs'
-import pkg from '../package'
-import './helpers'
+import markdownTransform from '../templates/markdown/transform.js'
+import mjmlTransform from '../templates/mjml/transform.js'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -53,37 +54,41 @@ export const testSchema = {
 }
 
 // ===================================================================
-// Handlebars partials
 
-const registerPartials = path => {
+// Handlebars environments
+const markdownHandlebars = Handlebars.create()
+const mjmlHandlebars = Handlebars.create()
+
+// Handlebars common helpers
+for (const [helperName, helper] of Object.entries(helpers)) {
+  markdownHandlebars.registerHelper(helperName, helper)
+  mjmlHandlebars.registerHelper(helperName, helper)
+}
+
+// Handlebars partials
+const registerPartials = (path, handlebarsEnvironment) => {
   const handlebarsPartialFiles = readdirSync(join(__dirname, path)).filter(filename => extname(filename) === '.hbs')
   for (const fileName of handlebarsPartialFiles) {
     const partial = readFileSync(join(__dirname, `${path}${fileName}`)).toString()
-    Handlebars.registerPartial(parse(fileName).name, partial)
+    handlebarsEnvironment.registerPartial(parse(fileName).name, partial)
   }
 }
+registerPartials('../templates/markdown/partials/', markdownHandlebars)
+registerPartials('../templates/mjml/partials/', mjmlHandlebars)
 
-registerPartials('../templates/markdown/partials/')
-registerPartials('../templates/mjml/partials/')
-
-// ===================================================================
 // Handlebars templates
-
-const readCompileHbs = path => Handlebars.compile(readFileSync(join(__dirname, path)).toString().replace(/\n$/, ''))
+const readCompileHbs = (path, handlebarsEnvironment) =>
+  handlebarsEnvironment.compile(readFileSync(join(__dirname, path)).toString().replace(/\n$/, ''))
+const importTemplateFolder = (folder, handlebarsEnvironment) => ({
+  metadata: readCompileHbs(`${folder}/metadata.hbs`, handlebarsEnvironment),
+  metadataSubject: readCompileHbs(`${folder}/metadataSubject.hbs`, handlebarsEnvironment),
+  vm: readCompileHbs(`${folder}/vm.hbs`, handlebarsEnvironment),
+  vmSubject: readCompileHbs(`${folder}/vmSubject.hbs`, handlebarsEnvironment),
+})
 
 const templates = {
-  subject: {
-    metadata: readCompileHbs('../templates/metadataSubject.hbs'),
-    vm: readCompileHbs('../templates/vmSubject.hbs'),
-  },
-  markdown: {
-    metadata: readCompileHbs('../templates/markdown/metadata.hbs'),
-    vm: readCompileHbs('../templates/markdown/vm.hbs'),
-  },
-  mjml: {
-    metadata: readCompileHbs('../templates/mjml/metadata.hbs'),
-    vm: readCompileHbs('../templates/mjml/vm.hbs'),
-  },
+  markdown: importTemplateFolder('../templates/markdown', markdownHandlebars),
+  mjml: importTemplateFolder('../templates/mjml', mjmlHandlebars),
 }
 
 // ===================================================================
@@ -218,16 +223,10 @@ class BackupReportsXoPlugin {
       formatDate,
     }
 
-    /*
-    console.log('-----')
-    console.log(templates.mjml.metadata(context))
-    console.log('=====')
-    */
-
     return this._sendReport({
-      subject: templates.subject.metadata(context),
-      markdown: templates.markdown.metadata(context),
-      html: mjml2html(templates.mjml.metadata(context)).html,
+      markdown: markdownTransform.transform(templates.markdown.metadata(context)),
+      html: mjmlTransform.transform(templates.mjml.metadata(context)),
+      subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })
   }
@@ -401,27 +400,17 @@ class BackupReportsXoPlugin {
       globalMergeSize,
       globalTransferSize,
     }
-    /*
-    console.log('-----')
-    console.log(templates.mjml.vm(context))
-    console.log('=====')
-    */
 
     return this._sendReport({
       mailReceivers,
-      markdown: templates.markdown.vm(context),
-      html: mjml2html(templates.mjml.vm(context)).html,
-      subject: templates.subject.vm(context),
+      markdown: await markdownTransform.transform(templates.markdown.vm(context)),
+      html: mjmlTransform.transform(templates.mjml.vm(context)),
+      subject: templates.mjml.vmSubject(context),
       success: log.status === 'success',
     })
   }
 
   async _sendReport({ mailReceivers, markdown, html, subject, success }) {
-    // console.log('-----')
-    // console.log(html)
-    // console.log('=====')
-    // console.log(markdown)
-
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }

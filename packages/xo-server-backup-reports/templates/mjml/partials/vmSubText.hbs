@@ -2,15 +2,17 @@
   <mj-section padding="0px">
     <mj-column width="100%">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
-        <ul><li><span style="font-weight: bold">Snapshot</span> {{getIcon subTaskLog.status}}</li></ul>
+        <span style="font-weight: bold">➤ Snapshot</span> {{getIcon subTaskLog.status}}
       </mj-text>
     </mj-column>
   </mj-section>
 
   <mj-section padding="0px">
-    <mj-column width="85%" border="1px solid">
+    <mj-column width="85%" border="1px solid #fffce4">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
-        {{>reportTemporalDataMjml end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
+        <ul>
+          {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
+        </ul>
       </mj-text>
     </mj-column>
   </mj-section>
@@ -21,13 +23,13 @@
   <mj-section padding="0px">
     <mj-column width="100%">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
-        <ul><li><span style="font-weight: bold">SRs</span></li></ul>
+        <span style="font-weight: bold">➤ SRs</span>
       </mj-text>
     </mj-column>
   </mj-section>
 
   {{#each srsSubTasks}}
-    {{>vmSubTaskMjml formatDate=../formatDate}}
+    {{>vmSubTask formatDate=../formatDate}}
   {{/each}}
 {{/if}}
 
@@ -35,12 +37,12 @@
   <mj-section padding="0px">
     <mj-column width="100%">
       <mj-text font-size="16px" font-weight="300" line-height="24px">
-        <ul><li><span style="font-weight: bold">Remotes</span></li></ul>
+        <span style="font-weight: bold">➤ Remotes</span>
       </mj-text>
     </mj-column>
   </mj-section>
 
   {{#each remotesSubTasks}}
-    {{>vmSubTaskMjml formatDate=../formatDate}}
+    {{>vmSubTask formatDate=../formatDate}}
   {{/each}}
 {{/if}}

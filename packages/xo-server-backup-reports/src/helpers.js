@@ -1,4 +1,3 @@
-import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 
@@ -23,7 +22,7 @@ const TITLE_BY_STATUS = {
 
 // ===================================================================
 
-Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+const ifCond = function (v1, operator, v2, options) {
   switch (operator) {
     case '===':
       return v1 === v2 ? options.fn(this) : options.inverse(this)
@@ -44,36 +43,47 @@ Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
     default:
       return options.inverse(this)
   }
-})
+}
 
-Handlebars.registerHelper('formatDuration', milliseconds => moment.duration(milliseconds).humanize())
+const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
 const formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
     unit: 'B',
   })
-Handlebars.registerHelper('formatSize', formatSize)
 
-const formatSpeed = (bytes, milliseconds) =>
-  milliseconds > 0
-    ? humanFormat((bytes * 1e3) / milliseconds, {
+const formatSpeed = (bytes, start, end) =>
+  end - start > 0
+    ? humanFormat((bytes * 1e3) / (end - start), {
         scale: 'binary',
         unit: 'B/s',
       })
     : 'N/A'
-Handlebars.registerHelper('formatSpeed', (bytes, start, end) => formatSpeed(bytes, end - start))
 
-Handlebars.registerHelper('subtract', (a, b) => a - b)
+const subtract = (a, b) => a - b
 
-Handlebars.registerHelper('executeFunction', (fct, arg) => fct(arg))
-
-// this could be a partial but it would be less clear
-Handlebars.registerHelper('getIcon', status => STATUS_ICON[status])
+const executeFunction = (fct, arg) => fct(arg)
 
 // this could be a partial but it would be less clear
-Handlebars.registerHelper('titleByStatus', function (status, tasks) {
+const getIcon = status => STATUS_ICON[status]
+
+// this could be a partial but it would be less clear
+const titleByStatus = (status, tasks) => {
   if (tasks && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](tasks.length)
   }
-})
+}
+
+// ===================================================================
+
+export const helpers = {
+  ifCond,
+  formatDuration,
+  formatSize,
+  formatSpeed,
+  subtract,
+  executeFunction,
+  getIcon,
+  titleByStatus,
+}
