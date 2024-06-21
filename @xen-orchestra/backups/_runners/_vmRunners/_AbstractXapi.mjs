@@ -270,9 +270,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // going back to a previous version of XO not supporting CBT will create a full backup
     // this will only do something after snapshot and transfer
     if (
+      // don't modify the VM
       this._exportedVm?.is_a_snapshot &&
+      // user don't want to keep the snapshot data
       this._settings.snapshotRetention === 0 &&
+      // preferNbd is not a guarantee that the backup used NBD, depending on the network configuration
       this._settings.preferNbd &&
+      // only delete snapshost data if the config allows it
       this.config.purgeSnapshotData
     ) {
       Task.info('will delete snapshot data')
@@ -280,6 +284,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       await xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
         try {
+          // data_destroy will fail with a VDI_NO_CBT_METADATA error if CBT is not enabled on this VDI
           await xapi.VDI_dataDestroy(vdiRef)
           Task.info(`Snapshot data has been deleted`, { vdiRef })
         } catch (error) {
