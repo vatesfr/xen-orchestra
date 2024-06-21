@@ -54,16 +54,6 @@ type Legend = {
   label: string
 }
 
-// defineProps<{
-//   title: string
-//   titleLink: string
-//   titleLinkLabel: string
-//   segments: Segment[]
-//   totalValue: number
-//   totalLabel: string
-//   icon?: IconDefinition
-//   legends: Legend[]
-// }>()
 interface Props {
   title: string
   titleLink: string
