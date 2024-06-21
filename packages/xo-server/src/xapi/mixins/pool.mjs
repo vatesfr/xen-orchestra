@@ -30,7 +30,7 @@ const methods = {
     })
   },
 
-  async rollingPoolReboot($defer, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
+  async rollingPoolReboot($defer, task, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -55,8 +55,15 @@ const methods = {
 
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
+    // Steps in the RPR : Evacuate hosts, reboot hosts, migrate VMs back, and potentially updateHosts (beforeEvacuateVms and beforeRebootHost)
+    const progressShare = 100 / (3 + !!beforeEvacuateVms + !!beforeRebootHost)
+    const progressShareByHost = progressShare / hosts.length
+    let progress = 0
+
     if (beforeEvacuateVms) {
       await beforeEvacuateVms()
+      progress += progressShare
+      task.set('progress', progress)
     }
     // Remember on which hosts the running VMs are
     const vmRefsByHost = mapValues(
@@ -87,58 +94,60 @@ const methods = {
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
     // Restart all the hosts one by one
-    await Task.run(
-      { properties: { name: `Restarting hosts`, total: hosts.length, progress: 0, done: 0 } },
-      async () => {
-        let done = 0
-        for (const host of hosts) {
-          const hostId = host.uuid
-          const hostName = host.name_label
+    await Task.run({ properties: { name: `Restarting hosts`, total: hosts.length } }, async () => {
+      for (const host of hosts) {
+        const hostId = host.uuid
+        const hostName = host.name_label
 
-          if (!ignoreHost || !ignoreHost(host)) {
-            await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
-              // This is an old metrics reference from before the pool master restart.
-              // The references don't seem to change but it's not guaranteed.
-              const metricsRef = host.metrics
+        if (!ignoreHost || !ignoreHost(host)) {
+          await Task.run({ properties: { name: `Restarting host ${hostId}`, hostId, hostName } }, async () => {
+            // This is an old metrics reference from before the pool master restart.
+            // The references don't seem to change but it's not guaranteed.
+            const metricsRef = host.metrics
 
-              await this.barrier(metricsRef)
-              await this._waitObjectState(metricsRef, metrics => metrics.live)
+            await this.barrier(metricsRef)
+            await this._waitObjectState(metricsRef, metrics => metrics.live)
 
-              const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
-              await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
-                await this.clearHost(host)
-              })
-
-              if (beforeRebootHost) {
-                await beforeRebootHost(host)
-              }
-
-              const rebootTime = await getServerTime()
-              await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
-                await this.callAsync('host.reboot', host.$ref)
-              })
-
-              await Task.run({ properties: { name: `Waiting for host to be up`, hostId, hostName } }, async () => {
-                await timeout.call(
-                  (async () => {
-                    await this._waitObjectState(
-                      hostId,
-                      host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
-                    )
-                    await this._waitObjectState(metricsRef, metrics => metrics.live)
-                  })(),
-                  this._restartHostTimeout,
-                  new Error(`Host ${hostId} took too long to restart`)
-                )
-              })
+            const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
+            await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
+              await this.clearHost(host)
             })
-          }
-          done++
-          Task.set('done', done)
-          Task.set('progress', Math.round((done * 100) / hosts.length))
+            progress += progressShareByHost
+            task.set('progress', progress)
+
+            if (beforeRebootHost) {
+              await beforeRebootHost(host)
+              progress += progressShareByHost
+              task.set('progress', progress)
+            }
+
+            const rebootTime = await getServerTime()
+            await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
+              await this.callAsync('host.reboot', host.$ref)
+            })
+
+            await Task.run({ properties: { name: `Waiting for host to be up`, hostId, hostName } }, async () => {
+              await timeout.call(
+                (async () => {
+                  await this._waitObjectState(
+                    hostId,
+                    host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+                  )
+                  await this._waitObjectState(metricsRef, metrics => metrics.live)
+                })(),
+                this._restartHostTimeout,
+                new Error(`Host ${hostId} took too long to restart`)
+              )
+            })
+            progress += progressShareByHost
+            task.set('progress', progress)
+          })
+        } else {
+          progress += progressShareByHost * (2 + !!beforeRebootHost)
+          task.set('progress', progress)
         }
       }
-    )
+    })
 
     // Start with the last host since it's the emptiest one after the rolling
     // update
@@ -150,12 +159,16 @@ const methods = {
         const hostId = host.uuid
         const hostName = host.name_label
         if (ignoreHost && ignoreHost(host)) {
+          progress += progressShareByHost
+          task.set('progress', progress)
           continue
         }
 
         const vmRefs = vmRefsByHost[hostId]
 
         if (vmRefs === undefined) {
+          progress += progressShareByHost
+          task.set('progress', progress)
           continue
         }
         await Task.run({ properties: { name: `Migrating VMs back to host ${hostId}`, hostId, hostName } }, async () => {
@@ -183,12 +196,17 @@ const methods = {
             }
           }
         })
+
+        progress += progressShareByHost
+        task.set('progress', progress)
       }
       // making the migration task fail if any of the migrations failed
       if (error !== undefined) {
         throw error
       }
     })
+    // avoids progress to be 100.0000002 or 99.99999 at the end
+    task.set('progress', 100)
   },
 }
 
