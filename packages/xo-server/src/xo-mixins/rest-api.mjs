@@ -339,6 +339,11 @@ export default class RestApi {
 
           await xapiObject.$xapi.pool_emergencyShutdown()
         },
+        rolling_reboot: async ({ object }) => {
+          await app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
+
+          await app.rollingPoolReboot(object)
+        },
         rolling_update: async ({ object }) => {
           await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
 
