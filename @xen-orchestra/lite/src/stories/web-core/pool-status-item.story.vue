@@ -5,12 +5,14 @@
       iconProp(),
       prop('title').type('string').required().preset('Card title').widget(),
       prop('titleLink').type('string').required().preset('/hello').widget(),
+      prop('titleLinkLabel').type('string').widget(),
       prop('segments').type('array').required().preset(segments).widget(),
       prop('legends').type('array').required().preset(legends).widget(),
-      prop('total').type('number').required().preset(80).widget(),
+      prop('totalLabel').type('string').widget(),
+      prop('totalValue').type('number').required().preset(80).widget(),
     ]"
   >
-    <PoolStatusItem v-bind="properties"></PoolStatusItem>
+    <PoolStatusItem v-bind="properties" />
   </ComponentStory>
 </template>
 
@@ -27,9 +29,9 @@ const segments = [
 ]
 
 const legends = [
-  { color: 'success', value: 16, unit: 'GB' },
-  { color: 'warning', value: 22, unit: 'GB' },
-  { color: 'error', value: 35, unit: 'GB' },
-  { color: 'unknown', value: 12, unit: 'GB', tooltip: 'Tooltip for unknown' },
+  { color: 'success', value: 16, unit: 'GB', label: 'Label' },
+  { color: 'warning', value: 22, unit: 'GB', label: 'Label' },
+  { color: 'error', value: 35, unit: 'GB', label: 'Label' },
+  { color: 'unknown', value: 12, unit: 'GB', tooltip: 'Tooltip for unknown', label: 'Label' },
 ]
 </script>
