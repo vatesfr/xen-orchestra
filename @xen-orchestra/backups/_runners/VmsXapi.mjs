@@ -15,6 +15,7 @@ const noop = Function.prototype
 
 const DEFAULT_XAPI_VM_SETTINGS = {
   bypassVdiChainsCheck: false,
+  cbtDestroySnapshotData: false,
   checkpointSnapshot: false,
   concurrency: 2,
   copyRetention: 0,
