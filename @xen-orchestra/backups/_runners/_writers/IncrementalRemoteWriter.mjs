@@ -114,13 +114,13 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
 
     if (settings.deleteFirst) {
-      await this._deleteOldEntries(this._oldEntries)
+      await this._deleteOldEntries()
     }
   }
 
   async cleanup() {
     if (!this._settings.deleteFirst) {
-      await this._deleteOldEntries(this._oldEntries)
+      await this._deleteOldEntries()
     }
   }
 
@@ -162,8 +162,9 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     })
   }
 
-  async _deleteOldEntries(oldEntries) {
+  async _deleteOldEntries() {
     const adapter = this._adapter
+    const oldEntries = this._oldEntries
 
     // delete sequentially from newest to oldest to avoid unnecessary merges
     for (let i = oldEntries.length; i-- > 0; ) {
