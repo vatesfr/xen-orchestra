@@ -1,5 +1,5 @@
 <template>
-  <tbody v-if="isMobile" class="alarm-row" @click="handleCollapse()">
+  <tbody v-if="isMobile" class="alarm-line" @click="handleCollapse()">
     <tr>
       <td class="description" colspan="5">
         <div v-tooltip class="ellipsis">
@@ -25,7 +25,7 @@
     </tr>
   </tbody>
 
-  <tbody v-else class="alarm-row" @click="handleCollapse()">
+  <tbody v-else class="alarm-line" @click="handleCollapse()">
     <tr>
       <th class="table-header">
         <UiIcon v-if="$slots.default" :icon="descriptionCollapsed ? faAngleDown : faAngleRight" color="info" />
@@ -78,14 +78,16 @@ const [descriptionCollapsed, handleCollapse] = useToggle(true)
 </script>
 
 <style lang="postcss" scoped>
-.alarm-row {
+.alarm-line {
   cursor: pointer;
+  width: 100%;
 }
 
 .table-header {
   display: flex;
   align-items: center;
   gap: 1rem;
+
   @media (min-width: 768px) {
     padding-left: 0 !important;
     display: flex;
@@ -127,16 +129,14 @@ const [descriptionCollapsed, handleCollapse] = useToggle(true)
   border-top: none !important;
   font-size: 1.2rem;
   padding-left: 2.5rem !important;
-  @media (min-width: 768px) {
-    padding-left: 2.5rem !important;
-  }
 }
 
 .alarm-details {
-  padding: 0 0 1rem 2.5rem;
+  padding: 0 0 1rem 2.75rem;
   display: flex;
   flex-wrap: wrap;
   align-items: end;
+  justify-content: space-between;
   gap: 1rem;
 
   td {
