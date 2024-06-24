@@ -1030,6 +1030,10 @@ export default class TabAdvanced extends Component {
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
+                      {/**
+                       * Templates report UEFI is not supported
+                       * See https://xcp-ng.org/forum/post/76412
+                       */}
                       {vm.boot.firmware !== 'uefi' && !vm.isFirmwareSupported && (
                         <span className='text-danger font-weight-bold'>
                           <Icon icon='error' /> {_('firmwareNotSupported')}
