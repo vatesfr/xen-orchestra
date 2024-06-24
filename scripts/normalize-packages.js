@@ -57,7 +57,7 @@ require('exec-promise')(() =>
       }
     }
     if (!('license' in pkg)) {
-      pkg.license = 'AGPL-3.0-or-later'
+      pkg.license = name.startsWith('@vates/') ? 'ISC' : 'AGPL-3.0-or-later'
     }
     if (!('version' in pkg)) {
       pkg.version = '0.0.0'
