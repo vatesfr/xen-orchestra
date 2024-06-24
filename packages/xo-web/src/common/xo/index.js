@@ -752,6 +752,28 @@ subscribeSecurebootReadiness.forceRefresh = vm => {
   subscription?.forceRefresh()
 }
 
+const subscribePoolGuestSecurebootReadiness = {}
+export const subscribeGetGuestSecurebootReadiness = pool => {
+  const poolId = resolveId(pool)
+
+  if (subscribePoolGuestSecurebootReadiness[poolId] === undefined) {
+    subscribePoolGuestSecurebootReadiness[poolId] = createSubscription(() =>
+      _call('pool.getGuestSecureBootReadiness', { pool: poolId })
+    )
+  }
+
+  return subscribePoolGuestSecurebootReadiness[poolId]
+}
+subscribePoolGuestSecurebootReadiness.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(subscribePoolGuestSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribePoolGuestSecurebootReadiness[resolveId(pool)]
+  subscription?.forceRefresh()
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -1427,6 +1449,8 @@ export const isPciPassthroughAvailable = host =>
 export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
 
 export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
+export const vmSetUefiMode = (vm, mode) => _call('vm.setUefiMode', { id: resolveId(vm), mode })
 
 // Containers --------------------------------------------------------
 

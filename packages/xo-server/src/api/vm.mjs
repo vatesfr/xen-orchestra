@@ -540,8 +540,8 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function getSecurebootReadiness({ vm }) {
-  await this.getXapi(vm).VM_getSecurebootReadiness(vm._xapiRef)
+export function getSecurebootReadiness({ vm }) {
+  return this.getXapi(vm).VM_getSecurebootReadiness(vm._xapiRef)
 }
 
 getSecurebootReadiness.params = {
@@ -676,6 +676,11 @@ export const set = defer(async function ($defer, params) {
     await xapi.call('VM.set_suspend_SR', VM._xapiRef, suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef)
   }
 
+  const uefiMode = extract(params, 'uefiMode')
+  if (uefiMode !== undefined) {
+    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode === null ? Ref.EMPTY : uefiMode._xapiRef)
+  }
+
   const xenStoreData = extract(params, 'xenStoreData')
   if (xenStoreData !== undefined) {
     await this.getXapiObject(VM).update_xenstore_data(mapKeys(xenStoreData, (v, k) => autoPrefix('vm-data/', k)))
@@ -799,6 +804,8 @@ set.params = {
 
   suspendSr: { type: ['string', 'null'], optional: true },
 
+  uefiMode: { enum: ['setup', 'user'], optional: true },
+
   xenStoreData: {
     description: 'properties that should be set or deleted (if null) in the VM XenStore',
     optional: true,
@@ -812,6 +819,7 @@ set.params = {
 set.resolve = {
   VM: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
   suspendSr: ['suspendSr', 'SR', 'administrate'],
+  uefiMode: ['id', 'VM', 'administrate'],
 }
 
 // -------------------------------------------------------------------

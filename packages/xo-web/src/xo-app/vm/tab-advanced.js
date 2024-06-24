@@ -57,6 +57,7 @@ import {
   unplugVusb,
   vmAttachPcis,
   vmDetachPcis,
+  vmSetUefiMode,
   vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -69,7 +70,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
-import { subscribeSecurebootReadiness } from '../../common/xo'
+import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -192,12 +193,12 @@ const PCI_ACTIONS = [
 ]
 
 const SECUREBOOT_STATUS_MESSAGES = {
-  DISABLED: _('secureBootStatusNotEnforced'),
-  FIRST_BOOT: _('secureBootStatusPending'),
-  READY: _('secureBootStatus'),
-  READY_NO_DBX: _('secureBootStatusNoDbx'),
-  SETUP_MODE: _('secureBootWantedButDisabled'),
-  CERTS_INCOMPLETE: _('secureBootWantedButCertificatesMissing'),
+  disabled: _('secureBootStatusNotEnforced'),
+  first_boot: _('secureBootStatusPending'),
+  ready: _('secureBootStatus'),
+  ready_no_dbx: _('secureBootStatusNoDbx'),
+  setup_mode: _('secureBootWantedButDisabled'),
+  certs_incomplete: _('secureBootWantedButCertificatesMissing'),
 }
 
 const forceReboot = vm => restartVm(vm, true)
@@ -521,6 +522,7 @@ const NIC_TYPE_OPTIONS = [
 
 @addSubscriptions(({ vm }) => ({
   vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+  poolGuestSecurebootReadiness: subscribeGetGuestSecurebootReadiness(vm.$pool),
 }))
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
@@ -683,17 +685,46 @@ export default class TabAdvanced extends Component {
     return isPciPassthroughAvailable(host) ? undefined : _('onlyAvailableXcp8.3OrHigher')
   }
 
+  _confirmUefiMode = async () => {
+    const { vm, vmSecurebootReadiness } = this.props
+    const confirmNeeded =
+      vmSecurebootReadiness === 'disabled' ||
+      vmSecurebootReadiness === 'ready' ||
+      vmSecurebootReadiness === 'ready_no_dbx'
+
+    if (confirmNeeded) {
+      SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]
+
+      await confirm({
+        title: _('propagateCertificatesTitle'),
+        body: <p>{_('propagateCertificatesConfirm')}</p>,
+      })
+    }
+
+    await vmSetUefiMode(vm, 'user')
+  }
+
   render() {
-    const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
+    const {
+      container,
+      isAdmin,
+      poolGuestSecurebootReadiness,
+      pusbByUsbGroup,
+      vgpus,
+      vm,
+      vmPool,
+      vmSecurebootReadiness,
+      vusbs,
+    } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
     const host = this.props.vmHosts[vm.$container]
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
+    const isDisabled = poolGuestSecurebootReadiness === 'not_ready' || vm.boot.firmware !== 'uefi'
     const vtpmId = vm.VTPMs[0]
     const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
-    const secureBootStatusInfo = SECUREBOOT_STATUS_MESSAGES[vm.getSecurebootReadiness]
 
     return (
       <Container>
@@ -1080,10 +1111,10 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('secureBootStatus')}</th>
                     <td>
-                      {secureBootStatusInfo}
-                      {(secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.SETUP_MODE ||
-                        secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.CERTS_INCOMPLETE ||
-                        secureBootStatusInfo === SECUREBOOT_STATUS_MESSAGES.READY_NO_DBX) &&
+                      {SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]}
+                      {(vmSecurebootReadiness === 'setup_mode' ||
+                        vmSecurebootReadiness === 'certs_incomplete' ||
+                        vmSecurebootReadiness === 'ready_no_dbx') &&
                         host?.productBrand === 'XCP-ng' && (
                           <a
                             className='text-warning'
@@ -1095,6 +1126,38 @@ export default class TabAdvanced extends Component {
                             <Icon icon='alarm' /> {_('secureBootLinkToDocumentationMessage')}
                           </a>
                         )}
+                    </td>
+                  </tr>
+                )}
+                {vm.boot.firmware === 'uefi' && (
+                  <tr>
+                    <th>{_('propagateCertificatesTitle')} </th>
+                    <td>
+                      <ActionButton
+                        btnStyle='primary'
+                        disabled={isDisabled}
+                        handler={this._confirmUefiMode}
+                        icon='vm-clone'
+                      >
+                        {_('propagateCertificates')}
+                      </ActionButton>
+                      {isDisabled && (
+                        <div className='text-warning'>
+                          <Icon icon='alarm' />
+                          {_('propagateCertificatesButtonDisabled')}
+                        </div>
+                      )}
+                      {poolGuestSecurebootReadiness === 'not_ready' && (
+                        <a
+                          className='text-warning'
+                          /* href=link to be provided by Samuel  */
+                          rel='noreferrer'
+                          style={{ display: 'block' }}
+                          target='_blank'
+                        >
+                          <Icon icon='alarm' /> {_('noSecureBoot')}
+                        </a>
+                      )}
                     </td>
                   </tr>
                 )}

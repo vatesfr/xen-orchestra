@@ -458,6 +458,7 @@ const TRANSFORMS = {
       secureBoot: obj.platform.secureboot === 'true',
       suspendSr: link(obj, 'suspend_SR'),
       tags: obj.tags,
+      uefiMode: link(obj, 'uefi_mode'),
       VIFs: link(obj, 'VIFs'),
       VTPMs: link(obj, 'VTPMs'),
       virtualizationMode: domainType,
