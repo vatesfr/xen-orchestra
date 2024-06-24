@@ -516,6 +516,9 @@ const SummaryCard = decorate([
         state._disksByHostValues.every(disks => disks.length === state._disksByHostValues[0]?.length),
       finalSize: state => {
         const totalSize = state._disksByHostValues.reduce((minSize, disks) => {
+          if (disks.length === 0) {
+            return minSize
+          }
           const size = disks.reduce((acc, disk) => acc + Number(disk.size), 0)
           return minSize === 0 || size < minSize ? size : minSize
         }, 0)
