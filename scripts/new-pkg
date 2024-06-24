@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -eu
+
+# move to the root repo dir
+cd "$(dirname "$(which "$0")")/.."
+
+case "$1" in
+  */*)
+    # already in a namespace
+    pkgDir=$1
+    ;;
+  *)
+  pkgDir=packages/$1
+    ;;
+esac
+
+mkdir "$pkgDir"
+echo '{}' > "$pkgDir/package.json"
+touch "$pkgDir/.USAGE.md"
+./scripts/normalize-packages.js
