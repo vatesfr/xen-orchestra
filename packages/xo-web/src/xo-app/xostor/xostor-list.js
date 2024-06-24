@@ -7,7 +7,7 @@ import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { deleteSr } from 'xo'
 import { map } from 'lodash'
-import { Pool } from 'render-xo-item'
+import { Pool, Sr } from 'render-xo-item'
 
 const COLUMNS = [
   {
@@ -16,8 +16,8 @@ const COLUMNS = [
     sortCriteria: 'pool.name_label',
   },
   {
-    name: _('name'),
-    itemRenderer: sr => sr.name_label,
+    name: _('sr'),
+    itemRenderer: sr => <Sr container={false} id={sr.id} link spaceLeft={false} />,
     sortCriteria: 'name_label',
   },
   {
