@@ -5,17 +5,23 @@ import { useRoute } from 'vue-router'
 export const useInteractiveTable = <T extends unknown[]>(
   data: T,
   tableName: string,
-  customPath: Record<string, string>
+
+  /**
+   * `<column name, the property that corresponds to this column>`
+   *
+   * E.g. `{ vm: 'name_label' }`. The column named `vm` will search for `obj.name_label` and not `obj.vm`
+   */
+  customPath?: Record<string, string>
 ) => {
   const route = useRoute()
   const queries = computed(() =>
     Object.keys(route.query).reduce(
-      (acc, columnName) => {
+      (_queries, columnName) => {
         const parsedColumnName = parseColumnName(columnName)
         if (parsedColumnName.tableName === tableName) {
-          acc[parsedColumnName.columnId] = route.query[columnName] as string
+          _queries[parsedColumnName.columnId] = route.query[columnName] as string
         }
-        return acc
+        return _queries
       },
       {} as Record<string, string>
     )
@@ -24,7 +30,7 @@ export const useInteractiveTable = <T extends unknown[]>(
   const processedData = computed(() => {
     Object.keys(queries.value).forEach(property => {
       let path = property
-      if (property in customPath) {
+      if (customPath !== undefined && property in customPath) {
         path = customPath[property]
       }
       const interactionId = queries.value[property] as InteractionId

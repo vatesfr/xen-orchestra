@@ -1,5 +1,3 @@
-import { noop } from 'lodash'
-
 const COLUMN_NAME_SEPARATOR = '__'
 
 export type InteractionId = 'sort-asc' | 'sort-desc' | 'group' | 'filter' | 'hide'
@@ -25,10 +23,16 @@ export function stringifyColumnName(tableName: string | undefined, columnId: str
   return `${tableName}${COLUMN_NAME_SEPARATOR}${columnId}`
 }
 
-export const interactionsFn: Record<InteractionId, Function> = {
-  'sort-asc': (data: any[], path: string) => data.sort((prev, next) => compare(prev[path], next[path])),
-  'sort-desc': (data: any[], path: string) => data.sort((prev, next) => compare(next[path], prev[path])),
-  group: noop,
-  filter: noop,
-  hide: noop,
+export const interactionsFn: Record<InteractionId, <T extends any[]>(data: T, path: string) => T> = {
+  'sort-asc': (data, path) => data.sort((prev, next) => compare(prev[path] ?? prev, next[path] ?? next)),
+  'sort-desc': (data, path) => data.sort((prev, next) => compare(next[path] ?? next, prev[path] ?? prev)),
+  group: () => {
+    throw new Error('not implemented')
+  },
+  filter: () => {
+    throw new Error('not implemented')
+  },
+  hide: () => {
+    throw new Error('not implemented')
+  },
 }
