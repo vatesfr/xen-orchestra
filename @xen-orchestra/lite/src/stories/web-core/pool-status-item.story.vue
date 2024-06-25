@@ -4,11 +4,9 @@
     :params="[
       iconProp(),
       prop('title').type('string').required().preset('Card title').widget(),
-      prop('titleLink').type('string').required().preset('/hello').widget(),
-      prop('titleLinkLabel').type('string').widget(),
       prop('segments').type('array').required().preset(segments).widget(),
+      prop('donutMaxValue').type('number').preset(100).widget(),
       prop('legends').type('array').required().preset(legends).widget(),
-      prop('totalLabel').type('string').widget(),
       prop('totalValue').type('number').required().preset(80).widget(),
     ]"
   >

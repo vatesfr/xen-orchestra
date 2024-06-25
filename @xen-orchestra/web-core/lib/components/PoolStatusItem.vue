@@ -3,13 +3,15 @@
     <CardTitle>
       {{ title }}
       <template #info>
-        <RouterLink :to="titleLink">
-          <UiButton level="tertiary" size="extra-small" :right-icon="faAngleRight">{{ titleLinkLabel }}</UiButton>
-        </RouterLink>
+        <UiButton level="tertiary" size="extra-small" :right-icon="faAngleRight">
+          <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
+          <RouterLink to="/">See all</RouterLink>
+          <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
+        </UiButton>
       </template>
     </CardTitle>
     <div class="chart-and-legends">
-      <DonutChart :segments :icon />
+      <DonutChart :segments :icon :max-value="donutMaxValue" />
       <ul class="legends">
         <UiLegend
           v-for="(legend, index) in legends"
@@ -24,8 +26,7 @@
       </ul>
     </div>
     <div class="total">
-      <span class="typo c2-semi-bold">{{ totalLabel }}</span
-      ><span class="typo h3-semi-bold">{{ totalValue }}</span>
+      <CardNumbers :label="$t('total')" :value="totalValue" size="small" />
     </div>
   </UiCard>
 </template>
@@ -33,6 +34,7 @@
 <script lang="ts" setup>
 import UiButton from '@core/components/button/UiButton.vue'
 import CardTitle from '@core/components/card/CardTitle.vue'
+import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChart from '@core/components/DonutChart.vue'
 import UiCard from '@core/components/UiCard.vue'
 import UiLegend from '@core/components/UiLegend.vue'
@@ -56,19 +58,14 @@ type Legend = {
 
 interface Props {
   title: string
-  titleLink: string
-  titleLinkLabel?: string
   segments: Segment[]
+  donutMaxValue: number
   totalValue: number
-  totalLabel?: string
   icon?: IconDefinition
   legends: Legend[]
 }
 
-withDefaults(defineProps<Props>(), {
-  titleLinkLabel: 'See all',
-  totalLabel: 'Total',
-})
+defineProps<Props>()
 </script>
 
 <style lang="postcss" scoped>
@@ -86,8 +83,9 @@ withDefaults(defineProps<Props>(), {
 
 .total {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+
+  @media (--desktop) {
+    justify-content: flex-end;
+  }
 }
 </style>
