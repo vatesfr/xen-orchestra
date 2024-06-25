@@ -105,7 +105,7 @@ const noop = Function.prototype
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
-  '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
+  '(unhealthy VDI chain) Job canceled to protect the VDI chain. See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
 const getAdditionnalData = async (task, props) => {
   if (task.data?.type === 'remote') {
