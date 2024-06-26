@@ -74,7 +74,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
-      this._oldEntries = mostRecentEntry ? [mostRecentEntry] : []
+      this._oldEntries = mostRecentEntry !== undefined ? [mostRecentEntry] : []
     }
   }
 
