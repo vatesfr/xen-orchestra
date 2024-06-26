@@ -497,31 +497,28 @@ const methods = {
 
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
-    await Task.run(
-      { properties: { name: `Listing missing patches`, total: hosts.length, progress: 0, done: 0 } },
-      async () => {
-        let done = 0
-        await asyncEach(hosts, async host => {
-          const hostUuid = host.uuid
-          await Task.run(
-            {
-              properties: {
-                name: `Listing missing patches for host ${hostUuid}`,
-                hostId: hostUuid,
-                hostName: host.name_label,
-              },
+    const subtask = new Task({ properties: { name: `Listing missing patches`, total: hosts.length, progress: 0 } })
+    await subtask.run(async () => {
+      let done = 0
+      await asyncEach(hosts, async host => {
+        const hostUuid = host.uuid
+        await Task.run(
+          {
+            properties: {
+              name: `Listing missing patches for host ${hostUuid}`,
+              hostId: hostUuid,
+              hostName: host.name_label,
             },
-            async () => {
-              const missingPatches = await this.listMissingPatches(hostUuid)
-              hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
-            }
-          )
-          done++
-          Task.set('done', done)
-          Task.set('progress', Math.round((done * 100) / hosts.length))
-        })
-      }
-    )
+          },
+          async () => {
+            const missingPatches = await this.listMissingPatches(hostUuid)
+            hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
+          }
+        )
+        done++
+        subtask.set('progress', Math.round((done * 100) / hosts.length))
+      })
+    })
 
     return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {

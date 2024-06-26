@@ -11,6 +11,8 @@ import mapValues from 'lodash/mapValues.js'
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 
+const setProgress = (task, progress) => task.set('progress', Math.round(progress))
+
 const methods = {
   exportPoolMetadata($cancelToken) {
     return this.getResource($cancelToken, PATH_DB_DUMP, {
@@ -60,12 +62,12 @@ const methods = {
 
     const progressStep = 100 / nSteps
     const progressStepPerHost = progressStep / hosts.length
-    let progress = 0
+    let rprProgress = 0
 
     if (beforeEvacuateVms) {
       await beforeEvacuateVms()
-      progress += progressStep
-      parentTask.set('progress', progress)
+      rprProgress += progressStep
+      setProgress(parentTask, rprProgress)
     }
     // Remember on which hosts the running VMs are
     const vmRefsByHost = mapValues(
@@ -96,7 +98,8 @@ const methods = {
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
     // Restart all the hosts one by one
-    await Task.run({ properties: { name: `Restarting hosts`, progress: 0 } }, async () => {
+    const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
+    await restartSubtask.run(async () => {
       let done = 0
       for (const host of hosts) {
         const hostId = host.uuid
@@ -115,13 +118,13 @@ const methods = {
             await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
               await this.clearHost(host)
             })
-            progress += progressStepPerHost
-            parentTask.set('progress', progress)
+            rprProgress += progressStepPerHost
+            setProgress(parentTask, rprProgress)
 
             if (beforeRebootHost) {
               await beforeRebootHost(host)
-              progress += progressStepPerHost
-              parentTask.set('progress', progress)
+              rprProgress += progressStepPerHost
+              setProgress(parentTask, rprProgress)
             }
 
             const rebootTime = await getServerTime()
@@ -142,25 +145,26 @@ const methods = {
                 new Error(`Host ${hostId} took too long to restart`)
               )
             })
-            progress += progressStepPerHost
-            parentTask.set('progress', progress)
+            rprProgress += progressStepPerHost
+            setProgress(parentTask, rprProgress)
           })
         } else {
           const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
-          progress += progressStepPerHost * nStepsSubtask
-          parentTask.set('progress', progress)
+          rprProgress += progressStepPerHost * nStepsSubtask
+          setProgress(parentTask, rprProgress)
         }
         done++
-        Task.set('progress', (100 * done) / hosts.length)
+        setProgress(restartSubtask, (100 * done) / hosts.length)
       }
-      Task.set('progress', 100)
+      setProgress(restartSubtask, 100)
     })
 
     // Start with the last host since it's the emptiest one after the rolling
     // update
     ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
 
-    await Task.run({ properties: { name: `Migrate VMs back`, progress: 0 } }, async () => {
+    const migrationsSubtask = new Task({ properties: { name: `Migrate VMs back`, progress: 0 } })
+    await migrationsSubtask.run(async () => {
       let done = 0
       let error
       for (const host of hosts) {
@@ -168,9 +172,9 @@ const methods = {
         const hostName = host.name_label
         if (ignoreHost && ignoreHost(host)) {
           done++
-          Task.set('progress', (100 * done) / hosts.length)
-          progress += progressStepPerHost
-          parentTask.set('progress', progress)
+          setProgress(migrationsSubtask, (100 * done) / hosts.length)
+          rprProgress += progressStepPerHost
+          setProgress(parentTask, rprProgress)
           continue
         }
 
@@ -178,58 +182,58 @@ const methods = {
 
         if (vmRefs === undefined) {
           done++
-          Task.set('progress', (100 * done) / hosts.length)
-          progress += progressStepPerHost
-          parentTask.set('progress', progress)
+          setProgress(migrationsSubtask, (100 * done) / hosts.length)
+          rprProgress += progressStepPerHost
+          setProgress(parentTask, rprProgress)
           continue
         }
-        await Task.run(
-          { properties: { name: `Migrating VMs back to host ${hostId}`, hostId, hostName, progress: 0 } },
-          async () => {
-            // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
-            // this.getField is used in order not to get cached data.
-            const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
-            let done = 0
+        const oneHostMigrationsTask = new Task({
+          properties: { name: `Migrating VMs back to host ${hostId}`, hostId, hostName, progress: 0 },
+        })
+        await oneHostMigrationsTask.run(async () => {
+          // host.$resident_VMs is outdated and returns resident VMs before the host.evacuate.
+          // this.getField is used in order not to get cached data.
+          const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
+          let done = 0
 
-            for (const vmRef of vmRefs) {
-              if (residentVmRefs.includes(vmRef)) {
-                done++
-                Task.set('progress', (100 * done) / vmRefs.length)
-                continue
-              }
-
-              try {
-                const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
-                await Task.run(
-                  {
-                    properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName },
-                  },
-                  async () => {
-                    await this.migrateVm(vmId, this, hostId)
-                  }
-                )
-              } catch (err) {
-                if (error === undefined) {
-                  error = err
-                }
-              }
+          for (const vmRef of vmRefs) {
+            if (residentVmRefs.includes(vmRef)) {
               done++
-              Task.set('progress', (100 * done) / vmRefs.length)
+              setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
+              continue
             }
+
+            try {
+              const { uuid: vmId, name_label: vmName } = this.getObject(vmRef)
+              await Task.run(
+                {
+                  properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName },
+                },
+                async () => {
+                  await this.migrateVm(vmId, this, hostId)
+                }
+              )
+            } catch (err) {
+              if (error === undefined) {
+                error = err
+              }
+            }
+            done++
+            setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
           }
-        )
+        })
         done++
-        Task.set('progress', (100 * done) / hosts.length)
-        progress += progressStepPerHost
-        parentTask.set('progress', progress)
+        setProgress(migrationsSubtask, (100 * done) / hosts.length)
+        rprProgress += progressStepPerHost
+        setProgress(parentTask, rprProgress)
       }
       // making the migration task fail if any of the migrations failed
       if (error !== undefined) {
         throw error
       }
     })
-    // avoids progress to be 100.0000002 or 99.99999 at the end
-    parentTask.set('progress', 100)
+    // in case task progress has not been incremented properly
+    setProgress(parentTask, 100)
   },
 }
 
