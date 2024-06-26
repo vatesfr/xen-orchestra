@@ -7,8 +7,6 @@ import { forEach, groupBy } from 'lodash'
 import { readdirSync, readFileSync } from 'node:fs'
 
 import pkg from '../package'
-import markdownTransform from '../templates/markdown/transform.js'
-import mjmlTransform from '../templates/mjml/transform.js'
 
 import * as helpers from './helpers'
 
@@ -91,6 +89,14 @@ const importTemplateFolder = (folder, handlebarsEnvironment) => ({
 const templates = {
   markdown: importTemplateFolder('../templates/markdown', markdownHandlebars),
   mjml: importTemplateFolder('../templates/mjml', mjmlHandlebars),
+}
+
+// Templates transforms
+const templatesTransform = {}
+for (const name of ['markdown', 'mjml']) {
+  import(`../templates/${name}/transform.js`).then(module => {
+    templatesTransform[name] = module.transform
+  })
 }
 
 // ===================================================================
@@ -226,8 +232,8 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
-      ...(await markdownTransform.transform(templates.markdown.metadata(context))),
-      ...(await mjmlTransform.transform(templates.mjml.metadata(context))),
+      ...(await templatesTransform.markdown(templates.markdown.metadata(context))),
+      ...(await templatesTransform.mjml(templates.mjml.metadata(context))),
       subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })
@@ -404,8 +410,8 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
-      ...(await markdownTransform.transform(templates.markdown.vm(context))),
-      ...(await mjmlTransform.transform(templates.mjml.vm(context))),
+      ...(await templatesTransform.markdown(templates.markdown.vm(context))),
+      ...(await templatesTransform.mjml(templates.mjml.vm(context))),
       mailReceivers,
       subject: templates.mjml.vmSubject(context),
       success: log.status === 'success',
