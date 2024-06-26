@@ -15,6 +15,7 @@
 - [Backups] Implements Change Block Tracking (CBT) (PR [#7750](https://github.com/vatesfr/xen-orchestra/pull/7750))
 - [REST API] _Rolling Pool Reboot_ action available `pools/<uuid>/actions/rolling_reboot` (PR [#7761](https://github.com/vatesfr/xen-orchestra/pull/7761))
 - [XOSTOR] Possibility to directly access an XOSTOR SR from the view that lists all XOSTOR SRs (PR [#7764](https://github.com/vatesfr/xen-orchestra/pull/7764))
+- [Backups] Add 'report recipients' when creating a metadata backup (PR [#7776](https://github.com/vatesfr/xen-orchestra/pull/7776))
 
 ### Bug fixes
 

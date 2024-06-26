@@ -22,6 +22,7 @@ import {
   editSchedule,
   subscribeRemotes,
 } from 'xo'
+import { ReportRecipients } from '..'
 
 import { constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from '../../utils'
 
@@ -180,6 +181,18 @@ export default decorate([
       setReportWhen({ setGlobalSettings }, { value }) {
         setGlobalSettings('reportWhen', value)
       },
+      addReportRecipient({ setGlobalSettings }, value) {
+        const { reportRecipients = [] } = this.state.settings?.[GLOBAL_SETTING_KEY] ?? {}
+        if (!reportRecipients.includes(value)) {
+          reportRecipients.push(value)
+          setGlobalSettings('reportRecipients', reportRecipients)
+        }
+      },
+      removeReportRecipient({ setGlobalSettings }, key) {
+        const { reportRecipients } = this.state.settings[GLOBAL_SETTING_KEY]
+        reportRecipients.splice(key, 1)
+        setGlobalSettings('reportRecipients', reportRecipients)
+      },
       toggleMode:
         (_, { mode }) =>
         state => ({
@@ -259,6 +272,7 @@ export default decorate([
         state.modeXoMetadata && every(state.settings, ({ retentionXoMetadata }) => retentionXoMetadata === 0),
       missingSchedules: state => isEmpty(state.schedules),
       proxyId: (state, props) => defined(state._proxyId, () => props.job.proxy),
+      reportRecipients: (state, { job }) => defined(state._reportRecipients, () => job.reportRecipients),
     },
   }),
   injectState,
@@ -274,7 +288,7 @@ export default decorate([
       missingSchedules,
     } = state.showErrors ? state : {}
 
-    const { reportWhen = 'failure' } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
+    const { reportWhen = 'failure', reportRecipients = [] } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
 
     return (
       <form id={state.idForm}>
@@ -360,6 +374,11 @@ export default decorate([
                 <CardBlock>
                   <RemoteProxy onChange={effects.setProxy} value={state.proxyId} />
                   <ReportWhen onChange={effects.setReportWhen} required value={reportWhen} />
+                  <ReportRecipients
+                    recipients={reportRecipients}
+                    add={effects.addReportRecipient}
+                    remove={effects.removeReportRecipient}
+                  />
                 </CardBlock>
               </Card>
             </Col>
