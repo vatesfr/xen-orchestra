@@ -9,6 +9,7 @@
 
 - [VM] Disks whose name contains the tag `[NOSNAP]` will be ignored when doing a manual snapshot similarly to disks ignored during backups with `[NOBAK]` (possibility to use both tags on the same disk) [Forum#79179](https://xcp-ng.org/forum/post/79179)
 - [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
+- [Rolling Pool Update/Reboot] Added a progress bar to RPU and RPR XO-tasks (PR [#7768](https://github.com/vatesfr/xen-orchestra/pull/7768))
 
 ### Bug fixes
 
