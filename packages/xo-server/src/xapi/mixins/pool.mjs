@@ -100,7 +100,10 @@ const methods = {
     // Restart all the hosts one by one
     const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
     await restartSubtask.run(async () => {
-      let done = 0
+      const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
+      const subtaskProgressStep = 100 / (nStepsSubtask * hosts.length)
+      let subtaskProgress = 0
+
       for (const host of hosts) {
         const hostId = host.uuid
         const hostName = host.name_label
@@ -120,11 +123,15 @@ const methods = {
             })
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
+            subtaskProgress += subtaskProgressStep
+            setProgress(restartSubtask, subtaskProgress)
 
             if (beforeRebootHost) {
               await beforeRebootHost(host)
               rprProgress += progressStepPerHost
               setProgress(parentTask, rprProgress)
+              subtaskProgress += subtaskProgressStep
+              setProgress(restartSubtask, subtaskProgress)
             }
 
             const rebootTime = await getServerTime()
@@ -147,16 +154,16 @@ const methods = {
             })
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
+            subtaskProgress += subtaskProgressStep
+            setProgress(restartSubtask, subtaskProgress)
           })
         } else {
-          const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
           rprProgress += progressStepPerHost * nStepsSubtask
           setProgress(parentTask, rprProgress)
+          subtaskProgress += subtaskProgressStep * nStepsSubtask
+          setProgress(restartSubtask, subtaskProgress)
         }
-        done++
-        setProgress(restartSubtask, (100 * done) / hosts.length)
       }
-      setProgress(restartSubtask, 100)
     })
 
     // Start with the last host since it's the emptiest one after the rolling
