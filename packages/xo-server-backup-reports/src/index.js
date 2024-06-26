@@ -204,10 +204,12 @@ class BackupReportsXoPlugin {
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, { name: jobName }, schedule, force) {
+  async _metadataHandler(log, { name: jobName, settings }, schedule, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
+
+    const mailReceivers = get(() => settings[''].reportRecipients)
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
@@ -235,6 +237,7 @@ class BackupReportsXoPlugin {
     return this._sendReport({
       ...(await templatesTransform.markdown(templates.markdown.metadata(context))),
       ...(await templatesTransform.mjml(templates.mjml.metadata(context))),
+      mailReceivers,
       subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })
