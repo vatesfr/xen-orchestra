@@ -487,7 +487,7 @@ const methods = {
     throw new Error('non pool-wide install not implemented')
   },
 
-  async rollingPoolUpdate($defer, task, { xsCredentials } = {}) {
+  async rollingPoolUpdate($defer, parentTask, { xsCredentials } = {}) {
     // Temporary workaround until XCP-ng finds a way to update linstor packages
     if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       throw new Error('rolling pool update not possible since there is a linstor SR in the pool')
@@ -524,7 +524,7 @@ const methods = {
     )
 
     return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
-      await this.rollingPoolReboot(task, {
+      await this.rollingPoolReboot(parentTask, {
         xsCredentials,
         beforeEvacuateVms: async () => {
           // On XS/CH, start by installing patches on all hosts

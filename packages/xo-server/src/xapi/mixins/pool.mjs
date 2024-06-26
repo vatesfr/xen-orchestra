@@ -30,7 +30,7 @@ const methods = {
     })
   },
 
-  async rollingPoolReboot($defer, task, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
+  async rollingPoolReboot($defer, parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost } = {}) {
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -65,7 +65,7 @@ const methods = {
     if (beforeEvacuateVms) {
       await beforeEvacuateVms()
       progress += progressStep
-      task.set('progress', progress)
+      parentTask.set('progress', progress)
     }
     // Remember on which hosts the running VMs are
     const vmRefsByHost = mapValues(
@@ -116,12 +116,12 @@ const methods = {
               await this.clearHost(host)
             })
             progress += progressStepPerHost
-            task.set('progress', progress)
+            parentTask.set('progress', progress)
 
             if (beforeRebootHost) {
               await beforeRebootHost(host)
               progress += progressStepPerHost
-              task.set('progress', progress)
+              parentTask.set('progress', progress)
             }
 
             const rebootTime = await getServerTime()
@@ -143,12 +143,12 @@ const methods = {
               )
             })
             progress += progressStepPerHost
-            task.set('progress', progress)
+            parentTask.set('progress', progress)
           })
         } else {
           const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
           progress += progressStepPerHost * nStepsSubtask
-          task.set('progress', progress)
+          parentTask.set('progress', progress)
         }
         done++
         Task.set('progress', (100 * done) / hosts.length)
@@ -170,7 +170,7 @@ const methods = {
           done++
           Task.set('progress', (100 * done) / hosts.length)
           progress += progressStepPerHost
-          task.set('progress', progress)
+          parentTask.set('progress', progress)
           continue
         }
 
@@ -180,7 +180,7 @@ const methods = {
           done++
           Task.set('progress', (100 * done) / hosts.length)
           progress += progressStepPerHost
-          task.set('progress', progress)
+          parentTask.set('progress', progress)
           continue
         }
         await Task.run(
@@ -218,11 +218,10 @@ const methods = {
             }
           }
         )
-
         done++
         Task.set('progress', (100 * done) / hosts.length)
         progress += progressStepPerHost
-        task.set('progress', progress)
+        parentTask.set('progress', progress)
       }
       // making the migration task fail if any of the migrations failed
       if (error !== undefined) {
@@ -230,7 +229,7 @@ const methods = {
       }
     })
     // avoids progress to be 100.0000002 or 99.99999 at the end
-    task.set('progress', 100)
+    parentTask.set('progress', 100)
   },
 }
 
