@@ -9,5 +9,12 @@
   "sidebar.vms-treeview": "VMs treeview",
 
   "vm": "VM",
-  "vm-description": "VM description"
+  "vm-description": "VM description",
+
+  "vms-halted-status": "Halted",
+  "vms-halted-status-tooltip": "Vms with an halted power state",
+  "vms-running-status": "Running",
+  "vms-status": "VMs status",
+  "vms-unknown-status": "Unknown",
+  "vms-unknown-status-tooltip": "Vms with an unknown power state"
 }

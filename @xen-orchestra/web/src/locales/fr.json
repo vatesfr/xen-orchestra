@@ -9,5 +9,12 @@
   "sidebar.vms-treeview": "Arborescence des VMs",
 
   "vm": "VM",
-  "vm-description": "Description de la VM"
+  "vm-description": "Description de la VM",
+
+  "vms-halted-status": "Arrêtées",
+  "vms-halted-status-tooltip": "VMs avec un état d'alimentation arrêté",
+  "vms-running-status": "En fonctionnement",
+  "vms-status": "Statut des VMs",
+  "vms-unknown-status": "Inconnu",
+  "vms-unknown-status-tooltip": "VMs avec un état d'alimentation inconnu"
 }
