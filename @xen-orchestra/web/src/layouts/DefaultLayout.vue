@@ -6,7 +6,7 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary">XO 5</UiButton>
+      <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary" @click="openXO5()">XO 5</UiButton>
       <ButtonIcon
         v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
         :icon="faBarsProgress"
@@ -51,6 +51,8 @@ defineSlots<{
 }>()
 
 const uiStore = useUiStore()
+
+const openXO5 = () => window.open('/', '_blank')
 </script>
 
 <style lang="postcss" scoped>
