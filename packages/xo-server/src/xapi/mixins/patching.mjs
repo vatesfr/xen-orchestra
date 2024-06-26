@@ -498,7 +498,7 @@ const methods = {
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
     await Task.run(
-      { properties: { name: `Listing missing patches`, total: hosts.length, done: 0, progress: 0 } },
+      { properties: { name: `Listing missing patches`, total: hosts.length, progress: 0, done: 0 } },
       async () => {
         let done = 0
         await asyncEach(hosts, async host => {
