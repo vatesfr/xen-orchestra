@@ -22,7 +22,7 @@ const TITLE_BY_STATUS = {
 
 // ===================================================================
 
-const ifCond = function (v1, operator, v2, options) {
+export function ifCond(v1, operator, v2, options) {
   switch (operator) {
     case '===':
       return v1 === v2 ? options.fn(this) : options.inverse(this)
@@ -45,15 +45,15 @@ const ifCond = function (v1, operator, v2, options) {
   }
 }
 
-const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
+export const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
-const formatSize = bytes =>
+export const formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
     unit: 'B',
   })
 
-const formatSpeed = (bytes, start, end) =>
+export const formatSpeed = (bytes, start, end) =>
   end - start > 0
     ? humanFormat((bytes * 1e3) / (end - start), {
         scale: 'binary',
@@ -61,29 +61,16 @@ const formatSpeed = (bytes, start, end) =>
       })
     : 'N/A'
 
-const subtract = (a, b) => a - b
+export const subtract = (a, b) => a - b
 
-const executeFunction = (fct, arg) => fct(arg)
-
-// this could be a partial but it would be less clear
-const getIcon = status => STATUS_ICON[status]
+export const executeFunction = (fct, arg) => fct(arg)
 
 // this could be a partial but it would be less clear
-const titleByStatus = (status, tasks) => {
+export const getIcon = status => STATUS_ICON[status]
+
+// this could be a partial but it would be less clear
+export function titleByStatus(status, tasks) {
   if (tasks && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](tasks.length)
   }
-}
-
-// ===================================================================
-
-export const helpers = {
-  ifCond,
-  formatDuration,
-  formatSize,
-  formatSpeed,
-  subtract,
-  executeFunction,
-  getIcon,
-  titleByStatus,
 }

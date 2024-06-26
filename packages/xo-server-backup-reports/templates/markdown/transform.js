@@ -1,5 +1,5 @@
 'use strict'
 
-exports.transform = function transform(source) {
-  return source
+exports.transform = async function transform(source) {
+  return { markdown: source }
 }

@@ -1,14 +1,16 @@
 import Handlebars from 'handlebars'
 import moment from 'moment-timezone'
-import pkg from '../package'
 import { createLogger } from '@xen-orchestra/log'
 import { extname, join, parse } from 'node:path'
-import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import { helpers } from './helpers'
+import { forEach, groupBy } from 'lodash'
 import { readdirSync, readFileSync } from 'node:fs'
+
+import pkg from '../package'
 import markdownTransform from '../templates/markdown/transform.js'
 import mjmlTransform from '../templates/mjml/transform.js'
+
+import * as helpers from './helpers'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -224,8 +226,8 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
-      markdown: markdownTransform.transform(templates.markdown.metadata(context)),
-      html: mjmlTransform.transform(templates.mjml.metadata(context)),
+      ...(await markdownTransform.transform(templates.markdown.metadata(context))),
+      ...(await mjmlTransform.transform(templates.mjml.metadata(context))),
       subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })
@@ -402,9 +404,9 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
+      ...(await markdownTransform.transform(templates.markdown.vm(context))),
+      ...(await mjmlTransform.transform(templates.mjml.vm(context))),
       mailReceivers,
-      markdown: await markdownTransform.transform(templates.markdown.vm(context)),
-      html: mjmlTransform.transform(templates.mjml.vm(context)),
       subject: templates.mjml.vmSubject(context),
       success: log.status === 'success',
     })
