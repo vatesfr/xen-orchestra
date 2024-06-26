@@ -79,9 +79,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   }
 
   async cleanup() {
-    if (!this._settings.deleteFirst || this._oldEntries) {
-      await this._deleteOldEntries()
-    }
+    await this._deleteOldEntries()
   }
 
   async _deleteOldEntries() {
