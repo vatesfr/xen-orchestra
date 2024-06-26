@@ -1,13 +1,5 @@
 <template>
-  <DefaultLayout>
-    <template #content>
-      <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
-      Welcome to XO 6
-      <!-- eslint-enable @intlify/vue-i18n/no-raw-text -->
-    </template>
-  </DefaultLayout>
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
+  Welcome to XO 6
+  <!-- eslint-enable @intlify/vue-i18n/no-raw-text -->
 </template>
-
-<script lang="ts" setup>
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-</script>
