@@ -50,7 +50,7 @@ const RESOURCE_COLUMNS = [
     sortCriteria: ({ inUse }) => inUse,
   },
   {
-    name: 'State',
+    name: _('state'),
     itemRenderer: ({ resourceState }) => resourceState,
     sortCriteria: ({ resourceState }) => resourceState,
   },
