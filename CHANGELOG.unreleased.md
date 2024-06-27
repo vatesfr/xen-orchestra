@@ -34,5 +34,5 @@
 - @xen-orchestra/xapi major
 - xo-server minor
 - xo-server-sdn-controller patch
-
+- xo-web patch
 <!--packages-end-->
