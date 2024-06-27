@@ -16,7 +16,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { error } from 'notification'
+import { error, success } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
@@ -193,10 +193,10 @@ const PCI_ACTIONS = [
 ]
 
 const SECUREBOOT_STATUS_MESSAGES = {
-  disabled: _('secureBootStatusNotEnforced'),
-  first_boot: _('secureBootStatusPending'),
-  ready: _('secureBootStatus'),
-  ready_no_dbx: _('secureBootStatusNoDbx'),
+  disabled: _('secureBootNotEnforced'),
+  first_boot: _('secureBootEnforcedPendingBoot'),
+  ready: _('secureBootEnforced'),
+  ready_no_dbx: _('secureBootNoDbx'),
   setup_mode: _('secureBootWantedButDisabled'),
   certs_incomplete: _('secureBootWantedButCertificatesMissing'),
 }
@@ -700,6 +700,7 @@ export default class TabAdvanced extends Component {
     }
 
     await vmSetUefiMode(vm, 'user')
+    success(_('propagateCertificatesTitle'), _('propagateCertificatesSuccessful'))
   }
 
   render() {
@@ -1138,7 +1139,7 @@ export default class TabAdvanced extends Component {
                         >
                           {_('propagateCertificates')}
                         </ActionButton>
-                        {isDisabled && vm.isFirmwareSupported && (
+                        {isDisabled && vm.boot.firmware !== 'uefi' && (
                           <div className='text-warning'>
                             <Icon icon='alarm' />
                             {_('propagateCertificatesButtonDisabled')}

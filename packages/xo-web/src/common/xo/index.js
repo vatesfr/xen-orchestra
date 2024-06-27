@@ -737,7 +737,9 @@ export const subscribeSecurebootReadiness = vm => {
   const vmId = resolveId(vm)
 
   if (subscribeVmSecurebootReadiness[vmId] === undefined) {
-    subscribeVmSecurebootReadiness[vmId] = createSubscription(() => _call('vm.getSecurebootReadiness', { vm: vmId }))
+    subscribeVmSecurebootReadiness[vmId] = createSubscription(() => _call('vm.getSecurebootReadiness', { vm: vmId }), {
+      polling: 3e4,
+    })
   }
 
   return subscribeVmSecurebootReadiness[vmId]
