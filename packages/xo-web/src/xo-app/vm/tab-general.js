@@ -54,6 +54,15 @@ const SANITIZE_OPTIONS = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
 }
 
+const SECUREBOOT_STATUS_MESSAGES = {
+  disabled: _('secureBootNotEnforced'),
+  first_boot: _('secureBootEnforcedPendingBoot'),
+  ready: _('secureBootEnforced'),
+  ready_no_dbx: _('secureBootNoDbx'),
+  setup_mode: _('secureBootWantedButDisabled'),
+  certs_incomplete: _('secureBootWantedButCertificatesMissing'),
+}
+
 const GuestToolsDetection = ({ vm }) => {
   if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
     return null
@@ -135,13 +144,12 @@ const GeneralTab = decorate([
       )(state, props),
     })
   }),
-  addSubscriptions(
-    ({ isAdmin, vm }) =>
-      isAdmin && {
-        vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
-      },
-    { vmSecurebootReadiness: vm => subscribeSecurebootReadiness(vm) }
-  ),
+  addSubscriptions(({ isAdmin, vm }) => ({
+    vmCreator: isAdmin
+      ? cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user)))
+      : () => {},
+    vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+  })),
   provideState({
     computed: {
       vmResolvedPendingTasks: (_, { resolvedPendingTasks, vm }) => {
@@ -280,7 +288,8 @@ const GeneralTab = decorate([
           <Col>
             <p>
               {_('secureBootStatus')}
-              {vmSecurebootReadiness}
+              {': '}
+              {SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]}
             </p>
           </Col>
         </Row>
