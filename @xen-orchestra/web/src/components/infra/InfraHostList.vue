@@ -1,21 +1,15 @@
 <template>
-  <TreeList v-if="isReady">
-    <InfraHostItem v-for="host in hosts" :key="host.id" :host />
-  </TreeList>
+  <InfraHostItem v-for="host in hosts" :key="host.id" :host />
 </template>
 
 <script lang="ts" setup>
 import InfraHostItem from '@/components/infra/InfraHostItem.vue'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { RecordId } from '@/types/xo-object.type'
-import TreeList from '@core/components/tree/TreeList.vue'
-import { computed } from 'vue'
+import type { Host } from '@/types/host.type'
+import type { Vm } from '@/types/vm.type'
+import type { Branch } from '@core/composables/tree/branch'
+import type { Leaf } from '@core/composables/tree/leaf'
 
-const props = defineProps<{
-  poolId: RecordId<'pool'>
+defineProps<{
+  hosts: Branch<Host, Leaf<Vm>>[]
 }>()
-
-const { hostsByPool, isReady } = useHostStore().subscribe()
-
-const hosts = computed(() => hostsByPool.value.get(props.poolId))
 </script>

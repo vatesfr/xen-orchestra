@@ -17,9 +17,10 @@
       <ButtonIcon
         v-if="hasToggle"
         v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
+        class="toggle"
         :icon="isExpanded ? faAngleDown : faAngleRight"
         size="small"
-        @click="toggle()"
+        @click="emit('toggle')"
       />
       <TreeLine v-else-if="!noIndent" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
@@ -40,12 +41,7 @@ import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeLine from '@core/components/tree/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import {
-  IK_TREE_ITEM_EXPANDED,
-  IK_TREE_ITEM_HAS_CHILDREN,
-  IK_TREE_ITEM_TOGGLE,
-  IK_TREE_LIST_DEPTH,
-} from '@core/utils/injection-keys.util'
+import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref } from 'vue'
@@ -62,9 +58,12 @@ defineProps<{
   noIndent?: boolean
 }>()
 
+const emit = defineEmits<{
+  toggle: []
+}>()
+
 const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
 
-const toggle = inject(IK_TREE_ITEM_TOGGLE, () => undefined)
 const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
 
 const depth = inject(IK_TREE_LIST_DEPTH, 0)
@@ -128,5 +127,16 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
 .icon {
   font-size: 1.6rem;
+}
+
+/*
+ * Increase the size of the clickable area,
+ * without changing the padding of the ButtonIcon component
+ */
+.toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: scale(1.5, 2);
 }
 </style>

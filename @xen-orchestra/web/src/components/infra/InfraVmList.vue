@@ -1,28 +1,13 @@
 <template>
-  <TreeList v-if="isReady">
-    <InfraVmItem v-for="vm in vms" :key="vm.id" :vm />
-  </TreeList>
+  <InfraVmItem v-for="vm in vms" :key="vm.id" :vm />
 </template>
 
-<script lang="ts" setup generic="TFor extends 'host' | 'pool'">
+<script lang="ts" setup>
 import InfraVmItem from '@/components/infra/InfraVmItem.vue'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { RecordId } from '@/types/xo-object.type'
-import TreeList from '@core/components/tree/TreeList.vue'
-import { computed } from 'vue'
+import type { Vm } from '@/types/vm.type'
+import type { Leaf } from '@core/composables/tree/leaf'
 
-const props = defineProps<{
-  for: TFor
-  containerId: RecordId<TFor>
+defineProps<{
+  vms: Leaf<Vm>[]
 }>()
-
-const { isReady, vmsByHost, hostLessVmsByPool } = useVmStore().subscribe()
-
-const vms = computed(() => {
-  if (props.for === 'pool') {
-    return hostLessVmsByPool.value.get(props.containerId as RecordId<'pool'>) ?? []
-  }
-
-  return vmsByHost.value.get(props.containerId as RecordId<'host'>) ?? []
-})
 </script>

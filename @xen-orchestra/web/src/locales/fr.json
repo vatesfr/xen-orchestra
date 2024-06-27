@@ -1,4 +1,9 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
+  "no-results": "Aucun résultat",
+
+  "sidebar.search-tree-view": "Rechercher dans l'arborescence",
+  "sidebar.vms-treeview": "Arborescence des VMs",
+
   "tasks.quick-view": "Vue rapide des tâches (bientôt disponible)"
 }
