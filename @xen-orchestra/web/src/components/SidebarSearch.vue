@@ -5,7 +5,7 @@
       id="tree-search"
       v-model="search"
       :aria-label="$t('sidebar.search-tree-view')"
-      :left-icon="faMagnifyingGlass"
+      :icon="faMagnifyingGlass"
       :placeholder="$t('sidebar.search-tree-view')"
     />
   </div>
@@ -16,7 +16,7 @@ import DropdownTitle from '@core/components/dropdown/DropdownTitle.vue'
 import UiInput from '@core/components/input/UiInput.vue'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
-const search = defineModel<string>()
+const search = defineModel<string>({ default: '' })
 </script>
 
 <style lang="postcss" scoped>
