@@ -34,7 +34,7 @@
 
 - @xen-orchestra/xapi major
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-server-sdn-controller patch
-- xo-server-transport-email minor
 
 <!--packages-end-->
