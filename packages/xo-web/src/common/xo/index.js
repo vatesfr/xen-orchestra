@@ -1450,7 +1450,7 @@ export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId
 
 export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
 
-export const vmSetUefiMode = (vm, mode) => _call('vm.setUefiMode', { id: resolveId(vm), mode })
+export const vmSetUefiMode = (vm, mode) => _call('vm.set', { id: resolveId(vm), uefiMode: mode })
 
 // Containers --------------------------------------------------------
 

@@ -693,8 +693,6 @@ export default class TabAdvanced extends Component {
       vmSecurebootReadiness === 'ready_no_dbx'
 
     if (confirmNeeded) {
-      SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]
-
       await confirm({
         title: _('propagateCertificatesTitle'),
         body: <p>{_('propagateCertificatesConfirm')}</p>,
@@ -1107,60 +1105,59 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                {vm.boot.firmware === 'uefi' && semver.satisfies(host?.version, '>=8.3.0') && (
-                  <tr>
-                    <th>{_('secureBootStatus')}</th>
-                    <td>
-                      {SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]}
-                      {(vmSecurebootReadiness === 'setup_mode' ||
-                        vmSecurebootReadiness === 'certs_incomplete' ||
-                        vmSecurebootReadiness === 'ready_no_dbx') &&
-                        host?.productBrand === 'XCP-ng' && (
+                {vm.boot.firmware === 'uefi' &&
+                  semver.satisfies(host?.version, '>=8.3.0') && [
+                    <tr key='secureBootStatus'>
+                      <th>{_('secureBootStatus')}</th>
+                      <td>
+                        {SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]}
+                        {(vmSecurebootReadiness === 'setup_mode' ||
+                          vmSecurebootReadiness === 'certs_incomplete' ||
+                          vmSecurebootReadiness === 'ready_no_dbx') &&
+                          host?.productBrand === 'XCP-ng' && (
+                            <a
+                              className='text-warning'
+                              href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/#troubleshoot-guest-secure-boot-issues'
+                              rel='noreferrer'
+                              style={{ display: 'block' }}
+                              target='_blank'
+                            >
+                              <Icon icon='alarm' /> {_('secureBootLinkToDocumentationMessage')}
+                            </a>
+                          )}
+                      </td>
+                    </tr>,
+                    <tr key='propagateCertificatesButton'>
+                      <th>{_('propagateCertificatesTitle')} </th>
+                      <td>
+                        <ActionButton
+                          btnStyle='primary'
+                          disabled={isDisabled}
+                          handler={this._confirmUefiMode}
+                          icon='vm-clone'
+                        >
+                          {_('propagateCertificates')}
+                        </ActionButton>
+                        {isDisabled && vm.isFirmwareSupported && (
+                          <div className='text-warning'>
+                            <Icon icon='alarm' />
+                            {_('propagateCertificatesButtonDisabled')}
+                          </div>
+                        )}
+                        {poolGuestSecurebootReadiness === 'not_ready' && (
                           <a
                             className='text-warning'
-                            /* href=link to be provided by Samuel  */
+                            href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/#configure-the-pool'
                             rel='noreferrer'
                             style={{ display: 'block' }}
                             target='_blank'
                           >
-                            <Icon icon='alarm' /> {_('secureBootLinkToDocumentationMessage')}
+                            <Icon icon='alarm' /> {_('noSecureBoot')}
                           </a>
                         )}
-                    </td>
-                  </tr>
-                )}
-                {vm.boot.firmware === 'uefi' && (
-                  <tr>
-                    <th>{_('propagateCertificatesTitle')} </th>
-                    <td>
-                      <ActionButton
-                        btnStyle='primary'
-                        disabled={isDisabled}
-                        handler={this._confirmUefiMode}
-                        icon='vm-clone'
-                      >
-                        {_('propagateCertificates')}
-                      </ActionButton>
-                      {isDisabled && (
-                        <div className='text-warning'>
-                          <Icon icon='alarm' />
-                          {_('propagateCertificatesButtonDisabled')}
-                        </div>
-                      )}
-                      {poolGuestSecurebootReadiness === 'not_ready' && (
-                        <a
-                          className='text-warning'
-                          /* href=link to be provided by Samuel  */
-                          rel='noreferrer'
-                          style={{ display: 'block' }}
-                          target='_blank'
-                        >
-                          <Icon icon='alarm' /> {_('noSecureBoot')}
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                )}
+                      </td>
+                    </tr>,
+                  ]}
                 <tr>
                   <th>{_('vtpm')}</th>
                   <td>

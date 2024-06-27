@@ -36,6 +36,7 @@ import {
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 import { injectState, provideState } from 'reaclette'
 import { find } from 'lodash'
+import { subscribeSecurebootReadiness } from '../../common/xo'
 
 const CREATED_VM_STYLES = {
   whiteSpace: 'pre-line',
@@ -138,7 +139,8 @@ const GeneralTab = decorate([
     ({ isAdmin, vm }) =>
       isAdmin && {
         vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
-      }
+      },
+    { vmSecurebootReadiness: vm => subscribeSecurebootReadiness(vm) }
   ),
   provideState({
     computed: {
@@ -158,6 +160,7 @@ const GeneralTab = decorate([
     vgpuTypes,
     vm,
     vmCreator,
+    vmSecurebootReadiness,
     vmTemplate,
     vmTotalDiskSpace,
   }) => {
@@ -273,6 +276,14 @@ const GeneralTab = decorate([
         <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
+        <Row className='text-xs-center'>
+          <Col>
+            <p>
+              {_('secureBootStatus')}
+              {vmSecurebootReadiness}
+            </p>
+          </Col>
+        </Row>
         <Row>
           <Col>
             <h2 className='text-xs-center'>

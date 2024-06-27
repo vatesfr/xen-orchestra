@@ -678,7 +678,7 @@ export const set = defer(async function ($defer, params) {
 
   const uefiMode = extract(params, 'uefiMode')
   if (uefiMode !== undefined) {
-    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode === null ? Ref.EMPTY : uefiMode._xapiRef)
+    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode)
   }
 
   const xenStoreData = extract(params, 'xenStoreData')
@@ -819,7 +819,6 @@ set.params = {
 set.resolve = {
   VM: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
   suspendSr: ['suspendSr', 'SR', 'administrate'],
-  uefiMode: ['id', 'VM', 'administrate'],
 }
 
 // -------------------------------------------------------------------
