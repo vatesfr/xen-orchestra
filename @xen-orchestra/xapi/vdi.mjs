@@ -165,6 +165,8 @@ class Vdi {
           finished(stream, () => {
             nbdClient.disconnect()
             exportStream?.destroy() // ensure the source stream is really closed
+
+            this.task_destroy(taskRef).catch(warn)
           })
         }
       }
