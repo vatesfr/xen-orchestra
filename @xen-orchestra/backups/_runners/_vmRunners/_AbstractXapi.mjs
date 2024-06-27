@@ -157,7 +157,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
 
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
-          ignoreNobakVdis: true,
+          ignoredVdisTag: '[NOBAK]',
           name_label: this._getSnapshotNameLabel(vm),
           unplugVusbs: true,
         })
