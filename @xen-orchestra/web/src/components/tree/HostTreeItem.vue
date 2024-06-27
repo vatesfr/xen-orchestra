@@ -1,26 +1,28 @@
 <template>
-  <TreeItem :expanded="host.isExpanded">
-    <TreeItemLabel :icon="faServer" :no-indent="!hasVMs" :route="`/host/${host.id}`" @toggle="host.toggleExpand()">
-      {{ host.label }}
+  <TreeItem :expanded="branch.isExpanded">
+    <TreeItemLabel
+      :icon="faServer"
+      :no-indent="!hasVMs"
+      :route="`/host/${branch.data.id}`"
+      @toggle="branch.toggleExpand()"
+    >
+      {{ branch.data.name_label }}
       <template #addons>
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
       </template>
     </TreeItemLabel>
     <template #sublist>
       <TreeList>
-        <InfraVmList :vms="host.children" />
+        <VmTreeList :leaves="branch.children" />
       </TreeList>
     </template>
   </TreeItem>
 </template>
 
 <script lang="ts" setup>
-import InfraVmList from '@/components/infra/InfraVmList.vue'
+import VmTreeList from '@/components/tree/VmTreeList.vue'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { Host } from '@/types/host.type'
-import type { Vm } from '@/types/vm.type'
-import type { Branch } from '@core/composables/tree/branch'
-import type { Leaf } from '@core/composables/tree/leaf'
+import type { HostBranch } from '@/types/host.type'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
@@ -30,12 +32,12 @@ import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  host: Branch<Host, Leaf<Vm>>
+  branch: HostBranch
 }>()
 
 const { isMasterHost } = useHostStore().subscribe()
 
-const isMaster = computed(() => isMasterHost(props.host.data.id))
+const isMaster = computed(() => isMasterHost(props.branch.data.id))
 
-const hasVMs = computed(() => props.host.children.length > 0)
+const hasVMs = computed(() => props.branch.children.length > 0)
 </script>
