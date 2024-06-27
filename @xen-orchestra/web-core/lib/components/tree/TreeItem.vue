@@ -10,12 +10,9 @@
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    expanded?: boolean
-  }>(),
-  { expanded: true }
-)
+const props = defineProps<{
+  expanded?: boolean
+}>()
 
 defineSlots<{
   default: () => void

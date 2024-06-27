@@ -2,7 +2,6 @@
   <div class="sidebar-search">
     <DropdownTitle>{{ $t('sidebar.vms-treeview') }}</DropdownTitle>
     <UiInput
-      id="tree-search"
       v-model="search"
       :aria-label="$t('sidebar.search-tree-view')"
       :icon="faMagnifyingGlass"
