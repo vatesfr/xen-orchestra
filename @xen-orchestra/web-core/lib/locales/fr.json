@@ -37,6 +37,7 @@
   "log-out": "Se déconnecter",
   "master": "Hôte primaire",
   "network": "Réseau",
+  "object-not-found": "L'objet {id} est introuvable…",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
   "stats": "Stats",
   "storage": "Stockage",

@@ -17,17 +17,8 @@
     <template #sidebar-content>
       <InfraPoolList />
     </template>
-    <template #content-header>
-      <slot name="content-header" />
-    </template>
     <template #content>
-      <slot name="content" />
-    </template>
-    <template v-if="$slots['panel-header']" #panel-header>
-      <slot name="panel-header" />
-    </template>
-    <template v-if="$slots['panel-content']" #panel-content>
-      <slot name="panel-content" />
+      <slot />
     </template>
   </CoreLayout>
 </template>
@@ -42,13 +33,6 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { faArrowUpRightFromSquare, faBarsProgress } from '@fortawesome/free-solid-svg-icons'
-
-defineSlots<{
-  content(): any
-  'panel-header'(): any
-  'panel-content'(): any
-  'content-header'(): any
-}>()
 
 const uiStore = useUiStore()
 </script>
