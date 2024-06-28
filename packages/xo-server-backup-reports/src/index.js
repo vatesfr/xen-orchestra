@@ -1,12 +1,14 @@
 import Handlebars from 'handlebars'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
-import { forEach, groupBy } from 'lodash'
-import { get } from '@xen-orchestra/defined'
 import { extname, join, parse } from 'node:path'
+import { get } from '@xen-orchestra/defined'
+import { forEach, groupBy } from 'lodash'
 import { readdirSync, readFileSync } from 'node:fs'
+
 import pkg from '../package'
-import './helpers'
+
+import * as helpers from './helpers'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -53,26 +55,49 @@ export const testSchema = {
 
 // ===================================================================
 
-const handlebarsPartialFiles = readdirSync(join(__dirname, '../templates/partials/')).filter(
-  filename => extname(filename) === '.hbs'
-)
-for (const fileName of handlebarsPartialFiles) {
-  const partial = readFileSync(join(__dirname, `../templates/partials/${fileName}`)).toString()
-  Handlebars.registerPartial(parse(fileName).name, partial)
+// Handlebars environments
+const markdownHandlebars = Handlebars.create()
+const mjmlHandlebars = Handlebars.create()
+
+// Handlebars common helpers
+for (const [helperName, helper] of Object.entries(helpers)) {
+  markdownHandlebars.registerHelper(helperName, helper)
+  mjmlHandlebars.registerHelper(helperName, helper)
 }
 
-const compiledMetadataSubject = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/metadataSubject.hbs')).toString().replace(/\n$/, '')
-)
-const compiledMetadataTemplate = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/metadata.hbs')).toString().replace(/\n$/, '')
-)
-const compiledVmSubject = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/vmSubject.hbs')).toString().replace(/\n$/, '')
-)
-const compiledVmTemplate = Handlebars.compile(
-  readFileSync(join(__dirname, '../templates/vm.hbs')).toString().replace(/\n$/, '')
-)
+// Handlebars partials
+const registerPartials = (path, handlebarsEnvironment) => {
+  const handlebarsPartialFiles = readdirSync(join(__dirname, path)).filter(filename => extname(filename) === '.hbs')
+  for (const fileName of handlebarsPartialFiles) {
+    const partial = readFileSync(join(__dirname, `${path}${fileName}`)).toString()
+    handlebarsEnvironment.registerPartial(parse(fileName).name, partial)
+  }
+}
+registerPartials('../templates/markdown/partials/', markdownHandlebars)
+registerPartials('../templates/mjml/partials/', mjmlHandlebars)
+
+// Handlebars templates
+const readCompileHbs = (path, handlebarsEnvironment) =>
+  handlebarsEnvironment.compile(readFileSync(join(__dirname, path)).toString().replace(/\n$/, ''))
+const importTemplateFolder = (folder, handlebarsEnvironment) => ({
+  metadata: readCompileHbs(`${folder}/metadata.hbs`, handlebarsEnvironment),
+  metadataSubject: readCompileHbs(`${folder}/metadataSubject.hbs`, handlebarsEnvironment),
+  vm: readCompileHbs(`${folder}/vm.hbs`, handlebarsEnvironment),
+  vmSubject: readCompileHbs(`${folder}/vmSubject.hbs`, handlebarsEnvironment),
+})
+
+const templates = {
+  markdown: importTemplateFolder('../templates/markdown', markdownHandlebars),
+  mjml: importTemplateFolder('../templates/mjml', mjmlHandlebars),
+}
+
+// Templates transforms
+const templatesTransform = {}
+for (const name of ['markdown', 'mjml']) {
+  import(`../templates/${name}/transform.js`).then(module => {
+    templatesTransform[name] = module.transform
+  })
+}
 
 // ===================================================================
 
@@ -88,7 +113,7 @@ const noop = Function.prototype
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
-  '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
+  '(unhealthy VDI chain) Job canceled to protect the VDI chain. See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
 const getAdditionnalData = async (task, props) => {
   if (task.data?.type === 'remote') {
@@ -207,8 +232,9 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
-      subject: compiledMetadataSubject(context),
-      markdown: compiledMetadataTemplate(context),
+      ...(await templatesTransform.markdown(templates.markdown.metadata(context))),
+      ...(await templatesTransform.mjml(templates.mjml.metadata(context))),
+      subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })
   }
@@ -384,14 +410,15 @@ class BackupReportsXoPlugin {
     }
 
     return this._sendReport({
+      ...(await templatesTransform.markdown(templates.markdown.vm(context))),
+      ...(await templatesTransform.mjml(templates.mjml.vm(context))),
       mailReceivers,
-      markdown: compiledVmTemplate(context),
-      subject: compiledVmSubject(context),
+      subject: templates.mjml.vmSubject(context),
       success: log.status === 'success',
     })
   }
 
-  async _sendReport({ mailReceivers, markdown, subject, success }) {
+  async _sendReport({ mailReceivers, markdown, html, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -404,7 +431,8 @@ class BackupReportsXoPlugin {
           : xo.sendEmail({
               to: mailReceivers,
               subject,
-              markdown,
+              html,
+              text: markdown,
             })),
       this._xmppReceivers !== undefined &&
         (xo.sendEmail === undefined

@@ -627,7 +627,7 @@ class Vm {
     if (ignoredVdisTag !== undefined) {
       ignoredVbds = await listTaggedVdiVbds(this, vm.VBDs, ignoredVdisTag)
       if (ignoredVbds.length === 0) {
-        ignoredVbds = ignoredVbds.length !== 0
+        ignoredVbds = undefined
       }
     }
 

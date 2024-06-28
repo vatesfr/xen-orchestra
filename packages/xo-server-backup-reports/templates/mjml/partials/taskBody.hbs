@@ -1,0 +1,10 @@
+{{#ifCond task.data.type '===' 'remote'}}
+<li><span style="font-weight:bold">ID</span>: {{task.data.id}}</li>
+{{/ifCond}}
+{{#ifCond task.data.type '===' 'pool'}}
+{{#if task.data.pool.uuid}}
+<li><span style="font-weight:bold">UUID</span>: {{task.data.pool.uuid}}</li>
+{{else}}
+<li><span style="font-weight:bold">ID</span>: {{task.data.id}}</li>
+{{/if}}
+{{/ifCond}}

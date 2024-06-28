@@ -101,7 +101,6 @@ mergeBlockConcurrency = 2
 # how many block can be uploaded in parallel
 # increase to in rease performance, reduce if you have timeout or memory error during transfer
 writeBlockConcurrency = 16
-purgeSnapshotData = false
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
