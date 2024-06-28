@@ -2,21 +2,22 @@
 <template>
   <li class="tree-item">
     <slot />
-    <slot v-if="isExpanded" name="sublist" />
+    <slot v-if="expanded" name="sublist" />
   </li>
 </template>
 
 <script lang="ts" setup>
-import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_ITEM_TOGGLE } from '@core/utils/injection-keys.util'
-import { useToggle } from '@vueuse/core'
-import { onBeforeMount, onBeforeUpdate, provide, ref, useSlots } from 'vue'
+import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
+import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
+
+const props = defineProps<{
+  expanded?: boolean
+}>()
 
 defineSlots<{
   default: () => void
   sublist: () => void
 }>()
-
-const [isExpanded, toggle] = useToggle(true)
 
 const hasChildren = ref(false)
 
@@ -29,6 +30,5 @@ onBeforeMount(() => updateHasChildren())
 onBeforeUpdate(() => updateHasChildren())
 
 provide(IK_TREE_ITEM_HAS_CHILDREN, hasChildren)
-provide(IK_TREE_ITEM_TOGGLE, toggle)
-provide(IK_TREE_ITEM_EXPANDED, isExpanded)
+provide(IK_TREE_ITEM_EXPANDED, toRef(props, 'expanded'))
 </script>

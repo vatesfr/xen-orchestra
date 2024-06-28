@@ -1,9 +1,9 @@
 <!-- WIP -->
 <template>
   <div class="ui-input">
-    <UiIcon class="before" :icon />
-    <input :id v-model.trim="modelValue" type="search" v-bind="$attrs" class="typo p1-regular input" />
-    <UiIcon v-if="!$attrs.disabled && modelValue" class="after" :icon="faXmark" @click="modelValue = ''" />
+    <UiIcon :icon class="before" />
+    <input :id v-model.trim="modelValue" class="typo p1-regular input" type="search" v-bind="$attrs" />
+    <UiIcon v-if="!$attrs.disabled && modelValue" :icon="faXmark" class="after" color="info" @click="modelValue = ''" />
   </div>
 </template>
 
@@ -113,10 +113,10 @@ const id = computed(() => uniqueId('input-'))
 .after {
   position: absolute;
   inset-block: 1.2rem;
-  color: var(--color-grey-400);
 }
 
 .before {
+  color: var(--color-grey-400);
   inset-inline-start: 1.6rem;
   pointer-events: none;
   z-index: 1;
