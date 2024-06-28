@@ -41,11 +41,14 @@ import {
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
+  subscribeBackupNgJobs,
   subscribeCloudConfigs,
   subscribeCloudXoConfigBackups,
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeNetworkConfigs,
   subscribeProxies,
   subscribeRemotes,
@@ -705,6 +708,52 @@ export const SelectUser = makeSubscriptionSelect(
 )
 
 // ===================================================================
+
+const TYPE_FOR_SELECT_BACKUP_JOB = 'backupJob'
+export const SelectBackupJob = makeSubscriptionSelect(
+  subscriber => {
+    let xoObjects = {}
+
+    let backupJobsLoaded, metadataJobsLoaded, mirrorJobsLoaded
+    const set = objects => {
+      xoObjects = objects
+
+      if (backupJobsLoaded && metadataJobsLoaded && mirrorJobsLoaded) {
+        subscriber({
+          xoObjects,
+          xoContainers: [
+            { id: 'backup', label: _('backup') },
+            { id: 'mirror', label: _('mirrorBackup') },
+            { id: 'metadata', label: _('backupMetadata') },
+          ],
+        })
+      }
+    }
+    const unsubscribeBackupJob = subscribeBackupNgJobs(backupJobs => {
+      backupJobsLoaded = true
+      set({ ...xoObjects, backup: backupJobs.map(job => ({ ...job, type: TYPE_FOR_SELECT_BACKUP_JOB })) })
+    })
+
+    const unsubscribeMetadataJob = subscribeMetadataBackupJobs(metadataJobs => {
+      metadataJobsLoaded = true
+      set({ ...xoObjects, metadata: metadataJobs.map(job => ({ ...job, type: TYPE_FOR_SELECT_BACKUP_JOB })) })
+    })
+
+    const unsubscribeMirrorJob = subscribeMirrorBackupJobs(mirrorJobs => {
+      mirrorJobsLoaded = true
+      set({ ...xoObjects, mirror: mirrorJobs.map(job => ({ ...job, type: TYPE_FOR_SELECT_BACKUP_JOB })) })
+    })
+
+    return () => {
+      unsubscribeBackupJob()
+      unsubscribeMetadataJob()
+      unsubscribeMirrorJob()
+    }
+  },
+  {
+    placeholder: _('selectBackupJob'),
+  }
+)
 
 export const SelectRole = makeSubscriptionSelect(
   subscriber => {

@@ -1,5 +1,7 @@
-import defined from '@xen-orchestra/defined'
-import { find, forEach, includes, map } from 'lodash'
+import defined, { get } from '@xen-orchestra/defined'
+import { find, forEach, includes, isEmpty, map, some } from 'lodash'
+
+import { destructPattern } from '../../xo-app/backup/utils'
 
 export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
   const originNetwork = networks[vif.$network]
@@ -41,3 +43,11 @@ export const getDefaultMigrationNetwork = (intraPool, destHost, pools, pifs) => 
     intraPool ? {} : defaultPif
   ).$network
 }
+
+export const isDeltaBackup = backup => backup.mode === 'delta' && !isEmpty(get(() => destructPattern(backup.remotes)))
+export const isFullBackup = backup => backup.mode === 'full' && !isEmpty(get(() => destructPattern(backup.remotes)))
+export const isCRBackup = backup => isDeltaBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
+export const isDRBackup = backup => isFullBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
+export const isRollingSnapshotBackup = backup => some(backup.settings, setting => setting.snapshotRetention > 0)
+export const isPoolMetadataBackup = backup => !isEmpty(destructPattern(backup.pools))
+export const isXoConfigBackup = backup => backup.xoMetadata !== undefined

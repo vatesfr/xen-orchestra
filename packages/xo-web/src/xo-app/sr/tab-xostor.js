@@ -49,6 +49,11 @@ const RESOURCE_COLUMNS = [
     sortCriteria: ({ inUse }) => inUse,
   },
   {
+    name: _('state'),
+    itemRenderer: ({ resourceState }) => resourceState,
+    sortCriteria: ({ resourceState }) => resourceState,
+  },
+  {
     name: _('diskState'),
     itemRenderer: ({ volume }) => volume['disk-state'],
     sortCriteria: ({ volume }) => volume['disk-state'],
@@ -171,6 +176,9 @@ export default class TabXostor extends Component {
             const nodeStatus = healthCheck.nodes[hostname]
             const host = this.props.hostByHostname[hostname][0]
 
+            const resourceState = _(
+              `${nodeInfo['tie-breaker'] ? 'tieBreaker' : nodeInfo.diskful ? 'diskful' : 'diskless'}`
+            )
             acc.push({
               inUse: nodeInfo['in-use'],
               vdiId: healthCheck.resources[resourceName].uuid,
@@ -178,6 +186,7 @@ export default class TabXostor extends Component {
               nodeStatus,
               host,
               resourceName,
+              resourceState,
             })
           }
           return acc
