@@ -1,4 +1,7 @@
+import type { HostBranch } from '@/types/host.type'
+import type { VmLeaf } from '@/types/vm.type'
 import type { RecordId } from '@/types/xo-object.type'
+import type { Branch } from '@core/composables/tree/branch'
 
 export type Pool = {
   id: RecordId<'pool'>
@@ -9,3 +12,5 @@ export type Pool = {
   name_label: string
   _xapiRef: string
 }
+
+export type PoolBranch = Branch<Pool, HostBranch | VmLeaf, 'pool'>

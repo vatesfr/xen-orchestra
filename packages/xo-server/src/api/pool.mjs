@@ -234,8 +234,7 @@ export const rollingUpdate = async function ({ bypassBackupCheck = false, pool }
     await backupGuard.call(this, poolId)
   }
 
-  const task = this.tasks.create({ name: `Rolling pool update`, poolId, poolName: pool.name_label })
-  return task.run(async () => this.rollingPoolUpdate(pool))
+  await this.rollingPoolUpdate(pool)
 }
 
 rollingUpdate.params = {
@@ -259,8 +258,8 @@ export async function rollingReboot({ bypassBackupCheck, pool }) {
   } else {
     await backupGuard.call(this, poolId)
   }
-  const task = this.tasks.create({ name: `Rolling pool reboot`, poolId, poolName: pool.name_label })
-  return task.run(async () => this.rollingPoolReboot(pool))
+
+  await this.rollingPoolReboot(pool)
 }
 
 rollingReboot.params = {
