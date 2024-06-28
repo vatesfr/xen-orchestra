@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
