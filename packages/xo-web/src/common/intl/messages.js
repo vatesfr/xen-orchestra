@@ -2646,7 +2646,7 @@ const messages = {
   setAsPreferred: 'Set as preferred',
   storage: 'Storage',
   summary: 'Summary',
-  tieBreaker: 'Tie reaker',
+  tieBreaker: 'Tie breaker',
   whiteSpaceNotAllowed: 'White space not allowed',
   wrongNumberOfHosts: 'Wrong number of hosts',
   xostor: 'XOSTOR',
