@@ -249,7 +249,7 @@ const GeneralTab = decorate([
           </Col>
           <Col mediumSize={3}>
             <p>{getVirtualizationModeLabel(vm)}</p>
-            {vgpu !== undefined && <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>}
+            {vgpu !== undefined && <p>{renderXoItem(vgpu)}</p>}
           </Col>
           <Col mediumSize={3}>
             <BlockLink to={`/vms/${id}/network`}>
