@@ -732,6 +732,50 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
+const subscribeVmSecurebootReadiness = {}
+export const subscribeSecurebootReadiness = id => {
+  const vmId = resolveId(id)
+
+  if (subscribeVmSecurebootReadiness[vmId] === undefined) {
+    subscribeVmSecurebootReadiness[vmId] = createSubscription(() => _call('vm.getSecurebootReadiness', { id: vmId }), {
+      polling: 3e4,
+    })
+  }
+
+  return subscribeVmSecurebootReadiness[vmId]
+}
+subscribeSecurebootReadiness.forceRefresh = vm => {
+  if (vm === undefined) {
+    forEach(subscribeVmSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeVmSecurebootReadiness[resolveId(vm)]
+  subscription?.forceRefresh()
+}
+
+const subscribePoolGuestSecurebootReadiness = {}
+export const subscribeGetGuestSecurebootReadiness = pool => {
+  const poolId = resolveId(pool)
+
+  if (subscribePoolGuestSecurebootReadiness[poolId] === undefined) {
+    subscribePoolGuestSecurebootReadiness[poolId] = createSubscription(() =>
+      _call('pool.getGuestSecureBootReadiness', { id: poolId })
+    )
+  }
+
+  return subscribePoolGuestSecurebootReadiness[poolId]
+}
+subscribePoolGuestSecurebootReadiness.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(subscribePoolGuestSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribePoolGuestSecurebootReadiness[resolveId(pool)]
+  subscription?.forceRefresh()
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -1407,6 +1451,9 @@ export const isPciPassthroughAvailable = host =>
 export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
 
 export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
+export const vmSetUefiMode = (vm, mode) =>
+  _call('vm.set', { id: resolveId(vm), uefiMode: mode })::tap(() => subscribeSecurebootReadiness.forceRefresh(vm))
 
 // Containers --------------------------------------------------------
 

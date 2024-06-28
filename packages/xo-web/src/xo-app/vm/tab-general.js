@@ -12,7 +12,7 @@ import HomeTags from 'home-tags'
 import renderXoItem, { VmTemplate } from 'render-xo-item'
 import sanitizeHtml from 'sanitize-html'
 import Tooltip from 'tooltip'
-import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
+import { addTag, editVm, editVmNotes, removeTag, subscribeSecurebootReadiness, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -51,6 +51,15 @@ const NOTES_STYLE = {
 
 const SANITIZE_OPTIONS = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+}
+
+const SECUREBOOT_STATUS_MESSAGES = {
+  disabled: _('secureBootNotEnforced'),
+  first_boot: _('secureBootEnforcedPendingBoot'),
+  ready: _('secureBootEnforced'),
+  ready_no_dbx: _('secureBootNoDbx'),
+  setup_mode: _('secureBootWantedButDisabled'),
+  certs_incomplete: _('secureBootWantedButCertificatesMissing'),
 }
 
 const GuestToolsDetection = ({ vm }) => {
@@ -134,12 +143,12 @@ const GeneralTab = decorate([
       )(state, props),
     })
   }),
-  addSubscriptions(
-    ({ isAdmin, vm }) =>
-      isAdmin && {
-        vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
-      }
-  ),
+  addSubscriptions(({ isAdmin, vm }) => ({
+    vmCreator: isAdmin
+      ? cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user)))
+      : () => {},
+    vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+  })),
   provideState({
     computed: {
       vmResolvedPendingTasks: (_, { resolvedPendingTasks, vm }) => {
@@ -158,6 +167,7 @@ const GeneralTab = decorate([
     vgpuTypes,
     vm,
     vmCreator,
+    vmSecurebootReadiness,
     vmTemplate,
     vmTotalDiskSpace,
   }) => {
@@ -273,6 +283,16 @@ const GeneralTab = decorate([
         <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
+        <Row className='text-xs-center'>
+          <Col>
+            <p>
+              {_('keyValue', {
+                key: _('secureBootStatus'),
+                value: SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness],
+              })}
+            </p>
+          </Col>
+        </Row>
         <Row>
           <Col>
             <h2 className='text-xs-center'>

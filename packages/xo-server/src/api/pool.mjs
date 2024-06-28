@@ -334,6 +334,22 @@ getLicenseState.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function getGuestSecureBootReadiness({ pool }) {
+  return this.getXapi(pool).call('pool.get_guest_secureboot_readiness', pool._xapiRef)
+}
+
+getGuestSecureBootReadiness.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+getGuestSecureBootReadiness.resolve = {
+  pool: ['id', 'pool', 'view'],
+}
+
+// -------------------------------------------------------------------
+
 async function handleInstallSupplementalPack(req, res, { poolId }) {
   const xapi = this.getXapi(poolId)
 
