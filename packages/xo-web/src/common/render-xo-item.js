@@ -14,6 +14,15 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
+import {
+  isCRBackup,
+  isDeltaBackup,
+  isDRBackup,
+  isFullBackup,
+  isPoolMetadataBackup,
+  isRollingSnapshotBackup,
+  isXoConfigBackup,
+} from './xo/utils'
 
 // ===================================================================
 
@@ -697,6 +706,55 @@ const xoItemToRender = {
     )
   },
   job: job => <spans>{job.name}</spans>,
+  
+  backupJob: ({ _type, type, ...backupJob }) => {
+    const getLabels = () => {
+      const labels = []
+
+      if (_type === 'mirrorBackup' || type === 'mirrorBackup') {
+        labels.push(_(backupJob.mode === 'delta' ? 'mirrorIncrementalBackup' : 'mirrorFullBackup'))
+        return labels
+      }
+
+      if (_type === 'metadataBackup' || type === 'metadataBackup') {
+        if (isPoolMetadataBackup(backupJob)) {
+          labels.push(_('poolMetadata'))
+        }
+        if (isXoConfigBackup(backupJob)) {
+          labels.push(_('xoConfig'))
+        }
+        return labels
+      }
+
+      if (isDRBackup(backupJob)) {
+        labels.push(_('fullReplication'))
+      } else if (isFullBackup(backupJob)) {
+        labels.push(_('fullBackup'))
+      } else if (isCRBackup(backupJob)) {
+        labels.push(_('incrementalReplication'))
+      } else if (isDeltaBackup(backupJob)) {
+        labels.push(_('incrementalBackup'))
+      }
+
+      if (isRollingSnapshotBackup(backupJob)) {
+        labels.push(_('rollingSnapshot'))
+      }
+
+      return labels
+    }
+
+    const labels = getLabels()
+    return (
+      <span>
+        <span>{backupJob.name}</span>
+        {labels.map((label, index) => (
+          <span key={index} className='tag tag-info ml-1'>
+            {label}
+          </span>
+        ))}
+      </span>
+    )
+  },
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {

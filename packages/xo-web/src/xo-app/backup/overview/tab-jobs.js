@@ -17,7 +17,7 @@ import { connectStore } from 'utils'
 import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
-import { groupBy, isEmpty, map, some } from 'lodash'
+import { groupBy, map } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { Proxy } from 'render-xo-item'
 import { smartModeToComplexMatcher } from 'smartModeToComplexMatcher'
@@ -36,9 +36,17 @@ import {
   subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
+import {
+  isCRBackup,
+  isDRBackup,
+  isDeltaBackup,
+  isFullBackup,
+  isPoolMetadataBackup,
+  isRollingSnapshotBackup,
+  isXoConfigBackup,
+} from 'xo/utils'
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
-import { destructPattern } from '../utils'
 import { REPORT_WHEN_LABELS } from '../new/_reportWhen'
 import { LogStatus } from '../../logs/backup-ng'
 
@@ -67,31 +75,31 @@ const MODES = [
   },
   {
     label: 'rollingSnapshot',
-    test: job => isBackupType(job) && some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+    test: job => isBackupType(job) && isRollingSnapshotBackup(job),
   },
   {
     label: 'backup',
-    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && isFullBackup(job),
   },
   {
     label: 'deltaBackup',
-    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && isDeltaBackup(job),
   },
   {
     label: 'continuousReplication',
-    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && isCRBackup(job),
   },
   {
     label: 'disasterRecovery',
-    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && isDRBackup(job),
   },
   {
     label: 'poolMetadata',
-    test: job => !isEmpty(destructPattern(job.pools)),
+    test: isPoolMetadataBackup,
   },
   {
     label: 'xoConfig',
-    test: job => job.xoMetadata,
+    test: isXoConfigBackup,
   },
 ]
 
