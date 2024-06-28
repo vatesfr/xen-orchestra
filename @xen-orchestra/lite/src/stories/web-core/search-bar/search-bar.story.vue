@@ -13,9 +13,9 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event } from '@/libs/story/story-param'
 import SearchBar from '@core/components/search-bar/SearchBar.vue'
+import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
-import { defineTree } from '@core/composables/tree/define-tree'
 
 const data = [
   {

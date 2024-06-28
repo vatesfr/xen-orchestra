@@ -13,7 +13,7 @@
     <template v-if="uiStore.isDesktop">
       <UiButton type="submit">{{ $t('core.search') }}</UiButton>
       <UiSeparator class="separator" />
-      <UiButton v-tooltip="$t('core.coming-soon')" level="secondary" :left-icon="faFilter" disabled>
+      <UiButton v-tooltip="$t('coming-soon')" level="secondary" :left-icon="faFilter" disabled>
         {{ $t('core.search-bar.use-query-builder') }}
       </UiButton>
     </template>
