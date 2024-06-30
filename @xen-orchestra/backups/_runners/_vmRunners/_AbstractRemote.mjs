@@ -7,6 +7,7 @@ import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
+import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   constructor({
@@ -60,12 +61,17 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
   }
 
   async _computeTransferList(predicate) {
-    const vmBackups = await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, predicate)
+    const vmBackups = Object.values(await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, predicate))
     const localMetada = new Map()
-    Object.values(vmBackups).forEach(metadata => {
-      const timestamp = metadata.timestamp
-      localMetada.set(timestamp, metadata)
-    })
+    vmBackups
+      .filter(metadata => this._shouldTransferVmBackup(metadata))
+      .forEach(metadata => {
+        const timestamp = metadata.timestamp
+        localMetada.set(timestamp, metadata)
+      })
+    if (localMetada.size === 0 && vmBackups.length > 0) {
+      Task.info('none of the backups passed the filter')
+    }
     const nbRemotes = Object.keys(this.remoteAdapters).length
     const remoteMetadatas = {}
     await asyncEach(Object.values(this.remoteAdapters), async remoteAdapter => {
@@ -90,6 +96,15 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       }
     }
     return chain
+  }
+
+  async _shouldTransferVmBackup(vmBackupMetadata) {
+    const { filterJobId } = this._settings
+    const { jobId } = vmBackupMetadata
+    // filtering by jobId ensure we transfer a full chain of backups
+    // we'll need to make synthetic vhd of backup if we move to a filter
+    // that may keep only a part of a vhd chain (for example by schedule, by tags)
+    return filterJobId === undefined || filterJobId === jobId
   }
 
   async run($defer) {
