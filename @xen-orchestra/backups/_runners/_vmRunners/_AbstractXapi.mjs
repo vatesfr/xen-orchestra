@@ -227,12 +227,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         ...allSettings[scheduleId],
         ...allSettings[this._vm.uuid],
       }
-      // ensure we never delete the last one
-      const retention = Math.max(settings.snapshotRetention ?? 0, 1)
-
+      // ensure we never delete the last one for delta
+      const minRetention = this.job.mode === 'delta' ? 1 : 0
+      const retention = Math.max(settings.snapshotRetention ?? 0, minRetention)
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
         const vdis = snapshotPerDatetime[datetime]
-
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
