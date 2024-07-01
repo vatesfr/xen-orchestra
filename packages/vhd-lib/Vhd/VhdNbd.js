@@ -110,7 +110,6 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
       // skip space between header and beginning of the table
       await skipStrict(this.#vhdStream, this.#header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
       this.#bat = await readChunkStrict(this.#vhdStream, batSize)
-      this.#vhdStream.destroy() // we won't need it anymore
     }
 
     // changed can be used as a bat, not need to rebuild one
@@ -127,8 +126,8 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
     })
   }
 
-  async stream() {
-    const stream = await super.stream()
+  async stream(opts) {
+    const stream = await super.stream(opts)
 
     stream._nbd = true
     return stream

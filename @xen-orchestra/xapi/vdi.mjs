@@ -108,7 +108,7 @@ class Vdi {
 
       query.base = baseRef
     }
-    let nbdClient, stream, exportStream
+    let nbdClient, stream, exportStream, taskRef
     try {
       const [vdiName, cbt_enabled, size, uuid] = await Promise.all([
         this.getField('VDI', ref, 'name_label'),
@@ -153,23 +153,29 @@ class Vdi {
         }
 
         if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
-          const taskRef = await this.task_create(
+          taskRef = await this.task_create(
             `Exporting content of VDI ${vdiName} using NBD ${changedBlocks !== undefined ? ' and CBT' : ''}`
           )
-          exportStream = stream
           stream = await createNbdVhdStream(nbdClient, exportStream, {
             changedBlocks,
             vdiInfos: { size, uuid, parentUuid: baseParentUuid },
+            onProgress: async progress => {
+              await this.call('task.set_progress', taskRef, progress)
+            },
           })
-          stream.on('progress', progress => this.call('task.set_progress', taskRef, progress))
-          finished(stream, () => {
-            nbdClient.disconnect()
-            exportStream?.destroy() // ensure the source stream is really closed
-
-            this.task_destroy(taskRef).catch(warn)
+          exportStream.on('error', () => {
+            /* no problem here, only the destroy error */
           })
+          exportStream?.destroy() // we won't need it anymore
         }
       }
+      finished(stream, () => {
+        nbdClient?.disconnect()
+        exportStream?.destroy() // ensure the source stream is really closed
+        if (taskRef !== undefined) {
+          this.task_destroy(taskRef).catch(warn)
+        }
+      })
       return stream
     } catch (error) {
       // augment the error with as much relevant info as possible
@@ -183,6 +189,9 @@ class Vdi {
       error.nbdClient = nbdClient
       nbdClient?.disconnect()
       exportStream?.destroy()
+      if (taskRef !== undefined) {
+        this.task_destroy(taskRef).catch(warn)
+      }
       throw error
     }
   }
