@@ -34,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- vhd-lib minor
 - xo-server minor
 - xo-web minor
 
