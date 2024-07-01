@@ -99,6 +99,8 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
       assert.strictEqual(this.#header, undefined)
       this.#footer = unpackFooter(await readChunkStrict(this.#vhdStream, FOOTER_SIZE))
       this.#header = unpackHeader(await readChunkStrict(this.#vhdStream, HEADER_SIZE))
+      // parent locator aren't generated for Vhd from NBD+CBT
+      // we clean the existing parent locator to ensure consistency
       for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
         this.#header.parentLocatorEntry[i] = {
           platformCode: PLATFORMS.NONE,
