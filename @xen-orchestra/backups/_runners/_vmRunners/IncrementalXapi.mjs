@@ -147,8 +147,14 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       ...lastExportedVdis.map(({ other_config }) => Number(other_config[DELTA_CHAIN_LENGTH] ?? 0))
     )
     const fullInterval = this._settings.fullInterval
-    if ( fullInterval !== 0 && fullInterval < deltaChainLength + 1) {
-      debug('not using base VM because fullInterval reached', { fullInterval, deltaChainLength, eq: fullInterval < deltaChainLength + 1, dc1: deltaChainLength + 1 })
+    // @todo : full back interval of 1 means all full ?
+    if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
+      debug('not using base VM because fullInterval reached', {
+        fullInterval,
+        deltaChainLength,
+        eq: fullInterval < deltaChainLength + 1,
+        dc1: deltaChainLength + 1,
+      })
       return
     }
 
