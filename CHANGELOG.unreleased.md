@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/Advanced] Fix `not enought permission` for admin users who wanted to attach PCIs when the VM was on a shared SR [#9260](https://xcp-ng.org/forum/topic/9260/attach-pcis-not-enough-permissions?_=1719393396541)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
