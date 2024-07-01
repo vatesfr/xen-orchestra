@@ -282,7 +282,7 @@ exports.VhdAbstract = class VhdAbstract {
     const rawHeader = fuHeader.pack(header)
     checksumStruct(rawHeader, fuHeader)
 
-    assert.strictEqual(offset % SECTOR_SIZE, 0)
+    assert.strictEqual(offset % SECTOR_SIZE, 0, `offset should be aligned to SECTORE SIZE : ${offset} `)
 
     const bat = Buffer.allocUnsafe(batSize)
     let offsetSector = offset / SECTOR_SIZE
@@ -301,10 +301,16 @@ exports.VhdAbstract = class VhdAbstract {
 
     assert.strictEqual(offset % SECTOR_SIZE, 0)
     const self = this
+    let yielded = 0
+    function* trackAndYield(buffer) {
+      yielded += buffer.length
+      assert.ok(yielded <= fileSize, `Max stream length is ${fileSize}, try to send ${yielded}`)
+      yield buffer
+    }
     async function* iterator() {
-      yield rawFooter
-      yield rawHeader
-      yield bat
+      yield* trackAndYield(rawFooter)
+      yield* trackAndYield(rawHeader)
+      yield* trackAndYield(bat)
 
       // yield parent locator
 
@@ -315,7 +321,7 @@ exports.VhdAbstract = class VhdAbstract {
           // align data to a sector
           const buffer = Buffer.alloc(space, 0)
           data.copy(buffer)
-          yield buffer
+          yield* trackAndYield(buffer)
         }
       }
 
@@ -324,11 +330,12 @@ exports.VhdAbstract = class VhdAbstract {
       for (let i = 0; i < header.maxTableEntries; i++) {
         if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
           const block = await self.readBlock(i)
-          yield block.buffer
+          yield* trackAndYield(block.buffer)
         }
       }
       // yield footer again
-      yield rawFooter
+      yield* trackAndYield(rawFooter)
+      assert.strictEqual(yielded,fileSize, `Calclulated stream length is  ${fileSize}, sent ${yielded} bytes`)
     }
 
     const stream = asyncIteratorToStream(iterator())
