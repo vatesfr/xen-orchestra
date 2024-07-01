@@ -70,8 +70,11 @@ async function* makeNdJsonStream(iterable) {
 function makeObjectMapper(req, path = req.path) {
   const { query } = req
 
-  const basePath = join(req.baseUrl, path)
-  const makeUrl = ({ id }) => join(basePath, typeof id === 'number' ? String(id) : id)
+  const { baseUrl } = req
+  const makeUrl =
+    typeof path === 'function'
+      ? object => join(baseUrl, path(object), typeof object.id === 'number' ? String(object.id) : object.id)
+      : ({ id }) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
 
   let objectMapper
   let { fields } = query
@@ -298,6 +301,31 @@ export default class RestApi {
           })
           res.json(Array.from(missingPatches.values()))
         },
+      }
+
+      async function vdis(req, res) {
+        const vdis = new Map()
+        for (const vbdId of req.object.$VBDs) {
+          try {
+            const vbd = app.getObject(vbdId, 'VBD')
+            const vdiId = vbd.VDI
+            if (vdiId !== undefined) {
+              const vdi = app.getObject(vdiId, 'VDI')
+              vdis.set(vdi.uuid, vdi)
+            }
+          } catch (error) {
+            console.warn('REST API', req.url, { error })
+          }
+        }
+        await sendObjects(
+          vdis.values(),
+          req,
+          res,
+          makeObjectMapper(req, ({ type }) => type.toLowerCase() + 's')
+        )
+      }
+      for (const collection of ['vms', 'vm-snapshots', 'vm-templates']) {
+        collections[collection].routes.vdis = vdis
       }
 
       collections.pools.actions = {
