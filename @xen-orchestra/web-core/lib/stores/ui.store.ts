@@ -24,11 +24,21 @@ export const useUiStore = defineStore('ui', () => {
     },
   })
 
+  const desktopOnlyClass = computed(() => {
+    return isMobile.value ? 'visually-hidden' : undefined
+  })
+
+  const mobileOnlyClass = computed(() => {
+    return isDesktop.value ? 'visually-hidden' : undefined
+  })
+
   return {
     colorMode,
     currentHostOpaqueRef,
     isDesktop,
     isMobile,
     hasUi,
+    desktopOnlyClass,
+    mobileOnlyClass,
   }
 })
