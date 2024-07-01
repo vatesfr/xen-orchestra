@@ -11,6 +11,8 @@ const {
   HEADER_SIZE,
   SECTOR_SIZE,
   BLOCK_UNUSED,
+  PARENT_LOCATOR_ENTRIES,
+  PLATFORMS,
 } = require('../_constants.js')
 const { unpackFooter, unpackHeader } = require('./_utils.js')
 
@@ -97,6 +99,15 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
       assert.strictEqual(this.#header, undefined)
       this.#footer = unpackFooter(await readChunkStrict(this.#vhdStream, FOOTER_SIZE))
       this.#header = unpackHeader(await readChunkStrict(this.#vhdStream, HEADER_SIZE))
+      for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+        this.#header.parentLocatorEntry[i] = {
+          platformCode: PLATFORMS.NONE,
+          platformDataSpace: 0,
+          platformDataLength: 0,
+          reserved: 0,
+          platformDataOffset: 0,
+        }
+      }
     }
   }
 
