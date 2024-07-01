@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SR/XOSTOR] Add _State_ column to the _Resource List_ table (PR [#7784](https://github.com/vatesfr/xen-orchestra/pull/7784))
+- [REST API] VDIs of a VM, or a VM snapshot, or a VM template, can now be fetched easily by appending `/vdis` at the VM's endpoint
 
 ### Bug fixes
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
