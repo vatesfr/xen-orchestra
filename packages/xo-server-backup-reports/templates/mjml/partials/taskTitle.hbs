@@ -1,0 +1,9 @@
+{{#ifCond task.data.type '===' 'xo'}}
+[XO] {{{jobName}}}
+{{~/ifCond}}
+{{#ifCond task.data.type '===' 'remote'}}
+[remote] {{{task.additionnalData.name}}}
+{{~/ifCond}}
+{{#ifCond task.data.type '===' 'pool'}}
+[pool] {{#if task.data.pool.name_label ~}} {{{task.data.pool.name_label}}} {{~else if task.data.poolMaster.name_label ~}} {{{task.data.poolMaster.name_label}}} {{~else~}} Unknown {{~/if}}
+{{~/ifCond}}

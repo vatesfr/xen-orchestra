@@ -1,0 +1,20 @@
+<mj-section padding="0px">
+  <mj-column width="100%">
+    <mj-divider border-width="1px"></mj-divider>
+    <mj-text font-size="16px" font-weight="300" line-height="24px">
+      <h2>{{titleByStatus 'skipped' tasksByStatus.skipped.tasks}}</h2>
+    </mj-text>
+  </mj-column>
+</mj-section>
+
+{{#each tasksByStatus.skipped.tasks}}
+  <mj-section padding-bottom="0px">
+    <mj-column width="100%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        {{>vmText formatDate=../formatDate}}
+        <li><span style="font-weight: bold">Reason</span>: {{message}}</li>
+        </ul>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+{{/each}}

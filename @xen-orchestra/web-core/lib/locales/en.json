@@ -37,6 +37,7 @@
   "log-out": "Log out",
   "master": "Primary host",
   "network": "Network",
+  "object-not-found": "Object {id} can't be found…",
   "power-on-for-console": "Power on your VM to access its console",
   "stats": "Stats",
   "storage": "Storage",

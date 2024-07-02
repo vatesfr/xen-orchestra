@@ -1,8 +1,11 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
+  "no-results": "Aucun résultat",
+  "sidebar.search-tree-view": "Rechercher dans l'arborescence",
+  "sidebar.vms-treeview": "Arborescence des VMs",
   "tasks.quick-view": "Vue rapide des tâches (bientôt disponible)",
-  "vms-status": "Statut des VMs",
-  "vms-running-status": "En fonctionnement",
   "vms-halted-status": "Arrêtées",
+  "vms-running-status": "En fonctionnement",
+  "vms-status": "Statut des VMs",
   "vms-unknown-status": "Inconnues"
 }

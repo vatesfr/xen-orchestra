@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -26,7 +26,7 @@
     "@vates/async-each": "^1.0.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/nbd-client": "^3.0.2",
-    "@vates/task": "^0.3.0",
+    "@vates/task": "^0.4.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "d3-time-format": "^4.1.0",
@@ -35,7 +35,7 @@
     "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.9.2",
+    "vhd-lib": "^4.10.0",
     "xo-common": "^0.8.0"
   },
   "private": false,

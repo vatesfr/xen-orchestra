@@ -112,7 +112,7 @@ changeConnectedXapiHostname.params = {
 // -------------------------------------------------------------------
 
 export async function createTask({ name, objectId, result, duration }) {
-  const task = this.tasks.create({ name, objectId })
+  const task = this.tasks.create({ name, objectId, progress: 0 })
   task
     .run(async () => {
       const { abortSignal } = Task
@@ -124,7 +124,7 @@ export async function createTask({ name, objectId, result, duration }) {
         Task.set('progress', progress)
 
         ++i
-        Task.set(`name (step ${name + ' ' + i})`)
+        Task.set('name', `${name} (step ${i})`)
       }, 5e3)
       try {
         await new Promise((resolve, reject) => {

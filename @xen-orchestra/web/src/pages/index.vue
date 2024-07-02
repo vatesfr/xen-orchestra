@@ -8,3 +8,4 @@
 import VmStatus from '@/components/pool/dashboard/VmStatus.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 </script>
+

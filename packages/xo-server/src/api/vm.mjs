@@ -1032,7 +1032,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const snapshotRef = await xapi['VM_' + (saveMemory ? 'checkpoint' : 'snapshot')](vm._xapiRef, { name_label: name })
+  const snapshotRef = await xapi['VM_' + (saveMemory ? 'checkpoint' : 'snapshot')](vm._xapiRef, {
+    ignoredVdisTag: '[NOSNAP]',
+    name_label: name,
+  })
   $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
 
   const snapshotId = await xapi.getField('VM', snapshotRef, 'uuid')

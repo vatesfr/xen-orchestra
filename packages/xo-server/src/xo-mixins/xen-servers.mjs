@@ -686,7 +686,15 @@ export default class XenServers {
       $defer(() => app.loadPlugin('load-balancer'))
     }
 
-    await this.getXapi(pool).rollingPoolUpdate({ xsCredentials: app.apiContext.user.preferences.xsCredentials })
+    const task = app.tasks.create({
+      name: `Rolling pool update`,
+      poolId,
+      poolName: pool.name_label,
+      progress: 0,
+    })
+    await task.run(async () =>
+      this.getXapi(pool).rollingPoolUpdate(task, { xsCredentials: app.apiContext.user.preferences.xsCredentials })
+    )
   }
 }
 

@@ -146,18 +146,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
-        if (settings.preferNbd) {
-          try {
-            // enable CBT on all disks if possible
-            const diskRefs = await xapi.VM_getDisks(vm.$ref)
-            await Promise.all(diskRefs.map(diskRef => xapi.call('VDI.enable_cbt', diskRef)))
-          } catch (error) {
-            Task.info(`couldn't enable CBT`, error)
-          }
-        }
 
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
-          ignoreNobakVdis: true,
+          ignoredVdisTag: '[NOBAK]',
           name_label: this._getSnapshotNameLabel(vm),
           unplugVusbs: true,
         })
@@ -169,6 +160,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           vmUuid: vm.uuid,
         })
         this._exportedVm = await xapi.getRecord('VM', snapshotRef)
+
         return this._exportedVm.uuid
       })
     } else {
@@ -216,7 +208,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     const xapi = this._xapi
-    await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
+    await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
 
       const datetimes = Object.keys(snapshotPerDatetime)
@@ -230,7 +222,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // ensure we never delete the last one
       const retention = Math.max(settings.snapshotRetention ?? 0, 1)
 
-      await asyncMap(getOldEntries(retention, datetimes), async datetime => {
+      return asyncMap(getOldEntries(retention, datetimes), async datetime => {
         const vdis = snapshotPerDatetime[datetime]
 
         let vmRef
@@ -242,8 +234,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             // this will throw error for VDI still attached to control domain
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vm = vbds[0].$VM
-            assert.strictEqual(vm.is_control_domain, false, `Disk is still attached to DOM0 VM`) // don't delete a VM (especially a control domain)
             assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
+            assert.strictEqual(vm.is_control_domain, false, `VM can't be a DOM0 VM`) // don't delete a VM (especially a control domain)
 
             const vmRefVdi = vm.$ref
             // same vm than other vdi of the same batch
@@ -265,33 +257,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
-
-    // now that we use CBT, we can destroy the data of the snapshot used for this backup
-    // going back to a previous version of XO not supporting CBT will create a full backup
-    // this will only do something after snapshot and transfer
-    if (
-      // don't modify the VM
-      this._exportedVm?.is_a_snapshot &&
-      // user don't want to keep the snapshot data
-      this._settings.snapshotRetention === 0 &&
-      // preferNbd is not a guarantee that the backup used NBD, depending on the network configuration
-      this._settings.preferNbd &&
-      // only delete snapshost data if the config allows it
-      this.config.purgeSnapshotData
-    ) {
-      Task.info('will delete snapshot data')
-      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
-      await xapi.call('VM.destroy', this._exportedVm.$ref)
-      for (const vdiRef of vdiRefs) {
-        try {
-          // data_destroy will fail with a VDI_NO_CBT_METADATA error if CBT is not enabled on this VDI
-          await xapi.VDI_dataDestroy(vdiRef)
-          Task.info(`Snapshot data has been deleted`, { vdiRef })
-        } catch (error) {
-          Task.warning(`Couldn't deleted snapshot data`, { error, vdiRef })
-        }
-      }
-    }
   }
 
   async copy() {

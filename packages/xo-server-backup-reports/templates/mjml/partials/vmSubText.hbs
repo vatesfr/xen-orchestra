@@ -1,0 +1,48 @@
+{{#each snapshotSubtasks}}
+  <mj-section padding="0px">
+    <mj-column width="100%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        <span style="font-weight: bold">➤ Snapshot</span> {{getIcon subTaskLog.status}}
+      </mj-text>
+    </mj-column>
+  </mj-section>
+
+  <mj-section padding="0px">
+    <mj-column width="85%" border="1px solid #fffce4">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        <ul>
+          {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
+        </ul>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+{{/each}}
+
+{{#if srsSubTasks}}
+
+  <mj-section padding="0px">
+    <mj-column width="100%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        <span style="font-weight: bold">➤ SRs</span>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+
+  {{#each srsSubTasks}}
+    {{>vmSubTask formatDate=../formatDate}}
+  {{/each}}
+{{/if}}
+
+{{#if remotesSubTasks}}
+  <mj-section padding="0px">
+    <mj-column width="100%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        <span style="font-weight: bold">➤ Remotes</span>
+      </mj-text>
+    </mj-column>
+  </mj-section>
+
+  {{#each remotesSubTasks}}
+    {{>vmSubTask formatDate=../formatDate}}
+  {{/each}}
+{{/if}}

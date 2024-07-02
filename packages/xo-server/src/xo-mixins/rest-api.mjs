@@ -263,7 +263,7 @@ export default class RestApi {
           const response = await host.$xapi.getResource('/host_logs_download', { host })
 
           res.setHeader('content-type', 'application/gzip')
-          await pipeline(response.body, (req, res))
+          await pipeline(response.body, res)
         },
 
         async missing_patches(req, res) {
@@ -357,7 +357,7 @@ export default class RestApi {
         hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
         snapshot: withParams(
           async ({ xapiObject: vm }, { name_label }) => {
-            const ref = await vm.$snapshot({ name_label })
+            const ref = await vm.$snapshot({ ignoredVdisTag: '[NOSNAP]', name_label })
             return vm.$xapi.getField('VM', ref, 'uuid')
           },
           { name_label: { type: 'string', optional: true } }

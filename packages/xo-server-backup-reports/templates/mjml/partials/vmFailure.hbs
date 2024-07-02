@@ -1,0 +1,36 @@
+<mj-section padding="0px">
+  <mj-column width="100%">
+    <mj-divider border-width="1px"></mj-divider>
+    <mj-text font-size="16px" font-weight="300" line-height="24px">
+      <h2>{{titleByStatus 'failure' tasksByStatus.failure.tasks}}</h2>
+    </mj-text>
+  </mj-column>
+</mj-section>
+
+{{#each tasksByStatus.failure.tasks}}
+  <mj-section padding-bottom="0px">
+    <mj-column width="100%">
+      <mj-text font-size="16px" font-weight="300" line-height="24px">
+        {{#if uuid}}
+          <h3>{{name}}</h3>
+          <ul>
+            <li><span style="font-weight: bold">UUID</span>: {{uuid}}</li>
+            <li><span style="font-weight: bold">Type</span>: {{taskLog.data.type}}</li>
+            {{>reportTemporalData end=taskLog.end start=taskLog.start}}
+            {{>reportWarnings task=taskLog}}
+            <li><span style="font-weight: bold">Error</span>: {{taskLog.result.message}}</li>
+          </ul>
+        {{else}}
+          {{>vmText formatDate=../formatDate}}
+          {{#if taskLog.result}}
+            <li><span style="font-weight: bold">Error</span>: {{taskLog.result.message}}</li>
+            </ul>
+          {{else}}
+            </ul>
+            {{>vmSubText formatDate=../formatDate}}
+          {{/if}}
+        {{/if}}
+      </mj-text>
+    </mj-column>
+  </mj-section>
+{{/each}}

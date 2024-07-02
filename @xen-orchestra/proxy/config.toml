@@ -22,8 +22,6 @@ disableMergeWorker = false
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 vhdDirectoryCompression = 'brotli'
 
-purgeSnapshotData = false
-
 # This is a work-around.
 #
 # See https://github.com/vatesfr/xen-orchestra/pull/4674

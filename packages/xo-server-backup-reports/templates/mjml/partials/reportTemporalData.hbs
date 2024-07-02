@@ -1,0 +1,7 @@
+<li><span style="font-weight:bold">Start time</span>: {{executeFunction formatDate start}}</li>
+{{#if end}}
+<li><span style="font-weight:bold">End time</span>: {{executeFunction formatDate end}}</li>
+{{#ifCond (subtract end start) '>=' 1}}
+<li><span style="font-weight:bold">Duration</span>: {{formatDuration (subtract end start)}}</li>
+{{/ifCond}}
+{{/if}}

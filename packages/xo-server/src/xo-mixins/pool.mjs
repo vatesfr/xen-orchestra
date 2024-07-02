@@ -188,7 +188,14 @@ export default class Pools {
   async rollingPoolReboot(pool) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
-    await _app.getXapi(pool).rollingPoolReboot()
+
+    const task = _app.tasks.create({
+      name: `Rolling pool reboot`,
+      poolId: pool.id,
+      poolName: pool.name_label,
+      progress: 0,
+    })
+    await task.run(async () => _app.getXapi(pool).rollingPoolReboot(task))
   }
 }
 

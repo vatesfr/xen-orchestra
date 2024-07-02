@@ -1,5 +1,56 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Netbox] Check Netbox version before attempting to synchronize (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
+- [Netbox] Support Netbox 4 (Thanks [@ChrisMcNichol](https://github.com/ChrisMcNichol)!) (PR [#7735](https://github.com/vatesfr/xen-orchestra/pull/7735))
+- [Migration] Disable CBT when needed during a disk/VM migration (PR [#7756](https://github.com/vatesfr/xen-orchestra/pull/7756))
+- [Disks] Show and edit the use of CBT (Change Block Tracking) in disks (PR [#7732](https://github.com/vatesfr/xen-orchestra/pull/7732))
+- [Create/SR] Display SCSI ID and LUN during HBA storage creation (PR [#7742](https://github.com/vatesfr/xen-orchestra/pull/7742))
+- [REST API] _Rolling Pool Reboot_ action available `pools/<uuid>/actions/rolling_reboot` (PR [#7761](https://github.com/vatesfr/xen-orchestra/pull/7761))
+- [XOSTOR] Possibility to directly access an XOSTOR SR from the view that lists all XOSTOR SRs (PR [#7764](https://github.com/vatesfr/xen-orchestra/pull/7764))
+- [VM] Disks whose name contains the tag `[NOSNAP]` will be ignored when doing a manual snapshot similarly to disks ignored during backups with `[NOBAK]` (possibility to use both tags on the same disk) [Forum#79179](https://xcp-ng.org/forum/post/79179)
+- [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
+- [Rolling Pool Update/Reboot] Adds a progress bar to RPU and RPR tasks (PR [#7768](https://github.com/vatesfr/xen-orchestra/pull/7768))
+
+### Bug fixes
+
+- [V2V] Fix VSAN import not used when importing from VSAN ([PR #7717](https://github.com/vatesfr/xen-orchestra/pull/7717))
+- [Backups] Fix EEXIST error after an interrupted mirror backup job ([PR #7694](https://github.com/vatesfr/xen-orchestra/pull/7694))
+- [Netbox] Fix "Netbox error could not be retrieved" when an error occurs on Netbox's side (PR [#7758](https://github.com/vatesfr/xen-orchestra/pull/7758))
+- [XOSTOR] Fix the _Approximate SR Capacity_ sometimes showing as 0 if not all hosts had disks (PR [#7765](https://github.com/vatesfr/xen-orchestra/pull/7765))
+- [VM/Advanced] Ignore `Firmware not supported` warning for UEFI boot firmware [Forum#8878](https://xcp-ng.org/forum/topic/8878/uefi-firmware-not-supported) (PR [#7767](https://github.com/vatesfr/xen-orchestra/pull/7767))
+- [LDAP] Fix users being removed from groups when synchronizing groups (PR [#7759](https://github.com/vatesfr/xen-orchestra/pull/7759))
+- [Host/Advanced] Change _Advanced Live Telemetry_ link to point to Netdata's page of the specific host [#7702](https://github.com/vatesfr/xen-orchestra/issues/7702)
+- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
+- [Incremental Replication] Fix _Delete first_ option causing `could not find base VM` error ([PR #7739](https://github.com/vatesfr/xen-orchestra/pull/7739))
+
+### Released packages
+
+- vhd-lib 4.10.0
+- @vates/fuse-vhd 2.1.1
+- @vates/task 0.4.0
+- @xen-orchestra/web-core 0.0.3
+- @xen-orchestra/lite 0.2.4
+- @xen-orchestra/mixins 0.15.1
+- @xen-orchestra/proxy-cli 0.3.2
+- @xen-orchestra/vmware-explorer 0.8.2
+- @xen-orchestra/web 0.0.4
+- xo-server-auth-ldap 0.10.9
+- xo-server-netbox 1.5.0
+- xo-server-transport-email 1.1.0
+- xo-web 5.148.0
+- @xen-orchestra/xapi 7.0.0
+- @xen-orchestra/backups 0.51.0
+- @xen-orchestra/backups-cli 1.0.21
+- @xen-orchestra/immutable-backups 1.0.8
+- @xen-orchestra/proxy 0.28.5
+- xo-server 5.147.0
+- xo-server-backup-reports 1.1.0
+- xo-server-sdn-controller 1.0.9
+
 ## **5.95.1** (2024-06-20)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
