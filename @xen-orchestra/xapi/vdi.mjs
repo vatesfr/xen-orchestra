@@ -10,34 +10,10 @@ import MultiNbdClient from '@vates/nbd-client/multi.mjs'
 import { createNbdVhdStream } from 'vhd-lib/createStreamNbd.js'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 import { finished } from 'node:stream'
-import { pTimeout } from 'promise-toolbox'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
-
-const DESTROY_STREAM_TIMEOUT = 1e4
-
-const destroyUnidiciStreamSilently = function (stream) {
-  if (stream === undefined || stream.destroyed) {
-    return
-  }
-  return pTimeout.call(
-    new Promise((resolve, reject) => {
-      stream.on('error', err => {
-        // this error code is directly caused by stream.destroy
-        if (err.code === 'UND_ERR_ABORTED') {
-          resolve()
-        } else {
-          reject(err)
-        }
-      })
-      stream.destroy()
-    }),
-    DESTROY_STREAM_TIMEOUT
-  )
-}
-
 class Vdi {
   async clone(vdiRef) {
     return await this.callAsync('VDI.clone', vdiRef)
@@ -88,7 +64,7 @@ class Vdi {
     })
   }
 
-  async _getNbdClient(ref, { nbdConcurrency = 1 } = {}) {
+  async _connectNbdClientIfPossible(ref, { nbdConcurrency = 1 } = {}) {
     const nbdInfos = await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
       // a little bit of randomization to spread the load
@@ -121,21 +97,27 @@ class Vdi {
 
   async disconnectFromControlDomain(vdiRef) {
     const vbdRefs = await this.getField('VDI', vdiRef, 'VBDs')
-    const self = this
     await Promise.all(
       vbdRefs.map(async vbdRef => {
         const vmRef = await this.getField('VBD', vbdRef, 'VM')
         const isControlDomain = await this.getField('VM', vmRef, 'is_control_domain')
         if (isControlDomain) {
           try {
-            await pRetry(() => self.VBD_destroy(vbdRef), {
-              async onRetry(error) {
-                warn('disconnectFromControlDomain retry', { attemptNumber: this.attemptNumber, error })
-              },
-            })
-            info(` ${vdiRef} has been disconnected from dom0`, { vdiRef, vbdRef })
+            await this.VBD_destroy(vbdRef)
+            info(` ${vbdRef} has been disconnected from dom0`, { vdiRef, vbdRef })
           } catch (err) {
-            warn(`Couldn't disconnect ${vdiRef} from dom0`, { vdiRef, vbdRef })
+            if (err.code === 'HANDLE_INVALID') {
+              info(` ${vbdRef} was already destroyed`, { vdiRef, vbdRef })
+            } else {
+              try {
+                await this.getRecord('VBD', vbdRef)
+                warn(`Couldn't disconnect ${vdiRef} from dom0`, { vdiRef, vbdRef, err })
+              } catch (err2) {
+                // @todo assert.notStrictEqual(sessionId, undefined) of xen-api/index.mjs line 848
+                // sometimes fails here
+                // since we can't get the info of this record we assume it is delete or deleting
+              }
+            }
           }
         }
       })
@@ -199,7 +181,7 @@ class Vdi {
 
     // really connect to NBD server
     if (preferNbd) {
-      nbdClient = await this._getNbdClient(ref, { nbdConcurrency })
+      nbdClient = await this._connectNbdClientIfPossible(ref, { nbdConcurrency })
       // disconnect on failure or when transfer is finished
       $defer.onFailure(() => nbdClient?.disconnect())
     }
@@ -215,7 +197,7 @@ class Vdi {
       ).body
 
       $defer.onFailure(() => {
-        destroyUnidiciStreamSilently(exportStream)
+        exportStream.on('error', noop).destroy()
       })
     }
 
@@ -235,18 +217,19 @@ class Vdi {
         },
       })
       // we don't need the export stream anymore, block data will be read through NBD
-      await destroyUnidiciStreamSilently(exportStream)
+      exportStream?.on('error', noop).destroy()
     }
 
     assert.notStrictEqual(stream, undefined)
 
     // disconnect and clean everything when stream is completly transmitted
-    finished(stream, async () => {
+    const self = this
+    finished(stream, async function () {
       await nbdClient?.disconnect()
       if (taskRef !== undefined) {
-        this.task_destroy(taskRef).catch(warn)
+        self.task_destroy(taskRef).catch(warn)
       }
-      await this.VDI_disconnectFromControlDomain(ref).catch(warn)
+      await self.VDI_disconnectFromControlDomain(ref).catch(warn)
     })
     return stream
   }
