@@ -69,14 +69,14 @@ function getVmAddress(networks) {
   throw new Error('no VM address found')
 }
 
-async function listNobakVbds(xapi, vbdRefs) {
+async function listTaggedVdiVbds(xapi, vbdRefs, tag) {
   const vbds = []
   await asyncMap(vbdRefs, async vbdRef => {
     const vbd = await xapi.getRecord('VBD', vbdRef)
     if (
       vbd.type === 'Disk' &&
       Ref.isNotEmpty(vbd.VDI) &&
-      (await xapi.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
+      (await xapi.getField('VDI', vbd.VDI, 'name_label')).includes(tag)
     ) {
       vbds.push(vbd)
     }
@@ -602,7 +602,7 @@ class Vm {
   async snapshot(
     $defer,
     vmRef,
-    { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label, unplugVusbs = false } = {}
+    { cancelToken = CancelToken.none, ignoredVdisTag, name_label, unplugVusbs = false } = {}
   ) {
     const vm = await this.getRecord('VM', vmRef)
 
@@ -624,13 +624,15 @@ class Vm {
     }
 
     let ignoredVbds
-    if (ignoreNobakVdis) {
-      ignoredVbds = await listNobakVbds(this, vm.VBDs)
-      ignoreNobakVdis = ignoredVbds.length !== 0
+    if (ignoredVdisTag !== undefined) {
+      ignoredVbds = await listTaggedVdiVbds(this, vm.VBDs, ignoredVdisTag)
+      if (ignoredVbds.length === 0) {
+        ignoredVbds = undefined
+      }
     }
 
     const params = [cancelToken, 'VM.snapshot', vmRef, name_label ?? vm.name_label]
-    if (ignoreNobakVdis) {
+    if (ignoredVbds !== undefined) {
       params.push(ignoredVbds.map(_ => _.VDI))
     }
 
@@ -643,7 +645,7 @@ class Vm {
         throw error
       }
 
-      if (ignoreNobakVdis) {
+      if (ignoredVbds !== undefined) {
         if (isHalted) {
           await asyncMap(ignoredVbds, async vbd => {
             await this.VBD_destroy(vbd.$ref)
@@ -676,7 +678,7 @@ class Vm {
     )
 
     if (destroyNobakVdis) {
-      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), async vbd => {
+      await asyncMap(ignoredVbds, async vbd => {
         try {
           await this.VDI_destroy(vbd.VDI)
         } catch (error) {

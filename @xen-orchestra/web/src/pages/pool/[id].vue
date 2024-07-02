@@ -1,9 +1,7 @@
 <template>
-  <DefaultLayout>
-    <template #content>{{ $t('coming-soon') }}</template>
-  </DefaultLayout>
+  <ComingSoonHero />
 </template>
 
-<script lang="ts" setup>
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
+<script setup lang="ts">
+import ComingSoonHero from '@core/components/state-hero/ComingSoonHero.vue'
 </script>

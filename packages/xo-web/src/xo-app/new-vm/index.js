@@ -1785,7 +1785,7 @@ export default class NewVm extends BaseComponent {
               {secureBoot && pool !== undefined && !pool.secureBootSetup && (
                 <span className='align-self-center text-danger ml-1'>
                   <a
-                    href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                    href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/'
                     rel='noopener noreferrer'
                     className='text-danger'
                     target='_blank'

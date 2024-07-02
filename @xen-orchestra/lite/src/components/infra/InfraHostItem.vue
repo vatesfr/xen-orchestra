@@ -1,6 +1,6 @@
 <template>
-  <TreeItem v-if="host !== undefined" class="infra-host-item">
-    <TreeItemLabel :icon="faServer" :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }">
+  <TreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
+    <TreeItemLabel :icon="faServer" :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
         <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
@@ -28,6 +28,7 @@ import TreeList from '@core/components/tree/TreeList.vue'
 import UiCounter from '@core/components/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
+import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -43,4 +44,6 @@ const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef)
 const { recordsByHostRef, isReady } = useVmStore().subscribe()
 
 const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0)
+
+const [isExpanded, toggle] = useToggle(true)
 </script>
