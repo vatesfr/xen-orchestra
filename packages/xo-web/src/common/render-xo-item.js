@@ -14,6 +14,15 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
+import {
+  isCRBackup,
+  isDeltaBackup,
+  isDRBackup,
+  isFullBackup,
+  isPoolMetadataBackup,
+  isRollingSnapshotBackup,
+  isXoConfigBackup,
+} from './xo/utils'
 
 // ===================================================================
 
@@ -683,6 +692,48 @@ const xoItemToRender = {
   ),
 
   PCI: props => <Pci {...props} self />,
+
+  backupJob: backupJob => {
+    const getBackupType = () => {
+      if (isPoolMetadataBackup(backupJob)) {
+        return _('poolMetadata')
+      }
+      if (isXoConfigBackup(backupJob)) {
+        return _('xoConfig')
+      }
+      if (isDRBackup(backupJob)) {
+        return _('fullReplication')
+      }
+      if (isCRBackup(backupJob)) {
+        return _('incrementalReplication')
+      }
+      if (isDeltaBackup(backupJob)) {
+        return _('incrementalBackup')
+      }
+      if (isFullBackup(backupJob)) {
+        return _('fullBackup')
+      }
+
+      // If we get here, it's just a rolling snapshot
+    }
+
+    const backupType = getBackupType()
+    return (
+      <span>
+        <span>{backupJob.name}</span>
+        {backupType !== undefined && (
+          <span className='tag tag-info ml-1' style={{ textTransform: 'capitalize' }}>
+            {backupType}
+          </span>
+        )}
+        {isRollingSnapshotBackup(backupJob) && (
+          <span className='tag tag-info ml-1' style={{ textTransform: 'capitalize' }}>
+            {_('rollingSnapshot')}
+          </span>
+        )}
+      </span>
+    )
+  },
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
