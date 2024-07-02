@@ -21,6 +21,10 @@ export const locales: Locales = {
     code: 'de',
     name: 'Deutsch',
   },
+  fa: {
+    code: 'fa',
+    name: 'Persian',
+  },
 }
 
 export default createI18n({
@@ -163,6 +167,48 @@ export default createI18n({
         minute: '2-digit',
       },
     },
+    fa: {
+      date_short: {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      },
+      date_medium: {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      },
+      date_long: {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      },
+      datetime_short: {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      datetime_medium: {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      datetime_long: {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      time: {
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+    },
   },
   numberFormats: {
     en: {
@@ -180,6 +226,13 @@ export default createI18n({
       },
     },
     de: {
+      percent: {
+        style: 'percent',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      },
+    },
+    fa: {
       percent: {
         style: 'percent',
         minimumFractionDigits: 0,
