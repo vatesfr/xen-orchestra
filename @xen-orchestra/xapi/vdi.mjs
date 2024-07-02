@@ -95,6 +95,25 @@ class Vdi {
     return this.call('VDI.data_destroy', ref)
   }
 
+  async disconnectFromControlDomain(vdiRef) {
+    const vbdRefs = await this.getField('VDI', vdiRef, 'VBDs')
+
+    await Promise.all(
+      vbdRefs.map(async vbdRef => {
+        const vmRef = await this.getField('VBD', vbdRef, 'VM')
+        const isControlDomain = await this.getField('VM', vmRef, 'is_control_domain')
+        if (isControlDomain) {
+          try {
+            await pRetry(() => this.VBD_unplug(vbdRef))
+            info(` ${vdiRef} has been disconnected from dom0`, { vdiRef, vbdRef })
+          } catch (err) {
+            warn(`Couldn't disconnect ${vdiRef} from dom0`, { vdiRef, vbdRef })
+          }
+        }
+      })
+    )
+  }
+
   async exportContent(
     $defer,
     ref,
@@ -111,6 +130,8 @@ class Vdi {
       this.getField('VDI', ref, 'uuid'),
       this.getField('VDI', ref, 'name_label'),
     ])
+
+    $defer.onFailure(() => this.VDI_disconnectFromControlDomain(ref))
 
     if (format === VDI_FORMAT_RAW) {
       // RAW export do not use NBD to simplify code
@@ -202,6 +223,7 @@ class Vdi {
       if (taskRef !== undefined) {
         this.task_destroy(taskRef).catch(warn)
       }
+      this.VDI_disconnectFromControlDomain(ref).catch(warn)
     })
     return stream
   }
