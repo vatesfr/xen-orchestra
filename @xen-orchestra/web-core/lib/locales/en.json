@@ -8,6 +8,8 @@
   "coming-soon": "Coming soon!",
   "console": "Console",
 
+  "core.copy-id": "Copy ID",
+
   "core.close": "Close",
   "core.current": "Current",
   "core.filter": "Filter",
