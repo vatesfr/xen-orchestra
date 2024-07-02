@@ -145,6 +145,7 @@ const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings
     defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention) !== undefined
       ? {
           ...setting,
+          cbtDestroySnapshotData: undefined,
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
@@ -183,6 +184,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     _proxyId: undefined,
     _vmsPattern: undefined,
     backupMode: false,
+    cbtDestroySnapshotData: false,
     compression: undefined,
     crMode: false,
     deltaMode: false,
@@ -631,6 +633,13 @@ const New = decorate([
             preferNbd,
           })
         },
+      setCbtDestroySnapshotData:
+        ({ setGlobalSettings }, cbtDestroySnapshotData) =>
+        () => {
+          setGlobalSettings({
+            cbtDestroySnapshotData,
+          })
+        },
       setNbdConcurrency({ setGlobalSettings }, nbdConcurrency) {
         setGlobalSettings({
           nbdConcurrency,
@@ -646,6 +655,7 @@ const New = decorate([
       compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
+      inputCbtDestroySnapshotData: generateId,
       inputFullIntervalId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
@@ -758,6 +768,7 @@ const New = decorate([
     const { propSettings, settings = propSettings } = state
     const compression = defined(state.compression, job.compression, '')
     const {
+      cbtDestroySnapshotData,
       checkpointSnapshot,
       concurrency,
       fullInterval,
@@ -1051,22 +1062,41 @@ const New = decorate([
                         </FormGroup>
                       )}
                       {state.isDelta && (
-                        <FormGroup>
-                          <label htmlFor={state.inputPreferNbd}>
-                            <strong>{_('preferNbd')}</strong>{' '}
-                            <Tooltip content={_('preferNbdInformation')}>
-                              <Icon icon='info' />
-                            </Tooltip>
-                          </label>
-                          <Toggle
-                            className='pull-right'
-                            id={state.inputPreferNbd}
-                            name='preferNbd'
-                            value={preferNbd}
-                            onChange={effects.setPreferNbd}
-                          />
-                        </FormGroup>
+                        <div>
+                          <FormGroup>
+                            <label htmlFor={state.inputPreferNbd}>
+                              <strong>{_('preferNbd')}</strong>{' '}
+                              <Tooltip content={_('preferNbdInformation')}>
+                                <Icon icon='info' />
+                              </Tooltip>
+                            </label>
+                            <Toggle
+                              className='pull-right'
+                              id={state.inputPreferNbd}
+                              name='preferNbd'
+                              value={preferNbd}
+                              onChange={effects.setPreferNbd}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <label htmlFor={state.inputCbtDestroySnapshotData}>
+                              <strong>{_('cbtDestroySnapshotData')}</strong>{' '}
+                              <Tooltip content={_('cbtDestroySnapshotDataInformation')}>
+                                <Icon icon='info' />
+                              </Tooltip>
+                            </label>
+                            <Toggle
+                              className='pull-right'
+                              id={state.cbtDestroySnapshotData}
+                              name='cbtDestroySnapshotData'
+                              value={preferNbd && cbtDestroySnapshotData && !state.snapshotMode}
+                              disabled={!preferNbd || state.snapshotMode}
+                              onChange={effects.setCbtDestroySnapshotData}
+                            />
+                          </FormGroup>
+                        </div>
                       )}
+
                       {state.isDelta && (
                         <FormGroup>
                           <label htmlFor={state.inputNbdConcurrency}>

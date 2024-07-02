@@ -12,6 +12,10 @@ const SCHEMA_SETTINGS = {
     '*': {
       type: 'object',
       properties: {
+        cbtDestroySnapshotData: {
+          type: 'boolean',
+          optional: true,
+        },
         concurrency: {
           type: 'number',
           minimum: 0,
