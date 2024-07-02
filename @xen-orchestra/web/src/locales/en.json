@@ -1,9 +1,11 @@
 {
   "account-organization-more": "Account, organization & more…",
   "no-results": "No results",
-
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
-
-  "tasks.quick-view": "Tasks' quick view (coming soon)"
+  "tasks.quick-view": "Tasks' quick view (coming soon)",
+  "vms-halted-status": " Halted",
+  "vms-running-status": "Running",
+  "vms-status": "VMs status",
+  "vms-unknown-status": "unknown"
 }
