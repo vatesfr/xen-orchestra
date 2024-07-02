@@ -276,7 +276,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // preferNbd is not a guarantee that the backup used NBD, depending on the network configuration
       this._settings.preferNbd &&
       // only delete snapshost data if the config allows it
-      this.config.purgeSnapshotData
+      this._settings.cbtDestroySnapshotData
     ) {
       Task.info('will delete snapshot data')
       const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
