@@ -1,4 +1,6 @@
+import type { VmLeaf } from '@/types/vm.type'
 import type { RecordId } from '@/types/xo-object.type'
+import type { Branch } from '@core/composables/tree/branch'
 
 export enum HOST_POWER_STATE {
   HALTED = 'halted',
@@ -18,3 +20,5 @@ export type Host = {
   power_state: HOST_POWER_STATE
   residentVms: RecordId<'VM'>[]
 }
+
+export type HostBranch = Branch<Host, VmLeaf, 'host'>

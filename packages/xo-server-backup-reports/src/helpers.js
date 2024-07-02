@@ -1,4 +1,3 @@
-import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 
@@ -15,15 +14,15 @@ const STATUS_ICON = {
 }
 
 const TITLE_BY_STATUS = {
-  failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interrupted`,
-  skipped: n => `## ${n} Skipped`,
-  success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
+  failure: n => `${n} Failure${n === 1 ? '' : 's'}`,
+  interrupted: n => `${n} Interrupted`,
+  skipped: n => `${n} Skipped`,
+  success: n => `${n} Success${n === 1 ? '' : 'es'}`,
 }
 
 // ===================================================================
 
-Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+export function ifCond(v1, operator, v2, options) {
   switch (operator) {
     case '===':
       return v1 === v2 ? options.fn(this) : options.inverse(this)
@@ -44,36 +43,34 @@ Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
     default:
       return options.inverse(this)
   }
-})
+}
 
-Handlebars.registerHelper('formatDuration', milliseconds => moment.duration(milliseconds).humanize())
+export const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
-const formatSize = bytes =>
+export const formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
     unit: 'B',
   })
-Handlebars.registerHelper('formatSize', formatSize)
 
-const formatSpeed = (bytes, milliseconds) =>
-  milliseconds > 0
-    ? humanFormat((bytes * 1e3) / milliseconds, {
+export const formatSpeed = (bytes, start, end) =>
+  end - start > 0
+    ? humanFormat((bytes * 1e3) / (end - start), {
         scale: 'binary',
         unit: 'B/s',
       })
     : 'N/A'
-Handlebars.registerHelper('formatSpeed', (bytes, start, end) => formatSpeed(bytes, end - start))
 
-Handlebars.registerHelper('subtract', (a, b) => a - b)
+export const subtract = (a, b) => a - b
 
-Handlebars.registerHelper('executeFunction', (fct, arg) => fct(arg))
-
-// this could be a partial but it would be less clear
-Handlebars.registerHelper('getIcon', status => STATUS_ICON[status])
+export const executeFunction = (fct, arg) => fct(arg)
 
 // this could be a partial but it would be less clear
-Handlebars.registerHelper('titleByStatus', function (status) {
-  if (this && status in TITLE_BY_STATUS) {
-    return TITLE_BY_STATUS[status](this.length)
+export const getIcon = status => STATUS_ICON[status]
+
+// this could be a partial but it would be less clear
+export function titleByStatus(status, tasks) {
+  if (tasks && status in TITLE_BY_STATUS) {
+    return TITLE_BY_STATUS[status](tasks.length)
   }
-})
+}

@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PifsColumn from 'sorted-table/pifs-column'
@@ -48,6 +47,11 @@ const RESOURCE_COLUMNS = [
     name: _('inUse'),
     itemRenderer: ({ inUse }) => <Icon icon={String(inUse)} />,
     sortCriteria: ({ inUse }) => inUse,
+  },
+  {
+    name: _('state'),
+    itemRenderer: ({ resourceState }) => resourceState,
+    sortCriteria: ({ resourceState }) => resourceState,
   },
   {
     name: _('diskState'),
@@ -172,6 +176,9 @@ export default class TabXostor extends Component {
             const nodeStatus = healthCheck.nodes[hostname]
             const host = this.props.hostByHostname[hostname][0]
 
+            const resourceState = _(
+              `${nodeInfo['tie-breaker'] ? 'tieBreaker' : nodeInfo.diskful ? 'diskful' : 'diskless'}`
+            )
             acc.push({
               inUse: nodeInfo['in-use'],
               vdiId: healthCheck.resources[resourceName].uuid,
@@ -179,6 +186,7 @@ export default class TabXostor extends Component {
               nodeStatus,
               host,
               resourceName,
+              resourceState,
             })
           }
           return acc

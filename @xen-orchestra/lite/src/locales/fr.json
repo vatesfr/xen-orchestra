@@ -139,7 +139,6 @@
   "no-tasks": "Aucune tâche",
   "not-found": "Non trouvé",
   "object": "Objet",
-  "object-not-found": "L'objet {id} est introuvable…",
   "ok": "OK",
   "on-object": "sur {object}",
   "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
