@@ -1,5 +1,6 @@
 <template>
   <div class="site-dashboard">
+    <PoolsStatus class="pools-status" />
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
     <ResourcesOverview class="resources-overview" />
@@ -18,6 +19,7 @@ import Patches from '@/components/site/dashboard/Patches.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
+import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 </script>
 
 <style lang="postcss" scoped>
@@ -31,6 +33,10 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
     'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
     'alarms alarms alarms alarms alarms alarms patches patches';
+}
+
+.pools-status {
+  grid-area: pools-status;
 }
 
 .hosts-status {
