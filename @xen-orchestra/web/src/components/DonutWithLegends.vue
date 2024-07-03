@@ -1,6 +1,6 @@
 <template>
   <div class="donut-with-legends">
-    <DonutChart :segments="donutSegments" :icon="icon" :max-value="maxValue" />
+    <DonutChart :segments="donutSegments" :icon :max-value="maxValue" />
     <ul class="legends">
       <UiLegend
         v-for="(segment, index) in segments"
@@ -32,7 +32,7 @@ const props = defineProps<{
     color: LegendColor
     tooltip?: string
   }[]
-  icon: IconDefinition
+  icon?: IconDefinition
 }>()
 
 const maxValue = computed(() => {
