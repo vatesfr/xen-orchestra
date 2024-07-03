@@ -176,6 +176,8 @@ class Vdi {
       } catch (error) {
         // do not fail if CBT is not enabled/working
         info(`can't get changed block nor parent uuid`, { error, ref, baseRef })
+        changedBlocks = undefined
+        baseParentUuid = undefined
       }
     }
 
