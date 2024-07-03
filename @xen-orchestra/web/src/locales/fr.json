@@ -1,5 +1,13 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
+
+  "hosts-halted-status": "Arrêtées",
+  "hosts-halted-status-tooltip": "Hôtes avec un état d'alimentation inactif",
+  "hosts-running-status": "En fonctionnement",
+  "hosts-status": "Statut des hôtes",
+  "hosts-unknown-status": "Inconnues",
+  "hosts-unknown-status-tooltip": "Hôtes avec un état d'alimentation inconnu",
+
   "host": "Hôte",
   "host-description": "Description de l'hôte",
   "n-hosts": "1 hôte | {n} hôtes",
