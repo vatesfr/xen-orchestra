@@ -33,13 +33,8 @@ const props = defineProps<{
     tooltip?: string
   }[]
   icon?: IconDefinition
+  maxValue?: number
 }>()
-
-const maxValue = computed(() => {
-  return props.segments.reduce((acc, segment) => {
-    return acc + segment.value
-  }, 0)
-})
 
 const donutSegments = computed(() => {
   if (props?.segments.length === 0) {
