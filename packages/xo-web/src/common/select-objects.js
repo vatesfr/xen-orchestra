@@ -51,6 +51,7 @@ import {
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
+  subscribeSchedules,
   subscribeUsers,
 } from './xo'
 import { toggleState } from './reaclette-utils'
@@ -1110,4 +1111,19 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
       })
     }),
   { placeholder: _('selectXoConfig') }
+)
+
+// ===================================================================
+
+export const SelectSchedule = makeSubscriptionSelect(
+  subscriber => {
+    const unsubscribeSchedules = subscribeSchedules(schedules => {
+      subscriber({
+        xoObjects: schedules.map(schedule => ({ ...schedule, type: 'schedule' })),
+      })
+    })
+
+    return unsubscribeSchedules
+  },
+  { placeholder: 'Select a schedule' }
 )

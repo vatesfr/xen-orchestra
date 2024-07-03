@@ -683,6 +683,18 @@ const xoItemToRender = {
   ),
 
   PCI: props => <Pci {...props} self />,
+
+  schedule: schedule => {
+    const isEnabled = schedule.enabled
+    return (
+      <span>
+        <span>{schedule.name}</span>
+        <span className={`ml-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
+          {isEnabled ? _('stateEnabled') : _('stateDisabled')}
+        </span>
+      </span>
+    )
+  },
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
