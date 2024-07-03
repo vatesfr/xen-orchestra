@@ -41,6 +41,13 @@
   "s3-backup-repository": "S3 backup repository",
   "storage-repository": "Storage repository",
 
+  "pools-halted-status": "Halted",
+  "pools-halted-status-tooltip": "Pools with a halted power state",
+  "pools-running-status": "Running",
+  "pools-status": "Pools status",
+  "pools-unknown-status": "Unknown",
+  "pools-unknown-status-tooltip": "Pools with an unknown power state",
+
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
 
