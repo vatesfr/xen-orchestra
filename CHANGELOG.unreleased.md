@@ -10,6 +10,7 @@
 - [VM] Disks whose name contains the tag `[NOSNAP]` will be ignored when doing a manual snapshot similarly to disks ignored during backups with `[NOBAK]` (possibility to use both tags on the same disk) [Forum#79179](https://xcp-ng.org/forum/post/79179)
 - [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
 - [Rolling Pool Update/Reboot] Adds a progress bar to RPU and RPR tasks (PR [#7768](https://github.com/vatesfr/xen-orchestra/pull/7768))
+- [Backups] Add a UI to enable purging snapshot data with CBT backups (PR [#7796](https://github.com/vatesfr/xen-orchestra/pull/7796))
 
 ### Bug fixes
 
@@ -39,5 +40,6 @@
 - xo-server minor
 - xo-server-backup-reports minor
 - xo-server-sdn-controller patch
+- xo-web minor
 
 <!--packages-end-->
