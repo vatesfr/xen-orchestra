@@ -604,12 +604,12 @@ const messages = {
   preferNbdInformation:
     'A network accessible by XO or the proxy must have NBD enabled. Storage must support Change Block Tracking (CBT) to use it in a backup',
   nbdConcurrency: 'Number of NBD connection per disk',
-  cbtDestroySnapshotData: 'purge snapshot data when using CBT',
+  cbtDestroySnapshotData: 'Purge snapshot data when using CBT',
   cbtDestroySnapshotDataInformation:
     "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
 
   cbtDestroySnapshotDataDisabledInformation:
-    'snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
+    'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   // ------ New Remote -----
   newRemote: 'New file system remote',
   remoteTypeLocal: 'Local',

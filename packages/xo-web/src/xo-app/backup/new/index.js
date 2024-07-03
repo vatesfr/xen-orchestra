@@ -1102,7 +1102,6 @@ const New = decorate([
                           </FormGroup>
                         </div>
                       )}
-
                       {state.isDelta && (
                         <FormGroup>
                           <label htmlFor={state.inputNbdConcurrency}>
