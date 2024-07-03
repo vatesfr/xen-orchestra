@@ -523,6 +523,7 @@ const messages = {
   remotesSettings: 'Remotes settings',
   pluginsSettings: 'Plugins settings',
   pluginsWarning: 'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
+  selectSchedule: 'Select a schedule…', 
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',

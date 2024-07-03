@@ -1125,5 +1125,5 @@ export const SelectSchedule = makeSubscriptionSelect(
 
     return unsubscribeSchedules
   },
-  { placeholder: 'Select a schedule' }
+  { placeholder: _('selectSchedule') }
 )
