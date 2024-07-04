@@ -14,6 +14,11 @@
 - [VM] Disks whose name contains the tag `[NOSNAP]` will be ignored when doing a manual snapshot similarly to disks ignored during backups with `[NOBAK]` (possibility to use both tags on the same disk) [Forum#79179](https://xcp-ng.org/forum/post/79179)
 - [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
 - [Rolling Pool Update/Reboot] Adds a progress bar to RPU and RPR tasks (PR [#7768](https://github.com/vatesfr/xen-orchestra/pull/7768))
+- [SR/XOSTOR] Add _State_ column to the _Resource List_ table (PR [#7784](https://github.com/vatesfr/xen-orchestra/pull/7784))
+- [REST API] VDIs of a VM, or a VM snapshot, or a VM template, can now be fetched easily by appending `/vdis` at the VM's endpoint
+- [REST API] Expose servers at the `/rest/v0/servers` endpoint
+- [Backups] Implements Change Block Tracking (CBT) (PR [#7750](https://github.com/vatesfr/xen-orchestra/pull/7750))
+- [Backups] Add a toggle to enable purging snapshot data with CBT backups (PR [#7796](https://github.com/vatesfr/xen-orchestra/pull/7796))
 
 ### Bug fixes
 
@@ -26,10 +31,11 @@
 - [Host/Advanced] Change _Advanced Live Telemetry_ link to point to Netdata's page of the specific host [#7702](https://github.com/vatesfr/xen-orchestra/issues/7702)
 - [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
 - [Incremental Replication] Fix _Delete first_ option causing `could not find base VM` error ([PR #7739](https://github.com/vatesfr/xen-orchestra/pull/7739))
+- [Full Backup] Don't keep an unnecessary snapshot (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
+- [Incremental Replication] Fix error `Cannot destructure property 'other_config' of 'undefined'` (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
 
 ### Released packages
 
-- vhd-lib 4.10.0
 - @vates/fuse-vhd 2.1.1
 - @vates/task 0.4.0
 - @xen-orchestra/web-core 0.0.3
@@ -41,15 +47,16 @@
 - xo-server-auth-ldap 0.10.9
 - xo-server-netbox 1.5.0
 - xo-server-transport-email 1.1.0
-- xo-web 5.148.0
 - @xen-orchestra/xapi 7.0.0
-- @xen-orchestra/backups 0.51.0
-- @xen-orchestra/backups-cli 1.0.21
-- @xen-orchestra/immutable-backups 1.0.8
-- @xen-orchestra/proxy 0.28.5
-- xo-server 5.147.0
 - xo-server-backup-reports 1.1.0
 - xo-server-sdn-controller 1.0.9
+- vhd-lib 4.11.0
+- @xen-orchestra/backups 0.52.0
+- @xen-orchestra/backups-cli 1.0.22
+- @xen-orchestra/immutable-backups 1.0.9
+- @xen-orchestra/proxy 0.28.6
+- xo-server 5.148.0
+- xo-web 5.149.0
 
 ## **5.95.1** (2024-06-20)
 
