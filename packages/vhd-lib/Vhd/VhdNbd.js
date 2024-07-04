@@ -85,14 +85,16 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
 
       this.#header = unpackHeader(createHeader(Math.ceil(size / DEFAULT_BLOCK_SIZE)))
       const geometry = _computeGeometryForSize(size)
-      const diskType = parentUuid ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
+      // changed block can only be used to compute a differencing disk
+      const diskType = DISK_TYPES.DIFFERENCING
       this.#footer = unpackFooter(createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, diskType))
       this.#footer.uuid = packUuid(uuid)
       if (parentUuid) {
+        // this may be undefined and is a nice to have
+        // but backups and xapi don't trust nor use this value
         this.#header.parentUuid = packUuid(parentUuid)
         const parentName = `${parentUuid}.vhd`
         this.#header.parentUnicodeName = parentName
-        // @todo : are the parent locator mandatory ?
       }
     } else {
       assert.strictEqual(this.#footer, undefined)

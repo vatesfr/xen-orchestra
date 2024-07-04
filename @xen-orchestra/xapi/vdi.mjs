@@ -163,22 +163,25 @@ class Vdi {
       stream, // the stream that will be returned (exportStream or using NBD)
       taskRef, // the reference to the export stream (if created manually)
       changedBlocks, // the CBT list of blocks
-      baseParentUuid // the uuid of the parent used as a base for a delta export
+      baseParentUuid // the uuid of the parent of the base for a delta export
 
     if (baseRef !== undefined && preferNbd && cbt_enabled) {
       // use CBT if possible
       // call to list changed blocks must be done before the vdi is mounted for NBD export
       try {
         changedBlocks = await this.VDI_listChangedBlock(ref, baseRef)
-        baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config?.['vhd-parent'])
 
-        info('found changed blocks and base parent uuid ', { changedBlocks, baseParentUuid })
+        info('found changed blocks', { changedBlocks })
       } catch (error) {
         // do not fail if CBT is not enabled/working
-        info(`can't get changed block nor parent uuid`, { error, ref, baseRef })
+        info(`can't get changed block`, { error, ref, baseRef })
         changedBlocks = undefined
-        baseParentUuid = undefined
       }
+      // parent must exist , fail if it don't
+      // this may be undefined and is a nice to have
+      // but backups and xapi don't trust nor use this value
+      // will only be used with CBT
+      baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config['vhd-parent'])
     }
 
     // really connect to NBD server
