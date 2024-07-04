@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.51.0",
+  "version": "0.52.0",
   "engines": {
     "node": ">=14.18"
   },
@@ -46,7 +46,7 @@
     "proper-lockfile": "^4.1.2",
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
-    "vhd-lib": "^4.10.0",
+    "vhd-lib": "^4.11.0",
     "xen-api": "^4.0.0",
     "yazl": "^2.5.1"
   },
