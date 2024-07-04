@@ -1,18 +1,21 @@
 <template>
   <div class="donut-with-legends">
     <DonutChart :segments="donutSegments" :icon :max-value="maxValue" />
-    <ul class="legends">
-      <UiLegend
-        v-for="(segment, index) in segments"
-        :key="index"
-        :color="segment.color"
-        :value="segment.value"
-        :unit="segment.unit"
-        :tooltip="segment.tooltip"
-      >
-        {{ segment.label }}
-      </UiLegend>
-    </ul>
+    <div class="legends-and-title">
+      <slot />
+      <ul class="legends">
+        <UiLegend
+          v-for="(segment, index) in segments"
+          :key="index"
+          :color="segment.color"
+          :value="segment.value"
+          :unit="segment.unit"
+          :tooltip="segment.tooltip"
+        >
+          {{ segment.label }}
+        </UiLegend>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -34,6 +37,10 @@ const props = defineProps<{
   }[]
   icon?: IconDefinition
   maxValue?: number
+}>()
+
+defineSlots<{
+  default: () => void
 }>()
 
 const donutSegments = computed(() => {
@@ -63,5 +70,17 @@ const donutSegments = computed(() => {
   display: flex;
   align-items: center;
   gap: 3.2rem;
+}
+
+.legends-and-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.legends {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 </style>
