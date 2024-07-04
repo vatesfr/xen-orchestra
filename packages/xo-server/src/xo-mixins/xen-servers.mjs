@@ -141,7 +141,7 @@ export default class XenServers {
     id,
     { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
   ) {
-    const server = await this._getXenServer(id)
+    const server = await this.getXenServerWithCredentials(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
       allowUnauthorized !== undefined ||
@@ -185,13 +185,7 @@ export default class XenServers {
     await this._servers.update(server)
   }
 
-  async getXenServer(id) {
-    return await this._getXenServer(id)
-  }
-
-  // TODO: this method will no longer be async when servers are
-  // integrated to the main collection.
-  async _getXenServer(id) {
+  async getXenServerWithCredentials(id) {
     const server = await this._servers.first(id)
     if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
@@ -304,7 +298,7 @@ export default class XenServers {
   }
 
   async connectXenServer(id) {
-    const server = await this.getXenServer(id)
+    const server = await this.getXenServerWithCredentials(id)
 
     if (this._getXenServerStatus(id) !== 'disconnected') {
       throw new Error('the server is already connected')
@@ -550,26 +544,28 @@ export default class XenServers {
         : 'connecting'
   }
 
+  _decorateXenServer(server) {
+    const xapis = this._xapis
+
+    const lastEventFetchedTimestamp = xapis[server.id]?.lastEventFetchedTimestamp
+    if (
+      lastEventFetchedTimestamp !== undefined &&
+      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+    ) {
+      server.error = xapis[server.id].watchEventsError
+    }
+    server.status = this._getXenServerStatus(server.id)
+    if (server.status === 'connected') {
+      server.poolId = xapis[server.id].pool.uuid
+    }
+
+    // Do not expose password.
+    delete server.password
+  }
+
   async getAllXenServers() {
     const servers = await this._servers.get()
-    const xapis = this._xapis
-    forEach(servers, server => {
-      const lastEventFetchedTimestamp = xapis[server.id]?.lastEventFetchedTimestamp
-      if (
-        lastEventFetchedTimestamp !== undefined &&
-        Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
-      ) {
-        server.error = xapis[server.id].watchEventsError
-      }
-      server.status = this._getXenServerStatus(server.id)
-      if (server.status === 'connected') {
-        server.poolId = xapis[server.id].pool.uuid
-      }
-
-      // Do not expose password.
-      delete server.password
-    })
-
+    servers.forEach(this._decorateXenServer, this)
     return servers
   }
 
@@ -583,6 +579,12 @@ export default class XenServers {
 
   getXapiSrStats(srId, granularity) {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
+  }
+
+  async getXenServer(id) {
+    const server = await this.getXenServerWithCredentials(id)
+    this._decorateXenServer(server)
+    return server
   }
 
   async mergeXenPools(sourcePoolId, targetPoolId, force = false) {
@@ -614,7 +616,7 @@ export default class XenServers {
 
     await xapi.ejectHostFromPool(hostId)
 
-    this.getXenServer(this._serverIdsByPool[poolId])
+    this.getXenServerWithCredentials(this._serverIdsByPool[poolId])
       .then(async properties => {
         const { id } = await this.registerXenServer({
           ...properties,

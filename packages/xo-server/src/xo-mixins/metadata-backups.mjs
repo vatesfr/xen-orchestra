@@ -82,7 +82,7 @@ export default class metadataBackup {
             remotes[id] = remote
           }),
           asyncMapSettled([...servers], async id => {
-            const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+            const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(id)
             xapis[id] = {
               allowUnauthorized,
               credentials: {
@@ -354,7 +354,7 @@ export default class metadataBackup {
       if (remote.proxy !== undefined) {
         let xapi
         if (poolUuid !== undefined) {
-          const { allowUnauthorized, host, password, username } = await app.getXenServer(
+          const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
             app.getXenServerIdByObject(poolUuid)
           )
           xapi = {

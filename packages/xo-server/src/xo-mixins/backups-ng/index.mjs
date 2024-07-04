@@ -230,7 +230,7 @@ export default class BackupNg {
               remotes[id] = remote
             }),
             asyncMapSettled([...servers], async id => {
-              const { allowUnauthorized, httpProxy, password, username } = await app.getXenServer(id)
+              const { allowUnauthorized, httpProxy, password, username } = await app.getXenServerWithCredentials(id)
 
               const xapi = app.getAllXapis()[id]
 
@@ -471,7 +471,7 @@ export default class BackupNg {
       let result
       if (remote.proxy !== undefined) {
         // httpProxy is ignored when using XO Proxy
-        const { allowUnauthorized, host, password, username } = await app.getXenServer(
+        const { allowUnauthorized, host, password, username } = await app.getXenServerWithCredentials(
           app.getXenServerIdByObject(sr.$id)
         )
 
