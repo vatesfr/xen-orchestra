@@ -1091,14 +1091,22 @@ const New = decorate([
                                 <Icon icon='info' />
                               </Tooltip>
                             </label>
-                            <Toggle
-                              className='pull-right'
-                              id={state.cbtDestroySnapshotData}
-                              name='cbtDestroySnapshotData'
-                              value={preferNbd && cbtDestroySnapshotData && !state.snapshotMode}
-                              disabled={!preferNbd || state.snapshotMode}
-                              onChange={effects.setCbtDestroySnapshotData}
-                            />
+                            <Tooltip
+                              content={
+                                !preferNbd || state.snapshotMode
+                                  ? _('cbtDestroySnapshotDataDisabledInformation')
+                                  : undefined
+                              }
+                            >
+                              <Toggle
+                                className='pull-right'
+                                id={state.cbtDestroySnapshotData}
+                                name='cbtDestroySnapshotData'
+                                value={preferNbd && cbtDestroySnapshotData && !state.snapshotMode}
+                                disabled={!preferNbd || state.snapshotMode}
+                                onChange={effects.setCbtDestroySnapshotData}
+                              />
+                            </Tooltip>
                           </FormGroup>
                         </div>
                       )}
