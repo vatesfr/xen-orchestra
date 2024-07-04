@@ -1081,12 +1081,8 @@ const New = decorate([
                           <FormGroup>
                             <label htmlFor={state.inputCbtDestroySnapshotData}>
                               <strong>{_('cbtDestroySnapshotData')}</strong>{' '}
-                              <Tooltip
-                                content={_(
-                                  preferNbd && !state.snapshotMode
-                                    ? 'cbtDestroySnapshotDataInformation'
-                                    : 'cbtDestroySnapshotDataDisabledInformation'
-                                )}
+                              <Tooltip content={_('cbtDestroySnapshotDataInformation')}>
+
                               >
                                 <Icon icon='info' />
                               </Tooltip>
