@@ -2,10 +2,10 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import some from 'lodash/some.js'
+import throttle from 'lodash/throttle.js'
 
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
-import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
 import { forEach, parseXml } from '../utils.mjs'
 
@@ -923,16 +923,24 @@ probeNfsExists.resolve = {
 
 // -------------------------------------------------------------------
 
-export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnhealthyVdiChainsLength() {
-  const unhealthyVdiChainsLengthBySr = {}
-  filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
-    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
-    if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
-      unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
-    }
-  })
-  return unhealthyVdiChainsLengthBySr
-}, 60e3)
+export const getAllUnhealthyVdiChainsLength = throttle(
+  function getAllUnhealthyVdiChainsLength() {
+    const unhealthyVdiChainsLengthBySr = {}
+    filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
+      const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
+      if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
+        unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
+      }
+    })
+    return unhealthyVdiChainsLengthBySr
+  },
+  60e3,
+  { leading: true, trailing: false }
+)
+
+// remove lodash's method which will be refused by XO's addApiMethod()
+delete getAllUnhealthyVdiChainsLength.cancel
+delete getAllUnhealthyVdiChainsLength.flush
 
 getAllUnhealthyVdiChainsLength.permission = 'admin'
 
