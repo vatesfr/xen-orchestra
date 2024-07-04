@@ -1,5 +1,7 @@
 <template>
-  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
-  Welcome to XO 6
-  <!-- eslint-enable @intlify/vue-i18n/no-raw-text -->
+  <DashboardPatches />
 </template>
+
+<script setup lang="ts">
+import DashboardPatches from '@/components/pool/dashboard/DashboardPatches.vue'
+</script>
