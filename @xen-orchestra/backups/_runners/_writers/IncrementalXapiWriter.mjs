@@ -20,6 +20,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     // @todo : this seems similare to decorateVmMetadata
 
     const replicatedVdis = sr.$VDIs
+      .filter(_ => !!_)
       .filter(({ other_config }) => {
         // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
         return baseUuidToSrcVdi.has(other_config?.[COPY_OF])
@@ -103,10 +104,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       .filter(_ => !!_)
     // @todo use index ?
 
-    const replicatedVdis = sr.$VDIs.filter(({ other_config }) => {
-      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      return sourceVdiUuids.includes(other_config?.[COPY_OF])
-    })
+    const replicatedVdis = sr.$VDIs
+      .filter(_ => !!_) // some VDIs are undefined
+      .filter(({ other_config }) => {
+        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+        return sourceVdiUuids.includes(other_config?.[COPY_OF])
+      })
 
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
