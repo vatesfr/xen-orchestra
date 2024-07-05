@@ -28,5 +28,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/xapi patch
 
 <!--packages-end-->

@@ -682,7 +682,8 @@ class Vm {
         try {
           await this.VDI_destroy(vbd.VDI)
         } catch (error) {
-          warn('VM_snapshot, failed to destroy snapshot NOBAK VDI', {
+          warn('VM_snapshot, failed to destroy ignored snapshot VDI', {
+            error,
             vdiRef: vbd.VDI,
             vmRef,
             vmSnapshotRef: ref,
