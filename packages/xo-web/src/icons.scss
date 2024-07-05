@@ -511,6 +511,11 @@
       @extend .fa;
       @extend .fa-fire;
     }
+
+    &-coalesce-leaf {
+      @extend .fa;
+      @extend .fa-compress;
+    }
   }
 
   // Generic states

@@ -599,6 +599,32 @@ class Vm {
     }
   }
 
+  async coalesceLeaf($defer, vmRef) {
+    try {
+      await this.callAsync('VM.suspend', vmRef)
+      $defer(() => this.callAsync('VM.resume', vmRef, false, true))
+    } catch (error) {
+      if (error.code !== 'VM_BAD_POWER_STATE') {
+        throw error
+      }
+
+      const powerState = error.params[2].toLowerCase()
+      if (powerState !== 'halted' && powerState !== 'suspended') {
+        throw error
+      }
+    }
+
+    // result can be: `Success` or `VM has no leaf-coalesceable VDIs`
+    // https://github.com/xapi-project/sm/blob/eb292457c5fd5f00f6fc82454a915068ab15aa6f/drivers/coalesce-leaf#L48
+    const result = await this.callAsync('host.call_plugin', this.pool.master, 'coalesce-leaf', 'leaf-coalesce', {
+      vm_uuid: await this.getField('VM', vmRef, 'uuid'),
+    })
+
+    if (result.toLowerCase() !== 'success') {
+      throw new Error(result)
+    }
+  }
+
   async snapshot(
     $defer,
     vmRef,
@@ -705,5 +731,6 @@ decorateClass(Vm, {
   checkpoint: defer,
   create: defer,
   export: defer,
+  coalesceLeaf: defer,
   snapshot: defer,
 })

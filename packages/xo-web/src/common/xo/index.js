@@ -2004,6 +2004,18 @@ export const deleteVms = async vms => {
   }
 }
 
+export const coalesceLeafVm = async vm => {
+  if (vm.power_state !== 'Halted' && vm.power_state !== 'Suspended') {
+    await confirm({
+      title: _('coalesceLeaf'),
+      body: _('coalesceLeafSuspendVm'),
+    })
+  }
+  await _call('vm.coalesceLeaf', { id: resolveId(vm) })
+
+  success(_('coalesceLeaf'), _('coalesceLeafSuccess'))
+}
+
 export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 
 export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) =>
