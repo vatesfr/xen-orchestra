@@ -38,6 +38,7 @@
   "master": "Hôte primaire",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
+  "patches": "Patches",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
   "stats": "Stats",
   "storage": "Stockage",
