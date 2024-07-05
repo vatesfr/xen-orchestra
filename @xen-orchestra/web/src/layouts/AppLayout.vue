@@ -7,11 +7,7 @@
     </template>
     <template #app-header>
       <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary" @click="openUrl('/', true)">XO 5</UiButton>
-      <ButtonIcon
-        v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
-        :icon="faBarsProgress"
-        size="large"
-      />
+      <QuickTaskButton />
       <AccountMenu />
     </template>
     <template #sidebar-header>
@@ -35,17 +31,16 @@ import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import NoResults from '@/components/NoResults.vue'
 import SidebarSearch from '@/components/SidebarSearch.vue'
+import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import PoolTreeList from '@/components/tree/PoolTreeList.vue'
 import { usePoolTree } from '@/composables/pool-tree.composable'
-import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
 import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { openUrl } from '@core/utils/open-url.utils'
-import { faArrowUpRightFromSquare, faBarsProgress, faCity } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUpRightFromSquare, faCity } from '@fortawesome/free-solid-svg-icons'
 
 const uiStore = useUiStore()
 
