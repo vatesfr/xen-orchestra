@@ -23,7 +23,7 @@ createCachedLookup().patchGlobal()
 
 const logger = createLogger('xo:backups:worker')
 catchGlobalErrors(logger)
-const { debug, info } = logger
+const { debug, info, warn } = logger
 
 class BackupWorker {
   #config
@@ -204,6 +204,13 @@ process.on('message', async message => {
       info('backup has ended')
       await ignoreErrors.call(backupWorker.debounceResource.flushAll())
       process.disconnect()
+
+      setTimeout(() => {
+        warn('worker process did not exit automatically, forcing...')
+
+        // eslint-disable-next-line n/no-process-exit
+        process.exit()
+      }, 30e3).unref()
     }
   }
 })
