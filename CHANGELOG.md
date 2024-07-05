@@ -33,6 +33,7 @@
 - [Incremental Replication] Fix _Delete first_ option causing `could not find base VM` error ([PR #7739](https://github.com/vatesfr/xen-orchestra/pull/7739))
 - [Full Backup] Don't keep an unnecessary snapshot (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
 - [Incremental Replication] Fix error `Cannot destructure property 'other_config' of 'undefined'` (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
+- Ensure backup worker exits and frees all resources when the run is finished
 
 ### Released packages
 
@@ -50,13 +51,13 @@
 - xo-server-backup-reports 1.1.0
 - xo-server-sdn-controller 1.0.9
 - vhd-lib 4.11.0
-- @xen-orchestra/backups 0.52.0
 - @xen-orchestra/backups-cli 1.0.22
 - @xen-orchestra/immutable-backups 1.0.9
 - @xen-orchestra/proxy 0.28.6
 - xo-server 5.148.0
 - xo-web 5.149.0
 - @xen-orchestra/xapi 7.1.0
+- @xen-orchestra/backups 0.52.1
 
 ## **5.95.1** (2024-06-20)
 
