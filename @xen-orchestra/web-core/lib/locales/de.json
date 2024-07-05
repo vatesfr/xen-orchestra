@@ -29,5 +29,7 @@
   "storage": "Speicher",
   "support-name": "{name} pro support",
   "system": "System",
-  "tasks": "Aufgaben"
+
+  "tasks": "Aufgaben",
+  "tasks.quick-view": "Schnellansicht der Aufgaben"
 }
