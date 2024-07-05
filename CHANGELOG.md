@@ -47,7 +47,6 @@
 - xo-server-auth-ldap 0.10.9
 - xo-server-netbox 1.5.0
 - xo-server-transport-email 1.1.0
-- @xen-orchestra/xapi 7.0.0
 - xo-server-backup-reports 1.1.0
 - xo-server-sdn-controller 1.0.9
 - vhd-lib 4.11.0
@@ -57,6 +56,7 @@
 - @xen-orchestra/proxy 0.28.6
 - xo-server 5.148.0
 - xo-web 5.149.0
+- @xen-orchestra/xapi 7.1.0
 
 ## **5.95.1** (2024-06-20)
 
