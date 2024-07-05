@@ -55,9 +55,9 @@
 - @xen-orchestra/immutable-backups 1.0.9
 - xo-web 5.149.0
 - @xen-orchestra/backups 0.52.1
-- xo-server 5.148.1
 - @xen-orchestra/xapi 7.1.1
 - @xen-orchestra/proxy 0.28.8
+- xo-server 5.148.2
 
 ## **5.95.1** (2024-06-20)
 
