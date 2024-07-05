@@ -56,9 +56,9 @@
   "tasks": "Tâches",
   "tasks.n-subtasks": "{n} sous-tâche",
   "tasks.no-tasks": "Aucune tâche",
-  "tasks.quick-view": "Tasks' quick view",
-  "tasks.quick-view.all": "All",
-  "tasks.quick-view.done": "Done",
-  "tasks.quick-view.failed": "Failed",
-  "tasks.quick-view.in-progress": "In progress"
+  "tasks.quick-view": "Vue rapide des tâches",
+  "tasks.quick-view.all": "Toutes",
+  "tasks.quick-view.done": "Terminées",
+  "tasks.quick-view.failed": "Échouées",
+  "tasks.quick-view.in-progress": "En cours"
 }
