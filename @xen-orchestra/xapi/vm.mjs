@@ -678,11 +678,14 @@ class Vm {
     )
 
     if (destroyNobakVdis) {
-      await asyncMap(ignoredVbds, async vbd => {
+      // destroy the ignored VBDs on the VM snapshot
+      const ignoredSnapshotVbds = await listTaggedVdiVbds(this, await this.getField('VM', ref, 'VBDs'), ignoredVdisTag)
+      await asyncMap(ignoredSnapshotVbds, async vbd => {
         try {
           await this.VDI_destroy(vbd.VDI)
         } catch (error) {
-          warn('VM_snapshot, failed to destroy snapshot NOBAK VDI', {
+          warn('VM_snapshot, failed to destroy ignored snapshot VDI', {
+            error,
             vdiRef: vbd.VDI,
             vmRef,
             vmSnapshotRef: ref,

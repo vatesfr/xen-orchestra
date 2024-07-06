@@ -258,8 +258,9 @@ exports.VhdAbstract = class VhdAbstract {
     assert.strictEqual(fileSize % SECTOR_SIZE, 0)
     return fileSize
   }
-
-  stream() {
+  // progress is called with currentBlock, numberOfBlocs
+  // it's an approximation, ignoring the footer/header/bat size
+  stream({ onProgress } = {}) {
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)
@@ -282,10 +283,11 @@ exports.VhdAbstract = class VhdAbstract {
     const rawHeader = fuHeader.pack(header)
     checksumStruct(rawHeader, fuHeader)
 
-    assert.strictEqual(offset % SECTOR_SIZE, 0)
+    assert.strictEqual(offset % SECTOR_SIZE, 0, `offset should be aligned to SECTOR_SIZE: ${offset}`)
 
     const bat = Buffer.allocUnsafe(batSize)
     let offsetSector = offset / SECTOR_SIZE
+    let nbBlocks = 0
     const blockSizeInSectors = this.fullBlockSize / SECTOR_SIZE
     let fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
     // compute BAT , blocks starts after parent locator entries
@@ -294,6 +296,7 @@ exports.VhdAbstract = class VhdAbstract {
         bat.writeUInt32BE(offsetSector, i * 4)
         offsetSector += blockSizeInSectors
         fileSize += this.fullBlockSize
+        nbBlocks++
       } else {
         bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
       }
@@ -301,10 +304,16 @@ exports.VhdAbstract = class VhdAbstract {
 
     assert.strictEqual(offset % SECTOR_SIZE, 0)
     const self = this
+    let yielded = 0
+    function trackTransmittedLength(buffer) {
+      yielded += buffer.length
+      assert.ok(yielded <= fileSize, `Max stream length is ${fileSize}, try to send ${yielded}`)
+      return buffer
+    }
     async function* iterator() {
-      yield rawFooter
-      yield rawHeader
-      yield bat
+      yield trackTransmittedLength(rawFooter)
+      yield trackTransmittedLength(rawHeader)
+      yield trackTransmittedLength(bat)
 
       // yield parent locator
 
@@ -315,20 +324,24 @@ exports.VhdAbstract = class VhdAbstract {
           // align data to a sector
           const buffer = Buffer.alloc(space, 0)
           data.copy(buffer)
-          yield buffer
+          yield trackTransmittedLength(buffer)
         }
       }
 
       // yield all blocks
       // since contains() can be costly for synthetic vhd, use the computed bat
+      let nbYielded = 0
       for (let i = 0; i < header.maxTableEntries; i++) {
         if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
+          nbYielded++
           const block = await self.readBlock(i)
-          yield block.buffer
+          yield trackTransmittedLength(block.buffer)
+          onProgress?.(nbYielded, nbBlocks)
         }
       }
       // yield footer again
-      yield rawFooter
+      yield trackTransmittedLength(rawFooter)
+      assert.strictEqual(yielded, fileSize, `computed stream length is ${fileSize} but sent ${yielded} bytes`)
     }
 
     const stream = asyncIteratorToStream(iterator())

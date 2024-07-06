@@ -52,8 +52,7 @@ export default class Tasks extends EventEmitter {
 
           if (status === 'success') {
             try {
-              await this.#store.del(id)
-              this.emit('remove', id)
+              await this.deleteLog(id)
             } catch (error) {
               warn('failure on deleting task log from store', { error, taskLog })
             }
