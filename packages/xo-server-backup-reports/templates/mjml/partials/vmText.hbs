@@ -1,11 +1,15 @@
-
 {{#if vm}}
 <h3>{{vm.name_label}}</h3>
-<ul>
-  <li><span style="font-weight: bold">UUID</span>: {{vm.uuid}}</li>
 {{else}}
 <h3>VM not found</h3>
+{{/if}}
+{{#each taskLog.infos}}
+  ℹ️ {{message}}
+{{/each}}
 <ul>
+{{#if vm}}
+  <li><span style="font-weight: bold">UUID</span>: {{vm.uuid}}</li>
+{{else}}
   <li><span style="font-weight: bold">UUID</span>: {{taskLog.data.id}}</li>
 {{/if}}
 {{>reportTemporalData end=taskLog.end start=taskLog.start}}
