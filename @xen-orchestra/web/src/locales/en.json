@@ -1,5 +1,8 @@
 {
   "account-organization-more": "Account, organization & more…",
+  "backup-repository": "Backup repository",
+  "for-backup": "For backup",
+  "for-replication": "For replication",
 
   "host": "Host",
   "host-description": "Host description",
@@ -12,6 +15,8 @@
 
   "n-hosts": "1 host | {n} hosts",
   "no-results": "No results",
+  "s3-backup-repository": "S3 backup repository",
+  "storage-repository": "Storage repository",
 
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
