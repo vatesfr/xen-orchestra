@@ -3,6 +3,7 @@
 ## **next**
 
 - [Pool/Dashboard] Add missing translations for hosts and VMs statuses (PR [#7744](https://github.com/vatesfr/xen-orchestra/pull/7744))
+- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
 
 ## **0.2.3** (2024-05-31)
 
