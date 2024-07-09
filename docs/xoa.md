@@ -181,7 +181,7 @@ $ xoa network static enX1
 $ xoa network dhcp enX1
 ```
 
-## Extraneous IP addresses
+## Secondary IP addresses
 
 To add more IP addresses on an already configured interface, you can use the `--add` flag:
 
