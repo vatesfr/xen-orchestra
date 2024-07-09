@@ -181,6 +181,15 @@ $ xoa network static enX1
 $ xoa network dhcp enX1
 ```
 
+## Extraneous IP addresses
+
+To add more IP addresses on an already configured interface, you can use the `--add` flag:
+
+```
+$ xoa network static --add
+? Static IP for this machine 192.168.200.120/24
+```
+
 ## Firewall
 
 By default XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall using the `sudo ufw status verbose` command:
