@@ -158,8 +158,7 @@ XOA uses **DHCP** by default, so if you need to configure the IP address, please
 
 ```console
 $ xoa network static
-? Static IP for this machine 192.168.100.120
-? Network mask (eg 255.255.255.0) 255.255.255.0
+? Static IP for this machine 192.168.100.120/24
 ? Gateway 192.168.100.254
 ? IP of the DNS server 192.168.100.254
 ```
