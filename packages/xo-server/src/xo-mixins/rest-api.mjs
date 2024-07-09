@@ -270,7 +270,7 @@ export default class RestApi {
         },
 
         async missing_patches(req, res) {
-          // await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 
           const host = req.xapiObject
           res.json(await host.$xapi.listMissingPatches(host))
