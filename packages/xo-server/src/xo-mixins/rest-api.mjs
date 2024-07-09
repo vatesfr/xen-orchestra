@@ -270,7 +270,7 @@ export default class RestApi {
         },
 
         async missing_patches(req, res) {
-          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+          // await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 
           const host = req.xapiObject
           res.json(await host.$xapi.listMissingPatches(host))
@@ -604,6 +604,60 @@ export default class RestApi {
     api.get('/backup/jobs/:id', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
     })
+
+    api.get(
+      '/dashboard',
+      wrap(async (req, res) => {
+        const dashboard = {}
+
+        const poolIds = new Set()
+        const hosts = []
+
+        for (const obj of app.objects.values()) {
+          if (obj.type === 'host') {
+            hosts.push(obj)
+            poolIds.add(obj.$pool)
+          }
+        }
+
+        dashboard.nPools = poolIds.size
+        dashboard.nHosts = hosts.length
+
+        let listMissingPatchesAuthorized = true
+        try {
+          await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+        } catch (error) {
+          listMissingPatchesAuthorized = false
+        }
+
+        if (listMissingPatchesAuthorized) {
+          const poolsWithMissingPatches = new Set()
+          let nHostsWithMissingPatches = 0
+
+          await asyncEach(hosts, async host => {
+            const xapi = app.getXapi(host)
+            try {
+              const patches = await xapi.listMissingPatches(host)
+              if (patches.length > 0) {
+                nHostsWithMissingPatches++
+                poolsWithMissingPatches.add(host.$pool)
+              }
+            } catch (error) {
+              console.error(error)
+            }
+          })
+
+          const missingPatches = {
+            nHostsWithMissingPatches,
+            nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+          }
+
+          dashboard.missingPatches = missingPatches
+        }
+
+        res.json(dashboard)
+      })
+    )
 
     api
       .get(
