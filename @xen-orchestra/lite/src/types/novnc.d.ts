@@ -6,7 +6,7 @@
 
 /* eslint-disable no-use-before-define */
 
-declare module '@novnc/novnc/core/rfb' {
+declare module '@novnc/novnc/lib/rfb' {
   /**
    * An `object` specifying the credentials to provide to the server when authenticating.
    */
@@ -309,9 +309,13 @@ declare module '@novnc/novnc/core/util/browser' {
   const hasScrollbarGutter: boolean
 
   function isMac(): boolean
+
   function isWindows(): boolean
+
   function isIOS(): boolean
+
   function isSafari(): boolean
+
   function isFirefox(): boolean
 }
 
@@ -327,7 +331,9 @@ declare module '@novnc/novnc/core/input/util' {
   }
 
   function getKeycode(event: KeyboardEventBase): string
+
   function getKey(event: KeyboardEventBase): string
+
   function getKeysym(event: KeyboardEventBase): number
 }
 
