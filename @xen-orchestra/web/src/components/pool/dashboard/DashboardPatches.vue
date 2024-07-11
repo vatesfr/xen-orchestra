@@ -1,60 +1,27 @@
 <template>
   <UiCard>
     <CardTitle>{{ $t('patches') }}</CardTitle>
-    <DonutWithLegends
-      :segments="[
-        {
-          label: $t('up-to-date'),
-          value: 4,
-          color: 'success',
-        },
-        {
-          label: $t('missing-patches'),
-          value: 5,
-          color: 'warning',
-        },
-      ]"
-    >
+    <DonutWithLegends :segments="serversSegments">
       <LegendTitle>{{ $t('servers') }}</LegendTitle>
     </DonutWithLegends>
     <UiSeparator />
-    <DonutWithLegends
-      :segments="[
-        {
-          label: $t('up-to-date'),
-          value: 2,
-          color: 'success',
-        },
-        {
-          label: $t('missing-patches'),
-          value: 6,
-          color: 'warning',
-        },
-        {
-          label: 'EOL',
-          value: 10,
-          color: 'error',
-          tooltip: $t('end-of-life'),
-        },
-      ]"
-    >
+    <DonutWithLegends :segments="hostsSegments">
       <LegendTitle>{{ $t('hosts') }}</LegendTitle>
     </DonutWithLegends>
-
-    <pre>{{ data }}</pre>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import DonutWithLegends from '@/components/DonutWithLegends.vue'
-// import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { LegendColor } from '@core/types/ui-legend.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import LegendTitle from '@core/components/LegendTitle.vue'
 import UiCard from '@core/components/UiCard.vue'
 import UiSeparator from '@core/components/UiSeparator.vue'
 import { useFetch } from '@vueuse/core'
-
-// const { records: dashboard, isReady } = useDashboardStore().subscribe()
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const { data } = useFetch<string>('/rest/v0/dashboard').get().json<{
   nHosts: number
@@ -64,4 +31,30 @@ const { data } = useFetch<string>('/rest/v0/dashboard').get().json<{
     nPoolsWithMissingPatches: number
   }
 }>()
+
+const serversSegments = computed(() => [
+  {
+    label: t('up-to-date'),
+    value: data.value?.nPools ?? 0,
+    color: 'success' as LegendColor,
+  },
+  {
+    label: t('missing-patches'),
+    value: data.value?.missingPatches?.nPoolsWithMissingPatches ?? 0,
+    color: 'warning' as LegendColor,
+  },
+])
+
+const hostsSegments = computed(() => [
+  {
+    label: t('up-to-date'),
+    value: data.value?.nHosts ?? 0,
+    color: 'success' as LegendColor,
+  },
+  {
+    label: t('missing-patches'),
+    value: data.value?.missingPatches?.nHostsWithMissingPatches ?? 0,
+    color: 'warning' as LegendColor,
+  },
+])
 </script>
