@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { useXenApiStore } from '@/stores/xen-api.store'
-import VncClient from '@novnc/novnc/core/rfb'
+import VncClient from '@novnc/novnc/lib/rfb'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'

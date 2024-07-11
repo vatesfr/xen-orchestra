@@ -86,10 +86,27 @@ systemctl restart xo-server.service
 
 ## Redis server
 
-By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define whatever you want:
+For advanced usage, you can customize the way XO connect to Redis:
 
 ```toml
-uri = 'tcp://db:password@hostname:port'
+# Connection to the Redis server.
+[redis]
+# Unix sockets can be used
+#
+# Default: undefined
+#socket = '/var/run/redis/redis.sock'
+
+# Syntax: redis://[db[:password]@]hostname[:port][/db-number]
+#
+# Default: redis://localhost:6379/0
+#uri = 'redis://redis.company.lan/42'
+
+# List of aliased commands.
+#
+# See http://redis.io/topics/security#disabling-of-specific-commands
+#renameCommands:
+#  del = '3dda29ad-3015-44f9-b13b-fa570de92489'
+#  srem = '3fd758c9-5610-4e9d-a058-dbf4cb6d8bf0'
 ```
 
 ## Proxy for updates and patches

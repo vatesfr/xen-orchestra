@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { useUiStore } from '@core/stores/ui.store'
-import VncClient from '@novnc/novnc/core/rfb'
+import VncClient from '@novnc/novnc/lib/rfb'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, watchEffect } from 'vue'
