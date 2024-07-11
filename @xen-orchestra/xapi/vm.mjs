@@ -614,6 +614,7 @@ class Vm {
       }
     }
 
+    // plugin doc: https://docs.xenserver.com/en-us/xenserver/8/storage/manage.html#reclaim-space-by-using-the-offline-coalesce-tool
     // result can be: `Success` or `VM has no leaf-coalesceable VDIs`
     // https://github.com/xapi-project/sm/blob/eb292457c5fd5f00f6fc82454a915068ab15aa6f/drivers/coalesce-leaf#L48
     const result = await this.callAsync('host.call_plugin', this.pool.master, 'coalesce-leaf', 'leaf-coalesce', {
