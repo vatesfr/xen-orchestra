@@ -1,4 +1,9 @@
 {
   "account-organization-more": "Konto, Organisation & mehr…",
+  "no-results": "Keine Ergebnisse",
+
+  "sidebar.search-tree-view": "Suche im Baumansicht",
+  "sidebar.vms-treeview": "VMs Baumansicht",
+
   "tasks.quick-view": "Schnellansicht der Aufgaben (Bald verfügbar)"
 }
