@@ -274,7 +274,7 @@ module.exports = {
     // this rule can prevent race condition bugs like parallel `a += await foo()`
     //
     // as it has a lots of false positive, it is only enabled as a warning for now
-    'require-atomic-updates': 'warn',
+    'require-atomic-updates': ['warn', { allowProperties: true }],
 
     strict: 'error',
   },
