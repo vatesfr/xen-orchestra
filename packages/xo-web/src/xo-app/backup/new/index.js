@@ -189,6 +189,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     crMode: false,
     deltaMode: false,
     drMode: false,
+    ignoreEmptyBackups: false,
     name: '',
     nbdConcurrency: 1,
     nRetriesVmBackupFailures: 0,
@@ -650,6 +651,11 @@ const New = decorate([
           nRetriesVmBackupFailures: nRetries,
         })
       },
+      setIgnoreEmptyBackups({ setGlobalSettings }, ignoreEmptyBackups) {
+        setGlobalSettings({
+          ignoreEmptyBackups,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -657,6 +663,7 @@ const New = decorate([
       inputConcurrencyId: generateId,
       inputCbtDestroySnapshotData: generateId,
       inputFullIntervalId: generateId,
+      inputIgnoreEmptyBackupsId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,
@@ -772,6 +779,7 @@ const New = decorate([
       checkpointSnapshot,
       concurrency,
       fullInterval,
+      ignoreEmptyBackups,
       maxExportRate,
       nbdConcurrency = 1,
       nRetriesVmBackupFailures = 0,
@@ -1163,6 +1171,17 @@ const New = decorate([
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />
+                      <FormGroup>
+                        <label htmlFor={state.inputIgnoreEmptyBackupsId}>
+                          <strong>{_('ignoreEmptyBackups')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.ignoreEmptyBackups}
+                          value={ignoreEmptyBackups}
+                          onChange={effects.setIgnoreEmptyBackups}
+                        />
+                      </FormGroup>
                     </div>
                   )}
                 </CardBlock>
