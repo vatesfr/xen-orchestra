@@ -654,7 +654,7 @@ export default class RestApi {
     api.get(
       '/dashboard',
       wrap(async (req, res) => {
-        // Returns an array like all other API responses
+        // returns an array because the dashboard data will be consumed by the UI as a collection
         res.json([await getDashboardStats(app)])
       })
     )
