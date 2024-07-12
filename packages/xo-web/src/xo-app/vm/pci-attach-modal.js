@@ -60,11 +60,12 @@ export default class PciAttachModal extends Component {
   )
 
   render() {
-    const { hideHostSelector = false } = this.props
+    const { pool } = this.props
     const isHostSelected = this.state.host !== undefined
     return (
       <div>
-        {!hideHostSelector && (
+        {/* For ACL users without authorization on the pool, there is no point in displaying an empty selector */}
+        {pool !== undefined && (
           <SelectHost onChange={this.onChangeHost} predicate={this._getHostPredicate} value={this.state.host} />
         )}
         <Tooltip content={isHostSelected ? undefined : _('selectHostFirst')}>

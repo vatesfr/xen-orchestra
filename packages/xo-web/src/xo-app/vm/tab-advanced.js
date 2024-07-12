@@ -638,13 +638,7 @@ export default class TabAdvanced extends Component {
     const { vm, vmPool } = this.props
     const pcis = await confirm({
       body: (
-        <PciAttachModal
-          attachedPciIds={vm.attachedPcis}
-          pcisByHost={this.props.pcisByHost}
-          vm={vm}
-          // For ACL users without authorization on the pool, there is no point in displaying an empty selector
-          hideHostSelector={vmPool === undefined}
-        />
+        <PciAttachModal attachedPciIds={vm.attachedPcis} pcisByHost={this.props.pcisByHost} vm={vm} pool={vmPool} />
       ),
       icon: 'add',
       title: _('attachPcis'),
