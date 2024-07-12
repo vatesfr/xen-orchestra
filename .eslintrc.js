@@ -215,7 +215,7 @@ module.exports = {
         '@intlify/vue-i18n/no-v-html': 'error',
         '@intlify/vue-i18n/valid-message-syntax': 'error',
         '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
-        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de'] }],
+        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de', 'fa'] }],
       },
     },
     // Specific rules for XO dev-related files
