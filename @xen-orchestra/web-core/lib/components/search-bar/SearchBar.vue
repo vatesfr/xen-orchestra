@@ -1,12 +1,13 @@
 <!-- v1.1 -->
 <template>
   <form class="search-bar" @submit.prevent="emit('search', value)">
-    <label :for="id" class="typo p2-regular label" :class="uiStore.desktopOnlyClass">
+    <label v-if="uiStore.isDesktop" :for="id" class="typo p2-regular label">
       {{ $t('core.search-bar.label') }}
     </label>
     <UiInput
       :id
       v-model="value"
+      :aria-label="uiStore.isMobile ? $t('core.search-bar.label') : undefined"
       :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
       :placeholder="$t('core.search-bar.placeholder')"
     />
@@ -58,9 +59,6 @@ const value = ref<string>('')
 }
 
 .separator {
-  border: 0;
-  width: 0.1rem;
-  background-color: var(--color-grey-500);
   align-self: stretch;
 }
 </style>
