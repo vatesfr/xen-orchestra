@@ -215,7 +215,7 @@ module.exports = {
         '@intlify/vue-i18n/no-v-html': 'error',
         '@intlify/vue-i18n/valid-message-syntax': 'error',
         '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
-        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de'] }],
+        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de', 'fa'] }],
       },
     },
     // Specific rules for XO dev-related files
@@ -274,7 +274,7 @@ module.exports = {
     // this rule can prevent race condition bugs like parallel `a += await foo()`
     //
     // as it has a lots of false positive, it is only enabled as a warning for now
-    'require-atomic-updates': 'warn',
+    'require-atomic-updates': ['warn', { allowProperties: true }],
 
     strict: 'error',
   },

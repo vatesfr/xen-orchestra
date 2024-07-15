@@ -11,6 +11,7 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
+import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
@@ -149,6 +150,51 @@ function wrap(middleware, handleNoSuchObject = false) {
     }
   }
 }
+
+async function _getDashboardStats(app) {
+  const dashboard = {}
+
+  const poolIds = new Set()
+  const hosts = []
+
+  for (const obj of app.objects.values()) {
+    if (obj.type === 'host') {
+      hosts.push(obj)
+      poolIds.add(obj.$pool)
+    }
+  }
+
+  dashboard.nPools = poolIds.size
+  dashboard.nHosts = hosts.length
+
+  if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
+    const poolsWithMissingPatches = new Set()
+    let nHostsWithMissingPatches = 0
+
+    await asyncEach(hosts, async host => {
+      const xapi = app.getXapi(host)
+      try {
+        const patches = await xapi.listMissingPatches(host)
+        if (patches.length > 0) {
+          nHostsWithMissingPatches++
+          poolsWithMissingPatches.add(host.$pool)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    })
+
+    const missingPatches = {
+      nHostsWithMissingPatches,
+      nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+    }
+
+    dashboard.missingPatches = missingPatches
+  }
+
+  return dashboard
+}
+const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
 
 export default class RestApi {
   #api
@@ -492,6 +538,7 @@ export default class RestApi {
         },
       },
     }
+    collections.dashboard = {}
 
     // normalize collections
     for (const id of Object.keys(collections)) {
@@ -604,6 +651,13 @@ export default class RestApi {
     api.get('/backup/jobs/:id', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
     })
+
+    api.get(
+      '/dashboard',
+      wrap(async (req, res) => {
+        res.json(await getDashboardStats(app))
+      })
+    )
 
     api
       .get(

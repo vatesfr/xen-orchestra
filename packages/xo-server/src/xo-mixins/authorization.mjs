@@ -72,4 +72,13 @@ export default class Authorization {
       })
     }
   }
+
+  async hasFeatureAuthorization(featureCode) {
+    try {
+      await this.checkFeatureAuthorization(featureCode)
+      return true
+    } catch (_) {
+      return false
+    }
+  }
 }
