@@ -8,6 +8,8 @@
   "coming-soon": "Bientôt disponible !",
   "console": "Console",
 
+  "core.copied": "Copié",
+  "core.copy-id": "Copier l'ID",
   "core.close": "Fermer",
   "core.current": "Actuel",
   "core.filter": "Filtrer",
