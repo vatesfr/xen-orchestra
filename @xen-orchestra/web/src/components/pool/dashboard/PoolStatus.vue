@@ -7,12 +7,12 @@
 </template>
 
 <script lang="ts" setup>
-import DonutWithLegends from '@/components/DonutWithLegends.vue'
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import type { Pool } from '@/types/pool.type'
 import type { LegendColor } from '@core/types/ui-legend.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
+import DonutWithLegends from '@core/components/DonutWithLegends.vue'
 import UiCard from '@core/components/UiCard.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
