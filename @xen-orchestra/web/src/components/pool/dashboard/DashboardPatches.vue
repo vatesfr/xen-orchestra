@@ -13,11 +13,11 @@
 </template>
 
 <script setup lang="ts">
-import DonutWithLegends from '@/components/DonutWithLegends.vue'
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
-import type { LegendColor } from '@core/types/ui-legend.type'
+import type { LegendColor } from '@core/types/legend.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import LegendTitle from '@core/components/LegendTitle.vue'
+import DonutWithLegends from '@core/components/pool/dashboard/DonutWithLegends.vue'
 import UiCard from '@core/components/UiCard.vue'
 import UiSeparator from '@core/components/UiSeparator.vue'
 import { useFetch } from '@vueuse/core'
