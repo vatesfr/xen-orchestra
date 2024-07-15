@@ -41,6 +41,7 @@ import {
   getVmsHaValues,
   isPciPassthroughAvailable,
   isVmRunning,
+  coalesceLeafVm,
   pauseVm,
   recoveryStartVm,
   removeAcl,
@@ -699,6 +700,13 @@ export default class TabAdvanced extends Component {
                   labelId='suspendVmLabel'
                 />
                 <TabButton
+                  btnStyle='primary'
+                  handler={coalesceLeafVm}
+                  handlerParam={vm}
+                  icon='vm-coalesce-leaf'
+                  labelId='coalesceLeaf'
+                />
+                <TabButton
                   btnStyle='warning'
                   handler={forceReboot}
                   handlerParam={vm}
@@ -745,6 +753,13 @@ export default class TabAdvanced extends Component {
                   icon='vm-clone'
                   labelId='cloneVmLabel'
                 />
+                <TabButton
+                  btnStyle='primary'
+                  handler={coalesceLeafVm}
+                  handlerParam={vm}
+                  icon='vm-coalesce-leaf'
+                  labelId='coalesceLeaf'
+                />
               </span>
             )}
             {vm.power_state === 'Suspended' && (
@@ -755,6 +770,13 @@ export default class TabAdvanced extends Component {
                   handlerParam={vm}
                   icon='vm-start'
                   labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='primary'
+                  handler={coalesceLeafVm}
+                  handlerParam={vm}
+                  icon='vm-coalesce-leaf'
+                  labelId='coalesceLeaf'
                 />
                 <TabButton
                   btnStyle='warning'

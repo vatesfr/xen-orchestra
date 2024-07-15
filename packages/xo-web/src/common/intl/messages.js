@@ -1452,6 +1452,9 @@ const messages = {
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   infoUnknownPciOnNonRunningVm:
     "When a VM is offline, it's not attached to any host, and therefore, it's impossible to determine the associated PCI devices, as it depends on the hardware environment in which it would be deployed.",
+  coalesceLeaf: 'Coalesce leaf',
+  coalesceLeafSuccess: 'Coalesce leaf success',
+  coalesceLeafSuspendVm: 'This will suspend the VM during the operation. Do you want to continue?',
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',

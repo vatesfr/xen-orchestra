@@ -1826,3 +1826,15 @@ deleteVgpu.params = {
 deleteVgpu.resolve = {
   vgpu: ['vgpu', 'vgpu', ''],
 }
+
+// -------------------------------------------------------------------
+
+export async function coalesceLeaf({ vm }) {
+  await this.getXapi(vm).VM_coalesceLeaf(vm._xapiRef)
+}
+coalesceLeaf.params = {
+  id: { type: 'string' },
+}
+coalesceLeaf.resolve = {
+  vm: ['id', 'VM', 'administrate'],
+}
