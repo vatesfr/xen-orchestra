@@ -538,6 +538,7 @@ export default class RestApi {
         },
       },
     }
+    collections.dashboard = {}
 
     // normalize collections
     for (const id of Object.keys(collections)) {
