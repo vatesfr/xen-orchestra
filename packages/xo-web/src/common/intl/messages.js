@@ -2844,6 +2844,16 @@ const messages = {
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
+
+  // ----- IPMI -----
+  highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degres})',
+  highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
+  inletTemperature: 'Inlet temperature',
+  ipmi: 'IPMI',
+  nFanStatus: '{n, number}x fan{n, plural, one {} other {s}} status: {status}',
+  nPsuStatus: '{n, number}x PSU{n, plural, one {} other {s}} status: {status}',
+  outletTemperature: 'Outlet temperature',
+  totalPower: 'Total power',
 }
 forEach(messages, function (message, id) {
   if (typeof message === 'string') {

@@ -732,6 +732,27 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
+const subscribeHostsIpmiSensors = {}
+export const subscribeIpmiSensors = host => {
+  const _isAdmin = isAdmin(store.getState())
+  const hostId = resolveId(host)
+
+  if (subscribeHostsIpmiSensors[hostId] === undefined) {
+    subscribeHostsIpmiSensors[hostId] = createSubscription(
+      async () =>
+        _isAdmin
+          ? await _call('host.getIpmiSensors', {
+              id: hostId,
+            })
+          : undefined,
+      {
+        polling: 6e4,
+      }
+    )
+  }
+
+  return subscribeHostsIpmiSensors[hostId]
+}
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -2373,9 +2394,7 @@ export const migrateVdi = (vdi, sr, resourceSet) =>
     sr_id: resolveId(sr),
   })
 
-  export const setCbt = (vdi, cbt) =>
-    _call('vdi.set', { id: resolveId(vdi), cbt })
-  
+export const setCbt = (vdi, cbt) => _call('vdi.set', { id: resolveId(vdi), cbt })
 
 // VBD ---------------------------------------------------------------
 

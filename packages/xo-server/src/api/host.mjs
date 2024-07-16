@@ -592,3 +592,13 @@ getBlockdevices.params = {
 getBlockdevices.resolve = {
   host: ['id', 'host', 'administrate'],
 }
+
+export function getIpmiSensors({ host }) {
+  return this.getXapi(host).host_getIpmiSensors(host._xapiRef)
+}
+getIpmiSensors.params = {
+  id: { type: 'string' },
+}
+getIpmiSensors.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
