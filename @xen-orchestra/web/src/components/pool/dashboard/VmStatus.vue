@@ -7,12 +7,12 @@
 </template>
 
 <script lang="ts" setup>
-import DonutWithLegends from '@/components/DonutWithLegends.vue'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { Vm } from '@/types/vm.type'
-import type { LegendColor } from '@core/types/ui-legend.type'
+import type { DonutSegmentColor } from '@core/types/donut.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
+import DonutWithLegends from '@core/components/DonutWithLegends.vue'
 import UiCard from '@core/components/UiCard.vue'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -40,18 +40,18 @@ const segments = computed(() => [
   {
     label: t('vms-running-status'),
     value: runningVmsCount.value,
-    color: 'success' as LegendColor,
+    color: 'success' as DonutSegmentColor,
   },
   {
     label: t('vms-halted-status'),
     value: inactiveVmsCount.value,
-    color: 'dark-blue' as LegendColor,
+    color: 'warning' as DonutSegmentColor,
     tooltip: t('vms-halted-status-tooltip'),
   },
   {
     label: t('vms-unknown-status'),
     value: unknownVmsCount.value,
-    color: 'disabled' as LegendColor,
+    color: 'unknown' as DonutSegmentColor,
     tooltip: t('vms-unknown-status-tooltip'),
   },
 ])
