@@ -7,12 +7,11 @@
 </template>
 
 <script lang="ts" setup>
-import DonutWithLegends from '@/components/DonutWithLegends.vue'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import type { Host } from '@/types/host.type'
-import type { LegendColor } from '@core/types/ui-legend.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
+import DonutWithLegends from '@core/components/DonutWithLegends.vue'
 import UiCard from '@core/components/UiCard.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -37,18 +36,18 @@ const segments = computed(() => [
   {
     label: t('hosts-running-status'),
     value: runningHostsCount.value,
-    color: 'success' as LegendColor,
+    color: 'success',
   },
   {
     label: t('hosts-halted-status'),
     value: inactiveHostsCount.value,
-    color: 'dark-blue' as LegendColor,
+    color: 'warning',
     tooltip: t('hosts-halted-status-tooltip'),
   },
   {
     label: t('hosts-unknown-status'),
     value: unknownHostsCount.value,
-    color: 'disabled' as LegendColor,
+    color: 'unknown',
     tooltip: t('hosts-unknown-status-tooltip'),
   },
 ])
