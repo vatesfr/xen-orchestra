@@ -14,7 +14,6 @@
 
 <script setup lang="ts">
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
-import type { LegendColor } from '@core/types/legend.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import LegendTitle from '@core/components/LegendTitle.vue'
 import DonutWithLegends from '@core/components/pool/dashboard/DonutWithLegends.vue'
@@ -40,12 +39,12 @@ const serversSegments = computed(() => [
   {
     label: t('up-to-date'),
     value: data.value?.nPools ?? 0,
-    color: 'success' as LegendColor,
+    color: 'success',
   },
   {
     label: t('missing-patches'),
     value: data.value?.missingPatches?.nPoolsWithMissingPatches ?? 0,
-    color: 'warning' as LegendColor,
+    color: 'warning',
   },
 ])
 
@@ -53,12 +52,12 @@ const hostsSegments = computed(() => [
   {
     label: t('up-to-date'),
     value: data.value?.nHosts ?? 0,
-    color: 'success' as LegendColor,
+    color: 'success',
   },
   {
     label: t('missing-patches'),
     value: data.value?.missingPatches?.nHostsWithMissingPatches ?? 0,
-    color: 'warning' as LegendColor,
+    color: 'warning',
   },
 ])
 </script>
