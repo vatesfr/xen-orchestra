@@ -4,14 +4,14 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { createSelector } from 'selectors'
-import { isPciHidden, isVmRunning } from 'xo'
+import { isPciHidden } from 'xo'
 import { Select } from 'form'
 import { SelectHost } from 'select-objects'
 
 export default class PciAttachModal extends Component {
   state = {
     hiddenPcis: undefined,
-    host: isVmRunning(this.props.vm) ? this.props.vm.$container : undefined,
+    host: this.props.vm.$container !== this.props.vm.$pool ? this.props.vm.$container : undefined,
     pcis: [],
   }
 
@@ -60,10 +60,14 @@ export default class PciAttachModal extends Component {
   )
 
   render() {
+    const { pool } = this.props
     const isHostSelected = this.state.host !== undefined
     return (
       <div>
-        <SelectHost onChange={this.onChangeHost} predicate={this._getHostPredicate} value={this.state.host} />
+        {/* For ACL users without authorization on the pool, there is no point in displaying an empty selector */}
+        {pool !== undefined && (
+          <SelectHost onChange={this.onChangeHost} predicate={this._getHostPredicate} value={this.state.host} />
+        )}
         <Tooltip content={isHostSelected ? undefined : _('selectHostFirst')}>
           <Select
             className='mt-1'

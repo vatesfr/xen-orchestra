@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/Advanced] Fix `not enough permission` when attaching PCIs [#9260](https://xcp-ng.org/forum/topic/9260/attach-pcis-not-enough-permissions) (PR [#7793](https://github.com/vatesfr/xen-orchestra/pull/7793))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.

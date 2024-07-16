@@ -636,9 +636,11 @@ export default class TabAdvanced extends Component {
   }
 
   _attachPcis = async () => {
-    const { vm } = this.props
+    const { vm, vmPool } = this.props
     const pcis = await confirm({
-      body: <PciAttachModal attachedPciIds={vm.attachedPcis} pcisByHost={this.props.pcisByHost} vm={vm} />,
+      body: (
+        <PciAttachModal attachedPciIds={vm.attachedPcis} pcisByHost={this.props.pcisByHost} vm={vm} pool={vmPool} />
+      ),
       icon: 'add',
       title: _('attachPcis'),
     })
@@ -660,14 +662,16 @@ export default class TabAdvanced extends Component {
   )
 
   _getPciAttachButtonTooltip = () => {
-    const { vm, vmHosts } = this.props
-    const host = vmHosts[vm.$container]
-    if (host === undefined) {
-      // Host ACL is required
+    const { vm, vmHosts, vmPool } = this.props
+    const vmAttachedToHost = vm.$container !== vm.$pool
+
+    if ((vmAttachedToHost && vmHosts[vm.$container] === undefined) || (!vmAttachedToHost && vmPool === undefined)) {
       return _('notEnoughPermissionsError')
     }
 
-    return isPciPassthroughAvailable(host) ? undefined : _('onlyAvailableXcp8.3OrHigher')
+    return !isPciPassthroughAvailable(vmHosts[vmAttachedToHost ? vm.$container : vmPool.master])
+      ? _('onlyAvailableXcp8.3OrHigher')
+      : undefined
   }
 
   render() {
