@@ -13,7 +13,7 @@
     />
     <template v-if="uiStore.isDesktop">
       <UiButton type="submit">{{ $t('core.search') }}</UiButton>
-      <UiSeparator class="separator" />
+      <Divider type="stretch" />
       <UiButton v-tooltip="$t('coming-soon')" level="secondary" :left-icon="faFilter" disabled>
         {{ $t('core.search-bar.use-query-builder') }}
       </UiButton>
@@ -28,8 +28,8 @@
 <script lang="ts" setup>
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
+import Divider from '@core/components/divider/Divider.vue'
 import UiInput from '@core/components/input/UiInput.vue'
-import UiSeparator from '@core/components/UiSeparator.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
@@ -56,9 +56,5 @@ const value = ref<string>('')
 
 .label {
   color: var(--color-grey-200);
-}
-
-.separator {
-  align-self: stretch;
 }
 </style>

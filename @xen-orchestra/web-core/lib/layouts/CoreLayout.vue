@@ -14,11 +14,7 @@
       <slot name="app-header" />
     </header>
     <div class="container">
-      <div
-        v-if="sidebarStore.isExpanded && !sidebarStore.isLocked"
-        class="sidebar-close-backdrop"
-        @click="sidebarStore.toggleExpand(false)"
-      />
+      <Backdrop v-if="sidebarStore.isExpanded && !sidebarStore.isLocked" @click="sidebarStore.toggleExpand(false)" />
       <LayoutSidebar class="sidebar">
         <template #header>
           <slot name="sidebar-header" />
@@ -38,6 +34,7 @@
 </template>
 
 <script lang="ts" setup>
+import Backdrop from '@core/components/backdrop/Backdrop.vue'
 import UiButtonIcon from '@core/components/button/ButtonIcon.vue'
 import LayoutSidebar from '@core/components/layout/LayoutSidebar.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -48,12 +45,6 @@ const sidebarStore = useSidebarStore()
 </script>
 
 <style lang="postcss" scoped>
-.sidebar-close-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-}
-
 .core-layout {
   display: flex;
   height: 100dvh;

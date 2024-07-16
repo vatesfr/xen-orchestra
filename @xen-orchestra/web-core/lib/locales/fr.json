@@ -47,9 +47,18 @@
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "see-all": "Voir tout",
   "stats": "Stats",
   "storage": "Stockage",
   "support-name": "Support pro {name}",
   "system": "Système",
-  "tasks": "Tâches"
+
+  "tasks": "Tâches",
+  "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
+  "tasks.no-tasks": "Aucune tâche",
+  "tasks.quick-view": "Vue rapide des tâches",
+  "tasks.quick-view.all": "Toutes",
+  "tasks.quick-view.done": "Terminées",
+  "tasks.quick-view.failed": "Échouées",
+  "tasks.quick-view.in-progress": "En cours"
 }

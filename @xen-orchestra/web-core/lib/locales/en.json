@@ -47,9 +47,18 @@
   "network": "Network",
   "object-not-found": "Object {id} can't be found…",
   "power-on-for-console": "Power on your VM to access its console",
+  "see-all": "See all",
   "stats": "Stats",
   "storage": "Storage",
   "support-name": "{name} pro support",
   "system": "System",
-  "tasks": "Tasks"
+
+  "tasks": "Tasks",
+  "tasks.n-subtasks": "{n} subtask | {n} subtasks",
+  "tasks.no-tasks": "No tasks",
+  "tasks.quick-view": "Tasks' quick view",
+  "tasks.quick-view.all": "All",
+  "tasks.quick-view.done": "Done",
+  "tasks.quick-view.failed": "Failed",
+  "tasks.quick-view.in-progress": "In progress"
 }
