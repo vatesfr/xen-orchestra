@@ -8,12 +8,11 @@
     <DonutWithLegends :segments="hostsSegments">
       <LegendTitle>{{ $t('hosts') }}</LegendTitle>
     </DonutWithLegends>
-    <pre v-if="isReady">{{ dashboard }}</pre>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+// import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import LegendTitle from '@core/components/LegendTitle.vue'
 import DonutWithLegends from '@core/components/pool/dashboard/DonutWithLegends.vue'
@@ -24,7 +23,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
-const { records: dashboard, isReady } = useDashboardStore().subscribe()
+// const { records: dashboard, isReady } = useDashboardStore().subscribe()
 
 const { data } = useFetch<string>('/rest/v0/dashboard').get().json<{
   nHosts: number
