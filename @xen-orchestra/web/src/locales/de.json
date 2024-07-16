@@ -1,4 +1,15 @@
 {
   "account-organization-more": "Konto, Organisation & mehr…",
-  "tasks.quick-view": "Schnellansicht der Aufgaben (Bald verfügbar)"
+  "end-of-life": "Ende des Lebenszyklus",
+  "hosts": "Hosts",
+  "missing-patches": "Fehlende Patches",
+  "no-results": "Keine Ergebnisse",
+  "servers": "Server",
+
+  "sidebar.search-tree-view": "Suche im Baumansicht",
+  "sidebar.vms-treeview": "VMs Baumansicht",
+
+  "tasks.quick-view": "Schnellansicht der Aufgaben (Bald verfügbar)",
+
+  "up-to-date": "Auf dem neuesten Stand"
 }
