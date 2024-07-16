@@ -53,7 +53,7 @@ const currentTasks = computed(() => {
   min-width: 65rem;
   border-radius: 0.8rem;
   overflow: hidden;
-  border: 1px solid var(--color-grey-500);
+  border: 0.1rem solid var(--color-grey-500);
   z-index: 1001;
 
   &.mobile {

@@ -5,21 +5,21 @@
     </div>
     <div class="content">
       <div class="typo p1-medium">
-        {{ name }}
+        {{ task.name }}
       </div>
       <div class="informations">
         <div class="line-1">
-          <UiTag v-if="tag" color="grey">{{ tag }}</UiTag>
+          <UiTag v-if="task.tag" color="grey">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <UiIcon :icon="faCircleNotch" />
             <span class="typo p4-medium">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
-        <div v-if="start" class="line-2 typo p4-regular">
-          {{ $d(start, 'datetime_short') }}
-          <template v-if="end">
+        <div v-if="task.start" class="line-2 typo p4-regular">
+          {{ $d(task.start, 'datetime_short') }}
+          <template v-if="task.end">
             <UiIcon :icon="faArrowRight" />
-            {{ $d(new Date(end), 'datetime_short') }}
+            {{ $d(new Date(task.end), 'datetime_short') }}
           </template>
         </div>
       </div>
@@ -39,16 +39,12 @@ import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  name: string
-  start?: number
-  end?: number
-  tag?: string
-  subtasks?: Task[]
+  task: Task
 }>()
 
 const [isExpanded, toggleExpand] = useToggle()
 
-const subTasks = computed(() => props.subtasks ?? [])
+const subTasks = computed(() => props.task.subtasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
 </script>
@@ -58,7 +54,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
   display: flex;
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-500);
+    border-bottom: 0.1rem solid var(--color-grey-500);
   }
 }
 

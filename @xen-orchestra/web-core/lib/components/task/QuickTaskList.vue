@@ -7,16 +7,8 @@
       </div>
     </li>
     <template v-else>
-      <QuickTaskItem v-if="tasks.length === 0" :name="$t('tasks.no-tasks')" />
-      <QuickTaskItem
-        v-for="task of tasks"
-        :key="task.id"
-        :name="task.name"
-        :subtasks="task.subtasks"
-        :tag="task.tag"
-        :start="task.start"
-        :end="task.end"
-      />
+      <li v-if="tasks.length === 0" class="typo p1-medium">{{ $t('tasks.no-tasks') }}</li>
+      <QuickTaskItem v-for="task of tasks" :key="task.id" :task />
     </template>
   </ul>
 </template>

@@ -5,8 +5,8 @@ export type TaskTab = TaskStatus | 'all'
 export type Task = {
   id: string | number
   name: string
-  tag: string
   status: TaskStatus
+  tag?: string
   start?: number
   end?: number
   subtasks?: Task[]

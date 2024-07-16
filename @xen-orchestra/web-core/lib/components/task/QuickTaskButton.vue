@@ -40,8 +40,8 @@ watchArray(ids, (_newList, _oldList, addedIds) => {
   }
 })
 
-const buttonRef = ref<HTMLButtonElement>()
-const panelRef = ref<HTMLDivElement>()
+const buttonRef = ref<HTMLButtonElement | null>(null)
+const panelRef = ref<HTMLDivElement | null>(null)
 
 whenever(isPanelOpen, async () => {
   await nextTick()

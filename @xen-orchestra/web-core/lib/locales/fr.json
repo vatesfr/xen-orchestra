@@ -54,7 +54,7 @@
   "system": "Système",
 
   "tasks": "Tâches",
-  "tasks.n-subtasks": "{n} sous-tâche",
+  "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
   "tasks.no-tasks": "Aucune tâche",
   "tasks.quick-view": "Vue rapide des tâches",
   "tasks.quick-view.all": "Toutes",

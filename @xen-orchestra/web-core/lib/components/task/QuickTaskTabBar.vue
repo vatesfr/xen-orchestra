@@ -1,5 +1,5 @@
 <template>
-  <TabList :disabled="loading" class="tab-list">
+  <TabList :disabled="loading">
     <TabItem v-bind="tabs.pending.bindings">
       {{ $t('tasks.quick-view.in-progress') }}
       <UiCounter v-if="pendingCount !== undefined" :value="pendingCount" color="info" />
@@ -12,7 +12,7 @@
       {{ $t('tasks.quick-view.failed') }}
       <UiCounter v-if="failureCount !== undefined" :value="failureCount" color="danger" />
     </TabItem>
-    <TabSeparator />
+    <Divider type="tab" />
     <TabItem v-bind="tabs.all.bindings">
       {{ $t('tasks.quick-view.all') }}
     </TabItem>
@@ -26,9 +26,9 @@
 </template>
 
 <script lang="ts" setup>
+import Divider from '@core/components/divider/Divider.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import TabSeparator from '@core/components/tab/TabSeparator.vue'
 import UiCounter from '@core/components/UiCounter.vue'
 import { useTabList } from '@core/composables/tab-list.composable'
 import type { TaskTab } from '@core/types/task.type'
