@@ -298,8 +298,8 @@ export default class Esxi extends EventEmitter {
           storage: perDatastoreUsage.reduce(
             (prev, curr) => {
               return {
-                used: prev.used + +curr.committed,
-                free: prev.free + +curr.uncommitted,
+                used: prev.used + +(curr?.committed ?? 0),
+                free: prev.free + +(curr?.uncommitted ?? 0),
               }
             },
             { used: 0, free: 0 }
