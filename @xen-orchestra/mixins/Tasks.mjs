@@ -32,12 +32,45 @@ export default class Tasks extends EventEmitter {
   // contains instance of running tasks (required for interaction, e.g. aborting)
   #tasks = new Map()
 
+  #onProgressBuffer = new Map()
+  #handleOnProgressBuffer = async () => {
+    const buf = this.#onProgressBuffer
+    const store = this.#store
+
+    for (const [id, taskLog] of buf) {
+      if (taskLog === null) {
+        try {
+          await this.deleteLog(id)
+        } catch (error) {
+          warn('failure on deleting task log from store', { error, taskLog })
+        }
+      } else {
+        this.emit(id, taskLog)
+        this.emit('update', taskLog)
+
+        try {
+          await store.put(id, taskLog)
+        } catch (error) {
+          warn('failure on saving task log in store', { error, taskLog })
+        }
+      }
+    }
+
+    buf.clear()
+  }
+
   #onProgress = makeOnProgress({
     onRootTaskEnd: taskLog => {
       const { id } = taskLog
       this.#tasks.delete(id)
     },
-    onTaskUpdate: async taskLog => {
+    onTaskUpdate: taskLog => {
+      const buf = this.#onProgressBuffer
+
+      if (buf.size === 0) {
+        setTimeout(this.#handleOnProgressBuffer, 5e3)
+      }
+
       // Error objects are not JSON-ifiable by default
       const { result } = taskLog
       if (result instanceof Error && result.toJSON === undefined) {
@@ -51,25 +84,13 @@ export default class Tasks extends EventEmitter {
           this.#logsToClearOnSuccess.delete(id)
 
           if (status === 'success') {
-            try {
-              await this.deleteLog(id)
-            } catch (error) {
-              warn('failure on deleting task log from store', { error, taskLog })
-            }
-            return
+            return buf.set(id, null)
           }
         }
       }
 
-      try {
-        $root.updatedAt = Date.now()
-
-        await this.#store.put(id, $root)
-        this.emit(id, $root)
-        this.emit('update', $root)
-      } catch (error) {
-        warn('failure on saving task log in store', { error, taskLog })
-      }
+      $root.updatedAt = Date.now()
+      buf.set(id, $root)
     },
   })
 
