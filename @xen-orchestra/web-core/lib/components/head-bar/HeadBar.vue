@@ -7,7 +7,7 @@
           <UiIcon :icon />
         </slot>
       </span>
-      <h4 v-tooltip class="typo h4-medium label">
+      <h4 v-tooltip class="typo h4-medium label text-ellipsis">
         <slot />
       </h4>
     </div>
@@ -56,9 +56,6 @@ const slots = defineSlots<{
 
 .label {
   color: var(--color-grey-100);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .icon {

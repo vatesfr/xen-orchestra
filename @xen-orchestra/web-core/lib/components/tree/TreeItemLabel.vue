@@ -27,7 +27,7 @@
         <slot name="icon">
           <UiIcon :icon class="icon" />
         </slot>
-        <div class="text">
+        <div class="text text-ellipsis">
           <slot />
         </div>
       </a>
@@ -119,9 +119,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 }
 
 .text {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   padding-inline-end: 0.4rem;
 }
 
