@@ -21,6 +21,7 @@ const slots = defineSlots<{
 .cell-text {
   padding: 0.8rem;
   border: 0.1rem solid var(--color-grey-500);
+  color: var(--color-grey-000);
 }
 
 .data {

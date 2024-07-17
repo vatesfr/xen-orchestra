@@ -107,7 +107,6 @@
   "host.active": "Active",
   "host.inactive": "Inactive",
 
-  "hosts": "Hosts",
   "invalid-field": "Invalid field",
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
@@ -221,7 +220,6 @@
 
   "vm-is-running": "The VM is running",
   "vm-running": "VM running | VMs running",
-  "vms": "VMs",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",
   "xoa-deploy": "XOA deployment",

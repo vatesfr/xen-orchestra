@@ -1,7 +1,12 @@
 {
   "account-organization-more": "Account, organization & more…",
+  "host": "Host",
+  "host-description": "Host description",
   "no-results": "No results",
 
   "sidebar.search-tree-view": "Search in treeview",
-  "sidebar.vms-treeview": "VMs treeview"
+  "sidebar.vms-treeview": "VMs treeview",
+
+  "vm": "VM",
+  "vm-description": "VM description"
 }

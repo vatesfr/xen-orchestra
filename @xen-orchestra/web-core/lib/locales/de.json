@@ -19,6 +19,7 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} Dokumentation",
+  "hosts": "Hosts",
   "loading-in-progress": "Ladevorgang läuft…",
   "log-out": "Abmelden",
   "master": "Primärer Host",
@@ -31,5 +32,7 @@
   "system": "System",
 
   "tasks": "Aufgaben",
-  "tasks.quick-view": "Schnellansicht der Aufgaben"
+  "tasks.quick-view": "Schnellansicht der Aufgaben",
+
+  "vms": "VMs"
 }

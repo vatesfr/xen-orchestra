@@ -106,7 +106,6 @@
   "host.active": "Aktiv",
   "host.inactive": "Inaktiv",
 
-  "hosts": "Hosts",
   "invalid-field": "Ungültiges Feld",
   "keep-me-logged": "Angemeldet bleiben",
   "keep-page-open": "Fenster bis zum Ende der Installation nicht Aktualisieren oder Schließen.",
@@ -219,7 +218,6 @@
 
   "vm-is-running": "Die VM ist eingeschalten",
   "vm-running": "VM eingeschalten | VMs eingeschalten",
-  "vms": "VMs",
   "xo-lite-under-construction": "Wir arbeiten an XOLite",
   "xoa-admin-account": "XOA Administrator",
   "xoa-deploy": "XOA Installation",

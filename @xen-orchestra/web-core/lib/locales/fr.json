@@ -41,6 +41,7 @@
 
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
+  "hosts": "Hôtes",
   "loading-in-progress": "Chargement en cours…",
   "log-out": "Se déconnecter",
   "master": "Hôte primaire",
@@ -60,5 +61,7 @@
   "tasks.quick-view.all": "Toutes",
   "tasks.quick-view.done": "Terminées",
   "tasks.quick-view.failed": "Échouées",
-  "tasks.quick-view.in-progress": "En cours"
+  "tasks.quick-view.in-progress": "En cours",
+
+  "vms": "VMs"
 }

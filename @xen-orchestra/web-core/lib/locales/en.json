@@ -41,6 +41,7 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
+  "hosts": "Hosts",
   "loading-in-progress": "Loading in progress…",
   "log-out": "Log out",
   "master": "Primary host",
@@ -60,5 +61,7 @@
   "tasks.quick-view.all": "All",
   "tasks.quick-view.done": "Done",
   "tasks.quick-view.failed": "Failed",
-  "tasks.quick-view.in-progress": "In progress"
+  "tasks.quick-view.in-progress": "In progress",
+
+  "vms": "VMs"
 }

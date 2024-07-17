@@ -22,6 +22,8 @@ provide('tableName', props.name)
   background-color: var(--background-color-primary);
   line-height: 2.4rem;
   color: var(--color-grey-200);
+  border-collapse: collapse;
+  table-layout: fixed;
 
   :deep(th),
   :deep(td) {
@@ -48,6 +50,10 @@ provide('tableName', props.name)
     :deep(th),
     :deep(td) {
       border-right: 0.1rem solid var(--color-grey-500);
+
+      &:first-child {
+        border-left: none;
+      }
 
       &:last-child {
         border-right: none;
