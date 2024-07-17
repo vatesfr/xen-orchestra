@@ -41,12 +41,12 @@
   "s3-backup-repository": "S3 backup repository",
   "storage-repository": "Storage repository",
 
-  "pools-halted-status": "Halted",
-  "pools-halted-status-tooltip": "Pools with a halted power state",
-  "pools-running-status": "Running",
-  "pools-status": "Pools status",
-  "pools-unknown-status": "Unknown",
-  "pools-unknown-status-tooltip": "Pools with an unknown power state",
+  "servers-connected-status": "Connected",
+  "servers-disconnected-status": "Disconnected",
+  "servers-disconnected-status-tooltip": "Servers with a disconnected status",
+  "servers-status": "Servers status",
+  "servers-unknown-status": "Unknown",
+  "servers-unknown-status-tooltip": "Servers with an unknown status",
 
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
