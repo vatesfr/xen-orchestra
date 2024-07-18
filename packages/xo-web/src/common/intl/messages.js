@@ -700,6 +700,8 @@ const messages = {
   newSr: 'New SR',
   newSrConfirm:
     'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
+  newSrExistingSr:
+    'SR{n, plural, one {} other {s}} already exist, as noted in the Storage Usage section. Creating this SR may erase the content of {path} and cause the loss of existing SR{n, plural, one {} other {s}}. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',
