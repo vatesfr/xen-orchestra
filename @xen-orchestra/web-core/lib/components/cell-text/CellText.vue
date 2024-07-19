@@ -2,7 +2,9 @@
 <template>
   <td class="cell-text">
     <div class="data typo p2-regular">
-      <slot />
+      <span v-tooltip class="text-ellipsis">
+        <slot />
+      </span>
       <span v-if="slots.secondary" class="info typo p4-regular">
         <slot name="secondary" />
       </span>
@@ -11,6 +13,8 @@
 </template>
 
 <script lang="ts" setup>
+import { vTooltip } from '@core/directives/tooltip.directive'
+
 const slots = defineSlots<{
   default: () => any
   secondary?: () => any
