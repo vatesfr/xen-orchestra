@@ -110,7 +110,9 @@ In the "Settings" then "Plugins" view, expand the SAML plugin configuration. The
 Save the configuration and then activate the plugin (button on top).
 
 #### Vendor specific
+
 ##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
+
 Use the screenshots below as a reference as how to setup SAML with Google Workspace.
 Note: Right now even when the authorization is successfull, you will be redirected to the *https://xo.company.net/signin* page. However, just browse directly into the bare URL *https://xo.company.net*, and you'll now be logged in and can use the XO-dashboard.
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users)
