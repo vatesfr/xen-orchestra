@@ -1,5 +1,5 @@
 <template>
-  <TreeItem v-if="vm !== undefined" ref="rootElement" class="infra-vm-item">
+  <TreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
     <TreeItemLabel v-if="isVisible" :route="{ name: 'vm.console', params: { uuid: vm.uuid } }" no-indent>
       {{ vm.name_label || '(VM)' }}
       <template #icon>
