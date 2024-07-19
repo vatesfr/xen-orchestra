@@ -204,6 +204,7 @@ Then restart Xen Orchestra if it was running.
 
 ### Always Running
 
+#### Yarn alternative
 - You can use [forever](https://github.com/nodejitsu/forever) to have the process always running:
 
 ```sh
@@ -238,6 +239,36 @@ If you need to delete the service:
 ```sh
 forever-service delete orchestra
 ```
+
+#### Systemd service
+You can also use systemd to enable the service instead.
+
+*The following example is based on a Ubuntu 24.04 installation*
+
+Create the following file `/etc/systemd/system/xo-server.service` containing the following inside:
+```sh
+# systemd service for XO-Server.
+
+[Unit]
+Description= XO Server
+After=network-online.target
+
+[Service]
+Environment="DEBUG=xo:main"
+# Be sure to edit the path below to where your install is located!
+ExecStart=/snap/node/current/bin/node /home/username/xen-orchestra/packages/xo-server/dist/cli.mjs
+Restart=always
+SyslogIdentifier=xo-server
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload the systemd-daemon: 
+```sh
+systemctl daemon-reload
+```
+You can then use standard systemd commands to start/stop/check status e.g. `systemctl start xo-server`
 
 ### Banner and warnings
 
