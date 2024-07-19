@@ -45,6 +45,7 @@
 - @xen-orchestra/xapi minor
 - xen-api minor
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-web minor
 
 <!--packages-end-->
