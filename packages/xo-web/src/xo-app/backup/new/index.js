@@ -189,7 +189,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     crMode: false,
     deltaMode: false,
     drMode: false,
-    ignoreEmptyBackups: false,
+    ignoreSkippedBackups: false,
     name: '',
     nbdConcurrency: 1,
     nRetriesVmBackupFailures: 0,
@@ -651,9 +651,9 @@ const New = decorate([
           nRetriesVmBackupFailures: nRetries,
         })
       },
-      setIgnoreEmptyBackups({ setGlobalSettings }, ignoreEmptyBackups) {
+      setIgnoreSkippedBackups({ setGlobalSettings }, ignoreSkippedBackups) {
         setGlobalSettings({
-          ignoreEmptyBackups,
+          ignoreSkippedBackups,
         })
       },
     },
@@ -663,7 +663,7 @@ const New = decorate([
       inputConcurrencyId: generateId,
       inputCbtDestroySnapshotData: generateId,
       inputFullIntervalId: generateId,
-      inputIgnoreEmptyBackupsId: generateId,
+      inputIgnoreSkippedBackupsId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,
@@ -779,7 +779,7 @@ const New = decorate([
       checkpointSnapshot,
       concurrency,
       fullInterval,
-      ignoreEmptyBackups,
+      ignoreSkippedBackups,
       maxExportRate,
       nbdConcurrency = 1,
       nRetriesVmBackupFailures = 0,
@@ -1172,14 +1172,14 @@ const New = decorate([
                         setGlobalSettings={effects.setGlobalSettings}
                       />
                       <FormGroup>
-                        <label htmlFor={state.inputIgnoreEmptyBackupsId}>
-                          <strong>{_('ignoreEmptyBackups')}</strong>
+                        <label htmlFor={state.inputIgnoreSkippedBackupsId}>
+                          <strong>{_('ignoreSkippedBackups')}</strong>
                         </label>
                         <Toggle
                           className='pull-right'
-                          id={state.ignoreEmptyBackups}
-                          value={ignoreEmptyBackups}
-                          onChange={effects.setIgnoreEmptyBackups}
+                          id={state.ignoreSkippedBackups}
+                          value={ignoreSkippedBackups}
+                          onChange={effects.setIgnoreSkippedBackups}
                         />
                       </FormGroup>
                     </div>

@@ -173,7 +173,7 @@ export default class Jobs {
       data:
         type === 'backup' || type === 'metadataBackup' || type === 'mirrorBackup'
           ? {
-              ignoreEmptyBackups: job.settings['']?.ignoreEmptyBackups,
+              ignoreSkippedBackups: job.settings['']?.ignoreSkippedBackups,
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',
             }
