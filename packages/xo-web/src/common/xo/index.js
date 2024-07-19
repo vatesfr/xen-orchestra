@@ -737,10 +737,11 @@ export const subscribeSecurebootReadiness = id => {
   const vmId = resolveId(id)
 
   if (subscribeVmSecurebootReadiness[vmId] === undefined) {
-    subscribeVmSecurebootReadiness[vmId] = createSubscription(
+    let forceRefresh = false
+    const subscription = createSubscription(
       async () => {
         try {
-          return await _call('vm.getSecurebootReadiness', { id: vmId })
+          return await _call('vm.getSecurebootReadiness', { id: vmId, forceRefresh })
         } catch (error) {
           if (error.data?.code !== 'MESSAGE_METHOD_UNKNOWN') {
             throw error
@@ -751,8 +752,15 @@ export const subscribeSecurebootReadiness = id => {
         polling: 3e4,
       }
     )
+    const forceRefreshFn = subscription.forceRefresh
+    subscription.forceRefresh = async () => {
+      const _forceRefresh = forceRefresh
+      forceRefresh = true
+      await forceRefreshFn()
+      forceRefresh = _forceRefresh
+    }
+    subscribeVmSecurebootReadiness[vmId] = subscription
   }
-
   return subscribeVmSecurebootReadiness[vmId]
 }
 subscribeSecurebootReadiness.forceRefresh = vm => {

@@ -334,14 +334,13 @@ getLicenseState.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function getGuestSecureBootReadiness({ pool }) {
-  return this.getXapi(pool).call('pool.get_guest_secureboot_readiness', pool._xapiRef)
+export async function getGuestSecureBootReadiness({ pool, forceRefresh }) {
+  return this.getXapi(pool).pool_getGuestSecureBootReadiness(pool._xapiRef, { _forceRefresh: forceRefresh })
 }
 
 getGuestSecureBootReadiness.params = {
-  id: {
-    type: 'string',
-  },
+  id: { type: 'string' },
+  forceRefresh: { type: 'boolean', default: false },
 }
 
 getGuestSecureBootReadiness.resolve = {
