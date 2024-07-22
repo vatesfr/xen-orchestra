@@ -45,6 +45,7 @@
   "loading-in-progress": "Chargement en cours…",
   "log-out": "Se déconnecter",
   "master": "Hôte primaire",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",

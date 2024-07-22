@@ -3,7 +3,6 @@
   "host": "Hôte",
   "host-description": "Description de l'hôte",
   "n-hosts": "1 hôte | {n} hôtes",
-  "n-vms": "1 VM | {n} VMs",
   "no-results": "Aucun résultat",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",

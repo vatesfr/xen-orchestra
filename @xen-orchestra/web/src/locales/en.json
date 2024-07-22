@@ -3,7 +3,6 @@
   "host": "Host",
   "host-description": "Host description",
   "n-hosts": "1 host | {n} hosts",
-  "n-vms": "1 VM | {n} VMs",
   "no-results": "No results",
 
   "sidebar.search-tree-view": "Search in treeview",

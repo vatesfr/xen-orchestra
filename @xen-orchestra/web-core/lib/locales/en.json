@@ -45,6 +45,7 @@
   "loading-in-progress": "Loading in progress…",
   "log-out": "Log out",
   "master": "Primary host",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Network",
   "object-not-found": "Object {id} can't be found…",
   "power-on-for-console": "Power on your VM to access its console",

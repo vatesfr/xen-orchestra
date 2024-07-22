@@ -121,7 +121,6 @@
   "migrate-n-vms": "1 VM migrieren | {n} VMs migrieren",
   "n-hosts-awaiting-patch": "Der Host {n} benötigt dieses Patch | Die Hosts {n} benötigen dieses Patch",
   "n-missing": "{n} verbleibend",
-  "n-vms": "1 VM | {n} VMs",
   "name": "Name",
   "netmask": "Netzmaske",
   "network-download": "Download",
