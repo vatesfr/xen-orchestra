@@ -46,8 +46,8 @@ export const getDefaultMigrationNetwork = (intraPool, destHost, pools, pifs) => 
 
 export const isDeltaBackup = backup => backup.mode === 'delta' && !isEmpty(get(() => destructPattern(backup.remotes)))
 export const isFullBackup = backup => backup.mode === 'full' && !isEmpty(get(() => destructPattern(backup.remotes)))
-export const isCRBackup = backup => isDeltaBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
-export const isDRBackup = backup => isFullBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
+export const isCrBackup = backup => isDeltaBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
+export const isDrBackup = backup => isFullBackup(backup) && !isEmpty(get(() => destructPattern(backup.srs)))
 export const isRollingSnapshotBackup = backup => some(backup.settings, setting => setting.snapshotRetention > 0)
 export const isPoolMetadataBackup = backup => !isEmpty(destructPattern(backup.pools))
 export const isXoConfigBackup = backup => backup.xoMetadata !== undefined

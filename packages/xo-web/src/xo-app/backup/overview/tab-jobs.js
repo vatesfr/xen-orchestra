@@ -37,8 +37,8 @@ import {
   subscribeSchedules,
 } from 'xo'
 import {
-  isCRBackup,
-  isDRBackup,
+  isCrBackup,
+  isDrBackup,
   isDeltaBackup,
   isFullBackup,
   isPoolMetadataBackup,
@@ -87,11 +87,11 @@ const MODES = [
   },
   {
     label: 'continuousReplication',
-    test: job => isBackupType(job) && isCRBackup(job),
+    test: job => isBackupType(job) && isCrBackup(job),
   },
   {
     label: 'disasterRecovery',
-    test: job => isBackupType(job) && isDRBackup(job),
+    test: job => isBackupType(job) && isDrBackup(job),
   },
   {
     label: 'poolMetadata',

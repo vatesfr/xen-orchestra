@@ -15,9 +15,9 @@ import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } fr
 import { createGetObject, createSelector } from './selectors'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
 import {
-  isCRBackup,
+  isCrBackup,
   isDeltaBackup,
-  isDRBackup,
+  isDrBackup,
   isFullBackup,
   isPoolMetadataBackup,
   isRollingSnapshotBackup,
@@ -726,11 +726,11 @@ const xoItemToRender = {
         return labels
       }
 
-      if (isDRBackup(backupJob)) {
+      if (isDrBackup(backupJob)) {
         labels.push(_('fullReplication'))
       } else if (isFullBackup(backupJob)) {
         labels.push(_('fullBackup'))
-      } else if (isCRBackup(backupJob)) {
+      } else if (isCrBackup(backupJob)) {
         labels.push(_('incrementalReplication'))
       } else if (isDeltaBackup(backupJob)) {
         labels.push(_('incrementalBackup'))

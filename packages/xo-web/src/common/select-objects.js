@@ -1175,8 +1175,8 @@ export const SelectBackupJob = makeSubscriptionSelect(
     let xoObjects = []
 
     let backupJobsLoaded, metadataJobsLoaded, mirrorJobsLoaded
-    const set = objects => {
-      xoObjects = xoObjects.concat(objects)
+    const set = newObjects => {
+      xoObjects = newObjects
 
       if (backupJobsLoaded && metadataJobsLoaded && mirrorJobsLoaded) {
         subscriber({
@@ -1186,17 +1186,26 @@ export const SelectBackupJob = makeSubscriptionSelect(
     }
     const unsubscribeBackupJob = subscribeBackupNgJobs(backupJobs => {
       backupJobsLoaded = true
-      set(backupJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+      set([
+        ...xoObjects.filter(obj => obj._type !== 'backup'),
+        ...backupJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
+      ])
     })
 
     const unsubscribeMetadataJob = subscribeMetadataBackupJobs(metadataJobs => {
       metadataJobsLoaded = true
-      set(metadataJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+      set([
+        ...xoObjects.filter(obj => obj._type !== 'metadataBackup'),
+        ...metadataJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
+      ])
     })
 
     const unsubscribeMirrorJob = subscribeMirrorBackupJobs(mirrorJobs => {
       mirrorJobsLoaded = true
-      set(mirrorJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+      set([
+        ...xoObjects.filter(obj => obj._type !== 'mirrorBackup'),
+        ...mirrorJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
+      ])
     })
 
     return () => {
