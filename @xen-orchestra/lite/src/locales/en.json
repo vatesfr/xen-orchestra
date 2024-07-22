@@ -107,7 +107,6 @@
   "host.active": "Active",
   "host.inactive": "Inactive",
 
-  "hosts": "Hosts",
   "invalid-field": "Invalid field",
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
@@ -123,7 +122,6 @@
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
   "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",
   "n-missing": "{n} missing",
-  "n-vms": "1 VM | {n} VMs",
   "name": "Name",
   "netmask": "Netmask",
   "network-download": "Download",
@@ -221,7 +219,6 @@
 
   "vm-is-running": "The VM is running",
   "vm-running": "VM running | VMs running",
-  "vms": "VMs",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",
   "xoa-deploy": "XOA deployment",

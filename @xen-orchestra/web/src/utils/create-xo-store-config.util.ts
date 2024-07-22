@@ -55,7 +55,7 @@ export function createXoStoreConfig<
     .get()
     .json<TXoObjectInput[]>()
 
-  const hasError = computed(() => error.value !== undefined)
+  const hasError = computed(() => !!error.value)
 
   const handleRecordAdded = (record: TXoObjectInput) => {
     const recordToAdd = options?.beforeAdd ? options.beforeAdd(record) : record
