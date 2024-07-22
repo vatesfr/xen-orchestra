@@ -4,7 +4,7 @@
     <slot name="icon">
       <UiIcon :icon />
     </slot>
-    <div class="label p2 medium">
+    <div class="label p2 medium text-ellipsis">
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
@@ -181,9 +181,6 @@ const checkbox = inject(
 
 .label {
   margin-right: auto;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .info-text {
