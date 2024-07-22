@@ -2,7 +2,7 @@
   <LoadingHero v-if="!isReady" />
   <UiCard v-else class="vms">
     <!-- TODO: update with item selection button and TopBottomTable component when available -->
-    <p class="typo p3-regular count">{{ `${vms.length} ${$t('vms')}` }}</p>
+    <p class="typo p3-regular count">{{ $t('n-vms', { n: vms.length }) }}</p>
     <UiTable vertical-border>
       <thead>
         <tr>

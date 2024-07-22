@@ -2,7 +2,7 @@
   <LoadingHero v-if="!isReady" />
   <UiCard v-else class="hosts">
     <!-- TODO: update with item selection button and TopBottomTable component when available -->
-    <p class="typo p3-regular count">{{ `${hosts?.length} ${$t('hosts').toLocaleLowerCase()}` }}</p>
+    <p class="typo p3-regular count">{{ $t('n-hosts', { n: hosts.length }) }}</p>
     <UiTable vertical-border>
       <thead>
         <tr>
@@ -67,5 +67,6 @@ const { nodes: hosts } = useTree(definitions)
 
 .count {
   color: var(--color-grey-200);
+  text-transform: lowercase;
 }
 </style>
