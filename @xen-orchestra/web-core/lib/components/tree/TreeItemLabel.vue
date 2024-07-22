@@ -1,8 +1,8 @@
 <!-- v1.1 -->
 <template>
-  <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
+  <RouterLink v-slot="{ isExactActive, isActive, href, navigate }" :to="route" custom>
     <div
-      :class="isExactActive ? 'exact-active' : active ? 'active' : undefined"
+      :class="isExactActive ? 'exact-active' : active || isActive ? 'active' : undefined"
       class="tree-item-label"
       v-bind="$attrs"
     >

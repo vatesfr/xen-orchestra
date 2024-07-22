@@ -1,6 +1,6 @@
 <template>
   <TreeItem :expanded="branch.isExpanded">
-    <TreeItemLabel :icon="faCity" :active :route="`${basePath}/hosts`" @toggle="branch.toggleExpand()">
+    <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
     </TreeItemLabel>
     <template #sublist>
@@ -23,7 +23,6 @@ import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router/auto'
 
 const props = defineProps<{
   branch: PoolBranch
@@ -34,10 +33,4 @@ const treeBranches = computed(
 )
 
 const vmLeaves = computed(() => props.branch.children.filter(child => child.discriminator === 'vm') as VmLeaf[])
-
-const basePath = computed(() => `/pool/${props.branch.data.id}`)
-
-const route = useRoute()
-
-const active = computed(() => route.path.includes(basePath.value))
 </script>
