@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import StackedBar from '@core/components/stacked-bar/StackedBar.vue'
 import UiLegend from '@core/components/UiLegend.vue'
-import type { LegendColor } from '@core/types/ui-legend.type'
+import type { LegendColor } from '@core/types/legend.type'
 import { computed } from 'vue'
 
 const props = defineProps<{
