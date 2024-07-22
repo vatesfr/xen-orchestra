@@ -6,7 +6,7 @@
         <UiIcon :icon />
       </slot>
     </span>
-    <span v-tooltip class="content ellipsis">
+    <span v-tooltip class="content text-ellipsis">
       <slot />
     </span>
   </RouterLink>
@@ -64,7 +64,7 @@ defineSlots<{
 
 /* IMPLEMENTATION */
 .object-link {
-  display: inline-flex;
+  display: flex;
   min-width: 0;
   align-items: center;
   color: var(--color);
@@ -83,11 +83,5 @@ defineSlots<{
 .icon {
   color: var(--color-grey-100);
   font-size: 0.8rem;
-}
-
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 </style>
