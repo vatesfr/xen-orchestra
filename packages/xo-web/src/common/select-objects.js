@@ -1130,7 +1130,7 @@ export const SelectSchedule = makeSubscriptionSelect(
         mirrorJobs !== undefined &&
         metadataJobs !== undefined
       ) {
-        // everything are loaded
+        // everything is loaded
         subscriber({
           xoObjects: groupBy(schedules, 'jobId'),
           xoContainers: [...jobs, ...backupJobs, ...mirrorJobs, ...metadataJobs],
