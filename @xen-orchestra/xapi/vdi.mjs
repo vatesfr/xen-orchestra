@@ -165,7 +165,8 @@ class Vdi {
       stream, // the stream that will be returned (exportStream or using NBD)
       taskRef, // the reference to the export stream (if created manually)
       changedBlocks, // the CBT list of blocks
-      baseParentUuid // the uuid of the parent of the base for a delta export
+      baseParentUuid, // the uuid of the parent of the base for a delta export
+      baseParentType // the vdiType of the parent, to heck if its a metadata backup or not
 
     if (baseRef !== undefined && preferNbd && cbt_enabled) {
       // use CBT if possible
@@ -179,11 +180,12 @@ class Vdi {
         info(`can't get changed block`, { error, ref, baseRef })
         changedBlocks = undefined
       }
-      // parent must exist , fail if it don't
+
       // this may be undefined and is a nice to have
       // but backups and xapi don't trust nor use this value
       // will only be used with CBT
       baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config['vhd-parent'])
+      baseParentType = await this.getField('VDI', baseRef, 'type')
     }
 
     // really connect to NBD server
@@ -196,6 +198,10 @@ class Vdi {
     // create a xapi export stream only if we won't make a delta from CBT
     // a CBT export can only work if we have a NBD client and changed blocks
     if (changedBlocks === undefined || nbdClient === undefined) {
+      if (baseParentType === 'cbt_metadata') {
+        throw new Error(`can't create a stream from a metadata VDI, fall back to a base `)
+      }
+
       stream = exportStream = (
         await this.getResource(cancelToken, '/export_raw_vdi/', {
           query,
