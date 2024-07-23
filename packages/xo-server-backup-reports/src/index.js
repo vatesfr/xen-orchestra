@@ -220,8 +220,12 @@ class BackupReportsXoPlugin {
     for (const taskBatch of Object.values(tasksByStatus)) {
       for (const task of taskBatch) {
         task.additionnalData = await getAdditionnalData(task, { xo })
-        for (const subTask of task.tasks) {
-          subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+
+        const subTasks = task.tasks
+        if (subTasks !== undefined) {
+          for (const subTask of subTasks) {
+            subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+          }
         }
       }
     }
