@@ -10,7 +10,6 @@ import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { compose } from '@vates/compose'
-import { compositeKey } from 'composite-key'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
@@ -88,6 +87,28 @@ const addSyncStackTrace = async promise => {
     error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
+}
+
+function stableJson(value) {
+  if (value !== null && typeof value === 'object') {
+    const parts = []
+    if (Array.isArray(value)) {
+      parts.push('[')
+      for (const item of value) {
+        parts.push(stableJson(item), ',')
+      }
+      parts[parts.length - 1] = ']'
+    } else {
+      parts.push('{')
+      for (const key of Object.keys(value).sort()) {
+        parts.push(JSON.stringify(key), ':', stableJson(value[key]), ',')
+      }
+      parts[parts.length - 1] = '}'
+    }
+    return parts.join('')
+  }
+
+  return JSON.stringify(value)
 }
 
 // -------------------------------------------------------------------
@@ -304,8 +325,8 @@ export class Xapi extends EventEmitter {
   // RPC calls
   // ===========================================================================
 
-  computeCacheKey(method, ...args) {
-    return compositeKey(method, ...args)
+  computeCacheKey(...args) {
+    return stableJson(args)
   }
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
