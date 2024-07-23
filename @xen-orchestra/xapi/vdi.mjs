@@ -65,10 +65,18 @@ class Vdi {
   }
 
   async _connectNbdClientIfPossible(ref, { nbdConcurrency = 1 } = {}) {
-    const nbdInfos = await this.call('VDI.get_nbd_info', ref)
+    let nbdInfos = await this.call('VDI.get_nbd_info', ref)
     if (nbdInfos.length > 0) {
-      // a little bit of randomization to spread the load
-      const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
+      // filter nbd to only use backup network ( if set )
+      const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
+      if (poolBackupNetwork) {
+        const networkRef = await this.call('network.get_by_uuid', poolBackupNetwork)
+        const pifs = await this.getField('network', networkRef, 'PIFs')
+        // @todo implement ipv6
+        const adresses = await Promise.all(pifs.map(pifRef => this.getField('PIF', pifRef, 'IP')))
+        nbdInfos = nbdInfos.filter(({ address }) => adresses.includes(address))
+      }
+
       try {
         const nbdClient = new MultiNbdClient(nbdInfos, { ...this._nbdOptions, nbdConcurrency })
         await nbdClient.connect()
@@ -76,7 +84,6 @@ class Vdi {
       } catch (err) {
         warn(`can't connect to nbd server `, {
           err,
-          nbdInfo,
           nbdInfos,
         })
       }
