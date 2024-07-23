@@ -707,16 +707,18 @@ const xoItemToRender = {
   },
   job: job => <spans>{job.name}</spans>,
   
-  backupJob: ({ _type, type, ...backupJob }) => {
+  backupJob: ({ _type, ...backupJob }) => {
     const getLabels = () => {
       const labels = []
 
-      if (_type === 'mirrorBackup' || type === 'mirrorBackup') {
+      // If "backupJob" is rendered from a selector, "_type" replace backupJob.type and backupJob.type is equal to "backupJob"
+      const type = _type ?? backupJob.type
+      if (type === 'mirrorBackup') {
         labels.push(_(backupJob.mode === 'delta' ? 'mirrorIncrementalBackup' : 'mirrorFullBackup'))
         return labels
       }
 
-      if (_type === 'metadataBackup' || type === 'metadataBackup') {
+      if (type === 'metadataBackup') {
         if (isPoolMetadataBackup(backupJob)) {
           labels.push(_('poolMetadata'))
         }
