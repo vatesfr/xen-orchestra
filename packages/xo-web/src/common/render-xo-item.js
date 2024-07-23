@@ -695,6 +695,7 @@ const xoItemToRender = {
       </span>
     )
   },
+  job: job => <spans>{job.name}</spans>,
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {

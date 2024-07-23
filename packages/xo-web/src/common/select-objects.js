@@ -41,11 +41,15 @@ import {
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
+  subscribeBackupNgJobs,
   subscribeCloudConfigs,
   subscribeCloudXoConfigBackups,
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeJobs,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeNetworkConfigs,
   subscribeProxies,
   subscribeRemotes,
@@ -1117,13 +1121,51 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
 
 export const SelectSchedule = makeSubscriptionSelect(
   subscriber => {
-    const unsubscribeSchedules = subscribeSchedules(schedules => {
-      subscriber({
-        xoObjects: schedules.map(schedule => ({ ...schedule, type: 'schedule' })),
-      })
+    let schedules, jobs, backupJobs, mirrorJobs, metadataJobs
+    const cb = () => {
+      if (
+        schedules !== undefined &&
+        jobs !== undefined &&
+        backupJobs !== undefined &&
+        mirrorJobs !== undefined &&
+        metadataJobs !== undefined
+      ) {
+        // everything are loaded
+        subscriber({
+          xoObjects: groupBy(schedules, 'jobId'),
+          xoContainers: [...jobs, ...backupJobs, ...mirrorJobs, ...metadataJobs],
+        })
+      }
+    }
+    const unsubscribeSchedules = subscribeSchedules(_schedules => {
+      schedules = _schedules.map(schedule => ({ ...schedule, type: 'schedule' }))
+      cb()
     })
 
-    return unsubscribeSchedules
+    const unsubscribeJobs = subscribeJobs(_jobs => {
+      jobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
+      cb()
+    })
+    const unsubscribeBackupJobs = subscribeBackupNgJobs(_jobs => {
+      backupJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
+      cb()
+    })
+    const unsubscribeMirrorBackupJobs = subscribeMirrorBackupJobs(_jobs => {
+      mirrorJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
+      cb()
+    })
+    const unsubscribeMetadataJobs = subscribeMetadataBackupJobs(_jobs => {
+      metadataJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
+      cb()
+    })
+
+    return () => {
+      unsubscribeSchedules()
+      unsubscribeJobs()
+      unsubscribeBackupJobs()
+      unsubscribeMirrorBackupJobs()
+      unsubscribeMetadataJobs()
+    }
   },
   { placeholder: _('selectSchedule') }
 )
