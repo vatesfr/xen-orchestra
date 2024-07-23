@@ -9,6 +9,8 @@ import Obfuscate from '@vates/obfuscate'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
+import { compose } from '@vates/compose'
+import { compositeKey } from 'composite-key'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
@@ -301,6 +303,10 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
   // RPC calls
   // ===========================================================================
+
+  computeCacheKey(method, ...args) {
+    return compositeKey(method, ...args)
+  }
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
@@ -1409,8 +1415,50 @@ export class Xapi extends EventEmitter {
   }
 }
 
+function cachable(fn, getCache) {
+  return async function (...args) {
+    const cache = getCache(args)
+    if (cache === undefined) {
+      return fn.apply(this, args)
+    }
+
+    const key = this.computeCacheKey(...args)
+    if (cache.has(key)) {
+      return cache.get(key)
+    }
+    const promise = fn.apply(this, args)
+    cache.set(key, promise)
+    try {
+      return promise
+    } catch (error) {
+      cache.delete(key)
+      throw error
+    }
+  }
+}
+
 decorateClass(Xapi, {
-  callAsync: cancelable,
+  call: [
+    cachable,
+    args => {
+      if (typeof args[0] !== 'string') {
+        return args.shift()
+      }
+    },
+  ],
+  callAsync: compose([
+    [
+      cachable,
+      args => {
+        const maybeCache = args[1]
+        if (typeof maybeCache !== 'string') {
+          args.splice(1, 1)
+          return maybeCache
+        }
+      },
+    ],
+    cancelable,
+  ]),
   getResource: cancelable,
   putResource: cancelable,
 })
