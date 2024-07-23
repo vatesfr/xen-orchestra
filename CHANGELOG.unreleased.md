@@ -19,6 +19,7 @@
 - [V2V] Fix `Can't import delta of a running VM without its parent VHD` error during warm migration (PR [#7856](https://github.com/vatesfr/xen-orchestra/pull/7856))
 - [Backups] Fix a race condition leading to `VDI_INCOMPATIBLE_TYPE` error when using _Purge snapshot data_ (PR [#7828](https://github.com/vatesfr/xen-orchestra/pull/7828))
 - [Backups] NBD backups now respected _default backup network_ settings (PR [#7836](https://github.com/vatesfr/xen-orchestra/pull/7836))
+- [Backups] NBD backups now ignore unreachable host and retry on reachable ones(PR [#7836](https://github.com/vatesfr/xen-orchestra/pull/7836))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/xapi patch
 - xen-api minor
