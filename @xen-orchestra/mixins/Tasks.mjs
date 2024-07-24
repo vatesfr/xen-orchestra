@@ -68,7 +68,7 @@ export default class Tasks extends EventEmitter {
       const buf = this.#onProgressBuffer
 
       if (buf.size === 0) {
-        setTimeout(this.#handleOnProgressBuffer, 5e3)
+        process.nextTick(this.#handleOnProgressBuffer)
       }
 
       // Error objects are not JSON-ifiable by default
