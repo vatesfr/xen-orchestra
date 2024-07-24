@@ -10,6 +10,7 @@ import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { compose } from '@vates/compose'
+import { createHash } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
@@ -89,26 +90,39 @@ const addSyncStackTrace = async promise => {
   }
 }
 
-function stableJson(value) {
+function updateJsonHash(value, hash) {
   if (value !== null && typeof value === 'object') {
-    const parts = []
     if (Array.isArray(value)) {
-      parts.push('[')
+      hash.update('[')
       for (const item of value) {
-        parts.push(stableJson(item), ',')
-      }
-      parts[parts.length - 1] = ']'
-    } else {
-      parts.push('{')
-      for (const key of Object.keys(value).sort()) {
-        parts.push(JSON.stringify(key), ':', stableJson(value[key]), ',')
-      }
-      parts[parts.length - 1] = '}'
-    }
-    return parts.join('')
-  }
+        updateJsonHash(item, hash)
 
-  return JSON.stringify(value)
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update(']')
+    } else {
+      hash.update('{')
+      for (const key of Object.keys(value).sort()) {
+        updateJsonHash(key, hash)
+        hash.update(':')
+        updateJsonHash(value[key], hash)
+
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update('}')
+    }
+  } else {
+    hash.update(JSON.stringify(value))
+  }
+}
+
+export function jsonHash(value) {
+  // this hash does not need to be secure, it just needs to be fast and with low collisions
+  const hash = createHash('sha256')
+  updateJsonHash(value, hash)
+  return hash.digest('base64')
 }
 
 // -------------------------------------------------------------------
@@ -326,7 +340,7 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   computeCacheKey(...args) {
-    return stableJson(args)
+    return jsonHash(args)
   }
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
