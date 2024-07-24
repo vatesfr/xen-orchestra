@@ -76,8 +76,9 @@ export const importDisksFromDatastore = async function importDisksFromDatastore(
     Object.keys(chainsByNodes).map(async (node, userdevice) =>
       Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
         const chainByNode = chainsByNodes[node]
-        const { vdi, vhd: parentVhd } = vhds[userdevice] ?? {}
-        return importDiskChain($defer, { esxi, dataStoreToHandlers, vm, chainByNode, userdevice, sr, parentVhd, vdi })
+        return Disposable.use(vhds[userdevice] ?? {}, ({ vdi, vhd: parentVhd }) =>
+          importDiskChain($defer, { esxi, dataStoreToHandlers, vm, chainByNode, userdevice, sr, parentVhd, vdi })
+        )
       })
     )
   )
