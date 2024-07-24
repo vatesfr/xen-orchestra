@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [V2V] Fix warm migration (PR [#7856](https://github.com/vatesfr/xen-orchestra/pull/7856))
+- [V2V] Fix `Can't import delta of a running VM without its parent VHD` error during warm migration (PR [#7856](https://github.com/vatesfr/xen-orchestra/pull/7856))
 
 ### Packages to release
 
