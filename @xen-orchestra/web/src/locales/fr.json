@@ -11,10 +11,10 @@
   "vm": "VM",
   "vm-description": "Description de la VM",
 
-  "vms-halted-status": "Arrêtées",
-  "vms-halted-status-tooltip": "VMs avec un état d'alimentation arrêté",
-  "vms-running-status": "En fonctionnement",
   "vms-status": "Statut des VMs",
-  "vms-unknown-status": "Inconnu",
-  "vms-unknown-status-tooltip": "VMs avec un état d'alimentation inconnu"
+  "vms-status.inactive": "Inactives",
+  "vms-status.inactive.tooltip": "Éteintes ou suspendues",
+  "vms-status.running": "En cours d'exécution",
+  "vms-status.unknown": "Inconnu",
+  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
 }

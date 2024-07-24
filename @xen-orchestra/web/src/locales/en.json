@@ -11,10 +11,10 @@
   "vm": "VM",
   "vm-description": "VM description",
 
-  "vms-halted-status": "Halted",
-  "vms-halted-status-tooltip": "Vms with an halted power state",
-  "vms-running-status": "Running",
   "vms-status": "VMs status",
-  "vms-unknown-status": "Unknown",
-  "vms-unknown-status-tooltip": "Vms with an unknown power state"
+  "vms-status.inactive": "Inactive",
+  "vms-status.inactive.tooltip": "Halted or suspended",
+  "vms-status.running": "Running",
+  "vms-status.unknown": "Unknown",
+  "vms-status.unknown.tooltip": "For which XO has lost connection to the pool"
 }
