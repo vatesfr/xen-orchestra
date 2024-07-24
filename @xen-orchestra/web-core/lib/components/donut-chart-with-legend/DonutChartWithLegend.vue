@@ -16,10 +16,6 @@ export type DonutChartWithLegendProps = {
 }
 
 defineProps<DonutChartWithLegendProps>()
-
-defineSlots<{
-  default: () => void
-}>()
 </script>
 
 <style lang="postcss" scoped>

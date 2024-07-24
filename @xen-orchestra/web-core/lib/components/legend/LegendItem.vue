@@ -4,7 +4,7 @@
     <UiIcon :icon="faCircle" class="circle-icon" />
     <span class="label typo p3-regular"><slot /></span>
     <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="info" />
-    <span class="value-and-unit typo c3-semi-bold">{{ value }} {{ unit }}</span>
+    <span v-if="valueLabel" class="value-and-unit typo c3-semi-bold">{{ valueLabel }}</span>
   </li>
 </template>
 
@@ -12,21 +12,24 @@
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 
 export type LegendItemColor = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'
 
 export type LegendItemProps = {
   color: LegendItemColor
-  value: number
+  value?: number
   unit?: string
   tooltip?: string
 }
 
-defineProps<LegendItemProps>()
+const props = defineProps<LegendItemProps>()
 
 defineSlots<{
   default(): void
 }>()
+
+const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 </script>
 
 <style lang="postcss" scoped>

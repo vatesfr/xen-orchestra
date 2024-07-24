@@ -2,7 +2,7 @@
 <template>
   <div class="legend-title typo c3-semi-bold">
     <slot />
-    <UiIcon v-tooltip="iconTooltip ?? false" :icon class="tooltip-icon" color="info" />
+    <UiIcon v-tooltip="iconTooltip ?? false" :icon color="info" />
   </div>
 </template>
 
@@ -29,9 +29,5 @@ defineSlots<{
   display: flex;
   gap: 0.8rem;
   align-items: center;
-}
-
-.tooltip-icon {
-  font-size: 1.2rem;
 }
 </style>

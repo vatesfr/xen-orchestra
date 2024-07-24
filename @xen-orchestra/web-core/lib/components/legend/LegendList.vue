@@ -14,7 +14,6 @@ defineSlots<{
 .legend-list {
   display: flex;
   flex-direction: column;
-  padding-left: 1.6rem;
   gap: 0.4rem;
 }
 </style>
