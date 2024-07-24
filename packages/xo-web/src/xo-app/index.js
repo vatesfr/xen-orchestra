@@ -341,7 +341,7 @@ export default class XoApp extends Component {
           <p>
             {_('disclaimerText2')}{' '}
             <a
-              href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
+              href='https://vates.tech/deploy/?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
               target='_blank'
               rel='noreferrer'
             >
@@ -461,7 +461,7 @@ export default class XoApp extends Component {
               {plan === 'Community' && !this.state.dismissedSourceBanner && (
                 <div className='alert alert-danger mb-0'>
                   <a
-                    href='https://xen-orchestra.com/#!/xoa?pk_campaign=xo_source_banner'
+                    href='https://vates.tech/deploy/?pk_campaign=xo_source_banner'
                     rel='noopener noreferrer'
                     target='_blank'
                   >

@@ -6,7 +6,7 @@ If you want to deploy an XOA in an airgapped infrastructure, refer to the [dedic
 
 ## XOA
 
-Log in to your account and use the deploy form [available on this page](https://xen-orchestra.com/#!/xoa).
+Log in to your account and use the deploy form [available on this page](https://vates.tech/deploy/).
 
 :::tip
 All the deploy code is within your browser, nothing is sent to our server!

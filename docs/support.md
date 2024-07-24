@@ -4,7 +4,7 @@
 See the dedicated sub-section to read more about [XOA support and usage](xoa.md).
 :::
 
-Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Orchestra virtual Appliance](https://xen-orchestra.com/#!/xoa)). **This is the only way to get pro support**. Any account with a registered XOA can access a [dedicated support panel](https://xen-orchestra.com/#!/member/support).
+Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Orchestra virtual Appliance](https://vates.tech/deploy/)). **This is the only way to get pro support**. Any account with a registered XOA can access a [dedicated support panel](https://xen-orchestra.com/#!/member/support).
 
 XOA is available in multiple plans:
 
