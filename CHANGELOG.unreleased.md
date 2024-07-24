@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backups] Add 'report recipients' when creating a metadata backup [#7569](https://github.com/vatesfr/xen-orchestra/issues/7569) (PR [#7776](https://github.com/vatesfr/xen-orchestra/pull/7776))
+- [Host/General] Display additional hardware data for 2CRSi server [#7816](https://github.com/vatesfr/xen-orchestra/issues/7816) (PR [#7838](https://github.com/vatesfr/xen-orchestra/pull/7838))
 
 ### Bug fixes
 
@@ -46,10 +47,10 @@
 - @vates/nbd-client minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins minor
-- @xen-orchestra/xapi patch
+- @xen-orchestra/xapi minor
 - xen-api minor
-- xo-server minor
 - xo-server-backup-reports minor
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
