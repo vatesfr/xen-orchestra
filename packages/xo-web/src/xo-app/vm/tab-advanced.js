@@ -1115,23 +1115,27 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                {vm.boot.firmware === 'uefi' && (
-                  <tr>
-                    <th>{_('secureBoot')}</th>
-                    <td>
-                      <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
-                      <a
-                        className='text-muted'
-                        href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
-                        rel='noreferrer'
-                        style={{ display: 'block' }}
-                        target='_blank'
-                      >
-                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                      </a>
-                    </td>
-                  </tr>
-                )}
+                <tr>
+                  <th>{_('secureBoot')}</th>
+                  <td>
+                    <Tooltip content={_('availableForUefiOnly')}>
+                      <Toggle
+                        disabled={vm.boot.firmware !== 'uefi'}
+                        value={vm.secureBoot}
+                        onChange={value => editVm(vm, { secureBoot: value })}
+                      />
+                    </Tooltip>
+                    <a
+                      className='text-muted'
+                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                      rel='noreferrer'
+                      style={{ display: 'block' }}
+                      target='_blank'
+                    >
+                      <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                    </a>
+                  </td>
+                </tr>
                 {vm.boot.firmware === 'uefi' &&
                   semver.satisfies(host?.version, '>=8.3.0') && [
                     <tr key='secureBootStatus'>
