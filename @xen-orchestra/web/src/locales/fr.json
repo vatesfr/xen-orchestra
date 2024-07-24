@@ -14,7 +14,7 @@
   "vms-status": "Statut des VMs",
   "vms-status.inactive": "Inactives",
   "vms-status.inactive.tooltip": "Éteintes ou suspendues",
-  "vms-status.running": "En cours d'exécution",
+  "vms-status.running": "Démarrées",
   "vms-status.unknown": "Inconnu",
   "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
 }
