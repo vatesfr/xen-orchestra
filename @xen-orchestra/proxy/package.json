@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.28.8",
+  "version": "0.28.9",
   "license": "AGPL-3.0-or-later",
   "description": "XO Proxy used to remotely execute backup jobs",
   "keywords": [
