@@ -19,8 +19,6 @@ import isVmRunning from './_isVmRunning.mjs'
 
 const { warn } = createLogger('xo:xapi:vm')
 
-const CACHE = new Map()
-
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
   'baseboard-location-in-chassis',
@@ -729,20 +727,6 @@ class Vm {
   async disableChangedBlockTracking(vmRef) {
     const vdiRefs = await this.VM_getDisks(vmRef)
     await Promise.all(vdiRefs.map(vdiRef => this.call('VDI.disable_cbt', vdiRef)))
-  }
-
-  async getSecureBootReadiness(vmRef, { _forceRefresh = false }) {
-    const cache = CACHE.get(vmRef)
-    if (!_forceRefresh && cache !== undefined && cache.expiresOn > Date.now()) {
-      return cache.value
-    }
-
-    const secureBootReadiness = await this.call('VM.get_secureboot_readiness', vmRef)
-    CACHE.set(vmRef, {
-      value: secureBootReadiness,
-      expiresOn: Date.now() + 3e4,
-    })
-    return secureBootReadiness
   }
 }
 export default Vm

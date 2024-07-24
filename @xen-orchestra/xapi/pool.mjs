@@ -4,8 +4,6 @@ import { Task } from '@vates/task'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
-const CACHE = new Map()
-
 const noop = Function.prototype
 
 async function pCatch(p, code, cb) {
@@ -104,20 +102,5 @@ export default class Pool {
 
     // shutdown pool master
     await shutdownHost(poolMasterRef)
-  }
-
-  async getGuestSecureBootReadiness(ref, { _forceRefresh }) {
-    const cache = CACHE.get(ref)
-    if (!_forceRefresh && cache !== undefined && cache.expiresOn > Date.now()) {
-      return cache.value
-    }
-
-    const secureBootReadiness = await this.call('pool.get_guest_secureboot_readiness', ref)
-    CACHE.set(ref, {
-      value: secureBootReadiness,
-      expiresOn: Date.now() + 3e4,
-    })
-
-    return secureBootReadiness
   }
 }

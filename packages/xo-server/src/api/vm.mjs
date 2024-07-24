@@ -1,6 +1,7 @@
 import * as multiparty from 'multiparty'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import assignWith from 'lodash/assignWith.js'
+import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -22,6 +23,11 @@ const log = createLogger('xo:vm')
 
 const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
 const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
+
+const TTL_CACHE = 3e4
+const CACHE = new TTLCache({
+  ttl: TTL_CACHE,
+})
 
 // ===================================================================
 
@@ -539,9 +545,16 @@ insertCd.resolve = {
 }
 
 // -------------------------------------------------------------------
-
 export function getSecurebootReadiness({ vm, forceRefresh }) {
-  return this.getXapi(vm).VM_getSecureBootReadiness(vm._xapiRef, { _forceRefresh: forceRefresh })
+  const xapi = this.getXapi()
+  const vmRef = vm._xapiRef
+  const xapiMethodName = 'VM.get_secureboot_readiness'
+
+  if (forceRefresh) {
+    CACHE.delete(xapi.computeCacheKey(xapiMethodName, vmRef))
+  }
+
+  return xapi.call(CACHE, xapiMethodName, vmRef)
 }
 
 getSecurebootReadiness.params = {
