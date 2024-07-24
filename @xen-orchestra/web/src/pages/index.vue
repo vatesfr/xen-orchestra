@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmsStatus from '@/components/site-dashboard/VmsStatus.vue'
+import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 </script>
 
 <style lang="postcss" scoped>
