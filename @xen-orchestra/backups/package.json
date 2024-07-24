@@ -58,7 +58,7 @@
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^7.1.1"
+    "@xen-orchestra/xapi": "^7.2.0"
   },
   "license": "AGPL-3.0-or-later",
   "author": {
