@@ -23,6 +23,7 @@
     "test": "node--test"
   },
   "dependencies": {
+    "@isaacs/ttlcache": "^1.4.1",
     "@vates/async-each": "^1.0.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/nbd-client": "^3.0.2",
@@ -34,7 +35,6 @@
     "http-request-plus": "^1.0.0",
     "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
-    "lru-cache": "^7.0.4",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.11.0",
     "xo-common": "^0.8.0"

@@ -1,4 +1,4 @@
-import LRU from 'lru-cache'
+import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
@@ -44,9 +44,9 @@ const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_
   {}
 )
 
-const IPMI_CACHE = new LRU({
-  max: MAX_HOSTS_PER_POOL,
+const IPMI_CACHE = new TTLCache({
   ttl: IPMI_CACHE_TTL,
+  max: MAX_HOSTS_PER_POOL,
 })
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
@@ -182,17 +182,11 @@ class Host {
   }
 
   async getIpmiSensors(ref) {
-    const cache = IPMI_CACHE.get(ref)
-    if (cache !== undefined) {
-      return cache
-    }
-
     const productName = (await this.getField('host', ref, 'bios_strings'))['system-product-name']?.toLowerCase()
     if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
-      IPMI_CACHE.set(ref, {})
       return {}
     }
-    const callSensorPlugin = fn => this.callAsync('host.call_plugin', ref, '2crsi-sensors.py', fn, {})
+    const callSensorPlugin = fn => this.call(IPMI_CACHE, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
     // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
     const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
@@ -216,8 +210,6 @@ class Host {
     })
 
     ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.generalInfo] = { ip }
-
-    IPMI_CACHE.set(ref, ipmiSensorsByDataType)
 
     return ipmiSensorsByDataType
   }
