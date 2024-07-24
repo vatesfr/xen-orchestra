@@ -875,7 +875,7 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   }
 
   if (vm.resourceSet !== undefined) {
-    await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet, isAdmin)
+    await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet)
   }
 
   return newVm.$id
@@ -1027,7 +1027,7 @@ export const snapshot = defer(async function (
   if (vm.resourceSet !== undefined) {
     // Compute the resource usage of the VM as if it was used by the snapshot
     const usage = await this.computeVmSnapshotResourcesUsage(vm)
-    await this.allocateLimitsInResourceSet(usage, vm.resourceSet, user.permission === 'admin')
+    await this.allocateLimitsInResourceSet(usage, vm.resourceSet)
     $defer.onFailure(() => this.releaseLimitsInResourceSet(usage, vm.resourceSet))
   }
 
@@ -1193,7 +1193,7 @@ export const revert = defer(async function ($defer, { snapshot }) {
     // Compute the resource usage of the snapshot that's being reverted as if it
     // was used by the VM
     const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
-    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet, this.apiContext.permission === 'admin')
+    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet)
     $defer.onFailure(() => this.releaseLimitsInResourceSet(snapshotUsage, resourceSet))
 
     // Reallocate the snapshot's IP addresses
