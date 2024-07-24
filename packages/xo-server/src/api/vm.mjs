@@ -700,6 +700,10 @@ export const set = defer(async function ($defer, params) {
     const xapiVm = await this.getXapiObject(VM)
     await xoData.set(xapiVm, { creation: { ...VM.creation, ...creation } })
   }
+  const uefiMode = extract(params, 'uefiMode')
+  if (uefiMode !== undefined) {
+    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode)
+  }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
