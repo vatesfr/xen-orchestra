@@ -546,7 +546,7 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 export function getSecurebootReadiness({ vm, forceRefresh }) {
-  const xapi = this.getXapi()
+  const xapi = this.getXapi(vm)
   const vmRef = vm._xapiRef
   const xapiMethodName = 'VM.get_secureboot_readiness'
 
