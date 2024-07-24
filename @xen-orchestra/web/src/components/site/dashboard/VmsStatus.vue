@@ -2,12 +2,13 @@
   <UiCard>
     <CardTitle>{{ $t('vms-status') }}</CardTitle>
     <DonutChartWithLegend :icon="faDesktop" :segments />
-    <CardNumbers :value="vm.length" class="total" label="Total" size="small" />
+    <CardNumbers :value="vms.length" class="total" label="Total" size="small" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { VM_POWER_STATE } from '@/types/vm.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChartWithLegend, {
@@ -19,14 +20,14 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { records: vm } = useVmStore().subscribe()
+const { records: vms } = useVmStore().subscribe()
 
 const vmsCount = computed(() =>
-  vm.value.reduce(
+  vms.value.reduce(
     (acc, vm) => {
-      if (vm.power_state === 'Running' || vm.power_state === 'Paused') {
+      if (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED) {
         acc.running++
-      } else if (vm.power_state === 'Halted' || vm.power_state === 'Suspended') {
+      } else if (vm.power_state === VM_POWER_STATE.HALTED || vm.power_state === VM_POWER_STATE.SUSPENDED) {
         acc.inactive++
       } else {
         acc.unknown++
