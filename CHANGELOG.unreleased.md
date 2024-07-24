@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- xen-api minor
 - xo-server minor
 
 <!--packages-end-->
