@@ -68,6 +68,8 @@ export default class Tasks extends EventEmitter {
       const buf = this.#onProgressBuffer
 
       if (buf.size === 0) {
+        // task events are buffered, deduplicated and will be handled one after
+        // the others on the next tick to avoid race conditions
         process.nextTick(this.#handleOnProgressBuffer)
       }
 
