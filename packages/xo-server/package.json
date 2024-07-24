@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.148.2",
+  "version": "5.149.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -54,8 +54,8 @@
     "@xen-orchestra/mixins": "^0.15.1",
     "@xen-orchestra/self-signed": "^0.2.1",
     "@xen-orchestra/template": "^0.1.0",
-    "@xen-orchestra/vmware-explorer": "^0.8.2",
-    "@xen-orchestra/xapi": "^7.1.1",
+    "@xen-orchestra/vmware-explorer": "^0.8.3",
+    "@xen-orchestra/xapi": "^7.2.0",
     "@xen-orchestra/xva": "^1.0.2",
     "ajv": "^8.0.3",
     "app-conf": "^3.0.0",
@@ -135,7 +135,7 @@
     "vhd-lib": "^4.11.0",
     "ws": "^8.2.3",
     "xdg-basedir": "^5.1.0",
-    "xen-api": "^4.0.0",
+    "xen-api": "^4.1.0",
     "xo-acl-resolver": "^0.5.0",
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",

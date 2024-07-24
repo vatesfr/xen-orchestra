@@ -189,6 +189,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     crMode: false,
     deltaMode: false,
     drMode: false,
+    ignoreSkippedBackups: false,
     name: '',
     nbdConcurrency: 1,
     nRetriesVmBackupFailures: 0,
@@ -650,6 +651,11 @@ const New = decorate([
           nRetriesVmBackupFailures: nRetries,
         })
       },
+      setIgnoreSkippedBackups({ setGlobalSettings }, ignoreSkippedBackups) {
+        setGlobalSettings({
+          ignoreSkippedBackups,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -657,6 +663,7 @@ const New = decorate([
       inputConcurrencyId: generateId,
       inputCbtDestroySnapshotData: generateId,
       inputFullIntervalId: generateId,
+      inputIgnoreSkippedBackupsId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,
@@ -772,6 +779,7 @@ const New = decorate([
       checkpointSnapshot,
       concurrency,
       fullInterval,
+      ignoreSkippedBackups,
       maxExportRate,
       nbdConcurrency = 1,
       nRetriesVmBackupFailures = 0,
@@ -1163,6 +1171,17 @@ const New = decorate([
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />
+                      <FormGroup>
+                        <label htmlFor={state.inputIgnoreSkippedBackupsId}>
+                          <strong>{_('ignoreSkippedBackups')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.ignoreSkippedBackups}
+                          value={ignoreSkippedBackups}
+                          onChange={effects.setIgnoreSkippedBackups}
+                        />
+                      </FormGroup>
                     </div>
                   )}
                 </CardBlock>
