@@ -1,5 +1,33 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
+- [i18n] Improve Russian translation (Thanks [@TristisOris](https://github.com/TristisOris)!) (PR [#7807](https://github.com/vatesfr/xen-orchestra/pull/7807))
+- [REST API] Expose XO6 dashboard informations at the `/rest/v0/dashboard` endpoint (PR [#7823](https://github.com/vatesfr/xen-orchestra/pull/7823))
+- [VM/Advanced] Possibility to manually [_Coalesce Leaf_](https://docs.xenserver.com/en-us/xenserver/8/storage/manage.html#reclaim-space-by-using-the-offline-coalesce-tool) [#7757](https://github.com/vatesfr/xen-orchestra/issues/7757) (PR [#7810](https://github.com/vatesfr/xen-orchestra/pull/7810))
+- [i18n] Add Swedish translation (Thanks [@cloudrootab](https://github.com/cloudrootab)!) [#7844](https://github.com/vatesfr/xen-orchestra/pull/7844)
+- [Plugin/backup-reports] Show more information of backups, including NBD and CBT usage (PR [#7815](https://github.com/vatesfr/xen-orchestra/pull/7815))
+- [Backups] Adding an option to avoid sending reports for skipped backups (e.g. no matching VMs, unhealthy VDI chains, etc.) (PR [#7832](https://github.com/vatesfr/xen-orchestra/pull/7832))
+
+### Bug fixes
+
+- [VM/Advanced] Fix `not enough permission` when attaching PCIs [#9260](https://xcp-ng.org/forum/topic/9260/attach-pcis-not-enough-permissions) (PR [#7793](https://github.com/vatesfr/xen-orchestra/pull/7793))
+- [V2V] Fix `Cannot read properties of undefined (reading 'committed')` when listing importable VM (PR [#7840](https://github.com/vatesfr/xen-orchestra/pull/7840))
+- [VM] Fix Self-Service users being able to see more action buttons than they should in some cases (PR [#7854](https://github.com/vatesfr/xen-orchestra/pull/7854))
+
+### Released packages
+
+- xen-api 4.1.0
+- @xen-orchestra/xapi 7.2.0
+- @xen-orchestra/proxy 0.28.9
+- @xen-orchestra/vmware-explorer 0.8.3
+- xo-server 5.149.0
+- xo-server-backup-reports 1.2.0
+- xo-web 5.150.0
+
 ## **5.96.0** (2024-07-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

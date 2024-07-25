@@ -4,7 +4,7 @@
     <div class="data">
       <slot />
       <template v-if="id !== undefined">
-        <span v-tooltip class="id typo p4-regular-italic ellipsis">
+        <span v-tooltip class="id typo p4-regular-italic text-ellipsis">
           {{ id }}
         </span>
         <UiButton
@@ -50,12 +50,5 @@ const { isSupported, copy, copied } = useClipboard()
 
 .id {
   color: var(--color-grey-300);
-}
-
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 </style>

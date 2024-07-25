@@ -1,4 +1,3 @@
-
 {{#if vm}}
 <h3>{{vm.name_label}}</h3>
 <ul>
@@ -10,3 +9,4 @@
 {{/if}}
 {{>reportTemporalData end=taskLog.end start=taskLog.start}}
 {{>reportWarnings task=taskLog}}
+{{>reportInfo task=taskLog}}

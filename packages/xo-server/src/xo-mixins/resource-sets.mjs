@@ -334,7 +334,7 @@ export default class {
   }
 
   @synchronizedResourceSets
-  async allocateLimitsInResourceSet(limits, setId, force = false) {
+  async allocateLimitsInResourceSet(limits, setId, force = this._app.apiContext?.permission === 'admin') {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]

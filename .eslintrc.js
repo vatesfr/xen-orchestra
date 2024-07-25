@@ -103,6 +103,7 @@ module.exports = {
         'n/no-missing-import': 'off', // using 'import' plugin instead, to support TS aliases
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler
         'no-dupe-class-members': 'off', // automatically checked by the TypeScript compiler
+        'no-undef': 'off', // automatically checked by the TypeScript compiler
         '@typescript-eslint/no-explicit-any': 'off',
         'vue/multi-word-component-names': 'off',
         // Vue 3 - Strongly Recommended

@@ -34,7 +34,6 @@ export default class NbdClient {
   #exportSize
 
   #waitBeforeReconnect
-  #readAhead
   #readBlockRetries
   #reconnectRetry
   #connectTimeout
@@ -55,7 +54,6 @@ export default class NbdClient {
       connectTimeout = 6e4,
       messageTimeout = 6e4,
       waitBeforeReconnect = 1e3,
-      readAhead = 10,
       readBlockRetries = 5,
       reconnectRetry = 5,
     } = {}
@@ -65,7 +63,6 @@ export default class NbdClient {
     this.#exportName = exportname
     this.#serverCert = cert
     this.#waitBeforeReconnect = waitBeforeReconnect
-    this.#readAhead = readAhead
     this.#readBlockRetries = readBlockRetries
     this.#reconnectRetry = reconnectRetry
     this.#connectTimeout = connectTimeout

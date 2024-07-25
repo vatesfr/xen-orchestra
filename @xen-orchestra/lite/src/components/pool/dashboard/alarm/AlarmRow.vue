@@ -1,12 +1,12 @@
 <template>
   <tr>
     <th>
-      <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="ellipsis time">
+      <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()" class="text-ellipsis time">
         <RelativeTime :date="alarm.timestamp" />
       </div>
     </th>
     <td>
-      <div v-tooltip class="ellipsis description">
+      <div v-tooltip class="text-ellipsis description">
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
@@ -36,17 +36,14 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
 .level {
   color: var(--color-red-base);
 }
+
 .on {
   white-space: nowrap;
 }
+
 .object-link {
   white-space: nowrap;
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="vm-header">
     <ObjectIcon :state size="medium" type="vm" />
-    <h4 v-tooltip class="typo h4-medium title">{{ name }}</h4>
+    <h4 v-tooltip class="typo h4-medium text-ellipsis">{{ name }}</h4>
   </div>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
@@ -36,11 +36,5 @@ defineProps<{
   align-items: center;
   border-bottom: 0.1rem solid var(--color-grey-500);
   background-color: var(--background-color-primary);
-}
-
-.title {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 </style>

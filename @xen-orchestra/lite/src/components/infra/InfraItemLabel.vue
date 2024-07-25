@@ -5,9 +5,9 @@
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a v-tooltip="{ selector: '.text' }" :href class="link" @click="navigate">
+      <a v-tooltip="{ selector: '.text-ellipsis' }" :href class="link" @click="navigate">
         <UiIcon :icon class="icon" />
-        <div class="text typo h6-medium">
+        <div class="text-ellipsis typo h6-medium">
           <slot />
         </div>
       </a>
@@ -75,12 +75,6 @@ defineProps<{
   gap: 1rem;
   font-weight: 500;
   font-size: 2rem;
-}
-
-.text {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .actions {

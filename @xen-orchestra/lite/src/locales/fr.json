@@ -107,7 +107,6 @@
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
 
-  "hosts": "Hôtes",
   "invalid-field": "Champ invalide",
   "keep-me-logged": "Rester connecté",
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
@@ -123,7 +122,6 @@
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
   "n-missing": "{n} manquant | {n} manquants",
-  "n-vms": "1 VM | {n} VMs",
   "name": "Nom",
   "netmask": "Masque réseau",
   "network-download": "Descendant",
@@ -221,7 +219,6 @@
 
   "vm-is-running": "La VM est en cours d'exécution",
   "vm-running": "VM en cours d'exécution | VMs en cours d'exécution",
-  "vms": "VMs",
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",
   "xoa-deploy": "Déploiement de la XOA",

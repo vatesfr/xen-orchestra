@@ -30,7 +30,8 @@ interface InterfaceInfo {
 
 interface ClientInfo {
   lastConnected: number
-  networkInterfaces: Record<string, InterfaceInfo[]>
+  networkInterfaces?: Record<string, InterfaceInfo[]>
+  publicUrl?: string
 }
 
 const xoasInfo = computed(() => {
@@ -60,7 +61,12 @@ const xoaAddress = computed(() => {
     return
   }
 
-  const { networkInterfaces } = xoaInfo.value
+  const { networkInterfaces, publicUrl } = xoaInfo.value
+
+  if (publicUrl !== undefined) {
+    return publicUrl
+  }
+
   if (networkInterfaces === undefined || Object.keys(networkInterfaces).length === 0) {
     return
   }
