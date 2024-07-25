@@ -1118,7 +1118,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('secureBoot')}</th>
                   <td>
-                    <Tooltip content={_('availableForUefiOnly')}>
+                    <Tooltip content={vm.boot.firmware !== 'uefi' ? _('availableForUefiOnly') : undefined}>
                       <Toggle
                         disabled={vm.boot.firmware !== 'uefi'}
                         value={vm.secureBoot}
@@ -1169,12 +1169,6 @@ export default class TabAdvanced extends Component {
                         >
                           {_('propagateCertificates')}
                         </ActionButton>
-                        {isDisabled && vm.boot.firmware !== 'uefi' && (
-                          <div className='text-warning'>
-                            <Icon icon='alarm' />
-                            {_('availableForUefiOnly')}
-                          </div>
-                        )}
                         {poolGuestSecurebootReadiness === 'not_ready' && (
                           <a
                             className='text-warning'
