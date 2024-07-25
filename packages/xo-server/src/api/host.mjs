@@ -1,11 +1,17 @@
+import TTLCache from '@isaacs/ttlcache'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 import { incorrectState } from 'xo-common/api-errors.js'
-import { IPMI_CACHE } from '@xen-orchestra/xapi/host/_ipmi.mjs'
 
 import backupGuard from './_backupGuard.mjs'
+
+const IPMI_CACHE_TTL = 6e4
+const IPMI_CACHE = new TTLCache({
+  ttl: IPMI_CACHE_TTL,
+  max: 1000,
+})
 
 const log = createLogger('xo:api:host')
 

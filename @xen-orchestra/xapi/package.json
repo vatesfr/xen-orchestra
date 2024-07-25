@@ -23,7 +23,6 @@
     "test": "node--test"
   },
   "dependencies": {
-    "@isaacs/ttlcache": "^1.4.1",
     "@vates/async-each": "^1.0.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/nbd-client": "^3.0.2",

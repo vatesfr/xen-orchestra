@@ -1,7 +1,3 @@
-import TTLCache from '@isaacs/ttlcache'
-
-const IPMI_CACHE_TTL = 6e4
-
 export const IPMI_SENSOR_DATA_TYPE = {
   totalPower: 'totalPower',
   outletTemp: 'outletTemp',
@@ -36,11 +32,6 @@ const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_
   },
   {}
 )
-
-export const IPMI_CACHE = new TTLCache({
-  ttl: IPMI_CACHE_TTL,
-  max: 1000,
-})
 
 export const isRelevantIpmiSensor = (data, productName) =>
   IPMI_SENSOR_REGEX_BY_PRODUCT_NAME[productName].test(data.Name)
