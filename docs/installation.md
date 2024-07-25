@@ -116,7 +116,7 @@ apt-get install build-essential redis-server libpng-dev git python3-minimal libv
 
 On Fedora/CentOS like:
 
-
+```sh
 dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g
 ```
 
