@@ -37,26 +37,27 @@ export default class Tasks extends EventEmitter {
     const buf = this.#onProgressBuffer
     const store = this.#store
 
-    for (const [id, taskLog] of buf) {
-      if (taskLog === null) {
-        try {
-          await this.deleteLog(id)
-        } catch (error) {
-          warn('failure on deleting task log from store', { error, taskLog })
-        }
-      } else {
-        this.emit(id, taskLog)
-        this.emit('update', taskLog)
+    do {
+      for (const [id, taskLog] of buf) {
+        buf.delete(id)
+        if (taskLog === null) {
+          try {
+            await this.deleteLog(id)
+          } catch (error) {
+            warn('failure on deleting task log from store', { error, taskLog })
+          }
+        } else {
+          this.emit(id, taskLog)
+          this.emit('update', taskLog)
 
-        try {
-          await store.put(id, taskLog)
-        } catch (error) {
-          warn('failure on saving task log in store', { error, taskLog })
+          try {
+            await store.put(id, taskLog)
+          } catch (error) {
+            warn('failure on saving task log in store', { error, taskLog })
+          }
         }
       }
-    }
-
-    buf.clear()
+    } while (buf.size !== 0) // new events may have been added during iteration
   }
 
   #onProgress = makeOnProgress({
