@@ -4,6 +4,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
+
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
 const IPMI_CACHE_TTL = 6e4

@@ -26,7 +26,7 @@
 - [New SR] Add confirmation modal before creating an SR if SRs are already present in the same path (for NFS/ISCSI) [#4273](https://github.com/vatesfr/xen-orchestra/issues/4273) (PR [#7845](https://github.com/vatesfr/xen-orchestra/pull/7845))
 - [XO Tasks] Reduce the number of API calls that incorrectly stay in pending status (often `sr.getAllUnhealthyVdiChainsLength`) [Forum#79281](https://xcp-ng.org/forum/post/79281) [Forum#80010](https://xcp-ng.org/forum/post/80010)
 - [Plugin/backup-reports] Fix _Metadata Backup_ report not sent in some cases (PR [#7776](https://github.com/vatesfr/xen-orchestra/pull/7776))
-- [Host/Advanced] Fix *Advanced Live Telemetry* link on recent XOAs
+- [Host/Advanced] Fix _Advanced Live Telemetry_ link on recent XOAs
 
 ### Packages to release
 
@@ -49,8 +49,8 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/xapi minor
 - xen-api minor
-- xo-server-backup-reports minor
 - xo-server minor
+- xo-server-backup-reports minor
 - xo-web minor
 
 <!--packages-end-->
