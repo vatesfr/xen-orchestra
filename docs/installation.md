@@ -116,7 +116,7 @@ apt-get install build-essential redis-server libpng-dev git python3-minimal libv
 
 On Fedora/CentOS like:
 
-```sh
+
 dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g
 ```
 
@@ -249,7 +249,7 @@ _The following example is based on a Ubuntu 24.04 installation_
 
 Create the following file `/etc/systemd/system/xo-server.service` containing the following inside:
 
-```sh
+```ini
 [Unit]
 Description=XO Server
 After=network-online.target
