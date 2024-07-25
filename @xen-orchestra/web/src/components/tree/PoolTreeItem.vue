@@ -3,7 +3,7 @@
     <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
     </TreeItemLabel>
-    <template #sublist>
+    <template v-if="branch.hasChildren" #sublist>
       <TreeList>
         <HostTreeList :branches="treeBranches" />
         <VmTreeList :leaves="vmLeaves" />
