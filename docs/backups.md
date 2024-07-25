@@ -325,8 +325,8 @@ The best way to define the best concurrency for you is by increasing it slowly a
 So to summarize, if you set your concurrency at 6 and you have 20 Vms to backup the process will be the following:
 
 - We start the backup of the first 6 VMs.
-- When one VM backup as ended we will launch the next VM backup.
-- We're keep launching new VM backup until the 20 VMs are finished, keeping 6 backups running.
+- When one VM backup has ended we will launch the next VM backup.
+- We keep launching new VM backups until the 20 VMs are finished, keeping 6 backups running.
 
 Removing the snapshot will trigger the coalesce process for the first VM, this is an automated action not triggered directly by the backup job.
 
@@ -334,7 +334,7 @@ Removing the snapshot will trigger the coalesce process for the first VM, this i
 
 When a backup job is configured using Normal snapshot mode, it's possible to use VM tags to apply a different snapshot mode to individual VMs.
 
-- **xo-offline-backup** to apply offline snapshotting mode (VM with be shut down prior to snapshot)
+- **xo-offline-backup** to apply offline snapshotting mode (VM will be shut down prior to snapshot)
 - **xo-memory-backup** to apply RAM-enabled snapshotting
 - **xo-backup-healthcheck-xenstore** to use a script during [backup healthcheck](#backup-health-check)
 
