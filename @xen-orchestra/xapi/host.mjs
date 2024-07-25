@@ -1,4 +1,3 @@
-import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
@@ -6,48 +5,14 @@ import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
-
-const IPMI_CACHE_TTL = 6e4
-
-const IPMI_SENSOR_DATA_TYPE = {
-  totalPower: 'totalPower',
-  outletTemp: 'outletTemp',
-  bmcStatus: 'bmcStatus',
-  inletTemp: 'inletTemp',
-  cpuTemp: 'cpuTemp',
-  fanStatus: 'fanStatus',
-  fanSpeed: 'fanSpeed',
-  psuStatus: 'psuStatus',
-  generalInfo: 'generalInfo',
-  unknown: 'unknown',
-}
-
-const IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
-  'mona_1.44gg': {
-    [IPMI_SENSOR_DATA_TYPE.totalPower]: /^total_power$/i,
-    [IPMI_SENSOR_DATA_TYPE.outletTemp]: /^outlet_temp$/i,
-    [IPMI_SENSOR_DATA_TYPE.bmcStatus]: /^bmc_status$/i,
-    [IPMI_SENSOR_DATA_TYPE.inletTemp]: /^psu_inlet_temp$/i,
-    [IPMI_SENSOR_DATA_TYPE.cpuTemp]: /^cpu[0-9]+_temp$/i,
-    [IPMI_SENSOR_DATA_TYPE.fanStatus]: /^fan[0-9]+_status$/i,
-    [IPMI_SENSOR_DATA_TYPE.fanSpeed]: /^fan[0-9]+_r_speed$/i,
-    [IPMI_SENSOR_DATA_TYPE.psuStatus]: /^psu[0-9]+_status$/i,
-  },
-}
-const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME).reduce(
-  (acc, productName) => {
-    const regexes = Object.values(IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName])
-    const combinedRegex = new RegExp(regexes.map(regex => regex.source).join('|'), 'i')
-    acc[productName] = combinedRegex
-    return acc
-  },
-  {}
-)
-
-const IPMI_CACHE = new TTLCache({
-  ttl: IPMI_CACHE_TTL,
-  max: 1000
-})
+import {
+  addIpmiSensorDataType,
+  containsDigit,
+  IPMI_CACHE,
+  IPMI_SENSOR_DATA_TYPE,
+  IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
+  isRelevantIpmiSensor,
+} from './host/_ipmi.mjs'
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -59,23 +24,6 @@ const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
       }
     })
   })
-
-const isRelevantIpmiSensor = (data, productName) => IPMI_SENSOR_REGEX_BY_PRODUCT_NAME[productName].test(data.Name)
-const addIpmiSensorDataType = (data, productName) => {
-  const name = data.Name
-  const ipmiRegexByDataType = IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName]
-
-  for (const dataType in ipmiRegexByDataType) {
-    const regex = ipmiRegexByDataType[dataType]
-    if (regex.test(name)) {
-      data.dataType = dataType
-      return
-    }
-  }
-
-  data.dataType = IPMI_SENSOR_DATA_TYPE.unknown
-}
-const containsDigit = str => /\d/.test(str)
 
 class Host {
   async restartAgent(ref) {
@@ -182,19 +130,32 @@ class Host {
   }
 
   async getIpmiSensors(ref) {
-    const productName = (await this.getField('host', ref, 'bios_strings'))['system-product-name']?.toLowerCase()
+    const productNameCacheKey = this.computeCacheKey('host', ref, 'system-product-name')
+
+    let productName
+    if (IPMI_CACHE.has(productNameCacheKey)) {
+      productName = IPMI_CACHE.get(productNameCacheKey)
+    } else {
+      productName = (await this.getField('host', ref, 'bios_strings'))['system-product-name']?.toLowerCase()
+      IPMI_CACHE.set(productNameCacheKey, productName)
+    }
+
     if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
       return {}
     }
-    const callSensorPlugin = fn => this.call(IPMI_CACHE, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
+    const callSensorPlugin = (fn, { cache } = {}) =>
+      this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
     // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
-    const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
+    const [stringifiedIpmiSensors, ip] = await Promise.all([
+      callSensorPlugin('get_info', { cache: IPMI_CACHE }),
+      callSensorPlugin('get_ip', { cache: IPMI_CACHE }),
+    ])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
 
     const ipmiSensorsByDataType = {}
-    ipmiSensors.forEach(ipmiSensor => {
+    for (const ipmiSensor of ipmiSensors) {
       if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
-        return
+        continue
       }
 
       addIpmiSensorDataType(ipmiSensor, productName)
@@ -207,7 +168,7 @@ class Host {
       if (Array.isArray(ipmiSensorsByDataType[ipmiSensor.dataType])) {
         ipmiSensorsByDataType[dataType].push(ipmiSensor)
       }
-    })
+    }
 
     ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.generalInfo] = { ip }
 
