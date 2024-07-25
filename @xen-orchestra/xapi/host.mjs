@@ -7,7 +7,6 @@ import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { getCurrentVmUuid } from './_XenStore.mjs'
 
 const IPMI_CACHE_TTL = 6e4
-const MAX_HOSTS_PER_POOL = 64
 
 const IPMI_SENSOR_DATA_TYPE = {
   totalPower: 'totalPower',
