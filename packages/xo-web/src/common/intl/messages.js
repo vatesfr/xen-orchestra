@@ -1465,7 +1465,6 @@ const messages = {
   coalesceLeafSuccess: 'Coalesce leaf success',
   coalesceLeafSuspendVm: 'This will suspend the VM during the operation. Do you want to continue?',
   noSecureBoot: 'This pool was not setup for Guest UEFI SecureBoot yet',
-  notSetupForSecureBoot: 'This pool was not setup for Guest UEFI SecureBoot yet',
   propagateCertificatesTitle: 'Propagate certificates',
   propagateCertificatesConfirm:
     "This will overwrite the VM's UEFI certificates with certificates defined at the pool level. Continue?",
