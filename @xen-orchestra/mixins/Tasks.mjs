@@ -33,9 +33,8 @@ export default class Tasks extends EventEmitter {
   #tasks = new Map()
 
   #onProgressBuffer = new Map()
+  #handleOnProgressScheduled = false
   #handleOnProgressBuffer = async () => {
-    // don't bother with synchronization because this function can be ran multiple times without issues
-
     const buf = this.#onProgressBuffer
     const store = this.#store
 
@@ -60,6 +59,8 @@ export default class Tasks extends EventEmitter {
         }
       }
     } while (buf.size !== 0) // new events may have been added during iteration
+
+    this.#handleOnProgressScheduled = false
   }
 
   #onProgress = makeOnProgress({
@@ -70,7 +71,9 @@ export default class Tasks extends EventEmitter {
     onTaskUpdate: taskLog => {
       const buf = this.#onProgressBuffer
 
-      if (buf.size === 0) {
+      if (!this.#handleOnProgressScheduled) {
+        this.#handleOnProgressScheduled = true
+
         // task events are buffered, deduplicated and will be handled one after
         // the others on the next tick to avoid race conditions
         process.nextTick(this.#handleOnProgressBuffer)
