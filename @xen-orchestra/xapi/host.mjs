@@ -8,7 +8,6 @@ import { getCurrentVmUuid } from './_XenStore.mjs'
 import {
   addIpmiSensorDataType,
   containsDigit,
-  IPMI_CACHE,
   IPMI_SENSOR_DATA_TYPE,
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
   isRelevantIpmiSensor,
@@ -129,27 +128,23 @@ class Host {
     await waitAgentRestart(this, ref, agentStartTime)
   }
 
-  async getIpmiSensors(ref) {
-    const productNameCacheKey = this.computeCacheKey('host', ref, 'system-product-name')
-
+  async getIpmiSensors(ref, { cache } = {}) {
     let productName
-    if (IPMI_CACHE.has(productNameCacheKey)) {
-      productName = IPMI_CACHE.get(productNameCacheKey)
+
+    const productNameCacheKey = this.computeCacheKey('host', ref, 'system-product-name')
+    if (cache?.has(productNameCacheKey)) {
+      productName = cache.get(productNameCacheKey)
     } else {
       productName = (await this.getField('host', ref, 'bios_strings'))['system-product-name']?.toLowerCase()
-      IPMI_CACHE.set(productNameCacheKey, productName)
+      cache?.set(productNameCacheKey, productName)
     }
 
     if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
       return {}
     }
-    const callSensorPlugin = (fn, { cache } = {}) =>
-      this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
+    const callSensorPlugin = fn => this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
     // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
-    const [stringifiedIpmiSensors, ip] = await Promise.all([
-      callSensorPlugin('get_info', { cache: IPMI_CACHE }),
-      callSensorPlugin('get_ip', { cache: IPMI_CACHE }),
-    ])
+    const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
 
     const ipmiSensorsByDataType = {}

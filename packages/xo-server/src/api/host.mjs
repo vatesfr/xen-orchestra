@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 import { incorrectState } from 'xo-common/api-errors.js'
+import { IPMI_CACHE } from '@xen-orchestra/xapi/host/_ipmi.mjs'
 
 import backupGuard from './_backupGuard.mjs'
 
@@ -594,7 +595,7 @@ getBlockdevices.resolve = {
 }
 
 export function getIpmiSensors({ host }) {
-  return this.getXapi(host).host_getIpmiSensors(host._xapiRef)
+  return this.getXapi(host).host_getIpmiSensors(host._xapiRef, { cache: IPMI_CACHE })
 }
 getIpmiSensors.params = {
   id: { type: 'string' },
