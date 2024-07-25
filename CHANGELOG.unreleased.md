@@ -21,6 +21,7 @@
 - [Backups] NBD backups now respected _default backup network_ settings (PR [#7836](https://github.com/vatesfr/xen-orchestra/pull/7836))
 - [Backups] NBD backups now ignore unreachable host and retry on reachable ones (PR [#7836](https://github.com/vatesfr/xen-orchestra/pull/7836))
 - [New SR] Add confirmation modal before creating an SR if SRs are already present in the same path (for NFS/ISCSI) [#4273](https://github.com/vatesfr/xen-orchestra/issues/4273) (PR [#7845](https://github.com/vatesfr/xen-orchestra/pull/7845))
+- [XO Tasks] Reduce the number of API calls that incorrectly stay in pending status (often `sr.getAllUnhealthyVdiChainsLength`) [Forum#79281](https://xcp-ng.org/forum/post/79281) [Forum#80010](https://xcp-ng.org/forum/post/80010)
 
 ### Packages to release
 
@@ -40,6 +41,7 @@
 
 - @vates/nbd-client minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/mixins minor
 - @xen-orchestra/xapi patch
 - xen-api minor
 - xo-server minor
