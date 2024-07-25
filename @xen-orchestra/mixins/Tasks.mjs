@@ -34,6 +34,8 @@ export default class Tasks extends EventEmitter {
 
   #onProgressBuffer = new Map()
   #handleOnProgressBuffer = async () => {
+    // don't bother with synchronization because this function can be ran multiple times without issues
+
     const buf = this.#onProgressBuffer
     const store = this.#store
 
