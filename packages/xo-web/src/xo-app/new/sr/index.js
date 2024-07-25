@@ -371,6 +371,17 @@ export default class New extends Component {
           body: <p>{_('newSrConfirm', { name: device.value })}</p>,
         })
       }
+      const existingSrsLength = this.state.existingSrs?.length ?? 0
+      if (existingSrsLength !== 0 && srUuid === undefined) {
+        // `existingsSrs` is defined if the SR type is `NFS` or `ISCSI` and if at least one SR is detected
+        await confirm({
+          title: _('newSr'),
+          body: _('newSrExistingSr', { path: <b>{this.state.path}</b>, n: existingSrsLength }),
+          strongConfirm: {
+            messageId: 'newSrTitle',
+          },
+        })
+      }
       return await createMethodFactories[type]()
     } catch (err) {
       if (err === undefined) {
