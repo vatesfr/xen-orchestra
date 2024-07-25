@@ -266,13 +266,18 @@ ExecStart=/usr/bin/node /home/username/xen-orchestra/packages/xo-server/dist/cli
 WantedBy=multi-user.target
 ```
 
-Reload the systemd-daemon:
+Reload the daemon and enable the service:
 
 ```sh
 systemctl daemon-reload
+systemctl enable --now xo-server
 ```
 
-You can then use standard systemd commands to start/stop/check status e.g. `systemctl start xo-server`
+You can then use standard systemd commands to start/stop/check status e.g.
+
+```sh
+systemctl status xo-server
+```
 
 > **Security:** `xo-server` will be run as `root`, make sure your files are not editable by other users or it may be used as an attack vector.
 
