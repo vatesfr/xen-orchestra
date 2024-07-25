@@ -46,7 +46,7 @@ const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_
 
 const IPMI_CACHE = new TTLCache({
   ttl: IPMI_CACHE_TTL,
-  max: MAX_HOSTS_PER_POOL * 2, // *2 because there are 2 entries per host. get_info and get_ip
+  max: 1000
 })
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
