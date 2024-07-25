@@ -129,19 +129,12 @@ class Host {
   }
 
   async getIpmiSensors(ref, { cache } = {}) {
-    let productName
-
-    const productNameCacheKey = this.computeCacheKey('host', ref, 'system-product-name')
-    if (cache?.has(productNameCacheKey)) {
-      productName = cache.get(productNameCacheKey)
-    } else {
-      productName = (await this.getField('host', ref, 'bios_strings'))['system-product-name']?.toLowerCase()
-      cache?.set(productNameCacheKey, productName)
-    }
+    const productName = (await this.call(cache, 'host.get_bios_strings', ref))['system-product-name']?.toLowerCase()
 
     if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
       return {}
     }
+
     const callSensorPlugin = fn => this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
     // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
     const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
