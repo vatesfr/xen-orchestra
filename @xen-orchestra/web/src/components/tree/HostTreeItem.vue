@@ -11,7 +11,7 @@
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
       </template>
     </TreeItemLabel>
-    <template #sublist>
+    <template v-if="branch.hasChildren" #sublist>
       <TreeList>
         <VmTreeList :leaves="branch.children" />
       </TreeList>

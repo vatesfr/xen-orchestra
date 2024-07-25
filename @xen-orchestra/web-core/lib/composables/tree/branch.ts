@@ -40,15 +40,15 @@ export class Branch<
   }
 
   get failsFilterDownwards(): boolean {
-    return this.passesFilter !== true && this.rawChildren.every(child => child.failsFilterDownwards)
+    if (this.passesFilter !== undefined) {
+      return !this.passesFilter
+    }
+
+    return this.rawChildren.length > 0 && this.rawChildren.every(child => child.failsFilterDownwards)
   }
 
   get isExcluded() {
     if (this.parent?.isExpanded === false) {
-      return true
-    }
-
-    if (!this.hasChildren) {
       return true
     }
 
