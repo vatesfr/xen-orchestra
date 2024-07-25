@@ -372,8 +372,9 @@ export default class New extends Component {
         })
       }
       const existingSrsLength = this.state.existingSrs?.length ?? 0
-      if (existingSrsLength !== 0 && srUuid === undefined) {
-        // `existingsSrs` is defined if the SR type is `NFS` or `ISCSI` and if at least one SR is detected
+      // `existingsSrs` is defined if the SR type is `NFS` or `ISCSI` and if at least one SR is detected
+      // Ignore NFS type because it is not supposed to erase data
+      if (type !== 'nfs' && existingSrsLength !== 0 && srUuid === undefined) {
         await confirm({
           title: _('newSr'),
           body: _('newSrExistingSr', { path: <b>{this.state.path}</b>, n: existingSrsLength }),
