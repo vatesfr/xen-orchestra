@@ -23,11 +23,11 @@ const props = defineProps<{
 const typoClass = computed(() => (props.type === 'page' ? 'h2-black' : 'h4-medium'))
 
 const imageSrc = computed(() => {
-  try {
-    return new URL(`../../assets/${props.image}.svg`, import.meta.url).href
-  } catch {
+  if (!props.image) {
     return undefined
   }
+
+  return new URL(`../../assets/${props.image}.svg`, import.meta.url).href
 })
 </script>
 
