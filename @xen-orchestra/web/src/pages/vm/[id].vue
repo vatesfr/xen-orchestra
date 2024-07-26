@@ -1,5 +1,5 @@
 <template>
-  <LoadingHero v-if="!isReady" />
+  <LoadingHero v-if="!isReady" type="page" />
   <ObjectNotFoundHero v-else-if="!vm" :id="route.params.id" />
   <RouterView v-else v-slot="{ Component }">
     <VmHeader :name="vm.name_label" :state="powerState" />

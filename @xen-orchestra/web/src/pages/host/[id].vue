@@ -1,5 +1,5 @@
 <template>
-  <ComingSoonHero />
+  <ComingSoonHero type="page" />
 </template>
 
 <script setup lang="ts">
