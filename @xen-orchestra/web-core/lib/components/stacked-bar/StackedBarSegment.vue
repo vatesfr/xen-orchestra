@@ -13,15 +13,18 @@
 
 <script lang="ts" setup>
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { Color } from '@core/types/color.type'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import { useResizeObserver } from '@vueuse/core'
 import { ref } from 'vue'
 
-defineProps<{
-  color: Color
+export type StackedBarSegmentColor = 'primary' | 'success' | 'warning' | 'danger'
+
+export type StackedBarSegmentProps = {
+  color: StackedBarSegmentColor
   percentage: number
-}>()
+}
+
+defineProps<StackedBarSegmentProps>()
 
 const hidden = ref(false)
 const ellipsisElement = ref<HTMLElement | null>(null)
@@ -34,7 +37,7 @@ useResizeObserver(ellipsisElement, ([entry]) => {
 <style lang="postcss" scoped>
 /* COLOR VARIANT */
 .stacked-bar-segment {
-  &.info {
+  &.primary {
     --background-color: var(--color-purple-base);
   }
 
@@ -46,7 +49,7 @@ useResizeObserver(ellipsisElement, ([entry]) => {
     --background-color: var(--color-orange-base);
   }
 
-  &.error {
+  &.danger {
     --background-color: var(--color-red-base);
   }
 }
