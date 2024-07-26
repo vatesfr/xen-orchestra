@@ -1,7 +1,28 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
+
+  "host": "Hôte",
+  "host-description": "Description de l'hôte",
+
+  "hosts-status": "Statut des hôtes",
+  "hosts-status.halted": "Arrêtés",
+  "hosts-status.running": "Démarrés",
+  "hosts-status.unknown": "Inconnu",
+  "hosts-status.unknown.tooltip": "Les métriques de l'hôte sont inaccessibles",
+
+  "n-hosts": "1 hôte | {n} hôtes",
   "no-results": "Aucun résultat",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
-  "sidebar.vms-treeview": "Arborescence des VMs"
+  "sidebar.vms-treeview": "Arborescence des VMs",
+
+  "vm": "VM",
+  "vm-description": "Description de la VM",
+
+  "vms-status": "Statut des VMs",
+  "vms-status.inactive": "Inactives",
+  "vms-status.inactive.tooltip": "Éteintes ou suspendues",
+  "vms-status.running": "Démarrées",
+  "vms-status.unknown": "Inconnu",
+  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
 }

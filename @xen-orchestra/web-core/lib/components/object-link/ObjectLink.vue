@@ -6,7 +6,9 @@
         <UiIcon :icon />
       </slot>
     </span>
-    <slot />
+    <span v-tooltip class="content text-ellipsis">
+      <slot />
+    </span>
   </RouterLink>
   <span v-else :class="{ disabled }" class="object-link typo p3-medium">
     <span class="icon">
@@ -20,6 +22,7 @@
 
 <script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { type RouteLocationRaw } from 'vue-router'
 
@@ -61,13 +64,14 @@ defineSlots<{
 
 /* IMPLEMENTATION */
 .object-link {
-  display: inline-flex;
+  display: flex;
+  min-width: 0;
   align-items: center;
   color: var(--color);
-  gap: 0.8rem;
+  gap: 1rem;
   border-top: 0.1rem solid transparent;
   border-bottom: 0.1rem solid var(--border-color);
-  line-height: 0;
+  line-height: 1;
   padding-block: 0.5rem;
   text-decoration: none;
 

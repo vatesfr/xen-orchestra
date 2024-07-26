@@ -182,7 +182,8 @@ class BackupReportsXoPlugin {
         // Handle improper value introduced by:
         // https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
         reportWhen === 'Never' ||
-        (reportWhen === 'failure' && log.status === 'success'))
+        (reportWhen === 'failure' && log.status === 'success') ||
+        (log.data.ignoreSkippedBackups && log.status === 'skipped'))
     ) {
       return
     }
@@ -203,10 +204,12 @@ class BackupReportsXoPlugin {
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, { name: jobName }, schedule, force) {
+  async _metadataHandler(log, { name: jobName, settings }, schedule, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
+
+    const mailReceivers = get(() => settings[''].reportRecipients)
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
@@ -217,8 +220,12 @@ class BackupReportsXoPlugin {
     for (const taskBatch of Object.values(tasksByStatus)) {
       for (const task of taskBatch) {
         task.additionnalData = await getAdditionnalData(task, { xo })
-        for (const subTask of task.tasks) {
-          subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+
+        const subTasks = task.tasks
+        if (subTasks !== undefined) {
+          for (const subTask of subTasks) {
+            subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+          }
         }
       }
     }
@@ -234,6 +241,7 @@ class BackupReportsXoPlugin {
     return this._sendReport({
       ...(await templatesTransform.markdown(templates.markdown.metadata(context))),
       ...(await templatesTransform.mjml(templates.mjml.metadata(context))),
+      mailReceivers,
       subject: templates.mjml.metadataSubject(context),
       success: log.status === 'success',
     })

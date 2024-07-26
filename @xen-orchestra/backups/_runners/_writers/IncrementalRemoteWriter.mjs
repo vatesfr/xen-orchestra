@@ -140,6 +140,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       if (isDifferencing) {
         assert.notStrictEqual(
           parentVdiPaths,
+          undefined,
           'checkbasevdi must be called before updateUuidAndChain for incremental backups'
         )
         const parentPath = parentVdiPaths[dirname(path)]

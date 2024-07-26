@@ -264,7 +264,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
+  }
 
+  async _removeSnapshotData() {
     // now that we use CBT, we can destroy the data of the snapshot used for this backup
     // going back to a previous version of XO not supporting CBT will create a full backup
     // this will only do something after snapshot and transfer
@@ -280,12 +282,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       this._settings.cbtDestroySnapshotData
     ) {
       Task.info('will delete snapshot data')
-      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm?.$ref)
-      await xapi.call('VM.destroy', this._exportedVm.$ref)
+      const vdiRefs = await this._xapi.VM_getDisks(this._exportedVm.$ref)
+      await this._xapi.call('VM.destroy', this._exportedVm.$ref)
       for (const vdiRef of vdiRefs) {
         try {
           // data_destroy will fail with a VDI_NO_CBT_METADATA error if CBT is not enabled on this VDI
-          await xapi.call('VDI.data_destroy', vdiRef)
+          await this._xapi.call('VDI.data_destroy', vdiRef)
           Task.info(`Snapshot data has been deleted`, { vdiRef })
         } catch (error) {
           Task.warning(`Couldn't deleted snapshot data`, { error, vdiRef })
@@ -373,6 +375,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
+      await this._removeSnapshotData()
     }
     await this._healthCheck()
   }

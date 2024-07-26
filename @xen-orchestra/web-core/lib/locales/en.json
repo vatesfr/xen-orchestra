@@ -41,9 +41,11 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
+  "hosts": "Hosts",
   "loading-in-progress": "Loading in progress…",
   "log-out": "Log out",
   "master": "Primary host",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Network",
   "object-not-found": "Object {id} can't be found…",
   "power-on-for-console": "Power on your VM to access its console",
@@ -60,5 +62,8 @@
   "tasks.quick-view.all": "All",
   "tasks.quick-view.done": "Done",
   "tasks.quick-view.failed": "Failed",
-  "tasks.quick-view.in-progress": "In progress"
+  "tasks.quick-view.in-progress": "In progress",
+
+  "total": "Total",
+  "vms": "VMs"
 }

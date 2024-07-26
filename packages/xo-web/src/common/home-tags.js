@@ -1,4 +1,5 @@
 import * as CM from 'complex-matcher'
+import escapeRegExp from 'lodash/escapeRegExp.js'
 import PropTypes from 'prop-types'
 import React from 'react'
 
@@ -19,7 +20,7 @@ export default class HomeTags extends Component {
   }
 
   _onClick = label => {
-    const s = encodeURIComponent(new CM.Property('tags', new CM.String(label)).toString())
+    const s = encodeURIComponent(new CM.Property('tags', new CM.RegExp(`^${escapeRegExp(label)}$`)).toString())
     const t = encodeURIComponent(this.props.type)
 
     this.context.router.push(`/home?t=${t}&s=${s}`)

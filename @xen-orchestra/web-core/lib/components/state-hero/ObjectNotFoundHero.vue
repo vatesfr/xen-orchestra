@@ -1,5 +1,5 @@
 <template>
-  <StateHero image="no-result" class="object-not-found-hero">
+  <StateHero class="object-not-found-hero" image="no-result" type="page">
     {{ $t('object-not-found', { id }) }}
   </StateHero>
 </template>

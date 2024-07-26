@@ -41,9 +41,11 @@
 
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
+  "hosts": "Hôtes",
   "loading-in-progress": "Chargement en cours…",
   "log-out": "Se déconnecter",
   "master": "Hôte primaire",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
@@ -60,5 +62,8 @@
   "tasks.quick-view.all": "Toutes",
   "tasks.quick-view.done": "Terminées",
   "tasks.quick-view.failed": "Échouées",
-  "tasks.quick-view.in-progress": "En cours"
+  "tasks.quick-view.in-progress": "En cours",
+
+  "total": "Total",
+  "vms": "VMs"
 }

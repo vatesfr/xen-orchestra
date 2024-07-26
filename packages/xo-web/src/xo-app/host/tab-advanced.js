@@ -376,7 +376,7 @@ export default class extends Component {
       ),
     }).then(memory => setControlDomainMemory(this.props.host.id, memory), noop)
 
-  _accessAdvancedLiveTelemetry = () => window.open(`./netdata/v1/host/${encodeURIComponent(this.props.host.hostname)}/`)
+  _accessAdvancedLiveTelemetry = () => window.open(`./netdata/host/${encodeURIComponent(this.props.host.hostname)}/`)
 
   _enableAdvancedLiveTelemetry = async host => {
     await enableAdvancedLiveTelemetry(host)

@@ -162,15 +162,19 @@ const VmActionBar = addSubscriptions(() => ({
 }))(
   connectStore(() => ({
     checkPermissions: getCheckPermissions,
-    userId: createSelector(getUser, user => user.id),
-  }))(({ checkPermissions, vm, userId, resourceSets }) => {
+    user: getUser,
+  }))(({ checkPermissions, vm, user, resourceSets }) => {
     // Is the user in the same resource set as the VM
     const _getIsSelfUser = createSelector(
       () => resourceSets,
       resourceSets => {
         const vmResourceSet = vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
 
-        return vmResourceSet && includes(vmResourceSet.subjects, userId)
+        return (
+          vmResourceSet &&
+          (includes(vmResourceSet.subjects, user.id) ||
+            user.groups.some(groupId => includes(vmResourceSet.subjects, groupId)))
+        )
       }
     )
 

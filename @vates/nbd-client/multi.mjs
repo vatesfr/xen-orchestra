@@ -6,7 +6,10 @@ import { createLogger } from '@xen-orchestra/log'
 const { warn } = createLogger('vates:nbd-client:multi')
 export default class MultiNbdClient {
   #clients = []
+  #nbdConcurrency
+  #options
   #readAhead
+  #settings
 
   get exportSize() {
     return this.#clients[0].exportSize
@@ -14,36 +17,64 @@ export default class MultiNbdClient {
 
   constructor(settings, { nbdConcurrency = 8, readAhead = 16, ...options } = {}) {
     this.#readAhead = readAhead
+    this.#options = options
+    this.#nbdConcurrency = nbdConcurrency
     if (!Array.isArray(settings)) {
       settings = [settings]
     }
-    for (let i = 0; i < nbdConcurrency; i++) {
-      this.#clients.push(
-        new NbdClient(settings[i % settings.length], { ...options, readAhead: Math.ceil(readAhead / nbdConcurrency) })
-      )
-    }
+    this.#settings = settings
   }
 
+  /**
+   *
+   * open nbdConcurrency connections to NBD servers
+   * it must obtain at least one connection to succeed
+   * it tries to spread connections on multiple host
+   */
   async connect() {
-    const connectedClients = []
-    for (const clientId in this.#clients) {
-      const client = this.#clients[clientId]
+    const candidates = [...this.#settings]
+
+    const promises = []
+    const baseOptions = this.#options
+    const  _connect = async () => {
+      if (candidates.length === 0) {
+        return
+      }
+      // a little bit of randomization to spread the load
+      const nbdInfo = candidates[Math.floor(Math.random() * candidates.length)]
+      const client = new NbdClient(nbdInfo, {
+        ...baseOptions,
+        readAhead: Math.ceil(this.#readAhead / this.#nbdConcurrency),
+      })
       try {
         await client.connect()
-        connectedClients.push(client)
+        this.#clients.push(client)
       } catch (err) {
         client.disconnect().catch(() => {})
+        // do not hammer unreachable hosts, once failed, remove from the list
+        const candidateIndex = candidates.findIndex(({ address }) => address === nbdInfo.address)
+        if (candidateIndex >= 0) {
+          // this candidate may have already been deleted by another parallel promise
+          candidates.splice(candidateIndex, 1)
+        }
+
         warn(`can't connect to one nbd client`, { err })
+        // retry with another candidate (if available)
+        return _connect()
       }
     }
-    if (connectedClients.length === 0) {
+    for (let i = 0; i < this.#nbdConcurrency; i++) {
+      promises.push(_connect())
+    }
+    await Promise.all(promises)
+
+    if (this.#clients.length === 0) {
       throw new Error(`Fail to connect to any Nbd client`)
     }
-    if (connectedClients.length < this.#clients.length) {
+    if (this.#clients.length < this.#nbdConcurrency) {
       warn(
-        `incomplete connection by multi Nbd, only ${connectedClients.length} over ${this.#clients.length} expected clients`
+        `incomplete connection by multi Nbd, only ${this.#clients.length} over ${this.#nbdConcurrency} expected clients`
       )
-      this.#clients = connectedClients
     }
   }
 

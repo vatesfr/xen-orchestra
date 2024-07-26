@@ -5,8 +5,8 @@
       prop('color')
         .type('LegendColor')
         .required()
-        .preset('default')
-        .enum('default', 'success', 'warning', 'error', 'disabled', 'dark-blue')
+        .preset('primary')
+        .enum('primary', 'secondary', 'success', 'warning', 'danger', 'disabled')
         .widget(),
       prop('value').num().widget().preset(4),
       prop('unit').str().preset('GB').widget(),
@@ -15,13 +15,16 @@
       setting('slot').preset('Legend label').widget(text()),
     ]"
   >
-    <UiLegend v-bind="properties">{{ settings.slot }}</UiLegend>
+    <LegendList>
+      <LegendItem v-bind="properties">{{ settings.slot }}</LegendItem>
+    </LegendList>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot, setting } from '@/libs/story/story-param'
+import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import UiLegend from '@core/components/UiLegend.vue'
+import LegendItem from '@core/components/legend/LegendItem.vue'
+import LegendList from '@core/components/legend/LegendList.vue'
 </script>

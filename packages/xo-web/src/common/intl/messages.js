@@ -607,9 +607,10 @@ const messages = {
   cbtDestroySnapshotData: 'Purge snapshot data when using CBT',
   cbtDestroySnapshotDataInformation:
     "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
-
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
+  ignoreSkippedBackups: "Don't send reports for skipped backups",
+
   // ------ New Remote -----
   newRemote: 'New file system remote',
   remoteTypeLocal: 'Local',
@@ -700,6 +701,8 @@ const messages = {
   newSr: 'New SR',
   newSrConfirm:
     'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
+  newSrExistingSr:
+    'SR{n, plural, one {} other {s}} already exist on this device, as noted in the Storage Usage section. Creating this SR may erase the content of {path} and cause the loss of existing SR{n, plural, one {} other {s}}. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',

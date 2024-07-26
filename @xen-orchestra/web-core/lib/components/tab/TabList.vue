@@ -28,5 +28,6 @@ useContext(DisabledContext, () => props.disabled)
   background-color: var(--background-color-primary);
   max-width: 100%;
   overflow: auto;
+  flex-shrink: 0;
 }
 </style>

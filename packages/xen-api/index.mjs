@@ -9,6 +9,8 @@ import Obfuscate from '@vates/obfuscate'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
+import { compose } from '@vates/compose'
+import { createHash } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
@@ -86,6 +88,41 @@ const addSyncStackTrace = async promise => {
     error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
+}
+
+function updateJsonHash(value, hash) {
+  if (value !== null && typeof value === 'object') {
+    if (Array.isArray(value)) {
+      hash.update('[')
+      for (const item of value) {
+        updateJsonHash(item, hash)
+
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update(']')
+    } else {
+      hash.update('{')
+      for (const key of Object.keys(value).sort()) {
+        updateJsonHash(key, hash)
+        hash.update(':')
+        updateJsonHash(value[key], hash)
+
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update('}')
+    }
+  } else {
+    hash.update(JSON.stringify(value))
+  }
+}
+
+export function jsonHash(value) {
+  // this hash does not need to be secure, it just needs to be fast and with low collisions
+  const hash = createHash('sha256')
+  updateJsonHash(value, hash)
+  return hash.digest('base64')
 }
 
 // -------------------------------------------------------------------
@@ -301,6 +338,10 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
   // RPC calls
   // ===========================================================================
+
+  computeCacheKey(...args) {
+    return jsonHash(args)
+  }
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
@@ -1409,8 +1450,50 @@ export class Xapi extends EventEmitter {
   }
 }
 
+function cachable(fn, getCache) {
+  return async function (...args) {
+    const cache = getCache(args)
+    if (cache === undefined) {
+      return fn.apply(this, args)
+    }
+
+    const key = this.computeCacheKey(...args)
+    if (cache.has(key)) {
+      return cache.get(key)
+    }
+    const promise = fn.apply(this, args)
+    cache.set(key, promise)
+    try {
+      return promise
+    } catch (error) {
+      cache.delete(key)
+      throw error
+    }
+  }
+}
+
 decorateClass(Xapi, {
-  callAsync: cancelable,
+  call: [
+    cachable,
+    args => {
+      if (typeof args[0] !== 'string') {
+        return args.shift()
+      }
+    },
+  ],
+  callAsync: compose([
+    [
+      cachable,
+      args => {
+        const maybeCache = args[1]
+        if (typeof maybeCache !== 'string') {
+          args.splice(1, 1)
+          return maybeCache
+        }
+      },
+    ],
+    cancelable,
+  ]),
   getResource: cancelable,
   putResource: cancelable,
 })

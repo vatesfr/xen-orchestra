@@ -1,12 +1,14 @@
 /* eslint-disable no-console */
 import blocked from 'blocked'
-import createDebug from 'debug'
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import L from 'lodash'
 import minimist from 'minimist'
 import pw from 'pw'
+import transportConsole from '@xen-orchestra/log/transports/console'
 import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
+import { configure } from '@xen-orchestra/log/configure'
 import { diff } from 'jest-diff'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
@@ -62,10 +64,15 @@ export async function main(createClient) {
   }
 
   if (opts.verbose) {
-    // Does not work perfectly.
-    //
-    // https://github.com/visionmedia/debug/pull/156
-    createDebug.enable('xen-api,xen-api:*')
+    const { env } = process
+    configure({
+      // display warnings or above, and all that are enabled via DEBUG or
+      // NODE_DEBUG env
+      filter: [env.DEBUG, env.NODE_DEBUG, 'xen-api,xen-api:*'].filter(Boolean).join(','),
+      level: 'info',
+
+      transport: transportConsole(),
+    })
   }
 
   let auth
@@ -77,9 +84,9 @@ export async function main(createClient) {
   }
 
   {
-    const debug = createDebug('xen-api:perf')
+    const { debug } = createLogger('xen-api:perf')
     blocked(ms => {
-      debug('blocked for %sms', ms | 0)
+      debug(`blocked for ${ms | 0}ms`)
     })
   }
 

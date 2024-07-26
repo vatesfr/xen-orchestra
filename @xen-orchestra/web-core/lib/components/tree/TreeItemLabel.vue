@@ -1,8 +1,8 @@
 <!-- v1.1 -->
 <template>
-  <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
+  <RouterLink v-slot="{ isExactActive, isActive, href, navigate }" :to="route" custom>
     <div
-      :class="isExactActive ? 'exact-active' : active ? 'active' : undefined"
+      :class="isExactActive ? 'exact-active' : active || isActive ? 'active' : undefined"
       class="tree-item-label"
       v-bind="$attrs"
     >
@@ -22,12 +22,12 @@
         size="small"
         @click="emit('toggle')"
       />
-      <TreeLine v-else-if="!noIndent" />
+      <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
           <UiIcon :icon class="icon" />
         </slot>
-        <div class="text">
+        <div class="text text-ellipsis">
           <slot />
         </div>
       </a>
@@ -55,7 +55,6 @@ defineProps<{
   icon?: IconDefinition
   route: RouteLocationRaw
   active?: boolean
-  noIndent?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -119,14 +118,17 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 }
 
 .text {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   padding-inline-end: 0.4rem;
 }
 
 .icon {
   font-size: 1.6rem;
+}
+
+.h-line {
+  width: 2rem;
+  border-bottom: 0.1rem solid var(--color-purple-base);
+  margin-left: -0.4rem;
 }
 
 /*

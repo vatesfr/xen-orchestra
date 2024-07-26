@@ -6,7 +6,7 @@ If you want to deploy an XOA in an airgapped infrastructure, refer to the [dedic
 
 ## XOA
 
-Log in to your account and use the deploy form [available on this page](https://xen-orchestra.com/#!/xoa).
+Log in to your account and use the deploy form [available on this page](https://vates.tech/deploy/).
 
 :::tip
 All the deploy code is within your browser, nothing is sent to our server!
@@ -204,6 +204,8 @@ Then restart Xen Orchestra if it was running.
 
 ### Always Running
 
+#### Using forever
+
 - You can use [forever](https://github.com/nodejitsu/forever) to have the process always running:
 
 ```sh
@@ -238,6 +240,46 @@ If you need to delete the service:
 ```sh
 forever-service delete orchestra
 ```
+
+#### Systemd service
+
+You can also use systemd to enable the service instead.
+
+_The following example is based on a Ubuntu 24.04 installation_
+
+Create the following file `/etc/systemd/system/xo-server.service` containing the following inside:
+
+```ini
+[Unit]
+Description=XO Server
+After=network-online.target
+
+[Service]
+Environment="DEBUG=xo:main"
+Restart=always
+SyslogIdentifier=xo-server
+
+# Be sure to edit the path below to where your Node and your xo-server install is located!
+ExecStart=/usr/bin/node /home/username/xen-orchestra/packages/xo-server/dist/cli.mjs
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload the daemon and enable the service:
+
+```sh
+systemctl daemon-reload
+systemctl enable --now xo-server
+```
+
+You can then use standard systemd commands to start/stop/check status e.g.
+
+```sh
+systemctl status xo-server
+```
+
+> **Security:** `xo-server` will be run as `root`, make sure your files are not editable by other users or it may be used as an attack vector.
 
 ### Banner and warnings
 
