@@ -17,6 +17,7 @@ import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChartWithLegend from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
 import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import UiCard from '@core/components/UiCard.vue'
+import { useItemCounter } from '@core/composables/item-counter.composable'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -24,21 +25,9 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const { records: hosts, isReady } = useHostStore().subscribe()
 
-const hostsCount = computed(() => {
-  return hosts.value.reduce(
-    (acc, host) => {
-      if (host.power_state === HOST_POWER_STATE.RUNNING) {
-        acc.running++
-      } else if (host.power_state === HOST_POWER_STATE.HALTED) {
-        acc.halted++
-      } else {
-        acc.unknown++
-      }
-
-      return acc
-    },
-    { running: 0, halted: 0, unknown: 0 }
-  )
+const hostsCount = useItemCounter(hosts, {
+  running: host => host.power_state === HOST_POWER_STATE.RUNNING,
+  halted: host => host.power_state === HOST_POWER_STATE.HALTED,
 })
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
@@ -54,7 +43,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
   {
     label: t('hosts-status.unknown'),
-    value: hostsCount.value.unknown,
+    value: hostsCount.value.$other,
     color: 'disabled',
     tooltip: t('hosts-status.unknown.tooltip'),
   },

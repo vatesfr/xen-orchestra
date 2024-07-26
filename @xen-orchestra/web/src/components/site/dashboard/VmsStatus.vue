@@ -18,6 +18,7 @@ import DonutChartWithLegend, {
 } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
 import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import UiCard from '@core/components/UiCard.vue'
+import { useItemCounter } from '@core/composables/item-counter.composable'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -25,22 +26,10 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const { records: vms, isReady } = useVmStore().subscribe()
 
-const vmsCount = computed(() =>
-  vms.value.reduce(
-    (acc, vm) => {
-      if (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED) {
-        acc.running++
-      } else if (vm.power_state === VM_POWER_STATE.HALTED || vm.power_state === VM_POWER_STATE.SUSPENDED) {
-        acc.inactive++
-      } else {
-        acc.unknown++
-      }
-
-      return acc
-    },
-    { running: 0, inactive: 0, unknown: 0 }
-  )
-)
+const vmsCount = useItemCounter(vms, {
+  running: vm => vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED,
+  inactive: vm => vm.power_state === VM_POWER_STATE.HALTED || vm.power_state === VM_POWER_STATE.SUSPENDED,
+})
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
@@ -56,7 +45,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
   {
     label: t('vms-status.unknown'),
-    value: vmsCount.value.unknown,
+    value: vmsCount.value.$other,
     color: 'disabled',
     tooltip: t('vms-status.unknown.tooltip'),
   },
