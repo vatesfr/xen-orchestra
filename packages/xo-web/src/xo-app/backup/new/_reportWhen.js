@@ -15,6 +15,7 @@ export const REPORT_WHEN_LABELS = {
   always: 'reportWhenAlways',
   failure: 'reportWhenFailure',
   never: 'reportWhenNever',
+  'skipped and failure': 'reportWhenSkippedAndFailure'
 }
 
 const REPORT_WHEN_FILTER_OPTIONS = Object.entries(REPORT_WHEN_LABELS).map(([value, label]) => ({ label, value }))
