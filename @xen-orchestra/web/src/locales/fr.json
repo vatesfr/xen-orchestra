@@ -41,12 +41,12 @@
   "s3-backup-repository": "Dépot de sauvegarde S3",
   "storage-repository": "Dépot de stockage",
 
-  "servers-connected-status": "En fonctionnement",
-  "servers-disconnected-status": "Arrêtés",
-  "servers-disconnected-status-tooltip": "Serveurs avec un statut déconnecté",
-  "servers-status": "Statut des serveurs",
-  "servers-unknown-status": "Inconnus",
-  "servers-unknown-status-tooltip": "Serveurs avec un statut inconnu",
+  "pools-status": "Statut des pools",
+  "pools-status.connected": "Connectés",
+  "pools-status.unreachable": "Injoignables",
+  "pools-status.unreachable.tooltip": "Serveurs configurés mais non joignables",
+  "pools-status.unknown": "Inconnu",
+  "pools-status.unknown.tooltip": "Serveurs en cours de connexion ou dans un état inconnu",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",

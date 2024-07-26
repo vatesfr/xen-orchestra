@@ -1,15 +1,34 @@
 import type { RecordId } from '@/types/xo-object.type'
 
-export type Server = {
-  id: RecordId<'server'>
-  type: 'server'
-  host: string
-  label: string
-  username: string
+export enum SERVER_STATUS {
+  CONNECTED = 'connected',
+  CONNECTING = 'connecting',
+  DISCONNECTED = 'disconnected',
+}
+
+type BaseServer = {
   allowUnauthorized: boolean
   enabled: boolean
-  readonly: boolean
-  status: string
-  poolId: string
-  href: string
+  host: string
+  id: RecordId<'server'>
+  label: string | undefined
+  readOnly: boolean
+  type: 'server'
+  username: string
 }
+
+type ConnectedServer = BaseServer & {
+  status: SERVER_STATUS.CONNECTED
+  poolId: RecordId<'pool'>
+}
+
+type ConnectingServer = BaseServer & {
+  status: SERVER_STATUS.CONNECTING
+}
+
+type DisconnectedServer = BaseServer & {
+  status: SERVER_STATUS.DISCONNECTED
+  error?: any
+}
+
+export type Server = ConnectedServer | ConnectingServer | DisconnectedServer
