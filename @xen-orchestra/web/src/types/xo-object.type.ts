@@ -1,3 +1,4 @@
+import type { Alarm } from '@/types/alarm.type'
 import type { Host } from '@/types/host.type'
 import type { Pool } from '@/types/pool.type'
 import type { Task } from '@/types/task.type'
@@ -9,7 +10,7 @@ declare const __brand: unique symbol
 // eslint-disable-next-line no-use-before-define
 export type RecordId<Type extends XoObjectType> = string & { [__brand]: `${Type}Id` }
 
-export type XoObject = Vm | Host | Pool | Task
+export type XoObject = Vm | Host | Pool | Task | Alarm
 
 export type XoObjectType = XoObject['type']
 
