@@ -1,8 +1,10 @@
-<template v-if="isReady">
+<template>
   <UiCard>
     <CardTitle>{{ $t('vms-status') }}</CardTitle>
-    <DonutChartWithLegend :icon="faDesktop" :segments />
-    <CardNumbers :value="vms.length" class="total" label="Total" size="small" />
+    <LoadingHero type="card" :disabled="isReady">
+      <DonutChartWithLegend :icon="faDesktop" :segments />
+      <CardNumbers :value="vms.length" class="total" :label="t('total')" size="small" />
+    </LoadingHero>
   </UiCard>
 </template>
 
@@ -14,13 +16,14 @@ import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
+import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import UiCard from '@core/components/UiCard.vue'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { records: vms } = useVmStore().subscribe()
+const { records: vms, isReady } = useVmStore().subscribe()
 
 const vmsCount = computed(() =>
   vms.value.reduce(
