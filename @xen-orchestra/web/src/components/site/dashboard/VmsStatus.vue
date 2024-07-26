@@ -1,9 +1,9 @@
 <template>
   <UiCard>
     <CardTitle>{{ $t('vms-status') }}</CardTitle>
-    <LoadingHero type="card" :disabled="isReady">
+    <LoadingHero :disabled="isReady" type="card">
       <DonutChartWithLegend :icon="faDesktop" :segments />
-      <CardNumbers :value="vms.length" class="total" :label="t('total')" size="small" />
+      <CardNumbers :label="t('total')" :value="vms.length" class="total" size="small" />
     </LoadingHero>
   </UiCard>
 </template>

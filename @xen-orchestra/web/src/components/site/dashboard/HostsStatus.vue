@@ -1,8 +1,10 @@
-<template v-if="isReady">
+<template>
   <UiCard>
     <CardTitle>{{ $t('hosts-status') }}</CardTitle>
-    <DonutChartWithLegend :icon="faServer" :segments />
-    <CardNumbers :value="hosts.length" class="total" label="Total" size="small" />
+    <LoadingHero :disabled="isReady" type="card">
+      <DonutChartWithLegend :icon="faServer" :segments />
+      <CardNumbers :label="t('total')" :value="hosts.length" class="total" size="small" />
+    </LoadingHero>
   </UiCard>
 </template>
 
@@ -13,13 +15,14 @@ import type { DonutChartWithLegendProps } from '@core/components/donut-chart-wit
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChartWithLegend from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
+import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import UiCard from '@core/components/UiCard.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { records: hosts } = useHostStore().subscribe()
+const { records: hosts, isReady } = useHostStore().subscribe()
 
 const hostsCount = computed(() => {
   return hosts.value.reduce(
