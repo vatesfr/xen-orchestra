@@ -9,5 +9,12 @@
   "sidebar.vms-treeview": "VMs treeview",
 
   "vm": "VM",
-  "vm-description": "VM description"
+  "vm-description": "VM description",
+
+  "vms-status": "VMs status",
+  "vms-status.inactive": "Inactive",
+  "vms-status.inactive.tooltip": "Halted or suspended",
+  "vms-status.running": "Running",
+  "vms-status.unknown": "Unknown",
+  "vms-status.unknown.tooltip": "For which XO has lost connection to the pool"
 }

@@ -9,5 +9,12 @@
   "sidebar.vms-treeview": "Arborescence des VMs",
 
   "vm": "VM",
-  "vm-description": "Description de la VM"
+  "vm-description": "Description de la VM",
+
+  "vms-status": "Statut des VMs",
+  "vms-status.inactive": "Inactives",
+  "vms-status.inactive.tooltip": "Éteintes ou suspendues",
+  "vms-status.running": "Démarrées",
+  "vms-status.unknown": "Inconnu",
+  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
 }
