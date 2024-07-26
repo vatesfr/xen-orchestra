@@ -38,6 +38,7 @@
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-audit minor
+- xo-server-backup-reports patch
 - xo-web minor
 
 <!--packages-end-->
