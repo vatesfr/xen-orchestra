@@ -1,9 +1,9 @@
 <template>
   <HeadBar>
-    {{ host.name_label }}
     <template #icon>
       <ObjectIcon type="host" :state="host.power_state.toLocaleLowerCase() as HostState" />
     </template>
+    {{ host.name_label }}
   </HeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
