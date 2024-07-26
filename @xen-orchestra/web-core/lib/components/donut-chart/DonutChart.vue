@@ -17,51 +17,47 @@
   </svg>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
-type Segment = {
+export type DonutSegmentColor = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'
+
+export type DonutSegment = {
   value: number
-  color: 'success' | 'warning' | 'error' | 'unknown'
+  color: DonutSegmentColor
 }
 
-type ComputedSegment = {
-  color: 'success' | 'warning' | 'error' | 'unknown'
-  percent: number
-  offset: number
-}
-
-const props = defineProps<{
-  segments: Segment[]
-  maxValue?: number
+export type DonutChartProps = {
+  segments: DonutSegment[]
   icon?: IconDefinition
-}>()
+}
+
+const props = defineProps<DonutChartProps>()
 
 const circumference = Math.PI * 80
 
-const totalValue = computed(() => {
-  const sumOfValues = props.segments.reduce((acc, segment) => acc + segment.value, 0)
-  return Math.max(props.maxValue ?? 0, sumOfValues)
-})
+const totalValue = computed(() => props.segments.reduce((total, segment) => total + segment.value, 0))
 
-const computedSegments = computed<ComputedSegment[]>(() => {
+const computedSegments = computed(() => {
   let nextOffset = circumference / 4
+
   return props.segments.map(segment => {
+    const offset = nextOffset
     const percent = (segment.value / totalValue.value) * circumference
-    const currentSegment = {
+    nextOffset -= percent
+
+    return {
       color: segment.color,
       percent,
-      offset: nextOffset,
+      offset,
     }
-    nextOffset -= percent
-    return currentSegment
   })
 })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .donut-chart {
   width: 100px;
   height: 100px;
@@ -73,6 +69,14 @@ const computedSegments = computed<ComputedSegment[]>(() => {
   fill: transparent;
   --stroke-color: var(--color-grey-100);
 
+  &.primary {
+    --stroke-color: var(--color-purple-base);
+  }
+
+  &.secondary {
+    --stroke-color: var(--color-grey-100);
+  }
+
   &.success {
     --stroke-color: var(--color-green-base);
   }
@@ -81,11 +85,11 @@ const computedSegments = computed<ComputedSegment[]>(() => {
     --stroke-color: var(--color-orange-base);
   }
 
-  &.error {
+  &.danger {
     --stroke-color: var(--color-red-base);
   }
 
-  &.unknown {
+  &.disabled {
     --stroke-color: var(--color-grey-400);
   }
 }
