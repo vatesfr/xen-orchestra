@@ -1,10 +1,12 @@
 <template>
   <div class="site-dashboard">
+    <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 </script>
 
@@ -19,6 +21,10 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
     'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
     'alarms alarms alarms alarms alarms alarms alarms patches';
+}
+
+.hosts-status {
+  grid-area: hosts-status;
 }
 
 .vms-status {
