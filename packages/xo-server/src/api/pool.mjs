@@ -358,7 +358,7 @@ getGuestSecureBootReadiness.params = {
 }
 
 getGuestSecureBootReadiness.resolve = {
-  pool: ['id', 'pool', 'view'],
+  pool: ['id', 'pool', null],
 }
 
 // -------------------------------------------------------------------

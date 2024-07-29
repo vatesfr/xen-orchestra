@@ -1051,6 +1051,15 @@ export const rollingPoolReboot = async pool => {
   }
 }
 
+export const getPoolGuestSecureBootReadiness = async poolId => {
+  try {
+    return await _call('pool.getGuestSecureBootReadiness', { id: poolId })
+  } catch (error) {
+    if (error.data?.code !== 'MESSAGE_METHOD_UNKNOWN') {
+      throw error
+    }
+  }
+}
 // Host --------------------------------------------------------------
 
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
