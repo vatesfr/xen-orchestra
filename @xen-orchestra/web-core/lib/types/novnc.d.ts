@@ -1,4 +1,6 @@
-// Type definitions for @novnc/novnc 1.3
+// [WARNING] Temporary file to fix typecheck error
+// Remove if this PR is merged: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70022
+// Type definitions for @novnc/novnc 1.5
 // Project: https://github.com/novnc/noVNC
 // Definitions by: Jake Jarvis <https://github.com/jakejarvis>
 //                 Maksim Ovcharik <https://github.com/ovcharik>
