@@ -39,6 +39,7 @@ import {
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { destructPattern } from '../utils'
+import { REPORT_WHEN_LABELS } from '../new/_reportWhen'
 import { LogStatus } from '../../logs/backup-ng'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
@@ -334,7 +335,9 @@ class JobsTable extends React.Component {
           return (
             <Ul>
               {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} key={proxyId} />)}</Li>}
-              {reportWhen !== undefined && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
+              {reportWhen !== undefined && !!REPORT_WHEN_LABELS[reportWhen] && (
+                <Li>{_.keyValue(_('reportWhen'), _(REPORT_WHEN_LABELS[reportWhen]))}</Li>
+              )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
               {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
               {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}

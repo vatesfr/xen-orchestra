@@ -11,20 +11,16 @@ import { injectState, provideState } from 'reaclette'
 
 import { FormGroup } from './../utils'
 
-const REPORT_WHEN_FILTER_OPTIONS = [
-  {
-    label: 'reportWhenAlways',
-    value: 'always',
-  },
-  {
-    label: 'reportWhenFailure',
-    value: 'failure',
-  },
-  {
-    label: 'reportWhenNever',
-    value: 'never',
-  },
-]
+export const REPORT_WHEN_LABELS = {
+  always: 'reportWhenAlways',
+  failure: 'reportWhenFailure',
+  never: 'reportWhenNever',
+}
+
+const REPORT_WHEN_FILTER_OPTIONS = Object.keys(REPORT_WHEN_LABELS).map(key => ({
+  label: REPORT_WHEN_LABELS[key],
+  value: key,
+}))
 
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
