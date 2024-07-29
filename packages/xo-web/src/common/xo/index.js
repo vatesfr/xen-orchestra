@@ -1028,6 +1028,8 @@ export const rollingPoolReboot = async pool => {
   }
 }
 
+export const getPoolGuestSecureBootReadiness = poolId => _call('pool.getGuestSecureBootReadiness', { id: poolId })
+
 // Host --------------------------------------------------------------
 
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
@@ -2455,9 +2457,7 @@ export const migrateVdi = (vdi, sr, resourceSet) =>
     sr_id: resolveId(sr),
   })
 
-  export const setCbt = (vdi, cbt) =>
-    _call('vdi.set', { id: resolveId(vdi), cbt })
-  
+export const setCbt = (vdi, cbt) => _call('vdi.set', { id: resolveId(vdi), cbt })
 
 // VBD ---------------------------------------------------------------
 
