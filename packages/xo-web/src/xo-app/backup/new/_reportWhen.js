@@ -17,10 +17,7 @@ export const REPORT_WHEN_LABELS = {
   never: 'reportWhenNever',
 }
 
-const REPORT_WHEN_FILTER_OPTIONS = Object.keys(REPORT_WHEN_LABELS).map(key => ({
-  label: REPORT_WHEN_LABELS[key],
-  value: key,
-}))
+const REPORT_WHEN_FILTER_OPTIONS = Object.entries(REPORT_WHEN_LABELS).map(([value, label]) => ({ label, value }))
 
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
