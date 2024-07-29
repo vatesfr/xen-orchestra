@@ -1,11 +1,6 @@
 <template>
   <TreeItem :expanded="branch.isExpanded">
-    <TreeItemLabel
-      :icon="faServer"
-      :no-indent="!hasVMs"
-      :route="`/host/${branch.data.id}`"
-      @toggle="branch.toggleExpand()"
-    >
+    <TreeItemLabel :icon="faServer" :route="`/host/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
@@ -38,6 +33,4 @@ const props = defineProps<{
 const { isMasterHost } = useHostStore().subscribe()
 
 const isMaster = computed(() => isMasterHost(props.branch.data.id))
-
-const hasVMs = computed(() => props.branch.children.length > 0)
 </script>

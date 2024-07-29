@@ -22,7 +22,7 @@
         size="small"
         @click="emit('toggle')"
       />
-      <TreeLine v-else-if="!noIndent" />
+      <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
           <UiIcon :icon class="icon" />
@@ -55,7 +55,6 @@ defineProps<{
   icon?: IconDefinition
   route: RouteLocationRaw
   active?: boolean
-  noIndent?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -124,6 +123,12 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
 .icon {
   font-size: 1.6rem;
+}
+
+.h-line {
+  width: 2rem;
+  border-bottom: 0.1rem solid var(--color-purple-base);
+  margin-left: -0.4rem;
 }
 
 /*
