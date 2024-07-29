@@ -335,7 +335,7 @@ class JobsTable extends React.Component {
           return (
             <Ul>
               {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} key={proxyId} />)}</Li>}
-              {reportWhen !== undefined && !!REPORT_WHEN_LABELS[reportWhen] && (
+              {reportWhen in REPORT_WHEN_LABELS && (
                 <Li>{_.keyValue(_('reportWhen'), _(REPORT_WHEN_LABELS[reportWhen]))}</Li>
               )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
