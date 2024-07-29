@@ -12,7 +12,6 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SelectBootFirmware from 'select-boot-firmware'
 import SelectCoresPerSocket from 'select-cores-per-socket'
-import semver from 'semver'
 import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -271,8 +270,9 @@ export default class NewVm extends BaseComponent {
   }
 
   async componentDidUpdate(prevProps) {
-    if (get(() => prevProps.template.id) !== get(() => this.props.template.id)) {
-      this._initTemplate(this.props.template)
+    const template = this.props.template
+    if (get(() => prevProps.template.id) !== get(() => template.id)) {
+      this._initTemplate(template)
     }
 
     if (
@@ -285,12 +285,13 @@ export default class NewVm extends BaseComponent {
     }
 
     const pool = this.props.pool
-    if (get(() => prevProps.pool.id) !== get(() => pool.id)) {
-      const master = this.props.hosts[pool.master]
+    if (
+      get(() => prevProps.pool.id) !== get(() => pool.id) ||
+      (pool === undefined && get(() => template.id) !== get(() => prevProps.template.id))
+    ) {
+      const poolId = pool?.id ?? template?.$pool
       this.setState({
-        poolGuestSecurebootReadiness: semver.satisfies(master?.version, '>= 8.3.0')
-          ? await getPoolGuestSecureBootReadiness(pool.id)
-          : undefined,
+        poolGuestSecurebootReadiness: poolId === undefined ? undefined : await getPoolGuestSecureBootReadiness(poolId),
       })
     }
   }
@@ -1796,7 +1797,7 @@ export default class NewVm extends BaseComponent {
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
               </Item>
-              {secureBoot && pool !== undefined && this.state.poolGuestSecurebootReadiness === 'not_ready' && (
+              {secureBoot && this.state.poolGuestSecurebootReadiness === 'not_ready' && (
                 <span className='align-self-center text-danger ml-1'>
                   <a
                     href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/'
