@@ -22,6 +22,8 @@ declare module 'vue-router/auto-routes' {
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
     '/dev/token': RouteRecordInfo<'/dev/token', '/dev/token', Record<never, never>, Record<never, never>>,
     '/host/[id]': RouteRecordInfo<'/host/[id]', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/host/:id': RouteRecordInfo<'/host/:id', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/host/[id]/vms': RouteRecordInfo<'/host/[id]/vms', '/host/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]': RouteRecordInfo<'/pool/[id]', '/pool/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/:id': RouteRecordInfo<'/pool/:id', '/pool/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/hosts': RouteRecordInfo<'/pool/[id]/hosts', '/pool/:id/hosts', { id: ParamValue<true> }, { id: ParamValue<false> }>,

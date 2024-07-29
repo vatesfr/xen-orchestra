@@ -64,5 +64,6 @@
   "tasks.quick-view.failed": "Échouées",
   "tasks.quick-view.in-progress": "En cours",
 
+  "total": "Total",
   "vms": "VMs"
 }

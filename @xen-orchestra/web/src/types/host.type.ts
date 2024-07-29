@@ -3,9 +3,9 @@ import type { RecordId } from '@/types/xo-object.type'
 import type { Branch } from '@core/composables/tree/branch'
 
 export enum HOST_POWER_STATE {
-  HALTED = 'halted',
-  RUNNING = 'running',
-  UNKNOWN = 'unknown',
+  HALTED = 'Halted',
+  RUNNING = 'Running',
+  UNKNOWN = 'Unknown',
 }
 
 export type Host = {

@@ -1,6 +1,7 @@
 import * as multiparty from 'multiparty'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import assignWith from 'lodash/assignWith.js'
+import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -22,6 +23,11 @@ const log = createLogger('xo:vm')
 
 const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
 const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
+
+const TTL_CACHE = 3e4
+const CACHE = new TTLCache({
+  ttl: TTL_CACHE,
+})
 
 // ===================================================================
 
@@ -539,6 +545,28 @@ insertCd.resolve = {
 }
 
 // -------------------------------------------------------------------
+export function getSecurebootReadiness({ vm, forceRefresh }) {
+  const xapi = this.getXapi(vm)
+  const vmRef = vm._xapiRef
+  const xapiMethodName = 'VM.get_secureboot_readiness'
+
+  if (forceRefresh) {
+    CACHE.delete(xapi.computeCacheKey(xapiMethodName, vmRef))
+  }
+
+  return xapi.call(CACHE, xapiMethodName, vmRef)
+}
+
+getSecurebootReadiness.params = {
+  id: { type: 'string' },
+  forceRefresh: { type: 'boolean', default: false },
+}
+
+getSecurebootReadiness.resolve = {
+  vm: ['id', 'VM', 'view'],
+}
+
+// -------------------------------------------------------------------
 
 export async function migrate({
   bypassAssert = false,
@@ -672,6 +700,10 @@ export const set = defer(async function ($defer, params) {
     const xapiVm = await this.getXapiObject(VM)
     await xoData.set(xapiVm, { creation: { ...VM.creation, ...creation } })
   }
+  const uefiMode = extract(params, 'uefiMode')
+  if (uefiMode !== undefined) {
+    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode)
+  }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
@@ -784,6 +816,8 @@ set.params = {
   },
 
   suspendSr: { type: ['string', 'null'], optional: true },
+
+  uefiMode: { enum: ['setup', 'user'], optional: true },
 
   xenStoreData: {
     description: 'properties that should be set or deleted (if null) in the VM XenStore',

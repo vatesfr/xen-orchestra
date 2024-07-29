@@ -1,5 +1,5 @@
 <template>
-  <LoadingHero v-if="!isReady" />
+  <LoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="hosts">
     <!-- TODO: update with item selection button and TopBottomTable component when available -->
     <p class="typo p3-regular count">{{ $t('n-hosts', { n: hosts.length }) }}</p>

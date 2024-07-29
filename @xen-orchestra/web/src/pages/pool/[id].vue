@@ -1,5 +1,5 @@
 <template>
-  <LoadingHero v-if="!isReady" />
+  <LoadingHero v-if="!isReady" type="page" />
   <ObjectNotFoundHero v-else-if="!pool" :id="route.params.id" />
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
