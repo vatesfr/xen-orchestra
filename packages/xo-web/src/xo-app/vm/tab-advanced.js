@@ -11,11 +11,12 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SelectBootFirmware from 'select-boot-firmware'
 import SelectCoresPerSocket from 'select-cores-per-socket'
+import semver from 'semver'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { error } from 'notification'
+import { error, success } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
@@ -57,6 +58,7 @@ import {
   unplugVusb,
   vmAttachPcis,
   vmDetachPcis,
+  vmSetUefiMode,
   vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -69,6 +71,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
+import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -189,6 +192,15 @@ const PCI_ACTIONS = [
     level: 'danger',
   },
 ]
+
+const SECUREBOOT_STATUS_MESSAGES = {
+  disabled: _('secureBootNotEnforced'),
+  first_boot: _('secureBootWantedPendingBoot'),
+  ready: _('secureBootEnforced'),
+  ready_no_dbx: _('secureBootNoDbx'),
+  setup_mode: _('secureBootWantedButDisabled'),
+  certs_incomplete: _('secureBootWantedButCertificatesMissing'),
+}
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -509,6 +521,10 @@ const NIC_TYPE_OPTIONS = [
   },
 ]
 
+@addSubscriptions(({ vm }) => ({
+  vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+  poolGuestSecurebootReadiness: subscribeGetGuestSecurebootReadiness(vm.$pool),
+}))
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup')))
@@ -674,15 +690,46 @@ export default class TabAdvanced extends Component {
       : undefined
   }
 
+  _confirmUefiMode = async () => {
+    const { vm, vmSecurebootReadiness } = this.props
+    const confirmNeeded =
+      vmSecurebootReadiness === 'disabled' ||
+      vmSecurebootReadiness === 'ready' ||
+      vmSecurebootReadiness === 'ready_no_dbx'
+
+    if (confirmNeeded) {
+      await confirm({
+        title: _('propagateCertificatesTitle'),
+        body: <p>{_('propagateCertificatesConfirm')}</p>,
+      })
+    }
+
+    await vmSetUefiMode(vm, 'user')
+    success(_('propagateCertificatesTitle'), _('propagateCertificatesSuccessful'))
+  }
+
   render() {
-    const { container, isAdmin, pusbByUsbGroup, vgpus, vm, vmPool, vusbs } = this.props
+    const {
+      container,
+      isAdmin,
+      poolGuestSecurebootReadiness,
+      pusbByUsbGroup,
+      vgpus,
+      vm,
+      vmPool,
+      vmSecurebootReadiness,
+      vusbs,
+    } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
+    const host = this.props.vmHosts[vm.$container]
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
+    const isDisabled = poolGuestSecurebootReadiness === 'not_ready' || vm.boot.firmware !== 'uefi'
     const vtpmId = vm.VTPMs[0]
     const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
+
     return (
       <Container>
         <Row>
@@ -1069,6 +1116,74 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
+                  <th>{_('secureBoot')}</th>
+                  <td>
+                    <Tooltip content={vm.boot.firmware !== 'uefi' ? _('availableForUefiOnly') : undefined}>
+                      <Toggle
+                        disabled={vm.boot.firmware !== 'uefi'}
+                        value={vm.secureBoot}
+                        onChange={value => editVm(vm, { secureBoot: value })}
+                      />
+                    </Tooltip>
+                    <a
+                      className='text-muted'
+                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                      rel='noreferrer'
+                      style={{ display: 'block' }}
+                      target='_blank'
+                    >
+                      <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
+                    </a>
+                  </td>
+                </tr>
+                {vm.boot.firmware === 'uefi' &&
+                  semver.satisfies(host?.version, '>=8.3.0') && [
+                    <tr key='secureBootStatus'>
+                      <th>{_('secureBootStatus')}</th>
+                      <td>
+                        {SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness]}
+                        {(vmSecurebootReadiness === 'setup_mode' ||
+                          vmSecurebootReadiness === 'certs_incomplete' ||
+                          vmSecurebootReadiness === 'ready_no_dbx') &&
+                          host?.productBrand === 'XCP-ng' && (
+                            <a
+                              className='text-warning'
+                              href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/#troubleshoot-guest-secure-boot-issues'
+                              rel='noreferrer'
+                              style={{ display: 'block' }}
+                              target='_blank'
+                            >
+                              <Icon icon='alarm' /> {_('secureBootLinkToDocumentationMessage')}
+                            </a>
+                          )}
+                      </td>
+                    </tr>,
+                    <tr key='propagateCertificatesButton'>
+                      <th>{_('propagateCertificatesTitle')} </th>
+                      <td>
+                        <ActionButton
+                          btnStyle='primary'
+                          disabled={isDisabled}
+                          handler={this._confirmUefiMode}
+                          icon='vm-clone'
+                        >
+                          {_('propagateCertificates')}
+                        </ActionButton>
+                        {poolGuestSecurebootReadiness === 'not_ready' && (
+                          <a
+                            className='text-warning'
+                            href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/#configure-the-pool'
+                            rel='noreferrer'
+                            style={{ display: 'block' }}
+                            target='_blank'
+                          >
+                            <Icon icon='alarm' /> {_('noSecureBoot')}
+                          </a>
+                        )}
+                      </td>
+                    </tr>,
+                  ]}
+                <tr>
                   <th>{_('vtpm')}</th>
                   <td>
                     {/*
@@ -1121,23 +1236,6 @@ export default class TabAdvanced extends Component {
                     )}
                   </td>
                 </tr>
-                {vm.boot.firmware === 'uefi' && (
-                  <tr>
-                    <th>{_('secureBoot')}</th>
-                    <td>
-                      <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
-                      <a
-                        className='text-muted'
-                        href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
-                        rel='noopener noreferrer'
-                        style={{ display: 'block' }}
-                        target='_blank'
-                      >
-                        <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
-                      </a>
-                    </td>
-                  </tr>
-                )}
                 <tr>
                   <th>{_('customFields')}</th>
                   <td>

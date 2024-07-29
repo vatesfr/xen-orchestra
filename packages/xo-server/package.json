@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
+    "@isaacs/ttlcache": "^1.4.1",
     "@vates/async-each": "^1.0.0",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
