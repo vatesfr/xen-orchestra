@@ -66,5 +66,6 @@
   "tasks.quick-view.in-progress": "In progress",
 
   "total": "Total",
+  "vm-running": "VM running | VMs running",
   "vms": "VMs"
 }

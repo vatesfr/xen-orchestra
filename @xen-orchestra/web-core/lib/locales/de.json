@@ -36,5 +36,6 @@
   "tasks": "Aufgaben",
   "tasks.quick-view": "Schnellansicht der Aufgaben",
 
+  "vm-running": "VM eingeschalten | VMs eingeschalten",
   "vms": "VMs"
 }
