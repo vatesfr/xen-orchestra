@@ -686,12 +686,13 @@ const xoItemToRender = {
 
   schedule: schedule => {
     const isEnabled = schedule.enabled
+    const scheduleName = schedule.name.trim()
     return (
       <span>
-        <span>{schedule.name}</span>
-        <span className={`ml-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
+        <span className={`mr-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
           {isEnabled ? _('stateEnabled') : _('stateDisabled')}
         </span>
+        <span>{scheduleName === '' ? <em>{_('unamedSchedule')}</em> : scheduleName}</span>
       </span>
     )
   },
