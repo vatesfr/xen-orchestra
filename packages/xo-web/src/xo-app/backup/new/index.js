@@ -657,7 +657,6 @@ const New = decorate([
       inputConcurrencyId: generateId,
       inputCbtDestroySnapshotData: generateId,
       inputFullIntervalId: generateId,
-      inputIgnoreSkippedBackupsId: generateId,
       inputMaxExportRate: generateId,
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,

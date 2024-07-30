@@ -14,10 +14,10 @@ import { FormGroup } from './../utils'
 export const REPORT_WHEN_LABELS = {
   always: 'reportWhenAlways',
   // skipped and failure
-  failure: 'reportWhenFailure',
+  failure: 'reportWhenSkippedFailure',
   // only failure
-  error: 'reportWhenError',
-  never: 'reportWhenNever'
+  error: 'reportWhenFailure',
+  never: 'reportWhenNever',
 }
 
 const REPORT_WHEN_FILTER_OPTIONS = Object.entries(REPORT_WHEN_LABELS).map(([value, label]) => ({ label, value }))
