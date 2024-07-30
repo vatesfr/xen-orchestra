@@ -2,7 +2,7 @@
 <template>
   <span :class="[color, { disabled }]" class="ui-chip typo p3-regular" @click="emit('edit')">
     <ChipIcon :color :disabled :icon />
-    <span class="content">
+    <span class="content text-ellipsis">
       <slot />
     </span>
     <ChipRemoveIcon v-if="!disabled" :color @click.stop="emit('remove')" />
@@ -113,7 +113,7 @@ const emit = defineEmits<{
 
 /* IMPLEMENTATION */
 .ui-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.8rem;
   padding: 0.4rem 0.8rem;
@@ -124,6 +124,7 @@ const emit = defineEmits<{
   min-height: 2.4rem;
   vertical-align: middle;
   white-space: nowrap;
+  min-width: 0;
 
   &.disabled {
     pointer-events: none;
@@ -131,8 +132,6 @@ const emit = defineEmits<{
 
   .content {
     line-height: 1.6rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 </style>

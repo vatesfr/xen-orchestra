@@ -18,7 +18,7 @@ export const VDI_FORMAT_VHD = 'vhd'
 // xapi.call('host.get_servertime', host.$ref) for example
 export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
-const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
+const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%S%Z')
 
 /**
  * Parses a date and time input and returns a Unix timestamp in seconds.

@@ -1,5 +1,6 @@
 import type { Host } from '@/types/host.type'
 import type { Pool } from '@/types/pool.type'
+import type { Task } from '@/types/task.type'
 import type { Vm } from '@/types/vm.type'
 import type { ComputedRef, Ref } from 'vue'
 
@@ -8,7 +9,7 @@ declare const __brand: unique symbol
 // eslint-disable-next-line no-use-before-define
 export type RecordId<Type extends XoObjectType> = string & { [__brand]: `${Type}Id` }
 
-export type XoObject = Vm | Host | Pool
+export type XoObject = Vm | Host | Pool | Task
 
 export type XoObjectType = XoObject['type']
 

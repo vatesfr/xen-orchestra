@@ -1,5 +1,5 @@
 <template>
-  <TreeItem>
+  <TreeItem expanded>
     <TreeItemLabel :route="`/vm/${leaf.data.id}/console`" no-indent>
       {{ leaf.data.name_label }}
       <template #icon>

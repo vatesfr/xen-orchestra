@@ -49,6 +49,7 @@ import {
   createVm,
   createVms,
   getCloudInitConfig,
+  getPoolGuestSecureBootReadiness,
   isSrShared,
   subscribeCurrentUser,
   subscribeIpPools,
@@ -225,6 +226,7 @@ const isVdiPresent = vdi => !vdi.missing
     },
     keys => keys
   )
+  const getHosts = createGetObjectsOfType('host')
   return (state, props) => ({
     isAdmin: getIsAdmin(state, props),
     isPoolAdmin: getIsPoolAdmin(state, props),
@@ -240,6 +242,7 @@ const isVdiPresent = vdi => !vdi.missing
     template: getTemplate(state, props, props.pool === undefined),
     templates: getTemplates(state, props),
     userSshKeys: getUserSshKeys(state, props),
+    hosts: getHosts(state, props),
   })
 })
 @injectIntl
@@ -266,9 +269,10 @@ export default class NewVm extends BaseComponent {
     })
   }
 
-  componentDidUpdate(prevProps) {
-    if (get(() => prevProps.template.id) !== get(() => this.props.template.id)) {
-      this._initTemplate(this.props.template)
+  async componentDidUpdate(prevProps) {
+    const template = this.props.template
+    if (get(() => prevProps.template.id) !== get(() => template.id)) {
+      this._initTemplate(template)
     }
 
     if (
@@ -277,6 +281,17 @@ export default class NewVm extends BaseComponent {
     ) {
       this._setState({
         share: this._getResourceSet()?.shareByDefault ?? false,
+      })
+    }
+
+    const pool = this.props.pool
+    if (
+      get(() => prevProps.pool.id) !== get(() => pool.id) ||
+      (pool === undefined && get(() => template.id) !== get(() => prevProps.template.id))
+    ) {
+      const poolId = pool?.id ?? template?.$pool
+      this.setState({
+        poolGuestSecurebootReadiness: poolId === undefined ? undefined : await getPoolGuestSecureBootReadiness(poolId),
       })
     }
   }
@@ -1782,7 +1797,7 @@ export default class NewVm extends BaseComponent {
               <Item label={_('secureBoot')}>
                 <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
               </Item>
-              {secureBoot && pool !== undefined && !pool.secureBootSetup && (
+              {secureBoot && this.state.poolGuestSecurebootReadiness === 'not_ready' && (
                 <span className='align-self-center text-danger ml-1'>
                   <a
                     href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/'

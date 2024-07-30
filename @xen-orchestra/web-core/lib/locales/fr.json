@@ -8,6 +8,8 @@
   "coming-soon": "Bientôt disponible !",
   "console": "Console",
 
+  "core.copied": "Copié",
+  "core.copy-id": "Copier l'ID",
   "core.close": "Fermer",
   "core.current": "Actuel",
   "core.filter": "Filtrer",
@@ -15,6 +17,12 @@
   "core.hide": "Masquer",
   "core.open": "Ouvrir",
   "core.quick-actions": "Actions rapides",
+
+  "core.search": "Rechercher",
+
+  "core.search-bar.label": "Moteur de recherche",
+  "core.search-bar.placeholder": "Écrivez votre requête…",
+  "core.search-bar.use-query-builder": "Utiliser le constructeur de requête",
 
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
@@ -33,15 +41,29 @@
 
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
+  "hosts": "Hôtes",
   "loading-in-progress": "Chargement en cours…",
   "log-out": "Se déconnecter",
   "master": "Hôte primaire",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "see-all": "Voir tout",
   "stats": "Stats",
   "storage": "Stockage",
   "support-name": "Support pro {name}",
   "system": "Système",
-  "tasks": "Tâches"
+
+  "tasks": "Tâches",
+  "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
+  "tasks.no-tasks": "Aucune tâche",
+  "tasks.quick-view": "Vue rapide des tâches",
+  "tasks.quick-view.all": "Toutes",
+  "tasks.quick-view.done": "Terminées",
+  "tasks.quick-view.failed": "Échouées",
+  "tasks.quick-view.in-progress": "En cours",
+
+  "total": "Total",
+  "vms": "VMs"
 }

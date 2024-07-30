@@ -607,9 +607,10 @@ const messages = {
   cbtDestroySnapshotData: 'Purge snapshot data when using CBT',
   cbtDestroySnapshotDataInformation:
     "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
-
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
+  ignoreSkippedBackups: "Don't send reports for skipped backups",
+
   // ------ New Remote -----
   newRemote: 'New file system remote',
   remoteTypeLocal: 'Local',
@@ -700,6 +701,8 @@ const messages = {
   newSr: 'New SR',
   newSrConfirm:
     'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
+  newSrExistingSr:
+    'SR{n, plural, one {} other {s}} already exist on this device, as noted in the Storage Usage section. Creating this SR may erase the content of {path} and cause the loss of existing SR{n, plural, one {} other {s}}. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',
@@ -1230,12 +1233,20 @@ const messages = {
   vmHaltedSince: 'Halted {ago}',
 
   // ----- VM general tab -----
+  availableForUefiOnly: 'This feature is only available for UEFI VMs.',
   noToolsDetected: 'No Xen tools detected',
   managementAgentDetected: 'Management agent {version} detected',
   managementAgentOutOfDate: 'Management agent {version} out of date',
   managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
+  secureBootEnforced: 'Secure boot enforced',
+  secureBootNotEnforced: 'Secure boot not enforced',
+  secureBootNoDbx: 'Secure boot enforced, but no dbx present',
+  secureBootStatus: 'Secure boot status',
+  secureBootWantedButCertificatesMissing: 'Secure boot wanted, but some EFI certificates are missing',
+  secureBootWantedButDisabled: 'Secure boot wanted, but disabled due to the VM being in UEFI setup mode',
+  secureBootWantedPendingBoot: 'Secure boot wanted, pending first boot',
   started: 'Started {ago}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
@@ -1452,6 +1463,15 @@ const messages = {
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
   infoUnknownPciOnNonRunningVm:
     "When a VM is offline, it's not attached to any host, and therefore, it's impossible to determine the associated PCI devices, as it depends on the hardware environment in which it would be deployed.",
+  coalesceLeaf: 'Coalesce leaf',
+  coalesceLeafSuccess: 'Coalesce leaf success',
+  coalesceLeafSuspendVm: 'This will suspend the VM during the operation. Do you want to continue?',
+  noSecureBoot: 'This pool was not setup for Guest UEFI SecureBoot yet',
+  propagateCertificatesTitle: 'Propagate certificates',
+  propagateCertificatesConfirm:
+    "This will overwrite the VM's UEFI certificates with certificates defined at the pool level. Continue?",
+  propagateCertificates: "Copy the pool's default UEFI certificates to the VM",
+  propagateCertificatesSuccessful: 'Certificates propagated successfully',
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
@@ -2839,6 +2859,16 @@ const messages = {
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
+
+  // ----- IPMI -----
+  highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degres})',
+  highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
+  inletTemperature: 'Inlet temperature',
+  ipmi: 'IPMI',
+  nFanStatus: '{n, number}x fan{n, plural, one {} other {s}} status: {status}',
+  nPsuStatus: '{n, number}x PSU{n, plural, one {} other {s}} status: {status}',
+  outletTemperature: 'Outlet temperature',
+  totalPower: 'Total power',
 }
 forEach(messages, function (message, id) {
   if (typeof message === 'string') {

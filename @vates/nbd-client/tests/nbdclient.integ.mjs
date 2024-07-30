@@ -78,15 +78,14 @@ async function killNbdKit() {
   )
 }
 
-test('it works with unsecured network', async tap => {
+test('it works secured network', async tap => {
   const path = await createTempFile(FILE_SIZE)
 
   let nbdServer = await spawnNbdKit(path)
-  const client = new MultiNbdClient(
-    {
-      address: '127.0.0.1',
-      exportname: 'MY_SECRET_EXPORT',
-      cert: `-----BEGIN CERTIFICATE-----
+  const connectionSettings = {
+    address: '127.0.0.1',
+    exportname: 'MY_SECRET_EXPORT',
+    cert: `-----BEGIN CERTIFICATE-----
 MIIDazCCAlOgAwIBAgIUeHpQ0IeD6BmP2zgsv3LV3J4BI/EwDQYJKoZIhvcNAQEL
 BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
 GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMzA1MTcxMzU1MzBaFw0yNDA1
@@ -108,12 +107,18 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
 57ABhfYpMlZ4aHjuN1bL
 -----END CERTIFICATE-----
 `,
-    },
-    {
-      nbdConcurrency: 1,
-      readAhead: 2,
-    }
-  )
+  }
+  const invalid = {
+    address: '500.500.500.500',
+    port: 0,
+    exportname: 'nop',
+  }
+  // it should work even with some broken servers
+  const nbdInfos = [connectionSettings, connectionSettings, invalid]
+  const client = new MultiNbdClient(nbdInfos, {
+    nbdConcurrency: 4,
+    readAhead: 2,
+  })
 
   await client.connect()
   tap.equal(client.exportSize, BigInt(FILE_SIZE))
@@ -155,4 +160,19 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
   await client.disconnect()
   nbdServer.kill()
   await fs.unlink(path)
+})
+
+test('fails if server does not answer', async () => {
+  const client = new MultiNbdClient(
+    {
+      address: '500.500.500.500',
+      port: 0,
+      exportname: 'nop',
+    },
+    {
+      nbdConcurrency: 1,
+      readAhead: 2,
+    }
+  )
+  await assert.rejects(client.connect())
 })

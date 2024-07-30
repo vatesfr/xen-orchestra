@@ -1,6 +1,7 @@
 import * as multiparty from 'multiparty'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import assignWith from 'lodash/assignWith.js'
+import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -22,6 +23,11 @@ const log = createLogger('xo:vm')
 
 const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
 const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
+
+const TTL_CACHE = 3e4
+const CACHE = new TTLCache({
+  ttl: TTL_CACHE,
+})
 
 // ===================================================================
 
@@ -539,6 +545,28 @@ insertCd.resolve = {
 }
 
 // -------------------------------------------------------------------
+export function getSecurebootReadiness({ vm, forceRefresh }) {
+  const xapi = this.getXapi(vm)
+  const vmRef = vm._xapiRef
+  const xapiMethodName = 'VM.get_secureboot_readiness'
+
+  if (forceRefresh) {
+    CACHE.delete(xapi.computeCacheKey(xapiMethodName, vmRef))
+  }
+
+  return xapi.call(CACHE, xapiMethodName, vmRef)
+}
+
+getSecurebootReadiness.params = {
+  id: { type: 'string' },
+  forceRefresh: { type: 'boolean', default: false },
+}
+
+getSecurebootReadiness.resolve = {
+  vm: ['id', 'VM', 'view'],
+}
+
+// -------------------------------------------------------------------
 
 export async function migrate({
   bypassAssert = false,
@@ -672,6 +700,10 @@ export const set = defer(async function ($defer, params) {
     const xapiVm = await this.getXapiObject(VM)
     await xoData.set(xapiVm, { creation: { ...VM.creation, ...creation } })
   }
+  const uefiMode = extract(params, 'uefiMode')
+  if (uefiMode !== undefined) {
+    await xapi.call('VM.set_uefi_mode', VM._xapiRef, uefiMode)
+  }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
@@ -785,6 +817,8 @@ set.params = {
 
   suspendSr: { type: ['string', 'null'], optional: true },
 
+  uefiMode: { enum: ['setup', 'user'], optional: true },
+
   xenStoreData: {
     description: 'properties that should be set or deleted (if null) in the VM XenStore',
     optional: true,
@@ -875,7 +909,7 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   }
 
   if (vm.resourceSet !== undefined) {
-    await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet, isAdmin)
+    await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet)
   }
 
   return newVm.$id
@@ -1027,7 +1061,7 @@ export const snapshot = defer(async function (
   if (vm.resourceSet !== undefined) {
     // Compute the resource usage of the VM as if it was used by the snapshot
     const usage = await this.computeVmSnapshotResourcesUsage(vm)
-    await this.allocateLimitsInResourceSet(usage, vm.resourceSet, user.permission === 'admin')
+    await this.allocateLimitsInResourceSet(usage, vm.resourceSet)
     $defer.onFailure(() => this.releaseLimitsInResourceSet(usage, vm.resourceSet))
   }
 
@@ -1193,7 +1227,7 @@ export const revert = defer(async function ($defer, { snapshot }) {
     // Compute the resource usage of the snapshot that's being reverted as if it
     // was used by the VM
     const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
-    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet, this.apiContext.permission === 'admin')
+    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet)
     $defer.onFailure(() => this.releaseLimitsInResourceSet(snapshotUsage, resourceSet))
 
     // Reallocate the snapshot's IP addresses
@@ -1825,4 +1859,16 @@ deleteVgpu.params = {
 
 deleteVgpu.resolve = {
   vgpu: ['vgpu', 'vgpu', ''],
+}
+
+// -------------------------------------------------------------------
+
+export async function coalesceLeaf({ vm }) {
+  await this.getXapi(vm).VM_coalesceLeaf(vm._xapiRef)
+}
+coalesceLeaf.params = {
+  id: { type: 'string' },
+}
+coalesceLeaf.resolve = {
+  vm: ['id', 'VM', 'administrate'],
 }

@@ -4,7 +4,7 @@
     <slot name="icon">
       <UiIcon :icon fixed-width />
     </slot>
-    <span class="content"><slot /></span>
+    <span class="text-ellipsis"><slot /></span>
   </span>
 </template>
 
@@ -78,7 +78,7 @@ withDefaults(
 
 /* IMPLEMENTATION */
 .ui-tag {
-  display: inline-flex;
+  display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.8rem;
@@ -88,10 +88,6 @@ withDefaults(
   padding: 0.2rem 0.8rem;
   border-radius: 0.4rem;
   vertical-align: middle;
-
-  .content {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  min-width: 0;
 }
 </style>

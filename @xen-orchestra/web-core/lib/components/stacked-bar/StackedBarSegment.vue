@@ -1,11 +1,11 @@
 <template>
   <div
-    v-tooltip="{ selector: '.ellipsis' }"
+    v-tooltip="{ selector: '.text-ellipsis' }"
     :class="color"
     :style="{ width: percentage + '%' }"
     class="stacked-bar-segment typo c4-semi-bold"
   >
-    <div ref="ellipsisElement" :class="{ hidden }" class="ellipsis">
+    <div ref="ellipsisElement" :class="{ hidden }" class="text-ellipsis">
       {{ $n(percentage / 100, 'percent') }}
     </div>
   </div>
@@ -59,12 +59,6 @@ useResizeObserver(ellipsisElement, ([entry]) => {
   white-space: nowrap;
   color: var(--color-grey-600);
   background-color: var(--background-color);
-}
-
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  min-width: 0;
 }
 
 .hidden {

@@ -732,6 +732,103 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
+
+const subscribeHostsIpmiSensors = {}
+export const subscribeIpmiSensors = host => {
+  const _isAdmin = isAdmin(store.getState())
+  const hostId = resolveId(host)
+
+  if (subscribeHostsIpmiSensors[hostId] === undefined) {
+    subscribeHostsIpmiSensors[hostId] = createSubscription(
+      async () =>
+        _isAdmin
+          ? await _call('host.getIpmiSensors', {
+              id: hostId,
+            })
+          : undefined,
+      {
+        polling: 6e4,
+      }
+    )
+  }
+
+  return subscribeHostsIpmiSensors[hostId]
+}
+
+const subscribeVmSecurebootReadiness = {}
+export const subscribeSecurebootReadiness = id => {
+  const vmId = resolveId(id)
+
+  if (subscribeVmSecurebootReadiness[vmId] === undefined) {
+    let forceRefresh = false
+    const subscription = createSubscription(
+      async () => {
+        try {
+          return await _call('vm.getSecurebootReadiness', { id: vmId, forceRefresh })
+        } catch (error) {
+          if (error.data?.code !== 'MESSAGE_METHOD_UNKNOWN') {
+            throw error
+          }
+        }
+      },
+      {
+        polling: 3e4,
+      }
+    )
+    const forceRefreshFn = subscription.forceRefresh
+    subscription.forceRefresh = async () => {
+      const _forceRefresh = forceRefresh
+      forceRefresh = true
+      await forceRefreshFn()
+      forceRefresh = _forceRefresh
+    }
+    subscribeVmSecurebootReadiness[vmId] = subscription
+  }
+  return subscribeVmSecurebootReadiness[vmId]
+}
+subscribeSecurebootReadiness.forceRefresh = vm => {
+  if (vm === undefined) {
+    forEach(subscribeVmSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribeVmSecurebootReadiness[resolveId(vm)]
+  subscription?.forceRefresh()
+}
+
+const subscribePoolGuestSecurebootReadiness = {}
+export const subscribeGetGuestSecurebootReadiness = pool => {
+  const poolId = resolveId(pool)
+
+  if (subscribePoolGuestSecurebootReadiness[poolId] === undefined) {
+    subscribePoolGuestSecurebootReadiness[poolId] = createSubscription(
+      async () => {
+        try {
+          return await _call('pool.getGuestSecureBootReadiness', { id: poolId })
+        } catch (error) {
+          if (error.data?.code !== 'MESSAGE_METHOD_UNKNOWN') {
+            throw error
+          }
+        }
+      },
+      {
+        polling: 3e4,
+      }
+    )
+  }
+
+  return subscribePoolGuestSecurebootReadiness[poolId]
+}
+subscribePoolGuestSecurebootReadiness.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(subscribePoolGuestSecurebootReadiness, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = subscribePoolGuestSecurebootReadiness[resolveId(pool)]
+  subscription?.forceRefresh()
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -954,6 +1051,15 @@ export const rollingPoolReboot = async pool => {
   }
 }
 
+export const getPoolGuestSecureBootReadiness = async poolId => {
+  try {
+    return await _call('pool.getGuestSecureBootReadiness', { id: poolId })
+  } catch (error) {
+    if (error.data?.code !== 'MESSAGE_METHOD_UNKNOWN') {
+      throw error
+    }
+  }
+}
 // Host --------------------------------------------------------------
 
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
@@ -1407,6 +1513,9 @@ export const isPciPassthroughAvailable = host =>
 export const vmAttachPcis = (vm, pcis) => _call('vm.attachPcis', { id: resolveId(vm), pcis: resolveIds(pcis) })
 
 export const vmDetachPcis = (vm, pciIds) => _call('vm.detachPcis', { id: resolveId(vm), pciIds })
+
+export const vmSetUefiMode = (vm, mode) =>
+  _call('vm.set', { id: resolveId(vm), uefiMode: mode })::tap(() => subscribeSecurebootReadiness.forceRefresh(vm))
 
 // Containers --------------------------------------------------------
 
@@ -2004,6 +2113,18 @@ export const deleteVms = async vms => {
   }
 }
 
+export const coalesceLeafVm = async vm => {
+  if (vm.power_state !== 'Halted' && vm.power_state !== 'Suspended') {
+    await confirm({
+      title: _('coalesceLeaf'),
+      body: _('coalesceLeafSuspendVm'),
+    })
+  }
+  await _call('vm.coalesceLeaf', { id: resolveId(vm) })
+
+  success(_('coalesceLeaf'), _('coalesceLeafSuccess'))
+}
+
 export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 
 export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) =>
@@ -2077,7 +2198,12 @@ export const editVm = async (vm, props) => {
         error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
       }
     })
-    ::tap(subscribeResourceSets.forceRefresh)
+    ::tap(() => {
+      subscribeResourceSets.forceRefresh()
+      if (props.secureBoot !== undefined) {
+        subscribeSecurebootReadiness.forceRefresh(vm)
+      }
+    })
 }
 
 export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolveId(vm), granularity })
@@ -2361,9 +2487,7 @@ export const migrateVdi = (vdi, sr, resourceSet) =>
     sr_id: resolveId(sr),
   })
 
-  export const setCbt = (vdi, cbt) =>
-    _call('vdi.set', { id: resolveId(vdi), cbt })
-  
+export const setCbt = (vdi, cbt) => _call('vdi.set', { id: resolveId(vdi), cbt })
 
 // VBD ---------------------------------------------------------------
 

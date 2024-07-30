@@ -5,6 +5,13 @@ import { defer } from 'golike-defer'
 import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
+import {
+  addIpmiSensorDataType,
+  containsDigit,
+  IPMI_SENSOR_DATA_TYPE,
+  IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
+  isRelevantIpmiSensor,
+} from './host/_ipmi.mjs'
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -119,6 +126,41 @@ class Host {
     const agentStartTime = +(await this.getField('host', ref, 'other_config')).agent_start_time
     await this.callAsync('host.reboot', ref)
     await waitAgentRestart(this, ref, agentStartTime)
+  }
+
+  async getIpmiSensors(ref, { cache } = {}) {
+    const productName = (await this.call(cache, 'host.get_bios_strings', ref))['system-product-name']?.toLowerCase()
+
+    if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
+      return {}
+    }
+
+    const callSensorPlugin = fn => this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
+    // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
+    const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
+    const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
+
+    const ipmiSensorsByDataType = {}
+    for (const ipmiSensor of ipmiSensors) {
+      if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
+        continue
+      }
+
+      addIpmiSensorDataType(ipmiSensor, productName)
+      const dataType = ipmiSensor.dataType
+
+      if (ipmiSensorsByDataType[dataType] === undefined) {
+        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.Name) ? [] : ipmiSensor
+      }
+
+      if (Array.isArray(ipmiSensorsByDataType[ipmiSensor.dataType])) {
+        ipmiSensorsByDataType[dataType].push(ipmiSensor)
+      }
+    }
+
+    ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.generalInfo] = { ip }
+
+    return ipmiSensorsByDataType
   }
 }
 export default Host

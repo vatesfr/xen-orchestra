@@ -23,7 +23,7 @@ const redirect = async () => {
 }
 
 const setCookie = (value: string) => {
-  document.cookie = `authenticationToken=${value}; path=/; max-age=31536000`
+  document.cookie = `token=${value}; path=/; max-age=31536000`
   redirect()
 }
 

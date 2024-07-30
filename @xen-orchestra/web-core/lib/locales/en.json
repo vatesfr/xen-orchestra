@@ -8,6 +8,8 @@
   "coming-soon": "Coming soon!",
   "console": "Console",
 
+  "core.copied": "Copied",
+  "core.copy-id": "Copy ID",
   "core.close": "Close",
   "core.current": "Current",
   "core.filter": "Filter",
@@ -15,6 +17,12 @@
   "core.hide": "Hide",
   "core.open": "Open",
   "core.quick-actions": "Quick actions",
+
+  "core.search": "Search",
+
+  "core.search-bar.label": "Search Engine",
+  "core.search-bar.placeholder": "Write your query…",
+  "core.search-bar.use-query-builder": "Use query builder",
 
   "core.select.all": "Select all",
   "core.select.none": "Select none",
@@ -33,15 +41,29 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
+  "hosts": "Hosts",
   "loading-in-progress": "Loading in progress…",
   "log-out": "Log out",
   "master": "Primary host",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Network",
   "object-not-found": "Object {id} can't be found…",
   "power-on-for-console": "Power on your VM to access its console",
+  "see-all": "See all",
   "stats": "Stats",
   "storage": "Storage",
   "support-name": "{name} pro support",
   "system": "System",
-  "tasks": "Tasks"
+
+  "tasks": "Tasks",
+  "tasks.n-subtasks": "{n} subtask | {n} subtasks",
+  "tasks.no-tasks": "No tasks",
+  "tasks.quick-view": "Tasks' quick view",
+  "tasks.quick-view.all": "All",
+  "tasks.quick-view.done": "Done",
+  "tasks.quick-view.failed": "Failed",
+  "tasks.quick-view.in-progress": "In progress",
+
+  "total": "Total",
+  "vms": "VMs"
 }

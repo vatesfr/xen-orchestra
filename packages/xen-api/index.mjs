@@ -9,6 +9,9 @@ import Obfuscate from '@vates/obfuscate'
 import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
+import { compose } from '@vates/compose'
+import { createHash } from 'node:crypto'
+import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
@@ -16,7 +19,6 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
 import { ProxyAgent as HttpProxyAgent } from 'proxy-agent'
 
-import debug from './_debug.mjs'
 import getTaskResult from './_getTaskResult.mjs'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod.mjs'
 import isReadOnlyCall from './_isReadOnlyCall.mjs'
@@ -24,6 +26,8 @@ import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
+
+const { debug } = createLogger('xen-api')
 
 // ===================================================================
 
@@ -84,6 +88,41 @@ const addSyncStackTrace = async promise => {
     error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
+}
+
+function updateJsonHash(value, hash) {
+  if (value !== null && typeof value === 'object') {
+    if (Array.isArray(value)) {
+      hash.update('[')
+      for (const item of value) {
+        updateJsonHash(item, hash)
+
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update(']')
+    } else {
+      hash.update('{')
+      for (const key of Object.keys(value).sort()) {
+        updateJsonHash(key, hash)
+        hash.update(':')
+        updateJsonHash(value[key], hash)
+
+        // trailing is not a big deal because it does not need to be valid JSON
+        hash.update(',')
+      }
+      hash.update('}')
+    }
+  } else {
+    hash.update(JSON.stringify(value))
+  }
+}
+
+export function jsonHash(value) {
+  // this hash does not need to be secure, it just needs to be fast and with low collisions
+  const hash = createHash('sha256')
+  updateJsonHash(value, hash)
+  return hash.digest('base64')
 }
 
 // -------------------------------------------------------------------
@@ -255,7 +294,7 @@ export class Xapi extends EventEmitter {
     try {
       await this._sessionOpen()
 
-      debug('%s: connected', this._humanId)
+      debug(this._humanId + ': connected')
       this._status = CONNECTED
       this._resolveConnected()
       this._resolveConnected = undefined
@@ -288,7 +327,7 @@ export class Xapi extends EventEmitter {
       ignoreErrors.call(this._call('session.logout', [sessionId]))
     }
 
-    debug('%s: disconnected', this._humanId)
+    debug(this._humanId + ': disconnected')
 
     this._status = DISCONNECTED
     this._resolveDisconnected()
@@ -299,6 +338,10 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
   // RPC calls
   // ===========================================================================
+
+  computeCacheKey(...args) {
+    return jsonHash(args)
+  }
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
@@ -777,7 +820,7 @@ export class Xapi extends EventEmitter {
     const startTime = Date.now()
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
-      debug('%s: %s(...) [%s] ==> %s', this._humanId, method, ms(Date.now() - startTime), kindOf(result))
+      debug(`${this._humanId}: ${method}(...) [${ms(Date.now() - startTime)}] ==> ${kindOf(result)}`)
       return result
     } catch (error) {
       // do not log the session ID
@@ -793,7 +836,7 @@ export class Xapi extends EventEmitter {
           method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(params, '* obfuscated *'),
       }
 
-      debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
+      debug(`${this._humanId}: ${method} [${ms(Date.now() - startTime)}] =!> ${error}`)
 
       throw error
     }
@@ -1407,8 +1450,50 @@ export class Xapi extends EventEmitter {
   }
 }
 
+function cachable(fn, getCache) {
+  return async function (...args) {
+    const cache = getCache(args)
+    if (cache === undefined) {
+      return fn.apply(this, args)
+    }
+
+    const key = this.computeCacheKey(...args)
+    if (cache.has(key)) {
+      return cache.get(key)
+    }
+    const promise = fn.apply(this, args)
+    cache.set(key, promise)
+    try {
+      return promise
+    } catch (error) {
+      cache.delete(key)
+      throw error
+    }
+  }
+}
+
 decorateClass(Xapi, {
-  callAsync: cancelable,
+  call: [
+    cachable,
+    args => {
+      if (typeof args[0] !== 'string') {
+        return args.shift()
+      }
+    },
+  ],
+  callAsync: compose([
+    [
+      cachable,
+      args => {
+        const maybeCache = args[1]
+        if (typeof maybeCache !== 'string') {
+          args.splice(1, 1)
+          return maybeCache
+        }
+      },
+    ],
+    cancelable,
+  ]),
   getResource: cancelable,
   putResource: cancelable,
 })

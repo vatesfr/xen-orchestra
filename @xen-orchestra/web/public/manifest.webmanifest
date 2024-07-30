@@ -1,0 +1,14 @@
+{
+  "name": "Xen Orchestra",
+  "short_name": "XenOrchestra",
+  "start_url": "./",
+  "display": "standalone",
+  "description": "The centralized management, orchestration, backup and cloud-enabler platform for XCP-ng.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

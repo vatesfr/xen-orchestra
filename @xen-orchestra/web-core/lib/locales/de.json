@@ -19,9 +19,11 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} Dokumentation",
+  "hosts": "Hosts",
   "loading-in-progress": "Ladevorgang läuft…",
   "log-out": "Abmelden",
   "master": "Primärer Host",
+  "n-vms": "1 VM | {n} VMs",
   "network": "Netzwerk",
   "object-not-found": "Objekt {id} wurde nicht gefunden…",
   "power-on-for-console": "Konsole ist nach Start der VM verfügbar",
@@ -29,5 +31,9 @@
   "storage": "Speicher",
   "support-name": "{name} pro support",
   "system": "System",
-  "tasks": "Aufgaben"
+
+  "tasks": "Aufgaben",
+  "tasks.quick-view": "Schnellansicht der Aufgaben",
+
+  "vms": "VMs"
 }

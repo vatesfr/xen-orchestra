@@ -1,7 +1,8 @@
 import type { XoObject, XoObjectContext, XoObjectType, XoObjectTypeToXoObject } from '@/types/xo-object.type'
 import { restApiConfig } from '@/utils/rest-api-config.util'
 import type { SubscribableStoreConfig } from '@core/types/subscribable-store.type'
-import { useFetch } from '@vueuse/core'
+import type { VoidFunction } from '@core/types/utility.type'
+import { noop, useFetch, useIntervalFn } from '@vueuse/core'
 import { computed, readonly, ref, shallowReactive } from 'vue'
 
 export function createXoStoreConfig<
@@ -18,6 +19,7 @@ export function createXoStoreConfig<
   options?: {
     sortBy?: (a: TXoObject, b: TXoObject) => number
     beforeAdd?: TBeforeAdd
+    pollInterval?: number
   }
 ): SubscribableStoreConfig<XoObjectContext<TXoObject>> {
   const recordsById = shallowReactive(new Map<TXoObject['id'], TXoObject>())
@@ -25,7 +27,7 @@ export function createXoStoreConfig<
     const results = Array.from(recordsById.values())
 
     if (options?.sortBy) {
-      return results.sort(options.sortBy)
+      results.sort(options.sortBy)
     }
 
     return results
@@ -53,9 +55,9 @@ export function createXoStoreConfig<
     .get()
     .json<TXoObjectInput[]>()
 
-  const hasError = computed(() => error.value !== undefined)
+  const hasError = computed(() => !!error.value)
 
-  const handleAdd = (record: TXoObjectInput) => {
+  const handleRecordAdded = (record: TXoObjectInput) => {
     const recordToAdd = options?.beforeAdd ? options.beforeAdd(record) : record
 
     if (recordToAdd === undefined) {
@@ -65,23 +67,44 @@ export function createXoStoreConfig<
     recordsById.set(record.id, recordToAdd as TXoObject)
   }
 
-  const handleAfterLoad = (records: TXoObjectInput[]) => {
-    records.forEach(record => handleAdd(record))
+  const handleRecordsLoaded = (records: TXoObjectInput[] | null) => {
+    recordsById.clear()
+
+    if (!records) {
+      return
+    }
+
+    records.forEach(record => handleRecordAdded(record))
     isReady.value = true
   }
 
-  const onSubscribe = async () => {
+  const loadData = async () => {
     await execute()
 
-    if (data.value) {
-      handleAfterLoad(data.value)
-    }
+    handleRecordsLoaded(data.value)
   }
+
+  let startSubscription: VoidFunction = () => loadData()
+  let stopSubscription: VoidFunction = noop
+
+  if (options?.pollInterval !== undefined) {
+    const { pause, resume } = useIntervalFn(() => loadData(), options.pollInterval, {
+      immediate: false,
+      immediateCallback: true,
+    })
+
+    startSubscription = () => resume()
+    stopSubscription = () => pause()
+  }
+
+  const onSubscribe = () => startSubscription()
 
   const onUnsubscribe = () => {
     if (canAbort.value) {
       abort()
     }
+
+    stopSubscription()
 
     isReady.value = false
   }

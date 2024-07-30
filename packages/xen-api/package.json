@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "4.0.0",
+  "version": "4.2.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -32,13 +32,14 @@
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
+    "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/obfuscate": "^0.1.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
+    "@xen-orchestra/log": "^0.6.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
-    "debug": "^4.0.1",
     "http-request-plus": "^1.0.2",
     "jest-diff": "^29.0.3",
     "json-rpc-protocol": "^0.13.1",

@@ -11,14 +11,16 @@ import React from 'react'
 import HomeTags from 'home-tags'
 import renderXoItem, { VmTemplate } from 'render-xo-item'
 import sanitizeHtml from 'sanitize-html'
+import semver from 'semver'
 import Tooltip from 'tooltip'
-import { addTag, editVm, editVmNotes, removeTag, subscribeUsers } from 'xo'
+import { addTag, editVm, editVmNotes, removeTag, subscribeSecurebootReadiness, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
   createFinder,
+  createGetObject,
   createGetObjectsOfType,
   createGetVmLastShutdownTime,
   createSelector,
@@ -51,6 +53,15 @@ const NOTES_STYLE = {
 
 const SANITIZE_OPTIONS = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+}
+
+const SECUREBOOT_STATUS_MESSAGES = {
+  disabled: _('secureBootNotEnforced'),
+  first_boot: _('secureBootWantedPendingBoot'),
+  ready: _('secureBootEnforced'),
+  ready_no_dbx: _('secureBootNoDbx'),
+  setup_mode: _('secureBootWantedButDisabled'),
+  certs_incomplete: _('secureBootWantedButCertificatesMissing'),
 }
 
 const GuestToolsDetection = ({ vm }) => {
@@ -120,8 +131,18 @@ const GeneralTab = decorate([
       createSelector(getVgpus, vgpus => map(vgpus, 'vgpuType'))
     )
 
+    const getVmContainer = createGetObject((_, props) => props.vm?.$container)
+
+    const getHosts = createGetObjectsOfType('host').filter(
+      (_, { vm }) =>
+        host =>
+          host.$pool === vm.$pool
+    )
+
     return (state, props) => ({
+      hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
+      vmContainer: getVmContainer(state, props),
       lastShutdownTime: createGetVmLastShutdownTime()(state, props),
       // true: useResourceSet to bypass permissions
       resolvedPendingTasks: getResolvedPendingTasks(state, props, true),
@@ -134,30 +155,37 @@ const GeneralTab = decorate([
       )(state, props),
     })
   }),
-  addSubscriptions(
-    ({ isAdmin, vm }) =>
-      isAdmin && {
-        vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
-      }
-  ),
+  addSubscriptions(({ isAdmin, vm }) => ({
+    vmCreator: isAdmin
+      ? cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user)))
+      : () => {},
+    vmSecurebootReadiness: subscribeSecurebootReadiness(vm),
+  })),
   provideState({
     computed: {
       vmResolvedPendingTasks: (_, { resolvedPendingTasks, vm }) => {
         const vmTaskIds = Object.keys(vm.current_operations)
         return resolvedPendingTasks.filter(task => vmTaskIds.includes(task.id))
       },
+      host: (_, { hosts, vmContainer }) => {
+        if (vmContainer.type === 'host') {
+          return vmContainer
+        }
+        return hosts[vmContainer.master]
+      },
     },
   }),
   injectState,
   ({
     isAdmin,
-    state: { vmResolvedPendingTasks },
+    state: { host, vmResolvedPendingTasks },
     lastShutdownTime,
     statsOverview,
     vgpu,
     vgpuTypes,
     vm,
     vmCreator,
+    vmSecurebootReadiness,
     vmTemplate,
     vmTotalDiskSpace,
   }) => {
@@ -281,6 +309,18 @@ const GeneralTab = decorate([
         <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
+        <Row className='text-xs-center'>
+          <Col>
+            {vm.boot.firmware === 'uefi' && semver.satisfies(host.version, '>=8.3.0') && (
+              <p>
+                {_('keyValue', {
+                  key: _('secureBootStatus'),
+                  value: SECUREBOOT_STATUS_MESSAGES[vmSecurebootReadiness],
+                })}
+              </p>
+            )}
+          </Col>
+        </Row>
         <Row>
           <Col>
             <h2 className='text-xs-center'>
