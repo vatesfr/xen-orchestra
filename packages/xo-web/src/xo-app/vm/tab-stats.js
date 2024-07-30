@@ -121,7 +121,13 @@ export default class VmStats extends Component {
             <h5 className='text-xs-center'>
               <Icon icon='memory' size={1} /> {_('statsMemory')}
             </h5>
-            <MemoryLineChart data={stats} />
+            {this.props.vm.managementAgentDetected ? (
+              <MemoryLineChart data={stats} />
+            ) : (
+              <div className='text-xs-center text-warning' style={{ marginTop: '3rem' }}>
+                <Icon icon='alarm' /> {_('guestToolsNecessary')}
+              </div>
+            )}
           </Col>
         </Row>
         <br />
