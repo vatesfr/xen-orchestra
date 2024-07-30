@@ -167,7 +167,12 @@ async function _getDashboardStats(app) {
   dashboard.nPools = poolIds.size
   dashboard.nHosts = hosts.length
 
-  if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
+  const [hasFeatureAuthorizationListMissingPatches, remotesInfo] = await Promise.all([
+    app.hasFeatureAuthorization('LIST_MISSING_PATCHES'),
+    app.getAllRemotesInfo(),
+  ])
+
+  if (hasFeatureAuthorizationListMissingPatches) {
     const poolsWithMissingPatches = new Set()
     let nHostsWithMissingPatches = 0
 
@@ -191,6 +196,20 @@ async function _getDashboardStats(app) {
 
     dashboard.missingPatches = missingPatches
   }
+
+  const backupRepositorySize = Object.values(remotesInfo).reduce(
+    (prev, remoteInfo) => ({
+      total: prev.total + remoteInfo.size,
+      used: prev.used + remoteInfo.used,
+      available: prev.available + remoteInfo.available,
+    }),
+    {
+      total: 0,
+      used: 0,
+      available: 0,
+    }
+  )
+  dashboard.backupRepository = { size: backupRepositorySize }
 
   return dashboard
 }
