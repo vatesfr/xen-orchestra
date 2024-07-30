@@ -59,7 +59,7 @@ const definitions = computed(() =>
 const { nodes: hosts } = useTree(definitions)
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .hosts {
   margin: 1rem;
   gap: 0.8rem;
