@@ -1649,7 +1649,7 @@ const messages = {
   noLocalDefaultSrs: 'No local default SRs',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
-  guestToolsNecessary: 'Guest tools must be installed',
+  guestToolsNecessary: 'Guest tools must be installed to display stats',
   guestToolStatus: 'Guest Tools status',
   guestToolStatusTip: 'VMs with missing or outdated guest tools',
   noGuestToolStatusObject: 'All running VMs have up to date guest tools',

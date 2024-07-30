@@ -89,9 +89,6 @@ export default class VmStats extends Component {
   render() {
     const { granularity, selectStatsLoading, stats, useCombinedValues } = this.state
 
-    const noGuestTools =
-      this.props.vm.managementAgentDetected !== undefined && this.props.vm.managementAgentDetected === false
-
     return !stats ? (
       <p>No stats.</p>
     ) : (
@@ -124,7 +121,7 @@ export default class VmStats extends Component {
             <h5 className='text-xs-center'>
               <Icon icon='memory' size={1} /> {_('statsMemory')}
             </h5>
-            {noGuestTools === false ? (
+            {this.props.vm.managementAgentDetected ? (
               <MemoryLineChart data={stats} />
             ) : (
               <div className='text-xs-center text-warning' style={{ marginTop: '3rem' }}>
