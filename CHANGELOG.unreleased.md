@@ -11,10 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Advanced] Display an accurate secure boot status and allow user to propagate certificates from pool to VM [#7495](https://github.com/vatesfr/xen-orchestra/issues/7495) (PR [#7751](https://github.com/vatesfr/xen-orchestra/pull/7751))
-- [Host/General] Display additional hardware data for 2CRSi server [#7816](https://github.com/vatesfr/xen-orchestra/issues/7816) (PR [#7838](https://github.com/vatesfr/xen-orchestra/pull/7838))
-- [VM/Stats] Display a warning when guest tools are not detected (PR [#7831](https://github.com/vatesfr/xen-orchestra/pull/7831))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,11 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/xapi minor
-- xo-server minor
-- xo-server-audit minor
-- xo-server-backup-reports patch
-- xo-web minor
 
 <!--packages-end-->

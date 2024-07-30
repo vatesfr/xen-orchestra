@@ -12,6 +12,9 @@
 - [Plugin/backup-reports] Show more information of backups, including NBD and CBT usage (PR [#7815](https://github.com/vatesfr/xen-orchestra/pull/7815))
 - [Backups] Adding an option to avoid sending reports for skipped backups (e.g. no matching VMs, unhealthy VDI chains, etc.) (PR [#7832](https://github.com/vatesfr/xen-orchestra/pull/7832))
 - [Backups] Add 'report recipients' when creating a metadata backup [#7569](https://github.com/vatesfr/xen-orchestra/issues/7569) (PR [#7776](https://github.com/vatesfr/xen-orchestra/pull/7776))
+- [VM/Advanced] Display an accurate secure boot status and allow user to propagate certificates from pool to VM [#7495](https://github.com/vatesfr/xen-orchestra/issues/7495) (PR [#7751](https://github.com/vatesfr/xen-orchestra/pull/7751))
+- [Host/General] Display additional hardware data for 2CRSi server [#7816](https://github.com/vatesfr/xen-orchestra/issues/7816) (PR [#7838](https://github.com/vatesfr/xen-orchestra/pull/7838))
+- [VM/Stats] Display a warning when guest tools are not detected (PR [#7831](https://github.com/vatesfr/xen-orchestra/pull/7831))
 
 ### Bug fixes
 
@@ -33,16 +36,17 @@
 - @xen-orchestra/vmware-explorer 0.8.3
 - @vates/nbd-client 3.1.0
 - @xen-orchestra/backups 0.52.2
-- @xen-orchestra/web-core 0.0.4
-- @xen-orchestra/lite 0.2.5
 - @xen-orchestra/mixins 0.16.0
-- @xen-orchestra/web 0.0.5
 - xen-api 4.2.0
-- @xen-orchestra/xapi 7.2.1
-- @xen-orchestra/proxy 0.28.10
-- xo-server 5.150.0
-- xo-server-backup-reports 1.3.0
-- xo-web 5.151.0
+- xo-server-audit 0.12.0
+- @xen-orchestra/xapi 7.3.0
+- @xen-orchestra/web-core 0.0.5
+- @xen-orchestra/lite 0.2.6
+- @xen-orchestra/proxy 0.28.11
+- @xen-orchestra/web 0.0.6
+- xo-server 5.151.0
+- xo-server-backup-reports 1.3.1
+- xo-web 5.152.0
 
 ## **5.96.0** (2024-07-05)
 
