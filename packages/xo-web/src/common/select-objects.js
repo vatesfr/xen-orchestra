@@ -1122,7 +1122,7 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
 export const SelectSchedule = makeSubscriptionSelect(
   subscriber => {
     let schedules, jobs, backupJobs, mirrorJobs, metadataJobs
-    const cb = () => {
+    const updateData = () => {
       if (
         schedules !== undefined &&
         jobs !== undefined &&
@@ -1139,24 +1139,24 @@ export const SelectSchedule = makeSubscriptionSelect(
     }
     const unsubscribeSchedules = subscribeSchedules(_schedules => {
       schedules = _schedules.map(schedule => ({ ...schedule, type: 'schedule' }))
-      cb()
+      updateData()
     })
 
     const unsubscribeJobs = subscribeJobs(_jobs => {
       jobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
-      cb()
+      updateData()
     })
     const unsubscribeBackupJobs = subscribeBackupNgJobs(_jobs => {
       backupJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
-      cb()
+      updateData()
     })
     const unsubscribeMirrorBackupJobs = subscribeMirrorBackupJobs(_jobs => {
       mirrorJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
-      cb()
+      updateData()
     })
     const unsubscribeMetadataJobs = subscribeMetadataBackupJobs(_jobs => {
       metadataJobs = _jobs.map(_job => ({ ..._job, type: 'job' }))
-      cb()
+      updateData()
     })
 
     return () => {
