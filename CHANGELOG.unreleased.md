@@ -13,7 +13,7 @@
 
 - [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
 - [i18n] Improve Russian translation (Thanks [@TristisOris](https://github.com/TristisOris)!) (PR [#7807](https://github.com/vatesfr/xen-orchestra/pull/7807))
-- [VM/Stats] Display a warning when guest tools are not detected (PR [7831](https://github.com/vatesfr/xen-orchestra/pull/7831))
+- [VM/Stats] Display a warning when guest tools are not detected (PR [#7831](https://github.com/vatesfr/xen-orchestra/pull/7831))
 
 ### Bug fixes
 
