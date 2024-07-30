@@ -223,13 +223,14 @@ const GeneralTab = decorate([
               </span>
             </h2>
             <BlockLink to={`/vms/${id}/stats`}>
-              {vm.managementAgentDetected ? (
-                statsOverview && <MemorySparkLines data={statsOverview} />
-              ) : (
-                <span className='text-warning'>
-                  <Icon icon='alarm' /> {_('guestToolsNecessary')}
-                </span>
-              )}
+              {statsOverview &&
+                (vm.managementAgentDetected ? (
+                  <MemorySparkLines data={statsOverview} />
+                ) : (
+                  <span className='text-warning'>
+                    <Icon icon='alarm' /> {_('guestToolsNecessary')}
+                  </span>
+                ))}
             </BlockLink>
           </Col>
           <Col mediumSize={3}>
