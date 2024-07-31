@@ -16,21 +16,23 @@ Xen Orchestra should be fully functional with any version of these two virtualiz
 ## XCP-ng
 
 :::tip
-Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.fr)). That's why you are sure to have the best compatibility with both XCP-ng and XO! Also, we strongly suggest people to keep using the latest XCP-ng version as far as possible (or N-1).
+Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.fr)). That's why you are sure to have the best compatibility with both XCP-ng and XO! Also, we strongly suggest people to keep using the latest XCP-ng LTS version as far as possible (or N-1).
 :::
 
+- XCP-ng 8.3 ✅ 🚀
 - XCP-ng 8.2 LTS ✅ 🚀
-- XCP-ng 8.1 ✅ 🚀
-- XCP-ng 8.0 ✅
+- XCP-ng 8.1 ✅ ☠️
+- XCP-ng 8.0 ✅ ☠️
 - XCP-ng 7.6 ✅ ☠️
 - XCP-ng 7.5 ✅ ☠️
 - XCP-ng 7.4 ✅ ☠️
 
 ## XenServer (formerly Citrix Hypervisor)
 
+- XenServer 8 ✅
 - Citrix Hypervisor 8.2 LTS ✅
-- Citrix Hypervisor 8.1 ✅
-- Citrix Hypervisor 8.0 ✅
+- Citrix Hypervisor 8.1 ✅ ☠️
+- Citrix Hypervisor 8.0 ✅ ☠️
 - XenServer 7.6 ✅ ☠️
 - XenServer 7.5 ✅ ☠️
   - [VDI I/O error](https://bugs.xenserver.org/browse/XSO-873), waiting for Citrix to release our fix
@@ -38,7 +40,7 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 - XenServer 7.3 ✅ ☠️
 - XenServer 7.2 ❎ ☠️
   - Issues with JSON-RPC which may leads to `INTERNAL_ERROR((Failure "Expected float, got 'I(1)'"))` during _Incremental Replication_ and _Incremental Backup_ restorations
-- XenServer 7.1 LTS ✅
+- XenServer 7.1 LTS ✅ ☠️
 - XenServer 7.0 ✅ ☠️
 - XenServer 6.5 ✅ ☠️
   - Random Delta backup issues
