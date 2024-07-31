@@ -270,8 +270,13 @@ if (ghRelease || deploy) {
   if (ghRelease) {
     console.log(`Adding LICENSE file to ${dist}`)
     await fs.copy(fileURLToPath(new URL('agpl-3.0.txt', import.meta.url)), path.join(dist, 'LICENSE'))
+
     console.log(`Adding CHANGELOG.md file to ${dist}`)
     await fs.copy(fileURLToPath(new URL('../CHANGELOG.md', import.meta.url)), path.join(dist, 'CHANGELOG.md'))
+
+    console.log(`Adding xolite-loader.html to ${dist}`)
+    await fs.copy(path.join(dist, 'index.html'), path.join(dist, 'xolite.html'))
+    await fs.copy(fileURLToPath(new URL('xolite-loader.html', import.meta.url)), path.join(dist, 'index.html'))
   }
 
   if (deploy) {

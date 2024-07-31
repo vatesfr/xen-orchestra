@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="theme-color" content="#cc584c" />
+    <title>XO Lite</title>
+    <script>
+      ;(async () => {
+        try {
+          // Try to load XO Lite from lite.xen-orchestra.com
+          const response = await fetch('https://lite.xen-orchestra.com/dist/index.html')
+          if (!response.ok) {
+            throw new Error(`Cannot download XO Lite from lite.xen-orchestra.com (${response.status})`)
+          }
+
+          document.open()
+          document.write(await response.text())
+          document.close()
+        } catch (err) {
+          console.log(err?.message ?? err)
+          // Fallback to local version of XO Lite
+          document.open()
+          document.write(await (await fetch('./xolite.html')).text())
+          document.close()
+        }
+      })()
+    </script>
+  </head>
+</html>
