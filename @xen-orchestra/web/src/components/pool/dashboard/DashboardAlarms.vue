@@ -7,7 +7,20 @@
       </template>
     </CardTitle>
     <table>
-      <!-- <AlarmLine></AlarmLine> -->
+      <!-- 
+      <AlarmLine :alarm-level=""
+        :alarm-type=""
+        :alarm-trigger-level=""
+        :alarm-cls=""><template #objectLink>
+          <ObjectLink :type="rawTypeToType(alarm.cls)" :uuid="alarm.obj_uuid" />
+        </template>
+       <template #time>
+          <div v-tooltip="new Date(parseDateTime(alarm.timestamp)).toLocaleString()">
+            <RelativeTime :date="alarm.timestamp" />
+          </div>
+        </template>
+      </AlarmLine> 
+        -->
     </table>
   </UiCard>
 </template>
