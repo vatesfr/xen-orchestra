@@ -683,6 +683,20 @@ const xoItemToRender = {
   ),
 
   PCI: props => <Pci {...props} self />,
+
+  schedule: schedule => {
+    const isEnabled = schedule.enabled
+    const scheduleName = schedule.name.trim()
+    return (
+      <span>
+        <span className={`mr-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
+          {isEnabled ? _('stateEnabled') : _('stateDisabled')}
+        </span>
+        <span>{scheduleName === '' ? <em>{_('unnamedSchedule')}</em> : scheduleName}</span>
+      </span>
+    )
+  },
+  job: job => <spans>{job.name}</spans>,
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
