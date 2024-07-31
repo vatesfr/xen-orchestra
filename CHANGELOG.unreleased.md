@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/Advanced] Display an accurate secure boot status and allow user to propagate certificates from pool to VM [#7495](https://github.com/vatesfr/xen-orchestra/issues/7495) (PR [#7751](https://github.com/vatesfr/xen-orchestra/pull/7751))
- 
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- xo-server minor
+- xo-server-perf-alert minor
 
 <!--packages-end-->
