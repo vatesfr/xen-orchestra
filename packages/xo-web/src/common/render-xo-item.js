@@ -692,7 +692,7 @@ const xoItemToRender = {
         <span className={`mr-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
           {isEnabled ? _('stateEnabled') : _('stateDisabled')}
         </span>
-        <span>{scheduleName === '' ? <em>{_('unamedSchedule')}</em> : scheduleName}</span>
+        <span>{scheduleName === '' ? <em>{_('unnamedSchedule')}</em> : scheduleName}</span>
       </span>
     )
   },

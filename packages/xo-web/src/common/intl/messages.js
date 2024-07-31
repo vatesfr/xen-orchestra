@@ -527,7 +527,7 @@ const messages = {
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
-  unamedSchedule: 'Unnamed schedule',
+  unnamedSchedule: 'Unnamed schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
   legacySnapshotsLink: 'You can delete all your legacy backup snapshots.',
