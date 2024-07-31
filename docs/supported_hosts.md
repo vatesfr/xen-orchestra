@@ -16,7 +16,7 @@ Xen Orchestra should be fully functional with any version of these two virtualiz
 ## XCP-ng
 
 :::tip
-Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.fr)). That's why you are sure to have the best compatibility with both XCP-ng and XO! Also, we strongly suggest people to keep using the latest XCP-ng LTS version as far as possible (or N-1).
+Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.tech)). That's why you are sure to have the best compatibility with both XCP-ng and XO! Also, we strongly suggest people to keep using the latest XCP-ng LTS version as far as possible (or N-1).
 :::
 
 - XCP-ng 8.3 ✅ 🚀
