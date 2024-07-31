@@ -17,4 +17,8 @@ export const restApiConfig: Record<XoObjectType, { path: string; fields: string 
     path: 'tasks',
     fields: 'id,start,end,properties,status,progress,tasks',
   },
+  alarm: {
+    path: 'alarms',
+    fields: 'id,level,triggerLevel,type',
+  },
 }

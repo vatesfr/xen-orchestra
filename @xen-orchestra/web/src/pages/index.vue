@@ -2,12 +2,14 @@
   <div class="site-dashboard">
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
+    <DashboardAlarms />
   </div>
 </template>
 
 <script lang="ts" setup>
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
+import DashboardAlarms from '@/components/pool/dashboard/DashboardAlarms.vue'
 </script>
 
 <style lang="postcss" scoped>
@@ -31,3 +33,4 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
   grid-area: vms-status;
 }
 </style>
+
