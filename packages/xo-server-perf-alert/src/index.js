@@ -524,6 +524,31 @@ ${monitorBodies.join('\n')}`
                   })
                 }
 
+                const checkManagementAgent = (vm, guestMetrics) => {
+                  if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+                    return false
+                  }
+
+                  const { major, minor } = guestMetrics.PV_drivers_version
+                  const hasPvVersion = major !== undefined && minor !== undefined
+                  return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+                }
+
+                if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+                  const vm = result.object
+                  const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
+
+                  const managementAgentDetected = checkManagementAgent(vm, guestMetrics)
+
+                  result.listItem = `  * ${result.objectLink}: ${
+                    result.value === undefined
+                      ? "**Can't read performance counters**"
+                      : !managementAgentDetected
+                        ? 'Guest tools must be installed'
+                        : result.value.toFixed(1) + typeFunction.unit
+                  }\n`
+                }
+
                 result.listItem = `  * ${result.objectLink}: ${
                   result.value === undefined
                     ? "**Can't read performance counters**"
