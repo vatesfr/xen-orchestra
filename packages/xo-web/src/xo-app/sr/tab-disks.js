@@ -35,6 +35,7 @@ import {
   isSrIso,
   isSrShared,
   migrateVdi,
+  setCbt,
 } from 'xo'
 import { error } from 'notification'
 
@@ -95,6 +96,11 @@ const COLUMNS = [
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size,
+  },
+  {
+    name: _('vbdCbt'),
+    itemRenderer: vdi => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,
+    sortCriteria: vdi => vdi.cbt_enabled,
   },
   {
     name: _('vdiVms'),
