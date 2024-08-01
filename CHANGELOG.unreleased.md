@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Self] Remove unit in CPU usage total count
+- [Self] Remove unit in CPU usage total count (PR [#7894](https://github.com/vatesfr/xen-orchestra/pull/7894))
 
 ### Packages to release
 
