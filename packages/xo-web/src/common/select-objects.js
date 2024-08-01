@@ -245,18 +245,21 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
-    <span className={!option.disabled && this.props.xoContainers !== undefined ? 'ml-1' : undefined}>
-      {renderXoItem(option.xoItem, {
-        type:
-          this.props.resourceSet !== undefined && option.xoItem.type !== undefined
-            ? `${option.xoItem.type}-resourceSet`
-            : undefined,
-        memoryFree: option.xoItem.type === 'host' || undefined,
-        showNetwork: true,
-      })}
-    </span>
-  )
+  _renderOption = option => {
+    // xoItem.type === "backup" must be rendered as `backupJob`,
+    // The `backup` key already exists in `xoItemToRender`
+    // and represents a backup execution. Here we want to represent a backup job
+    const type = option.xoItem.type === 'backup' ? 'backupJob' : option.xoItem.type
+    return (
+      <span className={!option.disabled && this.props.xoContainers !== undefined ? 'ml-1' : undefined}>
+        {renderXoItem(option.xoItem, {
+          type: this.props.resourceSet !== undefined && type !== undefined ? `${type}-resourceSet` : type,
+          memoryFree: option.xoItem.type === 'host' || undefined,
+          showNetwork: true,
+        })}
+      </span>
+    )
+  }
 
   render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
@@ -1169,7 +1172,6 @@ export const SelectSchedule = makeSubscriptionSelect(
 
 // ===================================================================
 
-const TYPE_FOR_SELECT_BACKUP_JOB = 'backupJob'
 export const SelectBackupJob = makeSubscriptionSelect(
   subscriber => {
     let xoObjects = []
@@ -1186,26 +1188,17 @@ export const SelectBackupJob = makeSubscriptionSelect(
     }
     const unsubscribeBackupJob = subscribeBackupNgJobs(backupJobs => {
       backupJobsLoaded = true
-      set([
-        ...xoObjects.filter(obj => obj._type !== 'backup'),
-        ...backupJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
-      ])
+      set([...xoObjects.filter(obj => obj.type !== 'backup'), ...backupJobs])
     })
 
     const unsubscribeMetadataJob = subscribeMetadataBackupJobs(metadataJobs => {
       metadataJobsLoaded = true
-      set([
-        ...xoObjects.filter(obj => obj._type !== 'metadataBackup'),
-        ...metadataJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
-      ])
+      set([...xoObjects.filter(obj => obj.type !== 'metadataBackup'), ...metadataJobs])
     })
 
     const unsubscribeMirrorJob = subscribeMirrorBackupJobs(mirrorJobs => {
       mirrorJobsLoaded = true
-      set([
-        ...xoObjects.filter(obj => obj._type !== 'mirrorBackup'),
-        ...mirrorJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })),
-      ])
+      set([...xoObjects.filter(obj => obj.type !== 'mirrorBackup'), ...mirrorJobs])
     })
 
     return () => {
