@@ -47,6 +47,8 @@ import {
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeNetworkConfigs,
   subscribeProxies,
   subscribeRemotes,

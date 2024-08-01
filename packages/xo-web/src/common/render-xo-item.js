@@ -709,14 +709,17 @@ const xoItemToRender = {
 
   backupJob: backupJob => {
     const labels = []
-    if (isDrBackup(backupJob)) {
-      labels.push(_('fullReplication'))
-    } else if (isFullBackup(backupJob)) {
+
+    if (isFullBackup(backupJob)) {
       labels.push(_('fullBackup'))
-    } else if (isCrBackup(backupJob)) {
-      labels.push(_('incrementalReplication'))
     } else if (isDeltaBackup(backupJob)) {
       labels.push(_('incrementalBackup'))
+    }
+
+    if (isDrBackup(backupJob)) {
+      labels.push(_('fullReplication'))
+    } else if (isCrBackup(backupJob)) {
+      labels.push(_('incrementalReplication'))
     }
 
     if (isRollingSnapshotBackup(backupJob)) {
