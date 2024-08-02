@@ -11,6 +11,7 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
+import semver from 'semver'
 import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
@@ -154,18 +155,33 @@ function wrap(middleware, handleNoSuchObject = false) {
 async function _getDashboardStats(app) {
   const dashboard = {}
 
+  let hvSupportedVersions
+  try {
+    hvSupportedVersions = await app.apiMethods['xoa.getHVSupportedVersions']()
+  } catch (e) {
+    hvSupportedVersions = {
+      'Citrix Hypervisor': '>=8.2.0',
+      'XCP-ng': '>=8.2.0',
+    }
+  }
+
   const poolIds = new Set()
   const hosts = []
+  let nHostsEol = 0
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
       hosts.push(obj)
       poolIds.add(obj.$pool)
+      if (!semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
+        nHostsEol++
+      }
     }
   }
 
   dashboard.nPools = poolIds.size
   dashboard.nHosts = hosts.length
+  dashboard.nHostsEol = nHostsEol
 
   if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
     const poolsWithMissingPatches = new Set()
