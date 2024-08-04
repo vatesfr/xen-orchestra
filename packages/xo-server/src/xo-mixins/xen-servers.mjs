@@ -179,7 +179,7 @@ export default class XenServers {
     }
 
     if (httpProxy !== undefined) {
-      // if value is null, pass undefined to the model , so it will delete this optionnal property from the Server object
+      // if value is null, pass undefined to the model , so it will delete this optional property from the Server object
       server.httpProxy = httpProxy === null ? undefined : httpProxy
     }
     await this._servers.update(server)
