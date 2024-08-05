@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Perf-alert] Display a warning when monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
+- [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
 
 ### Bug fixes
 
