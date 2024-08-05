@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Advanced] Display an accurate secure boot status and allow user to propagate certificates from pool to VM [#7495](https://github.com/vatesfr/xen-orchestra/issues/7495) (PR [#7751](https://github.com/vatesfr/xen-orchestra/pull/7751))
+- [Perf-alert] Display a warning when monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
 
 ### Bug fixes
 
