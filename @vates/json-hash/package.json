@@ -21,7 +21,7 @@
   "license": "ISC",
   "version": "0.1.0",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14.18.0"
   },
   "devDependencies": {
     "test": "^3.3.0"

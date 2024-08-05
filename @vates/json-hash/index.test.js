@@ -1,3 +1,5 @@
+'use strict'
+
 const { jsonHash } = require('@vates/json-hash')
 const assert = require('node:assert/strict')
 const test = require('test')
