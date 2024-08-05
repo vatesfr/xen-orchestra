@@ -34,7 +34,7 @@
     "@vates/coalesce-calls": "^0.1.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
-    "@vates/json-hash": "^0.1.0",
+    "@vates/json-hash": "^0.2.0",
     "@vates/obfuscate": "^0.1.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
