@@ -524,11 +524,46 @@ ${monitorBodies.join('\n')}`
                   })
                 }
 
-                result.listItem = `  * ${result.objectLink}: ${
-                  result.value === undefined
-                    ? "**Can't read performance counters**"
-                    : result.value.toFixed(1) + typeFunction.unit
-                }\n`
+                let listItem
+                const maybeUpdateListItem = value => {
+                  if (listItem !== undefined) {
+                    return
+                  }
+
+                  listItem = `  * ${result.objectLink}: ${value}\n`
+                }
+
+                if (result.value === undefined) {
+                  maybeUpdateListItem("**Can't read performance counters**")
+                }
+
+                if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+                  const checkManagementAgent = (vm, guestMetrics) => {
+                    if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+                      return
+                    }
+
+                    const { major, minor } = guestMetrics.PV_drivers_version
+                    const hasPvVersion = major !== undefined && minor !== undefined
+                    return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+                  }
+
+                  const vm = result.object
+                  const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
+
+                  const managementAgentDetected = checkManagementAgent(vm, guestMetrics)
+
+                  if (managementAgentDetected === undefined) {
+                    maybeUpdateListItem("**Can't read performance counters**")
+                  }
+                  if (managementAgentDetected === false) {
+                    maybeUpdateListItem('**Guest tools must be installed**')
+                  }
+                }
+
+                maybeUpdateListItem(result.value.toFixed(1) + typeFunction.unit)
+
+                result.listItem = listItem
 
                 return result
               } catch (error) {
