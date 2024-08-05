@@ -523,9 +523,11 @@ const messages = {
   remotesSettings: 'Remotes settings',
   pluginsSettings: 'Plugins settings',
   pluginsWarning: 'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
+  selectSchedule: 'Select a schedule…',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
+  unnamedSchedule: 'Unnamed schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
   legacySnapshotsLink: 'You can delete all your legacy backup snapshots.',
@@ -552,6 +554,7 @@ const messages = {
   newBackupAdvancedSettings: 'Advanced settings',
   newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',
+  reportWhenSkippedFailure: 'Skipped and failure',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
   reportRecipients: 'Report recipients',
@@ -609,7 +612,6 @@ const messages = {
     "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
-  ignoreSkippedBackups: "Don't send reports for skipped backups",
 
   // ------ New Remote -----
   newRemote: 'New file system remote',

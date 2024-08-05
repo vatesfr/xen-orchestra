@@ -36,7 +36,7 @@ import UiSpinner from '@core/components/UiSpinner.vue'
 import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .spinner {
   font-size: 2rem;
   color: var(--color-purple-base);

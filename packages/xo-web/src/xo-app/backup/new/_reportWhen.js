@@ -13,7 +13,10 @@ import { FormGroup } from './../utils'
 
 export const REPORT_WHEN_LABELS = {
   always: 'reportWhenAlways',
-  failure: 'reportWhenFailure',
+  // skipped and failure
+  failure: 'reportWhenSkippedFailure',
+  // only failure
+  error: 'reportWhenFailure',
   never: 'reportWhenNever',
 }
 

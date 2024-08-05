@@ -59,7 +59,7 @@ const definitions = computed(() =>
 const { nodes: vms } = useTree(definitions)
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .vms {
   margin: 1rem;
   gap: 0.8rem;

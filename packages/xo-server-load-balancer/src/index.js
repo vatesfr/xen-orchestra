@@ -101,7 +101,7 @@ export const configurationSchema = {
               'vCPU balancing: balance hosts when exceeding thresholds and pre-position VMs on hosts to balance vCPU/CPU ratio',
             ],
             title: 'Performance plan behaviour',
-            description: 'Optionnal features for performance plan',
+            description: 'Optional features for performance plan',
             default: false,
           },
         },
