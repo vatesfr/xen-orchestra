@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- xo-web minor
+- xo-server minor
 
 <!--packages-end-->

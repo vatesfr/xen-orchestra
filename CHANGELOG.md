@@ -1,19 +1,24 @@
 # ChangeLog
 
-## **next**
+## **5.97.0** (2024-07-31)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
-- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
-- [i18n] Improve Russian translation (Thanks [@TristisOris](https://github.com/TristisOris)!) (PR [#7807](https://github.com/vatesfr/xen-orchestra/pull/7807))
-- [REST API] Expose XO6 dashboard informations at the `/rest/v0/dashboard` endpoint (PR [#7823](https://github.com/vatesfr/xen-orchestra/pull/7823))
+### Highlights
+
 - [VM/Advanced] Possibility to manually [_Coalesce Leaf_](https://docs.xenserver.com/en-us/xenserver/8/storage/manage.html#reclaim-space-by-using-the-offline-coalesce-tool) [#7757](https://github.com/vatesfr/xen-orchestra/issues/7757) (PR [#7810](https://github.com/vatesfr/xen-orchestra/pull/7810))
-- [i18n] Add Swedish translation (Thanks [@cloudrootab](https://github.com/cloudrootab)!) [#7844](https://github.com/vatesfr/xen-orchestra/pull/7844)
 - [Plugin/backup-reports] Show more information of backups, including NBD and CBT usage (PR [#7815](https://github.com/vatesfr/xen-orchestra/pull/7815))
 - [Backups] Adding an option to avoid sending reports for skipped backups (e.g. no matching VMs, unhealthy VDI chains, etc.) (PR [#7832](https://github.com/vatesfr/xen-orchestra/pull/7832))
 - [Backups] Add 'report recipients' when creating a metadata backup [#7569](https://github.com/vatesfr/xen-orchestra/issues/7569) (PR [#7776](https://github.com/vatesfr/xen-orchestra/pull/7776))
 - [VM/Advanced] Display an accurate secure boot status and allow user to propagate certificates from pool to VM [#7495](https://github.com/vatesfr/xen-orchestra/issues/7495) (PR [#7751](https://github.com/vatesfr/xen-orchestra/pull/7751))
 - [Host/General] Display additional hardware data for 2CRSi server [#7816](https://github.com/vatesfr/xen-orchestra/issues/7816) (PR [#7838](https://github.com/vatesfr/xen-orchestra/pull/7838))
+- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
+- [i18n] Improve Russian translation (Thanks [@TristisOris](https://github.com/TristisOris)!) (PR [#7807](https://github.com/vatesfr/xen-orchestra/pull/7807))
+- [i18n] Add Swedish translation (Thanks [@cloudrootab](https://github.com/cloudrootab)!) [#7844](https://github.com/vatesfr/xen-orchestra/pull/7844)
+
+### Enhancements
+
+- [REST API] Expose XO6 dashboard informations at the `/rest/v0/dashboard` endpoint (PR [#7823](https://github.com/vatesfr/xen-orchestra/pull/7823))
 - [VM/Stats] Display a warning when guest tools are not detected (PR [#7831](https://github.com/vatesfr/xen-orchestra/pull/7831))
 
 ### Bug fixes
@@ -50,7 +55,7 @@
 
 ## **5.96.0** (2024-07-05)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -113,8 +118,6 @@
 - xo-server 5.148.2
 
 ## **5.95.1** (2024-06-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
