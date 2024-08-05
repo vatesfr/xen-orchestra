@@ -89,7 +89,21 @@ export default class Api {
 
       let result
       try {
-        result = await zone.run(() => this._call(body.method, body.params))
+        result = await zone.run(() => {
+          const { method, params } = body
+
+          debug(`call: ${method}()`, { method, params })
+          const fn = this._methods[method]
+          if (fn === undefined) {
+            throw new MethodNotFound(method)
+          }
+
+          if (fn.unref) {
+            ctx.req.socket.unref()
+          }
+
+          return fn(params)
+        })
       } catch (error) {
         ctx.set('Content-Type', 'application/json')
         ctx.body = formatError(body.id, error)
@@ -236,7 +250,7 @@ export default class Api {
     })
   }
 
-  addMethod(name, method, { description, params = {}, result: resultSchema } = {}) {
+  addMethod(name, method, { description, params = {}, result: resultSchema, unref = false } = {}) {
     const methods = this._methods
 
     if (name in methods) {
@@ -276,6 +290,7 @@ export default class Api {
     m.description = description
     m.params = params
     m.result = resultSchema
+    m.unref = unref
 
     methods[name] = m
 
@@ -316,15 +331,6 @@ export default class Api {
     }
 
     return once => forOwn(removes, remove => remove())
-  }
-
-  _call(method, params = {}) {
-    debug(`call: ${method}()`, { method, params })
-    const fn = this._methods[method]
-    if (fn === undefined) {
-      throw new MethodNotFound(method)
-    }
-    return fn(params)
   }
 
   #compileSchema(schema) {

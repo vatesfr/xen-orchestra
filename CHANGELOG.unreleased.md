@@ -39,6 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- @xen-orchestra/proxy patch
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
 - xo-cli minor
