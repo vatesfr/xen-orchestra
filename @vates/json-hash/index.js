@@ -34,5 +34,5 @@ exports.jsonHash = function jsonHash(value) {
   // this hash does not need to be secure, it just needs to be fast and with low collisions
   const hash = createHash('sha256')
   updateJsonHash(value, hash)
-  return hash.digest('base64')
+  return hash.digest('base64url')
 }
