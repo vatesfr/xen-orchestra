@@ -159,11 +159,11 @@
   },
   "scripts": {
     "_build": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
-    "build": "cross-env NODE_ENV=production yarn run _build",
-    "dev": "cross-env NODE_ENV=development yarn run _build --watch",
-    "prepublishOnly": "yarn run build",
+    "build": "cross-env NODE_ENV=production npm run _build",
+    "dev": "cross-env NODE_ENV=development npm run _build --watch",
+    "prepublishOnly": "npm run build",
     "start": "node dist/cli.mjs",
-    "pretest": "yarn run build",
+    "pretest": "npm run build",
     "test": "node--test dist"
   },
   "author": {

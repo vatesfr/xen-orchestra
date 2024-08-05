@@ -19,8 +19,8 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "postversion": "npm publish --access public",
     "prebuild": "rimraf dist/",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "predev": "npm run prebuild",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.4",

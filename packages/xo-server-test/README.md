@@ -126,14 +126,14 @@ describe('issue', () => {
 
   ```
   > npm ci
-  > yarn start
+  > npm run start
   ```
 
   You get all the test suites passed (`PASS`) or failed (`FAIL`).
 
   ```
-  > yarn test
-  yarn run v1.9.4
+  > npm run test
+  npm run v1.9.4
   $ jest
    PASS  src/user/user.spec.js
    PASS  src/job/job.spec.js
@@ -147,14 +147,14 @@ describe('issue', () => {
   Done in 7.92s.
   ```
 
-- You can run only tests related to changed files, and review the failed output by using: `> yarn start --watch`
+- You can run only tests related to changed files, and review the failed output by using: `> npm run start --watch`
 
 - ⚠ Warning: snapshots ⚠
   After each run of the tests, check that snapshots are not inadvertently modified.
 
 - ⚠ Jest known issue ⚠
   If a test timeout is triggered the next async tests can fail, it's due to an inadvertently modified snapshots.
-  As a workaround, you can clean your git working tree and re-run jest using a large timeout: `> yarn start --testTimeout=100000`
+  As a workaround, you can clean your git working tree and re-run jest using a large timeout: `> npm run start --testTimeout=100000`
 
 ## Contributions
 

@@ -20,19 +20,19 @@ jobs:
         # https://github.com/actions/setup-node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'yarn'
+          node-version: '20'
+          cache: 'pnpm'
       - name: Install project dependencies
-        run: yarn
+        run: pnpm i
       - name: Ensure packages are sorted in CHANGELOG.unreleased.md
         run: ./scripts/gen-deps-list.js --check-order > /dev/null
-      - name: Ensure yarn.lock is up-to-date
-        run: git diff --exit-code yarn.lock
+      - name: Ensure pnpm-lock.yaml is up-to-date
+        run: git diff --exit-code pnpm-lock.yaml
       - name: Build the project
-        run: yarn build
+        run: npm run build
       - name: Unit tests
-        run: yarn test-unit
+        run: npm run test-unit
       - name: Lint tests
-        run: yarn test-lint
+        run: npm run test-lint
       - name: Integration tests
-        run: sudo yarn test-integration
+        run: sudo npm run test-integration

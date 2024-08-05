@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "prepublishOnly": "yarn run build-only"
+    "prepublishOnly": "npm run build-only"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^2.1.1",

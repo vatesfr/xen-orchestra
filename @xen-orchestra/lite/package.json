@@ -7,10 +7,10 @@
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
     "release": "./scripts/release.mjs",
-    "build-only": "yarn release --build",
-    "deploy": "yarn release --build --deploy",
-    "gh-release": "yarn release --build --tarball --gh-release",
-    "test": "yarn run type-check",
+    "build-only": "npm run release --build",
+    "deploy": "npm run release --build --deploy",
+    "gh-release": "npm run release --build --tarball --gh-release",
+    "test": "npm run type-check",
     "type-check": "vue-tsc --build --force tsconfig.type-check.json"
   },
   "devDependencies": {

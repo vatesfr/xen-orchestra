@@ -145,9 +145,9 @@
     "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",
     "clean": "gulp clean",
     "dev": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=development gulp build",
-    "prebuild": "yarn run clean && index-modules --auto src",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prebuild": "npm run clean && index-modules --auto src",
+    "predev": "npm run prebuild",
+    "prepublishOnly": "npm run build"
   },
   "browserify": {
     "transform": [
