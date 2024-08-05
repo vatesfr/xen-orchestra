@@ -3295,9 +3295,9 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: 'No hay actualizador para la Edición Community',
 
-  // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}.""
+  // Original text: "Please consider subscribe and try it with all features for free during 30 days on {link}.""
   considerSubscribe:
-    'Por favor plantéate la suscripción y pruébala con todas las características gratis durante 15 días {link}',
+    'Por favor plantéate la suscripción y pruébala con todas las características gratis durante 30 días {link}',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:

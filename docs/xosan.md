@@ -326,7 +326,7 @@ SSH in your XCP-ng/XenServer and use the command line `bash -c "$(wget -qO- http
 
 Register your XOA appliance
 
-> _If you are not familiar with Xen Orchestra, note that you can also activate a 15 days Premium trial for XOA. More informations [here](https://xen-orchestra.com/#!/trial)_
+> _If you are not familiar with Xen Orchestra, note that you can also activate a 30 day Premium trial for XOA. More informations [here](https://xen-orchestra.com/#!/trial)_
 
 ![Registration](https://xen-orchestra.com/docs/assets/xo5register.png)
 

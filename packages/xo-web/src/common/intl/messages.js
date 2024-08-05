@@ -2284,7 +2284,7 @@ const messages = {
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
   considerSubscribe:
-    'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
+    'Please consider subscribing and trying it with all the features for free during 30 days on {link}.',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
