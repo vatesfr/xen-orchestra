@@ -158,10 +158,12 @@ async function _getDashboardStats(app) {
   let hvSupportedVersions
   let nHostsEol
   try {
-    hvSupportedVersions = await app.apiMethods['xoa.getHVSupportedVersions']()
+    hvSupportedVersions = await app.getHVSupportedVersions()
     nHostsEol = 0
   } catch (error) {
-    console.error(error)
+    if (error.message !== 'app.getHVSupportedVersions is not a function') {
+      console.error(error)
+    }
   }
 
   const poolIds = new Set()
