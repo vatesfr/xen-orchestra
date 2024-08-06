@@ -157,11 +157,11 @@ async function _getDashboardStats(app) {
 
   let hvSupportedVersions
   let nHostsEol
-  try {
-    hvSupportedVersions = await app.getHVSupportedVersions()
-    nHostsEol = 0
-  } catch (error) {
-    if (error.message !== 'app.getHVSupportedVersions is not a function') {
+  if (typeof app.getHVSupportedVersions === 'function') {
+    try {
+      hvSupportedVersions = await app.getHVSupportedVersions()
+      nHostsEol = 0
+    } catch (error) {
       console.error(error)
     }
   }
