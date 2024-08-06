@@ -183,10 +183,7 @@ async function _getDashboardStats(app) {
   dashboard.nHosts = hosts.length
   dashboard.nHostsEol = nHostsEol
 
-  const hasFeatureAuthorizationListMissingPatchesPromise = app.hasFeatureAuthorization('LIST_MISSING_PATCHES')
-  const remotesInfoPromise = app.getAllRemotesInfo()
-
-  if (await hasFeatureAuthorizationListMissingPatchesPromise) {
+  if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
     const poolsWithMissingPatches = new Set()
     let nHostsWithMissingPatches = 0
 
@@ -211,23 +208,27 @@ async function _getDashboardStats(app) {
     dashboard.missingPatches = missingPatches
   }
 
-  const backupRepositorySize = Object.values(await remotesInfoPromise).reduce(
-    (prev, remoteInfo) => ({
-      available: prev.available + remoteInfo.available,
-      backups: 0, // @TODO: compute the space used by backups
-      other: 0, // @TODO: compute the space used by everything that is not a backup
-      total: prev.total + remoteInfo.size,
-      used: prev.used + remoteInfo.used,
-    }),
-    {
-      available: 0,
-      backups: 0,
-      other: 0,
-      total: 0,
-      used: 0,
-    }
-  )
-  dashboard.backupRepository = { size: backupRepositorySize }
+  try {
+    const backupRepositorySize = Object.values(await app.getAllRemotesInfo()).reduce(
+      (prev, remoteInfo) => ({
+        available: prev.available + remoteInfo.available,
+        backups: 0, // @TODO: compute the space used by backups
+        other: 0, // @TODO: compute the space used by everything that is not a backup
+        total: prev.total + remoteInfo.size,
+        used: prev.used + remoteInfo.used,
+      }),
+      {
+        available: 0,
+        backups: 0,
+        other: 0,
+        total: 0,
+        used: 0,
+      }
+    )
+    dashboard.backupRepository = { size: backupRepositorySize }
+  } catch (error) {
+    console.error(error)
+  }
 
   return dashboard
 }
