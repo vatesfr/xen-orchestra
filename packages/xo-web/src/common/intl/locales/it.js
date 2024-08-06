@@ -4803,9 +4803,9 @@ export default {
   // Original text: 'Downgrade'
   downgrade: 'Retrocedere',
 
-  // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
+  // Original text: 'Please consider subscribing and trying it with all the features for free during 30 days on {link}.'
   considerSubscribe:
-    "Ti preghiamo di prendere in considerazione l'abbonamento e provarlo con tutte le funzionalità gratuitamente per 15 giorni su {link}.",
+    "Ti preghiamo di prendere in considerazione l'abbonamento e provarlo con tutte le funzionalità gratuitamente per 30 giorni su {link}.",
 
   // Original text: 'Current version:'
   currentVersion: 'Versione attuale:',

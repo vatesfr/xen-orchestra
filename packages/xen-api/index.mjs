@@ -10,10 +10,10 @@ import { Agent, ProxyAgent, request } from 'undici'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { compose } from '@vates/compose'
-import { createHash } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
+import { jsonHash } from '@vates/json-hash'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
@@ -88,41 +88,6 @@ const addSyncStackTrace = async promise => {
     error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
-}
-
-function updateJsonHash(value, hash) {
-  if (value !== null && typeof value === 'object') {
-    if (Array.isArray(value)) {
-      hash.update('[')
-      for (const item of value) {
-        updateJsonHash(item, hash)
-
-        // trailing is not a big deal because it does not need to be valid JSON
-        hash.update(',')
-      }
-      hash.update(']')
-    } else {
-      hash.update('{')
-      for (const key of Object.keys(value).sort()) {
-        updateJsonHash(key, hash)
-        hash.update(':')
-        updateJsonHash(value[key], hash)
-
-        // trailing is not a big deal because it does not need to be valid JSON
-        hash.update(',')
-      }
-      hash.update('}')
-    }
-  } else {
-    hash.update(JSON.stringify(value))
-  }
-}
-
-export function jsonHash(value) {
-  // this hash does not need to be secure, it just needs to be fast and with low collisions
-  const hash = createHash('sha256')
-  updateJsonHash(value, hash)
-  return hash.digest('base64')
 }
 
 // -------------------------------------------------------------------

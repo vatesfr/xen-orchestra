@@ -4129,9 +4129,9 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: 'Topluluk sürümü için güncelleştirici sunulmuyor',
 
-  // Original text: "Please consider subscribing and trying it with all the features for free during 15 days on {link}."
+  // Original text: "Please consider subscribing and trying it with all the features for free during 30 days on {link}."
   considerSubscribe:
-    'Lütfen {link} adresinden abone olun ve 15 gün boyunca ücretsiz olarak tüm özellikleri kullanmayı deneyin.',
+    'Lütfen {link} adresinden abone olun ve 30 gün boyunca ücretsiz olarak tüm özellikleri kullanmayı deneyin.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
