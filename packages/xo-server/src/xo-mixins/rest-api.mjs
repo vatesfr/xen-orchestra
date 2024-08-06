@@ -156,24 +156,22 @@ async function _getDashboardStats(app) {
   const dashboard = {}
 
   let hvSupportedVersions
+  let nHostsEol
   try {
     hvSupportedVersions = await app.apiMethods['xoa.getHVSupportedVersions']()
-  } catch (e) {
-    hvSupportedVersions = {
-      'Citrix Hypervisor': '>=8.2.0',
-      'XCP-ng': '>=8.2.0',
-    }
+    nHostsEol = 0
+  } catch (error) {
+    console.error(error)
   }
 
   const poolIds = new Set()
   const hosts = []
-  let nHostsEol = 0
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
       hosts.push(obj)
       poolIds.add(obj.$pool)
-      if (!semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
+      if (hvSupportedVersions !== undefined && !semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
         nHostsEol++
       }
     }
