@@ -209,7 +209,7 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const backupRepositorySize = Object.values(await app.getAllRemotesInfo()).reduce(
+    const backupRepositoriesSize = Object.values(await app.getAllRemotesInfo()).reduce(
       (prev, remoteInfo) => ({
         available: prev.available + remoteInfo.available,
         backups: 0, // @TODO: compute the space used by backups
@@ -225,7 +225,7 @@ async function _getDashboardStats(app) {
         used: 0,
       }
     )
-    dashboard.backupRepository = { size: backupRepositorySize }
+    dashboard.backupRepositories = { size: backupRepositoriesSize }
   } catch (error) {
     console.error(error)
   }
