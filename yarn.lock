@@ -4305,10 +4305,10 @@
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.4.tgz#56e2cc26c397c038fab0e3a917a12d5c5909e901"
   integrity sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==
 
-"@types/novnc__novnc@^1.3.5":
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/@types/novnc__novnc/-/novnc__novnc-1.3.5.tgz#af41a2fd01fc50e40306d1e62d44a0035e7fad25"
-  integrity sha512-iMYzwgNDVmSlkqTKh6tkz25Tir2i2h1Jlhja0e6ycL3GPP+HCuhPA3uzZrVLrgKUEj1RaDhI3KGMPI47bV0jQw==
+"@types/novnc__novnc@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@types/novnc__novnc/-/novnc__novnc-1.5.0.tgz#5f58687f0fa6591b75e91eb75237520da440dbb4"
+  integrity sha512-9DrDJK1hUT6Cbp4t03IsU/DsR6ndnIrDgZVrzITvspldHQ7n81F3wUDfq89zmPM3wg4GErH11IQa0QuTgLMf+w==
 
 "@types/ps-tree@^1.1.2":
   version "1.1.6"
