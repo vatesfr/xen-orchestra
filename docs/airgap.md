@@ -1,14 +1,19 @@
-# Airgap support
+# Airgap support and deployment
 
 :::tip
-This page concerns only official XO Appliances, and not XO built from sources.
+This page is relevant only to official XO Appliances and does not cover XO built from sources.
 :::
 
-XO has not been initially developed to support airgapped infrastructures, but the following procedures have been tested and validated to permit its support.
+We are considering two types of air-gapped deployments:
 
-A separate XCP-ng pool with Internet access is necessary, and it will be used as a temporary zone to register and upgrade the XOA.
+- Physical air gap (completely offline)
+- Logical air gap with limited connectivity, or physical air gap with a connected pre-production/QA environment available
 
-## Deployment
+## Logical Air Gap
+
+In this scenario, you will need a QA/pre-production XCP-ng pool with Internet access. This pool will serve as a temporary zone for registering and upgrading the XOA, before physically exporting it to the disconnected environment.
+
+### Deployment
 
 [Follow the standard procedure](https://xen-orchestra.com/docs/installation.html) to deploy the XOA on your pool with Internet access.
 
@@ -38,7 +43,7 @@ $ xe vm-start uuid=c87a6dc3-9889-acf0-a680-79de3780c08f
 
 You can now delete the XOA on your connected pool, it is no longer necessary.
 
-## Upgrade
+### Upgrade
 
 To upgrade your XOA, you need to:
 
@@ -53,3 +58,9 @@ To upgrade your XOA, you need to:
 9. delete the XOA on your connected pool and the previous XOA on your airgapped pool
 
 For details on the steps, refer to the [_Deployment_ section](#deployment).
+
+## Physical air gap only
+
+In this scenario, you are deploying directly without any prior Internet access. Vates can provide you with pre-registered XOAs that can be deployed directly in your offline environment, eliminating the need for any initial Internet connection. If you have an air gap subscription, our team will build it on-demand for you and provide a dedicated link for download.
+
+Please [contact us](https://vates.tech/contact) if you need more details.

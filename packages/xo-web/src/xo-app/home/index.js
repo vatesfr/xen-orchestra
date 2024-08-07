@@ -48,7 +48,6 @@ import {
   disconnectAllHostsSrs,
   emergencyShutdownHosts,
   forgetSrs,
-  isSrShared,
   migrateVms,
   pauseVms,
   reconnectAllHostsSrs,
@@ -288,7 +287,7 @@ const OPTIONS = {
         sortOrder: 'desc',
         default: true,
       },
-      { labelId: 'homeSortByShared', sortBy: isSrShared, sortOrder: 'desc' },
+      { labelId: 'homeSortByShared', sortBy: 'shared', sortOrder: 'desc' },
       {
         labelId: 'homeSortByUsage',
         sortBy: 'physicalUsageBySize',

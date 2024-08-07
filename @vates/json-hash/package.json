@@ -1,0 +1,33 @@
+{
+  "private": false,
+  "name": "@vates/json-hash",
+  "description": "Compute a stable hash from a JSON-ifiable value",
+  "keywords": [
+    "hash",
+    "json",
+    "stable"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/json-hash",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/json-hash",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.2.0",
+  "engines": {
+    "node": ">=14.18.0"
+  },
+  "devDependencies": {
+    "test": "^3.3.0"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test": "node--test"
+  }
+}

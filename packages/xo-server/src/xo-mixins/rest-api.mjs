@@ -11,6 +11,7 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
+import semver from 'semver'
 import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
@@ -154,6 +155,17 @@ function wrap(middleware, handleNoSuchObject = false) {
 async function _getDashboardStats(app) {
   const dashboard = {}
 
+  let hvSupportedVersions
+  let nHostsEol
+  if (typeof app.getHVSupportedVersions === 'function') {
+    try {
+      hvSupportedVersions = await app.getHVSupportedVersions()
+      nHostsEol = 0
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const poolIds = new Set()
   const hosts = []
 
@@ -161,11 +173,15 @@ async function _getDashboardStats(app) {
     if (obj.type === 'host') {
       hosts.push(obj)
       poolIds.add(obj.$pool)
+      if (hvSupportedVersions !== undefined && !semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
+        nHostsEol++
+      }
     }
   }
 
   dashboard.nPools = poolIds.size
   dashboard.nHosts = hosts.length
+  dashboard.nHostsEol = nHostsEol
 
   if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
     const poolsWithMissingPatches = new Set()
@@ -190,6 +206,28 @@ async function _getDashboardStats(app) {
     }
 
     dashboard.missingPatches = missingPatches
+  }
+
+  try {
+    const backupRepositoriesSize = Object.values(await app.getAllRemotesInfo()).reduce(
+      (prev, remoteInfo) => ({
+        available: prev.available + remoteInfo.available,
+        backups: 0, // @TODO: compute the space used by backups
+        other: 0, // @TODO: compute the space used by everything that is not a backup
+        total: prev.total + remoteInfo.size,
+        used: prev.used + remoteInfo.used,
+      }),
+      {
+        available: 0,
+        backups: 0,
+        other: 0,
+        total: 0,
+        used: 0,
+      }
+    )
+    dashboard.backupRepositories = { size: backupRepositoriesSize }
+  } catch (error) {
+    console.error(error)
   }
 
   return dashboard

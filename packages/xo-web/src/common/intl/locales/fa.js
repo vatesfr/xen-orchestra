@@ -4175,8 +4175,8 @@ export default {
   // Original text: 'No updater available for Community Edition'
   noUpdaterCommunity: 'هیچ به‌روزرسانی‌کننده‌ای برای نسخه عمومی در دسترس نیست',
 
-  // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
-  considerSubscribe: 'لطفاً مشترک شدن را در نظر داشته باشید و این محصول را با تمام ویژگی های آن به صورت رایگان در مدت 15 روز در {link} امتحان کنید.',
+  // Original text: 'Please consider subscribing and trying it with all the features for free during 30 days on {link}.'
+  considerSubscribe: 'لطفاً مشترک شدن را در نظر داشته باشید و این محصول را با تمام ویژگی های آن به صورت رایگان در مدت 30 روز در {link} امتحان کنید.',
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
   noUpdaterWarning: 'به‌روزرسانی دستی می‌تواند نصب فعلی شما را به دلیل مشکلات وابستگی خراب کند، این کار را با احتیاط انجام دهید',
