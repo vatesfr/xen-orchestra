@@ -35,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/proxy patch
 - xo-server minor
 - xo-web patch
 
