@@ -251,12 +251,14 @@ class GenericSelect extends React.Component {
   _renderOption = option => {
     // xoItem.type === "backup" must be rendered as `backupJob`,
     // The `backup` key already exists in `xoItemToRender`
-    // and represents a backup execution. Here we want to represent a backup job
-    const type = option.xoItem.type === 'backup' ? 'backupJob' : option.xoItem.type
+    // and represents a stored backup. Here we want to represent a backup job
+
+    const baseType = option.xoItem.type === 'backup' ? 'backupJob' : option.xoItem.type
+    const type = this.props.resourceSet !== undefined && baseType !== undefined ? `${baseType}-resourceSet` : baseType
     return (
       <span className={!option.disabled && this.props.xoContainers !== undefined ? 'ml-1' : undefined}>
         {renderXoItem(option.xoItem, {
-          type: this.props.resourceSet !== undefined && type !== undefined ? `${type}-resourceSet` : type,
+          type,
           memoryFree: option.xoItem.type === 'host' || undefined,
           showNetwork: true,
         })}
