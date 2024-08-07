@@ -1468,16 +1468,16 @@ export default class Xapi extends XapiBase {
   }
 
   async isHyperThreadingEnabled(hostId) {
+    const host = this.getObject(hostId)
+
+    // For XCP-ng >=8.3, data is already available in XAPI
+    const { threads_per_core } = host.cpu_info
+    if (threads_per_core !== undefined) {
+      return threads_per_core > 1
+    }
+
     try {
-      return (
-        (await this.call(
-          'host.call_plugin',
-          this.getObject(hostId).$ref,
-          'hyperthreading.py',
-          'get_hyperthreading',
-          {}
-        )) !== 'false'
-      )
+      return (await this.call('host.call_plugin', host.$ref, 'hyperthreading.py', 'get_hyperthreading', {})) !== 'false'
     } catch (error) {
       if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
         return null
