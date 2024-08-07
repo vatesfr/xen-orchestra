@@ -524,10 +524,18 @@ ${monitorBodies.join('\n')}`
                   })
                 }
 
-                let listItem =
-                  result.value === undefined
-                    ? `  * ${result.objectLink}: **Can't read performance counters**\n`
-                    : `  * ${result.objectLink}: ${result.value.toFixed(1)}${typeFunction.unit}\n`
+                let listItem
+                const maybeUpdateListItem = value => {
+                  if (listItem !== undefined) {
+                    return
+                  }
+
+                  listItem = `  * ${result.objectLink}: ${value}\n`
+                }
+
+                if (result.value === undefined) {
+                  maybeUpdateListItem("**Can't read performance counters**")
+                }
 
                 if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
                   const checkManagementAgent = (vm, guestMetrics) => {
@@ -546,12 +554,14 @@ ${monitorBodies.join('\n')}`
                   const managementAgentDetected = checkManagementAgent(vm, guestMetrics)
 
                   if (managementAgentDetected === undefined) {
-                    listItem = `  * ${result.objectLink}: **Can't read performance counters**\n`
+                    maybeUpdateListItem("**Can't read performance counters**")
                   }
                   if (managementAgentDetected === false) {
-                    listItem = `  * ${result.objectLink}: **Guest tools must be installed**\n`
+                    maybeUpdateListItem('**Guest tools must be installed**')
                   }
                 }
+
+                maybeUpdateListItem(result.value?.toFixed(1) + typeFunction.unit)
 
                 result.listItem = listItem
 
