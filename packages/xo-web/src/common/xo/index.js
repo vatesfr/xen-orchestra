@@ -2480,9 +2480,10 @@ export const deleteOrphanedVdis = vdis =>
     ),
   }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
 
-export const migrateVdi = (vdi, sr, resourceSet) =>
+export const migrateVdi = (vdi, sr, resourceSet, removeSnapshotsBeforeMigrating) =>
   _call('vdi.migrate', {
     id: resolveId(vdi),
+    removeSnapshotsBeforeMigrating,
     resourceSet,
     sr_id: resolveId(sr),
   })

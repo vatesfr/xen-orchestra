@@ -7,6 +7,7 @@ import { Container, Col } from 'grid'
 import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
 import { SelectResourceSetsSr, SelectSr as SelectAnySr } from 'select-objects'
+import { Toggle } from 'form'
 
 import { isSrIso, isSrShared, isSrWritable } from '../'
 
@@ -14,6 +15,7 @@ const compareSrs = createCompare([isSrShared])
 
 export default class MigrateVdiModalBody extends Component {
   static propTypes = {
+    nSnapshots: PropTypes.number,
     pool: PropTypes.string.isRequired,
     resourceSet: PropTypes.object,
     warningBeforeMigrate: PropTypes.func.isRequired,
@@ -21,6 +23,10 @@ export default class MigrateVdiModalBody extends Component {
 
   get value() {
     return this.state
+  }
+
+  state = {
+    removeSnapshotsBeforeMigrating: false,
   }
 
   _getCompareContainers = createSelector(() => this.props.pool, createCompareContainers)
@@ -38,7 +44,7 @@ export default class MigrateVdiModalBody extends Component {
   )
 
   render() {
-    const { resourceSet } = this.props
+    const { nSnapshots, resourceSet } = this.props
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
     const SelectSr = resourceSet !== undefined ? SelectResourceSetsSr : SelectAnySr
     return (
@@ -54,6 +60,16 @@ export default class MigrateVdiModalBody extends Component {
               required
               resourceSet={resourceSet}
               value={this.state.sr}
+            />
+          </Col>
+        </SingleLineRow>
+        <SingleLineRow>
+          <Col size={6}>{_('vdiMigrateWithoutSnapshots')}</Col>
+          <Col size={6}>
+            <Toggle
+              disabled={nSnapshots === 0}
+              value={this.state.removeSnapshotsBeforeMigrating}
+              onChange={this.toggleState('removeSnapshotsBeforeMigrating')}
             />
           </Col>
         </SingleLineRow>

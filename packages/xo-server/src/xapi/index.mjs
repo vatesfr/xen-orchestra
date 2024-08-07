@@ -1035,12 +1035,22 @@ export default class Xapi extends XapiBase {
     return this.callAsync('VDI.clone', vdi.$ref)
   }
 
-  async moveVdi(vdiId, srId) {
+  async moveVdi(vdiId, srId, removeSnapshotsBeforeMigrating) {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
 
     if (vdi.SR === sr.$ref) {
       return vdi
+    }
+
+    if (removeSnapshotsBeforeMigrating) {
+      for (const vdiRef of vdi.snapshots) {
+        const vdi = this.getObject(vdiRef)
+        for (const vbdRef of vdi.VBDs) {
+          const vbd = this.getObject(vbdRef)
+          await this.VM_destroy(vbd.VM)
+        }
+      }
     }
 
     log.debug(`Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`)
