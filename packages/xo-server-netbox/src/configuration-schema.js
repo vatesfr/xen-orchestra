@@ -27,6 +27,15 @@ const configurationSchema = {
         $type: 'pool',
       },
     },
+    tags: {
+      type: 'array',
+      title: 'Ignored Tags',
+      description: 'Tags not to sync',
+      items: {
+        type: 'string',
+        $type: 'Tag'
+      }
+    },
     syncUsers: {
       type: 'boolean',
       title: 'Synchronize users',
