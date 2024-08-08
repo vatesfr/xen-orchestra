@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Settings] Default UI theme is now _auto_ instead of _dark_
+
 ## **0.2.7** (2024-07-31)
 
 - [Pool/Dashboard] Add missing translations for hosts and VMs statuses (PR [#7744](https://github.com/vatesfr/xen-orchestra/pull/7744))

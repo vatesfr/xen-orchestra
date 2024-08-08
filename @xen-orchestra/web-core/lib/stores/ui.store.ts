@@ -6,7 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 export const useUiStore = defineStore('ui', () => {
   const currentHostOpaqueRef = ref()
 
-  const { store: colorMode } = useColorMode({ initialValue: 'dark' })
+  const { store: colorMode } = useColorMode({ initialValue: 'auto' })
 
   const { desktop: isDesktop } = useBreakpoints({
     desktop: 1024,
