@@ -524,46 +524,39 @@ ${monitorBodies.join('\n')}`
                   })
                 }
 
-                let listItem
-                const maybeUpdateListItem = value => {
-                  if (listItem !== undefined) {
-                    return
+                const getListItem = () => {
+                  if (result.value === undefined) {
+                    return "**Can't read performance counters**"
                   }
 
-                  listItem = `  * ${result.objectLink}: ${value}\n`
-                }
+                  if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+                    const checkManagementAgent = (vm, guestMetrics) => {
+                      if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+                        return
+                      }
 
-                if (result.value === undefined) {
-                  maybeUpdateListItem("**Can't read performance counters**")
-                }
-
-                if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
-                  const checkManagementAgent = (vm, guestMetrics) => {
-                    if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
-                      return
+                      const { major, minor } = guestMetrics.PV_drivers_version
+                      const hasPvVersion = major !== undefined && minor !== undefined
+                      return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
                     }
 
-                    const { major, minor } = guestMetrics.PV_drivers_version
-                    const hasPvVersion = major !== undefined && minor !== undefined
-                    return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+                    const vm = result.object
+                    const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
+
+                    const managementAgentDetected = checkManagementAgent(vm, guestMetrics)
+
+                    if (managementAgentDetected === undefined) {
+                      return "**Can't read performance counters**"
+                    }
+                    if (managementAgentDetected === false) {
+                      return '**Guest tools must be installed**'
+                    }
                   }
 
-                  const vm = result.object
-                  const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
-
-                  const managementAgentDetected = checkManagementAgent(vm, guestMetrics)
-
-                  if (managementAgentDetected === undefined) {
-                    maybeUpdateListItem("**Can't read performance counters**")
-                  }
-                  if (managementAgentDetected === false) {
-                    maybeUpdateListItem('**Guest tools must be installed**')
-                  }
+                  return result.value?.toFixed(1) + typeFunction.unit
                 }
 
-                maybeUpdateListItem(result.value?.toFixed(1) + typeFunction.unit)
-
-                result.listItem = listItem
+                result.listItem = `  * ${result.objectLink}: ${getListItem()}\n`
 
                 return result
               } catch (error) {
