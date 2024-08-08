@@ -36,6 +36,7 @@ import UiIcon from '@core/components/icon/UiIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { stringifyColumnName, type InteractionId } from '@core/utils/interactive-table.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faArrowDown, faArrowUp, faEyeSlash, faFilter, faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/core'
@@ -43,7 +44,6 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-type InteractionId = 'sort-asc' | 'sort-desc' | 'group' | 'filter' | 'hide'
 type Interaction = {
   disabled?: boolean
   id: InteractionId
@@ -67,8 +67,8 @@ const { t } = useI18n()
 const router = useRouter()
 
 const interactions = computed<Interaction[]>(() => [
-  { id: 'sort-asc', icon: faArrowDown, label: t('core.sort.ascending'), disabled: true },
-  { id: 'sort-desc', icon: faArrowUp, label: t('core.sort.descending'), disabled: true },
+  { id: 'sort-asc', icon: faArrowDown, label: t('core.sort.ascending') },
+  { id: 'sort-desc', icon: faArrowUp, label: t('core.sort.descending') },
   { id: 'group', icon: faLayerGroup, label: t('core.group'), disabled: true },
   { id: 'filter', icon: faFilter, label: t('core.filter'), disabled: true },
   { id: 'hide', icon: faEyeSlash, label: t('core.hide'), disabled: true },
@@ -80,7 +80,7 @@ const currentInteraction = computed(() =>
   interactions.value.find(interaction => router.currentRoute.value.query[columnName] === interaction.id)
 )
 
-const columnName = `${tableName}__${props.id}`
+const columnName = stringifyColumnName(tableName, props.id)
 
 const updateInteraction = (interaction: Interaction) => {
   router.replace({
