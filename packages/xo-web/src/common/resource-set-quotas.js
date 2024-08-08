@@ -110,7 +110,7 @@ export default class ResourceSetQuotas extends Component {
                               usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
                             })
                           : _('resourceSetQuota', {
-                              total: formatSize(quota.total),
+                              total: validFormat ? quota.total?.toString() : formatSize(quota.total),
                               usage: validFormat ? quota.usage?.toString() : formatSize(quota.usage),
                             })}
                       </p>

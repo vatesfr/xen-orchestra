@@ -2151,8 +2151,8 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: '社区版本没有可用的升级',
 
-  // Original text: "Please consider subscribe and try it with all features for free during 15 days on"
-  noUpdaterSubscribe: '请考虑订购或在15天内免费试用所有功能',
+  // Original text: "Please consider subscribe and try it with all features for free during 30 days on"
+  noUpdaterSubscribe: '请考虑订购或在30天内免费试用所有功能',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning: '由于相关依赖关系的问题，手动更新将跑坏你当前的安全，请小心使用',

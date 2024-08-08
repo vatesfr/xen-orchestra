@@ -3295,7 +3295,7 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: 'Ingen uppgraderare tillgänglig för Community Edition',
 
-  // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}.""
+  // Original text: "Please consider subscribe and try it with all features for free during 30 days on {link}.""
   considerSubscribe:
     'Vänligen överväg att prenumera och testa gratis med alla funktioner på {link}',
 

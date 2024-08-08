@@ -5965,9 +5965,9 @@ export default {
   // Original text: 'Downgrade'
   downgrade: undefined,
 
-  // Original text: "Please consider subscribing and trying it with all the features for free during 15 days on {link}."
+  // Original text: "Please consider subscribing and trying it with all the features for free during 30 days on {link}."
   considerSubscribe:
-    'Пожалуйста, рассмотрите возможность подписки и попробуйте все функции бесплатно в течение 15 дней на {link}.',
+    'Пожалуйста, рассмотрите возможность подписки и попробуйте все функции бесплатно в течение 30 дней на {link}.',
 
   // Original text: "Current version:"
   currentVersion: 'Текущая версия:',

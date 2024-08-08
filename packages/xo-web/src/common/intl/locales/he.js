@@ -2831,7 +2831,7 @@ export default {
   // Original text: 'No updater available for Community Edition'
   noUpdaterCommunity: undefined,
 
-  // Original text: 'Please consider subscribe and try it with all features for free during 15 days on'
+  // Original text: 'Please consider subscribe and try it with all features for free during 30 days on'
   noUpdaterSubscribe: undefined,
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
