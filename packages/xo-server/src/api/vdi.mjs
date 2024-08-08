@@ -107,7 +107,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate({ vdi, sr, resourceSet }) {
+export async function migrate({ vdi, sr, removeSnapshotsBeforeMigrating, resourceSet }) {
   const xapi = this.getXapi(vdi)
 
   if (this.apiContext.permission !== 'admin') {
@@ -118,13 +118,14 @@ export async function migrate({ vdi, sr, resourceSet }) {
     }
   }
 
-  await xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
+  await xapi.moveVdi(vdi._xapiRef, sr._xapiRef, removeSnapshotsBeforeMigrating)
 
   return true
 }
 
 migrate.params = {
   id: { type: 'string' },
+  removeSnapshotsBeforeMigrating: { type: 'boolean', default: false },
   resourceSet: { type: 'string', optional: true },
   sr_id: { type: 'string' },
 }

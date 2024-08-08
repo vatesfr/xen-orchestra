@@ -1328,6 +1328,7 @@ const messages = {
   vdiMigrateSelectSr: 'Destination SR:',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
+  vdiMigrateWithoutSnapshots: 'Delete snapshots before migrate?',
   vdiForget: 'Forget',
   noControlDomainVdis: 'No VDIs attached to control domain',
   vbdBootableStatus: 'Boot flag',

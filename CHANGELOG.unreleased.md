@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Add backup repository information in the `/rest/v0/dashboard` endpoint (PR [#7882](https://github.com/vatesfr/xen-orchestra/pull/7882))
+- [VM/Disks] Allow user to delete snapshots before migrating VDI [#7275](https://github.com/vatesfr/xen-orchestra/issues/7275) (PR [#7903](https://github.com/vatesfr/xen-orchestra/pull/7903))
 
 ### Bug fixes
 
@@ -36,8 +37,9 @@
 
 <!--packages-start-->
 
+
 - @xen-orchestra/proxy patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
