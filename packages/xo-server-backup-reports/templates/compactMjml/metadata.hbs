@@ -1,0 +1,40 @@
+<mjml>
+  {{>mjmlHeaders}}
+  <mj-body background-color="#1A1B38">
+    <mj-wrapper background-color="#1A1B38">
+      <mj-section padding="0 0 10px 0"> </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text align="center" font-size="32px" font-weight="500" padding="0px" font-size="18px" line-height="24px"
+            >Metadata backup report</mj-text
+          >
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="80%">
+          <mj-divider border-width="2px" padding-top="25px"></mj-divider>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+            <h1>Global status : {{log.status}} {{getIcon log.status}}</h1>
+            <ul>
+              <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
+              <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
+              <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
+              {{>reportTemporalData end=log.end start=log.start}} {{#if log.tasks.length}}
+              <li>
+                <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.length ~}}
+                {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
+              </li>
+              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
+            </ul>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+    {{>mjmlFooter}}
+    </mj-wrapper>
+  </mj-body>
+</mjml>

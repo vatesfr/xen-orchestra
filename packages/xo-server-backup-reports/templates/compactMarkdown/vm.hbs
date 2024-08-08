@@ -1,0 +1,20 @@
+## Global status: {{{log.status}}}
+
+- **Job ID**: {{{log.jobId}}}
+- **Run ID**: {{{log.id}}}
+- **Mode**: {{{log.data.mode}}}
+{{>reportTemporalData end=log.end start=log.start}}
+{{#if log.tasks}}
+- **Successes**: {{{tasksByStatus.success.count}}} / {{{tasksByStatus.vmTasks.count}}}
+{{#if globalTransferSize}}
+- **Transfer size**: {{formatSize globalTransferSize}}
+{{/if}}
+{{#if globalMergeSize}}
+- **Merge size**: {{formatSize globalMergeSize}}
+{{/if}}
+{{else}}
+{{>reportError task=log}}
+{{/if}}
+{{>reportWarnings task=log}}
+---
+*{{{pkg.name}}} v{{{pkg.version}}}*
