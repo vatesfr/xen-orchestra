@@ -190,6 +190,7 @@ class BackupReportsXoPlugin {
 
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$metadata(context))),
+      ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$metadata(context))),
       ...(await templates.mjml.transform(templates.mjml.$metadata(context))),
       mailReceivers,
       subject: templates.mjml.$metadataSubject(context),
@@ -369,6 +370,7 @@ class BackupReportsXoPlugin {
 
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$vm(context))),
+      ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$vm(context))),
       ...(await templates.mjml.transform(templates.mjml.$vm(context))),
       mailReceivers,
       subject: templates.mjml.$vmSubject(context),
@@ -376,7 +378,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _sendReport({ mailReceivers, markdown, html, subject, success }) {
+  async _sendReport({ mailReceivers, markdown, compactMarkdown, html, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -397,16 +399,16 @@ class BackupReportsXoPlugin {
           ? Promise.reject(new Error('transport-xmpp plugin not enabled'))
           : xo.sendToXmppClient({
               to: this._xmppReceivers,
-              message: markdown,
+              message: compactMarkdown,
             })),
       xo.sendSlackMessage !== undefined &&
         xo.sendSlackMessage({
-          message: markdown,
+          message: compactMarkdown,
         }),
       xo.sendIcinga2Status !== undefined &&
         xo.sendIcinga2Status({
           status: success ? 'OK' : 'CRITICAL',
-          message: markdown,
+          message: compactMarkdown,
         }),
     ]
 
