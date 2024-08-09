@@ -329,8 +329,8 @@ async function _getDashboardStats(app) {
     dashboard.backups = {
       jobs: {
         disabled: disabledJobs,
-        successful: successfulJobs,
         failed: failedJobs,
+        successful: successfulJobs,
         total: jobs.length,
       },
     }
