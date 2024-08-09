@@ -8,3 +8,7 @@
 4. Start the project: `yarn dev`
 5. Generate a token from your XO 5 instance
 6. Go to http://localhost:5173/#/dev/token and paste the token
+
+## Guidelines
+
+Please follow the guidelines from the `@xen-orchestra/web-core/guidelines` directory.
