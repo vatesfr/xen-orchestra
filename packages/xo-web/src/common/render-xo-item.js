@@ -14,6 +14,15 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
+import {
+  isCrBackup,
+  isDeltaBackup,
+  isDrBackup,
+  isFullBackup,
+  isPoolMetadataBackup,
+  isRollingSnapshotBackup,
+  isXoConfigBackup,
+} from './xo/utils'
 
 // ===================================================================
 
@@ -697,7 +706,56 @@ const xoItemToRender = {
     )
   },
   job: job => <spans>{job.name}</spans>,
+
+  backupJob: backupJob => {
+    const labels = []
+
+    if (isFullBackup(backupJob)) {
+      labels.push(_('fullBackup'))
+    } else if (isDeltaBackup(backupJob)) {
+      labels.push(_('incrementalBackup'))
+    }
+
+    if (isDrBackup(backupJob)) {
+      labels.push(_('fullReplication'))
+    } else if (isCrBackup(backupJob)) {
+      labels.push(_('incrementalReplication'))
+    }
+
+    if (isRollingSnapshotBackup(backupJob)) {
+      labels.push(_('rollingSnapshot'))
+    }
+
+    return <BackupJobSelect backupJob={backupJob} labels={labels} />
+  },
+  metadataBackup: backupJob => {
+    const labels = []
+    if (isPoolMetadataBackup(backupJob)) {
+      labels.push(_('poolMetadata'))
+    }
+    if (isXoConfigBackup(backupJob)) {
+      labels.push(_('xoConfig'))
+    }
+    return <BackupJobSelect backupJob={backupJob} labels={labels} />
+  },
+  mirrorBackup: backupJob => (
+    <BackupJobSelect
+      backupJob={backupJob}
+      labels={[_(backupJob.mode === 'delta' ? 'mirrorIncrementalBackup' : 'mirrorFullBackup')]}
+    />
+  ),
 }
+
+const BackupJobSelect = ({ backupJob, labels }) => (
+  <span>
+    <span>{backupJob.name}</span>
+    {labels.map((label, index) => (
+      <span key={index} className='tag tag-info ml-1'>
+        {label}
+      </span>
+    ))}
+  </span>
+)
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
   const { id, label } = item
