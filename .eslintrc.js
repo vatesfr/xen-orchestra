@@ -138,6 +138,7 @@ module.exports = {
         'vue/no-v-html': 'error',
         'vue/this-in-template': 'error',
         // Vue 3 - Uncategorized
+        'vue/block-lang': ['error', { script: { lang: 'ts' }, style: { lang: 'postcss' } }],
         'vue/block-order': ['error', { order: ['template', 'script', 'style'] }],
         'vue/block-tag-newline': ['error', { singleline: 'consistent', multiline: 'always', maxEmptyLines: 0 }],
         'vue/component-api-style': ['error', ['script-setup']],

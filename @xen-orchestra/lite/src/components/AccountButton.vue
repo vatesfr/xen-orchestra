@@ -46,7 +46,7 @@ const openFeedbackUrl = () => {
 const openSettings = () => router.push({ name: 'settings' })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .account-button {
   display: flex;
   align-items: center;
