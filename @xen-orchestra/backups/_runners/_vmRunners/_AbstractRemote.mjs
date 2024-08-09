@@ -2,11 +2,13 @@ import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Disposable } from 'promise-toolbox'
+import { createPredicate } from 'value-matcher'
 
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
+import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   constructor({
@@ -59,37 +61,52 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     })
   }
 
-  async _computeTransferList(predicate) {
-    const vmBackups = await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, predicate)
+  async _computeTransferList(vmPredicate) {
+    const vmBackups = Object.values(await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
     const localMetada = new Map()
-    Object.values(vmBackups).forEach(metadata => {
+    vmBackups.forEach(metadata => {
       const timestamp = metadata.timestamp
       localMetada.set(timestamp, metadata)
     })
+    if (localMetada.size === 0 && vmBackups.length > 0) {
+      Task.info('none of the backups passed the filter')
+    }
     const nbRemotes = Object.keys(this.remoteAdapters).length
     const remoteMetadatas = {}
     await asyncEach(Object.values(this.remoteAdapters), async remoteAdapter => {
-      const remoteMetadata = await remoteAdapter.listVmBackups(this._vmUuid, predicate)
+      const remoteMetadata = await remoteAdapter.listVmBackups(this._vmUuid, vmPredicate)
       remoteMetadata.forEach(metadata => {
         const timestamp = metadata.timestamp
         remoteMetadatas[timestamp] = (remoteMetadatas[timestamp] ?? 0) + 1
       })
     })
 
-    let chain = []
+    let transferList = []
     const timestamps = [...localMetada.keys()]
     timestamps.sort()
     for (const timestamp of timestamps) {
       if (remoteMetadatas[timestamp] !== nbRemotes) {
         // this backup is not present in all the remote
         // should be retransfered if not found later
-        chain.push(localMetada.get(timestamp))
+        transferList.push(localMetada.get(timestamp))
       } else {
         // backup is present in local and remote : the chain has already been transferred
-        chain = []
+        transferList = []
       }
     }
-    return chain
+    if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
+      return transferList
+    }
+    return []
+  }
+
+  async _shouldTransferBackup(vmBackupMetadata) {
+    const { filter } = this._settings
+    if (filter === undefined) {
+      return true
+    }
+    const predicate = createPredicate(filter)
+    return predicate(vmBackupMetadata)
   }
 
   async run($defer) {
