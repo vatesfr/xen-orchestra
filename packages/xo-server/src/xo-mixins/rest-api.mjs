@@ -8,6 +8,7 @@ import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
+import groupBy from 'lodash/groupBy.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
@@ -260,6 +261,82 @@ async function _getDashboardStats(app) {
   storageRepositoriesSize.replicated = 0 // @TODO: compute the space used by replicated VMs
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
+
+  async function _jobHasAtLeastOneScheduleEnabled(job) {
+    for (const maybeScheduleId in job.settings) {
+      if (maybeScheduleId === '') {
+        continue
+      }
+
+      const schedule = await app.getSchedule(maybeScheduleId)
+      if (schedule.enabled) {
+        return true
+      }
+    }
+    return false
+  }
+
+  try {
+    const [logs, jobs] = await Promise.all([
+      app.getBackupNgLogsSorted({
+        filter: log => log.message === 'backup' || log.message === 'metadata',
+      }),
+      Promise.all([app.getAllJobs('backup'), app.getAllJobs('mirrorBackup'), app.getAllJobs('metadataBackup')]).then(
+        jobs => jobs.flat(1)
+      ),
+    ])
+    const logsByJob = groupBy(logs, 'jobId')
+
+    let disabledJobs = 0
+    let failedJobs = 0
+    let successfulJobs = 0
+    for (const job of jobs) {
+      if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+        disabledJobs++
+        continue
+      }
+
+      const jobLogs = logsByJob[job.id]
+      if (jobLogs === undefined || jobLogs.length === 0) {
+        continue
+      }
+
+      let consecutiveSuccesses = 0
+      const maxConsecutiveSuccesses = Math.min(jobLogs.length, 3)
+      // Start from the end to get the most recent logs first
+      for (let i = jobLogs.length - 1; i >= 0; i--) {
+        const { status } = jobLogs[i]
+
+        if (status === 'failure' || status === 'interrupted') {
+          failedJobs++
+          break
+        }
+
+        if (status === 'success' && ++consecutiveSuccesses === maxConsecutiveSuccesses) {
+          successfulJobs++
+          break
+        }
+
+        // If we are at the end of the iteration and there were successes, but not enough to meet the required number
+        // of consecutive successes, we still consider the job successful.
+        // E.g [{ ..., status: 'skipped' }, { ..., 'status:'success' }]
+        if (i === 0 && consecutiveSuccesses > 0) {
+          successfulJobs++
+        }
+      }
+    }
+
+    dashboard.backups = {
+      jobs: {
+        disabled: disabledJobs,
+        successful: successfulJobs,
+        failed: failedJobs,
+        total: jobs.length,
+      },
+    }
+  } catch (error) {
+    console.error(error)
+  }
 
   dashboard.alarms = alarms.reduce((acc, { $object, body, time }) => {
     try {
