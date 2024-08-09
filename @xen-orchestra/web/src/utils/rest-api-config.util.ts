@@ -17,4 +17,8 @@ export const restApiConfig: Record<XoObjectType, { path: string; fields: string 
     path: 'tasks',
     fields: 'id,start,end,properties,status,progress,tasks',
   },
+  server: {
+    path: 'servers',
+    fields: 'allowUnauthorized,enabled,host,id,label,readOnly,type,username,status,poolId,error',
+  },
 }
