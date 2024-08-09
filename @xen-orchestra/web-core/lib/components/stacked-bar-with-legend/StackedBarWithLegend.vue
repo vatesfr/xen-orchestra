@@ -34,7 +34,7 @@ defineProps<StackedBarWithLegendProps>()
 const uiStore = useUiStore()
 </script>
 
-<style scoped lang="scss">
+<style scoped lang="postcss">
 .stacked-bar-with-legend {
   display: flex;
   flex-direction: column;
