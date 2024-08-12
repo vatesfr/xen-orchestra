@@ -7,7 +7,7 @@ import throttle from 'lodash/throttle.js'
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
-import { forEach, parseXml } from '../utils.mjs'
+import { forEach, isSrWritable, parseXml } from '../utils.mjs'
 
 // ===================================================================
 
@@ -926,7 +926,7 @@ probeNfsExists.resolve = {
 export const getAllUnhealthyVdiChainsLength = throttle(
   function getAllUnhealthyVdiChainsLength() {
     const unhealthyVdiChainsLengthBySr = {}
-    filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
+    filter(this.objects.all, obj => obj.type === 'SR' && isSrWritable(obj)).forEach(sr => {
       const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
       if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
         unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
