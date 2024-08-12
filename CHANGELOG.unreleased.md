@@ -19,7 +19,7 @@
 
 - [Self] Remove unit in CPU usage total count (PR [#7894](https://github.com/vatesfr/xen-orchestra/pull/7894))
 - [Home/SR] Fix _Shared/Not shared_ sort
-- [Import/VM Ware] When selecting a pool target, user must not be able to select a storage or network from another pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
+- [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
 
 ### Packages to release
 
@@ -39,6 +39,6 @@
 
 - @xen-orchestra/proxy patch
 - xo-server minor
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
