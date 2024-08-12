@@ -289,6 +289,7 @@ async function _getDashboardStats(app) {
 
     let disabledJobs = 0
     let failedJobs = 0
+    let skippedJobs = 0
     let successfulJobs = 0
     for (const job of jobs) {
       if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
@@ -296,31 +297,26 @@ async function _getDashboardStats(app) {
         continue
       }
 
-      const jobLogs = logsByJob[job.id]
+      const jobLogs = logsByJob[job.id]?.slice(-3)
       if (jobLogs === undefined || jobLogs.length === 0) {
         continue
       }
 
-      let consecutiveSuccesses = 0
-      const maxConsecutiveSuccesses = Math.min(jobLogs.length, 3)
-      // Start from the end to get the most recent logs first
-      for (let i = jobLogs.length - 1; i >= 0; i--) {
+      for (let i = 0; i < jobLogs.length; i++) {
         const { status } = jobLogs[i]
+        const isLastElement = i === jobLogs.length - 1
 
-        if (status === 'failure' || status === 'interrupted') {
-          failedJobs++
+        if (status !== 'success') {
+          if (status === 'failure' || status === 'interrupted') {
+            failedJobs++
+          } else if (status === 'skipped') {
+            skippedJobs++
+          }
+
           break
         }
 
-        if (status === 'success' && ++consecutiveSuccesses === maxConsecutiveSuccesses) {
-          successfulJobs++
-          break
-        }
-
-        // If we are at the end of the iteration and there were successes, but not enough to meet the required number
-        // of consecutive successes, we still consider the job successful.
-        // E.g [{ ..., status: 'skipped' }, { ..., 'status:'success' }]
-        if (i === 0 && consecutiveSuccesses > 0) {
+        if (isLastElement) {
           successfulJobs++
         }
       }
@@ -330,6 +326,7 @@ async function _getDashboardStats(app) {
       jobs: {
         disabled: disabledJobs,
         failed: failedJobs,
+        skipped: skippedJobs,
         successful: successfulJobs,
         total: jobs.length,
       },
