@@ -1,5 +1,6 @@
 <template>
   <div class="site-dashboard">
+    <PoolsStatus class="pools-status" />
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
   </div>
@@ -7,6 +8,7 @@
 
 <script lang="ts" setup>
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
+import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 </script>
 
@@ -21,6 +23,10 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
     'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
     'alarms alarms alarms alarms alarms alarms alarms patches';
+}
+
+.pools-status {
+  grid-area: pools-status;
 }
 
 .hosts-status {

@@ -13,6 +13,13 @@
   "n-hosts": "1 hôte | {n} hôtes",
   "no-results": "Aucun résultat",
 
+  "pools-status": "Statut des pools",
+  "pools-status.connected": "Connectés",
+  "pools-status.unreachable": "Injoignables",
+  "pools-status.unreachable.tooltip": "Serveurs configurés mais non joignables",
+  "pools-status.unknown": "Inconnu",
+  "pools-status.unknown.tooltip": "Serveurs en cours de connexion ou dans un état inconnu",
+
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",
 
