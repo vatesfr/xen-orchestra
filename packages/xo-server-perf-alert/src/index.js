@@ -171,6 +171,15 @@ export const configurationSchema = {
             description: 'When enabled, all running hosts will be considered for the alert.',
             default: false,
           },
+          excludeUuids: {
+            description: 'List of hosts to exclude. Can be combined with "All running hosts"',
+            title: 'Exclude hosts',
+            type: 'array',
+            items: {
+              type: 'string',
+              $type: 'Host',
+            },
+          },
           uuids: {
             title: 'Hosts',
             type: 'array',
@@ -206,12 +215,20 @@ export const configurationSchema = {
         },
         oneOf: [
           {
-            properties: { uuids: {} },
+            properties: { uuids: {}, excludeUuids: { not: {} }, smartMode: { not: {} } },
             required: ['uuids'],
           },
           {
-            properties: { smartMode: { const: true } },
+            properties: { smartMode: { const: true }, excludeUuids: { not: {} }, uuids: { not: {} } },
             required: ['smartMode'],
+          },
+          {
+            properties: { excludeUuids: {}, smartMode: { not: {} }, uuids: { not: {} } },
+            required: ['excludeUuids'],
+          },
+          {
+            properties: { excludeUuids: {}, smartMode: { const: true }, uuids: { not: {} } },
+            required: ['smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -230,6 +247,15 @@ export const configurationSchema = {
             type: 'boolean',
             description: 'When enabled, all running VMs will be considered for the alert.',
             default: false,
+          },
+          excludeUuids: {
+            description: 'List of VMs to exclude. Can be combined with "All running VMs"',
+            title: 'Exclude VMs',
+            type: 'array',
+            items: {
+              type: 'string',
+              $type: 'VM',
+            },
           },
           uuids: {
             title: 'Virtual Machines',
@@ -266,12 +292,20 @@ export const configurationSchema = {
         },
         oneOf: [
           {
-            properties: { uuids: {} },
+            properties: { uuids: {}, excludeUuids: { not: {} }, smartMode: { not: {} } },
             required: ['uuids'],
           },
           {
-            properties: { smartMode: { const: true } },
+            properties: { smartMode: { const: true }, excludeUuids: { not: {} }, uuids: { not: {} } },
             required: ['smartMode'],
+          },
+          {
+            properties: { excludeUuids: {}, smartMode: { not: {} }, uuids: { not: {} } },
+            required: ['excludeUuids'],
+          },
+          {
+            properties: { excludeUuids: {}, smartMode: { const: true }, uuids: { not: {} } },
+            required: ['smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -290,6 +324,15 @@ export const configurationSchema = {
             type: 'boolean',
             description: 'When enabled, all SRs will be considered for the alert.',
             default: false,
+          },
+          excludeUuids: {
+            description: 'List of SRs to exclude',
+            title: 'Exclude SRs',
+            type: 'array',
+            items: {
+              type: 'string',
+              $type: 'SR',
+            },
           },
           uuids: {
             title: 'SRs',
@@ -318,12 +361,20 @@ export const configurationSchema = {
         },
         oneOf: [
           {
-            properties: { uuids: {} },
+            properties: { uuids: {}, excludeUuids: { not: {} }, smartMode: { not: {} } },
             required: ['uuids'],
           },
           {
-            properties: { smartMode: { const: true } },
+            properties: { smartMode: { const: true }, excludeUuids: { not: {} }, uuids: { not: {} } },
             required: ['smartMode'],
+          },
+          {
+            properties: { excludeUuids: {}, smartMode: { not: {} }, uuids: { not: {} } },
+            required: ['excludeUuids'],
+          },
+          {
+            properties: { smartMode: { const: true }, excludeUuids: {}, uuids: { not: {} } },
+            required: ['smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -478,13 +529,23 @@ ${monitorBodies.join('\n')}`
       snapshot: async () => {
         return Promise.all(
           map(
-            definition.smartMode
-              ? filter(
-                  this._xo.getObjects(),
-                  obj =>
-                    obj.type === objectType &&
-                    ((objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running')
-                ).map(obj => obj.uuid)
+            definition.smartMode || definition.excludeUuids
+              ? filter(this._xo.getObjects(), obj => {
+                  if (obj.type !== objectType) {
+                    return false
+                  }
+
+                  let shouldKeepThisObj = true
+                  if (definition.smartMode) {
+                    shouldKeepThisObj = (objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running'
+                  }
+
+                  if (definition.excludeUuids !== undefined && shouldKeepThisObj) {
+                    shouldKeepThisObj = !definition.excludeUuids.includes(obj.uuid)
+                  }
+
+                  return shouldKeepThisObj
+                })
               : definition.uuids,
             async uuid => {
               try {
