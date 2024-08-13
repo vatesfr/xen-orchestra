@@ -559,13 +559,13 @@ export class Xapi extends EventEmitter {
             maxRedirects: 0,
           }).then(
             response => {
-              response.destroy()
+              response?.on('error', noop).destroy()
               return doRequest(url)
             },
             async error => {
               let response
               if (error != null && (response = error.response) != null) {
-                response.destroy()
+                response?.on('error', noop).destroy()
 
                 const {
                   headers: { location },
