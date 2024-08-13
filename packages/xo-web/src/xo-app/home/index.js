@@ -221,6 +221,9 @@ const OPTIONS = {
       {
         labelId: 'homeSortByStartTime',
         sortBy: 'startTime',
+
+        // move VM with no start time at the end
+        sortByFn: ({ startTime }) => (startTime === null ? -Infinity : startTime),
         sortOrder: 'desc',
       },
     ],
