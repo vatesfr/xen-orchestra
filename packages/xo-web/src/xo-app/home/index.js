@@ -229,6 +229,7 @@ const OPTIONS = {
       {
         labelId: 'homeSortByInstallTime',
         sortBy: 'installTime',
+        sortByFn: ({ installTime }) => (installTime === null ? -Infinity : installTime),
         sortOrder: 'desc',
       },
     ],
