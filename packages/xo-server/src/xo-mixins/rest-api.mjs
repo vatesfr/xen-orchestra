@@ -21,7 +21,7 @@ import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX =
-  /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"\/>\s*<alarm_trigger_level value="(\d+(?:\.\d+)?)"\/>\s*<alarm_trigger_period value\s*="(\d+)"/
+  /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -263,8 +263,8 @@ async function _getDashboardStats(app) {
   dashboard.storageRepositories = { size: storageRepositoriesSize }
 
   dashboard.alarms = await Promise.all(
-    alarms.map(async ({ $object, body }) => {
-      const [, value, name, triggerLevel, triggerPeriod] = body.match(ALARM_BODY_REGEX)
+    alarms.map(async ({ $object, body, time }) => {
+      const [, value, name] = body.match(ALARM_BODY_REGEX)
 
       let object
       try {
@@ -283,8 +283,7 @@ async function _getDashboardStats(app) {
           type: object.type,
           uuid: object.uuid,
         },
-        triggerLevel: parseFloat(triggerLevel),
-        triggerPeriod: parseInt(triggerPeriod),
+        timestamp: time,
         value: parseFloat(value),
       }
     })
