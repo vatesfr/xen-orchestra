@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import PoolTreeItem from '@/components/tree/PoolTreeItem.vue'
-import type { PoolBranch } from '@/types/pool.type'
+import type { PoolBranch } from '@/types/tree.type'
 import TreeList from '@core/components/tree/TreeList.vue'
 
 defineProps<{

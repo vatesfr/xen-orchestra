@@ -17,7 +17,7 @@
 <script lang="ts" setup>
 import VmTreeList from '@/components/tree/VmTreeList.vue'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { HostBranch } from '@/types/host.type'
+import type { HostBranch } from '@/types/tree.type'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'

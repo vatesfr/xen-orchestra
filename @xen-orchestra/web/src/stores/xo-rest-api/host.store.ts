@@ -1,6 +1,6 @@
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import type { Host } from '@/types/host.type'
-import type { RecordId } from '@/types/xo-object.type'
+import type { XoHost } from '@/types/xo/host.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
@@ -16,11 +16,10 @@ export const useHostStore = defineStore('host', () => {
     sortBy: sortByNameLabel,
   })
 
-  const isMasterHost = (hostId: RecordId<'host'>) =>
-    !!deps.poolStore.$context.records.find(pool => pool.master === hostId)
+  const isMasterHost = (hostId: XoHost['id']) => !!deps.poolStore.$context.records.find(pool => pool.master === hostId)
 
   const hostsByPool = computed(() => {
-    const hostsByPoolMap = new Map<RecordId<'pool'>, Host[]>()
+    const hostsByPoolMap = new Map<XoPool['id'], XoHost[]>()
 
     baseContext.records.value.forEach(host => {
       const poolId = host.$pool

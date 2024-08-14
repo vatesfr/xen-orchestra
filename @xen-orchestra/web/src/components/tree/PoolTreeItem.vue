@@ -15,9 +15,7 @@
 <script lang="ts" setup>
 import HostTreeList from '@/components/tree/HostTreeList.vue'
 import VmTreeList from '@/components/tree/VmTreeList.vue'
-import type { HostBranch } from '@/types/host.type'
-import type { PoolBranch } from '@/types/pool.type'
-import type { VmLeaf } from '@/types/vm.type'
+import type { HostBranch, PoolBranch, VmLeaf } from '@/types/tree.type'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'

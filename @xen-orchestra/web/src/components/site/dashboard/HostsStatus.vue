@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { HOST_POWER_STATE } from '@/types/host.type'
+import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'

@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { Pool } from '@/types/pool.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import type { VmState } from '@core/types/object-icon.type'
 import CellObject from '@core/components/cell-object/CellObject.vue'
 import CellText from '@core/components/cell-text/CellText.vue'
@@ -45,7 +45,7 @@ import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  pool: Pool
+  pool: XoPool
 }>()
 
 const { isReady, records } = useVmStore().subscribe()
