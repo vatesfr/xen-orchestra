@@ -291,6 +291,8 @@ async function _getDashboardStats(app) {
     let failedJobs = 0
     let skippedJobs = 0
     let successfulJobs = 0
+    const backupJobIssues = []
+
     for (const job of jobs) {
       if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
         disabledJobs++
@@ -313,6 +315,8 @@ async function _getDashboardStats(app) {
             skippedJobs++
           }
 
+          backupJobIssues.push({ uuid: job.id, logs: jobLogs.map(log => log.status) })
+
           break
         }
 
@@ -330,6 +334,7 @@ async function _getDashboardStats(app) {
         successful: successfulJobs,
         total: jobs.length,
       },
+      issues: backupJobIssues,
     }
   } catch (error) {
     console.error(error)
