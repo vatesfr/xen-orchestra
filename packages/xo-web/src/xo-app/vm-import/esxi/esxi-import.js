@@ -56,12 +56,12 @@ class EsxiImport extends Component {
   )
 
   _getNetworkPredicate = createSelector(
-    () => this.props.pool?.id,
+    () => this.state.pool?.id,
     poolId => (poolId === undefined ? undefined : network => network.$poolId === poolId)
   )
 
   _getSrPredicate = createSelector(
-    () => this.props.pool?.id,
+    () => this.state.pool?.id,
     poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
 

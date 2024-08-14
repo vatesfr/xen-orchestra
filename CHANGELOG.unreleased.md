@@ -21,6 +21,7 @@
 - [Self] Remove unit in CPU usage total count (PR [#7894](https://github.com/vatesfr/xen-orchestra/pull/7894))
 - [Home/SR] Fix _Shared/Not shared_ sort
 - [Home/VM] When sorted by _Start time_, move VMs with no value at the end
+- [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
 
 ### Packages to release
 
