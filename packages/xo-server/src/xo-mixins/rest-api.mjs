@@ -16,7 +16,7 @@ import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
-import { getUserPublicProperties } from '../utils.mjs'
+import { getUserPublicProperties, isSrWritable } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
 const { join } = path.posix
@@ -168,6 +168,7 @@ async function _getDashboardStats(app) {
 
   const poolIds = new Set()
   const hosts = []
+  const writableSrs = []
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
@@ -175,6 +176,12 @@ async function _getDashboardStats(app) {
       poolIds.add(obj.$pool)
       if (hvSupportedVersions !== undefined && !semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
         nHostsEol++
+      }
+    }
+
+    if (obj.type === 'SR') {
+      if (isSrWritable(obj)) {
+        writableSrs.push(obj)
       }
     }
   }
@@ -229,6 +236,22 @@ async function _getDashboardStats(app) {
   } catch (error) {
     console.error(error)
   }
+
+  const storageRepositoriesSize = writableSrs.reduce(
+    (prev, sr) => ({
+      total: prev.total + sr.size,
+      used: prev.used + sr.physical_usage,
+    }),
+    {
+      total: 0,
+      used: 0,
+    }
+  )
+  storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
+  storageRepositoriesSize.other = 0 // @TODO: compute the space used by everything that is not a replicated VM
+  storageRepositoriesSize.replicated = 0 // @TODO: compute the space used by replicated VMs
+
+  dashboard.storageRepositories = { size: storageRepositoriesSize }
 
   return dashboard
 }

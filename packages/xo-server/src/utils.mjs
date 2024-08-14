@@ -336,3 +336,7 @@ export const unboxIdsFromPattern = pattern => {
   const { id } = pattern
   return typeof id === 'string' ? [id] : id.__or
 }
+
+// -------------------------------------------------------------------
+
+export const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0

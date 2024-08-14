@@ -8,7 +8,7 @@
         .obj()
         .help('Array of objects with value and color properties')
         .widget(),
-      prop('max-value').preset(100).type('number').widget().help('Maximum value for the progress bar'),
+      prop('max-value').preset(100).type('number').widget().help('Maximum value for the stacked bar'),
     ]"
   >
     <StackedBar v-bind="properties" />
@@ -21,9 +21,9 @@ import { prop } from '@/libs/story/story-param'
 import StackedBar from '@core/components/stacked-bar/StackedBar.vue'
 
 const segments = [
-  { value: 30, color: 'success' },
-  { value: 20, color: 'info' },
+  { value: 30, color: 'primary' },
+  { value: 20, color: 'success' },
   { value: 10, color: 'warning' },
-  { value: 3, color: 'error' },
+  { value: 3, color: 'danger' },
 ]
 </script>

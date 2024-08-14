@@ -1,10 +1,14 @@
 <template>
-  <ul class="legend-list">
+  <ul class="legend-list" :class="{ horizontal }">
     <slot />
   </ul>
 </template>
 
 <script lang="ts" setup>
+defineProps<{
+  horizontal?: boolean
+}>()
+
 defineSlots<{
   default(): void
 }>()
@@ -15,5 +19,10 @@ defineSlots<{
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+
+  &.horizontal {
+    flex-direction: row;
+    gap: 4rem;
+  }
 }
 </style>

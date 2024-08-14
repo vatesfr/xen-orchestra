@@ -61,9 +61,7 @@ const clearVncClient = () => {
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
 
-  if (vncClient._rfbConnectionState !== 'disconnected') {
-    vncClient.disconnect()
-  }
+  vncClient.disconnect()
 
   vncClient = undefined
 }

@@ -221,6 +221,9 @@ const OPTIONS = {
       {
         labelId: 'homeSortByStartTime',
         sortBy: 'startTime',
+
+        // move VM with no start time at the end
+        sortByFn: ({ startTime }) => (startTime === null ? -Infinity : startTime),
         sortOrder: 'desc',
       },
     ],
@@ -740,7 +743,12 @@ export default class Home extends Component {
     ),
     createSelector(
       () => this.state.sortBy,
-      sortBy => [sortBy, 'name_label']
+      sortBy => {
+        const { sortOptions } = OPTIONS[this.props.type]
+        const sort = find(sortOptions, { sortBy })
+
+        return [(sort && sort.sortByFn) || sortBy, 'name_label']
+      }
     ),
     () => this.state.sortOrder
   )
