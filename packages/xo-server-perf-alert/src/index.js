@@ -545,6 +545,7 @@ ${monitorBodies.join('\n')}`
                     return "**Can't read performance counters**"
                   }
 
+                  // Check the presence of the guest tools in the monitored object and ensure the correct report of the memory usage
                   if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
                     const vm = result.object
                     const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
