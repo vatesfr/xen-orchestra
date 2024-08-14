@@ -104,6 +104,8 @@ module.exports = {
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler
         'no-dupe-class-members': 'off', // automatically checked by the TypeScript compiler
         'no-undef': 'off', // automatically checked by the TypeScript compiler
+        'no-use-before-define': 'off', // replaced with the rule below
+        '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
         '@typescript-eslint/no-explicit-any': 'off',
         'vue/multi-word-component-names': 'off',
         // Vue 3 - Strongly Recommended

@@ -23,7 +23,7 @@ const consoleContainer = ref<HTMLDivElement | null>(null)
 let vncClient: VncClient | undefined
 let nConnectionAttempts = 0
 
-const handleDisconnectionEvent = () => {
+function handleDisconnectionEvent() {
   clearVncClient()
 
   nConnectionAttempts++
@@ -41,9 +41,11 @@ const handleDisconnectionEvent = () => {
   createVncConnection()
 }
 
-const handleConnectionEvent = () => (nConnectionAttempts = 0)
+function handleConnectionEvent() {
+  nConnectionAttempts = 0
+}
 
-const clearVncClient = () => {
+function clearVncClient() {
   if (vncClient === undefined) {
     return
   }
@@ -55,7 +57,7 @@ const clearVncClient = () => {
   vncClient = undefined
 }
 
-const createVncConnection = async () => {
+async function createVncConnection() {
   if (nConnectionAttempts !== 0) {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
 

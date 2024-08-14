@@ -76,11 +76,11 @@ const interactions = computed<Interaction[]>(() => [
 
 const tableName = inject<string>('tableName')
 
+const columnName = `${tableName}__${props.id}`
+
 const currentInteraction = computed(() =>
   interactions.value.find(interaction => router.currentRoute.value.query[columnName] === interaction.id)
 )
-
-const columnName = `${tableName}__${props.id}`
 
 const updateInteraction = (interaction: Interaction) => {
   router.replace({
