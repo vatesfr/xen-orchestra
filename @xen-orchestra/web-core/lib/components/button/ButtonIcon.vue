@@ -10,8 +10,9 @@
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { computed } from 'vue'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     icon: IconDefinition
     size?: 'small' | 'medium' | 'large'
@@ -19,9 +20,18 @@ withDefaults(
     disabled?: boolean
     active?: boolean
     dot?: boolean
+    targetScale?: number | { x: number; y: number }
   }>(),
-  { color: 'info', size: 'medium' }
+  { color: 'info', size: 'medium', targetScale: 1 }
 )
+
+const cssTargetScale = computed(() => {
+  if (typeof props.targetScale === 'number') {
+    return `scale(${props.targetScale})`
+  }
+
+  return `scale(${props.targetScale.x}, ${props.targetScale.y})`
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -195,5 +205,16 @@ withDefaults(
     top: var(--dot-offset);
     right: var(--dot-offset);
   }
+}
+
+/*
+ * Increase the size of the clickable area,
+ * without changing the padding of the ButtonIcon component
+ */
+.button-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: v-bind(cssTargetScale);
 }
 </style>

@@ -20,6 +20,7 @@
         class="toggle"
         :icon="isExpanded ? faAngleDown : faAngleRight"
         size="small"
+        :target-scale="{ x: 1.5, y: 2 }"
         @click="emit('toggle')"
       />
       <div v-else class="h-line" />
@@ -129,16 +130,5 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   width: 2rem;
   border-bottom: 0.1rem solid var(--color-purple-base);
   margin-left: -0.4rem;
-}
-
-/*
- * Increase the size of the clickable area,
- * without changing the padding of the ButtonIcon component
- */
-.toggle::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: scale(1.5, 2);
 }
 </style>
