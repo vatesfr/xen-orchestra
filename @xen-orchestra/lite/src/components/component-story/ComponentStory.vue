@@ -109,6 +109,8 @@ enum TAB {
   SETTINGS,
 }
 
+const selectedTab = ref<TAB>(TAB.NONE)
+
 const tab = (tab: TAB, params: Param[]) =>
   reactive({
     onClick: () => (selectedTab.value = tab),
@@ -130,8 +132,6 @@ const eventParams = computed(() => [
 
 const settingParams = computed(() => props.params.filter(isSettingParam))
 const slotParams = computed(() => props.params.filter(isSlotParam))
-
-const selectedTab = ref<TAB>(TAB.NONE)
 
 onBeforeMount(() => {
   if (propParams.value.length !== 0) {

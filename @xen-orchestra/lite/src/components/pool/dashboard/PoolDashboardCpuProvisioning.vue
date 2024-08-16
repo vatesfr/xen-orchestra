@@ -60,6 +60,8 @@ const { hasError: vmStoreHasError, isReady: isVmStoreReady, records: vms } = use
 
 const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } = useVmMetricsStore().subscribe()
 
+const isReady = logicAnd(isVmStoreReady, isHostStoreReady, isVmMetricsStoreReady)
+
 const nPCpu = computed(() => runningHosts.value.reduce((total, host) => total + Number(host.cpu_info.cpu_count), 0))
 
 const nVCpuInUse = computed(() => {
@@ -75,7 +77,7 @@ const nVCpuInUse = computed(() => {
 const value = computed(() => Math.round(percent(nVCpuInUse.value, nPCpu.value)))
 const maxValue = computed(() => Math.ceil(value.value / 100) * 100)
 const state = computed(() => (value.value > 100 ? 'warning' : 'success'))
-const isReady = logicAnd(isVmStoreReady, isHostStoreReady, isVmMetricsStoreReady)
+
 const hasError = computed(() => hostStoreHasError.value || vmStoreHasError.value)
 </script>
 
