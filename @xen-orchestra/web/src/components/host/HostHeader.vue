@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Host } from '@/types/host.type'
+import type { XoHost } from '@/types/xo/host.type'
 import type { HostState } from '@core/types/object-icon.type'
 import HeadBar from '@core/components/head-bar/HeadBar.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
@@ -31,6 +31,6 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 
 defineProps<{
-  host: Host
+  host: XoHost
 }>()
 </script>

@@ -4,12 +4,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { Vm } from '@/types/vm.type'
+import type { XoVm } from '@/types/xo/vm.type'
 import RemoteConsole from '@core/components/console/RemoteConsole.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  vm: Vm
+  vm: XoVm
 }>()
 
 const url = computed(() => new URL(`/api/consoles/${props.vm.id}`, window.location.origin.replace(/^http/, 'ws')))

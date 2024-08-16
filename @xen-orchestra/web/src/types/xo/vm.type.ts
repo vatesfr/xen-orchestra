@@ -1,5 +1,6 @@
-import type { RecordId } from '@/types/xo-object.type'
-import type { Leaf } from '@core/composables/tree/leaf'
+import type { XoHost } from '@/types/xo/host.type'
+import type { XoPool } from '@/types/xo/pool.type'
+import type { Branded } from '@core/types/utility.type'
 
 export enum VM_POWER_STATE {
   HALTED = 'Halted',
@@ -8,11 +9,11 @@ export enum VM_POWER_STATE {
   SUSPENDED = 'Suspended',
 }
 
-export type Vm = {
-  id: RecordId<'VM'>
+export type XoVm = {
+  id: Branded<'vm'>
   type: 'VM'
-  $container: RecordId<'host'> | RecordId<'pool'>
-  $pool: RecordId<'pool'>
+  $container: XoPool['id'] | XoHost['id']
+  $pool: XoPool['id']
   _xapiRef: string
   name_label: string
   name_description: string
@@ -21,5 +22,3 @@ export type Vm = {
   mainIpAddress: string
   other: { disable_pv_vnc: string }
 }
-
-export type VmLeaf = Leaf<Vm, 'vm'>

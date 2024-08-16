@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import HostTreeItem from '@/components/tree/HostTreeItem.vue'
-import type { HostBranch } from '@/types/host.type'
+import type { HostBranch } from '@/types/tree.type'
 
 defineProps<{
   branches: HostBranch[]

@@ -1,7 +1,7 @@
-import type { RecordId } from '@/types/xo-object.type'
+import type { Branded } from '@core/types/utility.type'
 
-export type Task = {
-  id: RecordId<'task'>
+export type XoTask = {
+  id: Branded<'task'>
   type: 'task'
   start: number
   end: number | undefined
@@ -10,5 +10,5 @@ export type Task = {
     name: string
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
-  tasks?: Task[]
+  tasks?: XoTask[]
 }

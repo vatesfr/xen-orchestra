@@ -1,7 +1,7 @@
-import type { Task } from '@/types/task.type'
+import type { XoTask } from '@/types/xo/task.type'
 import type { Task as CoreTask } from '@core/types/task.type'
 
-export const convertTaskToCore = (task: Task): CoreTask => ({
+export const convertTaskToCore = (task: XoTask): CoreTask => ({
   id: task.id,
   status: task.status === 'interrupted' ? 'failure' : task.status,
   name: task.properties.name,

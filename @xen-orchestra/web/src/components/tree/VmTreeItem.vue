@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { VmLeaf } from '@/types/vm.type'
+import type { VmLeaf } from '@/types/tree.type'
 import type { POWER_STATE } from '@core/types/power-state.type'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'

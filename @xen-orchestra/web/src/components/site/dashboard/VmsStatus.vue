@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import { VM_POWER_STATE } from '@/types/vm.type'
+import { VM_POWER_STATE } from '@/types/xo/vm.type'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
 import DonutChartWithLegend, {
