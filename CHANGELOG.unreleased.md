@@ -22,6 +22,7 @@
 - [Home/SR] Fix _Shared/Not shared_ sort
 - [Home/VM] When sorted by _Start time_, move VMs with no value at the end
 - [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
+- [Backups] Correctly update VMs _allowed_operations_ after backups [#9486](https://xcp-ng.org/forum/topic/9486/migration-doesn-t-work-in-xcp-ng-centar-after-successful-backup-with-xen-orchestra) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
 
 ### Packages to release
 
@@ -39,6 +40,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
 - xo-server minor
 - xo-web minor
