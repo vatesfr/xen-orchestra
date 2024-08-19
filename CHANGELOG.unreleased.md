@@ -22,6 +22,7 @@
 - [Home/SR] Fix _Shared/Not shared_ sort
 - [Home/VM] When sorted by _Start time_, move VMs with no value at the end
 - [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
+- [Plugin/perf-alert] Correct CPU usage email displaying NaN (PR [#7925](https://github.com/vatesfr/xen-orchestra/pull/7925))
 
 ### Packages to release
 
@@ -41,6 +42,7 @@
 
 - @xen-orchestra/proxy patch
 - xo-server minor
+- xo-server-perf-alert minor
 - xo-web minor
 
 <!--packages-end-->
