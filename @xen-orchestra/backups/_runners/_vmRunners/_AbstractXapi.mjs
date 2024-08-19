@@ -335,15 +335,20 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const reason = 'VM migration is blocked during backup'
       await vm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
 
-      $defer(() =>
+      $defer(async () => {
         // delete the entries if they did not exist previously or if they were
         // equal to reason (which happen if a previous backup was interrupted
         // before resetting them)
-        vm.update_blocked_operations({
+        await vm.update_blocked_operations({
           migrate_send: migrate_send === undefined || migrate_send === reason ? null : migrate_send,
           pool_migrate: pool_migrate === undefined || pool_migrate === reason ? null : pool_migrate,
         })
-      )
+        // then update allowed operations because the snapshot process updated
+        // them when migrate_send and pool_migrate were blocked
+        // This next line can be removed when allowed_operations automatically
+        // update correctly again
+        await vm.$call('update_allowed_operations')
+      })
     }
 
     await this._fetchJobSnapshots()
