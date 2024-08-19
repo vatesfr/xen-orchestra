@@ -343,10 +343,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           migrate_send: migrate_send === undefined || migrate_send === reason ? null : migrate_send,
           pool_migrate: pool_migrate === undefined || pool_migrate === reason ? null : pool_migrate,
         })
-        // then update allowed operations because the snapshot process updated
-        // them when migrate_send and pool_migrate were blocked
-        // This next line can be removed when allowed_operations automatically
-        // update correctly again
+
+        // 2024-08-19 - Work-around a XAPI bug where allowed_operations are not properly computed when blocked_operations is updated
+        //
+        // this is a problem because some clients (e.g. XenCenter) use this field to allow operations.
+        //
+        // internal source: https://team.vates.fr/vates/pl/mjmxnce9qfdx587r3qpe4z91ho
         await vm.$call('update_allowed_operations')
       })
     }
