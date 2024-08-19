@@ -20,8 +20,7 @@ import { getUserPublicProperties, isSrWritable } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
-const ALARM_BODY_REGEX =
-  /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
+const ALARM_BODY_REGEX = /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -262,13 +261,13 @@ async function _getDashboardStats(app) {
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
 
-  dashboard.alarms = await Promise.all(
-    alarms.map(async ({ $object, body, time }) => {
+  dashboard.alarms = alarms.reduce((acc, { $object, body, time }) => {
+    try {
       const [, value, name] = body.match(ALARM_BODY_REGEX)
 
       let object
       try {
-        object = await app.getObject($object)
+        object = app.getObject($object)
       } catch (error) {
         console.error(error)
         object = {
@@ -277,17 +276,21 @@ async function _getDashboardStats(app) {
         }
       }
 
-      return {
+      acc.push({
         name,
         object: {
           type: object.type,
           uuid: object.uuid,
         },
         timestamp: time,
-        value: parseFloat(value),
-      }
-    })
-  )
+        value: +value,
+      })
+    } catch (error) {
+      console.error(error)
+    }
+
+    return acc
+  }, [])
   return dashboard
 }
 const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
