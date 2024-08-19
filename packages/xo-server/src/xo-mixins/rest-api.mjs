@@ -19,6 +19,9 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { getUserPublicProperties, isSrWritable } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 
+// E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
+const ALARM_BODY_REGEX = /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
+
 const { join } = path.posix
 const noop = Function.prototype
 
@@ -169,6 +172,7 @@ async function _getDashboardStats(app) {
   const poolIds = new Set()
   const hosts = []
   const writableSrs = []
+  const alarms = []
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
@@ -183,6 +187,10 @@ async function _getDashboardStats(app) {
       if (isSrWritable(obj)) {
         writableSrs.push(obj)
       }
+    }
+
+    if (obj.type === 'message' && obj.name === 'ALARM') {
+      alarms.push(obj)
     }
   }
 
@@ -253,6 +261,36 @@ async function _getDashboardStats(app) {
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
 
+  dashboard.alarms = alarms.reduce((acc, { $object, body, time }) => {
+    try {
+      const [, value, name] = body.match(ALARM_BODY_REGEX)
+
+      let object
+      try {
+        object = app.getObject($object)
+      } catch (error) {
+        console.error(error)
+        object = {
+          type: 'unknown',
+          uuid: $object,
+        }
+      }
+
+      acc.push({
+        name,
+        object: {
+          type: object.type,
+          uuid: object.uuid,
+        },
+        timestamp: time,
+        value: +value,
+      })
+    } catch (error) {
+      console.error(error)
+    }
+
+    return acc
+  }, [])
   return dashboard
 }
 const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
