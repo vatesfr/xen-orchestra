@@ -28,6 +28,7 @@
 - [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
 - [Backups] Work around XAPI not automatically updating VM's `allowed_operations` after backups [Forum#81327](https://xcp-ng.org/forum/post/81327) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
 - [REST API] Fix VDI export in raw format broken in XO 5.96.0
+- [Import/VM Ware] Use the template settings from static_memory
 
 ### Packages to release
 
