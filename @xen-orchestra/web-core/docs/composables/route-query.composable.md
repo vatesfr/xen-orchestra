@@ -2,61 +2,135 @@
 
 `useRouteQuery` is a composable that synchronizes a route query parameter with a reactive reference.
 
+It can optionally be configured with a default query value and transformers
+to convert the query string to a custom data type.
+
 ## Usage
 
 ### Basic Usage
 
+By default, the data type is `string`.
+
 ```typescript
-const query = useRouteQuery('search')
+const search = useRouteQuery('search')
 ```
 
-In this example, if URL contains `?search=hello`, then `query.value` will be `'hello'`.
+In this example, if URL contains `?search=hello`, then `search.value` will be `'hello'`.
 
-If you set `query.value = 'world'`, then the URL will be replaced with `?search=world`.
+If you do `search.value = 'world'`, then the URL will be replaced with `?search=world`.
 
-### Default Value
+Resetting `search.value` to `''` will remove the query parameter from the URL.
 
-You can provide a default value if the query parameter is not present in the URL.
+### Default query value
+
+You can provide a default value for the query parameter if it is not present in the URL.
 
 ```typescript
-const foo = useRouteQuery('foo', { defaultQuery: 'bar' })
+const search = useRouteQuery('search', { defaultQuery: 'hello' })
 ```
 
-In this case, if the URL does not contain `foo` query parameter, then `foo.value` will be `'bar'`.
+In this case, if the URL doesn’t contain the `search` query parameter, then `search.value` will be `'hello'`.
 
-If the URL contains `?foo=`, then `foo.value` will be an empty string.
+Setting `search.value = 'world'` will update the URL to `?search=world`.
 
-Setting `foo.value = 'baz'` will update the URL to `?foo=baz`.
+Setting `search.value = ''` will update the URL to `?search=` (because it's not the default value).
 
-Setting the reference back to its default value (in this case
-`foo.value = 'bar'`) will remove the query parameter from the URL.
+Resetting `search.value` to `'hello'` will remove the query parameter from the URL.
 
-### Advanced Usage with Custom Data Type
+### Advanced usage with custom data type (aka. Transformers)
 
-By default, the data type is `string`. That means that if the query is `?count=42`, then
-`query.value` will be the string `'42'`.
+As said before, the default data type is `string`.
 
-You can use transformers to convert the query string to a custom data type.
+That means that if the query is `?count=42`, then `query.value` will be the string `'42'`.
+
+You can use `toData`/`toQuery` transformers to convert the query string to a custom data type and back.
 
 ```typescript
-const count = useRouteQuery<number>('count', {
+const count = useRouteQuery('count', {
   toData: query => parseInt(query, 10),
   toQuery: data => data.toString(),
-  defaultQuery: '0',
+  defaultQuery: '0', // If you don't provide a `defaultQuery`, then make sure that `toData` can handle the case of an empty string
 })
 ```
 
 Now if the URL contains `?count=42`, then `count.value` will be the number `42`.
 
-### Working with objects or arrays
+Setting `count.value = 0` will remove the query parameter from the URL.
 
-The data reference is watched deeply, so you can use objects or arrays as values and alter them directly.
+### Working with objects, arrays, Set, Map, and boolean
+
+The `useRouteQuery` composable can handle any data type,
+but has some specific actions for `object`, `array`, `Set` and `Map` and `boolean`.
+
+It will then return an extended `computed` containing some actions to manipulate the data.
+
+#### Array
+
+Provides `add(value)`, `set(index, value)` and `delete(index)` methods.
 
 ```typescript
-const users = useRouteQuery<Set<string>>('users', {
-  toData: query => new Set(value ? value.split(',') : undefined),
-  toQuery: data => Array.from(value).join(','),
+const array = useRouteQuery('array', {
+  toData: query => (query ? query.split(',') : []),
+  toQuery: data => data.join(','),
 })
+
+array.add('hello') // ?array=hello
+array.add('world') // ?array=hello,world
+array.add('hello') // ?array=hello,world,hello
+array.set(1, 'hi') // ?array=hello,hi,hello
+array.delete(2) // ?array=hello,hi
 ```
 
-In this case, calling `users.value.add('Foo').add('Bar')` will update the URL to `?users=foo,bar`.
+#### Set
+
+Provides `add(value)`, `delete(value)`, and `toggle(value, state?: boolean)` methods.
+
+```typescript
+const set = useRouteQuery('set', {
+  toData: query => new Set(query ? query.split(',') : []),
+  toQuery: data => Array.from(data).join(','),
+})
+
+set.toggle('hello') // ?set=hello
+set.toggle('hello') // ?
+set.toggle('hello', true) // ?set=hello
+set.toggle('hello', true) // ?set=hello
+set.toggle('hello', false) // ?
+
+set.add('hello') // ?set=hello
+set.add('world') // ?set=hello,world
+set.add('world') // ?set=hello,world
+set.delete('hello') // ?set=world
+```
+
+#### Map or Object
+
+Provides `set(key, value)` and `delete(key)` methods.
+
+```typescript
+const map = useRouteQuery('map', {
+  toData: query => convertQueryToMap(query),
+  toQuery: data => convertMapToQuery(data),
+})
+
+map.set('hello', 'world') // ?map=hello:world
+map.set('hi', 'earth') // ?map=hello:world,hi:earth
+map.delete('hello') // ?map=hi:earth
+```
+
+#### Boolean
+
+Provides `toggle(value?: boolean)` method.
+
+```typescript
+const bool = useRouteQuery('bool', {
+  toData: query => query === '1',
+  toQuery: data => (data ? '1' : '0'),
+})
+
+bool.toggle() // ?bool=1
+bool.toggle() // ?
+bool.toggle(true) // ?bool=1
+bool.toggle(true) // ?bool=1
+bool.toggle(false) // ?
+```
