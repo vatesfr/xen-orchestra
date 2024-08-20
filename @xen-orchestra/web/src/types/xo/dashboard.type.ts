@@ -1,7 +1,8 @@
 export type XoDashboard = {
   nPools: number
   nHosts: number
-  missingPatches: {
+  nHostsEol?: number
+  missingPatches?: {
     nHostsWithMissingPatches: number
     nPoolsWithMissingPatches: number
   }

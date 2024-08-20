@@ -4,12 +4,14 @@
     <VmsStatus class="vms-status" />
     <Backups class="backups" />
     <Repositories class="repositories" />
+    <Patches class="patches" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
+import Patches from '@/components/site/dashboard/Patches.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 </script>
@@ -24,7 +26,7 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
     'pools-status pools-status hosts-status hosts-status vms-status vms-status resources resources'
     'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
-    'alarms alarms alarms alarms alarms alarms alarms patches';
+    'alarms alarms alarms alarms alarms alarms patches patches';
 }
 
 .hosts-status {
@@ -41,5 +43,9 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 
 .repositories {
   grid-area: repositories;
+}
+
+.patches {
+  grid-area: patches;
 }
 </style>

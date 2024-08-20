@@ -48,6 +48,7 @@
   "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
+  "patches": "Patches",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
   "see-all": "Voir tout",
   "stats": "Stats",
