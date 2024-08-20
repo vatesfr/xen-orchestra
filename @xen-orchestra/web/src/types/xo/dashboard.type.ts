@@ -14,4 +14,13 @@ export type XoDashboard = {
       used: number
     }
   }
+  storageRepositories: {
+    size: {
+      available: number
+      other: number
+      replicated: number
+      total: number
+      used: number
+    }
+  }
 }
