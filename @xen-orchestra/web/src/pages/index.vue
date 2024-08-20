@@ -2,11 +2,13 @@
   <div class="site-dashboard">
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
+    <Repositories class="repositories" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
+import Repositories from '@/components/site/dashboard/Repositories.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 </script>
 
@@ -29,5 +31,9 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 
 .vms-status {
   grid-area: vms-status;
+}
+
+.repositories {
+  grid-area: repositories;
 }
 </style>

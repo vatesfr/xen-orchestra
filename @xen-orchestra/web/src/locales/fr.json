@@ -1,8 +1,9 @@
 {
   "account-organization-more": "Compte, organisation et plus…",
-  "backup-repository": "Dépot de sauvegarde",
+  "available": "Disponible",
+  "backup-repository": "Dépot de sauvegarde (local, NFS)",
+  "backups": "Sauvegardes",
   "for-backup": "Pour la sauvegarde",
-  "for-replication": "Pour la réplication",
 
   "host": "Hôte",
   "host-description": "Description de l'hôte",
@@ -15,12 +16,11 @@
 
   "n-hosts": "1 hôte | {n} hôtes",
   "no-results": "Aucun résultat",
-  "s3-backup-repository": "Dépot de sauvegarde S3",
-  "storage-repository": "Dépot de stockage",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",
 
+  "used": "Utilisé",
   "vm": "VM",
   "vm-description": "Description de la VM",
 

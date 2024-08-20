@@ -3,12 +3,12 @@
   <div class="card-numbers" :class="size">
     <span class="label typo" :class="labelFontClass">{{ label }}</span>
     <div class="values" :class="size">
-      <span v-if="size === 'small' && max" class="value typo c2-semi-bold">
-        {{ $n(valueAsPercentage, 'percent') }}
+      <span v-if="percentValue" class="value typo c2-semi-bold">
+        {{ percentValue }}
       </span>
 
       <div class="value typo" :class="valueFontClass">
-        {{ value }}<span class="unit typo" :class="unitFontClass">{{ unit }}</span>
+        {{ value ?? '-' }}<span class="unit typo" :class="unitFontClass">{{ unit }}</span>
       </div>
     </div>
   </div>
@@ -16,16 +16,19 @@
 
 <script setup lang="ts" generic="TSize extends 'small' | 'medium'">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface CardNumbersProps {
   label: string
-  value: number
   size: TSize
+  value?: number
   unit?: string
   max?: TSize extends 'small' ? number : never
 }
 
 const props = defineProps<CardNumbersProps>()
+
+const { n } = useI18n()
 
 const labelFontClass = computed(() => (props.size === 'medium' ? 'c3-semi-bold' : 'c2-semi-bold'))
 
@@ -33,12 +36,16 @@ const valueFontClass = computed(() => (props.size === 'medium' ? 'h3-semi-bold' 
 
 const unitFontClass = computed(() => (props.size === 'medium' ? 'p2-medium' : 'c2-semi-bold'))
 
-const valueAsPercentage = computed(() => {
-  if (props.max === undefined) {
-    return 0
+const percentValue = computed(() => {
+  if (props.size !== 'small' || props.max === undefined) {
+    return undefined
   }
 
-  return props.value / props.max
+  if (props.value === undefined) {
+    return n(0, 'percent').replace('0', '-')
+  }
+
+  return n(props.value / props.max, 'percent')
 })
 </script>
 
