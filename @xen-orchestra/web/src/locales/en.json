@@ -3,6 +3,12 @@
   "available": "Available",
   "backups": "Backups",
   "backup-repository": "Backup repository (local, NFS)",
+
+  "backups.jobs": "Jobs",
+  "backups.jobs.running-good": "Running good",
+  "backups.jobs.looks-like-issue": "Looks like there is an issue",
+  "backups.jobs.disabled": "Disabled",
+
   "for-backup": "For backup",
   "for-replication": "For replication",
 
