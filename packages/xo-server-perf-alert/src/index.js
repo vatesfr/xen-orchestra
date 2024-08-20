@@ -27,16 +27,9 @@ const VM_FUNCTIONS = {
       const filteredLegends = legend.filter(l => l.name.match(regex))
       const accumulator = Object.assign(...filteredLegends.map(l => ({ [l.name]: [] })))
       const getDisplayableValue = () => {
-        const means = Object.keys(accumulator).map(l => {
-          let values = accumulator[l]
-          values = values.map(value => {
-            if (typeof value === 'string') {
-              return parseFloat(value)
-            }
-            return value
-          })
-          return mean(values)
-        })
+        const means = Object.keys(accumulator).map(l =>
+          mean(accumulator[l].map(value => (typeof value === 'string' ? parseFloat(value) : value)))
+        )
         return Math.max(...means) * 100
       }
       return {
