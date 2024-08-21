@@ -3,5 +3,5 @@
 const mjml2html = require('mjml')
 
 module.exports = async function transform(source) {
-  return { compactHtml: mjml2html(source).html }
+  return { html: mjml2html(source).html }
 }

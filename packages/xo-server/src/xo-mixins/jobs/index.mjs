@@ -175,6 +175,7 @@ export default class Jobs {
           ? {
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',
+              backupReportTpl: job.settings['']?.backupReportTpl,
             }
           : undefined,
       event: 'job.start',

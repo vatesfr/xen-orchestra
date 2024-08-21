@@ -15,6 +15,7 @@
 - [Plugin/perf-alert] Add a toggle to exclude selected items (PR [#7911](https://github.com/vatesfr/xen-orchestra/pull/7911))
 - [Backup/Mirror] Filter the VM that must be mirrored [#7748](https://github.com/vatesfr/xen-orchestra/issues/7748) (PR [#7941](https://github.com/vatesfr/xen-orchestra/pull/7941))
 - [Plugin/backup-reports] Send more concise backup reports to Slack and XMPP webhooks (PR [#7932](https://github.com/vatesfr/xen-orchestra/pull/7932))
+- [Backups] Add an option to send shorter backup reports (PR [#7932](https://github.com/vatesfr/xen-orchestra/pull/7932))
 
 ### Bug fixes
 

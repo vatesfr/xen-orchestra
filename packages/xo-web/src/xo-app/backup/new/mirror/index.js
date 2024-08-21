@@ -13,7 +13,7 @@ import { every, isEmpty, map, mapValues } from 'lodash'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { Number } from 'form'
+import { Number, Toggle } from 'form'
 import { Remote } from 'render-xo-item'
 import { resolveId } from 'utils'
 import { SelectRemote } from 'select-objects'
@@ -126,6 +126,8 @@ const NewMirrorBackup = decorate([
         setAdvancedSettings({ maxExportRate: rate !== undefined ? rate * (1024 * 1024) : undefined }),
       setNRetriesVmBackupFailures: ({ setAdvancedSettings }, nRetriesVmBackupFailures) =>
         setAdvancedSettings({ nRetriesVmBackupFailures }),
+      setBackupReportTpl: ({ setAdvancedSettings }, compactBackupTpl) =>
+        setAdvancedSettings({ backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml' }),
       setSourceRemote: (_, obj) => () => ({
         sourceRemote: obj === null ? {} : obj.value,
       }),
@@ -207,6 +209,7 @@ const NewMirrorBackup = decorate([
       inputTimeoutId: generateId,
       inputMaxExportRateId: generateId,
       inputNRetriesVmBackupFailures: generateId,
+      inputBackupReportTplId: generateId,
       isBackupInvalid: state =>
         state.isMissingName || state.isMissingBackupMode || state.isMissingSchedules || state.isMissingRetention,
       isFull: state => state.mode === 'full',
@@ -234,7 +237,13 @@ const NewMirrorBackup = decorate([
   }),
   injectState,
   ({ state, effects, intl: { formatMessage } }) => {
-    const { concurrency, timeout, maxExportRate, nRetriesVmBackupFailures = 0 } = state.advancedSettings
+    const {
+      concurrency,
+      timeout,
+      maxExportRate,
+      backupReportTpl = 'mjml',
+      nRetriesVmBackupFailures = 0,
+    } = state.advancedSettings
     return (
       <form id={state.formId}>
         <Container>
@@ -351,6 +360,17 @@ const NewMirrorBackup = decorate([
                           min={0}
                           onChange={effects.setMaxExportRate}
                           value={maxExportRate / (1024 * 1024)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputBackupReportTplId}>
+                          <strong>{_('shorterBackupReports')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputBackupReportTplId}
+                          value={backupReportTpl === 'compactMjml'}
+                          onChange={effects.setBackupReportTpl}
                         />
                       </FormGroup>
                     </div>
