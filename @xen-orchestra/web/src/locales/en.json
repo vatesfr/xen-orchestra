@@ -5,9 +5,11 @@
   "backup-repository": "Backup repository (local, NFS)",
 
   "backups.jobs": "Jobs",
-  "backups.jobs.running-good": "Running good",
-  "backups.jobs.looks-like-issue": "Looks like there is an issue",
+  "backups.jobs.at-least-one-skipped": "At least one skipped",
+  "backups.jobs.based-on-last-three": "Based on the last three jobs",
   "backups.jobs.disabled": "Disabled",
+  "backups.jobs.looks-like-issue": "Looks like there is an issue",
+  "backups.jobs.running-good": "Running good",
 
   "for-backup": "For backup",
   "for-replication": "For replication",

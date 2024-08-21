@@ -5,9 +5,11 @@
   "backup-repository": "Dépot de sauvegarde (local, NFS)",
 
   "backups.jobs": "Jobs",
-  "backups.jobs.running-good": "Tout est ok",
-  "backups.jobs.looks-like-issue": "Il semble qu'il y ait un problème",
+  "backups.jobs.at-least-one-skipped": "Au moins un a été ignoré",
+  "backups.jobs.based-on-last-three": "Basé sur les trois derniers jobs",
   "backups.jobs.disabled": "Désactivés",
+  "backups.jobs.looks-like-issue": "Il semble qu'il y ait un problème",
+  "backups.jobs.running-good": "Tout est ok",
 
   "for-backup": "Pour la sauvegarde",
   "for-replication": "Pour la réplication",

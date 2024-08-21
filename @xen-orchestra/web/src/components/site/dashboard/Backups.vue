@@ -3,7 +3,7 @@
     <CardTitle>{{ $t('backups') }}</CardTitle>
     <LoadingHero :disabled="isReady" type="card">
       <DonutChartWithLegend :icon="faServer" :segments :title />
-      <CardNumbers :label="t('total')" :value="record.backups?.jobs.total" class="total" size="small" />
+      <CardNumbers :label="t('total')" :value="record.backups?.jobs.total" size="small" />
     </LoadingHero>
   </UiCard>
 </template>
@@ -17,7 +17,7 @@ import DonutChartWithLegend, {
 } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
 import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import UiCard from '@core/components/UiCard.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
+import { faCircleInfo, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -25,7 +25,11 @@ const { record, isReady } = useDashboardStore().subscribe()
 
 const { t } = useI18n()
 
-const title = computed<DonutChartWithLegendProps['title']>(() => ({ label: t('backups.jobs') }))
+const title = computed<DonutChartWithLegendProps['title']>(() => ({
+  label: t('backups.jobs'),
+  iconTooltip: t('backups.jobs.based-on-last-three'),
+  icon: faCircleInfo,
+}))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
@@ -34,9 +38,14 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     color: 'success',
   },
   {
+    label: t('backups.jobs.at-least-one-skipped'),
+    value: record.value.backups?.jobs.skipped ?? 0,
+    color: 'primary',
+  },
+  {
     label: t('backups.jobs.looks-like-issue'),
     value: record.value.backups?.jobs.failed ?? 0,
-    color: 'warning',
+    color: 'danger',
   },
   {
     label: t('backups.jobs.disabled'),
