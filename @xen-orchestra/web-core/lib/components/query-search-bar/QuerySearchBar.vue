@@ -1,21 +1,21 @@
-<!-- v1.1 -->
+<!-- v1.2 -->
 <template>
   <form class="search-bar" @submit.prevent="emit('search', value)">
     <label v-if="uiStore.isDesktop" :for="id" class="typo p2-regular label">
-      {{ $t('core.search-bar.label') }}
+      {{ $t('core.query-search-bar.label') }}
     </label>
     <UiInput
       :id
       v-model="value"
-      :aria-label="uiStore.isMobile ? $t('core.search-bar.label') : undefined"
+      :aria-label="uiStore.isMobile ? $t('core.query-search-bar.label') : undefined"
       :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
-      :placeholder="$t('core.search-bar.placeholder')"
+      :placeholder="$t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
       <UiButton type="submit">{{ $t('core.search') }}</UiButton>
       <Divider type="stretch" />
       <UiButton v-tooltip="$t('coming-soon')" level="secondary" :left-icon="faFilter" disabled>
-        {{ $t('core.search-bar.use-query-builder') }}
+        {{ $t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
     <template v-else>
