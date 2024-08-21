@@ -51,6 +51,8 @@ export const testSchema = {
 
 // ===================================================================
 
+const DEFAULT_TEMPLATE = 'mjml'
+
 const UNKNOWN_ITEM = 'Unknown'
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
@@ -188,10 +190,11 @@ class BackupReportsXoPlugin {
       formatDate,
     }
 
+    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$metadata(context))),
       ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$metadata(context))),
-      ...(await templates.mjml.transform(templates.mjml.$metadata(context))),
+      ...(await templates[backupReportTpl].transform(templates[backupReportTpl].$metadata(context))),
       mailReceivers,
       subject: templates.mjml.$metadataSubject(context),
       success: log.status === 'success',
@@ -368,10 +371,11 @@ class BackupReportsXoPlugin {
       globalTransferSize,
     }
 
+    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$vm(context))),
       ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$vm(context))),
-      ...(await templates.mjml.transform(templates.mjml.$vm(context))),
+      ...(await templates[backupReportTpl].transform(templates[backupReportTpl].$vm(context))),
       mailReceivers,
       subject: templates.mjml.$vmSubject(context),
       success: log.status === 'success',

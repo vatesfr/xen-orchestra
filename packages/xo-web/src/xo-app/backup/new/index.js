@@ -650,6 +650,11 @@ const New = decorate([
           nRetriesVmBackupFailures: nRetries,
         })
       },
+      setBackupReportTpl({ setGlobalSettings }, compactBackupTpl) {
+        setGlobalSettings({
+          backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml',
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -661,6 +666,7 @@ const New = decorate([
       inputPreferNbd: generateId,
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
+      inputBackupReportTplId: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -780,6 +786,7 @@ const New = decorate([
       preferNbd,
       reportRecipients,
       reportWhen = 'failure',
+      backupReportTpl = 'mjml',
       timeout,
     } = settings.get('') || {}
 
@@ -1163,6 +1170,17 @@ const New = decorate([
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />
+                      <FormGroup>
+                        <label htmlFor={state.inputBackupReportTplId}>
+                          <strong>{_('shorterBackupReports')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputBackupReportTplId}
+                          value={backupReportTpl === 'compactMjml'}
+                          onChange={effects.setBackupReportTpl}
+                        />
+                      </FormGroup>
                     </div>
                   )}
                 </CardBlock>

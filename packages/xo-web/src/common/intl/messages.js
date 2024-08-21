@@ -613,6 +613,7 @@ const messages = {
     "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
+  shorterBackupReports: 'Shorter backup reports',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
