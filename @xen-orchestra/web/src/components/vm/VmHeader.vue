@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Vm } from '@/types/vm.type'
+import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
 import HeadBar from '@core/components/head-bar/HeadBar.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
@@ -26,6 +26,6 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 
 defineProps<{
-  vm: Vm
+  vm: XoVm
 }>()
 </script>
