@@ -1,5 +1,9 @@
 {
   "account-organization-more": "Account, organization & more…",
+  "available": "Available",
+  "backup-repository": "Backup repository (local, NFS)",
+  "backups": "Backups",
+  "for-backup": "For backup",
 
   "host": "Host",
   "host-description": "Host description",
@@ -16,6 +20,7 @@
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
 
+  "used": "Used",
   "vm": "VM",
   "vm-description": "VM description",
 
