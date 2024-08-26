@@ -11,9 +11,10 @@
   "backups.jobs.looks-like-issue": "Il semble qu'il y ait un problème",
   "backups.jobs.running-good": "Tout est ok",
 
+  "end-of-life": "Fin de vie",
+  "eol": "EOL",
   "for-backup": "Pour la sauvegarde",
   "for-replication": "Pour la réplication",
-
   "host": "Hôte",
   "host-description": "Description de l'hôte",
 
@@ -23,13 +24,16 @@
   "hosts-status.unknown": "Inconnu",
   "hosts-status.unknown.tooltip": "Les métriques de l'hôte sont inaccessibles",
 
+  "missing-patches": "Patches manquants",
   "n-hosts": "1 hôte | {n} hôtes",
   "no-results": "Aucun résultat",
+  "pools": "Pools",
   "storage-repository": "Dépot de stockage",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",
 
+  "up-to-date": "À jour",
   "used": "Utilisé",
   "vm": "VM",
   "vm-description": "Description de la VM",
