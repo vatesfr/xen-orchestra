@@ -1,5 +1,5 @@
 ```vue-template
-<SearchBar @search="(value: string) => (filter = value)" />
+<QuerySearchBar @search="(value: string) => (filter = value)" />
 
 <ul>
   <li v-for="vm in vms" :key="vm.id">{{ vm.label }}</li>

@@ -1,6 +1,6 @@
 <template>
   <ComponentStory v-slot="{ properties }" :params="[event('search').args({ value: 'string' })]">
-    <SearchBar id="search-bar" v-bind="properties" @search="(value: string) => (filter = value)" />
+    <QuerySearchBar id="search-bar" v-bind="properties" @search="(value: string) => (filter = value)" />
 
     <p class="text">Example data:</p>
     <ul class="data-list">
@@ -12,7 +12,7 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event } from '@/libs/story/story-param'
-import SearchBar from '@core/components/search-bar/SearchBar.vue'
+import QuerySearchBar from '@core/components/query-search-bar/QuerySearchBar.vue'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
