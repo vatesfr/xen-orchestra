@@ -1,4 +1,5 @@
-import { asyncEach } from '@vates/async-each'
+import groupBy from 'lodash/groupBy.js'
+
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Disposable } from 'promise-toolbox'
@@ -61,18 +62,16 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     })
   }
 
-  async _computeTransferList(vmPredicate) {
-    const vmBackups = Object.values(await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
+  async #computeTransferListPerJob(sourceBackups, remotesBackups) {
     const localMetada = new Map()
-    vmBackups.forEach(metadata => {
+    sourceBackups.forEach(metadata => {
       const timestamp = metadata.timestamp
       localMetada.set(timestamp, metadata)
     })
-    const nbRemotes = Object.keys(this.remoteAdapters).length
+    const nbRemotes = remotesBackups.length
     const remoteMetadatas = {}
-    await asyncEach(Object.values(this.remoteAdapters), async remoteAdapter => {
-      const remoteMetadata = await remoteAdapter.listVmBackups(this._vmUuid, vmPredicate)
-      remoteMetadata.forEach(metadata => {
+    remotesBackups.forEach(async remoteBackups => {
+      remoteBackups.forEach(metadata => {
         const timestamp = metadata.timestamp
         remoteMetadatas[timestamp] = (remoteMetadatas[timestamp] ?? 0) + 1
       })
@@ -101,6 +100,21 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       Task.info('No new data to upload for this VM')
     }
     return []
+  }
+
+  async _computeTransferList(vmPredicate) {
+    const sourceBackups = Object.values(await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
+    const remotesBackups = await Promise.all(
+      Object.values(this.remoteAdapters).map(remoteAdapter => remoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
+    )
+    const sourceBackupByJobId = groupBy(sourceBackups, 'jobId')
+    const transferByJobs = await Promise.all(
+      Object.values(sourceBackupByJobId).map(vmBackupsByJob =>
+        this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups)
+      )
+    )
+
+    return transferByJobs.flat(1)
   }
 
   /**
