@@ -23,4 +23,13 @@ export type XoDashboard = {
       used: number
     }
   }
+  backups?: {
+    jobs: {
+      disabled: number
+      failed: number
+      skipped: number
+      successful: number
+      total: number
+    }
+  }
 }
