@@ -8,6 +8,7 @@ import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
+import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   constructor({
@@ -82,18 +83,22 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     timestamps.sort()
     for (const timestamp of timestamps) {
       if (remoteMetadatas[timestamp] !== nbRemotes) {
-        // this backup is not present in all the remotes
+        // this backup is not present in all the remote
+        // should be retransfered if not found later
         transferList.push(localMetada.get(timestamp))
       } else {
         // backup is present in local and remote : the chain has already been transferred
         transferList = []
       }
     }
-
-    // to ensure that no delta chain is broken, the full list of backups are transfered
-    // even if only one match teh filter
-    if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
-      return transferList
+    if (transferList.length > 0) {
+      if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
+        return transferList
+      } else {
+        Task.info('This VM is excluded by the job filter')
+      }
+    } else {
+      Task.info('No new data to upload for this VM')
     }
     return []
   }
