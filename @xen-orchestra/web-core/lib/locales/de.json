@@ -28,6 +28,7 @@
   "object-not-found": "Objekt {id} wurde nicht gefunden…",
   "patches": "Patches",
   "power-on-for-console": "Konsole ist nach Start der VM verfügbar",
+  "running-vm": "VM eingeschalten | VMs eingeschalten",
   "stats": "Statistiken",
   "storage": "Speicher",
   "support-name": "{name} pro support",
@@ -36,6 +37,5 @@
   "tasks": "Aufgaben",
   "tasks.quick-view": "Schnellansicht der Aufgaben",
 
-  "vm-running": "VM eingeschalten | VMs eingeschalten",
   "vms": "VMs"
 }

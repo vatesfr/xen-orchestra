@@ -11,7 +11,7 @@
       </template>
       <template #addons>
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
-        <UiCounter v-tooltip="$t('vm-running', runningVmsCount)" :value="runningVmsCount" color="info" />
+        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="info" />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -47,7 +47,10 @@ const { runningVms } = useVmStore().subscribe()
 
 const isMaster = computed(() => isMasterHost(props.branch.data.id))
 
-const runningVmsCount = computed(
-  () => runningVms.value.filter(runningVm => runningVm.$container === props.branch.data.id).length
+const runningVmsCount = computed(() =>
+  runningVms.value.reduce(
+    (vmCount, runningVm) => (runningVm.$container === props.branch.data.id ? vmCount + 1 : vmCount),
+    0
+  )
 )
 </script>

@@ -50,6 +50,7 @@
   "object-not-found": "Object {id} can't be found…",
   "patches": "Patches",
   "power-on-for-console": "Power on your VM to access its console",
+  "running-vm": "Running VM | Running VMs",
   "see-all": "See all",
   "stats": "Stats",
   "storage": "Storage",
@@ -66,6 +67,5 @@
   "tasks.quick-view.in-progress": "In progress",
 
   "total": "Total",
-  "vm-running": "VM running | VMs running",
   "vms": "VMs"
 }

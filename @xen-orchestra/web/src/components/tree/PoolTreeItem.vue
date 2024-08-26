@@ -3,7 +3,7 @@
     <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
-        <UiCounter v-tooltip="$t('vm-running', runningVmsCount)" :value="runningVmsCount" color="info" />
+        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="info" />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -40,7 +40,7 @@ const treeBranches = computed(
 
 const vmLeaves = computed(() => props.branch.children.filter(child => child.discriminator === 'vm') as VmLeaf[])
 
-const runningVmsCount = computed(
-  () => runningVms.value.filter(runningVm => runningVm.$pool === props.branch.data.id).length
+const runningVmsCount = computed(() =>
+  runningVms.value.reduce((vmCount, runningVm) => (runningVm.$pool === props.branch.data.id ? vmCount + 1 : vmCount), 0)
 )
 </script>

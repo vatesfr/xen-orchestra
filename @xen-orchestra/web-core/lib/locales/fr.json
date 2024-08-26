@@ -50,6 +50,7 @@
   "object-not-found": "L'objet {id} est introuvable…",
   "patches": "Patches",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "running-vm": "VM en cours d'exécution | VMs en cours d'exécution",
   "see-all": "Voir tout",
   "stats": "Stats",
   "storage": "Stockage",
@@ -66,6 +67,5 @@
   "tasks.quick-view.in-progress": "En cours",
 
   "total": "Total",
-  "vm-running": "VM en cours d'exécution | VMs en cours d'exécution",
   "vms": "VMs"
 }
