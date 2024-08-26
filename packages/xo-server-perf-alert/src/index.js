@@ -172,7 +172,7 @@ export const configurationSchema = {
             default: false,
           },
           exclude: {
-            description: 'If set to true, selected host will not be monitored ',
+            description: 'If set to true, selected host will not be monitored.',
             title: 'Exclude hosts',
             type: 'boolean',
           },
@@ -332,13 +332,9 @@ export const configurationSchema = {
             default: false,
           },
           exclude: {
-            description: 'List of SRs to exclude',
+            description: 'If set to true, selected SRs will not be considered for the alert.',
             title: 'Exclude SRs',
-            type: 'array',
-            items: {
-              type: 'string',
-              $type: 'SR',
-            },
+            type: 'boolean',
           },
           uuids: {
             title: 'SRs',
