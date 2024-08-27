@@ -18,8 +18,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
 
   // we'll transfer the full list if at least one backup should be transfered
   // to ensure we don't cut the delta chain
-  _filterTransferlist(transferList) {
-    if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
+  _filterTransferList(transferList) {
+    if (transferList.some(vmBackupMetadata => this._filterPredicate(vmBackupMetadata))) {
       return transferList
     }
     return []
