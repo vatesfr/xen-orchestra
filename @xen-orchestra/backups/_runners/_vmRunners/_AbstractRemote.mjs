@@ -12,6 +12,7 @@ import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.m
 import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
+  _filterPredicate
   constructor({
     config,
     job,
@@ -60,6 +61,12 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
         })
       )
     })
+    const { filter } = job
+    if (filter === undefined) {
+      this._filterPredicate = () => true
+    } else {
+      this._filterPredicate = createPredicate(filter)
+    }
   }
 
   async #computeTransferListPerJob(sourceBackups, remotesBackups) {
@@ -122,21 +129,6 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       )
     )
     return transferByJobs.flat(1)
-  }
-
-  /**
-   * check if users want to mirror this vm backup
-   *
-   * @param {Object} vmBackupMetadata
-   * @returns Boolean
-   */
-  _shouldTransferBackup(vmBackupMetadata) {
-    const { filter } = this.job
-    if (filter === undefined) {
-      return true
-    }
-    const predicate = createPredicate(filter)
-    return predicate(vmBackupMetadata)
   }
 
   async run($defer) {
