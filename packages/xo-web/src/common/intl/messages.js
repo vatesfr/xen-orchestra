@@ -242,13 +242,16 @@ const messages = {
   xoConfig: 'XO config',
   backupVms: 'VM Backup & Replication',
   backupMetadata: 'XO config & Pool metadata Backup',
+  backupModeSourceRemoteRequired: 'Backup mode and source remote are required',
   mirrorBackup: 'Mirror backup',
   mirrorBackupVms: 'VM Mirror Backup',
+  mirrorAllVmBackups: 'Mirror all {mode} VM backups',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
   customJob: 'Custom Job',
   userPage: 'User',
+  vmBackups: 'VM backups',
   xoa: 'XOA',
 
   // ----- Support -----
@@ -424,6 +427,7 @@ const messages = {
   selectTableReset: 'Reset',
   selectCloudConfigs: 'Select cloud config(s)…',
   selectNetworkConfigs: 'Select network config(s)…',
+  selectVmBackups: 'Select VM backups…',
 
   // --- Dates/Scheduler ---
 
@@ -507,6 +511,7 @@ const messages = {
   scheduleEdit: 'Edit schedule',
   missingBackupName: "A name is required to create the backup's job!",
   missingVms: 'Missing VMs!',
+  missingVmBackups: 'Missing VM backups!',
   missingBackupMode: 'You need to choose a backup mode!',
   missingRemote: 'Missing remote!',
   missingRemotes: 'Missing remotes!',
