@@ -15,6 +15,16 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   _getRemoteWriter() {
     return IncrementalRemoteWriter
   }
+
+  // we'll transfer the full list if at least one backup should be transfered
+  // to ensure we don't cut the delta chain
+  _filterTransferlist(transferList) {
+    if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
+      return transferList
+    }
+    return []
+  }
+
   async _selectBaseVm(metadata) {
     // for each disk , get the parent
     const baseUuidToSrcVdi = new Map()

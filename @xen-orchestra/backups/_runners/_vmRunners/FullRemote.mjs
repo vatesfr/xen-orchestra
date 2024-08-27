@@ -7,6 +7,11 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
   _getRemoteWriter() {
     return FullRemoteWriter
   }
+
+  _filterTransferlist(transferList) {
+    return transferList.filter(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))
+  }
+
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'full')
 

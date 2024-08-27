@@ -91,17 +91,25 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       }
     }
     if (transferList.length > 0) {
-      if (transferList.some(vmBackupMetadata => this._shouldTransferBackup(vmBackupMetadata))) {
-        return transferList
+      const filteredTransferList = this._filterTransferList(transferList)
+      if (filteredTransferList.length > 0) {
+        return filteredTransferList
       } else {
         Task.info('This VM is excluded by the job filter')
+        return []
       }
     } else {
       Task.info('No new data to upload for this VM')
     }
+
     return []
   }
 
+  /**
+   *
+   * @param {*} vmPredicate a callback checking if backup is eligible for transfer. This filter MUST NOT cut delta chains
+   * @returns
+   */
   async _computeTransferList(vmPredicate) {
     const sourceBackups = Object.values(await this._sourceRemoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
     const remotesBackups = await Promise.all(
@@ -113,7 +121,6 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
         this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups)
       )
     )
-
     return transferByJobs.flat(1)
   }
 
