@@ -319,6 +319,7 @@ const messages = {
   homeFilterHvmGuests: 'HVM guests',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
+  homeSortByInstallTime: 'Install time',
   homeSortByStartTime: 'Start time',
   homeSortByName: 'Name',
   homeSortByPowerstate: 'Power state',
