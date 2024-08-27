@@ -171,7 +171,7 @@ export const configurationSchema = {
             description: 'When enabled, all running hosts will be considered for the alert.',
             default: false,
           },
-          exclude: {
+          excludeUuids: {
             description: 'If set to true, selected host will not be monitored.',
             title: 'Exclude hosts',
             type: 'boolean',
@@ -214,7 +214,7 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              exclude: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
+              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
             },
             required: ['uuids'],
           },
@@ -229,9 +229,9 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { const: true },
-              exclude: { const: true },
+              excludeUuids: { const: true },
             },
-            required: ['uuids', 'smartMode', 'exclude'],
+            required: ['uuids', 'smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -251,7 +251,7 @@ export const configurationSchema = {
             description: 'When enabled, all running VMs will be considered for the alert.',
             default: false,
           },
-          exclude: {
+          excludeUuids: {
             description: 'If set to true, selected VMs will not be considered for the alert.',
             title: 'Exclude VMs',
             type: 'boolean',
@@ -294,7 +294,7 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              exclude: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
+              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
             },
             required: ['uuids'],
           },
@@ -309,9 +309,9 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { const: true },
-              exclude: { const: true },
+              excludeUuids: { const: true },
             },
-            required: ['uuids', 'smartMode', 'exclude'],
+            required: ['uuids', 'smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -331,7 +331,7 @@ export const configurationSchema = {
             description: 'When enabled, all SRs will be considered for the alert.',
             default: false,
           },
-          exclude: {
+          excludeUuids: {
             description: 'If set to true, selected SRs will not be considered for the alert.',
             title: 'Exclude SRs',
             type: 'boolean',
@@ -366,7 +366,7 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              exclude: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
+              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
             },
             required: ['uuids'],
           },
@@ -381,9 +381,9 @@ export const configurationSchema = {
             properties: {
               uuids: {},
               smartMode: { const: true },
-              exclude: { const: true },
+              excludeUuids: { const: true },
             },
-            required: ['uuids', 'smartMode', 'exclude'],
+            required: ['uuids', 'smartMode', 'excludeUuids'],
           },
         ],
       },
@@ -538,7 +538,7 @@ ${monitorBodies.join('\n')}`
       snapshot: async () => {
         return Promise.all(
           map(
-            definition.smartMode || definition.exclude
+            definition.smartMode || definition.excludeUuids
               ? filter(this._xo.getObjects(), obj => {
                   if (obj.type !== objectType) {
                     return false
@@ -549,7 +549,7 @@ ${monitorBodies.join('\n')}`
                     shouldKeepThisObj = (objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running'
                   }
 
-                  if (definition.exclude && shouldKeepThisObj) {
+                  if (definition.excludeUuids && shouldKeepThisObj) {
                     shouldKeepThisObj = !definition.uuids.includes(obj.uuid)
                   }
 
