@@ -33,14 +33,14 @@ for (const name of readdirSync(__dirname)) {
   for (const name of readdirSync(partialsPath)) {
     const parts = parse(name)
     if (parts.ext === '.hbs') {
-      handlebars.registerPartial(parts.base, readFileSync(join(partialsPath, name), 'utf8'))
+      handlebars.registerPartial(parts.name, readFileSync(join(partialsPath, name), 'utf8'))
     }
   }
 
   for (const name of readdirSync(path)) {
     const parts = parse(name)
     if (parts.ext === '.hbs') {
-      template['$' + parts.base] = handlebars.compile(readFileSync(join(path, name), 'utf-8').replace(/\n$/, ''))
+      template['$' + parts.name] = handlebars.compile(readFileSync(join(path, name), 'utf-8').replace(/\n$/, ''))
     }
   }
 
