@@ -1053,16 +1053,20 @@ export default class Xapi extends XapiBase {
     } catch (error) {
       const { code } = error
       if (code === 'VDI_CBT_ENABLED') {
+        log.debug(`${vdi.name_label} has CBT enabled`)
         // 20240629 we need to disable CBT on all disks of the VM since the xapi
         // checks all disk of a VM even to migrate only one disk
-        if (vdi.VBDs.length === 0) {
+        const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
+        if (vbds.length === 0) {
+          log.debug(`will disable CBT on ${vdi.name_label}  `)
           await this.call('VDI.disable_cbt', vdi.$ref)
         } else {
-          if (vdi.VBDs.length > 1) {
+          if (vbds.length > 1) {
             // no implicit workaround if vdi is multi attached
             throw error
           }
-          const vbd = this.getObject(vdi.VBDs[0])
+          const vbd = vbds[0]
+          log.debug(`will disable CBT on the full VM ${vbd.$VM.name_label}, containing disk ${vdi.name_label}  `)
           await this.VM_disableChangedBlockTracking(vbd.VM)
         }
 
@@ -1070,8 +1074,12 @@ export default class Xapi extends XapiBase {
         // after a migration the next delta backup is always a base copy
         // and this will only enabled cbt on needed disks
 
-        // retry
-        return this.moveVdi(vdiId, srId, false)
+        // retry migrating disk
+        return this.barrier(
+          await pRetry(() => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
+            when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+          })
+        )
       }
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
