@@ -14,6 +14,8 @@
 - [REST API] Add backup repository, storage repository, alarms, backups jobs and backups issues information in the `/rest/v0/dashboard` endpoint (PR [#7882](https://github.com/vatesfr/xen-orchestra/pull/7882), [#7904](https://github.com/vatesfr/xen-orchestra/pull/7904), [#7914](https://github.com/vatesfr/xen-orchestra/pull/7914), [#7908](https://github.com/vatesfr/xen-orchestra/pull/7908), [#7919](https://github.com/vatesfr/xen-orchestra/pull/7919))
 - [SR/Disks] Show and edit the use of CBT (Change Block Tracking) [#7786](https://github.com/vatesfr/xen-orchestra/issues/7786) (PR [#7888](https://github.com/vatesfr/xen-orchestra/pull/7888))
 - [Home] Add possibility to sort VMs by install time [#7902](https://github.com/vatesfr/xen-orchestra/issues/7902) (PR [#7910](https://github.com/vatesfr/xen-orchestra/pull/7910))
+- **XO 6**:
+  - [Tree view] Display running VMs count on pool and host items (PR [#7873](https://github.com/vatesfr/xen-orchestra/pull/7873))
 
 ### Bug fixes
 
@@ -43,7 +45,10 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/lite minor
 - @xen-orchestra/proxy patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
 
