@@ -6,6 +6,33 @@ import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
 const logger = createLogger('xo:xo-server-perf-alert')
 
+const PARAMS_JSON_SCHEMA = [
+  {
+    properties: {
+      uuids: {},
+      smartMode: { anyOf: [{ not: {} }, { const: false }] },
+      excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
+    },
+    required: ['uuids'],
+  },
+  // "smartMode" can be true ONLY if "uuids" is NOT defined OR if "excludeUuids" is true
+  {
+    properties: {
+      smartMode: { const: true },
+      uuids: { not: {} },
+    },
+    required: ['smartMode'],
+  },
+  {
+    properties: {
+      uuids: {},
+      smartMode: { const: true },
+      excludeUuids: { const: true },
+    },
+    required: ['uuids', 'smartMode', 'excludeUuids'],
+  },
+]
+
 const XAPI_TO_XENCENTER = {
   cpuUsage: 'cpu_usage',
   memoryUsage: 'mem_usage',
@@ -209,31 +236,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          {
-            properties: {
-              uuids: {},
-              smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
-            },
-            required: ['uuids'],
-          },
-          {
-            properties: {
-              smartMode: { const: true },
-              uuids: { not: {} },
-            },
-            required: ['smartMode'],
-          },
-          {
-            properties: {
-              uuids: {},
-              smartMode: { const: true },
-              excludeUuids: { const: true },
-            },
-            required: ['uuids', 'smartMode', 'excludeUuids'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     vmMonitors: {
@@ -289,31 +292,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          {
-            properties: {
-              uuids: {},
-              smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
-            },
-            required: ['uuids'],
-          },
-          {
-            properties: {
-              smartMode: { const: true },
-              uuids: { not: {} },
-            },
-            required: ['smartMode'],
-          },
-          {
-            properties: {
-              uuids: {},
-              smartMode: { const: true },
-              excludeUuids: { const: true },
-            },
-            required: ['uuids', 'smartMode', 'excludeUuids'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     srMonitors: {
@@ -361,31 +340,7 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [
-          {
-            properties: {
-              uuids: {},
-              smartMode: { anyOf: [{ not: {} }, { const: false }] },
-              excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
-            },
-            required: ['uuids'],
-          },
-          {
-            properties: {
-              smartMode: { const: true },
-              uuids: { not: {} },
-            },
-            required: ['smartMode'],
-          },
-          {
-            properties: {
-              uuids: {},
-              smartMode: { const: true },
-              excludeUuids: { const: true },
-            },
-            required: ['uuids', 'smartMode', 'excludeUuids'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     toEmails: {
@@ -544,16 +499,19 @@ ${monitorBodies.join('\n')}`
                     return false
                   }
 
-                  let shouldKeepThisObj = true
-                  if (definition.smartMode) {
-                    shouldKeepThisObj = (objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running'
+                  if (
+                    definition.smartMode &&
+                    (objectType === 'VM' || objectType === 'host') &&
+                    obj.power_state !== 'Running'
+                  ) {
+                    return false
                   }
 
-                  if (definition.excludeUuids && shouldKeepThisObj) {
-                    shouldKeepThisObj = !definition.uuids.includes(obj.uuid)
+                  if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+                    return false
                   }
 
-                  return shouldKeepThisObj
+                  return true
                 })
               : definition.uuids,
             async uuid => {
