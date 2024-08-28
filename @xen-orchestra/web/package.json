@@ -24,7 +24,7 @@
     "@vue/tsconfig": "^0.5.1",
     "@vueuse/core": "^10.7.1",
     "@vueuse/math": "^10.7.1",
-    "@xen-orchestra/web-core": "^0.0.5",
+    "@xen-orchestra/web-core": "^0.1.0",
     "human-format": "^1.2.0",
     "lodash-es": "^4.17.21",
     "npm-run-all2": "^6.1.1",
