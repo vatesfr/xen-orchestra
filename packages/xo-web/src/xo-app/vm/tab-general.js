@@ -312,7 +312,7 @@ const GeneralTab = decorate([
         <br />
         <Row className='text-xs-center'>
           <Col>
-            {vm.boot.firmware === 'uefi' && semver.satisfies(host.version, '>=8.3.0') && (
+            {vm.boot.firmware === 'uefi' && host !== undefined && semver.satisfies(host.version, '>=8.3.0') && (
               <p>
                 {_('keyValue', {
                   key: _('secureBootStatus'),
