@@ -234,7 +234,7 @@ export default class New extends Component {
     () => this.props.srs,
     createSelector(
       () => this.state.host,
-      host => host !== undefined && (sr => sr.$container === host.$pool || sr.$container === host.id)
+      host => host != null && (sr => sr.$container === host.$pool || sr.$container === host.id)
     )
   )
 
