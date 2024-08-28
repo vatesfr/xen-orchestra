@@ -525,19 +525,13 @@ ${monitorBodies.join('\n')}`
                 }
 
                 const isManagementAgentDetected = (vm, guestMetrics) => {
-                  if (
-                    (vm.power_state !== 'Running' && vm.power_state !== 'Paused') ||
-                    vm.metrics === undefined ||
-                    guestMetrics === undefined
-                  ) {
+                  if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
                     return
                   }
 
                   const { major, minor } = guestMetrics.PV_drivers_version
                   const hasPvVersion = major !== undefined && minor !== undefined
-                  const pvDriversDetected = guestMetrics.PV_drivers_detected ?? hasPvVersion
-
-                  return pvDriversDetected || hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+                  return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
                 }
 
                 const getListItem = () => {
