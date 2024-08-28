@@ -1,5 +1,36 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- **XO 6**:
+  - [Tree view] Display running VMs count on pool and host items (PR [#7873](https://github.com/vatesfr/xen-orchestra/pull/7873))
+  - [Dashboard] Add backup jobs statuses, backup repository information, storage repository information and patches statuses (PR [#7926](https://github.com/vatesfr/xen-orchestra/pull/7926), [#7927](https://github.com/vatesfr/xen-orchestra/pull/7927), [#7929](https://github.com/vatesfr/xen-orchestra/pull/7929), [#7930](https://github.com/vatesfr/xen-orchestra/pull/7930))
+- [REST API] Add backup repository, storage repository, alarms, backups jobs and backups issues information in the `/rest/v0/dashboard` endpoint (PR [#7882](https://github.com/vatesfr/xen-orchestra/pull/7882), [#7904](https://github.com/vatesfr/xen-orchestra/pull/7904), [#7914](https://github.com/vatesfr/xen-orchestra/pull/7914), [#7908](https://github.com/vatesfr/xen-orchestra/pull/7908), [#7919](https://github.com/vatesfr/xen-orchestra/pull/7919))
+- [SR/Disks] Show and edit the use of CBT (Change Block Tracking) [#7786](https://github.com/vatesfr/xen-orchestra/issues/7786) (PR [#7888](https://github.com/vatesfr/xen-orchestra/pull/7888))
+- [Home] Add possibility to sort VMs by install time [#7902](https://github.com/vatesfr/xen-orchestra/issues/7902) (PR [#7910](https://github.com/vatesfr/xen-orchestra/pull/7910))
+
+### Bug fixes
+
+- [Self] Remove unit in CPU usage total count (PR [#7894](https://github.com/vatesfr/xen-orchestra/pull/7894))
+- [Home/SR] Fix _Shared/Not shared_ sort
+- [Home/VM] When sorted by _Start time_, move VMs with no value at the end
+- [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
+- [Backups] Work around XAPI not automatically updating VM's `allowed_operations` after backups [Forum#81327](https://xcp-ng.org/forum/post/81327) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
+- [REST API] Fix VDI export in raw format broken in XO 5.96.0
+- [Import/VMware] Use the template settings for `memory_static_min` allowing VM memory to be reduced in the future (PR [#7923](https://github.com/vatesfr/xen-orchestra/pull/7923))
+
+### Released packages
+
+- @xen-orchestra/backups 0.52.3
+- @xen-orchestra/web-core 0.1.0
+- @xen-orchestra/lite 0.3.0
+- @xen-orchestra/proxy 0.28.12
+- @xen-orchestra/web 0.1.0
+- xo-server 5.152.0
+- xo-web 5.153.0
+
 ## **5.97.0** (2024-07-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
