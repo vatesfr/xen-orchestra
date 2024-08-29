@@ -1035,7 +1035,7 @@ export default class Xapi extends XapiBase {
     return this.callAsync('VDI.clone', vdi.$ref)
   }
 
-  async moveVdi(vdiId, srId) {
+  async moveVdi(vdiId, srId, { _failOnCbtError = false } = {}) {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
 
@@ -1052,17 +1052,24 @@ export default class Xapi extends XapiBase {
       )
     } catch (error) {
       const { code } = error
-      if (code === 'VDI_CBT_ENABLED') {
-        // 20240629 we need to disable CBT on all disks of the VM since the xapi
-        // checks all disk of a VM even to migrate only one disk
-        if (vdi.VBDs.length === 0) {
+      if (code === 'VDI_CBT_ENABLED' && !_failOnCbtError) {
+        log.debug(`${vdi.name_label} has CBT enabled`)
+        // disks attached to dom0 are a xapi internal
+        // it can be, for example, during an export
+        // we shouldn't consider these VBDs are relevant here
+        const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
+        if (vbds.length === 0) {
+          log.debug(`will disable CBT on ${vdi.name_label}  `)
           await this.call('VDI.disable_cbt', vdi.$ref)
         } else {
-          if (vdi.VBDs.length > 1) {
-            // no implicit workaround if vdi is multi attached
+          if (vbds.length > 1) {
+            // no implicit workaround if vdi is attached to multiple VMs
             throw error
           }
-          const vbd = this.getObject(vdi.VBDs[0])
+          // 20240629 we need to disable CBT on all disks of the VM since the xapi
+          // checks all disk of a VM even to migrate only one disk
+          const vbd = vbds[0]
+          log.debug(`will disable CBT on the full VM ${vbd.$VM.name_label}, containing disk ${vdi.name_label}  `)
           await this.VM_disableChangedBlockTracking(vbd.VM)
         }
 
@@ -1070,8 +1077,8 @@ export default class Xapi extends XapiBase {
         // after a migration the next delta backup is always a base copy
         // and this will only enabled cbt on needed disks
 
-        // retry
-        return this.moveVdi(vdiId, srId, false)
+        // retry migrating disk
+        return this.moveVdi(vdiId, srId, { _failOnCbtError: true })
       }
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
