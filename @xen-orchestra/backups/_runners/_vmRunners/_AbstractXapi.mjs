@@ -214,8 +214,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
 
-    const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     const xapi = this._xapi
+    // ensure all the event has been processed by the xapi
+    await xapi.barrier()
+    // ensure cached object are up to date
+    this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+    const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
 
@@ -235,13 +239,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
-          if (vdi.$VBDs.length > 0) {
-            const vbds = vdi.$VBDs
+          const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
+          if (vbds.length > 0) {
             // only one VM linked to this vdi
             // this will throw error for VDI still attached to control domain
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vm = vbds[0].$VM
-            assert.strictEqual(vm.is_control_domain, false, `Disk is still attached to DOM0 VM`) // don't delete a VM (especially a control domain)
             assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
 
             const vmRefVdi = vm.$ref
