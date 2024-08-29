@@ -1,5 +1,36 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- **XO 6**:
+  - [Tree view] Display running VMs count on pool and host items (PR [#7873](https://github.com/vatesfr/xen-orchestra/pull/7873))
+  - [Dashboard] Add backup jobs statuses, backup repository information, storage repository information and patches statuses (PR [#7926](https://github.com/vatesfr/xen-orchestra/pull/7926), [#7927](https://github.com/vatesfr/xen-orchestra/pull/7927), [#7929](https://github.com/vatesfr/xen-orchestra/pull/7929), [#7930](https://github.com/vatesfr/xen-orchestra/pull/7930))
+- [REST API] Add backup repository, storage repository, alarms, backups jobs and backups issues information in the `/rest/v0/dashboard` endpoint (PR [#7882](https://github.com/vatesfr/xen-orchestra/pull/7882), [#7904](https://github.com/vatesfr/xen-orchestra/pull/7904), [#7914](https://github.com/vatesfr/xen-orchestra/pull/7914), [#7908](https://github.com/vatesfr/xen-orchestra/pull/7908), [#7919](https://github.com/vatesfr/xen-orchestra/pull/7919))
+- [SR/Disks] Show and edit the use of CBT (Change Block Tracking) [#7786](https://github.com/vatesfr/xen-orchestra/issues/7786) (PR [#7888](https://github.com/vatesfr/xen-orchestra/pull/7888))
+- [Home] Add possibility to sort VMs by install time [#7902](https://github.com/vatesfr/xen-orchestra/issues/7902) (PR [#7910](https://github.com/vatesfr/xen-orchestra/pull/7910))
+
+### Bug fixes
+
+- [Self] Remove unit in CPU usage total count (PR [#7894](https://github.com/vatesfr/xen-orchestra/pull/7894))
+- [Home/SR] Fix _Shared/Not shared_ sort
+- [Home/VM] When sorted by _Start time_, move VMs with no value at the end
+- [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
+- [Backups] Work around XAPI not automatically updating VM's `allowed_operations` after backups [Forum#81327](https://xcp-ng.org/forum/post/81327) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
+- [REST API] Fix VDI export in raw format broken in XO 5.96.0
+- [Import/VMware] Use the template settings for `memory_static_min` allowing VM memory to be reduced in the future (PR [#7923](https://github.com/vatesfr/xen-orchestra/pull/7923))
+
+### Released packages
+
+- @xen-orchestra/backups 0.52.3
+- @xen-orchestra/web-core 0.1.0
+- @xen-orchestra/lite 0.3.0
+- @xen-orchestra/proxy 0.28.12
+- @xen-orchestra/web 0.1.0
+- xo-server 5.152.0
+- xo-web 5.153.0
+
 ## **5.97.0** (2024-07-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -55,8 +86,6 @@
 
 ## **5.96.0** (2024-07-05)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Highlights
 
 - [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
@@ -87,7 +116,6 @@
 - [VM/Advanced] Ignore `Firmware not supported` warning for UEFI boot firmware [Forum#8878](https://xcp-ng.org/forum/topic/8878/uefi-firmware-not-supported) (PR [#7767](https://github.com/vatesfr/xen-orchestra/pull/7767))
 - [LDAP] Fix users being removed from groups when synchronizing groups (PR [#7759](https://github.com/vatesfr/xen-orchestra/pull/7759))
 - [Host/Advanced] Change _Advanced Live Telemetry_ link to point to Netdata's page of the specific host [#7702](https://github.com/vatesfr/xen-orchestra/issues/7702)
-- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
 - [Incremental Replication] Fix _Delete first_ option causing `could not find base VM` error ([PR #7739](https://github.com/vatesfr/xen-orchestra/pull/7739))
 - [Full Backup] Don't keep an unnecessary snapshot (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
 - [Incremental Replication] Fix error `Cannot destructure property 'other_config' of 'undefined'` (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
@@ -107,7 +135,6 @@
 - xo-server-netbox 1.5.0
 - xo-server-transport-email 1.1.0
 - xo-server-backup-reports 1.1.0
-- xo-server-sdn-controller 1.0.9
 - vhd-lib 4.11.0
 - @xen-orchestra/backups-cli 1.0.22
 - @xen-orchestra/immutable-backups 1.0.9
@@ -116,6 +143,18 @@
 - @xen-orchestra/xapi 7.1.1
 - @xen-orchestra/proxy 0.28.8
 - xo-server 5.148.2
+
+## **5.95.2** (2024-08-28)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
+
+### Released packages
+
+- xo-server-sdn-controller 1.0.9
 
 ## **5.95.1** (2024-06-20)
 

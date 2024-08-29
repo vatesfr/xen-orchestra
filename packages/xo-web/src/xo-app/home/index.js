@@ -226,6 +226,12 @@ const OPTIONS = {
         sortByFn: ({ startTime }) => (startTime === null ? -Infinity : startTime),
         sortOrder: 'desc',
       },
+      {
+        labelId: 'homeSortByInstallTime',
+        sortBy: 'installTime',
+        sortByFn: ({ installTime }) => (installTime === null ? -Infinity : installTime),
+        sortOrder: 'desc',
+      },
     ],
   },
   pool: {

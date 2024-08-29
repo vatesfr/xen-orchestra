@@ -1,5 +1,7 @@
-import humanFormat from 'human-format'
-import moment from 'moment-timezone'
+'use strict'
+
+const humanFormat = require('human-format')
+const moment = require('moment-timezone')
 
 const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
@@ -22,7 +24,7 @@ const TITLE_BY_STATUS = {
 
 // ===================================================================
 
-export function ifCond(v1, operator, v2, options) {
+exports.ifCond = function ifCond(v1, operator, v2, options) {
   switch (operator) {
     case '===':
       return v1 === v2 ? options.fn(this) : options.inverse(this)
@@ -45,15 +47,15 @@ export function ifCond(v1, operator, v2, options) {
   }
 }
 
-export const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
+exports.formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
-export const formatSize = bytes =>
+exports.formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
     unit: 'B',
   })
 
-export const formatSpeed = (bytes, start, end) =>
+exports.formatSpeed = (bytes, start, end) =>
   end - start > 0
     ? humanFormat((bytes * 1e3) / (end - start), {
         scale: 'binary',
@@ -61,15 +63,15 @@ export const formatSpeed = (bytes, start, end) =>
       })
     : 'N/A'
 
-export const subtract = (a, b) => a - b
+exports.subtract = (a, b) => a - b
 
-export const executeFunction = (fct, arg) => fct(arg)
-
-// this could be a partial but it would be less clear
-export const getIcon = status => STATUS_ICON[status]
+exports.executeFunction = (fct, arg) => fct(arg)
 
 // this could be a partial but it would be less clear
-export function titleByStatus(status, tasks) {
+exports.getIcon = status => STATUS_ICON[status]
+
+// this could be a partial but it would be less clear
+exports.titleByStatus = function titleByStatus(status, tasks) {
   if (tasks && status in TITLE_BY_STATUS) {
     return TITLE_BY_STATUS[status](tasks.length)
   }

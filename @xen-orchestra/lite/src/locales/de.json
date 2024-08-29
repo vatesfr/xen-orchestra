@@ -143,7 +143,6 @@
   "page-not-found": "Diese Seite wurde nicht gefunden…",
   "password": "Passwort",
   "password-invalid": "Ungültiges Passwort",
-  "patches": "Patches",
   "pause": "Pausieren",
   "please-confirm": "Bitte bestätigen",
   "pool-cpu-usage": "Pool Prozessorauslastung",
@@ -216,7 +215,6 @@
   "vm.inactive": "Inaktiv",
 
   "vm-is-running": "Die VM ist eingeschalten",
-  "vm-running": "VM eingeschalten | VMs eingeschalten",
   "xo-lite-under-construction": "Wir arbeiten an XOLite",
   "xoa-admin-account": "XOA Administrator",
   "xoa-deploy": "XOA Installation",

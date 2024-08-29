@@ -1,4 +1,5 @@
 import type { ApiDefinition } from '@/types/xo'
+import type { XoDashboard } from '@/types/xo/dashboard.type'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoTask } from '@/types/xo/task.type'
@@ -28,5 +29,11 @@ export const xoApiDefinition = {
     path: 'tasks',
     fields: 'id,start,end,properties,status,progress,tasks',
     handler: (record: XoTask) => record,
+  },
+  dashboard: {
+    type: 'single',
+    path: 'dashboard',
+    fields: '*',
+    handler: (record: XoDashboard) => record,
   },
 } satisfies ApiDefinition

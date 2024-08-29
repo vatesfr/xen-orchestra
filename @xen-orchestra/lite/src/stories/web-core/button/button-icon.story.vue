@@ -11,6 +11,12 @@
       prop('disabled').bool().widget(),
       prop('active').bool().widget(),
       prop('dot').bool().widget(),
+      prop('targetScale')
+        .type('number | { x: number; y: number }')
+        .default(1)
+        .preset({ x: 2, y: 2 })
+        .help('Meant to increase click target size if needed')
+        .widget(),
     ]"
   >
     <ButtonIcon v-bind="properties" />

@@ -144,7 +144,6 @@
   "page-not-found": "This page is not to be found…",
   "password": "Password",
   "password-invalid": "Password invalid",
-  "patches": "Patches",
   "pause": "Pause",
   "please-confirm": "Please confirm",
   "pool-cpu-usage": "Pool CPU Usage",
@@ -217,7 +216,6 @@
   "vm.inactive": "Inactive",
 
   "vm-is-running": "The VM is running",
-  "vm-running": "VM running | VMs running",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",
   "xoa-deploy": "XOA deployment",

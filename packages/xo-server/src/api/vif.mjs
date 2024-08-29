@@ -137,20 +137,24 @@ export async function set({
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
 
-    return
+    return newVif.$id
   }
 
   const [addAddresses, removeAddresses] = diffItems(newIpAddresses, oldIpAddresses)
   await this.allocIpAddresses(vif.id, addAddresses, removeAddresses)
 
-  return this.getXapi(vif).editVif(vif._xapiId, {
+  await this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses,
     lockingMode,
     rateLimit,
     txChecksumming,
   })
+
+  return vif.id
 }
+
+set.description = 'Change properties of a VIF, its identifier is returned because it might change during the update'
 
 set.params = {
   id: { type: 'string' },
