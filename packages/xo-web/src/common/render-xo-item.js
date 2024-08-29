@@ -13,7 +13,24 @@ import Link from './link'
 import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
-import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
+import {
+  isSrWritable,
+  subscribeBackupNgJobs,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
+  subscribeProxies,
+  subscribeRemotes,
+  subscribeUsers,
+} from './xo'
+import {
+  isCrBackup,
+  isDeltaBackup,
+  isDrBackup,
+  isFullBackup,
+  isPoolMetadataBackup,
+  isRollingSnapshotBackup,
+  isXoConfigBackup,
+} from './xo/utils'
 
 // ===================================================================
 
@@ -461,11 +478,49 @@ Proxy.defaultProps = {
 
 export const BackupJob = decorate([
   addSubscriptions(({ id }) => ({
-    job: cb => subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
+    backupNg: cb => subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
+    metadataBackup: cb => subscribeMetadataBackupJobs(jobs => cb(jobs.find(job => job.id === id))),
+    mirrorBackup: cb => subscribeMirrorBackupJobs(jobs => cb(jobs.find(job => job.id === id))),
   })),
-  ({ id, job, link, newTab }) => {
+  ({ backupNg, metadataBackup, mirrorBackup, id, link, newTab, showLabels = false }) => {
+    const job = backupNg ?? metadataBackup ?? mirrorBackup
+
     if (job === undefined) {
       return unknowItem(id, 'job')
+    }
+
+    const labels = []
+    if (showLabels) {
+      if (job.type === 'backup') {
+        if (isFullBackup(job)) {
+          labels.push(_('fullBackup'))
+        } else if (isDeltaBackup(job)) {
+          labels.push(_('incrementalBackup'))
+        }
+
+        if (isDrBackup(job)) {
+          labels.push(_('fullReplication'))
+        } else if (isCrBackup(job)) {
+          labels.push(_('incrementalReplication'))
+        }
+
+        if (isRollingSnapshotBackup(job)) {
+          labels.push(_('rollingSnapshot'))
+        }
+      }
+
+      if (job.type === 'metadataBackup') {
+        if (isPoolMetadataBackup(job)) {
+          labels.push(_('poolMetadata'))
+        }
+        if (isXoConfigBackup(job)) {
+          labels.push(_('xoConfig'))
+        }
+      }
+
+      if (job.type === 'mirrorBackup') {
+        labels.push(_(job.mode === 'delta' ? 'mirrorIncrementalBackup' : 'mirrorFullBackup'))
+      }
     }
 
     return (
@@ -475,6 +530,11 @@ export const BackupJob = decorate([
         to={`/backup/overview?s=${encodeURIComponent(new CM.Property('id', new CM.String(id)).toString())}`}
       >
         {job.name}
+        {labels.map((label, index) => (
+          <span key={index} className='tag tag-info ml-1'>
+            {label}
+          </span>
+        ))}
       </LinkWrapper>
     )
   },
@@ -697,6 +757,10 @@ const xoItemToRender = {
     )
   },
   job: job => <spans>{job.name}</spans>,
+
+  backupJob: backupJob => <BackupJob id={backupJob.id} showLabels />,
+  metadataBackup: backupJob => <BackupJob id={backupJob.id} showLabels />,
+  mirrorBackup: backupJob => <BackupJob id={backupJob.id} showLabels />,
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {

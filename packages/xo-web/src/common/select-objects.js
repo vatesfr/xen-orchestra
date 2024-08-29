@@ -248,18 +248,22 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
-    <span className={!option.disabled && this.props.xoContainers !== undefined ? 'ml-1' : undefined}>
-      {renderXoItem(option.xoItem, {
-        type:
-          this.props.resourceSet !== undefined && option.xoItem.type !== undefined
-            ? `${option.xoItem.type}-resourceSet`
-            : undefined,
-        memoryFree: option.xoItem.type === 'host' || undefined,
-        showNetwork: true,
-      })}
-    </span>
-  )
+  _renderOption = option => {
+    // xoItem.type === "backup" must be rendered as `backupJob`,
+    // The `backup` key already exists in `xoItemToRender`
+    // and represents a stored backup. Here we want to represent a backup job
+    const baseType = option.xoItem.type === 'backup' ? 'backupJob' : option.xoItem.type
+    const type = this.props.resourceSet !== undefined && baseType !== undefined ? `${baseType}-resourceSet` : baseType
+    return (
+      <span className={!option.disabled && this.props.xoContainers !== undefined ? 'ml-1' : undefined}>
+        {renderXoItem(option.xoItem, {
+          type,
+          memoryFree: option.xoItem.type === 'host' || undefined,
+          showNetwork: true,
+        })}
+      </span>
+    )
+  }
 
   render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
@@ -1168,4 +1172,46 @@ export const SelectSchedule = makeSubscriptionSelect(
     }
   },
   { placeholder: _('selectSchedule') }
+)
+
+// ===================================================================
+
+export const SelectBackupJob = makeSubscriptionSelect(
+  subscriber => {
+    let xoObjects = []
+
+    let backupJobsLoaded, metadataJobsLoaded, mirrorJobsLoaded
+    const set = newObjects => {
+      xoObjects = newObjects
+
+      if (backupJobsLoaded && metadataJobsLoaded && mirrorJobsLoaded) {
+        subscriber({
+          xoObjects: sortBy(xoObjects, 'name'),
+        })
+      }
+    }
+    const unsubscribeBackupJob = subscribeBackupNgJobs(backupJobs => {
+      backupJobsLoaded = true
+      set([...xoObjects.filter(obj => obj.type !== 'backup'), ...backupJobs])
+    })
+
+    const unsubscribeMetadataJob = subscribeMetadataBackupJobs(metadataJobs => {
+      metadataJobsLoaded = true
+      set([...xoObjects.filter(obj => obj.type !== 'metadataBackup'), ...metadataJobs])
+    })
+
+    const unsubscribeMirrorJob = subscribeMirrorBackupJobs(mirrorJobs => {
+      mirrorJobsLoaded = true
+      set([...xoObjects.filter(obj => obj.type !== 'mirrorBackup'), ...mirrorJobs])
+    })
+
+    return () => {
+      unsubscribeBackupJob()
+      unsubscribeMetadataJob()
+      unsubscribeMirrorJob()
+    }
+  },
+  {
+    placeholder: _('selectBackupJob'),
+  }
 )
