@@ -26,7 +26,6 @@
 - [Plugin/perf-alert] Fix 'NaN' values in CPU usage (PR [#7925](https://github.com/vatesfr/xen-orchestra/pull/7925))
 - [Backups] Fix the replication failing with "disk attached to Dom0" error (PR [#7920](https://github.com/vatesfr/xen-orchestra/pull/7920))
 
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
