@@ -5,7 +5,7 @@
       v-for="(segment, index) in segments"
       :key="index"
       :color="segment.color"
-      :percentage="(segment.value / max) * 100"
+      :percentage="max === 0 ? 0 : (segment.value / max) * 100"
     />
   </div>
 </template>
