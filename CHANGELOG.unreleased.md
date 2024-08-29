@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [OTP] Key can be copied to clipboard because some clients cannot use the QR code
+- [Plugin/perf-alert] Add a toggle to exclude selected items (PR [#7911](https://github.com/vatesfr/xen-orchestra/pull/7911))
 
 ### Bug fixes
 
@@ -37,6 +38,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core patch
+- xo-server-perf-alert minor
 - xo-web minor
 
 <!--packages-end-->

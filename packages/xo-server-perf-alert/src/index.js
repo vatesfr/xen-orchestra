@@ -6,6 +6,33 @@ import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
 const logger = createLogger('xo:xo-server-perf-alert')
 
+const PARAMS_JSON_SCHEMA = [
+  {
+    properties: {
+      uuids: {},
+      smartMode: { anyOf: [{ not: {} }, { const: false }] },
+      excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
+    },
+    required: ['uuids'],
+  },
+  // "smartMode" can be true ONLY if "uuids" is NOT defined OR if "excludeUuids" is true
+  {
+    properties: {
+      smartMode: { const: true },
+      uuids: { not: {} },
+    },
+    required: ['smartMode'],
+  },
+  {
+    properties: {
+      uuids: {},
+      smartMode: { const: true },
+      excludeUuids: { const: true },
+    },
+    required: ['uuids', 'smartMode', 'excludeUuids'],
+  },
+]
+
 const XAPI_TO_XENCENTER = {
   cpuUsage: 'cpu_usage',
   memoryUsage: 'mem_usage',
@@ -171,6 +198,11 @@ export const configurationSchema = {
             description: 'When enabled, all running hosts will be considered for the alert.',
             default: false,
           },
+          excludeUuids: {
+            description: 'If set to true, selected host will not be monitored.',
+            title: 'Exclude hosts',
+            type: 'boolean',
+          },
           uuids: {
             title: 'Hosts',
             type: 'array',
@@ -204,16 +236,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          {
-            properties: { uuids: {} },
-            required: ['uuids'],
-          },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     vmMonitors: {
@@ -230,6 +253,11 @@ export const configurationSchema = {
             type: 'boolean',
             description: 'When enabled, all running VMs will be considered for the alert.',
             default: false,
+          },
+          excludeUuids: {
+            description: 'If set to true, selected VMs will not be considered for the alert.',
+            title: 'Exclude VMs',
+            type: 'boolean',
           },
           uuids: {
             title: 'Virtual Machines',
@@ -264,16 +292,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          {
-            properties: { uuids: {} },
-            required: ['uuids'],
-          },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     srMonitors: {
@@ -290,6 +309,11 @@ export const configurationSchema = {
             type: 'boolean',
             description: 'When enabled, all SRs will be considered for the alert.',
             default: false,
+          },
+          excludeUuids: {
+            description: 'If set to true, selected SRs will not be considered for the alert.',
+            title: 'Exclude SRs',
+            type: 'boolean',
           },
           uuids: {
             title: 'SRs',
@@ -316,16 +340,7 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [
-          {
-            properties: { uuids: {} },
-            required: ['uuids'],
-          },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
+        oneOf: PARAMS_JSON_SCHEMA,
       },
     },
     toEmails: {
@@ -478,13 +493,26 @@ ${monitorBodies.join('\n')}`
       snapshot: async () => {
         return Promise.all(
           map(
-            definition.smartMode
-              ? filter(
-                  this._xo.getObjects(),
-                  obj =>
-                    obj.type === objectType &&
-                    ((objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running')
-                ).map(obj => obj.uuid)
+            definition.smartMode || definition.excludeUuids
+              ? filter(this._xo.getObjects(), obj => {
+                  if (obj.type !== objectType) {
+                    return false
+                  }
+
+                  if (
+                    definition.smartMode &&
+                    (objectType === 'VM' || objectType === 'host') &&
+                    obj.power_state !== 'Running'
+                  ) {
+                    return false
+                  }
+
+                  if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+                    return false
+                  }
+
+                  return true
+                })
               : definition.uuids,
             async uuid => {
               try {
