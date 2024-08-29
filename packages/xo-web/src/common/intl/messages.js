@@ -84,6 +84,7 @@ const messages = {
   pools: 'Pools',
   remotes: 'Remotes',
   schedulerGranularity: 'Scheduler granularity',
+  setCbtError: 'Set CBT error',
   socket: 'Socket',
   type: 'Type',
   restore: 'Restore',

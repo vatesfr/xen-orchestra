@@ -2487,7 +2487,8 @@ export const migrateVdi = (vdi, sr, resourceSet) =>
     sr_id: resolveId(sr),
   })
 
-export const setCbt = (vdi, cbt) => _call('vdi.set', { id: resolveId(vdi), cbt })
+export const setCbt = (vdi, cbt) =>
+  _call('vdi.set', { id: resolveId(vdi), cbt }).catch(err => error(_('setCbtError'), err.message || String(err)))
 
 // VBD ---------------------------------------------------------------
 
