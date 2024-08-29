@@ -7,7 +7,7 @@
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.52.3",
+    "@xen-orchestra/backups": "^0.53.0",
     "@xen-orchestra/fs": "^4.1.7",
     "filenamify": "^6.0.0",
     "getopts": "^2.2.5",
@@ -27,7 +27,7 @@
   "scripts": {
     "postversion": "npm publish --access public"
   },
-  "version": "1.0.22",
+  "version": "1.0.23",
   "license": "AGPL-3.0-or-later",
   "author": {
     "name": "Vates SAS",
