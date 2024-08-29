@@ -29,16 +29,15 @@ const MIRROR_BACKUP_FILTER = {
   optional: true,
   properties: {
     vm: {
+      type: 'object',
       properties: {
         uuid: {
           type: 'object',
           properties: {
             __or: {
               type: 'array',
-              items: {
-                type: 'string',
-                minItems: 1,
-              },
+              items: { type: 'string' },
+              minItems: 1,
             },
           },
         },
