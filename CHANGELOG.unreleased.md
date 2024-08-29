@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [OTP] Key can be copied to clipboard because some clients cannot use the QR code
+- [Plugin/perf-alert] Add a toggle to exclude selected items (PR [#7911](https://github.com/vatesfr/xen-orchestra/pull/7911))
+- [Backup/Mirror] Filter the VM that must be mirrored [#7748](https://github.com/vatesfr/xen-orchestra/issues/7748) (PR [#7941](https://github.com/vatesfr/xen-orchestra/pull/7941))
 
 ### Bug fixes
 
@@ -37,7 +39,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/web-core patch
+- xo-server minor
 - xo-server-perf-alert minor
 - xo-web minor
 

@@ -21,6 +21,32 @@ const SCHEMA_SETTINGS = {
   optional: true,
 }
 
+// a filter properties is allowed
+// for now it only support by VM uuid
+const MIRROR_BACKUP_FILTER = {
+  type: 'object',
+  nullable: true,
+  optional: true,
+  properties: {
+    vm: {
+      properties: {
+        uuid: {
+          type: 'object',
+          properties: {
+            __or: {
+              type: 'array',
+              items: {
+                type: 'string',
+                minItems: 1,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+}
+
 export function createJob({ schedules, ...job }) {
   return this.createBackupNgJob('mirrorBackup', job, schedules).then(({ id }) => id)
 }
@@ -48,6 +74,7 @@ createJob.params = {
     type: 'object',
     optional: true,
   },
+  filter: MIRROR_BACKUP_FILTER,
   settings: SCHEMA_SETTINGS,
 }
 
@@ -91,6 +118,7 @@ editJob.params = {
     type: 'object',
     optional: true,
   },
+  filter: MIRROR_BACKUP_FILTER,
   settings: SCHEMA_SETTINGS,
 }
 
