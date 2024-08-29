@@ -37,7 +37,7 @@ const valueFontClass = computed(() => (props.size === 'medium' ? 'h3-semi-bold' 
 const unitFontClass = computed(() => (props.size === 'medium' ? 'p2-medium' : 'c2-semi-bold'))
 
 const percentValue = computed(() => {
-  if (props.size !== 'small' || props.max === undefined) {
+  if (props.size !== 'small' || props.max === undefined || props.max === 0) {
     return undefined
   }
 

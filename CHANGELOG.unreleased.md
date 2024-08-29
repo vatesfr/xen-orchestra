@@ -11,11 +11,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [OTP] Key can be copied to clipboard because some clients cannot use the QR code
 - [Plugin/perf-alert] Add a toggle to exclude selected items (PR [#7911](https://github.com/vatesfr/xen-orchestra/pull/7911))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [New/SR] Fix 'an error as occured' when creating a new SR (PR [#7931](https://github.com/vatesfr/xen-orchestra/pull/7931))
+- [VM/General] Fix 'an error as occured' in general tab view for non-admin users (PR [#7928](https://github.com/vatesfr/xen-orchestra/pull/7928))
 
 ### Packages to release
 
@@ -33,6 +37,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web-core patch
 - xo-server-perf-alert minor
+- xo-web minor
 
 <!--packages-end-->

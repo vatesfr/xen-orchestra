@@ -86,8 +86,6 @@
 
 ## **5.96.0** (2024-07-05)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Highlights
 
 - [Plugin/backup-reports] Backup reports sent by email have a new, less rudimentary look (PR [#7747](https://github.com/vatesfr/xen-orchestra/pull/7747))
@@ -118,7 +116,6 @@
 - [VM/Advanced] Ignore `Firmware not supported` warning for UEFI boot firmware [Forum#8878](https://xcp-ng.org/forum/topic/8878/uefi-firmware-not-supported) (PR [#7767](https://github.com/vatesfr/xen-orchestra/pull/7767))
 - [LDAP] Fix users being removed from groups when synchronizing groups (PR [#7759](https://github.com/vatesfr/xen-orchestra/pull/7759))
 - [Host/Advanced] Change _Advanced Live Telemetry_ link to point to Netdata's page of the specific host [#7702](https://github.com/vatesfr/xen-orchestra/issues/7702)
-- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
 - [Incremental Replication] Fix _Delete first_ option causing `could not find base VM` error ([PR #7739](https://github.com/vatesfr/xen-orchestra/pull/7739))
 - [Full Backup] Don't keep an unnecessary snapshot (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
 - [Incremental Replication] Fix error `Cannot destructure property 'other_config' of 'undefined'` (PR [#7805](https://github.com/vatesfr/xen-orchestra/pull/7805))
@@ -138,7 +135,6 @@
 - xo-server-netbox 1.5.0
 - xo-server-transport-email 1.1.0
 - xo-server-backup-reports 1.1.0
-- xo-server-sdn-controller 1.0.9
 - vhd-lib 4.11.0
 - @xen-orchestra/backups-cli 1.0.22
 - @xen-orchestra/immutable-backups 1.0.9
@@ -147,6 +143,18 @@
 - @xen-orchestra/xapi 7.1.1
 - @xen-orchestra/proxy 0.28.8
 - xo-server 5.148.2
+
+## **5.95.2** (2024-08-28)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [SDN-Controller] Fix `tlsv1 alert unknown ca` when creating private network (PR [#7755](https://github.com/vatesfr/xen-orchestra/pull/7755))
+
+### Released packages
+
+- xo-server-sdn-controller 1.0.9
 
 ## **5.95.1** (2024-06-20)
 

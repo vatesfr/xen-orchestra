@@ -1,5 +1,6 @@
 import _ from '../intl'
 import authenticator from '../otp-authenticator.js'
+import Copiable from '../copiable/index.js'
 import qrcode from 'qrcode'
 import PropTypes from 'prop-types'
 import React, { PureComponent } from 'react'
@@ -51,6 +52,9 @@ export class AddOtpModal extends PureComponent {
             <img src={qrcode} alt='qrcode' />
           </div>
         )}
+        <Copiable tagName='div' className='text-xs-center'>
+          {this.props.secret}
+        </Copiable>
       </div>
     )
   }
