@@ -86,6 +86,7 @@ const normalize = state => {
     reportWhen,
     reportRecipients,
     vmsToMirror,
+    mirrorAll,
   } = state
   let { schedules, mode } = state
 
@@ -103,7 +104,7 @@ const normalize = state => {
     remotes: constructPattern(targetRemoteIds),
     schedules,
     settings,
-    filter: vmsToMirror !== undefined ? { vm: { uuid: { __or: vmsToMirror } } } : state.edition ? null : undefined,
+    filter: !mirrorAll ? { vm: { uuid: { __or: vmsToMirror } } } : state.edition ? null : undefined,
   }
 }
 
@@ -228,7 +229,7 @@ const NewMirrorBackup = decorate([
       resetMirrorBackup: () => (_, props) => getInitialState(props),
       linkState,
       toggleMode: (_, { mode }) => ({ mode, vmsToMirror: undefined }),
-      toggleMirrorAll: (_, value) => ({ mirrorAll: value, vmsToMirror: undefined }),
+      toggleMirrorAll: (_, value) => ({ mirrorAll: value }),
       onChangeVmBackups: (_, vmBackups) => () => ({
         vmsToMirror: vmBackups.map(({ value: vmUuid }) => vmUuid),
       }),
