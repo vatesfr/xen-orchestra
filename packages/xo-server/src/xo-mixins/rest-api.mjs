@@ -16,6 +16,7 @@ import semver from 'semver'
 import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import { parse } from 'xo-remote-parser'
 
 import { getUserPublicProperties, isSrWritable } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
@@ -225,14 +226,25 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const backupRepositoriesSize = Object.values(await app.getAllRemotesInfo()).reduce(
-      (prev, remoteInfo) => ({
-        available: prev.available + remoteInfo.available,
-        backups: 0, // @TODO: compute the space used by backups
-        other: 0, // @TODO: compute the space used by everything that is not a backup
-        total: prev.total + remoteInfo.size,
-        used: prev.used + remoteInfo.used,
-      }),
+    const remotes = await app.getAllRemotes()
+    const remotesInfo = await app.getAllRemotesInfo()
+
+    const backupRepositoriesSize = remotes.reduce(
+      (prev, remote) => {
+        const { type } = parse(remote.url)
+        if (!remote.enabled || type === 's3') {
+          return prev
+        }
+
+        const remoteInfo = remotesInfo[remote.id]
+        return {
+          available: prev.available + remoteInfo.available,
+          backups: 0, // @TODO: compute the space used by backups
+          other: 0, // @TODO: compute the space used by everything that is not a backup
+          total: prev.total + remoteInfo.size,
+          used: prev.used + remoteInfo.used,
+        }
+      },
       {
         available: 0,
         backups: 0,
