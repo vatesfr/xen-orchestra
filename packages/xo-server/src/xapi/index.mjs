@@ -1035,7 +1035,7 @@ export default class Xapi extends XapiBase {
     return this.callAsync('VDI.clone', vdi.$ref)
   }
 
-  async moveVdi(vdiId, srId) {
+  async moveVdi(vdiId, srId, { _failOnCbtError = false } = {}) {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
 
@@ -1052,7 +1052,7 @@ export default class Xapi extends XapiBase {
       )
     } catch (error) {
       const { code } = error
-      if (code === 'VDI_CBT_ENABLED') {
+      if (code === 'VDI_CBT_ENABLED' && !_failOnCbtError) {
         log.debug(`${vdi.name_label} has CBT enabled`)
         // 20240629 we need to disable CBT on all disks of the VM since the xapi
         // checks all disk of a VM even to migrate only one disk
@@ -1075,11 +1075,7 @@ export default class Xapi extends XapiBase {
         // and this will only enabled cbt on needed disks
 
         // retry migrating disk
-        return this.barrier(
-          await pRetry(() => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
-            when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-          })
-        )
+        return this.moveVdi(vdiId, srId, { _failOnCbtError: true })
       }
       if (code !== 'NO_HOSTS_AVAILABLE' && code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
