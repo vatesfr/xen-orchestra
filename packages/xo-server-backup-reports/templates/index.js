@@ -8,7 +8,8 @@ const helpers = require('./_helpers.js')
 
 for (const name of readdirSync(__dirname)) {
   // ignore `.`, `..` and hidden entries
-  if (name[0] === '.') {
+  // entries starting by `_` are considered as private and will not be processed either
+  if (name[0] === '.' || name[0] === '_') {
     continue
   }
 
@@ -29,13 +30,35 @@ for (const name of readdirSync(__dirname)) {
     handlebars.registerHelper(name, fn)
   }
 
-  const partialsPath = join(path, 'partials')
-  for (const name of readdirSync(partialsPath)) {
-    const parts = parse(name)
-    if (parts.ext === '.hbs') {
-      handlebars.registerPartial(parts.name, readFileSync(join(partialsPath, name), 'utf8'))
+  const partials = new Map()
+  const registerPartials = dir => {
+    let entries
+    try {
+      entries = readdirSync(dir)
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
+    for (const base of entries) {
+      const parts = parse(base)
+      if (parts.ext === '.hbs') {
+        const { name } = parts
+        const path = join(dir, base)
+        if (partials.has(name)) {
+          const error = new Error('confliciting partial: ' + name)
+          error.previous = partials.get(name)
+          error.current = path
+          throw error
+        }
+        partials.set(name, path)
+        handlebars.registerPartial(name, readFileSync(path, 'utf8'))
+      }
     }
   }
+  registerPartials(join(__dirname, '_partials'))
+  registerPartials(join(path, 'partials'))
 
   for (const name of readdirSync(path)) {
     const parts = parse(name)
