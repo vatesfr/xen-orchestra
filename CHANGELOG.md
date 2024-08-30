@@ -40,10 +40,10 @@
 - @xen-orchestra/lite 0.3.1
 - @xen-orchestra/proxy 0.28.13
 - @xen-orchestra/web 0.1.1
-- xo-server 5.153.0
 - xo-server-backup-reports 1.4.0
 - xo-server-perf-alert 0.4.0
 - xo-web 5.154.0
+- xo-server 5.153.1
 
 ## **5.97.0** (2024-07-31)
 
