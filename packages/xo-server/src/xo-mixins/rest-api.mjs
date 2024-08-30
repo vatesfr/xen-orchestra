@@ -281,9 +281,16 @@ async function _getDashboardStats(app) {
         continue
       }
 
-      const schedule = await app.getSchedule(maybeScheduleId)
-      if (schedule.enabled) {
-        return true
+      try {
+        const schedule = await app.getSchedule(maybeScheduleId)
+        if (schedule.enabled) {
+          return true
+        }
+      } catch (error) {
+        if (!noSuchObject.is(error, { id: maybeScheduleId, type: 'schedule' })) {
+          console.error(error)
+        }
+        continue
       }
     }
     return false
