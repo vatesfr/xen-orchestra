@@ -232,11 +232,12 @@ async function _getDashboardStats(app) {
     const backupRepositoriesSize = remotes.reduce(
       (prev, remote) => {
         const { type } = parse(remote.url)
-        if (!remote.enabled || type === 's3') {
+        const remoteInfo = remotesInfo[remote.id]
+
+        if (!remote.enabled || type === 's3' || remoteInfo === undefined) {
           return prev
         }
 
-        const remoteInfo = remotesInfo[remote.id]
         return {
           available: prev.available + remoteInfo.available,
           backups: 0, // @TODO: compute the space used by backups
