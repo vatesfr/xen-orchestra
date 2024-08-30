@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- xo-server patch
+- xo-server-backup-reports patch
+
 <!--packages-end-->

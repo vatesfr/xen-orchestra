@@ -1,15 +1,15 @@
 {{#if subTaskLog}}
 - **{{{title}}}** ({{{id}}}) {{getIcon subTaskLog.status}}
-  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
-  {{>reportWarnings task=subTaskLog}}
-  {{>reportError task=subTaskLog}}
+  {{>reportTemporalDataMd end=subTaskLog.end start=subTaskLog.start}}
+  {{>reportWarningsMd task=subTaskLog}}
+  {{>reportErrorMd task=subTaskLog}}
 {{else}}
   - **{{{operationLog.message}}}** {{getIcon operationLog.status}}
-    {{>reportTemporalData end=operationLog.end start=operationLog.start}}
+    {{>reportTemporalDataMd end=operationLog.end start=operationLog.start}}
     {{#if operationLog.result.size}}
     - **Size**: {{formatSize operationLog.result.size}}
     - **Speed**: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}
     {{/if}}
-    {{>reportWarnings task=operationLog}}
-    {{>reportError task=operationLog}}
+    {{>reportWarningsMd task=operationLog}}
+    {{>reportErrorMd task=operationLog}}
 {{/if}}

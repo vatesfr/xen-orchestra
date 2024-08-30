@@ -3,7 +3,7 @@
 - **Job ID**: {{{log.jobId}}}
 - **Run ID**: {{{log.id}}}
 - **Mode**: {{{log.data.mode}}}
-{{>reportTemporalData end=log.end start=log.start}}
+{{>reportTemporalDataMd end=log.end start=log.start}}
 {{#if log.tasks}}
 - **Successes**: {{{tasksByStatus.success.count}}} / {{{tasksByStatus.vmTasks.count}}}
 {{#if globalTransferSize}}
@@ -12,7 +12,7 @@
 {{#if globalMergeSize}}
 - **Merge size**: {{formatSize globalMergeSize}}
 {{/if}}
-{{>reportWarnings task=log}}
+{{>reportWarningsMd task=log}}
 
 {{#if tasksByStatus.failure.tasks}}
 {{>vmFailure}}
@@ -27,8 +27,8 @@
 {{>vmSuccess}}
 {{/if}}
 {{else}}
-{{>reportError task=log}}
-{{>reportWarnings task=log}}
+{{>reportErrorMd task=log}}
+{{>reportWarningsMd task=log}}
 {{/if}}
 ---
 

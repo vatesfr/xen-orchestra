@@ -4,9 +4,9 @@
       <mj-text font-size="16px" font-weight="300" line-height="24px">
         <span style="font-weight: bold">{{title}}</span> ({{id}}) {{getIcon subTaskLog.status}}
         <ul>
-          {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start}}
-          {{>reportWarnings task=subTaskLog}}
-          {{>reportError task=subTaskLog}}
+          {{>reportTemporalDataMjml end=subTaskLog.end start=subTaskLog.start}}
+          {{>reportWarningsMjml task=subTaskLog}}
+          {{>reportErrorMjml task=subTaskLog}}
         </ul>
       </mj-text>
     </mj-column>
@@ -17,13 +17,13 @@
         <mj-text font-size="16px" font-weight="300" line-height="24px">
           <span style="font-weight: bold">{{operationLog.message}}</span> {{getIcon operationLog.status}}
           <ul>
-          {{>reportTemporalData end=operationLog.end start=operationLog.start}}
+          {{>reportTemporalDataMjml end=operationLog.end start=operationLog.start}}
             {{#if operationLog.result.size}}
               <li><span style="font-weight: bold">Size</span>: {{formatSize operationLog.result.size}}</li>
               <li><span style="font-weight: bold">Speed</span>: {{formatSpeed operationLog.result.size operationLog.start operationLog.end}}</li>
             {{/if}}
-            {{>reportWarnings task=operationLog}}
-            {{>reportError task=operationLog}}
+            {{>reportWarningsMjml task=operationLog}}
+            {{>reportErrorMjml task=operationLog}}
           </ul>
         </mj-text>
       </mj-column>
