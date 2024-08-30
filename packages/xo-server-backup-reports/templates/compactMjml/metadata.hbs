@@ -23,12 +23,12 @@
               <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
               <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
-              {{>reportTemporalData end=log.end start=log.start}} {{#if log.tasks.length}}
+              {{>reportTemporalDataMjml end=log.end start=log.start}} {{#if log.tasks.length}}
               <li>
                 <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.length ~}}
                 {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
               </li>
-              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
+              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
             </ul>
           </mj-text>
         </mj-column>

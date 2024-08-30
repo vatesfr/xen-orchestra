@@ -23,12 +23,12 @@
               <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
               <li><span style="font-weight: bold">Job name</span>: {{jobName}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
-              {{>reportTemporalData end=log.end start=log.start}} {{#if log.tasks.length}}
+              {{>reportTemporalDataMjml end=log.end start=log.start}} {{#if log.tasks.length}}
               <li>
                 <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.length ~}}
                 {{tasksByStatus.success.length}} {{~else~}} 0 {{~/if}} / {{log.tasks.length}}
               </li>
-              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
+              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
             </ul>
           </mj-text>
         </mj-column>
@@ -49,8 +49,8 @@
               <mj-text font-size="16px" font-weight="300" line-height="24px">
                 <h3>{{>taskTitle task=. jobName=../../log.jobName}}</h3>
                 <ul>
-                  {{>taskBody task=.}} {{>reportTemporalData formatDate=../../formatDate}} {{>reportError task=.}}
-                  {{>reportWarnings task=this}}
+                  {{>taskBody task=.}} {{>reportTemporalDataMjml formatDate=../../formatDate}} {{>reportErrorMjml task=.}}
+                  {{>reportWarningsMjml task=this}}
                 </ul>
               </mj-text>
             </mj-column>
@@ -62,9 +62,9 @@
                   <span style="font-weight:bold">{{>taskTitle task=. jobName=''}}</span> {{getIcon status}}
                   <ul>
                     {{>taskBody task=.}}
-                    {{>reportTemporalData formatDate=../../../formatDate}}
-                    {{>reportError task=.}}
-                    {{>reportWarnings task =.}}
+                    {{>reportTemporalDataMjml formatDate=../../../formatDate}}
+                    {{>reportErrorMjml task=.}}
+                    {{>reportWarningsMjml task =.}}
                   </ul>
                 </mj-text>
               </mj-column>

@@ -1,6 +1,6 @@
 {{#each snapshotSubtasks}}
 - **Snapshot** {{getIcon subTaskLog.status}}
-  {{>reportTemporalData end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
+  {{>reportTemporalDataMd end=subTaskLog.end start=subTaskLog.start formatDate=../formatDate}}
 {{/each}}
 {{#if srsSubTasks}}
 - **SRs**
