@@ -2,10 +2,11 @@
 
 const createConsoleTransport = require('./transports/console')
 const createTransport = require('./_createTransport')
-const symbol = require('./_symbol.js')
 const { LEVELS, resolve } = require('./_levels')
 
 // ===================================================================
+
+const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 
 const { env } = process
 global[symbol] = createTransport({
