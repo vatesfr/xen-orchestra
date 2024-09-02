@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "execa": "^4.0.0",
-    "rimraf": "^6.0.1",
+    "rimraf": "^5.0.1",
     "test": "^3.2.1",
     "tmp": "^0.2.1"
   }

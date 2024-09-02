@@ -122,7 +122,7 @@
     "redux-thunk": "^2.0.1",
     "relative-luminance": "^2.0.1",
     "reselect": "^2.5.4",
-    "rimraf": "^6.0.1",
+    "rimraf": "^5.0.1",
     "sanitize-html": "^2.11.0",
     "sass": "^1.38.1",
     "semver": "^6.0.0",

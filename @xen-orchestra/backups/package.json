@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "fs-extra": "^11.1.0",
-    "rimraf": "^6.0.1",
+    "rimraf": "^5.0.1",
     "sinon": "^18.0.0",
     "test": "^3.2.1",
     "tmp": "^0.2.1"
