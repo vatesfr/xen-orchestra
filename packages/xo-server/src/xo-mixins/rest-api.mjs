@@ -335,7 +335,12 @@ async function _getDashboardStats(app) {
             skippedJobs++
           }
 
-          backupJobIssues.push({ uuid: job.id, logs: jobLogs.map(log => log.status) })
+          backupJobIssues.push({
+            uuid: job.id,
+            logs: jobLogs.map(log => log.status),
+            name: job.name,
+            type: job.type,
+          })
 
           break
         }
