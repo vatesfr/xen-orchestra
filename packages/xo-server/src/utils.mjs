@@ -346,4 +346,9 @@ export const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' 
 export const isReplicaVm = vm => 'start' in vm.blockedOperations && vm.other['xo:backup:job'] !== undefined
 
 // -------------------------------------------------------------------
+
 export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
+
+// -------------------------------------------------------------------
+
+export const isAlarm = alarm => alarm.type === 'message' && alarm.name === 'ALARM'
