@@ -4,9 +4,9 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 
 import { cancelableMap } from './_cancelableMap.mjs'
-import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
