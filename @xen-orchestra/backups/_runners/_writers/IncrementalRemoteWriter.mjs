@@ -7,10 +7,10 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { dirname, basename } from 'node:path'
+import { Task } from '@vates/task'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { Task } from '../../Task.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
@@ -72,17 +72,17 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
-      name: 'export',
-      data: {
+      properties: {
         id: this._remoteId,
         isFull,
+        name: 'export',
         type: 'remote',
       },
     })
-    this.transfer = task.wrapFn(this.transfer)
-    this.healthCheck = task.wrapFn(this.healthCheck)
-    this.cleanup = task.wrapFn(this.cleanup)
-    this.afterBackup = task.wrapFn(this.afterBackup, true)
+    this.transfer = task.wrapInside(this.transfer)
+    this.healthCheck = task.wrapInside(this.healthCheck)
+    this.cleanup = task.wrapInside(this.cleanup)
+    this.afterBackup = task.wrap(this.afterBackup)
 
     return task.run(() => this._prepare())
   }
@@ -219,7 +219,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       vmSnapshot,
     }
 
-    const { size } = await Task.run({ name: 'transfer' }, async () => {
+    const { size } = await Task.run({ properties: { name: 'transfer' } }, async () => {
       let transferSize = 0
       await asyncEach(
         Object.keys(deltaExport.vdis),

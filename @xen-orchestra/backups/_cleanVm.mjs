@@ -8,8 +8,8 @@ import { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupTyp
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 
-import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
+import { Task } from '@vates/task'
 import handlerPath from '@xen-orchestra/fs/path'
 
 const { DISK_TYPES } = Constants
@@ -201,9 +201,9 @@ export async function cleanVm(
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
-    if(removeTmp && basename(path)[0] === '.'){
+    if (removeTmp && basename(path)[0] === '.') {
       logInfo('deleting temporary VHD', { path })
-        return VhdAbstract.unlink(handler, path)
+      return VhdAbstract.unlink(handler, path)
     }
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
@@ -488,7 +488,7 @@ export async function cleanVm(
 
   await Promise.all([
     ...unusedVhdsDeletion,
-    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : () => Promise.resolve()),
+    toMerge.length !== 0 && (merge ? Task.run({ properties: { name: 'merge' } }, doMerge) : () => Promise.resolve()),
     asyncMap(unusedXvas, path => {
       logWarn('unused XVA', { path })
       if (remove) {

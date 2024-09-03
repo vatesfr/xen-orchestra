@@ -1,12 +1,11 @@
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { Task } from '@vates/task'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
-import { Task } from '../Task.mjs'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
-import { runTask } from './_runTask.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
@@ -63,13 +62,12 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
           this._getRecord('SR', id).catch(error => {
-            runTask(
+            Task.run(
               {
-                name: 'get SR record',
-                data: { type: 'SR', id },
+                properties: { id, name: 'get SR record', type: 'SR' },
               },
               () => Promise.reject(error)
-            )
+            ).catch(noop)
           })
         )
       ),
@@ -124,14 +122,14 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
           nTriesByVmId[vmUuid]++
 
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
-          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
           const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
 
           return this._getRecord('VM', vmUuid).then(
             disposableVm =>
               Disposable.use(disposableVm, async vm => {
-                if (taskStart.data.name_label === undefined) {
-                  taskStart.data.name_label = vm.name_label
+                if (taskStart.properties.name_label === undefined) {
+                  taskStart.properties.name_label = vm.name_label
                 }
 
                 const task = getVmTask()
@@ -164,6 +162,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
                     try {
                       const result = await vmBackup.run()
+                      // TODO : handle next line
                       task.success(result)
                       return result
                     } catch (error) {
