@@ -114,9 +114,14 @@
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
     "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test"
   },
-  "workspaces": [
-    "@*/*",
-    "packages/*"
-  ],
+  "workspaces": {
+    "nohoist": [
+      "**/@vue/test-utils"
+    ],
+    "packages": [
+      "@*/*",
+      "packages/*"
+    ]
+  },
   "packageManager": "yarn@1.22.22"
 }
