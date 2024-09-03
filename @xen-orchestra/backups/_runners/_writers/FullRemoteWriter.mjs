@@ -1,6 +1,7 @@
+import { Task } from '@vates/task'
+
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { Task } from '../../Task.mjs'
 
 import { MixinRemoteWriter } from './_MixinRemoteWriter.mjs'
 import { AbstractFullWriter } from './_AbstractFullWriter.mjs'
@@ -9,11 +10,11 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
   constructor(props) {
     super(props)
 
-    this.run = Task.wrapFn(
+    this.run = Task.wrap(
       {
-        name: 'export',
-        data: {
+        properties: {
           id: props.remoteId,
+          name: 'export',
           type: 'remote',
 
           // necessary?
@@ -63,7 +64,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
       await deleteOldBackups()
     }
 
-    await Task.run({ name: 'transfer' }, async () => {
+    await Task.run({ properties: { name: 'transfer' } }, async () => {
       await adapter.outputStream(dataFilename, stream, {
         maxStreamLength,
         streamLength,

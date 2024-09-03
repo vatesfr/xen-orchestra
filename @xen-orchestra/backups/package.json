@@ -27,6 +27,7 @@
     "@vates/fuse-vhd": "^2.1.1",
     "@vates/nbd-client": "^3.1.0",
     "@vates/parse-duration": "^0.1.1",
+    "@vates/task": "^0.4.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^4.1.7",
     "@xen-orchestra/log": "^0.6.0",
