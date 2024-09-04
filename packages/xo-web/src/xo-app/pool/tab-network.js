@@ -233,6 +233,9 @@ const NETWORKS_COLUMNS = [
   {
     name: _('pifVlanLabel'),
     itemRenderer: network => <Vlan network={network} />,
+
+    // push entries without VLAN at the end
+    sortCriteria: ({ defaultPif }) => (defaultPif === undefined || defaultPif.vlan === -1 ? Infinity : defaultPif.vlan),
   },
   {
     name: _('poolNetworkMTU'),
