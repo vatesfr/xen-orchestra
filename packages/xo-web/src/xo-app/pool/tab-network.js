@@ -15,24 +15,8 @@ import { Container, Row, Col } from 'grid'
 import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Select, Toggle } from 'form'
-import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { deleteNetwork, editNetwork, editPif } from 'xo'
-
-// =============================================================================
-
-const _createGetPifs = () => createGetObjectsOfType('PIF').pick((_, props) => props.network.PIFs)
-
-const _createGetDefaultPif = () =>
-  createFinder(
-    _createGetPifs(),
-    createSelector(
-      createSelector(
-        createGetObject((_, props) => props.network.$pool),
-        pool => pool.master
-      ),
-      poolMaster => pif => pif.$host === poolMaster
-    )
-  )
 
 // =============================================================================
 
@@ -93,14 +77,11 @@ class Mtu extends Component {
   }
 }
 
-@connectStore(() => ({
-  defaultPif: _createGetDefaultPif(),
-}))
 class DefaultPif extends BaseComponent {
-  _editPif = vlan => editPif(this.props.defaultPif, { vlan })
+  _editPif = vlan => editPif(this.props.network.defaultPif, { vlan })
 
   render() {
-    const { defaultPif } = this.props
+    const { defaultPif } = this.props.network
 
     if (!defaultPif) {
       return null
@@ -151,14 +132,11 @@ class Nbd extends Component {
   }
 }
 
-@connectStore(() => ({
-  defaultPif: _createGetDefaultPif(),
-}))
 class Vlan extends BaseComponent {
-  _editPif = vlan => editPif(this.props.defaultPif, { vlan })
+  _editPif = vlan => editPif(this.props.network.defaultPif, { vlan })
 
   render() {
-    const { defaultPif } = this.props
+    const { defaultPif } = this.props.network
 
     if (!defaultPif) {
       return null
@@ -203,7 +181,7 @@ class ToggleDefaultLockingMode extends Component {
   const disablePifUnplug = pif => pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
 
   const getDisableNetworkDelete = createSelector(
-    _createGetPifs(),
+    () => createGetObjectsOfType('PIF').pick((_, props) => props.network.PIFs),
     (_, props) => props && props.network.name_label,
     (pifs, nameLabel) => nameLabel === 'Host internal management network' || some(pifs, disablePifUnplug)
   )
@@ -293,9 +271,29 @@ const NETWORKS_COLUMNS = [
 
 // =============================================================================
 
+@connectStore(() => ({
+  pifs: createGetObjectsOfType('PIF'),
+}))
 export default class TabNetworks extends Component {
+  _getNetworks = createSelector(
+    () => this.props.master,
+    () => this.props.networks,
+    () => this.props.pifs,
+    (master, networks, pifs) =>
+      networks.map(network => {
+        for (const pifId of network.PIFs) {
+          const pif = pifs[pifId]
+          if (pif !== undefined && pif.$host === master.id) {
+            return Object.defineProperty({ ...network }, 'defaultPif', { value: pif })
+          }
+        }
+
+        return network
+      })
+  )
+
   render() {
-    const { networks } = this.props
+    const networks = this._getNetworks()
 
     return (
       <Container>
