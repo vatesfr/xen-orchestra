@@ -1111,6 +1111,7 @@ const messages = {
   pciId: 'PCI ID',
   pcisEnable: 'PCI{nPcis, plural, one {} other {s}} enable',
   pcisDisable: 'PCI{nPcis, plural, one {} other {s}} disable',
+  passthroughEnabled: 'Passthrough enabled',
   pusbDevices: 'PUSB Devices',
   smartctlPluginNotInstalled: 'Smartctl plugin not installed',
   supplementalPacks: 'Installed supplemental packs',
