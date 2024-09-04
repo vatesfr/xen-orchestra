@@ -287,7 +287,7 @@ export default class TabNetworks extends Component {
         for (const pifId of network.PIFs) {
           const pif = pifs[pifId]
           if (pif !== undefined && pif.$host === master.id) {
-            return Object.defineProperty({ ...network }, 'defaultPif', { value: pif })
+            return Object.defineProperty({ VLAN: pif.vlan, ...network }, 'defaultPif', { value: pif })
           }
         }
 

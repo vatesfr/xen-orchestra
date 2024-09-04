@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Pool/Networks] Networks can be sorted by VLANs
+- [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
 
 ### Bug fixes
 
