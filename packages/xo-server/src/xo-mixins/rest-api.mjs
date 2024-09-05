@@ -2,6 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
 import { every } from '@vates/predicates'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
@@ -175,6 +176,7 @@ async function _getDashboardStats(app) {
   const hosts = []
   const writableSrs = []
   const alarms = []
+  let nVms = 0
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
@@ -193,6 +195,10 @@ async function _getDashboardStats(app) {
 
     if (obj.type === 'message' && obj.name === 'ALARM') {
       alarms.push(obj)
+    }
+
+    if (obj.type === 'VM') {
+      nVms++
     }
   }
 
@@ -312,9 +318,30 @@ async function _getDashboardStats(app) {
     let skippedJobs = 0
     let successfulJobs = 0
     const backupJobIssues = []
+    const vmIdsProtected = new Set()
+    const vmIdsUnprotected = new Set()
 
     for (const job of jobs) {
-      if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+      const jobHasAtLeastOneScheduleEnabled = await _jobHasAtLeastOneScheduleEnabled(job)
+
+      if (job.type === 'backup') {
+        const vmIds = extractIdsFromSimplePattern(job.vms)
+
+        for (const id of vmIds) {
+          if (vmIdsProtected.has(id)) {
+            continue
+          }
+
+          if (jobHasAtLeastOneScheduleEnabled) {
+            vmIdsProtected.add(id)
+            vmIdsUnprotected.delete(id)
+          } else {
+            vmIdsUnprotected.add(id)
+          }
+        }
+      }
+
+      if (!jobHasAtLeastOneScheduleEnabled) {
         disabledJobs++
         continue
       }
@@ -351,6 +378,10 @@ async function _getDashboardStats(app) {
       }
     }
 
+    const nVmsProtected = vmIdsProtected.size
+    const nVmsUnprotected = vmIdsUnprotected.size
+    const nVmsNotInJob = nVms - (nVmsProtected + nVmsUnprotected)
+
     dashboard.backups = {
       jobs: {
         disabled: disabledJobs,
@@ -360,6 +391,11 @@ async function _getDashboardStats(app) {
         total: jobs.length,
       },
       issues: backupJobIssues,
+      vmsProtection: {
+        protected: nVmsProtected,
+        unprotected: nVmsUnprotected,
+        notInJob: nVmsNotInJob,
+      },
     }
   } catch (error) {
     console.error(error)
