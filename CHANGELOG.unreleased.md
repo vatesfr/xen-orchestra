@@ -13,6 +13,7 @@
 
 - [Pool/Networks] Networks can be sorted by VLANs
 - [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
+- [REST API] Add `pifs` and `vm-controllers` collections
 
 ### Bug fixes
 
@@ -34,6 +35,7 @@
 
 <!--packages-start-->
 
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
