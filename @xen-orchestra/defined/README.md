@@ -16,8 +16,15 @@ npm install --save @xen-orchestra/defined
 
 ## Usage
 
-The defined() function returns the first non-undefined value from a list of arguments, evaluating functions if needed.
-If only undefined values, return undefined.
+### `defined()`
+
+Returns the first non-`undefined` value from a list of arguments, evaluating functions if needed.
+
+There is two ways to use this function:
+- either with a single array argument: it should return the first non-undefined item
+- or with multiple arguments: it should return the first non-undefined argument
+
+If only `undefined` values, return `undefined`.
 
 ```js
 import defined from '@xen-orchestra/defined/index.js'
@@ -26,7 +33,7 @@ defined(undefined, 'foo', 42)
 // Returns 'foo'
 
 defined([undefined, null, 10])
-// Returns [undefined, null, 10]
+// Returns null
 
 defined([undefined, undefined], [undefined, undefined, 10])
 // Returns [undefined, undefined]

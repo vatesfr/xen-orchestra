@@ -41,6 +41,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/defined patch
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
