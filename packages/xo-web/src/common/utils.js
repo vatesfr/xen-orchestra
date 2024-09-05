@@ -226,7 +226,7 @@ function safeHumanFormat(value, opts) {
 export const formatLogs = logs =>
   Promise.all(
     map(logs, ({ body }, id) => {
-      const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
+      const matches = /^value:\s*(Infinity|NaN|-Infinity|[0-9.]+)\s+config:\s*([^]*)$/.exec(body)
       if (matches === null) {
         return
       }

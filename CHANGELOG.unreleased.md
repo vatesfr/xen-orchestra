@@ -21,6 +21,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Dashboard/Health] Fix alarm table not showing any alarms
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
