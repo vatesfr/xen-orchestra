@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Pool/Networks] Networks can be sorted by VLANs
+- [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
+- [REST API] Add `pifs` and `vm-controllers` collections
 - [REST API/Dashboard] Add name and type of the backup in the backup job issues (PR [#7958](https://github.com/vatesfr/xen-orchestra/pull/7958))
 
 ### Bug fixes
@@ -34,5 +37,6 @@
 <!--packages-start-->
 
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
