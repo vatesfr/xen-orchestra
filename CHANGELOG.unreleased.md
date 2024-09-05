@@ -14,7 +14,7 @@
 - [SR/Disks] Display information if the VDI is an empty metadata snapshot (PR [#7970](https://github.com/vatesfr/xen-orchestra/pull/7970))
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
-- [REST API] Add the `vmsProtection` information in the `/dashboard` endpoint
+- [REST API] Add the `vmsProtection` information in the `/dashboard` endpoint (PR [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964))
 
 ### Bug fixes
 
