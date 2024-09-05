@@ -15,6 +15,7 @@
 - [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
 - [REST API] Add `pifs` and `vm-controllers` collections
 - [REST API/Dashboard] Add name and type of the backup in the backup job issues (PR [#7958](https://github.com/vatesfr/xen-orchestra/pull/7958))
+- [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
 
 ### Bug fixes
 
@@ -37,6 +38,7 @@
 <!--packages-start-->
 
 - xo-server minor
+- xo-server-perf-alert minor
 - xo-web minor
 
 <!--packages-end-->
