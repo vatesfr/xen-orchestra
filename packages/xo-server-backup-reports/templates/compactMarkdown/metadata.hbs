@@ -1,0 +1,13 @@
+## Global status: {{{log.status}}}
+
+- **Job ID**: {{{log.jobId}}}
+- **Job name**: {{{jobName}}}
+- **Run ID**: {{{log.id}}}
+{{>reportTemporalDataMd end=log.end start=log.start}}
+{{#if log.tasks.length}}
+- **Successes**: {{#if tasksByStatus.success.length ~}} {{{tasksByStatus.success.length}}} {{~else~}} 0 {{~/if}} / {{{log.tasks.length}}}
+{{/if}}
+{{>reportErrorMd task=log}}
+{{>reportWarningsMd task=log}}
+---
+*{{{pkg.name}}} v{{{pkg.version}}}*

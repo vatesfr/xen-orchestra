@@ -3,8 +3,8 @@
     v-slot="{ properties }"
     :params="[
       prop('label').str().required().preset('Label').widget(),
-      prop('value').num().required().preset(0).widget(),
       prop('size').str().required().enum('small', 'medium').preset('small').widget(),
+      prop('value').num().preset(0).widget(),
       prop('unit').str().preset('GB').widget(),
       prop('max').num().widget(),
     ]"

@@ -20,9 +20,9 @@
 
   "core.search": "Rechercher",
 
-  "core.search-bar.label": "Moteur de recherche",
-  "core.search-bar.placeholder": "Écrivez votre requête…",
-  "core.search-bar.use-query-builder": "Utiliser le constructeur de requête",
+  "core.query-search-bar.label": "Moteur de recherche",
+  "core.query-search-bar.placeholder": "Écrivez votre requête…",
+  "core.query-search-bar.use-query-builder": "Utiliser le constructeur de requête",
 
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
@@ -48,7 +48,9 @@
   "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
   "object-not-found": "L'objet {id} est introuvable…",
+  "patches": "Patches",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "running-vm": "VM en cours d'exécution | VMs en cours d'exécution",
   "see-all": "Voir tout",
   "stats": "Stats",
   "storage": "Stockage",

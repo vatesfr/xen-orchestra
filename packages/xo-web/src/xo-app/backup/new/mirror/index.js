@@ -8,12 +8,19 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { createMirrorBackupJob, createSchedule, deleteSchedule, editSchedule, editMirrorBackupJob } from 'xo'
-import { every, isEmpty, map, mapValues } from 'lodash'
+import {
+  createMirrorBackupJob,
+  createSchedule,
+  deleteSchedule,
+  editSchedule,
+  editMirrorBackupJob,
+  listVmBackups,
+} from 'xo'
+import { every, forEach, isEmpty, last, map, mapValues, sortBy } from 'lodash'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { Number } from 'form'
+import { Number, Select, Toggle } from 'form'
 import { Remote } from 'render-xo-item'
 import { resolveId } from 'utils'
 import { SelectRemote } from 'select-objects'
@@ -25,6 +32,11 @@ import Schedules from '../_schedules'
 import { RemoteProxy, RemoteProxyWarning } from '../_remoteProxy'
 
 import { destructPattern, FormFeedback, FormGroup, Input, Li, Ul, constructPattern } from '../../utils'
+
+const MIRROR_ALL_BACKUPS_STYLE = {
+  formGroup: { display: 'flex', justifyContent: 'space-between' },
+  label: { marginTop: 'auto', marginBottom: 'auto' },
+}
 
 const DEFAULT_RETENTIONS = [
   {
@@ -57,12 +69,25 @@ const getInitialState = ({ job = {}, schedules = {} }) => {
     reportWhen: reportWhen ?? 'failure',
     reportRecipient: '',
     reportRecipients: reportRecipients ?? [],
+
+    mirrorAll: job.filter === undefined,
+    vmsToMirror: job.filter?.vm.uuid.__or,
   }
 }
 
 const normalize = state => {
-  const { name, proxyId, sourceRemote, targetRemoteIds, settings, advancedSettings, reportWhen, reportRecipients } =
-    state
+  const {
+    name,
+    proxyId,
+    sourceRemote,
+    targetRemoteIds,
+    settings,
+    advancedSettings,
+    reportWhen,
+    reportRecipients,
+    vmsToMirror,
+    mirrorAll,
+  } = state
   let { schedules, mode } = state
 
   schedules = mapValues(schedules, ({ id, ...schedule }) => schedule)
@@ -79,6 +104,7 @@ const normalize = state => {
     remotes: constructPattern(targetRemoteIds),
     schedules,
     settings,
+    filter: !mirrorAll ? { vm: { uuid: { __or: vmsToMirror } } } : state.edition ? null : undefined,
   }
 }
 
@@ -126,8 +152,11 @@ const NewMirrorBackup = decorate([
         setAdvancedSettings({ maxExportRate: rate !== undefined ? rate * (1024 * 1024) : undefined }),
       setNRetriesVmBackupFailures: ({ setAdvancedSettings }, nRetriesVmBackupFailures) =>
         setAdvancedSettings({ nRetriesVmBackupFailures }),
+      setBackupReportTpl: ({ setAdvancedSettings }, compactBackupTpl) =>
+        setAdvancedSettings({ backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml' }),
       setSourceRemote: (_, obj) => () => ({
         sourceRemote: obj === null ? {} : obj.value,
+        vmsToMirror: undefined,
       }),
       setSchedules: (_, schedules) => () => ({
         schedules,
@@ -199,16 +228,56 @@ const NewMirrorBackup = decorate([
       },
       resetMirrorBackup: () => (_, props) => getInitialState(props),
       linkState,
-      toggleMode: (_, { mode }) => ({ mode }),
+      toggleMode: (_, { mode }) => ({ mode, vmsToMirror: undefined }),
+      toggleMirrorAll: (_, value) => ({ mirrorAll: value }),
+      onChangeVmBackups: (_, vmBackups) => () => ({
+        vmsToMirror: vmBackups.map(({ value: vmUuid }) => vmUuid),
+      }),
     },
     computed: {
+      vmBackupOptions: async state => {
+        const sourceRemoteId = resolveId(state.sourceRemote)
+        const mode = state.mode === 'incremental' ? 'delta' : state.mode
+        if (sourceRemoteId === undefined || isEmpty(sourceRemoteId) || mode === '') {
+          return
+        }
+
+        const vmBackups = (await listVmBackups([sourceRemoteId]))[sourceRemoteId]
+
+        const options = []
+        forEach(vmBackups, (backups, vmUuid) => {
+          const lastBackupInfo = last(
+            sortBy(
+              backups.filter(backup => backup.mode === mode),
+              'timestamp'
+            )
+          )
+          if (lastBackupInfo === undefined) {
+            return
+          }
+
+          options.push({
+            label: lastBackupInfo.vm.name_label,
+            value: vmUuid,
+          })
+        })
+
+        return options
+      },
+
       formId: generateId,
       inputConcurrencyId: generateId,
       inputTimeoutId: generateId,
       inputMaxExportRateId: generateId,
       inputNRetriesVmBackupFailures: generateId,
+      inputBackupReportTplId: generateId,
+      inputMirrorAllId: generateId,
       isBackupInvalid: state =>
-        state.isMissingName || state.isMissingBackupMode || state.isMissingSchedules || state.isMissingRetention,
+        state.isMissingName ||
+        state.isMissingBackupMode ||
+        state.isMissingSchedules ||
+        state.isMissingRetention ||
+        state.isMissingVmsToMirror,
       isFull: state => state.mode === 'full',
       isIncremental: state => state.mode === 'incremental',
       isMissingBackupMode: state => state.mode === '',
@@ -218,6 +287,8 @@ const NewMirrorBackup = decorate([
         state.isMissingSchedules || every(state.settings, ({ exportRetention }) => exportRetention < 1),
       isMissingSourceRemote: state => isEmpty(state.sourceRemote),
       isMissingTargetRemotes: state => state.targetRemoteIds.length === 0,
+      isMissingVmsToMirror: state =>
+        !state.mirrorAll && (state.vmsToMirror === undefined || state.vmsToMirror.length === 0),
       remoteProxyPredicate:
         ({ proxyId }) =>
         remote => {
@@ -234,7 +305,13 @@ const NewMirrorBackup = decorate([
   }),
   injectState,
   ({ state, effects, intl: { formatMessage } }) => {
-    const { concurrency, timeout, maxExportRate, nRetriesVmBackupFailures = 0 } = state.advancedSettings
+    const {
+      concurrency,
+      timeout,
+      maxExportRate,
+      backupReportTpl = 'mjml',
+      nRetriesVmBackupFailures = 0,
+    } = state.advancedSettings
     return (
       <form id={state.formId}>
         <Container>
@@ -353,6 +430,17 @@ const NewMirrorBackup = decorate([
                           value={maxExportRate / (1024 * 1024)}
                         />
                       </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputBackupReportTplId}>
+                          <strong>{_('shorterBackupReports')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputBackupReportTplId}
+                          value={backupReportTpl === 'compactMjml'}
+                          onChange={effects.setBackupReportTpl}
+                        />
+                      </FormGroup>
                     </div>
                   )}
                 </CardBlock>
@@ -386,6 +474,37 @@ const NewMirrorBackup = decorate([
                       value={state.sourceRemote}
                     />
                   </FormGroup>
+
+                  <FormGroup style={MIRROR_ALL_BACKUPS_STYLE.formGroup}>
+                    <label style={MIRROR_ALL_BACKUPS_STYLE.label} htmlFor={state.inputMirrorAllId}>
+                      <strong>{_('mirrorAllVmBackups', { mode: state.mode })}</strong>
+                    </label>
+                    <Toggle id={state.inputMirrorAllId} onChange={effects.toggleMirrorAll} value={state.mirrorAll} />
+                  </FormGroup>
+                  {!state.mirrorAll && (
+                    <FormGroup>
+                      <label>
+                        <strong>{_('vms')}</strong>
+                      </label>
+
+                      <Tooltip
+                        content={state.vmBackupOptions === undefined ? _('backupModeSourceRemoteRequired') : undefined}
+                      >
+                        <FormFeedback
+                          component={Select}
+                          disabled={state.vmBackupOptions === undefined}
+                          error={state.showErrors ? state.isMissingVmsToMirror : undefined}
+                          message={_('missingVms')}
+                          multi
+                          onChange={effects.onChangeVmBackups}
+                          options={state.vmBackupOptions}
+                          placeholder={_('selectVms')}
+                          value={state.vmsToMirror}
+                          required={!state.mirrorAll}
+                        />
+                      </Tooltip>
+                    </FormGroup>
+                  )}
                   <FormGroup>
                     <label>
                       <strong>{_('targetRemotes')}</strong>

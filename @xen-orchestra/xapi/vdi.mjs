@@ -148,10 +148,11 @@ class Vdi {
     if (format === VDI_FORMAT_RAW) {
       // RAW export do not use NBD to simplify code
       assert.equal(baseRef, undefined)
-      return this.getResource(cancelToken, '/export_raw_vdi/', {
+      const { body } = await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
         task: await this.task_create(`Exporting content of VDI ${vdiName}`),
       })
+      return body
     }
 
     // now we'll handle the VHD

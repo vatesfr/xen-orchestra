@@ -9,8 +9,8 @@
 
 - **UUID**: {{{uuid}}}
 - **Type**: {{{taskLog.data.type}}}
-{{>reportTemporalData end=taskLog.end start=taskLog.start}}
-{{>reportWarnings task=taskLog}}
+{{>reportTemporalDataMd end=taskLog.end start=taskLog.start}}
+{{>reportWarningsMd task=taskLog}}
 - **Error**: {{{taskLog.result.message}}}
 {{else}}
 {{>vmText formatDate=../formatDate}}

@@ -32,7 +32,7 @@ const url = computed(() => {
 let vncClient: VncClient | undefined
 let nConnectionAttempts = 0
 
-const handleDisconnectionEvent = () => {
+function handleDisconnectionEvent() {
   clearVncClient()
 
   if (props.isConsoleAvailable) {
@@ -51,9 +51,12 @@ const handleDisconnectionEvent = () => {
     createVncConnection()
   }
 }
-const handleConnectionEvent = () => (nConnectionAttempts = 0)
 
-const clearVncClient = () => {
+function handleConnectionEvent() {
+  nConnectionAttempts = 0
+}
+
+function clearVncClient() {
   if (vncClient === undefined) {
     return
   }
@@ -61,14 +64,12 @@ const clearVncClient = () => {
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
 
-  if (vncClient._rfbConnectionState !== 'disconnected') {
-    vncClient.disconnect()
-  }
+  vncClient.disconnect()
 
   vncClient = undefined
 }
 
-const createVncConnection = async () => {
+async function createVncConnection() {
   if (nConnectionAttempts !== 0) {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
 

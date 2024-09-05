@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { Host } from '@/types/host.type'
+import type { XoHost } from '@/types/xo/host.type'
 import type { VmState } from '@core/types/object-icon.type'
 import CellObject from '@core/components/cell-object/CellObject.vue'
 import CellText from '@core/components/cell-text/CellText.vue'
@@ -45,7 +45,7 @@ import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  host: Host
+  host: XoHost
 }>()
 
 const { isReady, vmsByHost } = useVmStore().subscribe()
@@ -59,7 +59,7 @@ const definitions = computed(() =>
 const { nodes: vms } = useTree(definitions)
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .vms {
   margin: 1rem;
   gap: 0.8rem;

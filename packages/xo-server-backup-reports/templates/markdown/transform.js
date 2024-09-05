@@ -1,5 +1,5 @@
 'use strict'
 
-exports.transform = async function transform(source) {
+module.exports = async function transform(source) {
   return { markdown: source }
 }

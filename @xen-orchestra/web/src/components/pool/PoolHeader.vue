@@ -24,13 +24,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { Pool } from '@/types/pool.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import HeadBar from '@core/components/head-bar/HeadBar.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 
 defineProps<{
-  pool: Pool
+  pool: XoPool
 }>()
 </script>

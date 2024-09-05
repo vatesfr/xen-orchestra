@@ -1,14 +1,10 @@
-import Handlebars from 'handlebars'
 import moment from 'moment-timezone'
 import { createLogger } from '@xen-orchestra/log'
-import { extname, join, parse } from 'node:path'
 import { get } from '@xen-orchestra/defined'
 import { forEach, groupBy } from 'lodash'
-import { readdirSync, readFileSync } from 'node:fs'
 
 import pkg from '../package'
-
-import * as helpers from './helpers'
+import * as templates from '../templates/index.js'
 
 const logger = createLogger('xo:xo-server-backup-reports')
 
@@ -55,51 +51,7 @@ export const testSchema = {
 
 // ===================================================================
 
-// Handlebars environments
-const markdownHandlebars = Handlebars.create()
-const mjmlHandlebars = Handlebars.create()
-
-// Handlebars common helpers
-for (const [helperName, helper] of Object.entries(helpers)) {
-  markdownHandlebars.registerHelper(helperName, helper)
-  mjmlHandlebars.registerHelper(helperName, helper)
-}
-
-// Handlebars partials
-const registerPartials = (path, handlebarsEnvironment) => {
-  const handlebarsPartialFiles = readdirSync(join(__dirname, path)).filter(filename => extname(filename) === '.hbs')
-  for (const fileName of handlebarsPartialFiles) {
-    const partial = readFileSync(join(__dirname, `${path}${fileName}`)).toString()
-    handlebarsEnvironment.registerPartial(parse(fileName).name, partial)
-  }
-}
-registerPartials('../templates/markdown/partials/', markdownHandlebars)
-registerPartials('../templates/mjml/partials/', mjmlHandlebars)
-
-// Handlebars templates
-const readCompileHbs = (path, handlebarsEnvironment) =>
-  handlebarsEnvironment.compile(readFileSync(join(__dirname, path)).toString().replace(/\n$/, ''))
-const importTemplateFolder = (folder, handlebarsEnvironment) => ({
-  metadata: readCompileHbs(`${folder}/metadata.hbs`, handlebarsEnvironment),
-  metadataSubject: readCompileHbs(`${folder}/metadataSubject.hbs`, handlebarsEnvironment),
-  vm: readCompileHbs(`${folder}/vm.hbs`, handlebarsEnvironment),
-  vmSubject: readCompileHbs(`${folder}/vmSubject.hbs`, handlebarsEnvironment),
-})
-
-const templates = {
-  markdown: importTemplateFolder('../templates/markdown', markdownHandlebars),
-  mjml: importTemplateFolder('../templates/mjml', mjmlHandlebars),
-}
-
-// Templates transforms
-const templatesTransform = {}
-for (const name of ['markdown', 'mjml']) {
-  import(`../templates/${name}/transform.js`).then(module => {
-    templatesTransform[name] = module.transform
-  })
-}
-
-// ===================================================================
+const DEFAULT_TEMPLATE = 'mjml'
 
 const UNKNOWN_ITEM = 'Unknown'
 
@@ -238,11 +190,13 @@ class BackupReportsXoPlugin {
       formatDate,
     }
 
+    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
-      ...(await templatesTransform.markdown(templates.markdown.metadata(context))),
-      ...(await templatesTransform.mjml(templates.mjml.metadata(context))),
+      ...(await templates.markdown.transform(templates.markdown.$metadata(context))),
+      ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$metadata(context))),
+      ...(await templates[backupReportTpl].transform(templates[backupReportTpl].$metadata(context))),
       mailReceivers,
-      subject: templates.mjml.metadataSubject(context),
+      subject: templates.mjml.$metadataSubject(context),
       success: log.status === 'success',
     })
   }
@@ -417,16 +371,18 @@ class BackupReportsXoPlugin {
       globalTransferSize,
     }
 
+    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
-      ...(await templatesTransform.markdown(templates.markdown.vm(context))),
-      ...(await templatesTransform.mjml(templates.mjml.vm(context))),
+      ...(await templates.markdown.transform(templates.markdown.$vm(context))),
+      ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$vm(context))),
+      ...(await templates[backupReportTpl].transform(templates[backupReportTpl].$vm(context))),
       mailReceivers,
-      subject: templates.mjml.vmSubject(context),
+      subject: templates.mjml.$vmSubject(context),
       success: log.status === 'success',
     })
   }
 
-  async _sendReport({ mailReceivers, markdown, html, subject, success }) {
+  async _sendReport({ mailReceivers, markdown, compactMarkdown, html, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -447,16 +403,16 @@ class BackupReportsXoPlugin {
           ? Promise.reject(new Error('transport-xmpp plugin not enabled'))
           : xo.sendToXmppClient({
               to: this._xmppReceivers,
-              message: markdown,
+              message: compactMarkdown,
             })),
       xo.sendSlackMessage !== undefined &&
         xo.sendSlackMessage({
-          message: markdown,
+          message: compactMarkdown,
         }),
       xo.sendIcinga2Status !== undefined &&
         xo.sendIcinga2Status({
           status: success ? 'OK' : 'CRITICAL',
-          message: markdown,
+          message: compactMarkdown,
         }),
     ]
 

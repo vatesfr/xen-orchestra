@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import VmTreeItem from '@/components/tree/VmTreeItem.vue'
-import type { VmLeaf } from '@/types/vm.type'
+import type { VmLeaf } from '@/types/tree.type'
 
 defineProps<{
   leaves: VmLeaf[]

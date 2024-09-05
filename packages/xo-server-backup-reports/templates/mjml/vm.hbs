@@ -23,7 +23,7 @@
               <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
               <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
               <li><span style="font-weight: bold">Mode</span>: {{log.data.mode}}</li>
-              {{>reportTemporalData end=log.end start=log.start}}
+              {{>reportTemporalDataMjml end=log.end start=log.start}}
               {{#if log.tasks}}
               <li>
                 <span style="font-weight: bold">Successes</span>: {{#if tasksByStatus.success.tasks.length ~}}
@@ -35,7 +35,7 @@
               {{#if globalMergeSize}}
               <li><span style="font-weight: bold">Merge size</span>: {{formatSize globalMergeSize}}</li>
               {{/if}}
-              {{/if}} {{>reportError task=log}} {{>reportWarnings task=log}}
+              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
             </ul>
           </mj-text>
         </mj-column>

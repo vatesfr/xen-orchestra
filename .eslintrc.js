@@ -104,6 +104,8 @@ module.exports = {
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler
         'no-dupe-class-members': 'off', // automatically checked by the TypeScript compiler
         'no-undef': 'off', // automatically checked by the TypeScript compiler
+        'no-use-before-define': 'off', // replaced with the rule below
+        '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
         '@typescript-eslint/no-explicit-any': 'off',
         'vue/multi-word-component-names': 'off',
         // Vue 3 - Strongly Recommended
@@ -138,6 +140,7 @@ module.exports = {
         'vue/no-v-html': 'error',
         'vue/this-in-template': 'error',
         // Vue 3 - Uncategorized
+        'vue/block-lang': ['error', { script: { lang: 'ts' }, style: { lang: 'postcss' } }],
         'vue/block-order': ['error', { order: ['template', 'script', 'style'] }],
         'vue/block-tag-newline': ['error', { singleline: 'consistent', multiline: 'always', maxEmptyLines: 0 }],
         'vue/component-api-style': ['error', ['script-setup']],

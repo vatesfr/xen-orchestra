@@ -214,8 +214,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
 
-    const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     const xapi = this._xapi
+    // ensure all the event has been processed by the xapi
+    await xapi.barrier()
+    // ensure cached object are up to date
+    this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+    const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
 
@@ -235,13 +239,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
-          if (vdi.$VBDs.length > 0) {
-            const vbds = vdi.$VBDs
+          const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
+          if (vbds.length > 0) {
             // only one VM linked to this vdi
             // this will throw error for VDI still attached to control domain
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vm = vbds[0].$VM
-            assert.strictEqual(vm.is_control_domain, false, `Disk is still attached to DOM0 VM`) // don't delete a VM (especially a control domain)
             assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
 
             const vmRefVdi = vm.$ref
@@ -335,15 +338,22 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const reason = 'VM migration is blocked during backup'
       await vm.update_blocked_operations({ pool_migrate: reason, migrate_send: reason })
 
-      $defer(() =>
+      $defer(async () => {
         // delete the entries if they did not exist previously or if they were
         // equal to reason (which happen if a previous backup was interrupted
         // before resetting them)
-        vm.update_blocked_operations({
+        await vm.update_blocked_operations({
           migrate_send: migrate_send === undefined || migrate_send === reason ? null : migrate_send,
           pool_migrate: pool_migrate === undefined || pool_migrate === reason ? null : pool_migrate,
         })
-      )
+
+        // 2024-08-19 - Work-around a XAPI bug where allowed_operations are not properly computed when blocked_operations is updated
+        //
+        // this is a problem because some clients (e.g. XenCenter) use this field to allow operations.
+        //
+        // internal source: https://team.vates.fr/vates/pl/mjmxnce9qfdx587r3qpe4z91ho
+        await vm.$call('update_allowed_operations')
+      })
     }
 
     await this._fetchJobSnapshots()

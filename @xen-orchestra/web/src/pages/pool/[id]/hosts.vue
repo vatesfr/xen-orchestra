@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { Pool } from '@/types/pool.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import type { HostState } from '@core/types/object-icon.type'
 import CellObject from '@core/components/cell-object/CellObject.vue'
 import CellText from '@core/components/cell-text/CellText.vue'
@@ -45,7 +45,7 @@ import { faAlignLeft, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  pool: Pool
+  pool: XoPool
 }>()
 
 const { isReady, hostsByPool } = useHostStore().subscribe()
@@ -59,7 +59,7 @@ const definitions = computed(() =>
 const { nodes: hosts } = useTree(definitions)
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .hosts {
   margin: 1rem;
   gap: 0.8rem;

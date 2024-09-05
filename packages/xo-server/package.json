@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.151.0",
+  "version": "5.153.1",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -45,7 +45,7 @@
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.52.2",
+    "@xen-orchestra/backups": "^0.53.0",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.1",
     "@xen-orchestra/emit-async": "^1.0.0",

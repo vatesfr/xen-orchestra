@@ -49,7 +49,7 @@ Then you can click on "Start Trial", the green button:
 
 ![](./assets/xo5starttrial.png)
 
-Remember to click on the Upgrade button after requesting a trial - this will download the **Premium Edition** for 15 days!
+Remember to click on the Upgrade button after requesting a trial - this will download the **Premium Edition** for 30 days!
 
 ![](./assets/xo5updatebutton.png)
 

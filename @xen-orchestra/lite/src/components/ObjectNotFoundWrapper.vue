@@ -26,7 +26,7 @@ const id = computed(() => props.id ?? (currentRoute.value.params.uuid as I))
 const isRecordNotFound = computed(() => props.isReady && !props.uuidChecker(id.value))
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .wrapper-spinner {
   display: flex;
   height: 100%;
