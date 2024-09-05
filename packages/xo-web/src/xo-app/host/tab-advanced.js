@@ -108,7 +108,7 @@ const PCIS_COLUMNS = [
     sortCriteria: pci => pci.device_name,
   },
   {
-    name: _('enabled'),
+    name: _('passthroughEnabled'),
     itemRenderer: (pci, { pciStateById, isPciPassthroughAvailable }) => {
       if (pciStateById === undefined) {
         return <Icon icon='loading' />
