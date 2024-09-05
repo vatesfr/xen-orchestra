@@ -40,6 +40,7 @@
 
 <!--packages-start-->
 
+- @vates/parse-duration minor
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
