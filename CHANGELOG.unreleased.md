@@ -21,7 +21,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Dashboard/Health] Fix alarm table not showing any alarms
+- [Dashboard/Health] Fix alarm table not showing any alarms (PR [#7965](https://github.com/vatesfr/xen-orchestra/pull/7965))
 
 ### Packages to release
 
