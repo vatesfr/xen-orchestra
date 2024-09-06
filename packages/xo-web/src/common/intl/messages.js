@@ -905,6 +905,7 @@ const messages = {
   srReclaimSpaceNotSupported: 'Space reclaim not supported. Only supported on block based/LVM based SRs.',
 
   // ----- SR disks tab -----
+  isMetadataVdi: 'This snapshot has been purged of its data. It only contains the metadata and changed blocks.',
   multipleActiveVdis: '{firstVdi} and {nVdis} more',
   noActiveVdi: 'No active VDI',
 
