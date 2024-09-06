@@ -16,6 +16,7 @@
 - [REST API] Add `pifs` and `vm-controllers` collections
 - [REST API/Dashboard] Add name and type of the backup in the backup job issues (PR [#7958](https://github.com/vatesfr/xen-orchestra/pull/7958))
 - [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
+- [SR/Disks] Display information if VDI is empty metadata VDI snapshot (PR [7970](https://github.com/vatesfr/xen-orchestra/pull/7970))
 
 ### Bug fixes
 
