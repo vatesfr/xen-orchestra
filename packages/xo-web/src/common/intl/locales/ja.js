@@ -75,7 +75,7 @@ export default {
   homePage: 'ホーム',
 
   // Original text: "VMs"
-  homeVmPage: 'VMs',
+  homeVmPage: '仮想マシン(VM)',
 
   // Original text: "Hosts"
   homeHostPage: 'ホスト',
@@ -156,7 +156,7 @@ export default {
   taskPage: 'タスクの一覧',
 
   // Original text: "VM"
-  newVmPage: 'VM',
+  newVmPage: '仮想マシン(VM)',
 
   // Original text: "Storage"
   newSrPage: 'ストレージ',
@@ -1213,43 +1213,45 @@ export default {
   saveCustomFilters: 'Save custom filters',
 
   // Original text: "Start"
-  startVmLabel: 'Start',
+  startVmLabel: '仮想マシンの起動',
 
   // Original text: "Recovery start"
   recoveryModeLabel: 'Recovery start',
+  // 'Pause',
+  pauseVmLabel: '一時停止',
 
   // Original text: "Suspend"
-  suspendVmLabel: 'Suspend',
+  suspendVmLabel: 'サスペンド(停止)',
 
   // Original text: "Stop"
-  stopVmLabel: 'Stop',
+  stopVmLabel: '仮想マシンの終了',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel: 'Force shutdown',
+  forceShutdownVmLabel: '強制終了',
 
   // Original text: "Reboot"
-  rebootVmLabel: 'Reboot',
+  rebootVmLabel: '仮想マシンのリブート',
 
   // Original text: "Force reboot"
-  forceRebootVmLabel: 'Force reboot',
+  forceRebootVmLabel: '強制リブート',
 
   // Original text: "Delete"
   deleteVmLabel: 'Delete',
 
   // Original text: "Migrate"
-  migrateVmLabel: 'Migrate',
+  migrateVmLabel: '移設(マイグレーション)',
 
   // Original text: "Snapshot"
-  snapshotVmLabel: 'Snapshot',
+  snapshotVmLabel: 'スナップショット',
 
   // Original text: "Export"
-  exportVmLabel: 'Export',
+  exportVmLabel: 'エクスポート',
 
   // Original text: "Resume"
-  resumeVmLabel: 'Resume',
+  resumeVmLabel: '仮想マシンのレジューム(サスペンドからの復旧)',
 
   // Original text: "Copy"
-  copyVmLabel: 'Copy',
+  copyVmLabel: '仮想マシンの複製',
 
   // Original text: "Clone"
   cloneVmLabel: 'Clone',
@@ -1258,10 +1260,10 @@ export default {
   fastCloneVmLabel: 'Fast clone',
 
   // Original text: "Convert to template"
-  convertVmToTemplateLabel: 'Convert to template',
+  convertVmToTemplateLabel: 'テンプレートに変換',
 
   // Original text: "Console"
-  vmConsoleLabel: 'Console',
+  vmConsoleLabel: 'コンソール',
 
   // Original text: "Rescan all disks"
   srRescan: 'Rescan all disks',
@@ -1717,28 +1719,28 @@ export default {
   setAsDefaultSr: 'Set as default SR',
 
   // Original text: "General"
-  generalTabName: 'General',
+  generalTabName: '一般',
 
   // Original text: "Stats"
-  statsTabName: 'Stats',
+  statsTabName: '状態',
 
   // Original text: "Console"
-  consoleTabName: 'Console',
+  consoleTabName: 'コンソール',
 
   // Original text: "Container"
-  containersTabName: 'Container',
+  containersTabName: 'コンテナ',
 
   // Original text: "Snapshots"
-  snapshotsTabName: 'Snapshots',
+  snapshotsTabName: 'スナップショット',
 
   // Original text: "Logs"
-  logsTabName: 'Logs',
+  logsTabName: 'ログの一覧',
 
   // Original text: "Advanced"
-  advancedTabName: 'Advanced',
+  advancedTabName: '詳細設定',
 
   // Original text: "Network"
-  networkTabName: 'Network',
+  networkTabName: 'ネットワーク',
 
   // Original text: "Disk{disks, plural, one {} other {s}}"
   disksTabName: 'Disk{disks, plural, one {} other {s}}',
@@ -1747,7 +1749,7 @@ export default {
   powerStateHalted: 'halted',
 
   // Original text: "running"
-  powerStateRunning: 'running',
+  powerStateRunning: '実行中',
 
   // Original text: "suspended"
   powerStateSuspended: 'suspended',
@@ -1764,78 +1766,99 @@ export default {
   // Original text: "Started {ago}"
   vmSettings: 'Started {ago}',
 
+  // ----- VM home -----
   // Original text: "Current status:"
   vmCurrentStatus: 'Current status:',
-
   // Original text: "Not running"
   vmNotRunning: 'Not running',
-
   // Original text: "Halted {ago}"
   vmHaltedSince: 'Halted {ago}',
 
+  // ----- VM general tab -----
   // Original text: "No Xen tools detected"
-  noToolsDetected: 'No Xen tools detected',
+  noToolsDetected: '仮想マシン(VM)に準仮想ドライバ(Xen tools)がインストールされていません',
+  // 'Management agent {version} detected
+  managementAgentDetected: '管理エージェント {version} のインストールを認識中',
+  managementAgentOutOfDate: '古いバージョン {version} の管理エージェントがインストールされています',
+  managementAgentNotDetected: '管理エージェントがインストールされていません。',
 
   // Original text: "No IPv4 record"
-  noIpv4Record: 'No IPv4 record',
+  noIpv4Record: 'IPv4アドレスが検出されていません',
 
   // Original text: "No IP record"
-  noIpRecord: 'No IP record',
+  noIpRecord: 'IPアドレスが検出されていません',
 
   // Original text: "Started {ago}"
-  started: 'Started {ago}',
+  started: '{ago}から起動中',
 
   // Original text: "Paravirtualization (PV)"
-  paraVirtualizedMode: 'Paravirtualization (PV)',
+  paraVirtualizedMode: '準仮想化モード(PV)',
 
   // Original text: "Hardware virtualization (HVM)"
-  hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
+  hardwareVirtualizedMode: '完全仮想化モード(HVM)',
+
+  // 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
+  hvmModeWithPvDriversEnabled: '準仮想化ドライバ(PV Driver)がインストール済の完全仮想モード(PVHVM)',
 
   // Original text: "CPU usage"
-  statsCpu: 'CPU usage',
+  statsCpu: 'CPU利用量',
 
   // Original text: "Memory usage"
-  statsMemory: 'Memory usage',
+  statsMemory: 'メモリ利用量',
 
   // Original text: "Network throughput"
-  statsNetwork: 'Network throughput',
+  statsNetwork: 'ネットワーク転送量',
 
   // Original text: "Stacked values"
   useStackedValuesOnStats: 'Stacked values',
 
   // Original text: "Disk throughput"
-  statDisk: 'Disk throughput',
+  statDisk: '仮想ディスク転送量',
 
   // Original text: "Last 10 minutes"
-  statLastTenMinutes: 'Last 10 minutes',
+  statLastTenMinutes: '10分前まで表示',
 
   // Original text: "Last 2 hours"
-  statLastTwoHours: 'Last 2 hours',
+  statLastTwoHours: '2時間前まで表示',
 
   // Original text: "Last week"
-  statLastWeek: 'Last week',
+  statLastWeek: '1週間前まで表示',
 
   // Original text: "Last year"
-  statLastYear: 'Last year',
+  statLastYear: '1年前まで表示',
 
+  // ----- VM console tab -----
   // Original text: "Copy"
-  copyToClipboardLabel: 'Copy',
+  copyToClipboardLabel: 'コピー',
 
   // Original text: "Ctrl+Alt+Del"
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  // 'Send Ctrl+Alt+Del to VM?',
+  ctrlAltDelConfirmation: 'Ctrl+Alt+DelをVMに送信しますか？',
+  disabledConsole: 'このVMのコンソールを無効化します',
+  multilineCopyToClipboard: '複数行のクリップボードコピー',
 
   // Original text: "Tip:"
   tipLabel: 'Tip:',
-
   // Original text: "Hide infos"
   hideHeaderTooltip: 'Hide infos',
-
   // Original text: "Show infos"
   showHeaderTooltip: 'Show infos',
+  // 'Send to clipboard',
+  sendToClipboard: 'クリップボードに送信',
+  // 'Connect using external SSH tool as root',
+  sshRootTooltip: '外部SSHツールを用いてroot権限で接続',
+  sshRootLabel: 'SSH',
+  // 'Connect using external SSH tool as user…',
+  sshUserTooltip: '外部SSHツールを用いてユーザ権限で接続',
+  sshUserLabel: 'SSH as…',
+  sshUsernameLabel: 'SSH ユーザID',
+  remoteNeedClientTools: 'IPアドレスがクライアントツールから検出できません',
+  rdp: 'RDP',
+  rdpRootTooltip: '外部RDPツールを用いて接続',
 
   // Original text: "Name"
   containerName: 'Name',
-
   // Original text: "Command"
   containerCommand: 'Command',
 
@@ -1866,29 +1889,32 @@ export default {
   // Original text: "Restart this container"
   containerRestart: 'Restart this container',
 
+  // ----- VM disk tab -----
+  rescanIsoSrs: '再検出(全てのISO SR)',
+
   // Original text: "Action"
   vdiAction: 'Action',
 
   // Original text: "Attach disk"
-  vdiAttachDevice: 'Attach disk',
+  vdiAttachDevice: '仮想ディスクの追加',
 
   // Original text: "New disk"
-  vbdCreateDeviceButton: 'New disk',
+  vbdCreateDeviceButton: '新規仮想ディスクを作成',
 
   // Original text: "Boot order"
-  vdiBootOrder: 'Boot order',
+  vdiBootOrder: 'ブート順',
 
   // Original text: "Name"
-  vdiNameLabel: 'Name',
+  vdiNameLabel: '仮想ディスク名',
 
   // Original text: "Description"
-  vdiNameDescription: 'Description',
+  vdiNameDescription: '説明',
 
   // Original text: "Pool"
   vdiPool: 'Pool',
 
   // Original text: "Disconnect"
-  vdiDisconnect: 'Disconnect',
+  vdiDisconnect: '仮想ディスクの切断',
 
   // Original text: "Tags"
   vdiTags: 'Tags',
@@ -2232,13 +2258,13 @@ export default {
     'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
-  poolPanel: 'プール数{pools, plural, one {} other {s}}',
+  poolPanel: 'プール数',
 
   // Original text: "Host{hosts, plural, one {} other {s}}"
-  hostPanel: 'ホスト数{hosts, plural, one {} other {s}}',
+  hostPanel: 'ホスト数',
 
   // Original text: "VM{vms, plural, one {} other {s}}"
-  vmPanel: 'VM数{vms, plural, one {} other {s}}',
+  vmPanel: 'VM数',
 
   // Original text: "RAM Usage:"
   memoryStatePanel: 'メモリ利用量:',
@@ -2364,10 +2390,10 @@ export default {
   vmContainer: 'Resident on',
 
   // Original text: "Alarms"
-  alarmMessage: 'Alarms',
+  alarmMessage: '警告',
 
   // Original text: "No alarms"
-  noAlarms: 'No alarms',
+  noAlarms: '警告なし',
 
   // Original text: "Date"
   alarmDate: 'Date',
@@ -2388,55 +2414,55 @@ export default {
   spaceLeftTooltip: '{used}% used ({free} left)',
 
   // Original text: "Create a new VM on {select}"
-  newVmCreateNewVmOn: 'Create a new VM on {select}',
+  newVmCreateNewVmOn: '仮想マシン(VM)の新規作成 プール：{select}',
 
   // Original text: "Create a new VM on {select1} or {select2}"
-  newVmCreateNewVmOn2: 'Create a new VM on {select1} or {select2}',
+  newVmCreateNewVmOn2: '仮想マシン(VM)の新規作成 プール： {select1} あるいは {select2}',
 
   // Original text: "You have no permission to create a VM"
-  newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
+  newVmCreateNewVmNoPermission: 'VM作成権限がありません。',
 
   // Original text: "Infos"
-  newVmInfoPanel: 'Infos',
+  newVmInfoPanel: '仮想マシン(VM)情報',
 
   // Original text: "Name"
-  newVmNameLabel: 'Name',
+  newVmNameLabel: '仮想マシン(VM)名',
 
   // Original text: "Template"
-  newVmTemplateLabel: 'Template',
+  newVmTemplateLabel: 'テンプレート',
 
   // Original text: "Description"
-  newVmDescriptionLabel: 'Description',
+  newVmDescriptionLabel: 'VMの説明文',
 
   // Original text: "Performances"
-  newVmPerfPanel: 'Performances',
+  newVmPerfPanel: 'スペック',
 
   // Original text: "vCPUs"
-  newVmVcpusLabel: 'vCPUs',
+  newVmVcpusLabel: 'vCPU数',
 
   // Original text: "RAM"
   newVmRamLabel: 'RAM',
 
   // Original text: "Static memory max"
-  newVmStaticMaxLabel: 'Static memory max',
+  newVmStaticMaxLabel: 'メモリ(RAM)を固定値で設定',
 
   // Original text: "Dynamic memory min"
-  newVmDynamicMinLabel: 'Dynamic memory min',
+  newVmDynamicMinLabel: 'メモリを動的に設定(最小値)',
 
   // Original text: "Dynamic memory max"
-  newVmDynamicMaxLabel: 'Dynamic memory max',
+  newVmDynamicMaxLabel: 'メモリを動的に設定(最大値)',
 
   // Original text: "Install settings"
-  newVmInstallSettingsPanel: 'Install settings',
+  newVmInstallSettingsPanel: 'インストール設定',
 
   // Original text: "ISO/DVD"
   newVmIsoDvdLabel: 'ISO/DVD',
 
   // Original text: "Network"
-  newVmNetworkLabel: 'Network',
+  newVmNetworkLabel: 'ネットワーク',
 
   // Original text: "e.g: http://httpredir.debian.org/debian"
-  newVmInstallNetworkPlaceHolder: 'e.g: http://httpredir.debian.org/debian',
+  newVmInstallNetworkPlaceHolder: '例: http://httpredir.debian.org/debian',
 
   // Original text: "PV Args"
   newVmPvArgsLabel: 'PV Args',
@@ -2445,37 +2471,37 @@ export default {
   newVmPxeLabel: 'PXE',
 
   // Original text: "Interfaces"
-  newVmInterfacesPanel: 'Interfaces',
+  newVmInterfacesPanel: 'ネットワークインタフェイス',
 
   // Original text: "MAC"
   newVmMacLabel: 'MAC',
 
   // Original text: "Add interface"
-  newVmAddInterface: 'Add interface',
+  newVmAddInterface: 'インタフェイスの追加',
 
   // Original text: "Disks"
-  newVmDisksPanel: 'Disks',
+  newVmDisksPanel: '仮想ディスク',
 
   // Original text: "SR"
   newVmSrLabel: 'SR',
 
   // Original text: "Size"
-  newVmSizeLabel: 'Size',
+  newVmSizeLabel: '容量',
 
   // Original text: "Add disk"
-  newVmAddDisk: 'Add disk',
+  newVmAddDisk: '仮想ディスクの追加',
 
   // Original text: "Summary"
-  newVmSummaryPanel: 'Summary',
+  newVmSummaryPanel: '概要',
 
   // Original text: "Create"
-  newVmCreate: 'Create',
+  newVmCreate: 'VMの作成',
 
   // Original text: "Reset"
-  newVmReset: 'Reset',
+  newVmReset: 'VMのリセット',
 
   // Original text: "Select template"
-  newVmSelectTemplate: 'Select template',
+  newVmSelectTemplate: 'テンプレート選択',
 
   // Original text: "SSH key"
   newVmSshKey: 'SSH key',
@@ -2538,88 +2564,88 @@ export default {
   newVmAffinityHost: 'Affinity host',
 
   // Original text: "Advanced"
-  newVmAdvancedPanel: 'Advanced',
+  newVmAdvancedPanel: '詳細設定',
 
   // Original text: "Show advanced settings"
-  newVmShowAdvanced: 'Show advanced settings',
+  newVmShowAdvanced: '詳細設定を開く',
 
   // Original text: "Hide advanced settings"
-  newVmHideAdvanced: 'Hide advanced settings',
+  newVmHideAdvanced: '詳細設定を隠す',
 
   // Original text: "Share this VM"
-  newVmShare: 'Share this VM',
+  newVmShare: 'このVMを共有',
 
   // Original text: "Resource sets"
-  resourceSets: 'Resource sets',
+  resourceSets: 'リソースセット',
 
   // Original text: "No resource sets."
-  noResourceSets: 'No resource sets.',
+  noResourceSets: 'リソースセット外',
 
   // Original text: "Loading resource sets"
-  loadingResourceSets: 'Loading resource sets',
+  loadingResourceSets: 'リソースセットの読み込み中',
 
   // Original text: "Resource set name"
-  resourceSetName: 'Resource set name',
+  resourceSetName: 'リソースセット名',
 
   // Original text: "Recompute all limits"
-  recomputeResourceSets: 'Recompute all limits',
+  recomputeResourceSets: 'リソースセットの再計算',
 
   // Original text: "Save"
-  saveResourceSet: 'Save',
+  saveResourceSet: '保存',
 
   // Original text: "Reset"
-  resetResourceSet: 'Reset',
+  resetResourceSet: '元に戻す',
 
   // Original text: "Edit"
-  editResourceSet: 'Edit',
+  editResourceSet: '編集',
 
   // Original text: "Delete"
-  deleteResourceSet: 'Delete',
+  deleteResourceSet: '削除',
 
   // Original text: "Delete resource set"
-  deleteResourceSetWarning: 'Delete resource set',
+  deleteResourceSetWarning: 'リソースセットの消去',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
+  deleteResourceSetQuestion: '本当にリソースセットを消してもよろしいですか？',
 
   // Original text: "Missing objects:"
-  resourceSetMissingObjects: 'Missing objects:',
+  resourceSetMissingObjects: '存在しないオブジェクト:',
 
   // Original text: "vCPUs"
-  resourceSetVcpus: 'vCPUs',
+  resourceSetVcpus: 'vCPU',
 
   // Original text: "Memory"
-  resourceSetMemory: 'Memory',
+  resourceSetMemory: 'メモリ(RAM)',
 
   // Original text: "Storage"
-  resourceSetStorage: 'Storage',
+  resourceSetStorage: 'ストレージ',
 
   // Original text: "Unknown"
-  unknownResourceSetValue: 'Unknown',
+  unknownResourceSetValue: '不明',
 
   // Original text: "Available hosts"
-  availableHosts: 'Available hosts',
+  availableHosts: '有効物理ホスト',
 
   // Original text: "Excluded hosts"
-  excludedHosts: 'Excluded hosts',
+  excludedHosts: '除外物理ホスト',
 
   // Original text: "No hosts available."
-  noHostsAvailable: 'No hosts available.',
+  noHostsAvailable: '有効な物理ホストがありません',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
+  availableHostsDescription: 'このリソースセット内に作成されたVMは、下記の物理ホストで動作します。',
 
   // Original text: "Maximum CPUs"
-  maxCpus: 'Maximum CPUs',
+  maxCpus: '合計最大CPU数',
 
   // Original text: "Maximum RAM (GiB)"
-  maxRam: 'Maximum RAM (GiB)',
+  maxRam: '合計最大メモリ(RAM GiB)',
 
   // Original text: "Maximum disk space"
-  maxDiskSpace: 'Maximum disk space',
+  maxDiskSpace: '合計最大仮想ディスク容量',
 
   // Original text: "IP pool"
-  ipPool: 'IP pool',
+  ipPool: 'IP予約領域',
 
   // Original text: "Quantity"
   quantity: 'Quantity',
@@ -2628,52 +2654,52 @@ export default {
   noResourceSetLimits: 'No limits.',
 
   // Original text: "Total:"
-  totalResource: 'Total:',
+  totalResource: '合計:',
 
   // Original text: "Remaining:"
-  remainingResource: 'Remaining:',
+  remainingResource: '残り:',
 
   // Original text: "Used:"
-  usedResource: 'Used:',
+  usedResource: '使用済:',
 
   // Original text: "New"
-  resourceSetNew: 'New',
+  resourceSetNew: '新規リソースセット',
 
   // Original text: "Drop OVA or XVA files here to import Virtual Machines."
-  importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
+  importVmsList: 'OVA、あるいはXVAファイルをドラッグアンドドロップしてください。',
 
   // Original text: "No selected VMs."
-  noSelectedVms: 'No selected VMs.',
+  noSelectedVms: 'VMが選択されていません。',
 
   // Original text: "To Pool:"
-  vmImportToPool: 'To Pool:',
+  vmImportToPool: '作成先プール:',
 
   // Original text: "To SR:"
-  vmImportToSr: 'To SR:',
+  vmImportToSr: '作成先SR:',
 
   // Original text: "VM{nVms, plural, one {} other {s}}  to import"
-  vmsToImport: 'VM{nVms, plural, one {} other {s}}  to import',
+  vmsToImport: '仮想マシンのインポート',
 
   // Original text: "Reset"
   importVmsCleanList: 'Reset',
 
   // Original text: "VM import success"
-  vmImportSuccess: 'VM import success',
+  vmImportSuccess: '仮想マシン(VM)のインポートに成功しました。',
 
   // Original text: "VM import failed"
-  vmImportFailed: 'VM import failed',
+  vmImportFailed: '仮想マシン(VM)のインポートに失敗しました。',
 
   // Original text: "Import starting…"
-  startVmImport: 'Import starting…',
+  startVmImport: '仮想マシン(VM)インポート開始……',
 
   // Original text: "Export starting…"
-  startVmExport: 'Export starting…',
+  startVmExport: '仮想マシン(VM)エクスポート開始……',
 
   // Original text: "Number of CPUs"
-  nCpus: 'Number of CPUs',
+  nCpus: 'CPU数',
 
   // Original text: "Memory"
-  vmMemory: 'Memory',
+  vmMemory: 'メモリ容量',
 
   // Original text: "Disk {position} ({capacity})"
   diskInfo: 'Disk {position} ({capacity})',
@@ -3365,8 +3391,8 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: 'No updater available for Community Edition',
 
-  // Original text: "Please consider subscribe and try it with all features for free during 30 days on {link}."
-  considerSubscribe: 'Please consider subscribe and try it with all features for free during 30 days on {link}.',
+  // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}."
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on {link}.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
@@ -3418,20 +3444,24 @@ export default {
   promptUpgradeReloadTitle: 'Upgrade successful',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
-  promptUpgradeReloadMessage:
-    'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  promptUpgradeReloadMessage: 'XOAは正常にアップデートされました。ブラウザでのリロードが必要です。リロードしますか？',
 
   // Original text: "Xen Orchestra from the sources"
-  disclaimerTitle: 'Xen Orchestra from the sources',
+  disclaimerTitle: 'Xen Orchestra (ソースコードベースの開発版)',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit usage.",
+  disclaimerText1:
+    'このバージョンは、ソースコードよりインストールされた開発版です！ 個人や、非営利での利用に最適です。',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText2: '企業利用の場合、プロサポートが含まれるアプライアンスを利用することを推奨します。:',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+  disclaimerText3:
+    'このバージョンは開発中のものであり、サポート、アップデートはできません。クリティカルな用途には、細心の注意を払ってご利用ください。',
+
+  // Why do I see this message?
+  disclaimerText4: 'なぜこのメッセージが表示されますか？',
 
   // Original text: "Connect PIF"
   connectPif: 'Connect PIF',
@@ -3464,40 +3494,40 @@ export default {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // Original text: "Username"
-  username: 'Username',
+  username: 'ログインユーザ名',
 
   // Original text: "Password"
-  password: 'Password',
+  password: 'パスワードの変更',
 
   // Original text: "Language"
-  language: 'Language',
+  language: '言語設定',
 
   // Original text: "Old password"
-  oldPasswordPlaceholder: 'Old password',
+  oldPasswordPlaceholder: '現在のパスワード',
 
   // Original text: "New password"
-  newPasswordPlaceholder: 'New password',
+  newPasswordPlaceholder: '変更後のパスワード',
 
   // Original text: "Confirm new password"
-  confirmPasswordPlaceholder: 'Confirm new password',
+  confirmPasswordPlaceholder: '変更後のパスワード(確認用)',
 
   // Original text: "Confirmation password incorrect"
-  confirmationPasswordError: 'Confirmation password incorrect',
+  confirmationPasswordError: 'パスワードの一致エラー',
 
   // Original text: "Password does not match the confirm password."
-  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
+  confirmationPasswordErrorBody: '変更後のパスワードが一致しません',
 
   // Original text: "Password changed"
-  pwdChangeSuccess: 'Password changed',
+  pwdChangeSuccess: 'パスワードの変更終了',
 
   // Original text: "Your password has been successfully changed."
-  pwdChangeSuccessBody: 'Your password has been successfully changed.',
+  pwdChangeSuccessBody: 'パスワードが正常に変更されました。',
 
   // Original text: "Incorrect password"
-  pwdChangeError: 'Incorrect password',
+  pwdChangeError: '不正なパスワード',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
+  pwdChangeErrorBody: '変更前のパスワードが誤っています。',
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -3554,9 +3584,9 @@ export default {
   addOtpConfirmMessage:
     'ワンタイムパスワード(OTP)認証を有効するには、アプリにOTPを追加し、正しいパスワードを入力する必要があります。',
   addOtpInvalidPassword: 'パスワードが間違っています。',
-  removeOtpConfirm: 'Remove OTP authentication',
-  removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
-  OtpAuthentication: 'OTP authentication',
+  removeOtpConfirm: 'OTP認証を無効化',
+  removeOtpConfirmMessage: 'OTP認証を無効化してもよいですか？',
+  OtpAuthentication: 'OTP認証設定',
 
   // Original text: "Others"
   others: 'Others',
