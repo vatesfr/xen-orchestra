@@ -226,44 +226,34 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const backupRepositoriesSize = {
-      s3: {
-        backups: 0,
-      },
-      other: {
-        available: 0,
-        backups: 0,
-        other: 0,
-        total: 0,
-        used: 0,
-      },
-    }
+    const s3Brsize = { backups: 0 }
+    const otherBrSize = { available: 0, backups: 0, other: 0, total: 0, used: 0 }
 
-    const remotes = await app.getAllRemotes()
-    const remotesInfo = await app.getAllRemotesInfo()
+    const backupRepositories = await app.getAllRemotes()
+    const backupRepositoriesInfo = await app.getAllRemotesInfo()
 
-    for (const remote of remotes) {
-      const { type } = parse(remote.url)
-      const remoteInfo = remotesInfo[remote.id]
+    for (const backupRepository of backupRepositories) {
+      const { type } = parse(backupRepository.url)
+      const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
 
-      if (!remote.enabled || remoteInfo === undefined) {
+      if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
         continue
       }
 
-      const sizeUsedForBackups = remoteInfo.sizeUsedForBackups ?? 0
+      const { available, size, sizeUsedForBackups = 0, used } = backupRepositoryInfo
       const isS3 = type === 's3'
-      const target = isS3 ? backupRepositoriesSize.s3 : backupRepositoriesSize.other
+      const target = isS3 ? s3Brsize : otherBrSize
 
       target.backups += sizeUsedForBackups
       if (!isS3) {
-        target.available += remoteInfo.available
-        target.other += remoteInfo.used - sizeUsedForBackups
-        target.total += remoteInfo.size
-        target.used += remoteInfo.used
+        target.available += available
+        target.other += used - sizeUsedForBackups
+        target.total += size
+        target.used += used
       }
     }
 
-    dashboard.backupRepositories = { size: backupRepositoriesSize }
+    dashboard.backupRepositories = { s3: { size: s3Brsize }, other: { size: otherBrSize } }
   } catch (error) {
     console.error(error)
   }
