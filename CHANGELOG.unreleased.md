@@ -40,6 +40,7 @@
 
 - xo-server minor
 - xo-server-perf-alert minor
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->
