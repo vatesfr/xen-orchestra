@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/log minor
+
 <!--packages-end-->

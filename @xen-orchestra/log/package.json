@@ -4,6 +4,12 @@
   "version": "0.6.0",
   "license": "ISC",
   "description": "Logging system with decoupled producers/consumer",
+  "keywords": [
+    "async",
+    "asynchronous",
+    "capture",
+    "context"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
