@@ -250,14 +250,14 @@ async function _getDashboardStats(app) {
         continue
       }
 
-      const sizeUsedForBackup = remoteInfo.sizeUsedForBackup ?? 0
+      const sizeUsedForBackups = remoteInfo.sizeUsedForBackups ?? 0
       const isS3 = type === 's3'
       const target = isS3 ? backupRepositoriesSize.s3 : backupRepositoriesSize.other
 
-      target.backups += sizeUsedForBackup
+      target.backups += sizeUsedForBackups
       if (!isS3) {
         target.available += remoteInfo.available
-        target.other += remoteInfo.used - sizeUsedForBackup
+        target.other += remoteInfo.used - sizeUsedForBackups
         target.total += remoteInfo.size
         target.used += remoteInfo.used
       }

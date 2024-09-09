@@ -19,6 +19,7 @@
 - [V2V] Fix computation of `memory_static_max`
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
+- [REST API] Add S3 backup repository information in the `/rest/v0/dashboard` endpoint (PR [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978))
 
 ### Bug fixes
 
