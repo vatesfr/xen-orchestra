@@ -44,6 +44,7 @@
 
 <!--packages-start-->
 
+- @vates/parse-duration minor
 - @xen-orchestra/defined patch
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor

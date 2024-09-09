@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "newLine": "lf",
+    "noImplicitAny": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "sourceMap": false,
+    "strictNullChecks": true,
+    "target": "ES2015",
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "exclude": ["node_modules", "dist"]
+}

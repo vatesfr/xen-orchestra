@@ -27,7 +27,10 @@
     "ms": "^2.1.2"
   },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
     "postversion": "npm publish --access public",
     "test": "node --test"
-  }
+  },
+  "main": "dist/index.js"
 }

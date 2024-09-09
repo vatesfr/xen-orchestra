@@ -54,7 +54,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
+      files: ['@vates/**/*.{vue,ts}', '@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
       parser: 'vue-eslint-parser',
       parserOptions: {
         sourceType: 'module',
@@ -85,6 +85,10 @@ module.exports = {
         XO_LITE_GIT_HEAD: true,
       },
       rules: {
+        // allow "use strict"
+        strict: 'off',
+        // allow "require"
+        '@typescript-eslint/no-var-requires': 'off',
         'import/order': [
           'error',
           {
