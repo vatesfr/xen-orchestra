@@ -316,13 +316,18 @@ class JobsTable extends React.Component {
       {
         itemRenderer: job => {
           const {
+            backupReportTpl,
+            cbtDestroySnapshotData,
             checkpointSnapshot,
             compression,
             concurrency,
             fullInterval,
+            maxExportRate,
+            nbdConcurrency,
             nRetriesVmBackupFailures,
             offlineBackup,
             offlineSnapshot,
+            preferNbd,
             proxyId,
             reportWhen,
             timeout,
@@ -338,9 +343,24 @@ class JobsTable extends React.Component {
               {reportWhen in REPORT_WHEN_LABELS && (
                 <Li>{_.keyValue(_('reportWhen'), _(REPORT_WHEN_LABELS[reportWhen]))}</Li>
               )}
+              {backupReportTpl !== undefined && (
+                <Li>{_.keyValue(_('shorterBackupReports'), _(backupReportTpl ? 'stateEnabled' : 'stateDisabled'))}</Li>
+              )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
+              {preferNbd && <Li>{_.keyValue(_('nbdConnections'), nbdConcurrency ?? 1)}</Li>}
+              {preferNbd && cbtDestroySnapshotData !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('cbtDestroySnapshotData'),
+                    _(cbtDestroySnapshotData ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
+              )}
               {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
               {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}
+              {maxExportRate > 0 && (
+                <Li>{_.keyValue(_('speedLimitNoUnit'), maxExportRate / (1024 * 1024) + ' MiB/s')}</Li>
+              )}
               {offlineBackup !== undefined && (
                 <Li>{_.keyValue(_('offlineBackup'), _(offlineBackup ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
