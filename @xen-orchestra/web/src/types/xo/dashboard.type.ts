@@ -32,5 +32,11 @@ export type XoDashboard = {
       successful: number
       total: number
     }
+    issues: {
+      logs: ('failure' | 'interrupted' | 'skipped' | 'success')[]
+      name: string
+      type: 'backup' | 'metadataBackup' | 'mirrorBackup'
+      uuid: string
+    }[]
   }
 }

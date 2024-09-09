@@ -23,10 +23,28 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   })
 
+  const backupIssues = computed(() => {
+    if (baseContext.record.value?.backups === undefined) {
+      return []
+    }
+
+    return baseContext.record.value.backups.issues.map(issue => {
+      const states = issue.logs.map(log => (log === 'skipped' || log === 'interrupted' ? 'partial' : log))
+
+      return {
+        id: issue.uuid,
+        label: issue.name,
+        states,
+        type: issue.type,
+      }
+    })
+  })
+
   const context = {
     ...baseContext,
     backupRepositories,
     storageRepositories,
+    backupIssues,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, {})
