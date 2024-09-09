@@ -1,4 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import Disposable from 'promise-toolbox/Disposable'
 import Obfuscate from '@vates/obfuscate'
 import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
@@ -9,6 +10,7 @@ import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
 import patch from '../patch.mjs'
+import { noop } from '../utils.mjs'
 import { Remotes } from '../models/remote.mjs'
 
 // ===================================================================
@@ -173,10 +175,15 @@ export default class {
           : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
       try {
+        const sizeUsedForBackup = await Disposable.use(this._app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.getTotalBackupSize()
+        ).catch(noop)
+
         await timeout.call(
           promise.then(info => {
             remotesInfo[remote.id] = {
               ...info,
+              sizeUsedForBackup,
               encryption,
             }
           }),

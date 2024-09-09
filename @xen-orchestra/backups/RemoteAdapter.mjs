@@ -18,6 +18,7 @@ import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
 import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
+import reduce from 'lodash/reduce.js'
 import tar from 'tar'
 import zlib from 'zlib'
 
@@ -825,6 +826,17 @@ export class RemoteAdapter {
       }
     }
     return metadata
+  }
+
+  async getTotalVmBackupSize() {
+    const vmBackups = await this.listAllVmBackups()
+    return reduce(vmBackups, (sum, backups) => sum + backups.reduce((sum, backup) => sum + backup.size, 0), 0)
+  }
+
+  // @TODO: add `getTotalXoBackupSize` and `getTotalPoolBackupSize` once `size` is implemented
+  async getTotalBackupSize() {
+    const backupsSize = await Promise.all([this.getTotalVmBackupSize()])
+    return backupsSize.reduce((sum, backupSize) => sum + backupSize)
   }
 }
 

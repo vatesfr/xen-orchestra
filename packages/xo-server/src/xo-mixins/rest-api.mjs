@@ -226,34 +226,43 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const remotes = await app.getAllRemotes()
-    const remotesInfo = await app.getAllRemotesInfo()
-
-    const backupRepositoriesSize = remotes.reduce(
-      (prev, remote) => {
-        const { type } = parse(remote.url)
-        const remoteInfo = remotesInfo[remote.id]
-
-        if (!remote.enabled || type === 's3' || remoteInfo === undefined) {
-          return prev
-        }
-
-        return {
-          available: prev.available + remoteInfo.available,
-          backups: 0, // @TODO: compute the space used by backups
-          other: 0, // @TODO: compute the space used by everything that is not a backup
-          total: prev.total + remoteInfo.size,
-          used: prev.used + remoteInfo.used,
-        }
+    const backupRepositoriesSize = {
+      s3: {
+        backups: 0,
       },
-      {
+      other: {
         available: 0,
         backups: 0,
         other: 0,
         total: 0,
         used: 0,
+      },
+    }
+
+    const remotes = await app.getAllRemotes()
+    const remotesInfo = await app.getAllRemotesInfo()
+
+    for (const remote of remotes) {
+      const { type } = parse(remote.url)
+      const remoteInfo = remotesInfo[remote.id]
+
+      if (!remote.enabled || remoteInfo === undefined) {
+        continue
       }
-    )
+
+      const sizeUsedForBackup = remoteInfo.sizeUsedForBackup ?? 0
+      const isS3 = type === 's3'
+      const target = isS3 ? backupRepositoriesSize.s3 : backupRepositoriesSize.other
+
+      target.backups += sizeUsedForBackup
+      if (!isS3) {
+        target.available += remoteInfo.available
+        target.other += remoteInfo.used - sizeUsedForBackup
+        target.total += remoteInfo.size
+        target.used += remoteInfo.used
+      }
+    }
+
     dashboard.backupRepositories = { size: backupRepositoriesSize }
   } catch (error) {
     console.error(error)
