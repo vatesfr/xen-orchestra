@@ -38,6 +38,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/proxy patch
 - xo-server minor
 - xo-server-perf-alert minor
 - xo-server-sdn-controller patch
