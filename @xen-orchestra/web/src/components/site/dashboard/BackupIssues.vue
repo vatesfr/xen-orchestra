@@ -8,7 +8,7 @@
     <LoadingHero :disabled="isReady" type="card">
       <NoDataHero v-if="!hasBackupIssues" type="card" />
       <div v-else class="backup-items">
-        <BackupItem v-for="backupIssue in backupIssues" :key="backupIssue.id" :backup="backupIssue" />
+        <BackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
       </div>
     </LoadingHero>
   </UiCard>
@@ -16,6 +16,7 @@
 
 <script lang="ts" setup>
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import { convertBackupIssueToCore } from '@/utils/convert-backup-issue-to-core.util'
 import BackupItem from '@core/components/backup-item/BackupItem.vue'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
@@ -27,6 +28,8 @@ import { computed } from 'vue'
 const { backupIssues, isReady } = useDashboardStore().subscribe()
 
 const hasBackupIssues = computed(() => backupIssues.value.length !== 0)
+
+const coreBackupIssues = computed(() => backupIssues.value.map(convertBackupIssueToCore))
 </script>
 
 <style lang="postcss" scoped>
