@@ -3,7 +3,7 @@
     <CardTitle>{{ $t('backups') }}</CardTitle>
     <LoadingHero :disabled="isReady" type="card">
       <DonutChartWithLegend :icon="faServer" :segments :title />
-      <CardNumbers :label="t('total')" :value="record.backups?.jobs.total" size="small" />
+      <CardNumbers :label="t('total')" :value="record?.backups?.jobs.total" size="small" />
     </LoadingHero>
   </UiCard>
 </template>
@@ -34,22 +34,22 @@ const title = computed<DonutChartWithLegendProps['title']>(() => ({
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups.jobs.running-good'),
-    value: record.value.backups?.jobs.successful ?? 0,
+    value: record.value?.backups?.jobs.successful ?? 0,
     color: 'success',
   },
   {
     label: t('backups.jobs.at-least-one-skipped'),
-    value: record.value.backups?.jobs.skipped ?? 0,
+    value: record.value?.backups?.jobs.skipped ?? 0,
     color: 'primary',
   },
   {
     label: t('backups.jobs.looks-like-issue'),
-    value: record.value.backups?.jobs.failed ?? 0,
+    value: record.value?.backups?.jobs.failed ?? 0,
     color: 'danger',
   },
   {
     label: t('backups.jobs.disabled'),
-    value: record.value.backups?.jobs.disabled ?? 0,
+    value: record.value?.backups?.jobs.disabled ?? 0,
     color: 'disabled',
   },
 ])
