@@ -23,10 +23,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   })
 
+  const backupIssues = computed(() => baseContext.record.value?.backups?.issues ?? [])
+
   const context = {
     ...baseContext,
     backupRepositories,
     storageRepositories,
+    backupIssues,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, {})
