@@ -37,7 +37,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .level {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 
 .on {

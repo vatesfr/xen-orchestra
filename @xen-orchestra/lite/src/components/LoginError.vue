@@ -23,7 +23,7 @@ defineProps<{
 <style lang="postcss" scoped>
 .error {
   margin: 0.5rem 0;
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 
   & svg {
     margin-right: 0.5rem;

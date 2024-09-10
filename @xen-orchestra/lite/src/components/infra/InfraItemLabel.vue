@@ -39,27 +39,27 @@ defineProps<{
 .infra-item-label {
   display: flex;
   align-items: stretch;
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
   border-radius: 0.8rem;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
 
   &:hover {
-    color: var(--color-grey-100);
-    background-color: var(--background-color-secondary);
+    color: var(--color-neutral-txt-primary);
+    background-color: var(--color-neutral-background-secondary);
   }
 
   &:active,
   &.active {
-    color: var(--color-purple-base);
-    background-color: var(--background-color-primary);
+    color: var(--color-normal-txt-base);
+    background-color: var(--color-neutral-background-primary);
   }
 
   &.exact-active {
-    color: var(--color-grey-100);
-    background-color: var(--background-color-purple-10);
+    color: var(--color-neutral-txt-primary);
+    background-color: var(--color-normal-background-selected);
 
     .icon {
-      color: var(--color-purple-base);
+      color: var(--color-normal-txt-base);
     }
   }
 }

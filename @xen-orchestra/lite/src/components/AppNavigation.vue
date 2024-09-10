@@ -45,8 +45,8 @@ whenever(isOpen, () => {
   max-width: 37rem;
   height: calc(100vh - 5.5rem);
   padding: 0.5rem;
-  border-right: 1px solid var(--color-grey-500);
-  background-color: var(--background-color-primary);
+  border-right: 1px solid var(--color-neutral-border);
+  background-color: var(--color-neutral-background-primary);
 
   &.collapsible {
     position: fixed;

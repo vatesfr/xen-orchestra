@@ -44,28 +44,28 @@ const tags = computed(() => {
   justify-content: space-between;
 
   --section-title-left-size: 2rem;
-  --section-title-left-color: var(--color-grey-100);
+  --section-title-left-color: var(--color-neutral-txt-primary);
   --section-title-left-weight: 500;
   --section-title-right-size: 1.6rem;
-  --section-title-right-color: var(--color-purple-base);
+  --section-title-right-color: var(--color-normal-txt-base);
   --section-title-right-weight: 700;
 
   &.h6 {
     margin-bottom: 1rem;
     --section-title-left-size: 1.5rem;
-    --section-title-left-color: var(--color-grey-300);
+    --section-title-left-color: var(--color-neutral-txt-secondary);
     --section-title-left-weight: 400;
   }
 
   &.h5 {
     margin-top: 2rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-purple-base);
+    border-bottom: 1px solid var(--color-normal-txt-base);
     --section-title-left-size: 1.6rem;
-    --section-title-left-color: var(--color-purple-base);
+    --section-title-left-color: var(--color-normal-txt-base);
     --section-title-left-weight: 700;
     --section-title-right-size: 1.4rem;
-    --section-title-right-color: var(--color-purple-base);
+    --section-title-right-color: var(--color-normal-txt-base);
     --section-title-right-weight: 400;
   }
 }

@@ -34,6 +34,6 @@ const classProp = computed(() => {
 }
 
 .bg-primary {
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
 }
 </style>

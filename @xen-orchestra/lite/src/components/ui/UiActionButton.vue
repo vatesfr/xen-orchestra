@@ -46,24 +46,24 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
   border: none;
   border-radius: 0.8rem;
   gap: 1rem;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
 
   &.disabled {
-    color: var(--color-grey-500);
+    color: var(--color-neutral-border);
   }
 
   &:not(.disabled) {
-    color: var(--color-grey-200);
+    color: var(--color-neutral-txt-secondary);
 
     &:hover {
-      background-color: var(--background-color-secondary);
+      background-color: var(--color-neutral-background-secondary);
     }
 
     &:active,
     &.active,
     &.busy {
-      color: var(--color-purple-base);
-      background-color: var(--background-color-purple-10);
+      color: var(--color-normal-txt-base);
+      background-color: var(--color-normal-background-selected);
     }
   }
 }

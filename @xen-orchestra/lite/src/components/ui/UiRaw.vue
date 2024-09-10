@@ -4,7 +4,7 @@
 
 <style lang="postcss" scoped>
 .ui-raw {
-  background-color: var(--color-grey-500);
+  background-color: var(--color-neutral-border);
   text-align: left;
   overflow: auto;
   max-width: 100%;

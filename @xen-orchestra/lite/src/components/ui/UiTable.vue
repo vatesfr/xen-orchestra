@@ -15,14 +15,14 @@ defineProps<{
 .ui-table {
   width: 100%;
   border-spacing: 0;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
   line-height: 2.4rem;
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 
   :deep(th),
   :deep(td) {
     padding: 1rem;
-    border-top: 1px solid var(--color-grey-500);
+    border-top: 1px solid var(--color-neutral-border);
     text-align: left;
   }
 
@@ -33,7 +33,7 @@ defineProps<{
   :deep(thead) {
     th,
     td {
-      color: var(--color-purple-base);
+      color: var(--color-normal-txt-base);
       font-size: 1.4rem;
       font-weight: 400;
       text-transform: uppercase;
@@ -43,7 +43,7 @@ defineProps<{
   &.vertical-border {
     :deep(th),
     :deep(td) {
-      border-right: 1px solid var(--color-grey-500);
+      border-right: 1px solid var(--color-neutral-border);
 
       &:last-child {
         border-right: none;
@@ -53,6 +53,6 @@ defineProps<{
 }
 
 .error {
-  background-color: var(--background-color-red-10);
+  background-color: var(--color-danger-background-selected);
 }
 </style>

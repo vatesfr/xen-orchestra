@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
   gap: 1rem;
 }
 </style>

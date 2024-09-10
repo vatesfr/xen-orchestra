@@ -71,6 +71,6 @@ const { textClass } = useContext(ColorContext)
 
 .subtitle {
   font-weight: 400;
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

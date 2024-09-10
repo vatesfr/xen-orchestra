@@ -11,7 +11,7 @@
 
 <style lang="postcss" scoped>
 .footer {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   display: flex;
   justify-content: space-between;
 }

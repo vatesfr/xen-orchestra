@@ -75,7 +75,7 @@ useUnreachableHosts()
   overflow: auto;
   flex: 1;
   height: calc(100vh - 5.5rem);
-  background-color: var(--background-color-secondary);
+  background-color: var(--color-neutral-background-secondary);
 
   &.no-ui {
     height: 100vh;

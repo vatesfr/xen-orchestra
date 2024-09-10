@@ -39,6 +39,6 @@ import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 <style lang="postcss" scoped>
 .spinner {
   font-size: 2rem;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
 }
 </style>
