@@ -29,7 +29,7 @@ class Vdi {
   }
 
   async dataDestroy(vdiRef) {
-    return await this.callAsync('VDI.data_destroy', vdiRef)
+    await this.callAsync('VDI.data_destroy', vdiRef)
   }
 
   async create(
