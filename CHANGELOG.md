@@ -20,6 +20,7 @@
 - @xen-orchestra/proxy 0.28.14
 - xo-server 5.154.0
 - xo-server-perf-alert 0.5.0
+- xo-server-sdn-controller 1.0.10
 
 ## **5.98.0** (2024-08-30)
 
