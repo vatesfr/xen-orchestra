@@ -21,6 +21,6 @@ const search = defineModel<string>({ default: '' })
 <style lang="postcss" scoped>
 .sidebar-search {
   padding: 0.4rem;
-  border-bottom: 0.1rem solid var(--color-grey-500);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
 }
 </style>
