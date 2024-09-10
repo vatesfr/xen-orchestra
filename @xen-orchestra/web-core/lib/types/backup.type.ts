@@ -6,6 +6,6 @@ export type BackupStates = BackupState[]
 
 export type Backup = {
   label: string
-  route: RouteLocationRaw
+  route?: RouteLocationRaw
   states: BackupStates
 }

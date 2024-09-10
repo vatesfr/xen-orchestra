@@ -39,4 +39,13 @@ export type GuessActions<TData> =
           ? MapActions<TKey, TValue>
           : EmptyObject
 
-export type RouteQuery<TData> = WritableComputedRef<TData> & GuessActions<TData>
+export type RouteQuery<TData> = WritableComputedRef<
+  TData extends Set<infer V>
+    ? ReadonlySet<V>
+    : TData extends Map<infer K, infer V>
+      ? ReadonlyMap<K, V>
+      : TData extends object
+        ? Readonly<TData>
+        : TData
+> &
+  GuessActions<TData>

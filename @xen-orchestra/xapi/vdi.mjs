@@ -28,6 +28,10 @@ class Vdi {
     )
   }
 
+  async dataDestroy(vdiRef) {
+    await this.callAsync('VDI.data_destroy', vdiRef)
+  }
+
   async create(
     {
       name_description,
@@ -285,6 +289,13 @@ export default Vdi
 decorateClass(Vdi, {
   // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
   destroy: [
+    pRetry.wrap,
+    function () {
+      return this._vdiDestroyRetryWhenInUse
+    },
+  ],
+  // same condition when destroying data of a VDI
+  dataDestroy: [
     pRetry.wrap,
     function () {
       return this._vdiDestroyRetryWhenInUse

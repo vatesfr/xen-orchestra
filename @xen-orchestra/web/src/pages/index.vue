@@ -3,12 +3,14 @@
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
     <Backups class="backups" />
+    <BackupIssues class="backup-issues" />
     <Repositories class="repositories" />
     <Patches class="patches" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
 import Patches from '@/components/site/dashboard/Patches.vue'
@@ -39,6 +41,10 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 
 .backups {
   grid-area: backups;
+}
+
+.backup-issues {
+  grid-area: backup-issues;
 }
 
 .repositories {

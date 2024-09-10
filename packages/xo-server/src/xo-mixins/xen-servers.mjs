@@ -388,6 +388,12 @@ export default class XenServers {
 
         const markPool = async () => {
           const now = Date.now()
+
+          // cannot mark the pool if it is read-only
+          if (xapi.readOnly) {
+            return
+          }
+
           const { pool } = xapi
 
           try {

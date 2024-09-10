@@ -1,3 +1,4 @@
+@import '_colors-legacy.pcss';
 @import '_colors.pcss';
 @import '_reset.pcss';
 @import '_fonts.pcss';
@@ -6,8 +7,8 @@
 @import '_typography.pcss';
 
 :root {
-  color: var(--color-grey-100);
-  background-color: var(--background-color-primary);
+  color: var(--color-neutral-txt-primary);
+  background-color: var(--color-neutral-background-primary);
   text-rendering: optimizeLegibility;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
@@ -19,8 +20,8 @@
 
   --scrollbar-width: 1.4rem;
   --scrollbar-border: 0.4rem;
-  --scrollbar-thumb-color: var(--color-purple-l40);
-  --scrollbar-track-color: var(--background-color-purple-10);
+  --scrollbar-thumb-color: var(--color-normal-item-active);
+  --scrollbar-track-color: var(--color-normal-background-selected);
 
   /* Firefox/Gecko and Chrome versions >= 121 */
   scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
@@ -44,7 +45,7 @@
 }
 
 a {
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
 }
 
 code,
@@ -61,17 +62,17 @@ pre {
 
 .link {
   text-decoration: underline;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
   cursor: pointer;
 }
 
 .link:hover {
-  color: var(--color-purple-d20);
+  color: var(--color-normal-txt-hover);
 }
 
 .link:active,
 .link.router-link-active {
-  color: var(--color-purple-d40);
+  color: var(--color-normal-txt-active);
 }
 
 .link.router-link-active {

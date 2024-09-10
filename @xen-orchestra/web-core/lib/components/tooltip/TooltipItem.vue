@@ -10,7 +10,7 @@ import type { TooltipOptions } from '@core/stores/tooltip.store'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import { isString } from 'lodash-es'
 import place from 'placement.js'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 
 const props = defineProps<{
   target: HTMLElement
@@ -41,13 +41,19 @@ const isDisabled = computed(() => content.value === false)
 
 const placement = computed(() => props.options.placement ?? 'top')
 
-watchEffect(() => {
-  if (tooltipElement.value) {
-    place(props.target, tooltipElement.value, {
-      placement: placement.value,
-    })
+function updatePlacement() {
+  if (!tooltipElement.value) {
+    return
   }
-})
+
+  place(props.target, tooltipElement.value, {
+    placement: placement.value,
+  })
+}
+
+watchEffect(() => updatePlacement(), { flush: 'post' })
+
+watch(content, () => updatePlacement(), { flush: 'post' })
 </script>
 
 <style lang="postcss" scoped>
