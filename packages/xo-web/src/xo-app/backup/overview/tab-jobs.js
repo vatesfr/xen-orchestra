@@ -41,7 +41,7 @@ import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { destructPattern } from '../utils'
 import { REPORT_WHEN_LABELS } from '../new/_reportWhen'
 import { LogStatus } from '../../logs/backup-ng'
-import { formatSize } from '../../../common/utils'
+import { formatSpeed } from '../../../common/utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
 const Li = props => (
@@ -359,7 +359,7 @@ class JobsTable extends React.Component {
               )}
               {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
               {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}
-              {maxExportRate > 0 && <Li>{_.keyValue(_('speedLimitNoUnit'), formatSize(maxExportRate) + '/s')}</Li>}
+              {maxExportRate > 0 && <Li>{_.keyValue(_('speedLimitNoUnit'), formatSpeed(maxExportRate, 1000))}</Li>}
               {offlineBackup !== undefined && (
                 <Li>{_.keyValue(_('offlineBackup'), _(offlineBackup ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
