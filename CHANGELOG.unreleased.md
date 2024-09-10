@@ -48,7 +48,6 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-perf-alert minor
 - xo-server-sdn-controller patch
