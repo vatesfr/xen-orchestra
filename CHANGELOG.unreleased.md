@@ -25,6 +25,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Incremental Backup & Replication] Remove most of `Couldn't delete snapshot data` errors when using _Purge snapshot data when using CBT_ [#7826](https://github.com/vatesfr/xen-orchestra/pull/7826) (PR [#7960](https://github.com/vatesfr/xen-orchestra/pull/7960))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -41,9 +43,11 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-perf-alert minor
 - xo-server-sdn-controller patch
