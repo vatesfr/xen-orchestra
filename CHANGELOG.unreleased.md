@@ -11,17 +11,12 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Pool/Networks] Networks can be sorted by VLANs
-- [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
-- [i18n] Update Japanese translations (Thanks [@kohju](https://github.com/kohju)!) (PR [#7972](https://github.com/vatesfr/xen-orchestra/pull/7972))
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Dashboard/Health] Fix alarm table not showing any alarms (PR [#7965](https://github.com/vatesfr/xen-orchestra/pull/7965))
 
 ### Packages to release
 
@@ -42,6 +37,5 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-web minor
 
 <!--packages-end-->
