@@ -4,13 +4,16 @@ export function handleDelete(source: WritableComputedRef<any>, value: any) {
   if (Array.isArray(source.value)) {
     source.value = [...source.value].splice(value, 1)
   } else if (source.value instanceof Set) {
-    source.value = new Set(source.value)
-    source.value.delete(value)
+    const newSet = new Set(source.value)
+    newSet.delete(value)
+    source.value = newSet
   } else if (source.value instanceof Map) {
-    source.value = new Map(source.value)
-    source.value.delete(value)
+    const newMap = new Map(source.value)
+    newMap.delete(value)
+    source.value = newMap
   } else if (typeof source.value === 'object' && source.value !== null) {
-    source.value = { ...source.value }
-    delete source.value[value]
+    const newObject = { ...source.value }
+    delete newObject[value]
+    source.value = newObject
   }
 }
