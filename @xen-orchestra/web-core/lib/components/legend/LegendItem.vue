@@ -36,27 +36,27 @@ const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 /* COLOR VARIANTS */
 .legend-item {
   &.primary {
-    --circle-color: var(--color-purple-base);
+    --circle-color: var(--color-normal-txt-base);
   }
 
   &.secondary {
-    --circle-color: var(--color-grey-100);
+    --circle-color: var(--color-neutral-txt-primary);
   }
 
   &.success {
-    --circle-color: var(--color-green-base);
+    --circle-color: var(--color-success-txt-base);
   }
 
   &.warning {
-    --circle-color: var(--color-orange-base);
+    --circle-color: var(--color-warning-txt-base);
   }
 
   &.danger {
-    --circle-color: var(--color-red-base);
+    --circle-color: var(--color-danger-txt-base);
   }
 
   &.disabled {
-    --circle-color: var(--color-grey-300);
+    --circle-color: var(--color-neutral-txt-secondary);
   }
 }
 
@@ -77,10 +77,10 @@ const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 }
 
 .label {
-  color: var(--color-grey-000);
+  color: var(--color-neutral-txt-primary);
 }
 
 .value-and-unit {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

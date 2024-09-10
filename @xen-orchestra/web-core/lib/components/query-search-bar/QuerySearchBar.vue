@@ -55,6 +55,6 @@ const value = ref<string>('')
 }
 
 .label {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

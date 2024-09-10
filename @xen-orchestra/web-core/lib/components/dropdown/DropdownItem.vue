@@ -41,127 +41,127 @@ const checkbox = inject(
 /* COLOR VARIANTS */
 .dropdown-item {
   & {
-    --color: var(--color-grey-100);
-    --background-color: var(--background-color-primary);
+    --color: var(--color-neutral-txt-primary);
+    --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
-      --color: var(--color-grey-100);
-      --background-color: var(--background-color-purple-10);
+      --color: var(--color-neutral-txt-primary);
+      --background-color: var(--color-normal-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-grey-100);
-      --background-color: var(--background-color-purple-20);
+      --color: var(--color-neutral-txt-primary);
+      --background-color: var(--color-normal-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-grey-100);
-      --background-color: var(--background-color-purple-30);
+      --color: var(--color-neutral-txt-primary);
+      --background-color: var(--color-normal-background-active);
     }
 
     &.disabled {
-      --color: var(--color-grey-400);
-      --background-color: var(--background-color-primary);
+      --color: var(--color-neutral-txt-secondary);
+      --background-color: var(--color-neutral-background-primary);
     }
   }
 
   &.info {
-    --color: var(--color-purple-base);
-    --background-color: var(--background-color-primary);
+    --color: var(--color-normal-txt-base);
+    --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
-      --color: var(--color-purple-base);
-      --background-color: var(--background-color-purple-10);
+      --color: var(--color-normal-txt-base);
+      --background-color: var(--color-normal-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-purple-d20);
-      --background-color: var(--background-color-purple-20);
+      --color: var(--color-normal-txt-hover);
+      --background-color: var(--color-normal-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-purple-d40);
-      --background-color: var(--background-color-purple-30);
+      --color: var(--color-normal-txt-active);
+      --background-color: var(--color-normal-background-active);
     }
 
     &.disabled {
-      --color: var(--color-purple-l60);
-      --background-color: var(--background-color-primary);
+      --color: var(--color-normal-item-disabled);
+      --background-color: var(--color-neutral-background-primary);
     }
   }
 
   &.success {
-    --color: var(--color-green-base);
-    --background-color: var(--background-color-primary);
+    --color: var(--color-success-txt-base);
+    --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
-      --color: var(--color-green-base);
-      --background-color: var(--background-color-green-10);
+      --color: var(--color-success-txt-base);
+      --background-color: var(--color-success-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-green-d20);
-      --background-color: var(--background-color-green-20);
+      --color: var(--color-success-txt-hover);
+      --background-color: var(--color-success-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-green-d40);
-      --background-color: var(--background-color-green-30);
+      --color: var(--color-success-txt-active);
+      --background-color: var(--color-success-background-active);
     }
 
     &.disabled {
-      --color: var(--color-green-l60);
-      --background-color: var(--background-color-primary);
+      --color: var(--color-success-item-disabled);
+      --background-color: var(--color-neutral-background-primary);
     }
   }
 
   &.warning {
-    --color: var(--color-orange-base);
-    --background-color: var(--background-color-primary);
+    --color: var(--color-warning-txt-base);
+    --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
-      --color: var(--color-orange-base);
-      --background-color: var(--background-color-orange-10);
+      --color: var(--color-warning-txt-base);
+      --background-color: var(--color-warning-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-orange-d20);
-      --background-color: var(--background-color-orange-20);
+      --color: var(--color-warning-txt-hover);
+      --background-color: var(--color-warning-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-orange-d40);
-      --background-color: var(--background-color-orange-30);
+      --color: var(--color-warning-txt-active);
+      --background-color: var(--color-warning-background-active);
     }
 
     &.disabled {
-      --color: var(--color-orange-l60);
-      --background-color: var(--background-color-primary);
+      --color: var(--color-warning-item-disabled);
+      --background-color: var(--color-neutral-background-primary);
     }
   }
 
   &:is(.error, .danger) {
-    --color: var(--color-red-base);
-    --background-color: var(--background-color-primary);
+    --color: var(--color-danger-txt-base);
+    --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
-      --color: var(--color-red-base);
-      --background-color: var(--background-color-red-10);
+      --color: var(--color-danger-txt-base);
+      --background-color: var(--color-danger-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-red-d20);
-      --background-color: var(--background-color-red-20);
+      --color: var(--color-danger-txt-hover);
+      --background-color: var(--color-danger-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-red-d40);
-      --background-color: var(--background-color-red-30);
+      --color: var(--color-danger-txt-active);
+      --background-color: var(--color-danger-background-active);
     }
 
     &.disabled {
-      --color: var(--color-red-l60);
-      --background-color: var(--background-color-primary);
+      --color: var(--color-danger-item-disabled);
+      --background-color: var(--color-neutral-background-primary);
     }
   }
 }
@@ -184,6 +184,6 @@ const checkbox = inject(
 }
 
 .info-text {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

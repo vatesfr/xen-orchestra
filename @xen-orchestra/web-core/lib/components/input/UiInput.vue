@@ -31,28 +31,28 @@ const id = computed(() => uniqueId('input-'))
 /* COLOR VARIANTS */
 .input {
   & {
-    --border-color: var(--color-grey-500);
-    --background-color: var(--background-color-primary);
+    --border-color: var(--color-neutral-border);
+    --background-color: var(--color-neutral-background-primary);
   }
 
   &:is(:hover, :focus-visible) {
-    --border-color: var(--color-purple-d20);
-    --background-color: var(--background-color-primary);
+    --border-color: var(--color-normal-txt-hover);
+    --background-color: var(--color-neutral-background-primary);
   }
 
   &:focus {
-    --border-color: var(--color-purple-base);
-    --background-color: var(--background-color-primary);
+    --border-color: var(--color-normal-txt-base);
+    --background-color: var(--color-neutral-background-primary);
   }
 
   &:active {
-    --border-color: var(--color-purple-d40);
-    --background-color: var(--background-color-primary);
+    --border-color: var(--color-normal-txt-active);
+    --background-color: var(--color-neutral-background-primary);
   }
 
   &:disabled {
-    --border-color: var(--color-grey-500);
-    --background-color: var(--background-color-secondary);
+    --border-color: var(--color-neutral-border);
+    --background-color: var(--color-neutral-background-secondary);
   }
 }
 
@@ -93,7 +93,7 @@ const id = computed(() => uniqueId('input-'))
   width: 100%;
   height: 4rem;
   padding: 0.8rem 1.6rem;
-  color: var(--color-grey-000);
+  color: var(--color-neutral-txt-primary);
   background-color: var(--background-color);
 
   &:has(+ .after) {
@@ -105,7 +105,7 @@ const id = computed(() => uniqueId('input-'))
   }
 
   &::placeholder {
-    color: var(--color-grey-300);
+    color: var(--color-neutral-txt-secondary);
   }
 
   &[type='search']::-webkit-search-cancel-button {
@@ -120,7 +120,7 @@ const id = computed(() => uniqueId('input-'))
 }
 
 .before {
-  color: var(--color-grey-400);
+  color: var(--color-neutral-txt-secondary);
   inset-inline-start: 1.6rem;
   pointer-events: none;
   z-index: 1;

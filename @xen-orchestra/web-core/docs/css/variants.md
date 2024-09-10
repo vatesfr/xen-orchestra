@@ -13,11 +13,11 @@ code readability and facilitate code folding.
 /* COLOR VARIANTS */
 .my-component {
   &.info {
-    --color: var(--color-purple-base);
+    --color: var(--color-normal-txt-base);
   }
 
   &.success {
-    --color: var(--color-green-base);
+    --color: var(--color-success-txt-base);
   }
 }
 
@@ -55,7 +55,7 @@ This approach ensures that the CSS is more intelligible, simpler to maintain, an
 /* COLOR VARIANTS */
 .my-component {
   .success {
-    --color: var(--color-green-base);
+    --color: var(--color-success-txt-base);
   }
 }
 
@@ -71,7 +71,7 @@ This approach ensures that the CSS is more intelligible, simpler to maintain, an
 }
 
 .my-component {
-  color: var(--color, var(--color-purple-base));
+  color: var(--color, var(--color-normal-txt-base));
   font-size: var(--font-size, 1.6rem);
 }
 ```
@@ -83,10 +83,10 @@ If you need a default property when no specific class is applied, define it at t
 ```postcss
 /* COLOR VARIANTS */
 .my-component {
-  --color: var(--color-purple-base);
+  --color: var(--color-normal-txt-base);
 
   &.free {
-    --color: var(--color-green-base);
+    --color: var(--color-success-txt-base);
   }
 }
 
@@ -105,15 +105,15 @@ enhance readability.
 /* COLOR VARIANTS */
 .my-component {
   & {
-    --color: var(--color-purple-base);
-    --background-color: var(--background-color-purple-10);
-    --border-color: var(--color-purple-d20);
+    --color: var(--color-normal-txt-base);
+    --background-color: var(--color-normal-background-selected);
+    --border-color: var(--color-normal-txt-hover);
   }
 
   &.free {
-    --color: var(--color-green-base);
-    --background-color: var(--background-color-green-10);
-    --border-color: var(--color-green-d20);
+    --color: var(--color-success-txt-base);
+    --background-color: var(--color-success-background-selected);
+    --border-color: var(--color-success-txt-hover);
   }
 }
 
@@ -141,29 +141,29 @@ As before, grouping variants by type and annotating them enhances maintainabilit
 .my-component {
   &.info {
     &.small {
-      --color: var(--color-purple-base);
+      --color: var(--color-normal-txt-base);
     }
 
     &.medium {
-      --color: var(--color-purple-l20);
+      --color: var(--color-normal-item-hover);
     }
 
     &.large {
-      --color: var(--color-purple-l40);
+      --color: var(--color-normal-item-active);
     }
   }
 
   &.success {
     &.small {
-      --color: var(--color-green-base);
+      --color: var(--color-success-txt-base);
     }
 
     &.medium {
-      --color: var(--color-green-l20);
+      --color: var(--color-success-item-hover);
     }
 
     &.large {
-      --color: var(--color-green-l40);
+      --color: var(--color-success-item-active);
     }
   }
 }
@@ -203,31 +203,31 @@ In the following example, the variant is the color, so the font size should not 
 .my-component {
   .small {
     .info {
-      --color: var(--color-purple-base);
+      --color: var(--color-normal-txt-base);
     }
 
     .success {
-      --color: var(--color-green-base);
+      --color: var(--color-success-txt-base);
     }
   }
 
   .medium {
     .info {
-      --color: var(--color-purple-l20);
+      --color: var(--color-normal-item-hover);
     }
 
     .success {
-      --color: var(--color-green-l20);
+      --color: var(--color-success-item-hover);
     }
   }
 
   .large {
     .info {
-      --color: var(--color-purple-l40);
+      --color: var(--color-normal-item-active);
     }
 
     .success {
-      --color: var(--color-green-l40);
+      --color: var(--color-success-item-active);
     }
   }
 }
@@ -284,11 +284,11 @@ readability.
     --font-size: 1rem;
 
     &.info {
-      --color: var(--color-purple-base);
+      --color: var(--color-normal-txt-base);
     }
 
     &.success {
-      --color: var(--color-green-base);
+      --color: var(--color-success-txt-base);
     }
   }
 
@@ -296,11 +296,11 @@ readability.
     --font-size: 1.6rem;
 
     &.info {
-      --color: var(--color-purple-l20);
+      --color: var(--color-normal-item-hover);
     }
 
     &.success {
-      --color: var(--color-green-l20);
+      --color: var(--color-success-item-hover);
     }
   }
 
@@ -308,11 +308,11 @@ readability.
     --font-size: 2.4rem;
 
     &.info {
-      --color: var(--color-purple-l40);
+      --color: var(--color-normal-item-active);
     }
 
     &.success {
-      --color: var(--color-green-l40);
+      --color: var(--color-success-item-active);
     }
   }
 

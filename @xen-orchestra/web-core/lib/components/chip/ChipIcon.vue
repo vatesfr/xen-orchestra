@@ -16,13 +16,13 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .chip-icon {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 
   &.disabled {
-    color: var(--color-grey-600);
+    color: var(--color-normal-txt-item);
 
     &.info {
-      color: var(--color-grey-400);
+      color: var(--color-neutral-txt-secondary);
     }
   }
 }

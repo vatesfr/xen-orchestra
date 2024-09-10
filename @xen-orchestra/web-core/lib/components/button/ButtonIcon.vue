@@ -39,112 +39,112 @@ const cssTargetScale = computed(() => {
 .button-icon {
   &.info {
     & {
-      --color: var(--color-purple-base);
+      --color: var(--color-normal-txt-base);
       --background-color: transparent;
-      --dot-color: var(--color-red-base);
+      --dot-color: var(--color-danger-txt-base);
     }
 
     &:is(.active, .selected) {
-      --color: var(--color-purple-base);
-      --background-color: var(--background-color-purple-10);
+      --color: var(--color-normal-txt-base);
+      --background-color: var(--color-normal-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-purple-d20);
-      --background-color: var(--background-color-purple-20);
+      --color: var(--color-normal-txt-hover);
+      --background-color: var(--color-normal-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-purple-d40);
-      --background-color: var(--background-color-purple-30);
+      --color: var(--color-normal-txt-active);
+      --background-color: var(--color-normal-background-active);
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-grey-400);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: transparent;
     }
   }
 
   &.success {
     & {
-      --color: var(--color-green-base);
+      --color: var(--color-success-txt-base);
       --background-color: transparent;
-      --dot-color: var(--color-red-base);
+      --dot-color: var(--color-danger-txt-base);
     }
 
     &:is(.active, .selected) {
-      --color: var(--color-green-base);
-      --background-color: var(--background-color-green-10);
+      --color: var(--color-success-txt-base);
+      --background-color: var(--color-success-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-green-d20);
-      --background-color: var(--background-color-green-20);
+      --color: var(--color-success-txt-hover);
+      --background-color: var(--color-success-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-green-d40);
-      --background-color: var(--background-color-green-30);
+      --color: var(--color-success-txt-active);
+      --background-color: var(--color-success-background-active);
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-green-l60);
+      --color: var(--color-success-item-disabled);
       --background-color: transparent;
     }
   }
 
   &.warning {
     & {
-      --color: var(--color-orange-base);
+      --color: var(--color-warning-txt-base);
       --background-color: transparent;
-      --dot-color: var(--color-red-base);
+      --dot-color: var(--color-danger-txt-base);
     }
 
     &:is(.active, .selected) {
-      --color: var(--color-orange-base);
-      --background-color: var(--background-color-orange-10);
+      --color: var(--color-warning-txt-base);
+      --background-color: var(--color-warning-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-orange-d20);
-      --background-color: var(--background-color-orange-20);
+      --color: var(--color-warning-txt-hover);
+      --background-color: var(--color-warning-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-orange-d40);
-      --background-color: var(--background-color-orange-30);
+      --color: var(--color-warning-txt-active);
+      --background-color: var(--color-warning-background-active);
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-orange-l60);
+      --color: var(--color-warning-item-disabled);
       --background-color: transparent;
     }
   }
 
   &:is(.danger, .error) {
     & {
-      --color: var(--color-red-base);
+      --color: var(--color-danger-txt-base);
       --background-color: transparent;
-      --dot-color: var(--color-orange-base);
+      --dot-color: var(--color-warning-txt-base);
     }
 
     &:is(.active, .selected) {
-      --color: var(--color-red-base);
-      --background-color: var(--background-color-red-10);
+      --color: var(--color-danger-txt-base);
+      --background-color: var(--color-danger-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-red-d20);
-      --background-color: var(--background-color-red-20);
+      --color: var(--color-danger-txt-hover);
+      --background-color: var(--color-danger-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-red-d40);
-      --background-color: var(--background-color-red-30);
+      --color: var(--color-danger-txt-active);
+      --background-color: var(--color-danger-background-active);
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-red-l60);
+      --color: var(--color-danger-item-disabled);
       --background-color: transparent;
     }
   }

@@ -25,7 +25,7 @@ provide(
   padding: 0.4rem 0;
   gap: 0.2rem;
   border-radius: 0.4rem;
-  background: var(--background-color-primary);
+  background: var(--color-neutral-background-primary);
   box-shadow: var(--shadow-300);
 }
 </style>

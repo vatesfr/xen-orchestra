@@ -43,10 +43,10 @@ defineSlots<{
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
 }
 
 .description {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

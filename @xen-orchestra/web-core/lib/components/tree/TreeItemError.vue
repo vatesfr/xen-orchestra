@@ -8,6 +8,6 @@
 <style lang="postcss" scoped>
 .tree-item-error {
   padding-left: 3rem;
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 </style>

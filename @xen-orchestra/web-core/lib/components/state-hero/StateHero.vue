@@ -64,11 +64,11 @@ const imageSrc = computed(() => {
 }
 
 .spinner {
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
   font-size: var(--spinner-size);
 }
 
 .text {
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
 }
 </style>

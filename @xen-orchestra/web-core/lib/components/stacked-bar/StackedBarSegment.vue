@@ -38,19 +38,19 @@ useResizeObserver(ellipsisElement, ([entry]) => {
 /* COLOR VARIANT */
 .stacked-bar-segment {
   &.primary {
-    --background-color: var(--color-purple-base);
+    --background-color: var(--color-normal-txt-base);
   }
 
   &.success {
-    --background-color: var(--color-green-base);
+    --background-color: var(--color-success-txt-base);
   }
 
   &.warning {
-    --background-color: var(--color-orange-base);
+    --background-color: var(--color-warning-txt-base);
   }
 
   &.danger {
-    --background-color: var(--color-red-base);
+    --background-color: var(--color-danger-txt-base);
   }
 }
 
@@ -60,7 +60,7 @@ useResizeObserver(ellipsisElement, ([entry]) => {
   justify-content: center;
   align-items: center;
   white-space: nowrap;
-  color: var(--color-grey-600);
+  color: var(--color-normal-txt-item);
   background-color: var(--background-color);
 }
 

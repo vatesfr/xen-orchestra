@@ -60,66 +60,66 @@ const className = computed(() => {
 /* COLOR VARIANTS */
 .ui-button {
   &.info {
-    --accent-color: var(--color-purple-base);
+    --accent-color: var(--color-normal-txt-base);
 
     &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-purple-d20);
+      --accent-color: var(--color-normal-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --accent-color: var(--color-purple-d40);
+      --accent-color: var(--color-normal-txt-active);
     }
 
     &:is(:disabled, .disabled) {
-      --accent-color: var(--color-grey-400);
+      --accent-color: var(--color-neutral-txt-secondary);
     }
   }
 
   &.success {
-    --accent-color: var(--color-green-base);
+    --accent-color: var(--color-success-txt-base);
 
     &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-green-d20);
+      --accent-color: var(--color-success-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --accent-color: var(--color-green-d40);
+      --accent-color: var(--color-success-txt-active);
     }
 
     &:is(:disabled, .disabled) {
-      --accent-color: var(--color-green-l60);
+      --accent-color: var(--color-success-item-disabled);
     }
   }
 
   &.warning {
-    --accent-color: var(--color-orange-base);
+    --accent-color: var(--color-warning-txt-base);
 
     &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-orange-d20);
+      --accent-color: var(--color-warning-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --accent-color: var(--color-orange-d40);
+      --accent-color: var(--color-warning-txt-active);
     }
 
     &:is(:disabled, .disabled) {
-      --accent-color: var(--color-orange-l60);
+      --accent-color: var(--color-warning-item-disabled);
     }
   }
 
   &:is(.danger, .error) {
-    --accent-color: var(--color-red-base);
+    --accent-color: var(--color-danger-txt-base);
 
     &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-red-d20);
+      --accent-color: var(--color-danger-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --accent-color: var(--color-red-d40);
+      --accent-color: var(--color-danger-txt-active);
     }
 
     &:is(:disabled, .disabled) {
-      --accent-color: var(--color-red-l60);
+      --accent-color: var(--color-danger-item-disabled);
     }
   }
 }
@@ -154,7 +154,7 @@ const className = computed(() => {
 /* LEVELS VARIANTS */
 .ui-button {
   &.primary {
-    --color: var(--color-grey-600);
+    --color: var(--color-normal-txt-item);
     --background-color: var(--accent-color);
     --border-color: var(--accent-color);
     --border-style: solid;
@@ -163,7 +163,7 @@ const className = computed(() => {
 
   &.secondary {
     --color: var(--accent-color);
-    --background-color: var(--background-color-primary);
+    --background-color: var(--color-neutral-background-primary);
     --border-color: var(--accent-color);
     --border-style: solid;
     --border-radius: 0.8rem;

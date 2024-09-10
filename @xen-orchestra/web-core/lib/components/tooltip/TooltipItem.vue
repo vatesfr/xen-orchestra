@@ -62,9 +62,9 @@ watch(content, () => updatePlacement(), { flush: 'post' })
   display: inline-flex;
   padding: 0.4rem 0.8rem;
   pointer-events: none;
-  color: var(--color-grey-600);
+  color: var(--color-normal-txt-item);
   border-radius: 0.4rem;
-  background-color: var(--color-grey-100);
+  background-color: var(--color-neutral-txt-primary);
   z-index: 999999;
 }
 

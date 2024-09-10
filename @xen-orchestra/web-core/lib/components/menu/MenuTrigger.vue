@@ -30,22 +30,22 @@ defineProps<{
   white-space: nowrap;
   border-radius: 0.8rem;
   gap: 1rem;
-  background-color: var(--color-grey-600);
+  background-color: var(--color-normal-txt-item);
 
   &.disabled {
-    color: var(--color-grey-500);
+    color: var(--color-neutral-border);
   }
 
   &:not(.disabled) {
     cursor: pointer;
 
     &:hover {
-      background-color: var(--background-color-purple-10);
+      background-color: var(--color-normal-background-selected);
     }
 
     &:active,
     &.active {
-      background-color: var(--background-color-purple-20);
+      background-color: var(--color-normal-background-hover);
     }
   }
 }

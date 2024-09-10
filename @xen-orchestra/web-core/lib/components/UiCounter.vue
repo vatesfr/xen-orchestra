@@ -32,26 +32,26 @@ const classNames = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-counter {
-  --background-color: var(--color-grey-300);
+  --background-color: var(--color-neutral-txt-secondary);
 
   &.info {
-    --background-color: var(--color-purple-base);
+    --background-color: var(--color-normal-txt-base);
   }
 
   &.success {
-    --background-color: var(--color-green-base);
+    --background-color: var(--color-success-txt-base);
   }
 
   &.warning {
-    --background-color: var(--color-orange-base);
+    --background-color: var(--color-warning-txt-base);
   }
 
   &:is(.error, .danger) {
-    --background-color: var(--color-red-base);
+    --background-color: var(--color-danger-txt-base);
   }
 
   &.black {
-    --background-color: var(--color-grey-100);
+    --background-color: var(--color-neutral-txt-primary);
   }
 }
 
@@ -75,7 +75,7 @@ const classNames = computed(() => {
   justify-content: center;
   vertical-align: middle;
   text-transform: lowercase;
-  color: var(--color-grey-600);
+  color: var(--color-normal-txt-item);
   height: var(--height);
   min-width: var(--height);
   padding: var(--padding);

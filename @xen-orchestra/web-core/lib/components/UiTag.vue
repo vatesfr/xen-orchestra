@@ -26,52 +26,52 @@ withDefaults(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-tag {
-  --color: var(--color-grey-600);
+  --color: var(--color-normal-txt-item);
 
   &.light {
-    --color: var(--color-grey-100);
+    --color: var(--color-neutral-txt-primary);
   }
 }
 
 /* BACKGROUND COLOR VARIANTS */
 .ui-tag {
   &.grey {
-    --background-color: var(--color-grey-300);
+    --background-color: var(--color-neutral-txt-secondary);
 
     &.light {
-      --background-color: var(--background-color-secondary);
+      --background-color: var(--color-neutral-background-secondary);
     }
   }
 
   &.info {
-    --background-color: var(--color-purple-l20);
+    --background-color: var(--color-normal-item-hover);
 
     &.light {
-      --background-color: var(--background-color-purple-10);
+      --background-color: var(--color-normal-background-selected);
     }
   }
 
   &.success {
-    --background-color: var(--color-green-l20);
+    --background-color: var(--color-success-item-hover);
 
     &.light {
-      --background-color: var(--background-color-green-10);
+      --background-color: var(--color-success-background-selected);
     }
   }
 
   &.warning {
-    --background-color: var(--color-orange-l20);
+    --background-color: var(--color-warning-item-hover);
 
     &.light {
-      --background-color: var(--background-color-orange-10);
+      --background-color: var(--color-warning-background-selected);
     }
   }
 
   &:is(.error, .danger) {
-    --background-color: var(--color-red-l20);
+    --background-color: var(--color-danger-item-hover);
 
     &.light {
-      --background-color: var(--background-color-red-10);
+      --background-color: var(--color-danger-background-selected);
     }
   }
 }

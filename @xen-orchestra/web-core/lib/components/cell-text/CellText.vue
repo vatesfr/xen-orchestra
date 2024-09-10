@@ -24,8 +24,8 @@ const slots = defineSlots<{
 <style lang="postcss" scoped>
 .cell-text {
   padding: 0.8rem;
-  border: 0.1rem solid var(--color-grey-500);
-  color: var(--color-grey-000);
+  border: 0.1rem solid var(--color-neutral-border);
+  color: var(--color-neutral-txt-primary);
 }
 
 .data {
@@ -35,6 +35,6 @@ const slots = defineSlots<{
 }
 
 .info {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

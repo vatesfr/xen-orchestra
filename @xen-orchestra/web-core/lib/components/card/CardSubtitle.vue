@@ -15,8 +15,8 @@ defineSlots<{
 
 <style lang="postcss" scoped>
 .card-subtitle {
-  color: var(--color-purple-base);
-  border-bottom: 0.1rem solid var(--color-purple-base);
+  color: var(--color-normal-txt-base);
+  border-bottom: 0.1rem solid var(--color-normal-txt-base);
   display: flex;
   justify-content: space-between;
   gap: 0.8rem;

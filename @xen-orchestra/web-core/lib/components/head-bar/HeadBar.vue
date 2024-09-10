@@ -43,8 +43,8 @@ const slots = defineSlots<{
   display: flex;
   gap: 4.8rem;
   align-items: center;
-  border-bottom: 0.1rem solid var(--color-grey-500);
-  background-color: var(--background-color-primary);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
+  background-color: var(--color-neutral-background-primary);
 }
 
 .label-wrapper {
@@ -55,7 +55,7 @@ const slots = defineSlots<{
 }
 
 .label {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 }
 
 .icon {
@@ -63,7 +63,7 @@ const slots = defineSlots<{
 }
 
 .status {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   display: flex;
   align-items: center;
   gap: 1.6rem;

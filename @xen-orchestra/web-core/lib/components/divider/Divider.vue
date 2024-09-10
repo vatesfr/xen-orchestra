@@ -10,8 +10,8 @@ defineProps<{
 
 <style scoped lang="postcss">
 .vts-divider {
-  border-left: 0.1rem solid var(--color-grey-500);
-  border-bottom: 0.1rem solid var(--color-grey-500);
+  border-left: 0.1rem solid var(--color-neutral-border);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
 
   &.tab {
     height: 2.4rem;
