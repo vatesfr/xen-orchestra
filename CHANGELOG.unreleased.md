@@ -13,7 +13,6 @@
 
 - [Pool/Networks] Networks can be sorted by VLANs
 - [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
-- [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
 - [i18n] Update Japanese translations (Thanks [@kohju](https://github.com/kohju)!) (PR [#7972](https://github.com/vatesfr/xen-orchestra/pull/7972))
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
@@ -43,7 +42,6 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server-perf-alert minor
 - xo-server-sdn-controller patch
 - xo-web minor
 

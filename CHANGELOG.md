@@ -6,6 +6,7 @@
 
 - [REST API] Add `pifs` and `vm-controllers` collections
 - [REST API/Dashboard] Add name and type of the backup in the backup job issues (PR [#7958](https://github.com/vatesfr/xen-orchestra/pull/7958))
+- [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
 - [V2V] Fix computation of `memory_static_max`
 
 ### Bug fixes
@@ -18,6 +19,7 @@
 - @xen-orchestra/backups 0.53.1
 - @xen-orchestra/proxy 0.28.14
 - xo-server 5.154.0
+- xo-server-perf-alert 0.5.0
 
 ## **5.98.0** (2024-08-30)
 
