@@ -27,6 +27,7 @@ class Vdi {
       noop
     )
   }
+
   async dataDestroy(vdiRef) {
     return await this.callAsync('VDI.data_destroy', vdiRef)
   }
