@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/xapi 7.4.0
+- @xen-orchestra/backups 0.53.1
 
 ## **5.98.0** (2024-08-30)
 

@@ -44,7 +44,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
