@@ -26,6 +26,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Incremental Backup & Replication] Remove most of `Couldn't delete snapshot data` errors when using _Purge snapshot data when using CBT_ [#7826](https://github.com/vatesfr/xen-orchestra/pull/7826) (PR [#7960](https://github.com/vatesfr/xen-orchestra/pull/7960))
+- [Dashboard/Health] Fix alarm table not showing any alarms (PR [#7965](https://github.com/vatesfr/xen-orchestra/pull/7965))
 
 ### Packages to release
 
