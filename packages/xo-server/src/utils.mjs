@@ -340,3 +340,10 @@ export const unboxIdsFromPattern = pattern => {
 // -------------------------------------------------------------------
 
 export const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
+
+// -------------------------------------------------------------------
+
+export const isReplicaVm = vm => 'start' in vm.blockedOperations && vm.other['xo:backup:job'] !== undefined
+
+// -------------------------------------------------------------------
+export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
