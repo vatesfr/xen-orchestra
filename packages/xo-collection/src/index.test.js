@@ -1,10 +1,9 @@
-/* eslint-env jest */
-
-import fromEvent from 'promise-toolbox/fromEvent'
-import forEach from 'lodash/forEach.js'
-
-import { Collection } from './collection'
-import { Index } from './index'
+const fromEvent = require('promise-toolbox/fromEvent')
+const forEach = require('lodash/forEach.js')
+const { Collection } = require('./collection')
+const { Index } = require('./index')
+const assert = require('assert')
+const { describe, test, beforeEach } = require('node:test')
 
 // ===================================================================
 
@@ -56,8 +55,8 @@ describe('Index', function () {
     return waitTicks()
   })
 
-  it('works with existing items', function () {
-    expect(col.indexes).toEqual({
+  test('works with existing items', function () {
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byGroup: {
         foo: {
           [item1.id]: item1,
@@ -70,7 +69,7 @@ describe('Index', function () {
     })
   })
 
-  it('works with added items', function () {
+  test('works with added items', function () {
     const item5 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       group: 'baz',
@@ -79,7 +78,7 @@ describe('Index', function () {
     col.add(item5)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -96,7 +95,7 @@ describe('Index', function () {
     })
   })
 
-  it('works with updated items', function () {
+  test('works with updated items', function () {
     const item1bis = {
       id: item1.id,
       group: 'bar',
@@ -105,7 +104,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item3.id]: item3,
@@ -119,11 +118,11 @@ describe('Index', function () {
     })
   })
 
-  it('works with removed items', function () {
+  test('works with removed items', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -135,7 +134,7 @@ describe('Index', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  test('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       group: item1.group,
@@ -145,7 +144,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1bis,
@@ -160,13 +159,13 @@ describe('Index', function () {
   })
 
   describe('#sweep()', function () {
-    it('removes empty items lists', function () {
+    test('removes empty items lists', function () {
       col.remove(item2)
 
       return waitTicks().then(() => {
         byGroup.sweep()
 
-        expect(col.indexes).toEqual({
+        assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
           byGroup: {
             foo: {
               [item1.id]: item1,

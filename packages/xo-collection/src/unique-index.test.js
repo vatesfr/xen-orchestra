@@ -1,10 +1,9 @@
-/* eslint-env jest */
-
-import fromEvent from 'promise-toolbox/fromEvent'
-import forEach from 'lodash/forEach.js'
-
-import { Collection } from './collection'
-import { UniqueIndex } from './unique-index'
+const fromEvent = require('promise-toolbox/fromEvent')
+const forEach = require('lodash/forEach.js')
+const { Collection } = require('./collection')
+const { UniqueIndex } = require('./unique-index')
+const assert = require('assert')
+const { describe, test, beforeEach } = require('node:test')
 
 // ===================================================================
 
@@ -46,14 +45,13 @@ describe('UniqueIndex', function () {
     })
 
     byKey = new UniqueIndex('key')
-
     col.createIndex('byKey', byKey)
 
     return waitTicks()
   })
 
-  it('works with existing items', function () {
-    expect(col.indexes).toEqual({
+  test('works with existing items', function () {
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byKey: {
         [item1.key]: item1,
         [item2.key]: item2,
@@ -61,7 +59,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with added items', function () {
+  test('works with added items', function () {
     const item4 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       key: '1437af14-429a-40db-8a51-8a2f5ed03201',
@@ -70,7 +68,7 @@ describe('UniqueIndex', function () {
     col.add(item4)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
           [item2.key]: item2,
@@ -80,7 +78,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with updated items', function () {
+  test('works with updated items', function () {
     const item1bis = {
       id: item1.id,
       key: 'e03d4a3a-0331-4aca-97a2-016bbd43a29b',
@@ -89,7 +87,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1bis.key]: item1bis,
           [item2.key]: item2,
@@ -98,11 +96,11 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with removed items', function () {
+  test('works with removed items', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
         },
@@ -110,7 +108,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  test('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       key: item1.key,
@@ -120,7 +118,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1bis,
           [item2.key]: item2,
