@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ $t('alarms') }}
       <template v-if="isReady && alarms.length > 0" #right>
-        <UiCounter :value="alarms.length" color="error" />
+        <UiCounter :value="alarms.length" color="danger" />
       </template>
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">

@@ -3,7 +3,12 @@
     v-slot="{ properties, settings }"
     :params="[
       iconProp(),
-      prop('color').type('TagColor').enum('info', 'success', 'warning', 'error', 'danger', 'grey').widget(),
+      prop('color')
+        .type('TagColor')
+        .required()
+        .preset('primary')
+        .enum('primary', 'secondary', 'success', 'warning', 'danger', 'disabled')
+        .widget(),
       prop('light').bool().widget(),
       slot(),
       setting('slot').preset('Label').widget(),

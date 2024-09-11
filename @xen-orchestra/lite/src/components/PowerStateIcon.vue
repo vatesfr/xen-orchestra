@@ -29,7 +29,7 @@ const className = computed(() => `state-${props.state.toLocaleLowerCase()}`)
   color: var(--color-normal-txt-item);
 
   &.state-running {
-    color: var(--color-success-txt-base);
+    color: var(--color-success-item-base);
   }
 
   &.state-paused {
@@ -38,6 +38,10 @@ const className = computed(() => `state-${props.state.toLocaleLowerCase()}`)
 
   &.state-suspended {
     color: var(--color-normal-txt-hover);
+  }
+
+  &.state-halted {
+    color: var(--color-danger-item-base);
   }
 }
 </style>

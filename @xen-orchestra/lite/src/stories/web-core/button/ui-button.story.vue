@@ -2,15 +2,19 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      colorProp().ctx(),
+      prop('color')
+        .type('ButtonColor')
+        .enum('normal', 'success', 'warning', 'danger')
+        .preset('normal')
+        .required()
+        .widget(),
       prop('level')
         .type('ButtonVariant')
-        .default('primary')
-        .widget(choice('primary', 'secondary', 'tertiary')),
-      prop('size')
-        .type('ButtonSize')
-        .default('small')
-        .widget(choice('extra-small', 'small', 'medium')),
+        .enum('primary', 'secondary', 'tertiary')
+        .preset('primary')
+        .required()
+        .widget(),
+      prop('size').type('ButtonSize').enum('small', 'medium', 'large').preset('medium').required().widget(),
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
       prop('leftIcon')
@@ -50,7 +54,7 @@
         props: {
           leftIcon: undefined,
           rightIcon: faTrash,
-          color: 'error',
+          color: 'danger',
         },
         settings: {
           label: 'Delete',
@@ -64,7 +68,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { colorProp, prop, setting } from '@/libs/story/story-param'
+import { prop, setting } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget'
 import UiButton from '@core/components/button/UiButton.vue'
 import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'

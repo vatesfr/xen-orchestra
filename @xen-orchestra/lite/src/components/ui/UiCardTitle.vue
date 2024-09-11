@@ -2,7 +2,7 @@
   <div class="ui-section-title" :class="tags.left">
     <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <UiCounter v-if="count > 0" class="count" :value="count" color="info" />
+      <UiCounter v-if="count > 0" class="count" :value="count" color="primary" />
     </component>
     <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>

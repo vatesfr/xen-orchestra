@@ -74,14 +74,14 @@ const computedData = computed(() => {
 .progress-item {
   --progress-bar-height: 1.2rem;
   --progress-bar-color: var(--color-normal-item-hover);
-  --progress-bar-background-color: var(--color-neutral-border);
+  --progress-bar-background-color: var(--color-neutral-background-disabled);
 
   &.warning {
-    --progress-bar-color: var(--color-warning-txt-base);
+    --progress-bar-color: var(--color-warning-item-base);
   }
 
   &.error {
-    --progress-bar-color: var(--color-danger-txt-base);
+    --progress-bar-color: var(--color-danger-item-base);
   }
 }
 </style>

@@ -4,7 +4,7 @@
       {{ host.name_label || '(Host)' }}
       <template #addons>
         <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
-        <UiCounter v-if="isReady" v-tooltip="$t('running-vm', { count: vmCount })" :value="vmCount" color="info" />
+        <UiCounter v-if="isReady" v-tooltip="$t('running-vm', { count: vmCount })" :value="vmCount" color="primary" />
       </template>
     </TreeItemLabel>
     <template #sublist>

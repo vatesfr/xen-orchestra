@@ -193,13 +193,13 @@ defineExpose({
 
   &:disabled {
     cursor: not-allowed;
-    --background-color: var(--color-neutral-background-secondary);
+    --background-color: var(--color-neutral-background-disabled);
   }
 
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-normal-item-disabled);
+        --border-color: var(--color-normal-item-hover);
       }
 
       &:active {
@@ -207,15 +207,15 @@ defineExpose({
       }
 
       &:focus {
-        --border-color: var(--color-normal-txt-base);
+        --border-color: var(--color-normal-item-base);
       }
     }
 
     &.success {
-      --border-color: var(--color-normal-txt-base);
+      --border-color: var(--color-success-item-base);
 
       &:hover {
-        --border-color: var(--color-success-item-disabled);
+        --border-color: var(--color-success-item-hover);
       }
 
       &:active {
@@ -223,15 +223,15 @@ defineExpose({
       }
 
       &:focus {
-        --border-color: var(--color-normal-txt-base);
+        --border-color: var(--color-success-item-base);
       }
     }
 
     &.warning {
-      --border-color: var(--color-warning-txt-base);
+      --border-color: var(--color-warning-item-base);
 
       &:hover {
-        --border-color: var(--color-warning-item-disabled);
+        --border-color: var(--color-warning-item-hover);
       }
 
       &:active {
@@ -239,15 +239,15 @@ defineExpose({
       }
 
       &:focus {
-        --border-color: var(--color-warning-txt-base);
+        --border-color: var(--color-warning-item-base);
       }
     }
 
     &.error {
-      --border-color: var(--color-danger-txt-base);
+      --border-color: var(--color-danger-item-base);
 
       &:hover {
-        --border-color: var(--color-danger-item-disabled);
+        --border-color: var(--color-danger-item-hover);
       }
 
       &:active {
@@ -255,7 +255,7 @@ defineExpose({
       }
 
       &:focus-within {
-        --border-color: var(--color-danger-txt-base);
+        --border-color: var(--color-danger-item-base);
       }
     }
   }

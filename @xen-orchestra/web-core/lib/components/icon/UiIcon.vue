@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import UiSpinner from '@core/components/UiSpinner.vue'
-import type { Color } from '@core/types/color.type'
+import type { IconColor } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -14,29 +14,31 @@ defineProps<{
   busy?: boolean
   icon?: IconDefinition
   fixedWidth?: boolean
-  color?: Color
+  color: IconColor
 }>()
 </script>
 
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-icon {
-  --color: currentColor;
+  &.current {
+    --color: currentColor;
+  }
 
-  &.info {
-    --color: var(--color-normal-txt-base);
+  &.normal {
+    --color: var(--color-normal-item-base);
   }
 
   &.success {
-    --color: var(--color-success-txt-base);
+    --color: var(--color-success-item-base);
   }
 
   &.warning {
-    --color: var(--color-warning-txt-base);
+    --color: var(--color-warning-item-base);
   }
 
-  &.error {
-    --color: var(--color-danger-txt-base);
+  &.danger {
+    --color: var(--color-danger-item-base);
   }
 }
 

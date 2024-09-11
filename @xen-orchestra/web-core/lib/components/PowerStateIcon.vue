@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <UiIcon :class="className" :icon="icon" class="power-state-icon" />
+  <UiIcon :class="className" color="current" :icon class="power-state-icon" />
 </template>
 
 <script lang="ts" setup>
@@ -32,7 +32,7 @@ const className = computed(() => `state-${props.state}`)
   }
 
   &.state-running {
-    color: var(--color-success-txt-base);
+    color: var(--color-success-item-base);
   }
 
   &.state-paused {
@@ -40,7 +40,7 @@ const className = computed(() => `state-${props.state}`)
   }
 
   &.state-halted {
-    color: var(--color-danger-txt-base);
+    color: var(--color-danger-item-base);
   }
 }
 </style>

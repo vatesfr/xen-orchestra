@@ -2,7 +2,7 @@
   <MenuList
     :disabled="selectedRefs.length === 0"
     :horizontal="!isMobile"
-    :shadow="isMobile"
+    :border="isMobile"
     class="vms-actions-bar"
     placement="bottom-end"
   >

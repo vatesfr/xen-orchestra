@@ -40,7 +40,7 @@
         <UiIcon :icon="faExclamationCircle" />
         {{ $t('keep-page-open') }}
       </p>
-      <UiButton :disabled="vmRef === undefined" color="error" level="secondary" @click="cancel()">
+      <UiButton :disabled="vmRef === undefined" color="danger" level="secondary" @click="cancel()">
         {{ $t('cancel') }}
       </UiButton>
     </template>
@@ -92,8 +92,14 @@
           <div class="row">
             <FormInputWrapper>
               <div class="radio-group">
-                <label><FormRadio v-model="ipStrategy" value="static" />{{ $t('static-ip') }}</label>
-                <label><FormRadio v-model="ipStrategy" value="dhcp" />{{ $t('dhcp') }}</label>
+                <label>
+                  <FormRadio v-model="ipStrategy" value="static" />
+                  {{ $t('static-ip') }}</label
+                >
+                <label>
+                  <FormRadio v-model="ipStrategy" value="dhcp" />
+                  {{ $t('dhcp') }}</label
+                >
               </div>
             </FormInputWrapper>
           </div>
@@ -156,8 +162,9 @@
           <div class="row">
             <FormInputWrapper :label="$t('ssh-account')">
               <label
-                ><span>{{ $t('disabled') }}</span
-                ><FormToggle v-model="enableSshAccount" /><span>{{ $t('enabled') }}</span></label
+                ><span>{{ $t('disabled') }}</span>
+                <FormToggle v-model="enableSshAccount" />
+                <span>{{ $t('enabled') }}</span></label
               >
             </FormInputWrapper>
           </div>
@@ -503,6 +510,7 @@ async function cancel() {
   display: flex;
   flex-direction: row;
   margin: 1.67rem 0;
+
   & > * {
     min-width: 20rem;
   }
@@ -524,9 +532,11 @@ async function cancel() {
   text-align: center;
   padding: 5rem;
   margin: auto;
+
   h2 {
     margin-bottom: 1rem;
   }
+
   * {
     max-width: 100%;
   }
@@ -535,6 +545,7 @@ async function cancel() {
 .not-available {
   font-size: 2rem;
 }
+
 .status {
   color: var(--color-neutral-txt-primary);
 }
@@ -546,6 +557,7 @@ async function cancel() {
 .danger {
   color: var(--color-danger-txt-base);
 }
+
 .success,
 .danger {
   &.ui-icon {
@@ -559,6 +571,7 @@ async function cancel() {
   text-align: left;
   gap: 0.5em;
 }
+
 .warning {
   color: var(--color-warning-txt-base);
 }

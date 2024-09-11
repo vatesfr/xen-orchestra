@@ -1,9 +1,9 @@
 <!-- v1.0 -->
 <template>
   <button :class="className" :disabled="busy || isDisabled" class="ui-button" type="button">
-    <UiIcon :busy :icon="leftIcon" class="icon" fixed-width />
+    <UiIcon :busy :icon="leftIcon" color="current" class="icon" fixed-width />
     <slot />
-    <UiIcon :icon="rightIcon" class="icon" fixed-width />
+    <UiIcon :icon="rightIcon" color="current" class="icon" fixed-width />
   </button>
 </template>
 
@@ -28,18 +28,18 @@ const props = withDefaults(
   }>(),
   {
     disabled: undefined,
-    color: 'info',
+    color: 'normal',
     level: 'primary',
-    size: 'small',
+    size: 'medium',
   }
 )
 
 const isDisabled = useContext(DisabledContext, () => props.disabled)
 
 const fontClasses = {
-  'extra-small': 'typo p3-medium',
-  small: 'typo h6-medium',
-  medium: 'typo h3-semi-bold',
+  small: 'typo p3-medium',
+  medium: 'typo h6-medium',
+  large: 'typo h3-semi-bold',
 }
 
 const className = computed(() => {
@@ -59,122 +59,388 @@ const className = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-button {
-  &.info {
-    --accent-color: var(--color-normal-txt-base);
+  &.primary {
+    &.normal {
+      --background-color: var(--color-normal-item-base);
+      --border-color: var(--color-normal-item-base);
+      --color: var(--color-normal-txt-item);
 
-    &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-normal-txt-hover);
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-normal-item-hover);
+        --border-color: var(--color-normal-item-hover);
+        --color: var(--color-normal-txt-item);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-normal-item-active);
+        --border-color: var(--color-normal-item-active);
+        --color: var(--color-normal-txt-item);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-normal-item-disabled);
+        --border-color: var(--color-normal-item-disabled);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-normal-item-base);
+        --border-color: var(--color-normal-item-base);
+        --color: var(--color-normal-txt-item);
+      }
     }
 
-    &:is(:active, .pressed) {
-      --accent-color: var(--color-normal-txt-active);
+    &.success {
+      --background-color: var(--color-success-item-base);
+      --border-color: var(--color-success-item-base);
+      --color: var(--color-success-txt-item);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-success-item-hover);
+        --border-color: var(--color-success-item-hover);
+        --color: var(--color-success-txt-item);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-success-item-active);
+        --border-color: var(--color-success-item-active);
+        --color: var(--color-success-txt-item);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-success-item-disabled);
+        --border-color: var(--color-success-item-disabled);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-success-item-base);
+        --border-color: var(--color-success-item-base);
+        --color: var(--color-success-txt-item);
+      }
     }
 
-    &:is(:disabled, .disabled) {
-      --accent-color: var(--color-neutral-txt-secondary);
+    &.warning {
+      --background-color: var(--color-warning-item-base);
+      --border-color: var(--color-warning-item-base);
+      --color: var(--color-warning-txt-item);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-warning-item-hover);
+        --border-color: var(--color-warning-item-hover);
+        --color: var(--color-warning-txt-item);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-warning-item-active);
+        --border-color: var(--color-warning-item-active);
+        --color: var(--color-warning-txt-item);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-warning-item-disabled);
+        --border-color: var(--color-warning-item-disabled);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-warning-item-base);
+        --border-color: var(--color-warning-item-base);
+        --color: var(--color-warning-txt-item);
+      }
+    }
+
+    &.danger {
+      --background-color: var(--color-danger-item-base);
+      --border-color: var(--color-danger-item-base);
+      --color: var(--color-danger-txt-item);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-danger-item-hover);
+        --border-color: var(--color-danger-item-hover);
+        --color: var(--color-danger-txt-item);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-danger-item-active);
+        --border-color: var(--color-danger-item-active);
+        --color: var(--color-danger-txt-item);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-danger-item-disabled);
+        --border-color: var(--color-danger-item-disabled);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-danger-item-base);
+        --border-color: var(--color-danger-item-base);
+        --color: var(--color-danger-txt-item);
+      }
     }
   }
 
-  &.success {
-    --accent-color: var(--color-success-txt-base);
+  &.secondary {
+    &.normal {
+      --background-color: var(--color-neutral-background-primary);
+      --border-color: var(--color-normal-item-base);
+      --color: var(--color-normal-txt-base);
 
-    &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-success-txt-hover);
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-normal-item-hover);
+        --color: var(--color-normal-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-normal-item-active);
+        --color: var(--color-normal-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-neutral-background-disabled);
+        --border-color: var(--color-neutral-txt-secondary);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-normal-item-base);
+        --color: var(--color-normal-txt-base);
+      }
     }
 
-    &:is(:active, .pressed) {
-      --accent-color: var(--color-success-txt-active);
+    &.success {
+      --background-color: var(--color-neutral-background-primary);
+      --border-color: var(--color-success-txt-base);
+      --color: var(--color-success-txt-base);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-success-txt-hover);
+        --color: var(--color-success-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-success-txt-active);
+        --color: var(--color-success-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-neutral-background-disabled);
+        --border-color: var(--color-neutral-txt-secondary);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-success-txt-base);
+        --color: var(--color-success-txt-base);
+      }
     }
 
-    &:is(:disabled, .disabled) {
-      --accent-color: var(--color-success-item-disabled);
+    &.warning {
+      --background-color: var(--color-neutral-background-primary);
+      --border-color: var(--color-warning-txt-base);
+      --color: var(--color-warning-txt-base);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-warning-txt-hover);
+        --color: var(--color-warning-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-warning-txt-active);
+        --color: var(--color-warning-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-neutral-background-disabled);
+        --border-color: var(--color-neutral-txt-secondary);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-warning-txt-base);
+        --color: var(--color-warning-txt-base);
+      }
+    }
+
+    &.danger {
+      --background-color: var(--color-neutral-background-primary);
+      --border-color: var(--color-danger-txt-base);
+      --color: var(--color-danger-txt-base);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-danger-txt-hover);
+        --color: var(--color-danger-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-danger-txt-active);
+        --color: var(--color-danger-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: var(--color-neutral-background-disabled);
+        --border-color: var(--color-neutral-txt-secondary);
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-neutral-background-primary);
+        --border-color: var(--color-danger-txt-base);
+        --color: var(--color-danger-txt-base);
+      }
     }
   }
 
-  &.warning {
-    --accent-color: var(--color-warning-txt-base);
+  &.tertiary {
+    &.normal {
+      --background-color: transparent;
+      --border-color: transparent;
+      --color: var(--color-normal-txt-base);
 
-    &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-warning-txt-hover);
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-normal-background-hover);
+        --border-color: var(--color-normal-background-hover);
+        --color: var(--color-normal-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-normal-background-active);
+        --border-color: var(--color-normal-background-active);
+        --color: var(--color-normal-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: transparent;
+        --border-color: transparent;
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-normal-background-selected);
+        --border-color: var(--color-normal-background-selected);
+        --color: var(--color-normal-txt-base);
+      }
     }
 
-    &:is(:active, .pressed) {
-      --accent-color: var(--color-warning-txt-active);
+    &.success {
+      --background-color: transparent;
+      --border-color: transparent;
+      --color: var(--color-success-txt-base);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-success-background-hover);
+        --border-color: var(--color-success-background-hover);
+        --color: var(--color-success-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-success-background-active);
+        --border-color: var(--color-success-background-active);
+        --color: var(--color-success-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: transparent;
+        --border-color: transparent;
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-success-background-selected);
+        --border-color: var(--color-success-background-selected);
+        --color: var(--color-success-txt-base);
+      }
     }
 
-    &:is(:disabled, .disabled) {
-      --accent-color: var(--color-warning-item-disabled);
+    &.warning {
+      --background-color: transparent;
+      --border-color: transparent;
+      --color: var(--color-warning-txt-base);
+
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-warning-background-hover);
+        --border-color: var(--color-warning-background-hover);
+        --color: var(--color-warning-txt-hover);
+      }
+
+      &:is(:active, .pressed) {
+        --background-color: var(--color-warning-background-active);
+        --border-color: var(--color-warning-background-active);
+        --color: var(--color-warning-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
+        --background-color: transparent;
+        --border-color: transparent;
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-warning-background-selected);
+        --border-color: var(--color-warning-background-selected);
+        --color: var(--color-warning-txt-base);
+      }
     }
-  }
 
-  &:is(.danger, .error) {
-    --accent-color: var(--color-danger-txt-base);
+    &.danger {
+      --background-color: transparent;
+      --border-color: transparent;
+      --color: var(--color-danger-txt-base);
 
-    &:is(:hover, .hover, :focus-visible) {
-      --accent-color: var(--color-danger-txt-hover);
-    }
+      &:is(:hover, .hover, :focus-visible) {
+        --background-color: var(--color-danger-background-hover);
+        --border-color: var(--color-danger-background-hover);
+        --color: var(--color-danger-txt-hover);
+      }
 
-    &:is(:active, .pressed) {
-      --accent-color: var(--color-danger-txt-active);
-    }
+      &:is(:active, .pressed) {
+        --background-color: var(--color-danger-background-active);
+        --border-color: var(--color-danger-background-active);
+        --color: var(--color-danger-txt-active);
+      }
 
-    &:is(:disabled, .disabled) {
-      --accent-color: var(--color-danger-item-disabled);
+      &:is(:disabled, .disabled) {
+        --background-color: transparent;
+        --border-color: transparent;
+        --color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        --background-color: var(--color-danger-background-selected);
+        --border-color: var(--color-danger-background-selected);
+        --color: var(--color-danger-txt-base);
+      }
     }
   }
 }
 
 /* SIZE VARIANTS */
 .ui-button {
-  &.extra-small {
-    --padding: 0.4rem 0.8rem;
-
-    &.tertiary {
-      --padding: 0;
-    }
-  }
-
   &.small {
-    --padding: 0.8rem 1.6rem;
-
-    &.tertiary {
-      --padding: 0.2rem 0;
-    }
+    --padding: 0.4rem 0.8rem;
+    --border-radius: 0.2rem;
   }
 
   &.medium {
+    --padding: 0.8rem 1.6rem;
+    --border-radius: 0.4rem;
+  }
+
+  &.large {
     --padding: 1.6rem 2.4rem;
-
-    &.tertiary {
-      --padding: 0.4rem 0;
-    }
-  }
-}
-
-/* LEVELS VARIANTS */
-.ui-button {
-  &.primary {
-    --color: var(--color-normal-txt-item);
-    --background-color: var(--accent-color);
-    --border-color: var(--accent-color);
-    --border-style: solid;
     --border-radius: 0.8rem;
-  }
-
-  &.secondary {
-    --color: var(--accent-color);
-    --background-color: var(--color-neutral-background-primary);
-    --border-color: var(--accent-color);
-    --border-style: solid;
-    --border-radius: 0.8rem;
-  }
-
-  &.tertiary {
-    --color: var(--accent-color);
-    --background-color: transparent;
-    --border-color: var(--accent-color);
-    --border-style: none none solid;
-    --border-radius: 0;
   }
 }
 
@@ -190,7 +456,7 @@ const className = computed(() => {
   outline: none;
   border-color: var(--border-color);
   border-radius: var(--border-radius);
-  border-style: var(--border-style);
+  border-style: solid;
   color: var(--color);
   background-color: var(--background-color);
   padding: var(--padding);

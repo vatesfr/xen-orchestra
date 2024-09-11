@@ -11,8 +11,8 @@
           v-if="isSupported && copiableId"
           :left-icon="faCopy"
           level="secondary"
-          size="extra-small"
-          :color="copied ? 'success' : 'info'"
+          size="small"
+          :color="copied ? 'success' : 'normal'"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}

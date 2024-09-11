@@ -56,7 +56,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
   padding: 0 0.7rem;
   border: 1px solid var(--color-neutral-border);
   border-radius: 0.8rem;
-  background-color: var(--color-normal-txt-item);
+  background-color: var(--color-neutral-background-primary);
   box-shadow: var(--shadow-100);
   gap: 0.1rem;
 
@@ -71,7 +71,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
 }
 
 .form-widget:hover .widget {
-  border-color: var(--color-normal-item-disabled);
+  border-color: var(--color-normal-item-hover);
 }
 
 .element {
@@ -94,7 +94,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
   border: none;
   outline: none;
   color: var(--color-neutral-txt-primary);
-  background-color: var(--color-normal-txt-item);
+  background-color: var(--color-neutral-background-primary);
   flex: 1;
 
   &:disabled {

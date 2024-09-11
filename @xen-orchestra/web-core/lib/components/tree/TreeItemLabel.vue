@@ -26,7 +26,7 @@
       <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon class="icon" />
+          <UiIcon :icon color="current" class="icon" />
         </slot>
         <div class="text text-ellipsis">
           <slot />

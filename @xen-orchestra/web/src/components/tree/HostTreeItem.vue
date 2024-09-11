@@ -11,7 +11,7 @@
       </template>
       <template #addons>
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
-        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="info" />
+        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="primary" />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>

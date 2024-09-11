@@ -3,7 +3,7 @@
     <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
-        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="info" />
+        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="primary" />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>

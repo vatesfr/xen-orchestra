@@ -1,5 +1,5 @@
 <template>
-  <MenuList :disabled placement="bottom-end">
+  <MenuList border :disabled placement="bottom-end">
     <template #trigger="{ isOpen, open }">
       <AccountMenuTrigger :active="isOpen" @click="open($event)" />
     </template>

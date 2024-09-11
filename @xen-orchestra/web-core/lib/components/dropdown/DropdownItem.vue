@@ -1,14 +1,14 @@
 <template>
   <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
-    <UiIcon v-if="checkbox" :color="color ?? 'info'" :icon="selected ? faSquareCheck : faSquare" />
+    <UiIcon v-if="checkbox" :color :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
-      <UiIcon :icon />
+      <UiIcon :icon color="current" />
     </slot>
     <div class="label p2 medium text-ellipsis">
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <UiIcon v-if="arrow" :color="disabled ? undefined : 'info'" :icon="faAngleRight" class="right-icon" />
+    <UiIcon v-if="arrow" :color="disabled ? 'current' : 'normal'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 
@@ -24,7 +24,7 @@ import { computed, inject } from 'vue'
 
 defineProps<{
   arrow?: boolean
-  color?: Color
+  color: Color
   disabled?: boolean
   icon?: IconDefinition
   info?: string
@@ -40,7 +40,7 @@ const checkbox = inject(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .dropdown-item {
-  & {
+  &.normal {
     --color: var(--color-neutral-txt-primary);
     --background-color: var(--color-neutral-background-primary);
 
@@ -65,31 +65,6 @@ const checkbox = inject(
     }
   }
 
-  &.info {
-    --color: var(--color-normal-txt-base);
-    --background-color: var(--color-neutral-background-primary);
-
-    &:is(.active, .selected) {
-      --color: var(--color-normal-txt-base);
-      --background-color: var(--color-normal-background-selected);
-    }
-
-    &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-normal-txt-hover);
-      --background-color: var(--color-normal-background-hover);
-    }
-
-    &:is(:active, .pressed) {
-      --color: var(--color-normal-txt-active);
-      --background-color: var(--color-normal-background-active);
-    }
-
-    &.disabled {
-      --color: var(--color-normal-item-disabled);
-      --background-color: var(--color-neutral-background-primary);
-    }
-  }
-
   &.success {
     --color: var(--color-success-txt-base);
     --background-color: var(--color-neutral-background-primary);
@@ -110,7 +85,7 @@ const checkbox = inject(
     }
 
     &.disabled {
-      --color: var(--color-success-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: var(--color-neutral-background-primary);
     }
   }
@@ -135,12 +110,12 @@ const checkbox = inject(
     }
 
     &.disabled {
-      --color: var(--color-warning-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: var(--color-neutral-background-primary);
     }
   }
 
-  &:is(.error, .danger) {
+  &.danger {
     --color: var(--color-danger-txt-base);
     --background-color: var(--color-neutral-background-primary);
 
@@ -160,7 +135,7 @@ const checkbox = inject(
     }
 
     &.disabled {
-      --color: var(--color-danger-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: var(--color-neutral-background-primary);
     }
   }

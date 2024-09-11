@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-end" shadow>
+  <MenuList placement="bottom-end" border>
     <template #trigger="{ open, isOpen }">
       <button type="button" :class="{ active: isOpen }" class="account-button" @click="open">
         <UiIcon :icon="faCircleUser" class="user-icon" />

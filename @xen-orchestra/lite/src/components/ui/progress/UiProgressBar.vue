@@ -32,19 +32,19 @@ const cssFillWidth = computed(() => {
   background-color: var(--progress-bar-background-color, var(--color-normal-background-selected));
 
   &.color-info {
-    --progress-bar-color: var(--color-normal-txt-base);
+    --progress-bar-color: var(--color-normal-item-base);
   }
 
   &.color-success {
-    --progress-bar-color: var(--color-success-txt-base);
+    --progress-bar-color: var(--color-success-item-base);
   }
 
   &.color-warning {
-    --progress-bar-color: var(--color-warning-txt-base);
+    --progress-bar-color: var(--color-warning-item-base);
   }
 
   &.color-error {
-    --progress-bar-color: var(--color-danger-txt-base);
+    --progress-bar-color: var(--color-danger-item-base);
   }
 }
 

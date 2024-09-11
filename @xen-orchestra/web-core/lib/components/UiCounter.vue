@@ -13,7 +13,7 @@ import { computed } from 'vue'
 const props = withDefaults(
   defineProps<{
     value: number | string
-    color?: CounterColor
+    color: CounterColor
     size?: CounterSize
   }>(),
   { size: 'small' }
@@ -32,26 +32,34 @@ const classNames = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-counter {
-  --background-color: var(--color-neutral-txt-secondary);
+  &.primary {
+    --background-color: var(--color-normal-item-base);
+    --color: var(--color-normal-txt-item);
+  }
 
-  &.info {
-    --background-color: var(--color-normal-txt-base);
+  &.secondary {
+    --background-color: var(--color-neutral-txt-primary);
+    --color: var(--color-neutral-background-primary);
   }
 
   &.success {
-    --background-color: var(--color-success-txt-base);
+    --background-color: var(--color-success-item-base);
+    --color: var(--color-success-txt-item);
   }
 
   &.warning {
-    --background-color: var(--color-warning-txt-base);
+    --background-color: var(--color-warning-item-base);
+    --color: var(--color-warning-txt-item);
   }
 
-  &:is(.error, .danger) {
-    --background-color: var(--color-danger-txt-base);
+  &.danger {
+    --background-color: var(--color-danger-item-base);
+    --color: var(--color-danger-txt-item);
   }
 
-  &.black {
-    --background-color: var(--color-neutral-txt-primary);
+  &.disabled {
+    --background-color: var(--color-neutral-background-disabled);
+    --color: var(--color-neutral-txt-secondary);
   }
 }
 
@@ -75,7 +83,7 @@ const classNames = computed(() => {
   justify-content: center;
   vertical-align: middle;
   text-transform: lowercase;
-  color: var(--color-normal-txt-item);
+  color: var(--color);
   height: var(--height);
   min-width: var(--height);
   padding: var(--padding);

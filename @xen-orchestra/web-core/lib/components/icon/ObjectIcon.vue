@@ -5,8 +5,8 @@
 <!-- Network v1.0 -->
 <template>
   <FontAwesomeLayers :class="[size, { disabled: stateConfig === undefined }]" class="object-icon">
-    <UiIcon :icon="mainIcon" />
-    <UiIcon :icon="stateIcon" :style="stateIconStyle" class="state" />
+    <UiIcon :icon="mainIcon" color="current" />
+    <UiIcon :icon="stateIcon" color="current" :style="stateIconStyle" class="state" />
   </FontAwesomeLayers>
 </template>
 
@@ -46,7 +46,7 @@ const config: ObjectIconConfig = {
     states: {
       running: {
         icon: faPlay,
-        color: '--color-success-txt-base',
+        color: '--color-success-item-base',
         translate: {
           x: [100, 132, 148],
           y: [65, 75, 90],
@@ -54,7 +54,7 @@ const config: ObjectIconConfig = {
       },
       halted: {
         icon: faStop,
-        color: '--color-danger-txt-base',
+        color: '--color-danger-item-base',
         translate: {
           x: [100, 136, 144],
           y: [65, 75, 90],
@@ -62,7 +62,7 @@ const config: ObjectIconConfig = {
       },
       suspended: {
         icon: faMoon,
-        color: '--color-normal-txt-item',
+        color: '--color-normal-item-base',
         translate: {
           x: [88, 130, 140],
           y: [65, 75, 90],
@@ -83,7 +83,7 @@ const config: ObjectIconConfig = {
     states: {
       running: {
         icon: faPlay,
-        color: '--color-success-txt-base',
+        color: '--color-success-item-base',
         translate: {
           x: [82, 122, 136],
           y: [66, 70, 90],
@@ -91,7 +91,7 @@ const config: ObjectIconConfig = {
       },
       halted: {
         icon: faStop,
-        color: '--color-danger-txt-base',
+        color: '--color-danger-item-base',
         translate: {
           x: [90, 122, 134],
           y: [65, 72, 85],
@@ -99,7 +99,7 @@ const config: ObjectIconConfig = {
       },
       maintenance: {
         icon: faTriangleExclamation,
-        color: '--color-warning-txt-base',
+        color: '--color-warning-item-base',
         translate: {
           x: [60, 88, 100],
           y: [68, 72, 82],
@@ -112,7 +112,7 @@ const config: ObjectIconConfig = {
     states: {
       connected: {
         icon: faCheckCircle,
-        color: '--color-success-txt-base',
+        color: '--color-success-item-base',
         translate: {
           x: [60, 90, 100],
           y: [65, 75, 90],
@@ -120,7 +120,7 @@ const config: ObjectIconConfig = {
       },
       'partially-connected': {
         icon: faCircleMinus,
-        color: '--color-warning-txt-base',
+        color: '--color-warning-item-base',
         translate: {
           x: [60, 90, 100],
           y: [65, 75, 90],
@@ -128,7 +128,7 @@ const config: ObjectIconConfig = {
       },
       disconnected: {
         icon: faCircleXmark,
-        color: '--color-danger-txt-base',
+        color: '--color-danger-item-base',
         translate: {
           x: [60, 90, 100],
           y: [65, 75, 90],
@@ -141,7 +141,7 @@ const config: ObjectIconConfig = {
     states: {
       connected: {
         icon: faCheckCircle,
-        color: '--color-success-txt-base',
+        color: '--color-success-item-base',
         translate: {
           x: [112, 130, 162],
           y: [74, 78, 102],
@@ -149,7 +149,7 @@ const config: ObjectIconConfig = {
       },
       disconnected: {
         icon: faCircleXmark,
-        color: '--color-danger-txt-base',
+        color: '--color-danger-item-base',
         translate: {
           x: [112, 130, 162],
           y: [74, 78, 102],
@@ -162,7 +162,7 @@ const config: ObjectIconConfig = {
     states: {
       connected: {
         icon: faCheckCircle,
-        color: '--color-success-txt-base',
+        color: '--color-success-item-base',
         translate: {
           x: [84, 110, 128],
           y: [66, 72, 88],
@@ -170,7 +170,7 @@ const config: ObjectIconConfig = {
       },
       disconnected: {
         icon: faCircleXmark,
-        color: '--color-danger-txt-base',
+        color: '--color-danger-item-base',
         translate: {
           x: [84, 110, 128],
           y: [66, 72, 88],
