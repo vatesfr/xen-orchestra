@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Hub/Recipes/Kubernetes] Properly sort versions in selector
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -37,5 +39,6 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-web patch
 
 <!--packages-end-->

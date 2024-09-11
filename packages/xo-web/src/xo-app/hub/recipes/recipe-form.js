@@ -3,6 +3,7 @@ import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import React from 'react'
 import { Container } from 'grid'
+import { compareVersions } from 'compare-versions'
 import { createLogger } from '@xen-orchestra/log'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
@@ -148,6 +149,7 @@ export default decorate([
               label: tag_name,
               value: tag_name.slice(1),
             }))
+            .sort(({ value: a }, { value: b }) => -compareVersions(a, b))
           return versionList
         } else {
           logger.error('HTTP response: ' + res.status)
