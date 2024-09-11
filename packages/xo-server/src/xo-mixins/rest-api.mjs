@@ -456,7 +456,7 @@ async function _getDashboardStats(app) {
   }, [])
   return dashboard
 }
-const getDashboardStats = throttle(_getDashboardStats, 6, { trailing: false, leading: true })
+const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
 
 export default class RestApi {
   #api
