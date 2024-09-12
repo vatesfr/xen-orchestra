@@ -64,3 +64,18 @@ delete_.params = {
 }
 
 export { delete_ as delete }
+
+
+export async function runSequence({idSchedules}){
+
+  for(const idSchedule of idSchedules){
+    const schedule = await this.getSchedule(idSchedule)
+    const job = await this.getJob(schedule.jobId)
+    await this.runJob(job,schedule)
+  }
+}
+runSequence.permission = 'admin'
+runSequence.description = 'Run a sequence of schedule, one after the other'
+runSequence.params = {
+  idSchedules: { type: 'array', items: { type: 'string'} },
+}
