@@ -174,7 +174,7 @@ export default class {
             })
           : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-      const sizeUsedForBackups = await Disposable.use(this._app.getBackupsRemoteAdapter(remote), adapter =>
+      const totalBackupSize = await Disposable.use(this._app.getBackupsRemoteAdapter(remote), adapter =>
         adapter.getTotalBackupSize()
       ).catch(noop)
 
@@ -183,7 +183,7 @@ export default class {
           promise.then(info => {
             remotesInfo[remote.id] = {
               ...info,
-              sizeUsedForBackups,
+              totalBackupSize,
               encryption,
             }
           }),

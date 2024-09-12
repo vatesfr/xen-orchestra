@@ -828,15 +828,26 @@ export class RemoteAdapter {
     return metadata
   }
 
+  #computeTotalBackupSizeRecursively(backups) {
+    return reduce(
+      backups,
+      (prev, backup) => {
+        const _backup = Array.isArray(backup) ? this.#computeTotalBackupSizeRecursively(backup) : backup
+        return {
+          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
+        }
+      },
+      { onDisk: 0 }
+    )
+  }
+
   async getTotalVmBackupSize() {
-    const vmBackups = await this.listAllVmBackups()
-    return reduce(vmBackups, (sum, backups) => sum + backups.reduce((sum, backup) => sum + backup.size, 0), 0)
+    return this.#computeTotalBackupSizeRecursively(await this.listAllVmBackups())
   }
 
   // @TODO: add `getTotalXoBackupSize` and `getTotalPoolBackupSize` once `size` is implemented
   async getTotalBackupSize() {
-    const backupsSize = await Promise.all([this.getTotalVmBackupSize()])
-    return backupsSize.reduce((sum, backupSize) => sum + backupSize)
+    return this.#computeTotalBackupSizeRecursively(await Promise.all([this.getTotalVmBackupSize()]))
   }
 }
 
