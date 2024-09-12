@@ -281,22 +281,7 @@ export default class New extends Component {
           srUuid
         ),
       smb: () => createSrSmb(host.id, name.value, description.value, server.value, username.value, password.value),
-      hba: async () => {
-        if (srUuid === undefined) {
-          const previous = await probeSrHbaExists(host.id, scsiId)
-          if (previous && previous.length > 0) {
-            try {
-              await confirm({
-                title: _('existingLunModalTitle'),
-                body: <p>{_('existingLunModalText')}</p>,
-              })
-            } catch (error) {
-              return
-            }
-          }
-        }
-        return createSrHba(host.id, name.value, description.value, scsiId, srUuid)
-      },
+      hba: async () => createSrHba(host.id, name.value, description.value, scsiId, srUuid),
       iscsi: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrIscsiExists(
@@ -415,6 +400,7 @@ export default class New extends Component {
 
   _handleSrHbaSelection = async scsiId => {
     this.setState({
+      existingSrs: await probeSrHbaExists(this.state.host.id, scsiId),
       scsiId,
       usage: true,
     })
