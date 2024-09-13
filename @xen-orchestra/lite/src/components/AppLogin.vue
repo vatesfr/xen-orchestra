@@ -27,7 +27,7 @@
           <FormCheckbox v-model="rememberMe" />
           {{ $t('keep-me-logged') }}
         </label>
-        <UiButton type="submit" :busy="isConnecting">
+        <UiButton size="medium" color="normal" level="primary" type="submit" :busy="isConnecting">
           {{ $t('login') }}
         </UiButton>
       </template>
@@ -107,6 +107,7 @@ async function handleSubmit() {
   display: flex;
   margin: 1rem;
   width: fit-content;
+
   & .form-checkbox {
     margin: auto 1rem auto auto;
   }

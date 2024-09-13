@@ -18,19 +18,16 @@ import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    level?: ButtonLevel
+    level: ButtonLevel
+    color: Color
+    size: ButtonSize
     busy?: boolean
     disabled?: boolean
     leftIcon?: IconDefinition
     rightIcon?: IconDefinition
-    color?: Color
-    size?: ButtonSize
   }>(),
   {
     disabled: undefined,
-    color: 'normal',
-    level: 'primary',
-    size: 'medium',
   }
 )
 
