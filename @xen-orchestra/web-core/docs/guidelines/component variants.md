@@ -1,354 +1,310 @@
-# Component variants
+# Component Variants
 
-In this guide we'll see how to manage the different variants of a component, such as size, color, etc.
+A variant is a specific style that a component can have. It is usually determined by the value of a prop.
 
-Throughout this guide, we'll use the example of a button component as it is probably the most complex component in terms of variants.
+These variants are defined in the Design System and are reflected in the component's CSS.
 
-## Identifying variants
+See also:
+[toVariants utility](../utils/to-variants.util.md) to help you generate variant CSS classes for your components.
 
-First, we need to identify the variants of a component.
+## Base class
 
-For that, check its different versions in the Design System.
+The root element of a component will have a specific CSS class following the pattern `vts-<component-name>`.
 
-For example, for the Button component, we can see the following variants:
-
-- A **level** variant (primary, secondary, tertiary)
-- A **color** variant (blue, green, orange, red)
-- A **size** variant (small, medium, large)
-- A **state** variant (normal, hover, pressed, disabled)
-
-The first three will be defined via `props` (`level`, `color` and `size`), while the last will be defined via CSS pseudo-classes (`:hover`, `:active`, `:disabled`).
-
-## Defining the `props`
-
-The `props` will be typed according to the possible values for each variant.
-
-For example, for buttons, we'll have the following `props`:
-
-```ts
-defineProps<{
-  level: 'primary' | 'secondary' | 'tertiary'
-  color: 'info' | 'success' | 'warning' | 'danger'
-  size: 'small' | 'medium' | 'large'
-}>()
-```
-
-> [!WARNING]
-> It's important to note that the same value can **not** be accepted in multiple variants.
+> [!TIP]
+> Example:
 >
-> For example, if `level` accepts the values `primary`, `secondary` and `tertiary`, then it will not be possible to have a color accepting a `primary` value too.
+> The class for a "Button" component would be `vts-button`.
 
-## Naming CSS variables
+## Variant classes
 
-CSS variables are used to store the values of CSS properties modified by the different variants.
+The root element will then have secondary classes which reflect the current variants being applied.
 
-Their names will respect different formats depending on their use:
+The pattern for these classes is `<prop-name>--<prop-value>`.
 
-- `--<base-class>--<property>` for variables intended for use in implementation
-- `--<base-class>__<element-class>--<property>` for variables intended for use in a sub-element
-- `--<base-class>--x-<any>` for transient variables (defined in one variant, but used in another)
-
-## Identifying style changes
-
-Next, we need to identify what changes, according to the different variants.
-
-1. We can see that the accent color (whether used as background, text and/or border color) changes, according to the `color` and `state` variants.
-
-   As we don't know in advance which CSS properties this color will be applied to, we'll use a transient variable to store it:
-
-   - `--vts-button--x-accent-color`
-
-2. We can also see that the background, text and/or border color (based on the previously defined `--vts-button--x-accent-color` variable) change according to the `level` variant.
-
-   We'll then use the following CSS variables:
-
-   - `--vts-button--background-color`
-   - `--vts-button--border-color`
-   - `--vts-button--color`
-
-3. Next, we can see that `padding` and `gap` vary according to the `level` and `size` variant.
-
-   We'll use the following CSS variables:
-
-   - `--vts-button--padding`
-   - `--vts-button--gap`
-
-4. Finally, we can see that the `border-style` and `border-radius` vary according to the `level` variant.
-   We'll use the following CSS variables:
-
-   - `--vts-button--border-style`
-   - `--vts-button--border-radius`
-
-## Variant groups
-
-Based on the previous point, we can identify three variant groups associated with the CSS properties they modify:
-
-- `color` + state :
-  - `--vts-button--x-accent-color`
-- `level` :
-  - `--vts-button--background-color`
-  - `--vts-button--border-color`
-  - `--vts-button--color`
-  - `--vts-button--border-style`
-  - `--vts-button--border-radius`
-- `level` + `size` :
-  - `--vts-button--padding`
-  - `--vts-button--gap`
-
-## Generate CSS classes
-
-The component's root element must contain a base CSS class, as well as a set of classes reflecting the component's different variants of the component.
-
-The base class will follow the format `vts-<component-name>`.
-
-The variant classes will follow the format `vts-<component-name>--<variant-value-1>-<variant-value-2>-<...>`.
-
-> [!NOTE]
-> For legibility, an exception is made for `boolean` props.
+> [!TIP]
+> Example:
 >
-> In this case, the class name will be `vts-<component-name>--<prop-name>_<0 | 1>`.
+> If `color` prop is `success` and `size` prop is `medium` then the classes `color--success` and `size--medium`
+> would be applied to the root element.
 
-Based on the variant groups identified above, we'll need to generate the following CSS classes:
+## Converting Design System props into Vue props
 
-- `vts-button--<color>` (states will be managed via CSS pseudo-classes)
-- `vts-button--<level>`
-- `vts-button--<level>--<size>`
+The first step will be to convert the Design System's props into Vue props.
 
-For example, for a **secondary level**, **green color** and **medium size** button, the following CSS classes should be applied:
+Some are easy to map, like `color` or `size`, which have a specific list of possible values.
 
-- `vts-button`
-- `vts-button--success`
-- `vts-button--secondary`
-- `vts-button--secondary--medium`
+But others are more tricky, like a `state` prop in the Design System having values like `default`, `hover`, `active`, or
+`disabled`.
 
-## `useCssClass` composable
+We can't simply create a `state` prop in Vue with these values (it wouldn't make sense for "hover" and "active" states).
 
-The `useCssClass` composable makes it easy to generate these CSS classes based on the `props` passed to the component.
+So in this case:
 
-```ts
-const className = useCssClass('vts-button', {
-  props,
-  variants: ['color', 'level', ['level', 'size']],
-})
-```
+- the "default" state would be represented as "no class applied."
+- the "hover" and "active" states would be represented as `:hover` and `:active` pseudo-classes.
+- the "disabled" state would be represented as a `disabled` `boolean` prop which would add a `state--disabled` class.
 
-See [useCssClass](../composables/css-class.composable.md) for full documentation.
+## CSS variables
 
-##
+Each CSS property that can be affected by a variant should have a corresponding CSS variable.
 
-## Writing CSS styles
+The format for these variables is `--<base-class>--<property-name>`.
 
-The component's CSS styles must be written using the CSS classes and variables mentioned above.
+> [!TIP]
+> Example:
+>
+> For a `Button` component, the CSS variables could be `--vts-button--background-color`, or `--vts-button--padding`.
 
-Let's start with the basic implementation:
+### CSS variables for child elements
+
+If the CSS property to be changed is owned by a child element, the variable name should reflect that.
+
+The format for these variables is `--<base-class>__<child-class>--<property-name>`.
+
+> [!TIP]
+> Example:
+>
+> If we need to change `color` of a `.icon` inside our `Button` component, the CSS variable will be
+> `--vts-button__icon--color`.
+
+## Identifying which DS props affect which CSS variables
+
+The next step is to identify which CSS variables will be affected by each DS prop.
+
+For example, we could imagine:
+
+- a `color` prop affecting the `background-color`, `color`, and `border-color` properties.
+- a "state" affecting the `background-color` property.
+- a `size` prop affecting the `padding`, `gap`, and `font-size` properties.
+- a `level` prop affecting the `color` and `padding` properties.
+
+## Grouping CSS variables declarations
+
+Once we know which CSS variables will be affected by each prop, we can group them accordingly.
+
+From the previous example, we can see that:
+
+- `border-color` is affected by `color` only.
+- `gap` and `font-size` are affected by `size` only.
+- `background-color` is affected by both "state" and `color`.
+- `color` is affected by both `color` and `level`.
+- `padding` is affected by both `size` and `level`
+
+So we could prepare our variables groups like this:
 
 ```postcss
-/* IMPLEMENTATION */
+/*
+COLOR
+--vts-button--border-color
+*/
 .vts-button {
-  cursor: pointer;
-  border-width: 1px;
-  background-color: var(--vts-button--background-color);
-  border-color: var(--vts-button--border-color);
-  color: var(--vts-button--color);
-  padding: var(--vts-button--padding);
-  gap: var(--vts-button--gap);
-  border-style: var(--vts-button--border-style);
-  border-radius: var(--vts-button--border-radius);
+  /* We'll define the border-color here */
+}
+
+/*
+SIZE
+--vts-button--gap
+--vts-button--font-size
+*/
+.vts-button {
+  /* We'll define the gap and font-size here */
+}
+
+/*
+COLOR + STATE
+--vts-button--background-color
+*/
+.vts-button {
+  /* We'll define the background-color here */
+}
+
+/*
+COLOR + LEVEL
+--vts-button--color
+*/
+.vts-button {
+  /* We'll define the color here */
+}
+
+/*
+SIZE + LEVEL
+--vts-button--padding
+*/
+.vts-button {
+  /* We'll define the padding here */
 }
 ```
 
-Then prepare the different variants previously identified, above the basic implementation:
+## Filling the groups
+
+Lastly, we can now fill in the CSS variables accordingly.
+
+Let's start with the `COLOR` group:
+
+```postcss
+/*
+COLOR
+--vts-button--border-color
+*/
+.vts-button {
+  &.color--blue {
+    --vts-button--border-color: blue;
+  }
+
+  &.color--red {
+    --vts-button--border-color: red;
+  }
+}
+```
+
+Then the `SIZE` group:
+
+```postcss
+/*
+SIZE
+--vts-button--gap
+--vts-button--font-size
+*/
+.vts-button {
+  &.size--small {
+    --vts-button--gap: 0.5rem;
+    --vts-button--font-size: 0.75rem;
+  }
+
+  &.size--medium {
+    --vts-button--gap: 1rem;
+    --vts-button--font-size: 1rem;
+  }
+}
+```
+
+Let's continue with the `COLOR + STATE` group:
 
 ```postcss
 /*
 COLOR + STATE
---vts-button--x-accent-color
-*/
-.vts-button {
-}
-
-/*
-LEVEL
 --vts-button--background-color
---vts-button--border-color
---vts-button--color
---vts-button--border-style
---vts-button--border-radius
 */
 .vts-button {
-}
+  &.color--blue {
+    & {
+      /* default state */
+      --vts-button--background-color: blue;
+    }
 
-/*
-LEVEL + SIZE
---vts-button--padding
---vts-button--gap
-*/
-.vts-button {
-}
+    &:hover {
+      --vts-button--background-color: skyblue;
+    }
 
-/* IMPLEMENTATION */
-.vts-button {
-  /* ... */
+    &:active {
+      --vts-button--background-color: darkblue;
+    }
+
+    &:disabled {
+      --vts-button--background-color: aliceblue;
+    }
+  }
+
+  &.color--red {
+    & {
+      /* default state */
+      --vts-button--background-color: red;
+    }
+
+    &:hover {
+      --vts-button--background-color: salmon;
+    }
+
+    &:active {
+      --vts-button--background-color: darkred;
+    }
+
+    &:disabled {
+      --vts-button--background-color: lightpink;
+    }
+  }
 }
 ```
 
-Finally, we can implement them:
+Moving on to the `COLOR + LEVEL` group:
 
 ```postcss
 /*
-COLOR + STATE
---vts-button--x-accent-color
-*/
-.vts-button {
-  &--info {
-    --vts-button--x-accent-color: var(--color-purple-base);
-  }
-
-  &--info:hover {
-    --vts-button--x-accent-color: var(--color-purple-d20);
-  }
-
-  &--info:active {
-    --vts-button--x-accent-color: var(--color-purple-d40);
-  }
-
-  &--info:disabled {
-    --vts-button--x-accent-color: var(--color-grey-400);
-  }
-
-  &--success {
-    --vts-button--x-accent-color: var(--color-green-base);
-  }
-
-  &--success:hover {
-    --vts-button--x-accent-color: var(--color-green-d20);
-  }
-
-  &--success:active {
-    --vts-button--x-accent-color: var(--color-green-d40);
-  }
-
-  &--success:disabled {
-    --vts-button--x-accent-color: var(--color-green-l60);
-  }
-
-  &--warning {
-    --vts-button--x-accent-color: var(--color-orange-base);
-  }
-
-  &--warning:hover {
-    --vts-button--x-accent-color: var(--color-orange-d20);
-  }
-
-  &--warning:active {
-    --vts-button--x-accent-color: var(--color-orange-d40);
-  }
-
-  &--warning:disabled {
-    --vts-button--x-accent-color: var(--color-orange-l60);
-  }
-
-  &--danger {
-    --vts-button--x-accent-color: var(--color-red-base);
-  }
-
-  &--danger:hover {
-    --vts-button--x-accent-color: var(--color-red-d20);
-  }
-
-  &--danger:active {
-    --vts-button--x-accent-color: var(--color-red-d40);
-  }
-
-  &--danger:disabled {
-    --vts-button--x-accent-color: var(--color-red-l60);
-  }
-}
-
-/*
-LEVEL
---vts-button--background-color
---vts-button--border-color
+COLOR + LEVEL
 --vts-button--color
---vts-button--border-style
---vts-button--border-radius
 */
 .vts-button {
-  &--primary {
-    --vts-button--background-color: var(--vts-button--x-accent-color);
-    --vts-button--border-color: var(--vts-button--x-accent-color);
-    --vts-button--color: var(--color-grey-600);
-    --vts-button--border-style: solid;
-    --vts-button--border-radius: 0.8rem;
+  &.color--blue {
+    &.level--primary {
+      --vts-button--color: blue;
+    }
+
+    &.level--secondary {
+      --vts-button--color: lightblue;
+    }
   }
 
-  &--secondary {
-    --vts-button--background-color: var(--background-color-primary);
-    --vts-button--border-color: var(--vts-button--x-accent-color);
-    --vts-button--color: var(--vts-button--x-accent-color);
-    --vts-button--border-style: solid;
-    --vts-button--border-radius: 0.8rem;
-  }
+  &.color--red {
+    &.level--primary {
+      --vts-button--color: red;
+    }
 
-  &--tertiary {
-    --vts-button--background-color: transparent;
-    --vts-button--border-color: var(--vts-button--x-accent-color);
-    --vts-button--color: var(--vts-button--x-accent-color);
-    --vts-button--border-style: none none solid;
-    --vts-button--border-radius: 0;
+    &.level--secondary {
+      --vts-button--color: lightcoral;
+    }
   }
 }
+```
 
+And finally, the `SIZE + LEVEL` group:
+
+```postcss
 /*
-LEVEL + SIZE
+SIZE + LEVEL
 --vts-button--padding
---vts-button--gap
 */
 .vts-button {
-  &--primary--small,
-  &--secondary--small {
-    --vts-button--padding: 0.4rem 0.8rem;
-    --vts-button--gap: 0.8rem;
+  &.size--small {
+    &.level--primary {
+      --vts-button--padding: 0.25rem 0.5rem;
+    }
+
+    &.level--secondary {
+      --vts-button--padding: 0.5rem 1rem;
+    }
   }
 
-  &--primary--medium,
-  &--secondary--medium {
-    --vts-button--padding: 0.8rem 1.6rem;
-    --vts-button--gap: 1.6rem;
-  }
+  &.size--medium {
+    &.level--primary {
+      --vts-button--padding: 0.5rem 1rem;
+    }
 
-  &--primary--large,
-  &--secondary--large {
-    --vts-button--padding: 1.6rem 2.4rem;
-    --vts-button--gap: 2.4rem;
-  }
-
-  &--tertiary--small {
-    --vts-button--padding: 0;
-    --vts-button--gap: 0.8rem;
-  }
-
-  &--tertiary--medium {
-    --vts-button--padding: 0.2rem 0;
-    --vts-button--gap: 0.8rem;
-  }
-
-  &--tertiary--large {
-    --vts-button--padding: 0.4rem 0;
-    --vts-button--gap: 1.6rem;
+    &.level--secondary {
+      --vts-button--padding: 1rem 2rem;
+    }
   }
 }
+```
+
+## Implementing the component base CSS
+
+Now that we have our CSS variables defined, we can implement the base CSS for our component.
+
+```postcss
+/* ... variables definitions ... */
 
 /* IMPLEMENTATION */
 .vts-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-width: 1px;
-  background-color: var(--vts-button--background-color);
-  border-color: var(--vts-button--border-color);
-  color: var(--vts-button--color);
-  padding: var(--vts-button--padding);
+  border: 1px solid var(--vts-button--border-color);
   gap: var(--vts-button--gap);
-  border-style: var(--vts-button--border-style);
-  border-radius: var(--vts-button--border-radius);
+  font-size: var(--vts-button--font-size);
+  padding: var(--vts-button--padding);
+  background-color: var(--vts-button--background-color);
+  color: var(--vts-button--color);
 }
 ```
