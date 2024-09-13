@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseDuration } from '@vates/parse-duration/index.js'
 
-describe('`ms` without magic: always parse a duration and throws if invalid.', () => {
+describe('parseDuration()', () => {
   it('should parse string "2 days"', () => {
     const input = '2 days'
     const expected = 172800000
