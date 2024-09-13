@@ -15,8 +15,9 @@ describe('parseDuration()', () => {
     assert.strictEqual(parseDuration(input), expected)
   })
 
-  it('should throw an error for an undefined duration', () => {
-    const input = undefined
-    assert.throws(() => parseDuration(input), { message: 'not a valid duration: undefined' })
+  it('should throw an error for an invalid duration', () => {
+    ;[undefined, '', 'invalid duration'].forEach(input => {
+      assert.throws(() => parseDuration(input), { message: `not a valid duration: ${input}` })
+    })
   })
 })
