@@ -176,7 +176,7 @@ class PifItemMode extends Component {
     () => this.state.ipv4ConfigModes,
     () => this.state.ipv6ConfigModes,
     (isIpv6, ipv4ConfigModes, ipv6ConfigModes) =>
-      (isIpv6 ? ipv6ConfigModes : ipv4ConfigModes).map(mode => ({ label: mode, value: mode }))
+      (isIpv6 ? ipv6ConfigModes : ipv4ConfigModes)?.map(mode => ({ label: mode, value: mode }))
   )
 
   _getValue = createSelector(
