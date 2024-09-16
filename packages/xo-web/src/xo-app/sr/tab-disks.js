@@ -12,6 +12,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import renderXoItem, { Vdi, Vm } from 'render-xo-item'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
@@ -46,12 +47,20 @@ const COLUMNS = [
     name: _('vdiNameLabel'),
     itemRenderer: (vdi, { vdisByBaseCopy }) => {
       const activeVdis = vdisByBaseCopy[vdi.id]
+      const isMetadataVdi = vdi.VDI_type === 'cbt_metadata'
       return (
         <span>
           <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
           {vdi.type === 'VDI-snapshot' && (
             <span className='tag tag-info'>
               <Icon icon='vm-snapshot' />
+            </span>
+          )}
+          {isMetadataVdi && (
+            <span className='tag tag-info' style={{ marginLeft: '0.4em' }}>
+              <Tooltip content={_('isMetadataVdi')}>
+                <Icon icon='file' />
+              </Tooltip>
             </span>
           )}
           {vdi.type === 'VDI-unmanaged' &&
