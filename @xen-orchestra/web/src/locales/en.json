@@ -1,6 +1,7 @@
 {
   "account-organization-more": "Account, organization & more…",
   "available": "Available",
+  "backup-issues": "Backup issues",
   "backups": "Backups",
   "backup-repository": "Backup repository (local, NFS)",
 
@@ -24,6 +25,7 @@
   "hosts-status.unknown": "Unknown",
   "hosts-status.unknown.tooltip": "Hosts metrics are unavailable",
 
+  "in-last-three-jobs": "In their last three jobs",
   "missing-patches": "Missing patches",
   "n-hosts": "1 host | {n} hosts",
   "no-results": "No results",

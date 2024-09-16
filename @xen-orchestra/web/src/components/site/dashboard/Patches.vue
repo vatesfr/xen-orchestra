@@ -30,8 +30,8 @@ const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
-  const nPoolsWithMissingPatches = record.value.missingPatches?.nPoolsWithMissingPatches ?? 0
-  const nPools = record.value.nPools
+  const nPoolsWithMissingPatches = record.value?.missingPatches?.nPoolsWithMissingPatches ?? 0
+  const nPools = record.value?.nPools ?? 0
 
   const nUpToDatePools = nPools - nPoolsWithMissingPatches
 
@@ -46,11 +46,11 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const hostsSegments = computed(() => {
-  const nHostsWithMissingPatches = record.value.missingPatches?.nHostsWithMissingPatches ?? 0
-  const nHostsEol = record.value.nHostsEol
-  const nHosts = record.value.nHosts
+  const nHostsWithMissingPatches = record.value?.missingPatches?.nHostsWithMissingPatches ?? 0
+  const nHostsEol = record.value?.nHostsEol
+  const nHosts = record.value?.nHosts
 
-  const nUpToDateHosts = nHosts - (nHostsWithMissingPatches + (nHostsEol ?? 0))
+  const nUpToDateHosts = (nHosts ?? 0) - (nHostsWithMissingPatches + (nHostsEol ?? 0))
 
   const segments: DonutChartWithLegendProps['segments'] = [
     { value: nUpToDateHosts, color: 'success', label: t('up-to-date') },

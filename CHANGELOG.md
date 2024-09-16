@@ -1,8 +1,35 @@
 # ChangeLog
 
-## **5.98.0** (2024-08-30)
+## **5.98.1** (2024-09-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Pool/Networks] Networks can be sorted by VLANs
+- [Pool/Networks] Networks can be filtered by VLANs, e.g. `VLAN:10`
+- [REST API] Add `pifs` and `vm-controllers` collections
+- [REST API/Dashboard] Add name and type of the backup in the backup job issues (PR [#7958](https://github.com/vatesfr/xen-orchestra/pull/7958))
+- [Perf-alert] Display warning if no guest tools are detected while monitoring VM memory (PR [#7886](https://github.com/vatesfr/xen-orchestra/pull/7886))
+- [V2V] Fix computation of `memory_static_max`
+- [i18n] Update Japanese translations (Thanks [@kohju](https://github.com/kohju)!) (PR [#7972](https://github.com/vatesfr/xen-orchestra/pull/7972))
+
+### Bug fixes
+
+- [Incremental Backup & Replication] Remove most of `Couldn't delete snapshot data` errors when using _Purge snapshot data when using CBT_ [#7826](https://github.com/vatesfr/xen-orchestra/pull/7826) (PR [#7960](https://github.com/vatesfr/xen-orchestra/pull/7960))
+- [Dashboard/Health] Fix alarm table not showing any alarms (PR [#7965](https://github.com/vatesfr/xen-orchestra/pull/7965))
+
+### Released packages
+
+- @xen-orchestra/xapi 7.4.0
+- @xen-orchestra/backups 0.53.1
+- @xen-orchestra/proxy 0.28.14
+- xo-server 5.154.0
+- xo-server-perf-alert 0.5.0
+- xo-server-sdn-controller 1.0.10
+- xo-web 5.155.0
+
+## **5.98.0** (2024-08-30)
 
 ### Highlights
 

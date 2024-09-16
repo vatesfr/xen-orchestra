@@ -1,3 +1,10 @@
+export type BackupIssue = {
+  logs: ('failure' | 'interrupted' | 'skipped' | 'success')[]
+  name: string
+  type: 'backup' | 'metadataBackup' | 'mirrorBackup'
+  uuid: string
+}
+
 export type XoDashboard = {
   nPools: number
   nHosts: number
@@ -32,5 +39,6 @@ export type XoDashboard = {
       successful: number
       total: number
     }
+    issues: BackupIssue[]
   }
 }

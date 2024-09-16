@@ -272,6 +272,10 @@ const New = decorate([
           }
         }
 
+        if (settings[''].maxExportRate <= 0) {
+          settings[''].maxExportRate = undefined
+        }
+
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
@@ -338,19 +342,25 @@ const New = decorate([
           })
         )
 
+        const normalizedSettings = normalizeSettings({
+          offlineBackupActive: state.offlineBackupActive,
+          settings: settings || state.propSettings,
+          exportMode: state.exportMode,
+          copyMode: state.copyMode,
+          snapshotMode: state.snapshotMode,
+        }).toObject()
+
+        if (normalizedSettings[''].maxExportRate <= 0) {
+          normalizedSettings[''].maxExportRate = undefined
+        }
+
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression,
           proxy: state.proxyId,
-          settings: normalizeSettings({
-            offlineBackupActive: state.offlineBackupActive,
-            settings: settings || state.propSettings,
-            exportMode: state.exportMode,
-            copyMode: state.copyMode,
-            snapshotMode: state.snapshotMode,
-          }).toObject(),
+          settings: normalizedSettings,
           remotes: state.deltaMode || state.backupMode ? constructPattern(state.remotes) : constructPattern([]),
           srs: state.crMode || state.drMode ? constructPattern(state.srs) : constructPattern([]),
           vms: state.smartMode ? state.vmsSmartPattern : constructPattern(state.vms),

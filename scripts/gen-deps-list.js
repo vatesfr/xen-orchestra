@@ -215,7 +215,7 @@ function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
     return false
   }
 
-  if (['xo-web', 'xo-server', '@xen-orchestra/lite', '@xen-orchestra/proxy', '@xen-orchestra/web'].includes(name)) {
+  if (['xo-web', 'xo-server', '@xen-orchestra/proxy', '@xen-orchestra/web'].includes(name)) {
     debug('forced release due to dependency update', {
       package: name,
       dependency: depName,
@@ -223,7 +223,19 @@ function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
     return true
   }
 
-  return !semver.satisfies(depVersion, dependencies[depName])
+  if (semver.satisfies(depVersion, dependencies[depName])) {
+    return false
+  }
+
+  if (name === '@xen-orchestra/lite') {
+    debug('ignoring release despite dependency update', {
+      package: name,
+      dependency: depName,
+    })
+    return false
+  }
+
+  return true
 }
 
 /**

@@ -1,125 +1,157 @@
 :root {
   --color-logo: #282467;
 
-  --color-grey-000: #000000;
-  --color-grey-100: #1a1b38;
-  --color-grey-200: #595a6f;
-  --color-grey-300: #9899a5;
-  --color-grey-400: #bfbfc6;
-  --color-grey-500: #e5e5e7;
-  --color-grey-600: #ffffff;
+  /* NEUTRALS */
 
-  --background-color-primary: #ffffff;
-  --background-color-secondary: #f6f6f7;
+  --color-neutral-txt-primary: #1a1b38;
+  --color-neutral-txt-secondary: #5a5b6c;
 
-  --color-purple-base: #8f84ff;
-  --color-purple-d20: color(#8f84ff blend(black 20%));
-  --color-purple-d40: color(#8f84ff blend(black 40%));
-  --color-purple-d60: color(#8f84ff blend(black 60%));
-  --color-purple-l20: color(#8f84ff blend(white 20%));
-  --color-purple-l40: color(#8f84ff blend(white 40%));
-  --color-purple-l60: color(#8f84ff blend(white 60%));
-  --background-color-purple-10: color(white blend(#8f84ff 10%));
-  --background-color-purple-20: color(white blend(#8f84ff 20%));
-  --background-color-purple-30: color(white blend(#8f84ff 30%));
-  --background-color-purple-60: color(white blend(#8f84ff 60%));
+  --color-neutral-background-primary: #ffffff;
+  --color-neutral-background-secondary: #f8f8f8;
+  --color-neutral-background-disabled: #e4e4e7;
 
-  --color-green-base: #2ca878;
-  --color-green-d20: color(#2ca878 blend(black 20%));
-  --color-green-d40: color(#2ca878 blend(black 40%));
-  --color-green-d60: color(#2ca878 blend(black 60%));
-  --color-green-l20: color(#2ca878 blend(white 20%));
-  --color-green-l40: color(#2ca878 blend(white 40%));
-  --color-green-l60: color(#2ca878 blend(white 60%));
-  --background-color-green-10: color(white blend(#2ca878 10%));
-  --background-color-green-20: color(white blend(#2ca878 20%));
-  --background-color-green-30: color(white blend(#2ca878 30%));
-  --background-color-green-60: color(white blend(#2ca878 60%));
+  --color-neutral-border: #d0d0d5;
 
-  --color-orange-base: #ef7f18;
-  --color-orange-d20: color(#ef7f18 blend(black 20%));
-  --color-orange-d40: color(#ef7f18 blend(black 40%));
-  --color-orange-d60: color(#ef7f18 blend(black 60%));
-  --color-orange-l20: color(#ef7f18 blend(white 20%));
-  --color-orange-l40: color(#ef7f18 blend(white 40%));
-  --color-orange-l60: color(#ef7f18 blend(white 60%));
-  --background-color-orange-10: color(white blend(#ef7f18 10%));
-  --background-color-orange-20: color(white blend(#ef7f18 20%));
-  --background-color-orange-30: color(white blend(#ef7f18 30%));
-  --background-color-orange-60: color(white blend(#ef7f18 60%));
+  /* NORMAL */
 
-  --color-red-base: #be1621;
-  --color-red-d20: color(#be1621 blend(black 20%));
-  --color-red-d40: color(#be1621 blend(black 40%));
-  --color-red-d60: color(#be1621 blend(black 60%));
-  --color-red-l20: color(#be1621 blend(white 20%));
-  --color-red-l40: color(#be1621 blend(white 40%));
-  --color-red-l60: color(#be1621 blend(white 60%));
-  --background-color-red-10: color(white blend(#be1621 10%));
-  --background-color-red-20: color(white blend(#be1621 20%));
-  --background-color-red-30: color(white blend(#be1621 30%));
-  --background-color-red-60: color(white blend(#be1621 60%));
+  --color-normal-txt-base: #6b63bf;
+  --color-normal-txt-hover: color-mix(in srgb, #000000 20%, var(--color-normal-txt-base));
+  --color-normal-txt-active: color-mix(in srgb, #000000 40%, var(--color-normal-txt-base));
+
+  --color-normal-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-normal-item-base));
+  --color-normal-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-normal-item-base));
+  --color-normal-background-active: color-mix(in srgb, #ffffff 70%, var(--color-normal-item-base));
+
+  --color-normal-txt-item: #030029;
+  --color-normal-item-base: #8f84ff;
+  --color-normal-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-normal-item-base));
+  --color-normal-item-active: color-mix(in srgb, #ffffff 40%, var(--color-normal-item-base));
+  --color-normal-item-disabled: #d2ceff;
+
+  /* SUCCESS */
+
+  --color-success-txt-base: #217e5a;
+  --color-success-txt-hover: color-mix(in srgb, #000000 20%, var(--color-success-txt-base));
+  --color-success-txt-active: color-mix(in srgb, #000000 40%, var(--color-success-txt-base));
+
+  --color-success-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-success-item-base));
+  --color-success-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-success-item-base));
+  --color-success-background-active: color-mix(in srgb, #ffffff 70%, var(--color-success-item-base));
+
+  --color-success-txt-item: #092017;
+  --color-success-item-base: #2ca878;
+  --color-success-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-item-base));
+  --color-success-item-active: color-mix(in srgb, #ffffff 40%, var(--color-success-item-base));
+  --color-success-item-disabled: #abdcc9;
+
+  /* WARNING */
+
+  --color-warning-txt-base: #aa5b11;
+  --color-warning-txt-hover: color-mix(in srgb, #000000 20%, var(--color-warning-txt-base));
+  --color-warning-txt-active: color-mix(in srgb, #000000 40%, var(--color-warning-txt-base));
+
+  --color-warning-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-warning-item-base));
+  --color-warning-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-warning-item-base));
+  --color-warning-background-active: color-mix(in srgb, #ffffff 70%, var(--color-warning-item-base));
+
+  --color-warning-txt-item: #261403;
+  --color-warning-item-base: #ef7f18;
+  --color-warning-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-item-base));
+  --color-warning-item-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-item-base));
+  --color-warning-item-disabled: #f9cca3;
+
+  /* DANGER */
+
+  --color-danger-txt-base: #a11d1d;
+  --color-danger-txt-hover: color-mix(in srgb, #000000 20%, var(--color-danger-txt-base));
+  --color-danger-txt-active: color-mix(in srgb, #000000 40%, var(--color-danger-txt-base));
+
+  --color-danger-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-danger-item-base));
+  --color-danger-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-danger-item-base));
+  --color-danger-background-active: color-mix(in srgb, #ffffff 70%, var(--color-danger-item-base));
+
+  --color-danger-txt-item: #fff0f1;
+  --color-danger-item-base: #be1621;
+  --color-danger-item-hover: color-mix(in srgb, #000000 20%, var(--color-danger-item-base));
+  --color-danger-item-active: color-mix(in srgb, #000000 40%, var(--color-danger-item-base));
+  --color-danger-item-disabled: #e5a2a6;
 }
 
 :root.dark {
   --color-logo: #e5e5e7;
 
-  --color-grey-000: #ffffff;
-  --color-grey-100: #e5e5e7;
-  --color-grey-200: #bfbfc6;
-  --color-grey-300: #9899a5;
-  --color-grey-400: #595a6f;
-  --color-grey-500: #3a3b54;
-  --color-grey-600: #000000;
+  /* NEUTRALS */
 
-  --background-color-primary: #14141e;
-  --background-color-secondary: #17182b;
+  --color-neutral-txt-primary: #f8f8f8;
+  --color-neutral-txt-secondary: #bfbfc6;
 
-  --color-purple-base: #8f84ff;
-  --color-purple-d20: color(#8f84ff blend(white 20%));
-  --color-purple-d40: color(#8f84ff blend(white 40%));
-  --color-purple-d60: color(#8f84ff blend(white 60%));
-  --color-purple-l20: color(#8f84ff blend(black 20%));
-  --color-purple-l40: color(#8f84ff blend(black 40%));
-  --color-purple-l60: color(#8f84ff blend(black 60%));
-  --background-color-purple-10: color(#17182b blend(#8f84ff 25%));
-  --background-color-purple-20: color(#17182b blend(#8f84ff 35%));
-  --background-color-purple-30: color(#17182b blend(#8f84ff 45%));
-  --background-color-purple-60: color(#17182b blend(#8f84ff 85%));
+  --color-neutral-background-primary: #111225;
+  --color-neutral-background-secondary: #000000;
+  --color-neutral-background-disabled: #4b4c5b;
 
-  --color-green-base: #2ca878;
-  --color-green-d20: color(#2ca878 blend(white 20%));
-  --color-green-d40: color(#2ca878 blend(white 40%));
-  --color-green-d60: color(#2ca878 blend(white 60%));
-  --color-green-l20: color(#2ca878 blend(black 20%));
-  --color-green-l40: color(#2ca878 blend(black 40%));
-  --color-green-l60: color(#2ca878 blend(black 60%));
-  --background-color-green-10: color(#17182b blend(#2ca878 25%));
-  --background-color-green-20: color(#17182b blend(#2ca878 35%));
-  --background-color-green-30: color(#17182b blend(#2ca878 45%));
-  --background-color-green-60: color(#17182b blend(#2ca878 85%));
+  --color-neutral-border: #363647;
 
-  --color-orange-base: #ef7f18;
-  --color-orange-d20: color(#ef7f18 blend(white 20%));
-  --color-orange-d40: color(#ef7f18 blend(white 40%));
-  --color-orange-d60: color(#ef7f18 blend(white 60%));
-  --color-orange-l20: color(#ef7f18 blend(black 20%));
-  --color-orange-l40: color(#ef7f18 blend(black 40%));
-  --color-orange-l60: color(#ef7f18 blend(black 60%));
-  --background-color-orange-10: color(#17182b blend(#ef7f18 25%));
-  --background-color-orange-20: color(#17182b blend(#ef7f18 35%));
-  --background-color-orange-30: color(#17182b blend(#ef7f18 45%));
-  --background-color-orange-60: color(#17182b blend(#ef7f18 85%));
+  /* NORMAL */
 
-  --color-red-base: #be1621;
-  --color-red-d20: color(#be1621 blend(white 20%));
-  --color-red-d40: color(#be1621 blend(white 40%));
-  --color-red-d60: color(#be1621 blend(white 60%));
-  --color-red-l20: color(#be1621 blend(black 20%));
-  --color-red-l40: color(#be1621 blend(black 40%));
-  --color-red-l60: color(#be1621 blend(black 60%));
-  --background-color-red-10: color(#17182b blend(#be1621 25%));
-  --background-color-red-20: color(#17182b blend(#be1621 35%));
-  --background-color-red-30: color(#17182b blend(#be1621 45%));
-  --background-color-red-60: color(#17182b blend(#be1621 85%));
+  --color-normal-txt-base: #9b92ff;
+  --color-normal-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-normal-txt-base));
+  --color-normal-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-normal-txt-base));
+
+  --color-normal-background-selected: color-mix(in srgb, #000000 70%, var(--color-normal-txt-base));
+  --color-normal-background-hover: color-mix(in srgb, #000000 60%, var(--color-normal-txt-base));
+  --color-normal-background-active: color-mix(in srgb, #000000 50%, var(--color-normal-txt-base));
+
+  --color-normal-txt-item: #030029;
+  --color-normal-item-base: #8f84ff;
+  --color-normal-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-normal-item-base));
+  --color-normal-item-active: color-mix(in srgb, #ffffff 40%, var(--color-normal-item-base));
+  --color-normal-item-disabled: #393566;
+
+  /* SUCCESS */
+
+  --color-success-txt-base: #2ca878;
+  --color-success-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-txt-base));
+  --color-success-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-success-txt-base));
+
+  --color-success-background-selected: color-mix(in srgb, #000000 70%, var(--color-success-txt-base));
+  --color-success-background-hover: color-mix(in srgb, #000000 60%, var(--color-success-txt-base));
+  --color-success-background-active: color-mix(in srgb, #000000 50%, var(--color-success-txt-base));
+
+  --color-success-txt-item: #092017;
+  --color-success-item-base: #2ca878;
+  --color-success-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-item-base));
+  --color-success-item-active: color-mix(in srgb, #ffffff 40%, var(--color-success-item-base));
+  --color-success-item-disabled: #124330;
+
+  /* WARNING */
+
+  --color-warning-txt-base: #ef7f18;
+  --color-warning-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-txt-base));
+  --color-warning-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-txt-base));
+
+  --color-warning-background-selected: color-mix(in srgb, #000000 70%, var(--color-warning-txt-base));
+  --color-warning-background-hover: color-mix(in srgb, #000000 60%, var(--color-warning-txt-base));
+  --color-warning-background-active: color-mix(in srgb, #000000 50%, var(--color-warning-txt-base));
+
+  --color-warning-txt-item: #261403;
+  --color-warning-item-base: #ef7f18;
+  --color-warning-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-item-base));
+  --color-warning-item-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-item-base));
+  --color-warning-item-disabled: #60330a;
+
+  /* DANGER */
+
+  --color-danger-txt-base: #ec535d;
+  --color-danger-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-danger-txt-base));
+  --color-danger-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-danger-txt-base));
+
+  --color-danger-background-selected: color-mix(in srgb, #000000 70%, var(--color-danger-txt-base));
+  --color-danger-background-hover: color-mix(in srgb, #000000 60%, var(--color-danger-txt-base));
+  --color-danger-background-active: color-mix(in srgb, #000000 50%, var(--color-danger-txt-base));
+
+  --color-danger-txt-item: #fff0f1;
+  --color-danger-item-base: #be1621;
+  --color-danger-item-hover: color-mix(in srgb, #000000 20%, var(--color-danger-item-base));
+  --color-danger-item-active: color-mix(in srgb, #000000 40%, var(--color-danger-item-base));
+  --color-danger-item-disabled: #4c090d;
 }
