@@ -1,9 +1,12 @@
 <!-- v1.0 -->
 <template>
   <div class="backup-item">
-    <RouterLink :to="backup.route">
+    <RouterLink v-if="backup.route !== undefined" :to="backup.route">
       {{ backup.label }}
     </RouterLink>
+    <p v-else class="typo p3-medium">
+      {{ backup.label }}
+    </p>
     <div class="states">
       <BackupState v-for="(state, index) in backup.states" :key="index" :state />
     </div>

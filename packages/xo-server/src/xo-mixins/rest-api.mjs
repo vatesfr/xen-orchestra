@@ -335,7 +335,12 @@ async function _getDashboardStats(app) {
             skippedJobs++
           }
 
-          backupJobIssues.push({ uuid: job.id, logs: jobLogs.map(log => log.status) })
+          backupJobIssues.push({
+            logs: jobLogs.map(log => log.status),
+            name: job.name,
+            type: job.type,
+            uuid: job.id,
+          })
 
           break
         }
@@ -442,12 +447,14 @@ export default class RestApi {
         'host',
         'message',
         'network',
+        'PIF',
         'pool',
         'SR',
         'VBD',
         'VDI-snapshot',
         'VDI',
         'VIF',
+        'VM-controller',
         'VM-snapshot',
         'VM-template',
         'VM',

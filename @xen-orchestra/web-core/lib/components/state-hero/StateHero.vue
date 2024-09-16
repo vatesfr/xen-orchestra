@@ -17,7 +17,7 @@ export type StateHeroType = 'page' | 'card'
 const props = defineProps<{
   type: StateHeroType
   busy?: boolean
-  image?: 'no-result' | 'under-construction' // TODO: 'offline' | 'no-data' |  'not-found' | 'all-good' | 'all-done' | 'error'
+  image?: 'no-result' | 'under-construction' | 'no-data' // TODO: 'offline' |  'not-found' | 'all-good' | 'all-done' | 'error'
 }>()
 
 const typoClass = computed(() => (props.type === 'page' ? 'h2-black' : 'h4-medium'))
@@ -35,12 +35,14 @@ const imageSrc = computed(() => {
 .state-hero {
   &.page {
     --image-width: 90%;
+    --image-max-height: none;
     --spinner-size: 10rem;
     --gap: 8.2rem;
   }
 
   &.card {
     --image-width: 70%;
+    --image-max-height: 20rem;
     --spinner-size: 6rem;
     --gap: 2rem;
   }
@@ -58,6 +60,7 @@ const imageSrc = computed(() => {
 .image {
   width: var(--image-width);
   max-width: 55rem;
+  max-height: var(--image-max-height);
 }
 
 .spinner {

@@ -47,6 +47,7 @@
   "master": "Primary host",
   "n-vms": "1 VM | {n} VMs",
   "network": "Network",
+  "no-data": "No data",
   "object-not-found": "Object {id} can't be found…",
   "patches": "Patches",
   "power-on-for-console": "Power on your VM to access its console",

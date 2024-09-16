@@ -33,7 +33,7 @@ export type XoSingleRecordType = keyof XoSingleRecordMapping
 export type XoSingleRecord = XoSingleRecordMapping[XoSingleRecordType]
 
 export type XoSingleRecordContext<TRecord extends XoSingleRecord> = {
-  record: ComputedRef<TRecord>
+  record: ComputedRef<TRecord | undefined>
   isFetching: Readonly<Ref<boolean>>
   isReady: Readonly<Ref<boolean>>
   lastError: Readonly<Ref<string | undefined>>

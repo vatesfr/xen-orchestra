@@ -552,11 +552,39 @@ ${monitorBodies.join('\n')}`
                   })
                 }
 
-                result.listItem = `  * ${result.objectLink}: ${
-                  result.value === undefined
-                    ? "**Can't read performance counters**"
-                    : result.value.toFixed(1) + typeFunction.unit
-                }\n`
+                const isManagementAgentDetected = (vm, guestMetrics) => {
+                  if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+                    return
+                  }
+
+                  const { major, minor } = guestMetrics.PV_drivers_version
+                  const hasPvVersion = major !== undefined && minor !== undefined
+                  return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+                }
+
+                const getListItem = () => {
+                  if (result.value == null) {
+                    return "**Can't read performance counters**"
+                  }
+
+                  // VM RAM usage is reported by the VM itself through guest tools. If guest tools are not installed, ignore RAM usage stats
+                  if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+                    const vm = result.object
+                    const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
+                    const managementAgentDetected = isManagementAgentDetected(vm, guestMetrics)
+
+                    if (managementAgentDetected === undefined) {
+                      return "**Can't read performance counters**"
+                    }
+                    if (managementAgentDetected === false) {
+                      return '**Guest tools must be installed**'
+                    }
+                  }
+
+                  return result.value.toFixed(1) + typeFunction.unit
+                }
+
+                result.listItem = `  * ${result.objectLink}: ${getListItem()}\n`
 
                 return result
               } catch (error) {

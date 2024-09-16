@@ -343,7 +343,7 @@ class SDNController extends EventEmitter {
 
     await Promise.all(
       map(this._xo.getAllXapis(), async xapi => {
-        if (xapi.status === 'connected') {
+        if (xapi.status === 'connected' && !xapi.readOnly) {
           await this._installCaCertificateIfNeeded(xapi)
         }
       })
