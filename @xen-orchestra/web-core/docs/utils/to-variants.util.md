@@ -2,48 +2,16 @@
 
 This utility is used to convert a set of props into a list of CSS variants classes.
 
-- No class will be added for _falsy_ values
-- `<key>` class will be added for a value which is explicitly `true`
+- `<key>--0` class will be added for `false` values
+- `<key>--1` class will be added for `true` values
+- No class will be added for other _falsy_ values
 - `<key>--<value>` class will be added for other values
 
 For example :
 
 ```ts
 defineProps<{
-  color: 'blue' | 'red'
-  size: 'small' | 'large'
-  disabled?: boolean
-}>()
-
-const variants = computed(() => toVariants(props))
-```
-
-If `color` is `'blue'` and `size` is `'small'`, then `variants` will be `['color--blue', 'size--small']`.
-
-Additionally, if `disabled` is `true`, `variants` will be `['color--blue', 'size--small', 'disabled']`.
-
-## Select a subset of props
-
-All your props are not necessarily variants.
-
-In this case, you can specify which props you want to convert to class, thanks to the second argument:
-
-```ts
-defineProps<{
   label: string
-  color: 'blue' | 'red'
-  size: 'small' | 'large'
-}>()
-
-const variants = computed(() => toVariants(props, ['color', 'size']))
-```
-
-## Custom variant
-
-If you want to use a custom variant, you can pass a custom value as the first argument:
-
-```ts
-defineProps<{
   color: 'blue' | 'red'
   size: 'small' | 'large'
   disabled?: boolean
@@ -53,9 +21,33 @@ const variants = computed(() =>
   toVariants({
     color: props.color,
     size: props.size,
-    state: props.disabled ? 'off' : 'on',
+    disabled: props.disabled,
   })
 )
 ```
 
-`variants` will be `['color--blue', 'size--small', 'state--on']` or `['color--blue', 'size--small', 'state--off']`.
+If `color` is `'blue'`, `size` is `'small'`, and `disabled` is `false`,
+then `variants` will be `['color--blue', 'size--small', 'disabled--0']`.
+
+> [!TIP]
+> You can obviously define your own variants, based or not on props.
+
+```ts
+defineProps<{
+  color: 'blue' | 'red'
+  size: 'small' | 'large'
+}>()
+
+const isDisabled = inject(IK_DISABLED, ref(false))
+
+const variants = computed(() =>
+  toVariants({
+    color: props.color,
+    size: props.size,
+    state: isDisabled.value ? 'off' : 'on',
+  })
+)
+```
+
+Then if `isDisabled` is `true`, then `variants` will be `['color--blue', 'size--small', 'state--off']`,
+else it will be `['color--blue', 'size--small', 'state--on']`.

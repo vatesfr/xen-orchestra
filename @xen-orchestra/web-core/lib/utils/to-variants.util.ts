@@ -1,20 +1,17 @@
-import type { StringKeyOf } from '@core/types/utility.type'
+export function toVariants(variants: object): string[] {
+  return Object.entries(variants).flatMap(([key, value]) => {
+    if (value === true) {
+      return `${key}--1`
+    }
 
-export function toVariants<TProps extends object>(
-  props: TProps,
-  keys: StringKeyOf<TProps>[] = Object.keys(props) as StringKeyOf<TProps>[]
-): string[] {
-  return keys.flatMap(key => {
-    const value = props[key]
+    if (value === false) {
+      return `${key}--0`
+    }
 
     if (!value) {
       return []
     }
 
-    if (value === true) {
-      return key
-    }
-
-    return `${key}--${props[key]}`
+    return `${key}--${value}`
   })
 }
