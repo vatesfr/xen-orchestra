@@ -350,7 +350,7 @@ const New = decorate([
           snapshotMode: state.snapshotMode,
         }).toObject()
 
-        if (normalizedSettings[''].maxExportRate <= 0) {
+        if (normalizedSettings['']?.maxExportRate <= 0) {
           normalizedSettings[''].maxExportRate = undefined
         }
 
