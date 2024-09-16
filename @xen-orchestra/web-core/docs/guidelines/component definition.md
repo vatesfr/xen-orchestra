@@ -4,14 +4,37 @@ Lexicon:
 
 - DS: Design System
 - SFC: Single-File Component
-- Component: A component defined in the Design System (DS)
-- Subcomponent: A component that is part of a Component
+- Component: A Vue component (being defined in the DS or not)
+- DS Component: A component specifically defined in the Design System (DS)
+- Subcomponent: A component that is part of a Component or a DS Component
 
 ## Components and Subcomponents MUST be defined as Vue SFC (Single-File Component)
 
-## Components SHOULD be named according to their name in the DS (Design System)
+## DS Components MUST be stored in their own directory.
 
-## Components SHOULD be kept short and be split into multiple subcomponents if necessary, stored in the same directory
+Directory name MUST be in kebab-case (e.g. `my-component`)
+
+Component name MUST be in PascalCase (e.g. `MyComponent.vue`)
+
+❌ Bad
+
+`components/Square.vue`
+
+✅ Good
+
+`components/square/Square.vue`
+
+## Components SHOULD be kept short and be split into multiple subcomponents if necessary, stored in the same directory as the main component.
+
+❌ Bad
+
+```
+/components/
+  /square/
+    /Square.vue
+  /square-icon/
+    /SquareIcon.vue <- This component is not part of the DS and will be used only in Square.vue
+```
 
 ✅ Good
 
@@ -22,20 +45,22 @@ Lexicon:
     /SquareIcon.vue
 ```
 
-## Components from DS MUST start with an HTML comment containing the implemented version
+> [!WARNING]
+> If you think that a subcomponent is likely to be reused in other components,
+> ask the DS team to define it in the DS.
+>
+> It will be then moved in its own directory, following the DS guidelines.
 
-In the form `v<x>.<y>` (`z` is reserved to DS versioning)
+## DS Components MUST start with an HTML comment containing the implemented version
+
+In the form `v1`, `v2`, etc.
+
+> [!TIP]
+> The DS team can use a minor version to indicate a change in the DS that does not affect the component style.
+>
+> It must not be added to the Vue component version.
 
 ❌ Bad
-
-```vue
-<!-- v1.2.0 -->
-<template>
-  <!-- code -->
-</template>
-```
-
-✅ Good
 
 ```vue
 <!-- v1.2 -->
@@ -44,19 +69,18 @@ In the form `v<x>.<y>` (`z` is reserved to DS versioning)
 </template>
 ```
 
+✅ Good
+
+```vue
+<!-- v1 -->
+<template>
+  <!-- code -->
+</template>
+```
+
 ## Subcomponents MUST NOT have a version number
 
 If a component from the DS is split into multiple subcomponents, only the main component will have a version number
-
-## Components MUST be stored in their own directory
-
-❌ Bad
-
-`components/Square.vue`
-
-✅ Good
-
-`components/square/Square.vue`
 
 ## Component tags MUST follow `template`, `script` then `style` order, separated with an empty line
 
@@ -106,7 +130,9 @@ If no style is applied to the root element, the class name will be omitted
 <template>
   <div class="vts-square">
     <Icon :icon="faSmile" class="square-icon" />
-    <div class="component-label"><slot /></div>
+    <div class="component-label">
+      <slot />
+    </div>
   </div>
 </template>
 ```
@@ -117,14 +143,16 @@ If no style is applied to the root element, the class name will be omitted
 <template>
   <div class="vts-square">
     <Icon :icon="faSmile" class="icon" />
-    <div class="label"><slot /></div>
+    <div class="label">
+      <slot />
+    </div>
   </div>
 </template>
 ```
 
 ## Component MUST use `<style scoped>`
 
-## Component SHOULD NOT use nested CSS, unless necessary
+## Component CSS must be contained under the root CSS classname
 
 With meaningful class names + scoped styles, in most cases it will not be necessary to use nested CSS
 
@@ -132,7 +160,21 @@ With meaningful class names + scoped styles, in most cases it will not be necess
 
 ```vue
 <style scoped>
-.my-component {
+.vts-square {
+  /* styles... */
+}
+
+.icon {
+  /* styles... */
+}
+</style>
+```
+
+✅ Good
+
+```vue
+<style scoped>
+.vts-square {
   /* styles... */
 
   .icon {
@@ -142,19 +184,9 @@ With meaningful class names + scoped styles, in most cases it will not be necess
 </style>
 ```
 
-✅ Good
-
-```vue
-<style scoped>
-.my-component {
-  /* styles... */
-}
-
-.icon {
-  /* styles... */
-}
-</style>
-```
+> [!TIP]
+> See also [Component variants guidelines](./component%20variants.md)
+> to learn how to handle different component styles based on its props or states.
 
 ## Optional slots container SHOULD use `v-if="$slots.<slotName>"`
 
@@ -232,4 +264,5 @@ defineSlots<{
 ## Component SHOULD have a Story
 
 > [!TIP]
-> For now, stories are stored in `@xen-orchestra/lite/src/stories` and can only be written for XO Lite and XO Core components.
+> For now, stories are stored in
+> `@xen-orchestra/lite/src/stories` and can only be written for XO Lite and XO Core components.
