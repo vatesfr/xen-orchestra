@@ -2,15 +2,14 @@
 
 This utility is used to convert a set of props into a list of CSS variants classes.
 
-- `<key>--0` class will be added for `false` values
-- `<key>--1` class will be added for `true` values
 - No class will be added for other _falsy_ values
+- `<key>` class will be added for `true` values
 - `<key>--<value>` class will be added for other values
 
-For example :
+## Basic usage
 
 ```ts
-defineProps<{
+const props = defineProps<{
   label: string
   color: 'blue' | 'red'
   size: 'small' | 'large'
@@ -27,27 +26,34 @@ const variants = computed(() =>
 ```
 
 If `color` is `'blue'`, `size` is `'small'`, and `disabled` is `false`,
-then `variants` will be `['color--blue', 'size--small', 'disabled--0']`.
+then `variants` will be `['color--blue', 'size--small']`.
 
-> [!TIP]
-> You can obviously define your own variants, based or not on props.
+## Advanced usage
+
+Variants don't have to be based on props, you can define them the way you want.
+
+Thanks to the way Vue works, they can also be mixed with other classes.
 
 ```ts
-defineProps<{
+const props = defineProps<{
+  label: string
   color: 'blue' | 'red'
   size: 'small' | 'large'
 }>()
 
-const isDisabled = inject(IK_DISABLED, ref(false))
+const isDisabled = inject('isParentDisabled', ref(false))
 
-const variants = computed(() =>
+const classes = computed(() => [
+  'vts-my-component',
+  'typo',
+  props.size === 'small' ? 'p3-regular' : 'p2-medium',
+  { disabled: isDisabled.value },
   toVariants({
     color: props.color,
-    size: props.size,
+    size: props.size.slice(0, 1),
     state: isDisabled.value ? 'off' : 'on',
-  })
-)
+  }),
+])
 ```
 
-Then if `isDisabled` is `true`, then `variants` will be `['color--blue', 'size--small', 'state--off']`,
-else it will be `['color--blue', 'size--small', 'state--on']`.
+`classes` applied to the component will then look like `vts-my-component typo p3-regular disabled color-blue size-s state-off`

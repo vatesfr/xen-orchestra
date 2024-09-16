@@ -14,7 +14,9 @@ Lexicon:
 
 ## Directory name MUST be in kebab-case (e.g. `my-component`)
 
-## Component name MUST be in PascalCase and start with `Vts` (e.g. `VtsMyComponent.vue`)
+## Component name MUST be in PascalCase
+
+## DS Component/Subcomponent name MUST start with `Vts` (e.g. `VtsMyComponent.vue`)
 
 ❌ Bad
 
@@ -150,7 +152,7 @@ If no style is applied to the root element, the class name will be omitted
 </template>
 ```
 
-## Component MUST use `<style scoped>`
+## Component MUST use `<style lang="postcss" scoped>`
 
 ## Component CSS must be contained under the root CSS classname
 
