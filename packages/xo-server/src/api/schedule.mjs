@@ -1,5 +1,7 @@
 // FIXME so far, no acls for schedules
 
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
+
 export async function getAll() {
   return /* await */ this.getAllSchedules()
 }
@@ -65,17 +67,25 @@ delete_.params = {
 
 export { delete_ as delete }
 
-
-export async function runSequence({idSchedules}){
-
-  for(const idSchedule of idSchedules){
-    const schedule = await this.getSchedule(idSchedule)
-    const job = await this.getJob(schedule.jobId)
-    await this.runJob(job,schedule)
-  }
+export async function runSequence({ idSchedules }) {
+  const t = new Task({ properties: { type: 'xo:schedule:sequence', name: 'Schedule sequence' } })
+  await t.run(async () => {
+    const nb = idSchedules.length
+    const signal = Task.abortSignal
+    for (let i = 0; i < nb; i++) {
+      if (signal.aborted) {
+        throw new Error(signal.reason)
+      }
+      Task.set('progress', Math.round((i * 100) / nb))
+      const idSchedule = idSchedules[i]
+      const schedule = await this.getSchedule(idSchedule)
+      const job = await this.getJob(schedule.jobId)
+      await this.runJob(job, schedule)
+    }
+  })
 }
 runSequence.permission = 'admin'
 runSequence.description = 'Run a sequence of schedule, one after the other'
 runSequence.params = {
-  idSchedules: { type: 'array', items: { type: 'string'} },
+  idSchedules: { type: 'array', items: { type: 'string' } },
 }
