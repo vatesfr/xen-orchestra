@@ -2,7 +2,7 @@
 <template>
   <div class="legend-title typo c3-semi-bold">
     <slot />
-    <UiIcon v-tooltip="iconTooltip ?? false" :icon color="info" />
+    <UiIcon v-tooltip="iconTooltip ?? false" :icon color="normal" />
   </div>
 </template>
 

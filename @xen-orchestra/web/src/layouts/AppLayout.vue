@@ -6,7 +6,15 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiButton :right-icon="faArrowUpRightFromSquare" level="tertiary" @click="openUrl('/', true)">XO 5</UiButton>
+      <UiButton
+        size="medium"
+        color="normal"
+        :right-icon="faArrowUpRightFromSquare"
+        level="tertiary"
+        @click="openUrl('/', true)"
+      >
+        XO 5
+      </UiButton>
       <QuickTaskButton />
       <AccountMenu />
     </template>

@@ -3,7 +3,9 @@
     <img alt="" src="../assets/page-not-found.svg" />
     <p class="numeric">404</p>
     <p class="text">{{ $t('page-not-found') }}</p>
-    <UiButton @click="router.push({ name: 'home' })">{{ $t('back-pool-dashboard') }}</UiButton>
+    <UiButton size="medium" color="normal" level="primary" @click="router.push({ name: 'home' })">
+      {{ $t('back-pool-dashboard') }}
+    </UiButton>
   </div>
 </template>
 
@@ -26,9 +28,11 @@ div {
   align-items: center;
   justify-content: center;
 }
+
 img {
   width: 30%;
 }
+
 .numeric {
   color: var(--color-normal-txt-base);
   font-size: 96px;

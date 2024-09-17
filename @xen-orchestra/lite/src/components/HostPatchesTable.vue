@@ -19,7 +19,7 @@
           }"
           :value="patch.$hostRefs.size"
           class="counter"
-          color="error"
+          color="danger"
         />
       </td>
     </tr>

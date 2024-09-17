@@ -53,10 +53,10 @@ const inactive = computed(() => props.total - props.active)
   width: 1.3rem;
   height: 1.3rem;
   border-radius: 0.65rem;
-  background-color: var(--color-success-txt-base);
+  background-color: var(--color-success-item-base);
 
   &.inactive {
-    background-color: var(--color-neutral-border);
+    background-color: var(--color-neutral-background-disabled);
   }
 }
 

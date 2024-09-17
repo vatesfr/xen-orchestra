@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <MenuList :disabled placement="bottom-start" shadow>
+  <MenuList :disabled placement="bottom-start" border>
     <template #trigger="{ open, isOpen }">
       <th
         :class="{ interactive, disabled, focus: isOpen }"
@@ -9,10 +9,10 @@
       >
         <div class="content">
           <span class="label">
-            <UiIcon :icon />
+            <UiIcon :icon color="current" />
             <slot />
           </span>
-          <UiIcon :icon="currentInteraction?.icon" />
+          <UiIcon :icon="currentInteraction?.icon" color="current" />
         </div>
       </th>
     </template>
@@ -23,7 +23,8 @@
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >
-      <UiIcon :icon="interaction.icon" />{{ interaction.label }}
+      <UiIcon :icon="interaction.icon" color="current" />
+      {{ interaction.label }}
       <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo p3-regular-italic">
         {{ $t('core.current').toLowerCase() }}
       </i>
@@ -114,14 +115,16 @@ const updateInteraction = (interaction: Interaction) => {
 
   &.disabled {
     --color: var(--color-neutral-txt-secondary);
-    --background-color: var(--color-neutral-background-secondary);
+    --background-color: var(--color-neutral-background-disabled);
   }
 }
+
 /* IMPLEMENTATION */
 .column-header.interactive {
   cursor: pointer;
   color: var(--color);
   background-color: var(--background-color);
+
   &.disabled {
     cursor: not-allowed;
   }

@@ -1,7 +1,7 @@
 <!-- v1.0 -->
 <template>
   <button :class="[color, size, { disabled, active }]" :disabled class="button-icon" type="button">
-    <UiIcon :icon class="icon" />
+    <UiIcon :icon color="current" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
@@ -22,7 +22,7 @@ const props = withDefaults(
     dot?: boolean
     targetScale?: number | { x: number; y: number }
   }>(),
-  { color: 'info', size: 'medium', targetScale: 1 }
+  { color: 'normal', size: 'medium', targetScale: 1 }
 )
 
 const cssTargetScale = computed(() => {
@@ -37,7 +37,7 @@ const cssTargetScale = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .button-icon {
-  &.info {
+  &.normal {
     & {
       --color: var(--color-normal-txt-base);
       --background-color: transparent;
@@ -88,7 +88,7 @@ const cssTargetScale = computed(() => {
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-success-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: transparent;
     }
   }
@@ -116,7 +116,7 @@ const cssTargetScale = computed(() => {
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-warning-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: transparent;
     }
   }
@@ -144,7 +144,7 @@ const cssTargetScale = computed(() => {
     }
 
     &:is(:disabled, .disabled) {
-      --color: var(--color-danger-item-disabled);
+      --color: var(--color-neutral-txt-secondary);
       --background-color: transparent;
     }
   }

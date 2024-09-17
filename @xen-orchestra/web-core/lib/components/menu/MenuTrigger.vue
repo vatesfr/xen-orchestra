@@ -1,7 +1,7 @@
 <!-- v1.0 -->
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
-    <UiIcon :busy="busy" :icon="icon" />
+    <UiIcon :busy :icon color="current" />
     <slot />
   </div>
 </template>
@@ -30,10 +30,10 @@ defineProps<{
   white-space: nowrap;
   border-radius: 0.8rem;
   gap: 1rem;
-  background-color: var(--color-normal-txt-item);
+  background-color: var(--color-neutral-background-primary);
 
   &.disabled {
-    color: var(--color-neutral-border);
+    color: var(--color-neutral-txt-secondary);
   }
 
   &:not(.disabled) {

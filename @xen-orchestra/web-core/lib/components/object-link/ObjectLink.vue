@@ -3,7 +3,7 @@
   <RouterLink v-if="route && !disabled" :to="route" class="object-link is-link typo p3-medium">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon />
+        <UiIcon :icon color="current" />
       </slot>
     </span>
     <span v-tooltip class="content text-ellipsis">
@@ -13,7 +13,7 @@
   <span v-else :class="{ disabled }" class="object-link typo p3-medium">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon />
+        <UiIcon :icon color="current" />
       </slot>
     </span>
     <slot />

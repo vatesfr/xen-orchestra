@@ -1,9 +1,15 @@
 <!-- WIP -->
 <template>
   <div class="ui-input">
-    <UiIcon :icon class="before" />
+    <UiIcon :icon color="current" class="before" />
     <input :id v-model.trim="modelValue" class="typo p1-regular input" type="search" v-bind="$attrs" />
-    <UiIcon v-if="!$attrs.disabled && modelValue" :icon="faXmark" class="after" color="info" @click="modelValue = ''" />
+    <UiIcon
+      v-if="!$attrs.disabled && modelValue"
+      :icon="faXmark"
+      class="after"
+      color="normal"
+      @click="modelValue = ''"
+    />
   </div>
 </template>
 
@@ -36,23 +42,23 @@ const id = computed(() => uniqueId('input-'))
   }
 
   &:is(:hover, :focus-visible) {
-    --border-color: var(--color-normal-txt-hover);
+    --border-color: var(--color-normal-item-hover);
     --background-color: var(--color-neutral-background-primary);
   }
 
   &:focus {
-    --border-color: var(--color-normal-txt-base);
+    --border-color: var(--color-normal-item-base);
     --background-color: var(--color-neutral-background-primary);
   }
 
   &:active {
-    --border-color: var(--color-normal-txt-active);
+    --border-color: var(--color-normal-item-active);
     --background-color: var(--color-neutral-background-primary);
   }
 
   &:disabled {
     --border-color: var(--color-neutral-border);
-    --background-color: var(--color-neutral-background-secondary);
+    --background-color: var(--color-neutral-background-disabled);
   }
 }
 

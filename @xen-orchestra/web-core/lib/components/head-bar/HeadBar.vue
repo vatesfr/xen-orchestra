@@ -4,7 +4,7 @@
     <div class="label-wrapper">
       <span v-if="slots.icon || icon" class="icon">
         <slot name="icon">
-          <UiIcon :icon />
+          <UiIcon :icon color="current" />
         </slot>
       </span>
       <h4 v-tooltip class="typo h4-medium label text-ellipsis">

@@ -13,7 +13,7 @@
       cy="50"
       r="40"
     />
-    <UiIcon :icon height="24" width="24" x="38" y="38" />
+    <UiIcon :icon color="current" height="24" width="24" x="38" y="38" />
   </svg>
 </template>
 
@@ -70,7 +70,7 @@ const computedSegments = computed(() => {
   --stroke-color: var(--color-neutral-txt-primary);
 
   &.primary {
-    --stroke-color: var(--color-normal-txt-base);
+    --stroke-color: var(--color-normal-item-base);
   }
 
   &.secondary {
@@ -78,19 +78,19 @@ const computedSegments = computed(() => {
   }
 
   &.success {
-    --stroke-color: var(--color-success-txt-base);
+    --stroke-color: var(--color-success-item-base);
   }
 
   &.warning {
-    --stroke-color: var(--color-warning-txt-base);
+    --stroke-color: var(--color-warning-item-base);
   }
 
   &.danger {
-    --stroke-color: var(--color-danger-txt-base);
+    --stroke-color: var(--color-danger-item-base);
   }
 
   &.disabled {
-    --stroke-color: var(--color-neutral-txt-secondary);
+    --stroke-color: var(--color-neutral-background-disabled);
   }
 }
 </style>

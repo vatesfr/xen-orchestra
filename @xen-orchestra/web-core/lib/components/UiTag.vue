@@ -2,7 +2,7 @@
 <template>
   <span :class="[color, { light }]" class="ui-tag typo p3-regular">
     <slot name="icon">
-      <UiIcon :icon fixed-width />
+      <UiIcon :icon color="current" fixed-width />
     </slot>
     <span class="text-ellipsis"><slot /></span>
   </span>
@@ -13,65 +13,73 @@ import UiIcon from '@core/components/icon/UiIcon.vue'
 import type { TagColor } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
-withDefaults(
-  defineProps<{
-    color?: TagColor
-    light?: boolean
-    icon?: IconDefinition
-  }>(),
-  { color: 'grey' }
-)
+defineProps<{
+  color: TagColor
+  light?: boolean
+  icon?: IconDefinition
+}>()
 </script>
 
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-tag {
-  --color: var(--color-normal-txt-item);
-
-  &.light {
-    --color: var(--color-neutral-txt-primary);
-  }
-}
-
-/* BACKGROUND COLOR VARIANTS */
-.ui-tag {
-  &.grey {
-    --background-color: var(--color-neutral-txt-secondary);
-
-    &.light {
-      --background-color: var(--color-neutral-background-secondary);
-    }
-  }
-
-  &.info {
-    --background-color: var(--color-normal-item-hover);
+  &.primary {
+    --background-color: var(--color-normal-item-base);
+    --color: var(--color-normal-txt-item);
 
     &.light {
       --background-color: var(--color-normal-background-selected);
+      --color: var(--color-normal-txt-base);
+    }
+  }
+
+  &.secondary {
+    --background-color: var(--color-neutral-txt-primary);
+    --color: var(--color-neutral-background-primary);
+
+    &.light {
+      --background-color: var(--color-neutral-background-secondary);
+      --color: var(--color-neutral-txt-primary);
     }
   }
 
   &.success {
-    --background-color: var(--color-success-item-hover);
+    --background-color: var(--color-success-item-base);
+    --color: var(--color-success-txt-item);
 
     &.light {
       --background-color: var(--color-success-background-selected);
+      --color: var(--color-success-txt-base);
     }
   }
 
   &.warning {
-    --background-color: var(--color-warning-item-hover);
+    --background-color: var(--color-warning-item-base);
+    --color: var(--color-warning-txt-item);
 
     &.light {
       --background-color: var(--color-warning-background-selected);
+      --color: var(--color-warning-txt-base);
     }
   }
 
-  &:is(.error, .danger) {
-    --background-color: var(--color-danger-item-hover);
+  &.danger {
+    --background-color: var(--color-danger-item-base);
+    --color: var(--color-danger-txt-item);
 
     &.light {
       --background-color: var(--color-danger-background-selected);
+      --color: var(--color-danger-txt-base);
+    }
+  }
+
+  &.disabled {
+    --background-color: var(--color-neutral-background-disabled);
+    --color: var(--color-neutral-txt-secondary);
+
+    &.light {
+      --background-color: var(--color-neutral-background-secondary);
+      --color: var(--color-neutral-txt-secondary);
     }
   }
 }

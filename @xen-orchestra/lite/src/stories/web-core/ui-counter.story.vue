@@ -3,7 +3,12 @@
     v-slot="{ properties }"
     :params="[
       prop('value').type(`'number' | 'string'`).str().required().preset(2).widget(),
-      prop('color').type('CounterColor').enum('info', 'success', 'warning', 'error', 'danger', 'black').widget(),
+      prop('color')
+        .type('CounterColor')
+        .required()
+        .enum('primary', 'secondary', 'success', 'warning', 'danger', 'disabled')
+        .preset('primary')
+        .widget(),
       prop('size').type('CounterSize').enum('small', 'medium').widget(),
     ]"
   >

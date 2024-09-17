@@ -41,7 +41,7 @@ withDefaults(
     transform: translate(100%, 80%);
 
     :deep(path) {
-      stroke: var(--color-normal-txt-item);
+      stroke: var(--color-neutral-background-primary);
       stroke-width: 100px;
       stroke-linejoin: round;
       paint-order: stroke;

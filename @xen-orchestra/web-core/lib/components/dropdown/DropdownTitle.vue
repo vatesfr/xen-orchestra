@@ -4,7 +4,7 @@
  -->
 <template>
   <div class="dropdown-title">
-    <UiIcon :icon />
+    <UiIcon :icon color="current" />
     <div class="label c3 semi-bold">
       <slot />
     </div>

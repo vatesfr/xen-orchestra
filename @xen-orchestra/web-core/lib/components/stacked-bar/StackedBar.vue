@@ -38,6 +38,6 @@ const max = computed(() => Math.max(props.maxValue ?? 0, totalValue.value))
   height: 4rem;
   border-radius: 0.8rem;
   overflow: hidden;
-  background-color: var(--color-normal-background-selected);
+  background-color: var(--color-neutral-background-disabled);
 }
 </style>

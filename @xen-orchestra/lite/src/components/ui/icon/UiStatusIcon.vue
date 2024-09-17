@@ -30,16 +30,19 @@ const icon = computed(() => {
   color: var(--icon-color);
 
   &.error {
-    --icon-color: var(--color-danger-txt-base);
+    --icon-color: var(--color-danger-item-base);
   }
+
   &.warning {
-    --icon-color: var(--color-warning-txt-base);
+    --icon-color: var(--color-warning-item-base);
   }
+
   &.info {
-    --icon-color: var(--color-normal-txt-base);
+    --icon-color: var(--color-normal-item-base);
   }
+
   &.success {
-    --icon-color: var(--color-success-txt-base);
+    --icon-color: var(--color-success-item-base);
   }
 }
 </style>

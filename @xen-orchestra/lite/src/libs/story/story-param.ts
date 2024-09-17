@@ -418,7 +418,7 @@ export const isSlotParam = (param: any): param is SlotParam => param instanceof 
 export const isModelParam = (param: any): param is ModelParam => param instanceof ModelParam
 
 export const colorProp = (name = 'color') =>
-  prop(name).type('Color').enum('info', 'success', 'warning', 'error').default('info').widget()
+  prop(name).type('Color').enum('normal', 'success', 'warning', 'danger').default('normal').widget()
 
 export const iconProp = (name = 'icon') =>
   prop(name)

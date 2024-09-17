@@ -6,7 +6,7 @@
     type="button"
   >
     <UserLogo class="logo" size="medium" />
-    <UiIcon :icon="faAngleDown" class="icon" color="info" />
+    <UiIcon :icon="faAngleDown" class="icon" color="normal" />
   </button>
 </template>
 

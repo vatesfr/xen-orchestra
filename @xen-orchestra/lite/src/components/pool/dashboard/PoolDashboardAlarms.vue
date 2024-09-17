@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ $t('alarms') }}
       <template v-if="isReady && alarms.length > 0" #right>
-        <UiCounter :value="alarms.length" color="error" />
+        <UiCounter :value="alarms.length" color="danger" />
       </template>
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">
@@ -11,7 +11,7 @@
         <p class="text typo h4-medium">
           {{ $t('click-to-display-alarms') }}
         </p>
-        <UiButton @click="start">{{ $t('load-now') }}</UiButton>
+        <UiButton size="medium" color="normal" level="primary" @click="start">{{ $t('load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />
