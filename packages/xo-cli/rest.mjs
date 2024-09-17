@@ -112,30 +112,27 @@ const COMMANDS = {
 
     return await response.text()
   },
+}
 
-  async post([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'POST',
-    })
-
-    return stripPrefix(await response.text())
-  },
-
-  async put([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'PUT',
-    })
+for (const method of ['post', 'put']) {
+  COMMANDS[method] = async function ([path, ...params]) {
+    const response = await this.exec(
+      path,
+      params.length !== 0
+        ? {
+            body: JSON.stringify(parseParams(params)),
+            headers: { 'content-type': 'application/json' },
+            method,
+          }
+        : {
+            body: process.stdin,
+            headers: { 'content-type': 'application/octet-stream' },
+            method,
+          }
+    )
 
     return stripPrefix(await response.text())
-  },
+  }
 }
 
 export async function rest(args) {
