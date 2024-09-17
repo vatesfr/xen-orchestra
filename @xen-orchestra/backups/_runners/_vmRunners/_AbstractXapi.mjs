@@ -293,7 +293,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           await this._xapi.VDI_dataDestroy(vdiRef)
           Task.info(`Snapshot data has been deleted`, { vdiRef })
         } catch (error) {
-          Task.warning(`Couldn't deleted snapshot data`, { error, vdiRef })
+          Task.warning(`Couldn't delete snapshot data`, { error, vdiRef })
         }
       }
     }
