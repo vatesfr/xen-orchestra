@@ -54,8 +54,8 @@ const ui = useUiStore()
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--background-color-secondary);
-  border-right: 0.1rem solid var(--color-grey-500);
+  background-color: var(--color-neutral-background-secondary);
+  border-right: 0.1rem solid var(--color-neutral-border);
   width: v-bind('sidebar.cssWidth');
   z-index: 1001;
   transition:
@@ -93,7 +93,7 @@ const ui = useUiStore()
 
   &:hover,
   &.active {
-    background-color: var(--color-grey-500);
+    background-color: var(--color-neutral-border);
     transition: background-color 0.05s;
   }
 }

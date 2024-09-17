@@ -24,7 +24,7 @@ import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 
 <style lang="postcss" scoped>
 .contact {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 
   & a {
     text-transform: lowercase;

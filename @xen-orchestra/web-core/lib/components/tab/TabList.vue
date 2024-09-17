@@ -24,8 +24,8 @@ useContext(DisabledContext, () => props.disabled)
   display: flex;
   align-items: stretch;
   height: 5rem;
-  border-bottom: 1px solid var(--color-grey-500);
-  background-color: var(--background-color-primary);
+  border-bottom: 1px solid var(--color-neutral-border);
+  background-color: var(--color-neutral-background-primary);
   max-width: 100%;
   overflow: auto;
   flex-shrink: 0;

@@ -44,7 +44,7 @@ const emit = defineEmits<{
   padding: 0.4rem 1.6rem;
   gap: 0.8rem;
   height: 2.6rem;
-  background: var(--background-color-secondary);
+  background: var(--color-neutral-background-secondary);
 }
 
 .buttons {
@@ -55,14 +55,14 @@ const emit = defineEmits<{
   span {
     cursor: pointer;
     text-decoration: underline;
-    color: var(--color-purple-base);
+    color: var(--color-normal-txt-base);
 
     &:hover {
-      color: var(--color-purple-l20);
+      color: var(--color-normal-item-hover);
     }
 
     &:active {
-      color: var(--color-purple-l40);
+      color: var(--color-normal-item-active);
     }
   }
 }

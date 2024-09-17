@@ -24,24 +24,24 @@ defineProps<{
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .user-link {
-  --color: var(--color-purple-base);
-  --border-color: var(--color-purple-base);
+  --color: var(--color-normal-txt-base);
+  --border-color: var(--color-normal-txt-base);
 
   &.is-link {
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-purple-d20);
-      --border-color: var(--color-purple-d20);
+      --color: var(--color-normal-txt-hover);
+      --border-color: var(--color-normal-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-purple-d40);
-      --border-color: var(--color-purple-d40);
+      --color: var(--color-normal-txt-active);
+      --border-color: var(--color-normal-txt-active);
     }
   }
 
   &.disabled {
-    --color: var(--color-grey-400);
-    --border-color: var(--color-grey-400);
+    --color: var(--color-neutral-txt-secondary);
+    --border-color: var(--color-neutral-txt-secondary);
   }
 }
 

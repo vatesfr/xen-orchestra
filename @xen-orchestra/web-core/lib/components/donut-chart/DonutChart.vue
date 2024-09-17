@@ -67,30 +67,30 @@ const computedSegments = computed(() => {
   stroke: var(--stroke-color);
   stroke-width: 10;
   fill: transparent;
-  --stroke-color: var(--color-grey-100);
+  --stroke-color: var(--color-neutral-txt-primary);
 
   &.primary {
-    --stroke-color: var(--color-purple-base);
+    --stroke-color: var(--color-normal-txt-base);
   }
 
   &.secondary {
-    --stroke-color: var(--color-grey-100);
+    --stroke-color: var(--color-neutral-txt-primary);
   }
 
   &.success {
-    --stroke-color: var(--color-green-base);
+    --stroke-color: var(--color-success-txt-base);
   }
 
   &.warning {
-    --stroke-color: var(--color-orange-base);
+    --stroke-color: var(--color-warning-txt-base);
   }
 
   &.danger {
-    --stroke-color: var(--color-red-base);
+    --stroke-color: var(--color-danger-txt-base);
   }
 
   &.disabled {
-    --stroke-color: var(--color-grey-400);
+    --stroke-color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

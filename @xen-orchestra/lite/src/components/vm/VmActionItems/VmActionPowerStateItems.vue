@@ -134,6 +134,6 @@ const getHostState = (host: XenApiHost) => (isHostRunning(host) ? VM_POWER_STATE
 
 .star {
   margin: 0 1rem;
-  color: var(--color-orange-base);
+  color: var(--color-warning-txt-base);
 }
 </style>

@@ -33,13 +33,13 @@ const emit = defineEmits<{
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .ui-chip {
-  --color: var(--color-grey-100);
+  --color: var(--color-neutral-txt-primary);
 
   &.disabled {
-    --color: var(--color-grey-600);
+    --color: var(--color-normal-txt-item);
 
     &.info {
-      --color: var(--color-grey-300);
+      --color: var(--color-neutral-txt-secondary);
     }
   }
 }
@@ -47,66 +47,66 @@ const emit = defineEmits<{
 /* BACKGROUND COLOR VARIANTS */
 .ui-chip {
   &.info {
-    --background-color: var(--background-color-purple-10);
+    --background-color: var(--color-normal-background-selected);
 
     &:is(:hover, .hover, :focus-visible) {
-      --background-color: var(--background-color-purple-20);
+      --background-color: var(--color-normal-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --background-color: var(--background-color-purple-30);
+      --background-color: var(--color-normal-background-active);
     }
 
     &.disabled {
-      --background-color: var(--background-color-secondary);
+      --background-color: var(--color-neutral-background-secondary);
     }
   }
 
   &.success {
-    --background-color: var(--background-color-green-10);
+    --background-color: var(--color-success-background-selected);
 
     &:is(:hover, .hover, :focus-visible) {
-      --background-color: var(--background-color-green-20);
+      --background-color: var(--color-success-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --background-color: var(--background-color-green-30);
+      --background-color: var(--color-success-background-active);
     }
 
     &.disabled {
-      --background-color: var(--color-green-l60);
+      --background-color: var(--color-success-item-disabled);
     }
   }
 
   &.warning {
-    --background-color: var(--background-color-orange-10);
+    --background-color: var(--color-warning-background-selected);
 
     &:is(:hover, .hover, :focus-visible) {
-      --background-color: var(--background-color-orange-20);
+      --background-color: var(--color-warning-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --background-color: var(--background-color-orange-30);
+      --background-color: var(--color-warning-background-active);
     }
 
     &.disabled {
-      --background-color: var(--color-orange-l60);
+      --background-color: var(--color-warning-item-disabled);
     }
   }
 
   &:is(.danger, .error) {
-    --background-color: var(--background-color-red-10);
+    --background-color: var(--color-danger-background-selected);
 
     &:is(:hover, .hover, :focus-visible) {
-      --background-color: var(--background-color-red-20);
+      --background-color: var(--color-danger-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --background-color: var(--background-color-red-30);
+      --background-color: var(--color-danger-background-active);
     }
 
     &.disabled {
-      --background-color: var(--color-red-l60);
+      --background-color: var(--color-danger-item-disabled);
     }
   }
 }

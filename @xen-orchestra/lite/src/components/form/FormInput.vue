@@ -144,14 +144,14 @@ defineExpose({
   --after-width: v-bind('afterWidth || "1.625em"');
   --caret-width: 1.5em;
 
-  --text-color: var(--color-grey-100);
+  --text-color: var(--color-neutral-txt-primary);
 
   &.empty {
-    --text-color: var(--color-grey-300);
+    --text-color: var(--color-neutral-txt-secondary);
   }
 
   &.disabled {
-    --text-color: var(--color-grey-500);
+    --text-color: var(--color-neutral-border);
   }
 }
 
@@ -188,74 +188,74 @@ defineExpose({
     text-align: right;
   }
 
-  --background-color: var(--background-color-primary);
-  --border-color: var(--color-grey-500);
+  --background-color: var(--color-neutral-background-primary);
+  --border-color: var(--color-neutral-border);
 
   &:disabled {
     cursor: not-allowed;
-    --background-color: var(--background-color-secondary);
+    --background-color: var(--color-neutral-background-secondary);
   }
 
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-purple-l60);
+        --border-color: var(--color-normal-item-disabled);
       }
 
       &:active {
-        --border-color: var(--color-purple-l40);
+        --border-color: var(--color-normal-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-purple-base);
+        --border-color: var(--color-normal-txt-base);
       }
     }
 
     &.success {
-      --border-color: var(--color-green-base);
+      --border-color: var(--color-normal-txt-base);
 
       &:hover {
-        --border-color: var(--color-green-l60);
+        --border-color: var(--color-success-item-disabled);
       }
 
       &:active {
-        --border-color: var(--color-green-l40);
+        --border-color: var(--color-success-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-green-base);
+        --border-color: var(--color-normal-txt-base);
       }
     }
 
     &.warning {
-      --border-color: var(--color-orange-base);
+      --border-color: var(--color-warning-txt-base);
 
       &:hover {
-        --border-color: var(--color-orange-l60);
+        --border-color: var(--color-warning-item-disabled);
       }
 
       &:active {
-        --border-color: var(--color-orange-l40);
+        --border-color: var(--color-warning-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-orange-base);
+        --border-color: var(--color-warning-txt-base);
       }
     }
 
     &.error {
-      --border-color: var(--color-red-base);
+      --border-color: var(--color-danger-txt-base);
 
       &:hover {
-        --border-color: var(--color-red-l60);
+        --border-color: var(--color-danger-item-disabled);
       }
 
       &:active {
-        --border-color: var(--color-red-l40);
+        --border-color: var(--color-danger-item-active);
       }
 
       &:focus-within {
-        --border-color: var(--color-red-base);
+        --border-color: var(--color-danger-txt-base);
       }
     }
   }

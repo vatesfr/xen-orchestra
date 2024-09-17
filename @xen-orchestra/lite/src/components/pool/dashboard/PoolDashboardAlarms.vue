@@ -70,7 +70,7 @@ const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore()
   }
 
   .no-alarm & {
-    color: var(--color-green-base);
+    color: var(--color-success-txt-base);
   }
 }
 

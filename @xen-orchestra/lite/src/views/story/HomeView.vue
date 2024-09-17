@@ -259,7 +259,7 @@ watch(
 .warning {
   font-size: 1.6rem;
   font-weight: 600;
-  color: var(--color-orange-base);
+  color: var(--color-warning-txt-base);
 }
 
 .code-highlight {

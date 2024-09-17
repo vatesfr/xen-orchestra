@@ -9,11 +9,11 @@ export const useChartTheme = () => {
   const style = window.getComputedStyle(window.document.documentElement)
 
   const getColors = () => ({
-    background: style.getPropertyValue('--background-color-primary'),
-    text: style.getPropertyValue('--color-grey-300'),
-    splitLine: style.getPropertyValue('--color-grey-500'),
-    primary: style.getPropertyValue('--color-purple-base'),
-    secondary: style.getPropertyValue('--color-orange-base'),
+    background: style.getPropertyValue('--color-neutral-background-primary'),
+    text: style.getPropertyValue('--color-neutral-txt-secondary'),
+    splitLine: style.getPropertyValue('--color-neutral-border'),
+    primary: style.getPropertyValue('--color-normal-txt-base'),
+    secondary: style.getPropertyValue('--color-warning-txt-base'),
   })
 
   const colors = ref(getColors())

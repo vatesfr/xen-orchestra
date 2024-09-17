@@ -24,19 +24,19 @@ defineProps<{
   --color: currentColor;
 
   &.info {
-    --color: var(--color-purple-base);
+    --color: var(--color-normal-txt-base);
   }
 
   &.success {
-    --color: var(--color-green-base);
+    --color: var(--color-success-txt-base);
   }
 
   &.warning {
-    --color: var(--color-orange-base);
+    --color: var(--color-warning-txt-base);
   }
 
   &.error {
-    --color: var(--color-red-base);
+    --color: var(--color-danger-txt-base);
   }
 }
 

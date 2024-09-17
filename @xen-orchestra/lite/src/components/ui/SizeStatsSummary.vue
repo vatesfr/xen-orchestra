@@ -40,12 +40,12 @@ const isDisplayed = computed(() => !isNaN(percentUsed.value) && !isNaN(percentFr
 .summary {
   display: flex;
   justify-content: space-between;
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
   margin-top: 2rem;
 }
 
 .summary-card {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   display: flex;
 }
 

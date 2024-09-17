@@ -520,7 +520,7 @@ async function cancel() {
   justify-content: center;
   align-items: center;
   min-height: 76.5vh;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
   text-align: center;
   padding: 5rem;
   margin: auto;
@@ -536,15 +536,15 @@ async function cancel() {
   font-size: 2rem;
 }
 .status {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 }
 
 .success {
-  color: var(--color-green-base);
+  color: var(--color-success-txt-base);
 }
 
 .danger {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 .success,
 .danger {
@@ -560,6 +560,6 @@ async function cancel() {
   gap: 0.5em;
 }
 .warning {
-  color: var(--color-orange-base);
+  color: var(--color-warning-txt-base);
 }
 </style>

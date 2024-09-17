@@ -37,19 +37,19 @@ When you set a color context, the variables are updated with the help of CSS cla
 
 ```css
 .color-context-info {
-  --color-context-primary: var(--color-purple-base);
-  --color-context-primary-hover: var(--color-purple-d20);
-  --color-context-primary-active: var(--color-purple-d40);
-  --color-context-primary-disabled: var(--color-grey-400);
+  --color-context-primary: var(--color-normal-txt-base);
+  --color-context-primary-hover: var(--color-normal-txt-hover);
+  --color-context-primary-active: var(--color-normal-txt-active);
+  --color-context-primary-disabled: var(--color-neutral-txt-secondary);
 
-  --color-context-secondary: var(--background-color-purple-10);
-  --color-context-secondary-hover: var(--background-color-purple-20);
-  --color-context-secondary-active: var(--background-color-purple-30);
+  --color-context-secondary: var(--color-normal-background-selected);
+  --color-context-secondary-hover: var(--color-normal-background-hover);
+  --color-context-secondary-active: var(--color-normal-background-active);
 }
 
 .color-context-success {
-  --color-context-primary: var(--color-green-base);
-  --color-context-primary-hover: var(--color-green-d20);
+  --color-context-primary: var(--color-success-txt-base);
+  --color-context-primary-hover: var(--color-success-txt-hover);
   /*...*/
 }
 ```

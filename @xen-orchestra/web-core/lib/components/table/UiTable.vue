@@ -19,16 +19,16 @@ provide('tableName', props.name)
 .ui-table {
   width: 100%;
   border-spacing: 0;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
   line-height: 2.4rem;
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   border-collapse: collapse;
   table-layout: fixed;
 
   :deep(th),
   :deep(td) {
     padding: 1rem;
-    border-top: 0.1rem solid var(--color-grey-500);
+    border-top: 0.1rem solid var(--color-neutral-border);
     text-align: left;
   }
 
@@ -39,7 +39,7 @@ provide('tableName', props.name)
   :deep(thead) {
     th,
     td {
-      color: var(--color-purple-base);
+      color: var(--color-normal-txt-base);
       font-size: 1.4rem;
       font-weight: 400;
       text-transform: uppercase;
@@ -49,7 +49,7 @@ provide('tableName', props.name)
   &.vertical-border {
     :deep(th),
     :deep(td) {
-      border-right: 0.1rem solid var(--color-grey-500);
+      border-right: 0.1rem solid var(--color-neutral-border);
 
       &:first-child {
         border-left: none;

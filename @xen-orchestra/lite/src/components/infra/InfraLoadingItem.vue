@@ -23,11 +23,11 @@ defineProps<{
   display: flex;
   height: 6rem;
   margin-bottom: 0.2rem;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
 }
 
 .icon {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 }
 
 .link-placeholder {
@@ -41,7 +41,7 @@ defineProps<{
 .loader {
   flex: 1;
   animation: pulse alternate 1s infinite;
-  background-color: var(--background-color-purple-10);
+  background-color: var(--color-normal-background-selected);
 }
 
 @keyframes pulse {

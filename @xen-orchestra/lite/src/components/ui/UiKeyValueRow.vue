@@ -19,7 +19,7 @@
 .key {
   padding-right: 2rem;
   text-align: left;
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 
   @media (--desktop) {
     min-width: 20rem;

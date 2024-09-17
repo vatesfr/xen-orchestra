@@ -56,7 +56,7 @@ const hasTasks = computed(() => props.pendingTasks.length > 0 || (props.finished
 
 .no-tasks {
   text-align: center;
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
   font-style: italic;
 }
 
@@ -65,11 +65,11 @@ td[colspan='5'] {
 }
 
 .text-error {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 
 .loader {
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
   display: block;
   font-size: 4rem;
   margin: 2rem auto 0;

@@ -25,7 +25,7 @@ defineSlots<{
 
 <style lang="postcss" scoped>
 .legend-title {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   display: flex;
   gap: 0.8rem;
   align-items: center;

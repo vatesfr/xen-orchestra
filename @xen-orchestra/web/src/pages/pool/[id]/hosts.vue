@@ -66,7 +66,7 @@ const { nodes: hosts } = useTree(definitions)
 }
 
 .count {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
   text-transform: lowercase;
 }
 </style>

@@ -54,7 +54,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
   display: flex;
 
   &:not(:last-child) {
-    border-bottom: 0.1rem solid var(--color-grey-500);
+    border-bottom: 0.1rem solid var(--color-neutral-border);
   }
 }
 
@@ -80,7 +80,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
 }
 
 .line-2 {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 
 .subtasks {

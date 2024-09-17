@@ -25,7 +25,7 @@ const tag = computed(() => {
   line-height: 150%;
   align-self: stretch;
   flex-grow: 0;
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 
   &.display {
     font-size: 6.4rem;

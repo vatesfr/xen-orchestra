@@ -119,7 +119,7 @@ async function handleSubmit() {
   justify-content: center;
   min-height: 100vh;
   max-width: 100vw;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
 }
 
 form {
@@ -131,10 +131,10 @@ form {
   justify-content: center;
   margin: 0 auto;
   padding: 8.5rem;
-  background-color: var(--background-color-secondary);
+  background-color: var(--color-neutral-background-secondary);
 
   .error {
-    color: var(--color-red-base);
+    color: var(--color-danger-txt-base);
   }
 }
 
@@ -155,7 +155,7 @@ input {
   max-width: 100%;
   margin-bottom: 1rem;
   padding: 1rem 1.5rem;
-  border: 1px solid var(--color-grey-500);
+  border: 1px solid var(--color-neutral-border);
   border-radius: 0.8rem;
   background-color: white;
 }

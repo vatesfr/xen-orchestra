@@ -68,6 +68,6 @@ const { nodes: vms } = useTree(definitions)
 }
 
 .count {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>
