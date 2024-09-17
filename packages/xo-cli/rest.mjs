@@ -11,6 +11,8 @@ import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
 
+import { streamStatsPrinter } from './_streamStatsPrinter.mjs'
+
 const PREFIX = '/rest/v0/'
 
 function addPrefix(suffix) {
@@ -64,12 +66,11 @@ const COMMANDS = {
     const response = await this.exec(path, { query: parseParams(rest) })
 
     if (output !== '') {
-      return pPipeline(
-        response,
+      const outputStream =
         output === '-'
           ? process.stdout
           : createWriteStream(output.endsWith('/') ? join(output, basename(path)) : output, { flags: 'wx' })
-      )
+      return pPipeline(response, streamStatsPrinter(response.headers['content-length']), outputStream)
     }
 
     const { type } = parseContentType(response)

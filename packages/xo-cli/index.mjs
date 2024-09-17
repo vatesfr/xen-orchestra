@@ -9,15 +9,12 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import getKeys from 'lodash/keys.js'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
-import humanFormat from 'human-format'
 import identity from 'lodash/identity.js'
 import isObject from 'lodash/isObject.js'
 import micromatch from 'micromatch'
 import os from 'os'
 import pairs from 'lodash/toPairs.js'
 import pick from 'lodash/pick.js'
-import prettyMs from 'pretty-ms'
-import progressStream from 'progress-stream'
 import pw from 'pw'
 import XoLib from 'xo-lib'
 
@@ -26,6 +23,7 @@ import XoLib from 'xo-lib'
 import * as config from './config.mjs'
 import { inspect } from 'util'
 import { rest } from './rest.mjs'
+import { streamStatsPrinter } from './_streamStatsPrinter.mjs'
 
 const Xo = XoLib.default
 
@@ -212,29 +210,6 @@ function parseParameters(args) {
   })
 
   return params
-}
-
-const humanFormatOpts = {
-  unit: 'B',
-  scale: 'binary',
-}
-
-function printProgress(progress) {
-  if (progress.length) {
-    console.warn(
-      '%s% of %s @ %s/s - ETA %s',
-      Math.round(progress.percentage),
-      humanFormat(progress.length, humanFormatOpts),
-      humanFormat(progress.speed, humanFormatOpts),
-      prettyMs(progress.eta * 1e3)
-    )
-  } else {
-    console.warn(
-      '%s @ %s/s',
-      humanFormat(progress.transferred, humanFormatOpts),
-      humanFormat(progress.speed, humanFormatOpts)
-    )
-  }
 }
 
 function wrap(val) {
@@ -658,15 +633,7 @@ async function call(args) {
         const output = createOutputStream(file)
         const response = await hrp(url, httpOptions)
 
-        const progress = progressStream(
-          {
-            length: response.headers['content-length'],
-            time: 1e3,
-          },
-          printProgress
-        )
-
-        return fromCallback(pipeline, response, progress, output)
+        return fromCallback(pipeline, response, streamStatsPrinter(response.headers['content-length']), output)
       }
 
       if (key === '$sendTo') {
@@ -674,17 +641,7 @@ async function call(args) {
         url = new URL(result[key], baseUrl)
 
         const length = file === '-' ? undefined : (await stat(file)).size
-        const input = pipeline(
-          file === '-' ? process.stdin : createReadStream(file),
-          progressStream(
-            {
-              length,
-              time: 1e3,
-            },
-            printProgress
-          ),
-          noop
-        )
+        const input = pipeline(file === '-' ? process.stdin : createReadStream(file), streamStatsPrinter(length), noop)
 
         const response = await hrp(url, {
           ...httpOptions,
