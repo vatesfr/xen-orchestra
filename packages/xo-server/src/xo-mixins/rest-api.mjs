@@ -955,7 +955,14 @@ export default class RestApi {
         const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
         const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
 
-        res.writeHead(200, 'OK', { 'content-disposition': 'attachment', 'content-length': stream.length })
+        const headers = { 'content-disposition': 'attachment' }
+
+        const { length } = stream
+        if (length !== undefined) {
+          headers['content-length'] = length
+        }
+
+        res.writeHead(200, 'OK', headers)
         await pipeline(stream, res)
       })
     )

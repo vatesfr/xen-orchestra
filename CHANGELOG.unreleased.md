@@ -21,6 +21,7 @@
 
 - [Hub/Recipes/Kubernetes] Properly sort versions in selector
 - [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
+- [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
 
 ### Packages to release
 
@@ -41,6 +42,7 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server patch
 - xo-web minor
 
 <!--packages-end-->
