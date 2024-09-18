@@ -15,8 +15,8 @@
       <template #title>{{ settings.title }}</template>
       <template #subtitle>{{ settings.subtitle }}</template>
       <template #buttons>
-        <UiButton level="secondary">I prefer not</UiButton>
-        <UiButton>Yes, I'm sure!</UiButton>
+        <UiButton level="secondary" color="normal" size="medium">I prefer not</UiButton>
+        <UiButton level="primary" color="normal" size="medium">Yes, I'm sure!</UiButton>
       </template>
     </ConfirmModalLayout>
   </ComponentStory>
