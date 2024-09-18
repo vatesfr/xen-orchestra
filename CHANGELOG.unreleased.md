@@ -42,6 +42,7 @@
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xo-cli minor
 - xo-server patch
 - xo-web minor
