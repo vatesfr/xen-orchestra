@@ -2,7 +2,7 @@
   <div class="ui-section-title" :class="tags.left">
     <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <UiCounter v-if="count > 0" class="count" :value="count" color="primary" />
+      <VtsCounter v-if="count > 0" class="count" :value="count" accent="brand" variant="primary" size="small" />
     </component>
     <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import { UiCardTitleLevel } from '@/types/enums'
-import UiCounter from '@core/components/UiCounter.vue'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import { computed } from 'vue'
 
 const props = withDefaults(
