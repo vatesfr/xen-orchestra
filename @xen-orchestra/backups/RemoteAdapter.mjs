@@ -845,9 +845,10 @@ export class RemoteAdapter {
     return this.#computeTotalBackupSizeRecursively(await this.listAllVmBackups())
   }
 
-  // @TODO: add `getTotalXoBackupSize` and `getTotalPoolBackupSize` once `size` is implemented
   async getTotalBackupSize() {
-    return this.#computeTotalBackupSizeRecursively(await Promise.all([this.getTotalVmBackupSize()]))
+    const vmBackupSize = await this.getTotalVmBackupSize()
+    // @TODO: add `getTotalXoBackupSize` and `getTotalPoolBackupSize` once `size` is implemented by fs
+    return vmBackupSize
   }
 }
 
