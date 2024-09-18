@@ -21,7 +21,12 @@ import { computed } from 'vue'
 type Props = {
   status: 'info' | 'success' | 'warning' | 'danger'
 }
+
 const props = defineProps<Props>()
+
+defineSlots<{
+  default(): any
+}>()
 
 const states: Record<Props['status'], { icon: IconDefinition; color: IconColor }> = {
   info: { icon: faInfoCircle, color: 'normal' },
