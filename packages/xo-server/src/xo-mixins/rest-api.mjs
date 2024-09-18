@@ -1142,7 +1142,7 @@ export default class RestApi {
       '/:collection(srs)/:object/vdis',
       wrap(async (req, res) => {
         const sr = req.xapiObject
-        req.length = +req.headers['content-length']
+        req.length = ifDef(req.headers['content-length'], Number)
 
         const { name_label, name_description, raw } = req.query
         const vdiRef = await sr.$importVdi(req, {
