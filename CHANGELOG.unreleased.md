@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [SR/New] Fix reattach button not displayed for HBA (PR [#7986](https://github.com/vatesfr/xen-orchestra/pull/7986))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,7 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/log minor
-- xo-server minor
+- xo-web patch
 
 <!--packages-end-->
