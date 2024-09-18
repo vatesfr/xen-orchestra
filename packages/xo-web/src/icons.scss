@@ -961,6 +961,10 @@
       @extend .fa;
       @extend .fa-eye;
     }
+    &-sequence {
+      @extend .fa;
+      @extend .fa-list-ol;
+    }
     &-new {
       @extend .fa;
       @extend .fa-plus;

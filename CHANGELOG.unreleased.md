@@ -20,6 +20,7 @@
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 - [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
 - [Backup/HealthCheck] Improve error messages on health check timeout (PR [#8016](https://github.com/vatesfr/xen-orchestra/pull/8016))
+- [Backup] Backup job sequences: configure lists of backup jobs to run in order one after the other
 
 ### Bug fixes
 
@@ -48,6 +49,6 @@
 - xen-api minor
 - xo-cli minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
