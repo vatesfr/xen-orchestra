@@ -1015,6 +1015,11 @@ const messages = {
   hostNoSupport: 'No XCP-ng Pro Support enabled on this host',
   hostSupportEnabled: 'XCP-ng Pro Support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
+  pubKeyTooShort: 'TLS key is too small to update host to XCP-ng 8.3',
+  longerCustomCertficate:
+    'If your certificate is custom, you need to install a new one with a key length of 2048 or greater.',
+  longerDefaultCertificate:
+    'If your certificate is the default self-signed certificate from host installation, you need to re-generate it from XCP-ng 8.2.1.',
 
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',

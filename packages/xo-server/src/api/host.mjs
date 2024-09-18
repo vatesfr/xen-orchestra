@@ -4,6 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 import { incorrectState } from 'xo-common/api-errors.js'
+import { X509Certificate } from 'node:crypto'
 
 import backupGuard from './_backupGuard.mjs'
 
@@ -528,6 +529,30 @@ setControlDomainMemory.params = {
 
 setControlDomainMemory.resolve = {
   host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function isPubKeyTooShort({ host }) {
+  const certificate = await this.getXapi(host).callAsync('host.get_server_certificate', host._xapiRef)
+
+  // begin and end of certificate need to be on separate lines for correct parsing
+  const correctedCertificate = certificate
+    .replace(/(-----BEGIN CERTIFICATE-----)([^\n]+)/, '$1\n$2')
+    .replace(/([^\n]+)(-----END CERTIFICATE-----)/, '$1\n$2')
+  const cert = new X509Certificate(correctedCertificate)
+
+  return cert.publicKey.asymmetricKeyDetails.modulusLength < 2048
+}
+
+isPubKeyTooShort.description = 'get TLS key information'
+
+isPubKeyTooShort.params = {
+  id: { type: 'string' },
+}
+
+isPubKeyTooShort.resolve = {
+  host: ['id', 'host', 'view'],
 }
 
 // -------------------------------------------------------------------
