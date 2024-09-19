@@ -12,9 +12,9 @@ Lexicon:
 
 ## DS Components MUST be stored in their own directory.
 
-Directory name MUST be in kebab-case (e.g. `my-component`)
+## Directory name MUST be in kebab-case (e.g. `my-component`)
 
-Component name MUST be in PascalCase (e.g. `MyComponent.vue`)
+## Component name MUST be in PascalCase and start with `Vts` (e.g. `VtsMyComponent.vue`)
 
 ❌ Bad
 
@@ -22,7 +22,7 @@ Component name MUST be in PascalCase (e.g. `MyComponent.vue`)
 
 ✅ Good
 
-`components/square/Square.vue`
+`components/square/VtsSquare.vue`
 
 ## Components SHOULD be kept short and be split into multiple subcomponents if necessary, stored in the same directory as the main component.
 
@@ -31,9 +31,9 @@ Component name MUST be in PascalCase (e.g. `MyComponent.vue`)
 ```
 /components/
   /square/
-    /Square.vue
+    /VtsSquare.vue
   /square-icon/
-    /SquareIcon.vue <- This component is not part of the DS and will be used only in Square.vue
+    /VtsSquareIcon.vue <- This component is not part of the DS and will be used only in Square.vue
 ```
 
 ✅ Good
@@ -41,8 +41,8 @@ Component name MUST be in PascalCase (e.g. `MyComponent.vue`)
 ```
 /components/
   /square/
-    /Square.vue
-    /SquareIcon.vue
+    /VtsSquare.vue
+    /VtsSquareIcon.vue
 ```
 
 > [!WARNING]
@@ -86,21 +86,21 @@ If a component from the DS is split into multiple subcomponents, only the main c
 
 ## Class names MUST use kebab-case
 
-## Component root element's class name MUST be named after the component name, prefixed with `vts-`
+## Component root element's class name MUST be named after the component name
 
 If no style is applied to the root element, the class name will be omitted
 
 ❌ Bad
 
 ```vue
-<!-- Square.vue -->
+<!-- VtsSquare.vue -->
 <template>
   <div class="my-shape" />
 </template>
 ```
 
 ```vue
-<!-- Square.vue -->
+<!-- VtsSquare.vue -->
 <template>
   <div class="square" />
 </template>
@@ -109,14 +109,14 @@ If no style is applied to the root element, the class name will be omitted
 ✅ Good
 
 ```vue
-<!-- Square.vue -->
+<!-- VtsSquare.vue -->
 <template>
   <div class="vts-square" />
 </template>
 ```
 
 ```vue
-<!-- SquareIcon.vue -->
+<!-- VtsSquareIcon.vue -->
 <template>
   <div class="vts-square-icon" />
 </template>
@@ -153,8 +153,6 @@ If no style is applied to the root element, the class name will be omitted
 ## Component MUST use `<style scoped>`
 
 ## Component CSS must be contained under the root CSS classname
-
-With meaningful class names + scoped styles, in most cases it will not be necessary to use nested CSS
 
 ❌ Bad
 
