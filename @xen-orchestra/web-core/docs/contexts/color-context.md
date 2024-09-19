@@ -1,3 +1,11 @@
+> [!CAUTION]
+>
+> **DEPRECATED**
+>
+> ColorContext has been deprecated and shouldn’t be used anymore.
+>
+> It will be removed in the future.
+
 <!-- TOC -->
 
 - [Overview](#overview)
