@@ -534,14 +534,9 @@ setControlDomainMemory.resolve = {
 // -------------------------------------------------------------------
 
 export async function isPubKeyTooShort({ host }) {
-  const certificate = await this.getXapi(host).callAsync('host.get_server_certificate', host._xapiRef)
+  const certificate = await this.getXapi(host).call('host.get_server_certificate', host._xapiRef)
 
-  // begin and end of certificate need to be on separate lines for correct parsing
-  const correctedCertificate = certificate
-    .replace(/(-----BEGIN CERTIFICATE-----)([^\n]+)/, '$1\n$2')
-    .replace(/([^\n]+)(-----END CERTIFICATE-----)/, '$1\n$2')
-  const cert = new X509Certificate(correctedCertificate)
-
+  const cert = new X509Certificate(certificate)
   return cert.publicKey.asymmetricKeyDetails.modulusLength < 2048
 }
 
