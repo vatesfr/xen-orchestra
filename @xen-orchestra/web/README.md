@@ -11,4 +11,4 @@
 
 ## Guidelines
 
-Please follow the guidelines from the `@xen-orchestra/web-core/guidelines` directory.
+Please follow the guidelines from the `@xen-orchestra/web-core/docs/guidelines` directory.
