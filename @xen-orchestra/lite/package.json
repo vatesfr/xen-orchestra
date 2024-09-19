@@ -56,7 +56,7 @@
     "postcss-nested": "^6.0.1",
     "typescript": "~5.3.3",
     "vite": "^5.0.11",
-    "vue": "^3.4.13",
+    "vue": "~3.4.13",
     "vue-echarts": "^6.6.8",
     "vue-i18n": "^9.9.0",
     "vue-router": "^4.4.0",
