@@ -7,10 +7,10 @@
     ]"
   >
     <ButtonGroup v-bind="properties">
-      <UiButton level="secondary">Cancel</UiButton>
-      <UiButton>Call to action</UiButton>
+      <UiButton level="secondary" color="normal" size="medium">Cancel</UiButton>
+      <UiButton level="primary" color="normal" size="medium">Call to action</UiButton>
       <template #tertiary>
-        <UiButton level="tertiary" color="warning">Secondary call to action</UiButton>
+        <UiButton level="tertiary" color="warning" size="medium">Secondary call to action</UiButton>
       </template>
     </ButtonGroup>
   </ComponentStory>
