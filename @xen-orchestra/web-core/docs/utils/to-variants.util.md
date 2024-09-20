@@ -2,7 +2,7 @@
 
 This utility is used to convert a set of props into a list of CSS variants classes.
 
-- No class will be added for other _falsy_ values
+- No class will be added for _falsy_ values
 - `<key>` class will be added for `true` values
 - `<key>--<value>` class will be added for other values
 
@@ -43,10 +43,13 @@ const props = defineProps<{
 
 const isDisabled = inject('isParentDisabled', ref(false))
 
+const typoClasses = {
+  small: 'typo p3-regular',
+  large: 'typo p2-medium',
+}
+
 const classes = computed(() => [
-  'vts-my-component',
-  'typo',
-  props.size === 'small' ? 'p3-regular' : 'p2-medium',
+  typoClasses[props.size],
   { disabled: isDisabled.value },
   toVariants({
     color: props.color,
@@ -56,4 +59,4 @@ const classes = computed(() => [
 ])
 ```
 
-`classes` applied to the component will then look like `vts-my-component typo p3-regular disabled color-blue size-s state-off`
+`classes` applied to the component will then look like `typo p3-regular disabled color-blue size-s state-off`

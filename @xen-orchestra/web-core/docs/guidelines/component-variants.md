@@ -20,7 +20,7 @@ The root element of a component will have a specific CSS class following the pat
 
 The root element will then have secondary classes which reflect the current variants being applied.
 
-The pattern for these classes is `<prop-name>--<prop-value>`.
+The pattern for these classes is `<prop-name>--<prop-value>` (or `<prop-name>` for `true` boolean).
 
 > [!TIP]
 > Example:
@@ -43,7 +43,7 @@ So in this case:
 
 - the "default" state would be represented as "no class applied."
 - the "hover" and "active" states would be represented as `:hover` and `:active` pseudo-classes.
-- the "disabled" state would be represented as a `disabled` `boolean` prop which would add a `state--disabled` class.
+- the "disabled" state would be represented as a `disabled` `boolean` prop which would add a `disabled` class when `true`.
 
 ## CSS variables
 
@@ -54,7 +54,7 @@ The format for these variables is `--<base-class>--<property-name>`.
 > [!TIP]
 > Example:
 >
-> For a `Button` component, the CSS variables could be `--vts-button--background-color`, or `--vts-button--padding`.
+> For a `VtsButton` component, the CSS variables could be `--vts-button--background-color`, or `--vts-button--padding`.
 
 ### CSS variables for child elements
 
@@ -65,7 +65,7 @@ The format for these variables is `--<base-class>__<child-class>--<property-name
 > [!TIP]
 > Example:
 >
-> If we need to change `color` of a `.icon` inside our `Button` component, the CSS variable will be
+> If we need to change `color` of a `.icon` inside our `VtsButton` component, the CSS variable will be
 > `--vts-button__icon--color`.
 
 ## Identifying which DS props affect which CSS variables
@@ -300,7 +300,7 @@ Now that we have our CSS variables defined, we can implement the base CSS for ou
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid var(--vts-button--border-color);
+  border: 0.1rem solid var(--vts-button--border-color);
   gap: var(--vts-button--gap);
   font-size: var(--vts-button--font-size);
   padding: var(--vts-button--padding);
