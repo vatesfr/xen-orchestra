@@ -28,6 +28,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   }
 }
