@@ -1,10 +1,10 @@
 'use strict'
 
-const { describe, it, beforeEach } = require('node:test')
-const assert = require('node:assert/strict')
-const { createLogger } = require('@xen-orchestra/log')
+const { beforeEach, describe, it } = require('node:test')
 const { configure } = require('@xen-orchestra/log/configure')
 const { createCaptureTransport } = require('@xen-orchestra/log/capture')
+const { createLogger } = require('@xen-orchestra/log')
+const assert = require('node:assert/strict')
 
 describe('logger', () => {
   const logger = createLogger('test-logger')
