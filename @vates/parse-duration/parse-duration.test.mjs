@@ -11,8 +11,7 @@ describe('parseDuration()', () => {
 
   it('should return its input if already a number', () => {
     const input = 172800000
-    const expected = 172800000
-    assert.strictEqual(parseDuration(input), expected)
+    assert.strictEqual(parseDuration(input), input)
   })
 
   it('should throw an error for an invalid duration', () => {
