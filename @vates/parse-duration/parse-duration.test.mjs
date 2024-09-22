@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test'
-import { parseDuration } from '@vates/parse-duration/index.js'
+import { parseDuration } from '@vates/parse-duration'
 import assert from 'node:assert/strict'
 
 describe('parseDuration()', () => {
