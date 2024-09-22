@@ -3,13 +3,13 @@ import { parseDuration } from '@vates/parse-duration/index.js'
 import assert from 'node:assert/strict'
 
 describe('parseDuration()', () => {
-  it('should parse string "2 days"', () => {
+  it('should parse string', () => {
     const input = '2 days'
     const expected = 172800000
     assert.strictEqual(parseDuration(input), expected)
   })
 
-  it('should return the same duration if it is already in milliseconds', () => {
+  it('should return its input if already a number', () => {
     const input = 172800000
     const expected = 172800000
     assert.strictEqual(parseDuration(input), expected)
