@@ -20,7 +20,7 @@ const props = defineProps<Props>()
 const states: Record<Props['state'], { icon: IconDefinition; color: Color }> = {
   success: { icon: faCheckCircle, color: 'success' },
   partial: { icon: faCircleMinus, color: 'warning' },
-  failure: { icon: faCircleXmark, color: 'error' },
+  failure: { icon: faCircleXmark, color: 'danger' },
 }
 
 const icon = computed(() => states[props.state].icon)

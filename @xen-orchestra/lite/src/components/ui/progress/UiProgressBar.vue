@@ -29,22 +29,22 @@ const cssFillWidth = computed(() => {
   height: var(--progress-bar-height, 0.4rem);
   margin: 1rem 0;
   border-radius: 0.4rem;
-  background-color: var(--progress-bar-background-color, var(--background-color-purple-10));
+  background-color: var(--progress-bar-background-color, var(--color-normal-background-selected));
 
   &.color-info {
-    --progress-bar-color: var(--color-purple-base);
+    --progress-bar-color: var(--color-normal-item-base);
   }
 
   &.color-success {
-    --progress-bar-color: var(--color-green-base);
+    --progress-bar-color: var(--color-success-item-base);
   }
 
   &.color-warning {
-    --progress-bar-color: var(--color-orange-base);
+    --progress-bar-color: var(--color-warning-item-base);
   }
 
   &.color-error {
-    --progress-bar-color: var(--color-red-base);
+    --progress-bar-color: var(--color-danger-item-base);
   }
 }
 

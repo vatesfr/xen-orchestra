@@ -2,7 +2,7 @@
   <TabList :disabled="loading">
     <TabItem v-bind="tabs.pending.bindings">
       {{ $t('tasks.quick-view.in-progress') }}
-      <UiCounter v-if="pendingCount !== undefined" :value="pendingCount" color="info" />
+      <UiCounter v-if="pendingCount !== undefined" :value="pendingCount" color="primary" />
     </TabItem>
     <TabItem v-bind="tabs.success.bindings">
       {{ $t('tasks.quick-view.done') }}

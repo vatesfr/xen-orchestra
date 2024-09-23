@@ -22,6 +22,6 @@
   margin: auto;
   width: 8em;
   font-style: normal;
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 </style>

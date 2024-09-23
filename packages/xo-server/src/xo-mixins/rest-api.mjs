@@ -579,7 +579,7 @@ export default class RestApi {
           )
         }
 
-        for (const collection of ['vms', 'vm-snapshots', 'vm-templates']) {
+        for (const collection of ['vms', 'vm-controllers', 'vm-snapshots', 'vm-templates']) {
           collections[collection].routes.vdis = vdis
         }
       }
@@ -955,7 +955,14 @@ export default class RestApi {
         const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
         const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
 
-        res.writeHead(200, 'OK', { 'content-disposition': 'attachment', 'content-length': stream.length })
+        const headers = { 'content-disposition': 'attachment' }
+
+        const { length } = stream
+        if (length !== undefined) {
+          headers['content-length'] = length
+        }
+
+        res.writeHead(200, 'OK', headers)
         await pipeline(stream, res)
       })
     )
@@ -1135,7 +1142,7 @@ export default class RestApi {
       '/:collection(srs)/:object/vdis',
       wrap(async (req, res) => {
         const sr = req.xapiObject
-        req.length = +req.headers['content-length']
+        req.length = ifDef(req.headers['content-length'], Number)
 
         const { name_label, name_description, raw } = req.query
         const vdiRef = await sr.$importVdi(req, {

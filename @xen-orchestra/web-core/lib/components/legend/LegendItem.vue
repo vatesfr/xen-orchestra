@@ -1,9 +1,9 @@
 <!-- v1.0 -->
 <template>
   <li :class="color" class="legend-item">
-    <UiIcon :icon="faCircle" class="circle-icon" />
+    <UiIcon :icon="faCircle" color="current" class="circle-icon" />
     <span class="label typo p3-regular"><slot /></span>
-    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="info" />
+    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="normal" />
     <span v-if="valueLabel" class="value-and-unit typo c3-semi-bold">{{ valueLabel }}</span>
   </li>
 </template>
@@ -36,27 +36,27 @@ const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 /* COLOR VARIANTS */
 .legend-item {
   &.primary {
-    --circle-color: var(--color-purple-base);
+    --circle-color: var(--color-normal-item-base);
   }
 
   &.secondary {
-    --circle-color: var(--color-grey-100);
+    --circle-color: var(--color-neutral-txt-primary);
   }
 
   &.success {
-    --circle-color: var(--color-green-base);
+    --circle-color: var(--color-success-item-base);
   }
 
   &.warning {
-    --circle-color: var(--color-orange-base);
+    --circle-color: var(--color-warning-item-base);
   }
 
   &.danger {
-    --circle-color: var(--color-red-base);
+    --circle-color: var(--color-danger-item-base);
   }
 
   &.disabled {
-    --circle-color: var(--color-grey-300);
+    --circle-color: var(--color-neutral-background-disabled);
   }
 }
 
@@ -77,10 +77,10 @@ const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 }
 
 .label {
-  color: var(--color-grey-000);
+  color: var(--color-neutral-txt-primary);
 }
 
 .value-and-unit {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

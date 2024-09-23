@@ -19,7 +19,7 @@ withDefaults(
 
 <style lang="postcss" scoped>
 .unit {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
   display: flex;
   justify-content: space-between;
   letter-spacing: 0.04em;

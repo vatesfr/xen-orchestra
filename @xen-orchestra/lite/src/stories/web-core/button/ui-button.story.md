@@ -1,5 +1,5 @@
 Here is some doc for UiButton component
 
 ```vue-template
-<UiButton @click="doSomething">Click me</UiButton>
+<UiButton level="primary" color="normal" size="medium" @click="doSomething">Click me</UiButton>
 ```

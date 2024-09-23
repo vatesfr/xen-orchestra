@@ -53,11 +53,11 @@ const percentValue = computed(() => {
 /* COLOR VARIANTS */
 .card-numbers {
   &.small {
-    --label-color: var(--color-grey-100);
+    --label-color: var(--color-neutral-txt-primary);
   }
 
   &.medium {
-    --label-color: var(--color-grey-300);
+    --label-color: var(--color-neutral-txt-secondary);
   }
 }
 
@@ -89,13 +89,13 @@ const percentValue = computed(() => {
 }
 
 .value {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
   display: flex;
   gap: 0.2rem;
   align-items: center;
 }
 
 .unit {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
 }
 </style>

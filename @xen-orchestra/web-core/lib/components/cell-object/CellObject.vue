@@ -11,8 +11,8 @@
           v-if="isSupported && copiableId"
           :left-icon="faCopy"
           level="secondary"
-          size="extra-small"
-          :color="copied ? 'success' : 'info'"
+          size="small"
+          :color="copied ? 'success' : 'normal'"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}
@@ -39,7 +39,7 @@ const { isSupported, copy, copied } = useClipboard()
 <style lang="postcss" scoped>
 .cell-object {
   padding: 0.8rem;
-  border: 0.1rem solid var(--color-grey-500);
+  border: 0.1rem solid var(--color-neutral-border);
 }
 
 .data {
@@ -49,6 +49,6 @@ const { isSupported, copy, copied } = useClipboard()
 }
 
 .id {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

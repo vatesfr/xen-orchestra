@@ -2,16 +2,23 @@
   <TitleBar :icon="faDisplay">
     {{ name }}
     <template #actions>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
+      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
         <template #trigger="{ open, isOpen }">
-          <UiButton :class="{ pressed: isOpen }" :left-icon="faPowerOff" @click="open">
+          <UiButton
+            size="medium"
+            color="normal"
+            level="primary"
+            :class="{ pressed: isOpen }"
+            :left-icon="faPowerOff"
+            @click="open"
+          >
             {{ $t('change-state') }}
             <UiIcon :icon="faAngleDown" />
           </UiButton>
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </MenuList>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" shadow>
+      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
         <template #trigger="{ open, isOpen }">
           <ButtonIcon
             v-tooltip="{

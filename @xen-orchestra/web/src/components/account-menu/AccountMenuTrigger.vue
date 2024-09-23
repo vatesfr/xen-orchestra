@@ -6,7 +6,7 @@
     type="button"
   >
     <UserLogo class="logo" size="medium" />
-    <UiIcon :icon="faAngleDown" class="icon" color="info" />
+    <UiIcon :icon="faAngleDown" class="icon" color="normal" />
   </button>
 </template>
 
@@ -29,26 +29,26 @@ const isDisabled = useContext(DisabledContext)
 /* COLOR VARIANTS */
 .account-menu-trigger {
   --background-color: transparent;
-  --accent-color: var(--color-purple-base);
+  --accent-color: var(--color-normal-txt-base);
 
   &:is(:hover, .hover, :focus-visible) {
-    --background-color: var(--background-color-purple-20);
-    --accent-color: var(--color-purple-d20);
+    --background-color: var(--color-normal-background-hover);
+    --accent-color: var(--color-normal-txt-hover);
   }
 
   &:is(:active, .pressed) {
-    --background-color: var(--background-color-purple-30);
-    --accent-color: var(--color-purple-d40);
+    --background-color: var(--color-normal-background-active);
+    --accent-color: var(--color-normal-txt-active);
   }
 
   &.active {
-    --background-color: var(--background-color-purple-10);
-    --accent-color: var(--color-purple-base);
+    --background-color: var(--color-normal-background-selected);
+    --accent-color: var(--color-normal-txt-base);
   }
 
   &.disabled {
     --background-color: transparent;
-    --accent-color: var(--color-grey-400);
+    --accent-color: var(--color-neutral-txt-secondary);
   }
 }
 

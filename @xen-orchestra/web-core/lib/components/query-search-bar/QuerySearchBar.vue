@@ -12,9 +12,16 @@
       :placeholder="$t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
-      <UiButton type="submit">{{ $t('core.search') }}</UiButton>
+      <UiButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
       <Divider type="stretch" />
-      <UiButton v-tooltip="$t('coming-soon')" level="secondary" :left-icon="faFilter" disabled>
+      <UiButton
+        v-tooltip="$t('coming-soon')"
+        size="medium"
+        color="normal"
+        level="secondary"
+        :left-icon="faFilter"
+        disabled
+      >
         {{ $t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
@@ -55,6 +62,6 @@ const value = ref<string>('')
 }
 
 .label {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

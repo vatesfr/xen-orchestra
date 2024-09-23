@@ -26,7 +26,7 @@
       <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon class="icon" />
+          <UiIcon :icon color="current" class="icon" />
         </slot>
         <div class="text text-ellipsis">
           <slot />
@@ -72,22 +72,22 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .tree-item-label {
-  --color: var(--color-grey-100);
-  --background-color: var(--background-color-primary);
+  --color: var(--color-neutral-txt-primary);
+  --background-color: var(--color-neutral-background-primary);
 
   &:is(.exact-active, .active) {
-    --color: var(--color-grey-100);
-    --background-color: var(--background-color-purple-10);
+    --color: var(--color-neutral-txt-primary);
+    --background-color: var(--color-normal-background-selected);
   }
 
   &:hover {
-    --color: var(--color-grey-100);
-    --background-color: var(--background-color-purple-20);
+    --color: var(--color-neutral-txt-primary);
+    --background-color: var(--color-normal-background-hover);
   }
 
   &:active {
-    --color: var(--color-grey-100);
-    --background-color: var(--background-color-purple-30);
+    --color: var(--color-neutral-txt-primary);
+    --background-color: var(--color-normal-background-active);
   }
 }
 
@@ -114,7 +114,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   gap: 1.2rem;
 
   &:hover {
-    color: var(--color-grey-100);
+    color: var(--color-neutral-txt-primary);
   }
 }
 
@@ -128,7 +128,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
 .h-line {
   width: 2rem;
-  border-bottom: 0.1rem solid var(--color-purple-base);
+  border-bottom: 0.1rem solid var(--color-normal-txt-base);
   margin-left: -0.4rem;
 }
 </style>

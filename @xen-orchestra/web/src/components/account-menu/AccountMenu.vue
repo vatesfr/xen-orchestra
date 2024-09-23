@@ -1,5 +1,5 @@
 <template>
-  <MenuList :disabled placement="bottom-end">
+  <MenuList border :disabled placement="bottom-end">
     <template #trigger="{ isOpen, open }">
       <AccountMenuTrigger :active="isOpen" @click="open($event)" />
     </template>
@@ -46,7 +46,7 @@ const logout = () => window.location.assign('/signout')
 <style lang="postcss" scoped>
 .link {
   text-decoration: none;
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
   /* Make the link take the height of the MenuItem component */
   padding-block: 1.15rem;
   /* Make the link take the available width in the MenuItem component */
@@ -54,6 +54,6 @@ const logout = () => window.location.assign('/signout')
 }
 
 .logout {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 </style>

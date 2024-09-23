@@ -1,3 +1,3 @@
 export type ButtonLevel = 'primary' | 'secondary' | 'tertiary'
 
-export type ButtonSize = 'extra-small' | 'small' | 'medium'
+export type ButtonSize = 'small' | 'medium' | 'large'

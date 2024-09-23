@@ -2,7 +2,7 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport :disabled="!shouldTeleport" to="body">
-    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, shadow }" class="menu-list" v-bind="$attrs">
+    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, border }" class="menu-list" v-bind="$attrs">
       <slot />
     </ul>
   </Teleport>
@@ -23,7 +23,7 @@ defineOptions({
 const props = withDefaults(
   defineProps<{
     horizontal?: boolean
-    shadow?: boolean
+    border?: boolean
     disabled?: boolean
     placement?: Options['placement']
   }>(),
@@ -88,17 +88,17 @@ const open = (event: MouseEvent) => {
   flex-direction: column;
   padding: 0.4rem;
   cursor: default;
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-primary);
   border-radius: 0.4rem;
-  background-color: var(--color-grey-600);
+  background-color: var(--color-neutral-background-primary);
   gap: 0.2rem;
 
   &.horizontal {
     flex-direction: row;
   }
 
-  &.shadow {
-    box-shadow: var(--shadow-300);
+  &.border {
+    border: 0.1rem solid var(--color-neutral-border);
   }
 }
 </style>

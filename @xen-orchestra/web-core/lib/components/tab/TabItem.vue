@@ -40,31 +40,31 @@ const classNames = computed(() => {
 /* COLOR VARIANTS */
 .tab-item {
   & {
-    --color: var(--color-grey-100);
+    --color: var(--color-neutral-txt-primary);
     --border-color: transparent;
     --background-color: transparent;
   }
 
   &:is(:hover, .hover, :focus-visible) {
-    --color: var(--color-grey-100);
-    --border-color: var(--color-purple-d20);
-    --background-color: var(--background-color-purple-20);
+    --color: var(--color-neutral-txt-primary);
+    --border-color: var(--color-normal-item-hover);
+    --background-color: var(--color-normal-background-hover);
   }
 
   &:is(:active, .pressed) {
-    --color: var(--color-grey-100);
-    --border-color: var(--color-purple-d40);
-    --background-color: var(--background-color-purple-30);
+    --color: var(--color-neutral-txt-primary);
+    --border-color: var(--color-normal-item-active);
+    --background-color: var(--color-normal-background-active);
   }
 
   &:is(.active, .selected) {
-    --color: var(--color-grey-100);
-    --border-color: var(--color-purple-base);
-    --background-color: var(--background-color-purple-10);
+    --color: var(--color-neutral-txt-primary);
+    --border-color: var(--color-normal-item-base);
+    --background-color: var(--color-normal-background-selected);
   }
 
   &:is(:disabled, .disabled) {
-    --color: var(--color-grey-400);
+    --color: var(--color-neutral-txt-secondary);
     --border-color: transparent;
     --background-color: transparent;
   }

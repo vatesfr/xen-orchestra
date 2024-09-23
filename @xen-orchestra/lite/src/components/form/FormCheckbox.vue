@@ -81,7 +81,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-grey-300);
+    color: var(--color-normal-txt-item);
   }
 }
 
@@ -91,7 +91,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .fake-checkbox {
     width: 1.25em;
-    --background-color: var(--background-color-primary);
+    --background-color: var(--color-neutral-background-primary);
   }
 
   .icon {
@@ -114,7 +114,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .fake-checkbox {
     width: 2.5em;
-    --background-color: var(--color-grey-500);
+    --background-color: var(--color-neutral-border);
   }
 
   .icon {
@@ -128,7 +128,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-grey-300);
+    color: var(--color-neutral-txt-secondary);
     transform: translateX(0);
   }
 }
@@ -143,7 +143,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 .icon {
   font-size: var(--checkbox-icon-size);
   position: absolute;
-  color: var(--color-grey-600);
+  color: var(--color-normal-txt-item);
 
   filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1)) drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
     drop-shadow(0 0.1875em 0.25em rgba(0, 0, 0, 0.08));
@@ -162,44 +162,43 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
 
-  --border-color: var(--color-grey-500);
+  --border-color: var(--color-normal-item-base);
 }
 
 .input:disabled {
   & + .fake-checkbox {
     cursor: not-allowed;
-    --background-color: var(--background-color-secondary);
-    --border-color: var(--color-grey-500);
+    --border-color: var(--color-neutral-txt-secondary);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-purple-l60);
+    --background-color: var(--color-normal-item-disabled);
   }
 }
 
 .input:not(:disabled) {
   &:hover + .fake-checkbox,
   &:focus + .fake-checkbox {
-    --border-color: var(--color-purple-l40);
+    --border-color: var(--color-normal-item-hover);
   }
 
   &:active + .fake-checkbox {
-    --border-color: var(--color-purple-l20);
+    --border-color: var(--color-normal-item-active);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-purple-base);
+    --background-color: var(--color-normal-item-base);
   }
 
   &:checked:hover + .fake-checkbox,
   &:checked:focus + .fake-checkbox {
-    --background-color: var(--color-purple-d20);
+    --background-color: var(--color-normal-item-hover);
   }
 
   &:checked:active + .fake-checkbox {
-    --background-color: var(--color-purple-d40);
+    --background-color: var(--color-normal-item-active);
   }
 }
 </style>

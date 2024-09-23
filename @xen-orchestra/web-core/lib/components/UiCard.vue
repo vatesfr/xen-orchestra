@@ -18,8 +18,8 @@ defineProps<Props>()
   gap: 2.4rem;
   padding: 2.4rem;
   flex-direction: column;
-  background-color: var(--background-color-primary);
-  border: 0.1rem solid var(--color-grey-500);
+  background-color: var(--color-neutral-background-primary);
+  border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.8rem;
 }
 

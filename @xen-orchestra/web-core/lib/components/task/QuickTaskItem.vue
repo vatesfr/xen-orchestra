@@ -9,16 +9,16 @@
       </div>
       <div class="informations">
         <div class="line-1">
-          <UiTag v-if="task.tag" color="grey">{{ task.tag }}</UiTag>
+          <UiTag v-if="task.tag" color="secondary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
-            <UiIcon :icon="faCircleNotch" />
+            <UiIcon :icon="faCircleNotch" color="current" />
             <span class="typo p4-medium">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo p4-regular">
           {{ $d(task.start, 'datetime_short') }}
           <template v-if="task.end">
-            <UiIcon :icon="faArrowRight" />
+            <UiIcon :icon="faArrowRight" color="current" />
             {{ $d(new Date(task.end), 'datetime_short') }}
           </template>
         </div>
@@ -54,7 +54,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
   display: flex;
 
   &:not(:last-child) {
-    border-bottom: 0.1rem solid var(--color-grey-500);
+    border-bottom: 0.1rem solid var(--color-neutral-border);
   }
 }
 
@@ -80,7 +80,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
 }
 
 .line-2 {
-  color: var(--color-grey-200);
+  color: var(--color-neutral-txt-secondary);
 }
 
 .subtasks {

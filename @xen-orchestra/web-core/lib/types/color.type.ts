@@ -1,5 +1,7 @@
-export type Color = 'info' | 'error' | 'danger' | 'warning' | 'success'
+export type Color = 'normal' | 'success' | 'warning' | 'danger'
 
-export type CounterColor = Color | 'black'
+export type IconColor = 'current' | 'normal' | 'success' | 'warning' | 'danger'
 
-export type TagColor = Color | 'grey'
+export type CounterColor = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'
+
+export type TagColor = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'disabled'

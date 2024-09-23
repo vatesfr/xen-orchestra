@@ -29,7 +29,7 @@ defineProps<{
 .vts-quick-task-list {
   display: flex;
   flex-direction: column;
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
   padding: 1rem 0;
 
   &:not(.sublist) {

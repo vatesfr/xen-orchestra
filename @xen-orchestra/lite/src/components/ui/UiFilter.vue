@@ -26,11 +26,11 @@ const emit = defineEmits<{
   align-items: stretch;
   justify-content: center;
   height: 3.4rem;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
   border-radius: 1.7rem;
-  background-color: var(--background-color-purple-10);
+  background-color: var(--color-normal-background-selected);
   gap: 1rem;
-  border: 1px solid var(--color-purple-base);
+  border: 1px solid var(--color-normal-txt-base);
 }
 
 .label,
@@ -54,10 +54,10 @@ const emit = defineEmits<{
   border-radius: 1.4rem;
   width: 2.8rem;
   margin: 0.2rem;
-  background-color: var(--color-purple-l40);
+  background-color: var(--color-normal-item-active);
 
   &:hover {
-    background-color: var(--color-red-l20);
+    background-color: var(----color-danger-item-hover);
   }
 }
 </style>

@@ -25,7 +25,7 @@ defineProps<{
 <style lang="postcss" scoped>
 .backup-item {
   padding: 0.8rem 0.4rem;
-  border-top: 0.1rem solid var(--color-grey-500);
+  border-top: 0.1rem solid var(--color-neutral-border);
   display: flex;
   align-items: center;
   gap: 0.2rem;

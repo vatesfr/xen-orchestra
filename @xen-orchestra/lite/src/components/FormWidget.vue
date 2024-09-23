@@ -54,14 +54,14 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
   align-items: stretch;
   overflow: hidden;
   padding: 0 0.7rem;
-  border: 1px solid var(--color-grey-500);
+  border: 1px solid var(--color-neutral-border);
   border-radius: 0.8rem;
-  background-color: var(--color-grey-600);
+  background-color: var(--color-neutral-background-primary);
   box-shadow: var(--shadow-100);
   gap: 0.1rem;
 
   &:focus-within {
-    outline: 1px solid var(--color-purple-l40);
+    outline: 1px solid var(--color-normal-item-active);
   }
 }
 
@@ -71,7 +71,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
 }
 
 .form-widget:hover .widget {
-  border-color: var(--color-purple-l60);
+  border-color: var(--color-normal-item-hover);
 }
 
 .element {
@@ -93,8 +93,8 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
   font-size: inherit;
   border: none;
   outline: none;
-  color: var(--color-grey-100);
-  background-color: var(--color-grey-600);
+  color: var(--color-neutral-txt-primary);
+  background-color: var(--color-neutral-background-primary);
   flex: 1;
 
   &:disabled {
@@ -134,7 +134,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
 
   &:disabled {
     cursor: not-allowed;
-    color: var(--color-grey-200);
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

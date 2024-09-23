@@ -101,12 +101,12 @@ useContext(DisabledContext, () => props.disabled)
   padding: 1rem 0;
 
   &.light {
-    color: var(--color-grey-300);
+    color: var(--color-neutral-txt-secondary);
   }
 
   &:not(.light) {
     text-transform: uppercase;
-    color: var(--color-grey-100);
+    color: var(--color-neutral-txt-primary);
   }
 }
 
@@ -128,7 +128,7 @@ useContext(DisabledContext, () => props.disabled)
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-purple-base);
+  color: var(--color-normal-txt-base);
 
   & > span {
     text-decoration: underline;
@@ -136,14 +136,14 @@ useContext(DisabledContext, () => props.disabled)
 }
 
 .warning {
-  color: var(--color-orange-base);
+  color: var(--color-warning-txt-base);
 }
 
 .error {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 
 .help {
-  color: var(--color-grey-300);
+  color: var(--color-neutral-txt-secondary);
 }
 </style>

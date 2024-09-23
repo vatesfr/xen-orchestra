@@ -61,8 +61,8 @@ const sidebarStore = useSidebarStore()
   display: flex;
   align-items: center;
   height: 5.6rem;
-  background-color: var(--background-color-secondary);
-  border-bottom: 0.1rem solid var(--color-grey-500);
+  background-color: var(--color-neutral-background-secondary);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
   flex-shrink: 0;
   gap: 1.6rem;
   padding: 0 1.6rem;
@@ -77,6 +77,6 @@ const sidebarStore = useSidebarStore()
   overflow: auto;
   display: flex;
   flex-direction: column;
-  background-color: var(--background-color-secondary);
+  background-color: var(--color-neutral-background-secondary);
 }
 </style>

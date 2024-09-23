@@ -11,6 +11,8 @@ import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
 
+import { streamStatsPrinter } from './_streamStatsPrinter.mjs'
+
 const PREFIX = '/rest/v0/'
 
 function addPrefix(suffix) {
@@ -64,12 +66,11 @@ const COMMANDS = {
     const response = await this.exec(path, { query: parseParams(rest) })
 
     if (output !== '') {
-      return pPipeline(
-        response,
+      const outputStream =
         output === '-'
           ? process.stdout
           : createWriteStream(output.endsWith('/') ? join(output, basename(path)) : output, { flags: 'wx' })
-      )
+      return pPipeline(response, streamStatsPrinter(response.headers['content-length']), outputStream)
     }
 
     const { type } = parseContentType(response)
@@ -111,30 +112,27 @@ const COMMANDS = {
 
     return await response.text()
   },
+}
 
-  async post([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'POST',
-    })
-
-    return stripPrefix(await response.text())
-  },
-
-  async put([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'PUT',
-    })
+for (const method of ['post', 'put']) {
+  COMMANDS[method] = async function ([path, ...params]) {
+    const response = await this.exec(
+      path,
+      params.length !== 0
+        ? {
+            body: JSON.stringify(parseParams(params)),
+            headers: { 'content-type': 'application/json' },
+            method,
+          }
+        : {
+            body: process.stdin,
+            headers: { 'content-type': 'application/octet-stream' },
+            method,
+          }
+    )
 
     return stripPrefix(await response.text())
-  },
+  }
 }
 
 export async function rest(args) {

@@ -19,7 +19,7 @@
       setting('namedScopedSlotContent').widget(text()).preset('Content for named scoped slot'),
     ]"
   >
-    <StoryExampleComponent v-bind="properties" v-model="defaultModel" v-model:customModel="customModel">
+    <StoryExampleComponent v-bind="properties" v-model="defaultModel" v-model:custom-model="customModel">
       {{ settings.defaultSlotContent }}
       <div>Default model value: {{ defaultModel }}</div>
       <div>Custom model value: {{ customModel }}</div>

@@ -3,7 +3,7 @@
   <RouterLink v-if="route && !disabled" :to="route" class="object-link is-link typo p3-medium">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon />
+        <UiIcon :icon color="current" />
       </slot>
     </span>
     <span v-tooltip class="content text-ellipsis">
@@ -13,7 +13,7 @@
   <span v-else :class="{ disabled }" class="object-link typo p3-medium">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon />
+        <UiIcon :icon color="current" />
       </slot>
     </span>
     <slot />
@@ -41,24 +41,24 @@ defineSlots<{
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .object-link {
-  --color: var(--color-purple-base);
-  --border-color: var(--color-purple-base);
+  --color: var(--color-normal-txt-base);
+  --border-color: var(--color-normal-txt-base);
 
   &.is-link {
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-purple-d20);
-      --border-color: var(--color-purple-d20);
+      --color: var(--color-normal-txt-hover);
+      --border-color: var(--color-normal-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-purple-d40);
-      --border-color: var(--color-purple-d40);
+      --color: var(--color-normal-txt-active);
+      --border-color: var(--color-normal-txt-active);
     }
   }
 
   &.disabled {
-    --color: var(--color-grey-400);
-    --border-color: var(--color-grey-400);
+    --color: var(--color-neutral-txt-secondary);
+    --border-color: var(--color-neutral-txt-secondary);
   }
 }
 
@@ -81,7 +81,7 @@ defineSlots<{
 }
 
 .icon {
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
   font-size: 0.8rem;
 }
 </style>

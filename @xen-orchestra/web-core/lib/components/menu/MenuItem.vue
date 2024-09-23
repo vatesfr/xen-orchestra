@@ -11,11 +11,11 @@
     >
       <slot />
     </MenuTrigger>
-    <MenuList v-else :disabled="isDisabled" shadow>
+    <MenuList v-else :disabled="isDisabled" border>
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
-          <UiIcon :fixed-width="false" :icon="submenuIcon" class="submenu-icon" />
+          <UiIcon :fixed-width="false" :icon="submenuIcon" color="current" class="submenu-icon" />
         </MenuTrigger>
       </template>
       <slot name="submenu" />
@@ -73,7 +73,7 @@ const handleClick = async () => {
 
 <style lang="postcss" scoped>
 .menu-item {
-  color: var(--color-grey-000);
+  color: var(--color-neutral-txt-primary);
 }
 
 .submenu-icon {

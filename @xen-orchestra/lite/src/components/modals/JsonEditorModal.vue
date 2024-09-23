@@ -6,7 +6,7 @@
       </template>
 
       <template #buttons>
-        <UiButton level="tertiary" @click="formatJson()">
+        <UiButton size="medium" color="normal" level="tertiary" @click="formatJson()">
           {{ $t('reformat') }}
         </UiButton>
         <ModalDeclineButton />

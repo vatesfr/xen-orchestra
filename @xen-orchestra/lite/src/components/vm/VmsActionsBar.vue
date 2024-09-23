@@ -2,7 +2,7 @@
   <MenuList
     :disabled="selectedRefs.length === 0"
     :horizontal="!isMobile"
-    :shadow="isMobile"
+    :border="isMobile"
     class="vms-actions-bar"
     placement="bottom-end"
   >
@@ -53,7 +53,7 @@ const { isMobile } = storeToRefs(useUiStore())
 <style lang="postcss" scoped>
 .vms-actions-bar {
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-grey-500);
-  background-color: var(--background-color-primary);
+  border-bottom: 1px solid var(--color-neutral-border);
+  background-color: var(--color-neutral-background-primary);
 }
 </style>

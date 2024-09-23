@@ -16,8 +16,8 @@
       Slot names, separated by comma
       <span class="slots">
         <FormInput v-model="slots" />
-        <UiButton @click="slots = 'default'">Default</UiButton>
-        <UiButton level="secondary" @click="slots = ''">Clear</UiButton>
+        <UiButton size="medium" color="normal" level="primary" @click="slots = 'default'">Default</UiButton>
+        <UiButton size="medium" color="normal" level="secondary" @click="slots = ''">Clear</UiButton>
       </span>
     </div>
 
@@ -259,7 +259,7 @@ watch(
 .warning {
   font-size: 1.6rem;
   font-weight: 600;
-  color: var(--color-orange-base);
+  color: var(--color-warning-txt-base);
 }
 
 .code-highlight {

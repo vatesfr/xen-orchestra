@@ -6,7 +6,7 @@
         <template v-if="depth > 1">
           <TreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
         </template>
-        <UiIcon :icon class="icon" />
+        <UiIcon :icon color="current" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>
@@ -31,11 +31,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 .tree-loading-item-label-placeholder {
   display: flex;
   height: 4rem;
-  background-color: var(--background-color-primary);
-}
-
-.icon {
-  color: var(--color-grey-100);
+  background-color: var(--color-neutral-background-primary);
 }
 
 .link-placeholder {
@@ -49,7 +45,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 .loader {
   flex: 1;
   animation: pulse alternate 1s infinite;
-  background-color: var(--background-color-purple-10);
+  background-color: var(--color-normal-background-selected);
 }
 
 @keyframes pulse {

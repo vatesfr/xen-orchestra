@@ -184,7 +184,7 @@ class Sr {
     }
 
     const vdiRef = await this.VDI_create({ ...vdiCreateOpts, name_label, SR: ref, virtual_size })
-    $defer.onFailure.call(this, 'callAsync', 'VDI.destroy', vdiRef)
+    $defer.onFailure.call(this, 'VDI_destroy', vdiRef)
     await this.VDI_importContent(vdiRef, stream, { format })
     return vdiRef
   }

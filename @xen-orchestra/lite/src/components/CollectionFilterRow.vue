@@ -181,7 +181,7 @@ const valueInputAfter = computed(() => (newFilter.value.builder.comparison === '
 .collection-filter-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--background-color-secondary);
+  border-bottom: 1px solid var(--color-neutral-background-secondary);
   gap: 1rem;
 
   .or {

@@ -16,7 +16,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .pool-tree-list {
-  background-color: var(--background-color-primary);
+  background-color: var(--color-neutral-background-primary);
   padding: 0.8rem;
   min-height: 100%;
 }

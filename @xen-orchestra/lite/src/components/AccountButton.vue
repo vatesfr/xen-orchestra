@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-end" shadow>
+  <MenuList placement="bottom-end" border>
     <template #trigger="{ open, isOpen }">
       <button type="button" :class="{ active: isOpen }" class="account-button" @click="open">
         <UiIcon :icon="faCircleUser" class="user-icon" />
@@ -51,14 +51,14 @@ const openSettings = () => router.push({ name: 'settings' })
   display: flex;
   align-items: center;
   padding: 1rem;
-  color: var(--color-grey-100);
+  color: var(--color-neutral-txt-primary);
   border: none;
   border-radius: 0.8rem;
-  background-color: var(--background-color-secondary);
+  background-color: var(--color-neutral-background-secondary);
   gap: 0.8rem;
 
   &:disabled {
-    color: var(--color-grey-500);
+    color: var(--color-neutral-border);
   }
 
   &:not(:disabled) {
@@ -67,12 +67,12 @@ const openSettings = () => router.push({ name: 'settings' })
     &:hover,
     &:active,
     &.active {
-      background-color: var(--background-color-primary);
+      background-color: var(--color-neutral-background-primary);
     }
 
     &:active,
     &.active {
-      color: var(--color-purple-base);
+      color: var(--color-normal-txt-base);
     }
   }
 }
@@ -86,6 +86,6 @@ const openSettings = () => router.push({ name: 'settings' })
 }
 
 .menu-item-logout {
-  color: var(--color-red-base);
+  color: var(--color-danger-txt-base);
 }
 </style>

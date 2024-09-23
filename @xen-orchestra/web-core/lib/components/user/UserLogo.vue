@@ -17,7 +17,7 @@ withDefaults(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .user-logo {
-  --border-color: var(--color-purple-base);
+  --border-color: var(--color-normal-txt-base);
 }
 
 /* SIZE VARIANTS */
@@ -49,7 +49,7 @@ withDefaults(
   display: block;
   width: var(--size);
   height: var(--size);
-  background: var(--color-grey-100) url('../../assets/user.png') no-repeat var(--background-position) /
+  background: var(--color-neutral-txt-primary) url('../../assets/user.png') no-repeat var(--background-position) /
     var(--background-size);
   border: var(--border-size) solid var(--border-color);
   border-radius: 20rem;
