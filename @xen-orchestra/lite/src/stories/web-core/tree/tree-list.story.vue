@@ -22,7 +22,7 @@
                       </template>
                       VM {{ i }}.{{ j }}
                       <template #addons>
-                        <UiIcon v-if="j === 2" busy />
+                        <VtsIcon v-if="j === 2" busy accent="current" />
                         <ButtonIcon :icon="faEllipsis" />
                       </template>
                     </TreeItemLabel>
@@ -39,11 +39,11 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { slot } from '@/libs/story/story-param'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'

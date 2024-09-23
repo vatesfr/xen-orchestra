@@ -2,12 +2,12 @@
 <template>
   <div class="legend-title typo c3-semi-bold">
     <slot />
-    <UiIcon v-tooltip="iconTooltip ?? false" :icon color="normal" />
+    <VtsIcon v-tooltip="iconTooltip ?? false" :icon accent="brand" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 

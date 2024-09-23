@@ -13,12 +13,12 @@
       cy="50"
       r="40"
     />
-    <UiIcon :icon color="current" height="24" width="24" x="38" y="38" />
+    <VtsIcon :icon accent="current" height="24" width="24" x="38" y="38" />
   </svg>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 

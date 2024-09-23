@@ -4,7 +4,7 @@
  -->
 <template>
   <div class="dropdown-title">
-    <UiIcon :icon color="current" />
+    <VtsIcon :icon accent="current" />
     <div class="label c3 semi-bold">
       <slot />
     </div>
@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 withDefaults(

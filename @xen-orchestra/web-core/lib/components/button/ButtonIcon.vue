@@ -1,13 +1,13 @@
 <!-- v1.0 -->
 <template>
   <button :class="[color, size, { disabled, active }]" :disabled class="button-icon" type="button">
-    <UiIcon :icon color="current" />
+    <VtsIcon :icon accent="current" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'

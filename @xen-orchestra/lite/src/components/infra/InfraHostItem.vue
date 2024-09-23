@@ -3,7 +3,7 @@
     <TreeItemLabel :icon="faServer" :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
+        <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
         <VtsCounter
           v-if="isReady"
           v-tooltip="$t('running-vm', { count: vmCount })"
@@ -29,7 +29,7 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCounter from '@core/components/counter/VtsCounter.vue'
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'

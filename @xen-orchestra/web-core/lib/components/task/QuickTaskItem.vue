@@ -11,14 +11,14 @@
         <div class="line-1">
           <UiTag v-if="task.tag" color="secondary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
-            <UiIcon :icon="faCircleNotch" color="current" />
+            <VtsIcon :icon="faCircleNotch" accent="current" />
             <span class="typo p4-medium">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo p4-regular">
           {{ $d(task.start, 'datetime_short') }}
           <template v-if="task.end">
-            <UiIcon :icon="faArrowRight" color="current" />
+            <VtsIcon :icon="faArrowRight" accent="current" />
             {{ $d(new Date(task.end), 'datetime_short') }}
           </template>
         </div>
@@ -30,7 +30,7 @@
 
 <script lang="ts" setup>
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import QuickTaskList from '@core/components/task/QuickTaskList.vue'
 import UiTag from '@core/components/UiTag.vue'
 import type { Task } from '@core/types/task.type'

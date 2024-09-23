@@ -10,7 +10,7 @@
         />
       </template>
       <template #addons>
-        <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
+        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
         <VtsCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
@@ -36,7 +36,7 @@ import type { HostBranch } from '@/types/tree.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'

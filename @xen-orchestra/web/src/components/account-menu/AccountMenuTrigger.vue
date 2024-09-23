@@ -6,12 +6,12 @@
     type="button"
   >
     <UserLogo class="logo" size="medium" />
-    <UiIcon :icon="faAngleDown" class="icon" color="normal" />
+    <VtsIcon :icon="faAngleDown" class="icon" accent="brand" />
   </button>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UserLogo from '@core/components/user/UserLogo.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'

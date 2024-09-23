@@ -1,20 +1,20 @@
 <!-- WIP -->
 <template>
   <div class="ui-input">
-    <UiIcon :icon color="current" class="before" />
+    <VtsIcon :icon accent="current" class="before" />
     <input :id v-model.trim="modelValue" class="typo p1-regular input" type="search" v-bind="$attrs" />
-    <UiIcon
+    <VtsIcon
       v-if="!$attrs.disabled && modelValue"
       :icon="faXmark"
       class="after"
-      color="normal"
+      accent="brand"
       @click="modelValue = ''"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { uniqueId } from '@core/utils/unique-id.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'

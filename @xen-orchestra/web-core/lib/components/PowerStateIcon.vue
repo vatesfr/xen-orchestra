@@ -1,10 +1,10 @@
 <!-- v1.0 -->
 <template>
-  <UiIcon :class="className" color="current" :icon class="power-state-icon" />
+  <VtsIcon :class="className" accent="current" :icon class="power-state-icon" />
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { POWER_STATE } from '@core/types/power-state.type'
 import { faMoon, faPause, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

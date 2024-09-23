@@ -1,14 +1,14 @@
 <!-- v1.0 -->
 <template>
   <button :class="className" :disabled="busy || isDisabled" class="ui-button" type="button">
-    <UiIcon :busy :icon="leftIcon" color="current" class="icon" fixed-width />
+    <VtsIcon :busy :icon="leftIcon" accent="current" class="icon" fixed-width />
     <slot />
-    <UiIcon :icon="rightIcon" color="current" class="icon" fixed-width />
+    <VtsIcon :icon="rightIcon" accent="current" class="icon" fixed-width />
   </button>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import type { ButtonLevel, ButtonSize } from '@core/types/button.type'
