@@ -8,6 +8,7 @@ import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
+import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
@@ -240,15 +241,18 @@ async function _getDashboardStats(app) {
         continue
       }
 
-      const { available, size, totalBackupSize, used } = backupRepositoryInfo
+      const totalBackupSize = await Disposable.use(app.getBackupsRemoteAdapter(backupRepository), adapter =>
+        adapter.getTotalBackupSize()
+      )
+      const { available, size, used } = backupRepositoryInfo
 
       const isS3 = type === 's3'
       const target = isS3 ? s3Brsize : otherBrSize
 
-      target.backups += totalBackupSize?.onDisk ?? 0
+      target.backups += totalBackupSize.onDisk
       if (!isS3) {
         target.available += available
-        target.other += used - (totalBackupSize?.onDisk ?? 0)
+        target.other += used - totalBackupSize.onDisk
         target.total += size
         target.used += used
       }
