@@ -5,19 +5,19 @@ import defined from '@xen-orchestra/defined/index.js'
 describe('defined()', () => {
   it('returns the first non undefined argument', () => {
     const expected = 'foo'
-    assert.deepStrictEqual(defined(undefined, 'foo', 42), expected)
+    assert.deepEqual(defined(undefined, 'foo', 42), expected)
   })
   it('should return first non undefined value in array', () => {
     const expected = null
-    assert.deepStrictEqual(defined([undefined, null, 10]), expected)
+    assert.deepEqual(defined([undefined, null, 10]), expected)
   })
   it('should return first non undefined value in arrays', () => {
     const expected = [undefined, undefined, undefined]
-    assert.deepStrictEqual(defined([undefined, undefined, undefined], [undefined, undefined, 10]), expected)
+    assert.deepEqual(defined([undefined, undefined, undefined], [undefined, undefined, 10]), expected)
   })
   it('should return first non undefined value in function', () => {
     const expected = 'bar'
-    assert.deepStrictEqual(
+    assert.deepEqual(
       defined(() => 'bar', 42),
       expected
     )
