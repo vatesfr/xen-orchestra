@@ -189,41 +189,45 @@ const NewMirrorBackup = decorate([
         }
 
         const settings = { ...state.settings }
-        const schedules = { ...state.schedules }
-        await Promise.all([
-          ...map(props.schedules, ({ id }) => {
+        await Promise.all(
+          map(props.schedules, async ({ id }) => {
             const schedule = state.schedules[id]
+
             if (schedule === undefined) {
               return deleteSchedule(id)
-            }
-
-            return editSchedule({
-              id,
-              cron: schedule.cron,
-              name: schedule.name,
-              timezone: schedule.timezone,
-              enabled: schedule.enabled,
-            })
-          }),
-          ...map(state.schedules, async schedule => {
-            if (props.schedules[schedule.id] === undefined) {
-              const newSchedule = await createSchedule(props.job.id, {
+            } else {
+              return editSchedule({
+                id,
                 cron: schedule.cron,
                 name: schedule.name,
                 timezone: schedule.timezone,
                 enabled: schedule.enabled,
               })
-              settings[newSchedule.id] = settings[schedule.id]
-              schedules[newSchedule.id] = newSchedule
-              delete settings[schedule.id]
-              delete schedules[schedule.id]
             }
-          }),
-        ])
+          })
+        )
+
+        await Promise.all(
+          map(state.schedules, async (schedule, scheduleId) => {
+            if (!props.schedules[scheduleId]) {
+              const { id } = await createSchedule(props.job.id, {
+                cron: schedule.cron,
+                name: schedule.name,
+                timezone: schedule.timezone,
+                enabled: schedule.enabled,
+              })
+
+              settings[id] = settings[scheduleId]
+              delete settings[scheduleId]
+            }
+          })
+        )
+
+        const { schedules, ...jobProps } = normalize({ ...state, settings, isIncremental: state.isIncremental })
 
         await editMirrorBackupJob({
           id: props.job.id,
-          ...normalize({ ...state, settings, schedules, isIncremental: state.isIncremental }),
+          ...jobProps,
         })
       },
       resetMirrorBackup: () => (_, props) => getInitialState(props),

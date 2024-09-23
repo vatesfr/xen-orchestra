@@ -113,10 +113,6 @@ editJob.params = {
   remotes: {
     type: 'object',
   },
-  schedules: {
-    type: 'object',
-    optional: true,
-  },
   filter: MIRROR_BACKUP_FILTER,
   settings: SCHEMA_SETTINGS,
 }
