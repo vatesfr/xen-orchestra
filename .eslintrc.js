@@ -39,6 +39,12 @@ module.exports = {
             version: '>=16',
           },
         ],
+        'n/no-unsupported-features/es-builtins': [
+          'error',
+          {
+            version: '>=16',
+          },
+        ],
         'n/no-unsupported-features/es-syntax': [
           'error',
           {
