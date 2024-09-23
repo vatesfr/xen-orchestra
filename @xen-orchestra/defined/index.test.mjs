@@ -1,29 +1,30 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import defined from '@xen-orchestra/defined/index.js'
+import defined_ from '@xen-orchestra/defined/index.js'
 
-describe('defined()', () => {
-  it('returns the first non undefined argument', () => {
-    const expected = 'foo'
-    assert.deepEqual(defined(undefined, 'foo', 42), expected)
+// for each test, use the flat syntax and the array syntax
+for (const [title, defined] of Object.entries({
+  'defined(...values)': defined_,
+  'defined([ ...values ])': (...args) => defined_(args),
+})) {
+  describe(title, () => {
+    it('returns the first non undefined value', () => {
+      assert.deepEqual(defined(undefined, 'foo', 42), 'foo')
+    })
+
+    it('returns undefined if only undefined values', () => {
+      assert.equal(defined(undefined, undefined), undefined)
+    })
+
+    it('resolves functions with `get(fn)`', () => {
+      const o = { foo: undefined, baz: 'baz' }
+      assert.deepEqual(
+        defined(
+          () => o.foo.bar,
+          () => o.baz
+        ),
+        'baz'
+      )
+    })
   })
-  it('returns first non undefined value in array', () => {
-    const expected = null
-    assert.deepEqual(defined([undefined, null, 10]), expected)
-  })
-  it('returns first non undefined value in arrays', () => {
-    const expected = [undefined, undefined, undefined]
-    assert.deepEqual(defined([undefined, undefined, undefined], [undefined, undefined, 10]), expected)
-  })
-  it('returns first non undefined value in function', () => {
-    const expected = 'bar'
-    assert.deepEqual(
-      defined(() => 'bar', 42),
-      expected
-    )
-  })
-  it('returns undefined if only undefined values', () => {
-    const expected = undefined
-    assert.equal(defined(undefined, undefined), expected)
-  })
-})
+}
