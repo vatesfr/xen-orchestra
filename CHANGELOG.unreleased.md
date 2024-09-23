@@ -22,6 +22,12 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Hub/Recipes/Kubernetes] Properly sort versions in selector
+- [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
+- [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
+- [REST API] Fix VDI import in VHD format when `Content-Length` is not provided
+- [Backup/New] A second `schedules` property was created when editing a mirror backup job (PR [#8001](https://github.com/vatesfr/xen-orchestra/pull/8001))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -42,5 +48,7 @@
 - @xen-orchestra/web-core minor
 - xen-api minor
 - xo-cli minor
-- xo-server minor
+- xo-server patch
+- xo-web patch
+
 <!--packages-end-->
