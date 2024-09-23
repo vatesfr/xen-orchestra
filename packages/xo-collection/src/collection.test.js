@@ -4,7 +4,7 @@ import forEach from 'lodash/forEach.js'
 import assert from 'assert'
 import { test, describe, beforeEach } from 'node:test'
 
-import { Collection, DuplicateItem, NoSuchItem } from './collection'
+import { Collection, DuplicateItem, NoSuchItem } from 'xo-collection'
 
 // ===================================================================
 
