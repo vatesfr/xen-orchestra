@@ -160,6 +160,9 @@ level = 'info'
 
 [logs.transport.console]
 
+[netbox]
+checkNetboxVersion = true
+
 [plugins]
 lookupPaths = ['./node_modules', '../', '/usr/local/lib/node_modules']
 
