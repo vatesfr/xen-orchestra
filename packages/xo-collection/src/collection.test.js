@@ -1,8 +1,7 @@
-import fromEvent from 'promise-toolbox/fromEvent'
-import forEach from 'lodash/forEach.js'
-
 import assert from 'assert'
-import { test, describe, beforeEach } from 'node:test'
+import { beforeEach, describe, test } from 'node:test'
+import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
 
 import { Collection, DuplicateItem, NoSuchItem } from 'xo-collection'
 

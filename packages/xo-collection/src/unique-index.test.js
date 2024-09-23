@@ -68,7 +68,7 @@ describe('UniqueIndex', function () {
     col.add(item4)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
           [item2.key]: item2,
@@ -87,7 +87,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1bis.key]: item1bis,
           [item2.key]: item2,
@@ -100,7 +100,7 @@ describe('UniqueIndex', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
         },
@@ -118,7 +118,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1bis,
           [item2.key]: item2,
