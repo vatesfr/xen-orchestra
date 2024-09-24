@@ -13,7 +13,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
-import { connectStore } from 'utils'
+import { connectStore, formatSpeed } from 'utils'
 import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
@@ -41,7 +41,6 @@ import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { destructPattern } from '../utils'
 import { REPORT_WHEN_LABELS } from '../new/_reportWhen'
 import { LogStatus } from '../../logs/backup-ng'
-import { formatSpeed } from '../../../common/utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
 const Li = props => (
