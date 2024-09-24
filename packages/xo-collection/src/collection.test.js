@@ -22,24 +22,24 @@ function waitTicks(n = 2) {
   })
 }
 
-describe('Collection', () => {
+describe('Collection', function () {
   let col
-  beforeEach(() => {
+  beforeEach(function () {
     col = new Collection()
     col.add('bar', 0)
 
     return waitTicks()
   })
 
-  it('is iterable', () => {
+  it('is iterable', function () {
     const iterator = col[Symbol.iterator]()
 
     assert.deepEqual(iterator.next(), { done: false, value: ['bar', 0] })
     assert.deepEqual(iterator.next(), { done: true, value: undefined })
   })
 
-  describe('#keys()', () => {
-    it('returns an iterator over the keys', () => {
+  describe('#keys()', function () {
+    it('returns an iterator over the keys', function () {
       const iterator = col.keys()
 
       assert.deepEqual(iterator.next(), { done: false, value: 'bar' })
@@ -47,8 +47,8 @@ describe('Collection', () => {
     })
   })
 
-  describe('#values()', () => {
-    it('returns an iterator over the values', () => {
+  describe('#values()', function () {
+    it('returns an iterator over the values', function () {
       const iterator = col.values()
 
       assert.deepEqual(iterator.next(), { done: false, value: 0 })
@@ -56,10 +56,10 @@ describe('Collection', () => {
     })
   })
 
-  describe('#add()', () => {
-    it('adds item to the collection', () => {
+  describe('#add()', function () {
+    it('adds item to the collection', function () {
       let called = false
-      col.on('add', () => {
+      col.on('add', function () {
         called = true
       })
 
@@ -76,11 +76,11 @@ describe('Collection', () => {
       })
     })
 
-    it('throws an exception if the item already exists', () => {
+    it('throws an exception if the item already exists', function () {
       assert.throws(() => col.add('bar', true), DuplicateItem)
     })
 
-    it('accepts an object with an id property', () => {
+    it('accepts an object with an id property', function () {
       const foo = { id: 'foo' }
 
       col.add(foo)
@@ -89,10 +89,10 @@ describe('Collection', () => {
     })
   })
 
-  describe('#update()', () => {
-    it('updates an item of the collection', () => {
+  describe('#update()', function () {
+    it('updates an item of the collection', function () {
       let called = false
-      col.on('update', () => {
+      col.on('update', function () {
         called = true
       })
 
@@ -111,11 +111,11 @@ describe('Collection', () => {
       })
     })
 
-    it('throws an exception if the item does not exist', () => {
+    it('throws an exception if the item does not exist', function () {
       assert.throws(() => col.update('baz', true), NoSuchItem)
     })
 
-    it('accepts an object with an id property', () => {
+    it('accepts an object with an id property', function () {
       const bar = { id: 'bar' }
 
       col.update(bar)
@@ -124,10 +124,10 @@ describe('Collection', () => {
     })
   })
 
-  describe('#remove()', () => {
-    it('removes an item of the collection', () => {
+  describe('#remove()', function () {
+    it('removes an item of the collection', function () {
       let called = false
-      col.on('remove', () => {
+      col.on('remove', function () {
         called = true
       })
 
@@ -145,21 +145,21 @@ describe('Collection', () => {
       })
     })
 
-    it('throws an exception if the item does not exist', () => {
+    it('throws an exception if the item does not exist', function () {
       assert.throws(() => col.remove('baz', true), NoSuchItem)
     })
 
-    it('accepts an object with an id property', () => {
+    it('accepts an object with an id property', function () {
       const bar = { id: 'bar' }
       col.remove(bar)
       assert.equal(col.has(bar.id), false)
     })
   })
 
-  describe('#set()', () => {
-    it('adds item if collection has no key', () => {
+  describe('#set()', function () {
+    it('adds item if collection has no key', function () {
       let called = false
-      col.on('add', () => {
+      col.on('add', function () {
         called = true
       })
 
@@ -176,9 +176,9 @@ describe('Collection', () => {
       })
     })
 
-    it('updates item if collection has key', () => {
+    it('updates item if collection has key', function () {
       let called = false
-      col.on('update', () => {
+      col.on('update', function () {
         called = true
       })
 
@@ -195,7 +195,7 @@ describe('Collection', () => {
       })
     })
 
-    it('accepts an object with an id property', () => {
+    it('accepts an object with an id property', function () {
       const foo = { id: 'foo' }
 
       col.set(foo)
@@ -204,8 +204,8 @@ describe('Collection', () => {
     })
   })
 
-  describe('#unset()', () => {
-    it('removes an existing item', () => {
+  describe('#unset()', function () {
+    it('removes an existing item', function () {
       col.unset('bar')
       assert.equal(col.has('bar'), false)
 
@@ -215,11 +215,11 @@ describe('Collection', () => {
       })
     })
 
-    it('does not throw if the item does not exist', () => {
+    it('does not throw if the item does not exist', function () {
       col.unset('foo')
     })
 
-    it('accepts an object with an id property', () => {
+    it('accepts an object with an id property', function () {
       col.unset({ id: 'bar' })
       assert.equal(col.has('bar'), false)
 
@@ -230,12 +230,12 @@ describe('Collection', () => {
     })
   })
 
-  describe('#touch()', () => {
-    it('can be used to signal an indirect update', () => {
+  describe('#touch()', function () {
+    it('can be used to signal an indirect update', function () {
       const foo = { id: 'foo' }
       col.add(foo)
 
-      return waitTicks().then(() => {
+      return waitTicks().then(function () {
         col.touch(foo)
 
         return fromEvent(col, 'update', items => {
@@ -246,8 +246,8 @@ describe('Collection', () => {
     })
   })
 
-  describe('#clear()', () => {
-    it('removes all items from the collection', () => {
+  describe('#clear()', function () {
+    it('removes all items from the collection', function () {
       col.clear()
 
       assert.equal(col.size, 0)
@@ -259,7 +259,7 @@ describe('Collection', () => {
     })
   })
 
-  describe('deduplicates events', () => {
+  describe('deduplicates events', function () {
     forEach(
       {
         'add & update → add': [
@@ -335,7 +335,7 @@ describe('Collection', () => {
             col.on(event, spies[event].fn.bind(spies[event]))
           })
 
-          return waitTicks().then(() => {
+          return waitTicks().then(function () {
             // console.log("Captured events:", spies);
             forEach(spies, (spy, event) => {
               const items = [results[event]]
