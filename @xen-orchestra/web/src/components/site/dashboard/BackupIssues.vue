@@ -2,7 +2,7 @@
   <UiCard>
     <CardTitle>
       {{ $t('backup-issues') }}
-      <UiCounter :value="backupIssues.length" color="danger" size="medium" />
+      <VtsCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
       <template #description>{{ $t('in-last-three-jobs') }}</template>
     </CardTitle>
     <LoadingHero :disabled="isReady" type="card">
@@ -19,10 +19,10 @@ import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
 import { convertBackupIssueToCore } from '@/utils/convert-backup-issue-to-core.util'
 import BackupItem from '@core/components/backup-item/BackupItem.vue'
 import CardTitle from '@core/components/card/CardTitle.vue'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
 import NoDataHero from '@core/components/state-hero/NoDataHero.vue'
 import UiCard from '@core/components/UiCard.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import { computed } from 'vue'
 
 const { backupIssues, isReady } = useDashboardStore().subscribe()

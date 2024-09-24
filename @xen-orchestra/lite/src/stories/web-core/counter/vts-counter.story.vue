@@ -3,21 +3,21 @@
     v-slot="{ properties }"
     :params="[
       prop('value').type(`'number' | 'string'`).str().required().preset(2).widget(),
-      prop('color')
-        .type('CounterColor')
+      prop('accent')
         .required()
-        .enum('primary', 'secondary', 'success', 'warning', 'danger', 'disabled')
-        .preset('primary')
+        .enum('brand', 'neutral', 'success', 'warning', 'danger', 'muted')
+        .preset('brand')
         .widget(),
-      prop('size').type('CounterSize').enum('small', 'medium').widget(),
+      prop('size').enum('small', 'medium').required().preset('small').widget(),
+      prop('variant').enum('primary', 'secondary').required().preset('primary').widget(),
     ]"
   >
-    <UiCounter v-bind="properties" />
+    <VtsCounter v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
-import UiCounter from '@core/components/UiCounter.vue'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 </script>

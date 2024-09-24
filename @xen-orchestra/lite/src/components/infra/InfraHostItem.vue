@@ -4,7 +4,14 @@
       {{ host.name_label || '(Host)' }}
       <template #addons>
         <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
-        <UiCounter v-if="isReady" v-tooltip="$t('running-vm', { count: vmCount })" :value="vmCount" color="primary" />
+        <VtsCounter
+          v-if="isReady"
+          v-tooltip="$t('running-vm', { count: vmCount })"
+          :value="vmCount"
+          accent="brand"
+          variant="secondary"
+          size="small"
+        />
       </template>
     </TreeItemLabel>
     <template #sublist>
@@ -21,11 +28,11 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
