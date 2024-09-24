@@ -96,6 +96,14 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
+  hasObject(key, type) {
+    try {
+      return this.getObject(key, type) !== undefined
+    } catch (_) {
+      return false
+    }
+  }
+
   getObjects({ filter, limit } = {}) {
     const { all } = this._objects
 

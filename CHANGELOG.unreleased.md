@@ -16,7 +16,7 @@
 - [Netbox] Support version 4.1 [#7966](https://github.com/vatesfr/xen-orchestra/issues/7966) (PR [#8002](https://github.com/vatesfr/xen-orchestra/pull/8002))
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
-- [REST API] Add S3 backup repository information in the `/rest/v0/dashboard` endpoint (PR [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978))
+- [REST API] Add S3 backup repository and VMs protection information in the `/rest/v0/dashboard` endpoint (PRs [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978), [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964))
 - [Backups] Display more informations in the _Notes_ column of the backup page (PR [#7977](https://github.com/vatesfr/xen-orchestra/pull/7977))
 
 ### Bug fixes
@@ -51,7 +51,7 @@
 - @xen-orchestra/xapi patch
 - xen-api patch
 - xo-cli minor
-- xo-server patch
+- xo-server minor
 - xo-server-netbox minor
 - xo-web minor
 

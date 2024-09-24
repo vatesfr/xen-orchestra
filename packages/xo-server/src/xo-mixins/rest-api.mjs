@@ -2,6 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
 import { every } from '@vates/predicates'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { ifDef } from '@xen-orchestra/defined'
 import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
@@ -19,8 +20,9 @@ import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { parse } from 'xo-remote-parser'
 
-import { getUserPublicProperties, isSrWritable } from '../utils.mjs'
+import { getUserPublicProperties, isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
+import { createPredicate } from 'value-matcher'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX = /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
@@ -176,6 +178,9 @@ async function _getDashboardStats(app) {
   const hosts = []
   const writableSrs = []
   const alarms = []
+  const nonReplicaVms = []
+  const vmIdsProtected = new Set()
+  const vmIdsUnprotected = new Set()
 
   for (const obj of app.objects.values()) {
     if (obj.type === 'host') {
@@ -194,6 +199,10 @@ async function _getDashboardStats(app) {
 
     if (obj.type === 'message' && obj.name === 'ALARM') {
       alarms.push(obj)
+    }
+
+    if (obj.type === 'VM' && !isReplicaVm(obj)) {
+      nonReplicaVms.push(obj)
     }
   }
 
@@ -300,6 +309,45 @@ async function _getDashboardStats(app) {
     return false
   }
 
+  function _extractVmIdsFromBackupJob(job) {
+    let vmIds
+    try {
+      vmIds = extractIdsFromSimplePattern(job.vms).filter(vmId => app.hasObject(vmId, 'VM'))
+    } catch (_) {
+      const predicate = createPredicate(job.vms)
+      vmIds = nonReplicaVms.filter(predicate).map(vm => vm.id)
+    }
+    return vmIds
+  }
+
+  function _updateVmProtection(vmId, isProtected) {
+    if (vmIdsProtected.has(vmId)) {
+      return
+    }
+
+    const vm = app.getObject(vmId, 'VM')
+    if (vmContainsNoBakTag(vm)) {
+      return
+    }
+
+    if (isProtected) {
+      vmIdsProtected.add(vmId)
+      vmIdsUnprotected.delete(vmId)
+    } else {
+      vmIdsUnprotected.add(vmId)
+    }
+  }
+
+  function _processVmsProtection(job, isProtected) {
+    if (job.type !== 'backup') {
+      return
+    }
+
+    _extractVmIdsFromBackupJob(job).forEach(vmId => {
+      _updateVmProtection(vmId, isProtected)
+    })
+  }
+
   try {
     const [logs, jobs] = await Promise.all([
       app.getBackupNgLogsSorted({
@@ -319,41 +367,48 @@ async function _getDashboardStats(app) {
 
     for (const job of jobs) {
       if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+        _processVmsProtection(job, false)
         disabledJobs++
         continue
       }
 
-      const jobLogs = logsByJob[job.id]?.slice(-3)
+      // Get only the last 3 runs
+      const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
       if (jobLogs === undefined || jobLogs.length === 0) {
+        _processVmsProtection(job, false)
         continue
       }
 
-      for (let i = 0; i < jobLogs.length; i++) {
-        const { status } = jobLogs[i]
-        const isLastElement = i === jobLogs.length - 1
+      if (job.type === 'backup') {
+        const lastJobLog = jobLogs[0]
+        const { tasks, status } = lastJobLog
 
-        if (status !== 'success') {
-          if (status === 'failure' || status === 'interrupted') {
-            failedJobs++
-          } else if (status === 'skipped') {
-            skippedJobs++
-          }
-
-          backupJobIssues.push({
-            logs: jobLogs.map(log => log.status),
-            name: job.name,
-            type: job.type,
-            uuid: job.id,
+        if (tasks === undefined) {
+          _processVmsProtection(job, status === 'success')
+        } else {
+          tasks.forEach(task => {
+            _updateVmProtection(task.data.id, task.status === 'success')
           })
-
-          break
-        }
-
-        if (isLastElement) {
-          successfulJobs++
         }
       }
+
+      const failedLog = jobLogs.find(log => log.status !== 'success')
+      if (failedLog !== undefined) {
+        const { status } = failedLog
+        if (status === 'failure' || status === 'interrupted') {
+          failedJobs++
+        } else if (status === 'skipped') {
+          skippedJobs++
+        }
+        backupJobIssues.push({ logs: jobLogs.map(log => log.status), name: job.name, type: job.type, uuid: job.id })
+      } else {
+        successfulJobs++
+      }
     }
+
+    const nVmsProtected = vmIdsProtected.size
+    const nVmsUnprotected = vmIdsUnprotected.size
+    const nVmsNotInJob = nonReplicaVms.length - (nVmsProtected + nVmsUnprotected)
 
     dashboard.backups = {
       jobs: {
@@ -364,6 +419,11 @@ async function _getDashboardStats(app) {
         total: jobs.length,
       },
       issues: backupJobIssues,
+      vmsProtection: {
+        protected: nVmsProtected,
+        unprotected: nVmsUnprotected,
+        notInJob: nVmsNotInJob,
+      },
     }
   } catch (error) {
     console.error(error)
