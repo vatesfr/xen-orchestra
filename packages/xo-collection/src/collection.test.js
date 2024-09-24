@@ -1,9 +1,9 @@
-/* eslint-env jest */
-
-import fromEvent from 'promise-toolbox/fromEvent'
+import { beforeEach, describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
 
-import { Collection, DuplicateItem, NoSuchItem } from './collection'
+import { Collection, DuplicateItem, NoSuchItem } from 'xo-collection'
 
 // ===================================================================
 
@@ -34,16 +34,16 @@ describe('Collection', function () {
   it('is iterable', function () {
     const iterator = col[Symbol.iterator]()
 
-    expect(iterator.next()).toEqual({ done: false, value: ['bar', 0] })
-    expect(iterator.next()).toEqual({ done: true, value: undefined })
+    assert.deepEqual(iterator.next(), { done: false, value: ['bar', 0] })
+    assert.deepEqual(iterator.next(), { done: true, value: undefined })
   })
 
   describe('#keys()', function () {
     it('returns an iterator over the keys', function () {
       const iterator = col.keys()
 
-      expect(iterator.next()).toEqual({ done: false, value: 'bar' })
-      expect(iterator.next()).toEqual({ done: true, value: undefined })
+      assert.deepEqual(iterator.next(), { done: false, value: 'bar' })
+      assert.deepEqual(iterator.next(), { done: true, value: undefined })
     })
   })
 
@@ -51,32 +51,33 @@ describe('Collection', function () {
     it('returns an iterator over the values', function () {
       const iterator = col.values()
 
-      expect(iterator.next()).toEqual({ done: false, value: 0 })
-      expect(iterator.next()).toEqual({ done: true, value: undefined })
+      assert.deepEqual(iterator.next(), { done: false, value: 0 })
+      assert.deepEqual(iterator.next(), { done: true, value: undefined })
     })
   })
 
   describe('#add()', function () {
     it('adds item to the collection', function () {
-      const spy = jest.fn()
-      col.on('add', spy)
+      let called = false
+      col.on('add', function () {
+        called = true
+      })
 
       col.add('foo', true)
-
-      expect(col.get('foo')).toBe(true)
+      assert.equal(col.get('foo'), true)
 
       // No sync events.
-      expect(spy).not.toHaveBeenCalled()
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'add').then(function (added) {
-        expect(Object.keys(added)).toEqual(['foo'])
-        expect(added.foo).toBe(true)
+        assert.deepEqual(Object.keys(added), ['foo'])
+        assert.equal(added.foo, true)
       })
     })
 
     it('throws an exception if the item already exists', function () {
-      expect(() => col.add('bar', true)).toThrowError(DuplicateItem)
+      assert.throws(() => col.add('bar', true), DuplicateItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -84,32 +85,34 @@ describe('Collection', function () {
 
       col.add(foo)
 
-      expect(col.get(foo.id)).toBe(foo)
+      assert.equal(col.get(foo.id), foo)
     })
   })
 
   describe('#update()', function () {
     it('updates an item of the collection', function () {
-      const spy = jest.fn()
-      col.on('update', spy)
+      let called = false
+      col.on('update', function () {
+        called = true
+      })
 
       col.update('bar', 1)
-      expect(col.get('bar')).toBe(1) // Will be forgotten by de-duplication
+      assert.equal(col.get('bar'), 1) // Will be forgotten by de-duplication
       col.update('bar', 2)
-      expect(col.get('bar')).toBe(2)
+      assert.equal(col.get('bar'), 2)
 
       // No sync events.
-      expect(spy).not.toHaveBeenCalled()
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'update').then(function (updated) {
-        expect(Object.keys(updated)).toEqual(['bar'])
-        expect(updated.bar).toBe(2)
+        assert.deepEqual(Object.keys(updated), ['bar'])
+        assert.equal(updated.bar, 2)
       })
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => col.update('baz', true)).toThrowError(NoSuchItem)
+      assert.throws(() => col.update('baz', true), NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -117,76 +120,78 @@ describe('Collection', function () {
 
       col.update(bar)
 
-      expect(col.get(bar.id)).toBe(bar)
+      assert.equal(col.get(bar.id), bar)
     })
   })
 
   describe('#remove()', function () {
     it('removes an item of the collection', function () {
-      const spy = jest.fn()
-      col.on('remove', spy)
+      let called = false
+      col.on('remove', function () {
+        called = true
+      })
 
       col.update('bar', 1)
-      expect(col.get('bar')).toBe(1) // Will be forgotten by de-duplication
+      assert.equal(col.get('bar'), 1) // Will be forgotten by de-duplication
       col.remove('bar')
 
       // No sync events.
-      expect(spy).not.toHaveBeenCalled()
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'remove').then(function (removed) {
-        expect(Object.keys(removed)).toEqual(['bar'])
-        expect(removed.bar).toBeUndefined()
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => col.remove('baz', true)).toThrowError(NoSuchItem)
+      assert.throws(() => col.remove('baz', true), NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {
       const bar = { id: 'bar' }
-
       col.remove(bar)
-
-      expect(col.has(bar.id)).toBe(false)
+      assert.equal(col.has(bar.id), false)
     })
   })
 
   describe('#set()', function () {
-    it('adds item if collection has not key', function () {
-      const spy = jest.fn()
-      col.on('add', spy)
+    it('adds item if collection has no key', function () {
+      let called = false
+      col.on('add', function () {
+        called = true
+      })
 
       col.set('foo', true)
-
-      expect(col.get('foo')).toBe(true)
+      assert.equal(col.get('foo'), true)
 
       // No sync events.
-      expect(spy).not.toHaveBeenCalled()
+      assert.equal(called, false)
 
       // Async events.
       return fromEvent(col, 'add').then(function (added) {
-        expect(Object.keys(added)).toEqual(['foo'])
-        expect(added.foo).toBe(true)
+        assert.deepEqual(Object.keys(added), ['foo'])
+        assert.equal(added.foo, true)
       })
     })
 
     it('updates item if collection has key', function () {
-      const spy = jest.fn()
-      col.on('udpate', spy)
+      let called = false
+      col.on('update', function () {
+        called = true
+      })
 
       col.set('bar', 1)
-
-      expect(col.get('bar')).toBe(1)
+      assert.equal(col.get('bar'), 1)
 
       // No sync events.
-      expect(spy).not.toHaveBeenCalled()
+      assert.equal(called, false)
 
       // Async events.
       return fromEvent(col, 'update').then(function (updated) {
-        expect(Object.keys(updated)).toEqual(['bar'])
-        expect(updated.bar).toBe(1)
+        assert.deepEqual(Object.keys(updated), ['bar'])
+        assert.equal(updated.bar, 1)
       })
     })
 
@@ -195,63 +200,61 @@ describe('Collection', function () {
 
       col.set(foo)
 
-      expect(col.get(foo.id)).toBe(foo)
+      assert.equal(col.get(foo.id), foo)
     })
   })
 
   describe('#unset()', function () {
     it('removes an existing item', function () {
       col.unset('bar')
-
-      expect(col.has('bar')).toBe(false)
+      assert.equal(col.has('bar'), false)
 
       return fromEvent(col, 'remove').then(function (removed) {
-        expect(Object.keys(removed)).toEqual(['bar'])
-        expect(removed.bar).toBeUndefined()
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
 
-    it('does not throw if the item does not exists', function () {
+    it('does not throw if the item does not exist', function () {
       col.unset('foo')
     })
 
     it('accepts an object with an id property', function () {
       col.unset({ id: 'bar' })
-
-      expect(col.has('bar')).toBe(false)
+      assert.equal(col.has('bar'), false)
 
       return fromEvent(col, 'remove').then(function (removed) {
-        expect(Object.keys(removed)).toEqual(['bar'])
-        expect(removed.bar).toBeUndefined()
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
   })
 
-  describe('touch()', function () {
+  describe('#touch()', function () {
     it('can be used to signal an indirect update', function () {
       const foo = { id: 'foo' }
       col.add(foo)
 
-      return waitTicks().then(() => {
+      return waitTicks().then(function () {
         col.touch(foo)
 
         return fromEvent(col, 'update', items => {
-          expect(Object.keys(items)).toEqual(['foo'])
-          expect(items.foo).toBe(foo)
+          assert.deepEqual(Object.keys(items), ['foo'])
+          assert.equal(items.foo, foo)
         })
       })
     })
   })
 
-  describe('clear()', function () {
+  describe('#clear()', function () {
     it('removes all items from the collection', function () {
       col.clear()
 
-      expect(col.size).toBe(0)
+      assert.equal(col.size, 0)
 
       return fromEvent(col, 'remove').then(items => {
-        expect(Object.keys(items)).toEqual(['bar'])
-        expect(items.bar).toBeUndefined()
+        assert.deepEqual(Object.keys(items), ['bar'])
+        assert.equal(items.bar, undefined)
       })
     })
   })
@@ -323,16 +326,26 @@ describe('Collection', function () {
 
           const spies = Object.create(null)
           forEach(['add', 'update', 'remove'], event => {
-            col.on(event, (spies[event] = jest.fn()))
+            spies[event] = {
+              calls: [],
+              fn: function (...args) {
+                this.calls.push(...args)
+              },
+            }
+            col.on(event, spies[event].fn.bind(spies[event]))
           })
 
-          return waitTicks().then(() => {
+          return waitTicks().then(function () {
+            // console.log("Captured events:", spies);
             forEach(spies, (spy, event) => {
-              const items = results[event]
+              const items = [results[event]]
+                .map(r => Object.assign(Object.create(null), r))
+                .filter(r => Object.keys(r).length > 0)
+
               if (items) {
-                expect(spy.mock.calls).toEqual([[items]])
+                assert.deepEqual(spy.calls, items, `${event} should have been called with the correct arguments`)
               } else {
-                expect(spy).not.toHaveBeenCalled()
+                assert.equal(spy.calls.length, 0, `${event} should not have been called`)
               }
             })
           })

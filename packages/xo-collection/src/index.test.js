@@ -1,7 +1,7 @@
-/* eslint-env jest */
-
-import fromEvent from 'promise-toolbox/fromEvent'
+import { beforeEach, describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
 
 import { Collection } from './collection'
 import { Index } from './index'
@@ -57,7 +57,7 @@ describe('Index', function () {
   })
 
   it('works with existing items', function () {
-    expect(col.indexes).toEqual({
+    assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byGroup: {
         foo: {
           [item1.id]: item1,
@@ -79,7 +79,7 @@ describe('Index', function () {
     col.add(item5)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -105,7 +105,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item3.id]: item3,
@@ -123,7 +123,7 @@ describe('Index', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -135,7 +135,7 @@ describe('Index', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  it('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       group: item1.group,
@@ -145,7 +145,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1bis,
@@ -166,7 +166,7 @@ describe('Index', function () {
       return waitTicks().then(() => {
         byGroup.sweep()
 
-        expect(col.indexes).toEqual({
+        assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
           byGroup: {
             foo: {
               [item1.id]: item1,
