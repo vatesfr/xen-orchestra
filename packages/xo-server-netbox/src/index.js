@@ -16,7 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
-const SUPPORTED_VERSION = '>=2.10 <4.1'
+const SUPPORTED_VERSION = '>=2.10 <4.2'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -466,7 +466,8 @@ class Netbox {
             .map(vbdId => this.getObject(vbdId))
             .filter(vbd => !vbd.is_cd_drive)
             .map(vbd => this.getObject(vbd.VDI))
-            .reduce((total, vdi) => total + vdi.size, 0) / G
+            // Storage size unit changed from GB to MB in Netbox 4.1 (https://github.com/netbox-community/netbox/releases/tag/v4.1.0)
+            .reduce((total, vdi) => total + vdi.size, 0) / (semver.satisfies(this.#netboxVersion, '^4.1') ? M : G)
         ),
         memory: Math.floor(xoVm.memory.dynamic[1] / M),
         cluster: nbCluster.id,
