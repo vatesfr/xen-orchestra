@@ -788,7 +788,7 @@ export async function probeIscsiLuns({ host, target: targetIp, port, targetIqn, 
     luns.push({
       id: lun.LUNid.trim(),
       vendor: lun.vendor.trim(),
-      serial: lun.serial.trim(),
+      serial: lun.serial?.trim() || '',
       size: lun.size?.trim(),
       scsiId: lun.SCSIid.trim(),
     })
