@@ -180,14 +180,20 @@ async function _getDashboardStats(app) {
   const nonReplicaVms = []
   const vmIdsProtected = new Set()
   const vmIdsUnprotected = new Set()
+  const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
 
   for (const obj of app.objects.values()) {
+    if (obj.type === 'pool') {
+      resourcesOverview.nCpus += obj.cpus.cores
+    }
+
     if (obj.type === 'host') {
       hosts.push(obj)
       poolIds.add(obj.$pool)
       if (hvSupportedVersions !== undefined && !semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
         nHostsEol++
       }
+      resourcesOverview.memorySize += obj.memory.size
     }
 
     if (obj.type === 'SR') {
@@ -280,8 +286,10 @@ async function _getDashboardStats(app) {
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
   storageRepositoriesSize.other = 0 // @TODO: compute the space used by everything that is not a replicated VM
   storageRepositoriesSize.replicated = 0 // @TODO: compute the space used by replicated VMs
+  resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
+  dashboard.resourcesOverview = resourcesOverview
 
   async function _jobHasAtLeastOneScheduleEnabled(job) {
     for (const maybeScheduleId in job.settings) {
