@@ -18,6 +18,7 @@ import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
 import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
+import reduce from 'lodash/reduce.js'
 import tar from 'tar'
 import zlib from 'zlib'
 
@@ -825,6 +826,29 @@ export class RemoteAdapter {
       }
     }
     return metadata
+  }
+
+  #computeTotalBackupSizeRecursively(backups) {
+    return reduce(
+      backups,
+      (prev, backup) => {
+        const _backup = Array.isArray(backup) ? this.#computeTotalBackupSizeRecursively(backup) : backup
+        return {
+          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
+        }
+      },
+      { onDisk: 0 }
+    )
+  }
+
+  async getTotalVmBackupSize() {
+    return this.#computeTotalBackupSizeRecursively(await this.listAllVmBackups())
+  }
+
+  async getTotalBackupSize() {
+    const vmBackupSize = await this.getTotalVmBackupSize()
+    // @TODO: add `getTotalXoBackupSize` and `getTotalPoolBackupSize` once `size` is implemented by fs
+    return vmBackupSize
   }
 }
 
