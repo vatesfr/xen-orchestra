@@ -10,8 +10,8 @@ const { dedupe } = require('@xen-orchestra/log/dedupe')
 describe('logger', () => {
   const logger = createLogger('test-logger')
 
-  const logsTransportDefault = []
-  const transportTest = message => {
+  const logsTransportDebug = []
+  const transportDebug = message => {
     logsTransportDefault.push(message)
   }
 
