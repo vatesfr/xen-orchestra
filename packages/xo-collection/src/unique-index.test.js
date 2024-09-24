@@ -3,7 +3,7 @@ import forEach from 'lodash/forEach.js'
 import { Collection } from './collection'
 import { UniqueIndex } from './unique-index'
 import assert from 'assert'
-import { describe, test, beforeEach } from 'node:test'
+import { describe, beforeEach, it } from 'node:test'
 
 // ===================================================================
 
@@ -50,8 +50,8 @@ describe('UniqueIndex', function () {
     return waitTicks()
   })
 
-  test('works with existing items', function () {
-    assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+  it('works with existing items', function () {
+    assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byKey: {
         [item1.key]: item1,
         [item2.key]: item2,
@@ -59,7 +59,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  test('works with added items', function () {
+  it('works with added items', function () {
     const item4 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       key: '1437af14-429a-40db-8a51-8a2f5ed03201',
@@ -78,7 +78,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  test('works with updated items', function () {
+  it('works with updated items', function () {
     const item1bis = {
       id: item1.id,
       key: 'e03d4a3a-0331-4aca-97a2-016bbd43a29b',
@@ -96,7 +96,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  test('works with removed items', function () {
+  it('works with removed items', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
@@ -108,7 +108,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  test('correctly updates the value even if the same object has the same hash', function () {
+  it('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       key: item1.key,

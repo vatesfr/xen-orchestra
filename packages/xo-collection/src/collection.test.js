@@ -1,5 +1,5 @@
+import { beforeEach, describe, it } from 'node:test'
 import assert from 'assert'
-import { beforeEach, describe, test } from 'node:test'
 import forEach from 'lodash/forEach.js'
 import fromEvent from 'promise-toolbox/fromEvent'
 
@@ -30,7 +30,7 @@ describe('Collection', () => {
     return waitTicks()
   })
 
-  test('is iterable', () => {
+  it('is iterable', () => {
     const iterator = col[Symbol.iterator]()
 
     assert.deepStrictEqual(iterator.next(), { done: false, value: ['bar', 0] })
@@ -38,7 +38,7 @@ describe('Collection', () => {
   })
 
   describe('#keys()', () => {
-    test('returns an iterator over the keys', () => {
+    it('returns an iterator over the keys', () => {
       const iterator = col.keys()
 
       assert.deepStrictEqual(iterator.next(), { done: false, value: 'bar' })
@@ -47,7 +47,7 @@ describe('Collection', () => {
   })
 
   describe('#values()', () => {
-    test('returns an iterator over the values', () => {
+    it('returns an iterator over the values', () => {
       const iterator = col.values()
 
       assert.deepStrictEqual(iterator.next(), { done: false, value: 0 })
@@ -56,7 +56,7 @@ describe('Collection', () => {
   })
 
   describe('#add()', () => {
-    test('adds item to the collection', async () => {
+    it('adds item to the collection', async () => {
       let called = false
       col.on('add', () => {
         called = true
@@ -75,11 +75,11 @@ describe('Collection', () => {
       })
     })
 
-    test('throws an exception if the item already exists', () => {
+    it('throws an exception if the item already exists', () => {
       assert.throws(() => col.add('bar', true), DuplicateItem)
     })
 
-    test('accepts an object with an id property', () => {
+    it('accepts an object with an id property', () => {
       const foo = { id: 'foo' }
 
       col.add(foo)
@@ -89,7 +89,7 @@ describe('Collection', () => {
   })
 
   describe('#update()', () => {
-    test('updates an item of the collection', async () => {
+    it('updates an item of the collection', async () => {
       let called = false
       col.on('update', () => {
         called = true
@@ -110,11 +110,11 @@ describe('Collection', () => {
       })
     })
 
-    test('throws an exception if the item does not exist', () => {
+    it('throws an exception if the item does not exist', () => {
       assert.throws(() => col.update('baz', true), NoSuchItem)
     })
 
-    test('accepts an object with an id property', () => {
+    it('accepts an object with an id property', () => {
       const bar = { id: 'bar' }
 
       col.update(bar)
@@ -124,7 +124,7 @@ describe('Collection', () => {
   })
 
   describe('#remove()', () => {
-    test('removes an item of the collection', async () => {
+    it('removes an item of the collection', async () => {
       let called = false
       col.on('remove', () => {
         called = true
@@ -144,11 +144,11 @@ describe('Collection', () => {
       })
     })
 
-    test('throws an exception if the item does not exist', () => {
+    it('throws an exception if the item does not exist', () => {
       assert.throws(() => col.remove('baz', true), NoSuchItem)
     })
 
-    test('accepts an object with an id property', () => {
+    it('accepts an object with an id property', () => {
       const bar = { id: 'bar' }
       col.remove(bar)
       assert.strictEqual(col.has(bar.id), false)
@@ -156,7 +156,7 @@ describe('Collection', () => {
   })
 
   describe('#set()', () => {
-    test('adds item if collection has no key', async () => {
+    it('adds item if collection has no key', async () => {
       let called = false
       col.on('add', () => {
         called = true
@@ -175,7 +175,7 @@ describe('Collection', () => {
       })
     })
 
-    test('updates item if collection has key', async () => {
+    it('updates item if collection has key', async () => {
       let called = false
       col.on('update', () => {
         called = true
@@ -194,7 +194,7 @@ describe('Collection', () => {
       })
     })
 
-    test('accepts an object with an id property', () => {
+    it('accepts an object with an id property', () => {
       const foo = { id: 'foo' }
 
       col.set(foo)
@@ -204,7 +204,7 @@ describe('Collection', () => {
   })
 
   describe('#unset()', () => {
-    test('removes an existing item', async () => {
+    it('removes an existing item', async () => {
       col.unset('bar')
       assert.strictEqual(col.has('bar'), false)
 
@@ -214,11 +214,11 @@ describe('Collection', () => {
       })
     })
 
-    test('does not throw if the item does not exist', () => {
+    it('does not throw if the item does not exist', () => {
       col.unset('foo')
     })
 
-    test('accepts an object with an id property', async () => {
+    it('accepts an object with an id property', async () => {
       col.unset({ id: 'bar' })
       assert.strictEqual(col.has('bar'), false)
 
@@ -230,7 +230,7 @@ describe('Collection', () => {
   })
 
   describe('#touch()', () => {
-    test('can be used to signal an indirect update', async () => {
+    it('can be used to signal an indirect update', async () => {
       const foo = { id: 'foo' }
       col.add(foo)
 
@@ -246,7 +246,7 @@ describe('Collection', () => {
   })
 
   describe('#clear()', () => {
-    test('removes all items from the collection', async () => {
+    it('removes all items from the collection', async () => {
       col.clear()
 
       assert.strictEqual(col.size, 0)
@@ -318,7 +318,7 @@ describe('Collection', () => {
         ],
       },
       ([operations, results], label) => {
-        test(label, function () {
+        it(label, function () {
           forEach(operations, ([method, ...args]) => {
             col[method](...args)
           })

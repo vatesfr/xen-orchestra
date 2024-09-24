@@ -1,4 +1,4 @@
-import { beforeEach, describe, test } from 'node:test'
+import { beforeEach, describe, it } from 'node:test'
 import assert from 'assert'
 import forEach from 'lodash/forEach.js'
 import fromEvent from 'promise-toolbox/fromEvent'
@@ -56,7 +56,7 @@ describe('Index', function () {
     return waitTicks()
   })
 
-  test('works with existing items', function () {
+  it('works with existing items', function () {
     assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byGroup: {
         foo: {
@@ -70,7 +70,7 @@ describe('Index', function () {
     })
   })
 
-  test('works with added items', function () {
+  it('works with added items', function () {
     const item5 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       group: 'baz',
@@ -96,7 +96,7 @@ describe('Index', function () {
     })
   })
 
-  test('works with updated items', function () {
+  it('works with updated items', function () {
     const item1bis = {
       id: item1.id,
       group: 'bar',
@@ -119,7 +119,7 @@ describe('Index', function () {
     })
   })
 
-  test('works with removed items', function () {
+  it('works with removed items', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
@@ -135,7 +135,7 @@ describe('Index', function () {
     })
   })
 
-  test('correctly updates the value even if the same object has the same hash', function () {
+  it('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       group: item1.group,
@@ -160,7 +160,7 @@ describe('Index', function () {
   })
 
   describe('#sweep()', function () {
-    test('removes empty items lists', function () {
+    it('removes empty items lists', function () {
       col.remove(item2)
 
       return waitTicks().then(() => {
