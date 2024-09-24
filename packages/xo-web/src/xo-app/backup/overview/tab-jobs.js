@@ -345,7 +345,12 @@ class JobsTable extends React.Component {
                 <Li>{_.keyValue(_('reportWhen'), _(REPORT_WHEN_LABELS[reportWhen]))}</Li>
               )}
               {backupReportTpl !== undefined && (
-                <Li>{_.keyValue(_('shorterBackupReports'), _(backupReportTpl ? 'stateEnabled' : 'stateDisabled'))}</Li>
+                <Li>
+                  {_.keyValue(
+                    _('shorterBackupReports'),
+                    _(backupReportTpl === 'compactMjml' ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
               )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
               {preferNbd && <Li>{_.keyValue(_('nbdConnections'), nbdConcurrency ?? 1)}</Li>}
