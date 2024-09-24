@@ -3,7 +3,13 @@
     <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
-        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="primary" />
+        <VtsCounter
+          v-tooltip="$t('running-vm', runningVmsCount)"
+          :value="runningVmsCount"
+          accent="brand"
+          variant="secondary"
+          size="small"
+        />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -20,10 +26,10 @@ import HostTreeList from '@/components/tree/HostTreeList.vue'
 import VmTreeList from '@/components/tree/VmTreeList.vue'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { HostBranch, PoolBranch, VmLeaf } from '@/types/tree.type'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

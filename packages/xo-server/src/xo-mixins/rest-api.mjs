@@ -9,6 +9,7 @@ import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
+import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
@@ -235,35 +236,38 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const remotes = await app.getAllRemotes()
-    const remotesInfo = await app.getAllRemotesInfo()
+    const s3Brsize = { backups: 0 }
+    const otherBrSize = { available: 0, backups: 0, other: 0, total: 0, used: 0 }
 
-    const backupRepositoriesSize = remotes.reduce(
-      (prev, remote) => {
-        const { type } = parse(remote.url)
-        const remoteInfo = remotesInfo[remote.id]
+    const backupRepositories = await app.getAllRemotes()
+    const backupRepositoriesInfo = await app.getAllRemotesInfo()
 
-        if (!remote.enabled || type === 's3' || remoteInfo === undefined) {
-          return prev
-        }
+    for (const backupRepository of backupRepositories) {
+      const { type } = parse(backupRepository.url)
+      const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
 
-        return {
-          available: prev.available + remoteInfo.available,
-          backups: 0, // @TODO: compute the space used by backups
-          other: 0, // @TODO: compute the space used by everything that is not a backup
-          total: prev.total + remoteInfo.size,
-          used: prev.used + remoteInfo.used,
-        }
-      },
-      {
-        available: 0,
-        backups: 0,
-        other: 0,
-        total: 0,
-        used: 0,
+      if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
+        continue
       }
-    )
-    dashboard.backupRepositories = { size: backupRepositoriesSize }
+
+      const totalBackupSize = await Disposable.use(app.getBackupsRemoteAdapter(backupRepository), adapter =>
+        adapter.getTotalBackupSize()
+      )
+      const { available, size, used } = backupRepositoryInfo
+
+      const isS3 = type === 's3'
+      const target = isS3 ? s3Brsize : otherBrSize
+
+      target.backups += totalBackupSize.onDisk
+      if (!isS3) {
+        target.available += available
+        target.other += used - totalBackupSize.onDisk
+        target.total += size
+        target.used += used
+      }
+    }
+
+    dashboard.backupRepositories = { s3: { size: s3Brsize }, other: { size: otherBrSize } }
   } catch (error) {
     console.error(error)
   }
@@ -639,7 +643,7 @@ export default class RestApi {
           )
         }
 
-        for (const collection of ['vms', 'vm-snapshots', 'vm-templates']) {
+        for (const collection of ['vms', 'vm-controllers', 'vm-snapshots', 'vm-templates']) {
           collections[collection].routes.vdis = vdis
         }
       }
@@ -1202,7 +1206,7 @@ export default class RestApi {
       '/:collection(srs)/:object/vdis',
       wrap(async (req, res) => {
         const sr = req.xapiObject
-        req.length = +req.headers['content-length']
+        req.length = ifDef(req.headers['content-length'], Number)
 
         const { name_label, name_description, raw } = req.query
         const vdiRef = await sr.$importVdi(req, {

@@ -53,7 +53,7 @@ export default ({ dispatcher, url }) => {
     }
 
     const xml = await res.body.text()
-    const response = xmlRpcParser.parse(parseXml(xml))
+    const response = xmlRpcParser.parse(parseXml(xml, { normalize: false, trim: false }))
 
     return parseResult(response.params[0])
   }

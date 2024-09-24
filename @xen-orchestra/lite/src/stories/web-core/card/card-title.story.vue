@@ -12,10 +12,10 @@
   >
     <CardTitle v-bind="properties">
       {{ settings.defaultSlotContent }}
-      <UiCounter :value="3" color="danger" size="medium" />
+      <VtsCounter :value="3" accent="danger" size="medium" variant="primary" />
       <template #info>
         {{ settings.infoSlotContent }}
-        <UiButton level="tertiary" size="small" :right-icon="faAngleRight">See all</UiButton>
+        <UiButton level="tertiary" size="small" color="normal" :right-icon="faAngleRight">See all</UiButton>
       </template>
       <template #description>{{ settings.descriptionSlotContent }}</template>
     </CardTitle>
@@ -28,6 +28,6 @@ import { slot, setting } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiButton from '@core/components/button/UiButton.vue'
 import CardTitle from '@core/components/card/CardTitle.vue'
-import UiCounter from '@core/components/UiCounter.vue'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 </script>

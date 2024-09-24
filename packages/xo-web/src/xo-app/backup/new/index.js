@@ -263,7 +263,7 @@ const New = decorate([
             [id]: DEFAULT_SCHEDULE,
           }
           settings = {
-            '': state.settings && state.settings.get(''),
+            '': state.settings?.get(''),
             [id]: {
               copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
               exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
@@ -272,7 +272,7 @@ const New = decorate([
           }
         }
 
-        if (settings[''].maxExportRate <= 0) {
+        if (settings['']?.maxExportRate <= 0) {
           settings[''].maxExportRate = undefined
         }
 
@@ -350,7 +350,7 @@ const New = decorate([
           snapshotMode: state.snapshotMode,
         }).toObject()
 
-        if (normalizedSettings[''].maxExportRate <= 0) {
+        if (normalizedSettings['']?.maxExportRate <= 0) {
           normalizedSettings[''].maxExportRate = undefined
         }
 

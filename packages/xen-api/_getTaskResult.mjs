@@ -20,6 +20,8 @@ export default task => {
     // - an opaque reference
     // - an XML-RPC value
     const { result } = task
-    return Promise.resolve(result === '' ? '' : xmlRpcParser.parse_value(parseXml(result)))
+    return Promise.resolve(
+      result === '' ? '' : xmlRpcParser.parse_value(parseXml(result + '\n', { normalize: false, trim: false }))
+    )
   }
 }

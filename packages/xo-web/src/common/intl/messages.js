@@ -1962,6 +1962,8 @@ const messages = {
   vmsTags: 'VMs tags',
   tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
   tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
+  nbdConnections: `NBD connections`,
+  speedLimitNoUnit: 'Speed limit',
 
   // ----- Restore files view -----
   restoreFiles: 'Restore backup files',

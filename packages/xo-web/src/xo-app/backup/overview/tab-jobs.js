@@ -13,7 +13,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
-import { connectStore } from 'utils'
+import { connectStore, formatSpeed } from 'utils'
 import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
@@ -316,13 +316,18 @@ class JobsTable extends React.Component {
       {
         itemRenderer: job => {
           const {
+            backupReportTpl,
+            cbtDestroySnapshotData,
             checkpointSnapshot,
             compression,
             concurrency,
             fullInterval,
+            maxExportRate,
+            nbdConcurrency,
             nRetriesVmBackupFailures,
             offlineBackup,
             offlineSnapshot,
+            preferNbd,
             proxyId,
             reportWhen,
             timeout,
@@ -338,9 +343,27 @@ class JobsTable extends React.Component {
               {reportWhen in REPORT_WHEN_LABELS && (
                 <Li>{_.keyValue(_('reportWhen'), _(REPORT_WHEN_LABELS[reportWhen]))}</Li>
               )}
+              {backupReportTpl !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('shorterBackupReports'),
+                    _(backupReportTpl === 'compactMjml' ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
+              )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
+              {preferNbd && <Li>{_.keyValue(_('nbdConnections'), nbdConcurrency ?? 1)}</Li>}
+              {preferNbd && cbtDestroySnapshotData !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('cbtDestroySnapshotData'),
+                    _(cbtDestroySnapshotData ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
+              )}
               {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
               {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}
+              {maxExportRate > 0 && <Li>{_.keyValue(_('speedLimitNoUnit'), formatSpeed(maxExportRate, 1000))}</Li>}
               {offlineBackup !== undefined && (
                 <Li>{_.keyValue(_('offlineBackup'), _(offlineBackup ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}

@@ -11,7 +11,13 @@
       </template>
       <template #addons>
         <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" color="warning" />
-        <UiCounter v-tooltip="$t('running-vm', runningVmsCount)" :value="runningVmsCount" color="primary" />
+        <VtsCounter
+          v-tooltip="$t('running-vm', runningVmsCount)"
+          :value="runningVmsCount"
+          accent="brand"
+          variant="secondary"
+          size="small"
+        />
       </template>
     </TreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -28,12 +34,12 @@ import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { HostBranch } from '@/types/tree.type'
 import type { HostState } from '@core/types/object-icon.type'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import UiIcon from '@core/components/icon/UiIcon.vue'
 import TreeItem from '@core/components/tree/TreeItem.vue'
 import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
-import UiCounter from '@core/components/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

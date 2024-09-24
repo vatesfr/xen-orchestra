@@ -3,7 +3,6 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
-import { createVhdStreamWithLength } from 'vhd-lib'
 import { defer } from 'golike-defer'
 
 import { cancelableMap } from './_cancelableMap.mjs'
@@ -226,9 +225,6 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         }
         if (typeof stream === 'function') {
           stream = await stream()
-        }
-        if (stream.length === undefined) {
-          stream = await createVhdStreamWithLength(stream)
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
         await vdi.$importContent(stream, { cancelToken, format: 'vhd' })

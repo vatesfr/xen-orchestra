@@ -1,7 +1,7 @@
-/* eslint-env jest */
-
-import fromEvent from 'promise-toolbox/fromEvent'
+import { beforeEach, describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
 
 import { Collection } from './collection'
 import { UniqueIndex } from './unique-index'
@@ -46,14 +46,13 @@ describe('UniqueIndex', function () {
     })
 
     byKey = new UniqueIndex('key')
-
     col.createIndex('byKey', byKey)
 
     return waitTicks()
   })
 
   it('works with existing items', function () {
-    expect(col.indexes).toEqual({
+    assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byKey: {
         [item1.key]: item1,
         [item2.key]: item2,
@@ -70,7 +69,7 @@ describe('UniqueIndex', function () {
     col.add(item4)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
           [item2.key]: item2,
@@ -89,7 +88,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1bis.key]: item1bis,
           [item2.key]: item2,
@@ -102,7 +101,7 @@ describe('UniqueIndex', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1,
         },
@@ -110,7 +109,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  it('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,
       key: item1.key,
@@ -120,7 +119,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      expect(col.indexes).toEqual({
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byKey: {
           [item1.key]: item1bis,
           [item2.key]: item2,

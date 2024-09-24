@@ -116,11 +116,13 @@ const COMMANDS = {
 
 for (const method of ['post', 'put']) {
   COMMANDS[method] = async function ([path, ...params]) {
+    params = parseParams(params)
+
     const response = await this.exec(
       path,
-      params.length !== 0
+      process.stdin.isTTY
         ? {
-            body: JSON.stringify(parseParams(params)),
+            body: JSON.stringify(params),
             headers: { 'content-type': 'application/json' },
             method,
           }
@@ -128,6 +130,7 @@ for (const method of ['post', 'put']) {
             body: process.stdin,
             headers: { 'content-type': 'application/octet-stream' },
             method,
+            query: params,
           }
     )
 

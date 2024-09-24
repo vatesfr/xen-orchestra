@@ -9,7 +9,7 @@
       </th>
       <td v-if="hasMultipleHosts">
         <UiSpinner v-if="!areAllLoaded" />
-        <UiCounter
+        <VtsCounter
           v-else
           v-tooltip="{
             placement: 'left',
@@ -19,7 +19,9 @@
           }"
           :value="patch.$hostRefs.size"
           class="counter"
-          color="danger"
+          accent="danger"
+          variant="primary"
+          size="small"
         />
       </td>
     </tr>
@@ -31,7 +33,7 @@ import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
-import UiCounter from '@core/components/UiCounter.vue'
+import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'

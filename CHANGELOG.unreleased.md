@@ -12,9 +12,12 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SR/Disks] Display information if the VDI is an empty metadata snapshot (PR [#7970](https://github.com/vatesfr/xen-orchestra/pull/7970))
+- [Netbox] Do not synchronize if detected minor version is not supported (PR [#7992](https://github.com/vatesfr/xen-orchestra/pull/7992))
+- [Netbox] Support version 4.1 [#7966](https://github.com/vatesfr/xen-orchestra/issues/7966) (PR [#8002](https://github.com/vatesfr/xen-orchestra/pull/8002))
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
-- [REST API] Add the `vmsProtection` information in the `/dashboard` endpoint (PR [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964))
+- [REST API] Add S3 backup repository and VMs protection information in the `/rest/v0/dashboard` endpoint (PRs [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978), [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964))
+- [Backups] Display more informations in the _Notes_ column of the backup page (PR [#7977](https://github.com/vatesfr/xen-orchestra/pull/7977))
 
 ### Bug fixes
 
@@ -23,6 +26,7 @@
 - [Hub/Recipes/Kubernetes] Properly sort versions in selector
 - [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
 - [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
+- [REST API] Fix VDI import in VHD format when `Content-Length` is not provided
 
 ### Packages to release
 
@@ -40,11 +44,15 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/defined patch
 - @xen-orchestra/lite minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xen-api patch
 - xo-cli minor
 - xo-server minor
+- xo-server-netbox minor
 - xo-web minor
 
 <!--packages-end-->

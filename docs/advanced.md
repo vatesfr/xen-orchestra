@@ -347,7 +347,18 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `4.x`
+- `< 4.2`
+
+:::tip
+For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
+
+```toml
+[netbox]
+checkNetboxVersion = false
+```
+
+Please be aware that by doing this, a Netbox update might make XO delete some of your data in Netbox.
+:::
 
 ### Netbox side
 

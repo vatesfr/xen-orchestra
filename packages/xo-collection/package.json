@@ -39,6 +39,8 @@
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
-    "postversion": "npm publish"
+    "pretest": "yarn run build",
+    "postversion": "npm publish",
+    "test": "node --test dist/"
   }
 }
