@@ -97,7 +97,7 @@ describe('Collection', function () {
       })
 
       col.update('bar', 1)
-      assert.equal(col.get('bar'), 1)
+      assert.equal(col.get('bar'), 1) // Will be forgotten by de-duplication
       col.update('bar', 2)
       assert.equal(col.get('bar'), 2)
 
