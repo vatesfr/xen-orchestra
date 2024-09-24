@@ -64,7 +64,7 @@ describe('capture log', () => {
     assert.equal(captureLog[0].message, 'synchronous logs are captured')
     assert.equal(captureLog[1].message, 'logs from asynchronous callbacks too')
     assert.equal(captureLog[2].message, 'logs in async functions or promise chains too')
-    assert.ok(captureLog[3] === undefined, 'this log will not be captured')
+    assert.equal(captureLog[3], undefined, 'this log will not be captured')
     assert.equal(logsTransportDefault[0].message, 'this log will not be captured')
   })
 
