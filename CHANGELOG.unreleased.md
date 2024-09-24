@@ -27,6 +27,7 @@
 - [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
 - [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
 - [REST API] Fix VDI import in VHD format when `Content-Length` is not provided
+- [REST API] Fix Issues with connecting iSCSI LUN to XOA
 
 ### Packages to release
 
