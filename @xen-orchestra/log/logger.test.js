@@ -1,10 +1,11 @@
 'use strict'
 
+const assert = require('node:assert/strict')
 const { beforeEach, describe, it } = require('node:test')
 const { configure } = require('@xen-orchestra/log/configure')
-const { createCaptureTransport } = require('@xen-orchestra/log/capture')
 const { createLogger } = require('@xen-orchestra/log')
-const assert = require('node:assert/strict')
+const { createCaptureTransport } = require('@xen-orchestra/log/capture')
+const { dedupe } = require('@xen-orchestra/log/dedupe')
 
 describe('logger', () => {
   const logger = createLogger('test-logger')
@@ -150,5 +151,34 @@ describe('logger', () => {
     }
     logger.debug(undefined)
     assert.deepEqual(logsTransportDefault[0].data, expected1.data)
+  })
+  it('should not dedup logs', () => {
+    configure(
+      createCaptureTransport([
+        {
+          transport: transportTest,
+        },
+      ])
+    )
+
+    for (let i = 0; i < 3; i++) {
+      logger.debug('this line should be logged 3 times')
+    }
+    assert.equal(logsTransportDefault.length, 3)
+  })
+  it('should dedup logs', () => {
+    configure(
+      createCaptureTransport([
+        dedupe({
+          timeout: 50, // without a defined timeout, the test will wait for 10 minutes
+          transport: transportTest,
+        }),
+      ])
+    )
+
+    for (let i = 0; i < 3; i++) {
+      logger.debug('this line should be logged only once')
+    }
+    assert.equal(logsTransportDefault.length, 1)
   })
 })
