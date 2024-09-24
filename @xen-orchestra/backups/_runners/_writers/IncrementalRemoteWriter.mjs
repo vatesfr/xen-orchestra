@@ -84,7 +84,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     this.cleanup = task.wrapInside(this.cleanup)
     this.afterBackup = task.wrap(this.afterBackup)
 
-    return task.run(() => this._prepare())
+    return task.runInside(() => this._prepare())
   }
 
   async _prepare() {
