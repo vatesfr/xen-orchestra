@@ -49,6 +49,7 @@
   "network": "Réseau",
   "no-data": "Aucune donnée",
   "object-not-found": "L'objet {id} est introuvable…",
+  "other": "Autre",
   "patches": "Patches",
   "power-on-for-console": "Allumez votre VM pour accéder à sa console",
   "running-vm": "VM en cours d'exécution | VMs en cours d'exécution",

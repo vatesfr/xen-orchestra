@@ -1,5 +1,6 @@
 <template>
   <div
+    v-if="percentage > 0"
     v-tooltip="{ selector: '.text-ellipsis' }"
     :class="color"
     :style="{ width: percentage + '%' }"

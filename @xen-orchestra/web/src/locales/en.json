@@ -3,7 +3,7 @@
   "available": "Available",
   "backup-issues": "Backup issues",
   "backups": "Backups",
-  "backup-repository": "Backup repository (local, NFS)",
+  "backup-repository": "Backup repository (local, NFS, SMB)",
 
   "backups.jobs": "Jobs",
   "backups.jobs.at-least-one-skipped": "At least one skipped",

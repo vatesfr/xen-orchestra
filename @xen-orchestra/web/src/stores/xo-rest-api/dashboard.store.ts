@@ -5,13 +5,15 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  const { context: baseContext, ...configRest } = createXoStoreConfig('dashboard')
+  const { context: baseContext, ...configRest } = createXoStoreConfig('dashboard', { pollInterval: 5000 })
 
   const backupRepositories = computed(() => {
     return {
-      total: formatSizeRaw(baseContext.record.value?.backupRepositories?.size.total, 1),
-      used: formatSizeRaw(baseContext.record.value?.backupRepositories?.size.used, 1),
-      available: formatSizeRaw(baseContext.record.value?.backupRepositories?.size.available, 1),
+      available: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.available, 1),
+      backups: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.backups, 1),
+      other: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.other, 1),
+      total: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.total, 1),
+      used: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.used, 1),
     }
   })
 

@@ -14,12 +14,19 @@ export type XoDashboard = {
     nPoolsWithMissingPatches: number
   }
   backupRepositories?: {
-    size: {
-      available: number
-      backups: number
-      other: number
-      total: number
-      used: number
+    s3: {
+      size: {
+        backups: number
+      }
+    }
+    other: {
+      size: {
+        available: number
+        backups: number
+        other: number
+        total: number
+        used: number
+      }
     }
   }
   storageRepositories: {
