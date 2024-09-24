@@ -11,7 +11,6 @@ import { mount } from '@vates/fuse-vhd'
 import { readdir, lstat } from 'node:fs/promises'
 import { synchronized } from 'decorator-synchronized'
 import { v4 as uuidv4 } from 'uuid'
-import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
@@ -30,6 +29,7 @@ import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
+import { spawn } from 'node:child_process'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -46,23 +46,6 @@ const noop = Function.prototype
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 const makeRelative = path => resolve('/', path).slice(1)
 const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
-
-async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
-  for (const relativePath of relativePaths) {
-    const realPath = join(realBasePath, relativePath)
-    const virtualPath = join(virtualBasePath, relativePath)
-
-    const stats = await lstat(realPath)
-    const { mode, mtime } = stats
-    const opts = { mode, mtime }
-    if (stats.isDirectory()) {
-      zip.addEmptyDirectory(virtualPath, opts)
-      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
-    } else if (stats.isFile()) {
-      zip.addFile(realPath, virtualPath, opts)
-    }
-  }
-}
 
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
@@ -215,10 +198,16 @@ export class RemoteAdapter {
         if (format === 'tgz') {
           outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
         } else if (format === 'zip') {
-          const zip = new ZipFile()
-          await addZipEntries(zip, path, '', paths.map(makeRelative))
-          zip.end()
-          ;({ outputStream } = zip)
+          // don't use --symlinks due to bug
+          //
+          // see https://bugs.launchpad.net/ubuntu/+source/zip/+bug/1892338
+          const cp = spawn('zip', ['--quiet', '--recurse-paths', '-', ...paths.map(makeRelative)], { cwd: path })
+
+          await new Promise((resolve, reject) => {
+            cp.on('error', reject).on('spawn', resolve)
+          })
+
+          outputStream = cp.stdout
         } else {
           throw new Error('unsupported format ' + format)
         }

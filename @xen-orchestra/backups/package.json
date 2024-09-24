@@ -48,8 +48,7 @@
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
     "vhd-lib": "^4.11.0",
-    "xen-api": "^4.2.0",
-    "yazl": "^2.5.1"
+    "xen-api": "^4.2.0"
   },
   "devDependencies": {
     "fs-extra": "^11.1.0",
