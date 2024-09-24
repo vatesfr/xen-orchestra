@@ -23,6 +23,7 @@
     "node": ">=6"
   },
   "scripts": {
-    "postversion": "npm publish"
+    "postversion": "npm publish",
+    "test": "node --test"
   }
 }
