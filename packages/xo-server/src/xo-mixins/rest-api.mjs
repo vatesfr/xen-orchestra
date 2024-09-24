@@ -368,6 +368,7 @@ async function _getDashboardStats(app) {
         continue
       }
 
+      // Get only the last 3 runs
       const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
       if (jobLogs === undefined || jobLogs.length === 0) {
         _processVmsProtection(job, false)
