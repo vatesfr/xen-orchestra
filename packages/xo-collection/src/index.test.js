@@ -1,9 +1,10 @@
-const fromEvent = require('promise-toolbox/fromEvent')
-const forEach = require('lodash/forEach.js')
-const { Collection } = require('./collection')
-const { Index } = require('./index')
-const assert = require('assert')
-const { describe, test, beforeEach } = require('node:test')
+import { beforeEach, describe, test } from 'node:test'
+import assert from 'assert'
+import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
+
+import { Collection } from './collection'
+import { Index } from './index'
 
 // ===================================================================
 
