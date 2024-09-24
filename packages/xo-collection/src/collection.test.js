@@ -57,7 +57,7 @@ describe('Collection', () => {
   })
 
   describe('#add()', () => {
-    it('adds item to the collection', async () => {
+    it('adds item to the collection', () => {
       let called = false
       col.on('add', () => {
         called = true
@@ -90,7 +90,7 @@ describe('Collection', () => {
   })
 
   describe('#update()', () => {
-    it('updates an item of the collection', async () => {
+    it('updates an item of the collection', () => {
       let called = false
       col.on('update', () => {
         called = true
@@ -125,7 +125,7 @@ describe('Collection', () => {
   })
 
   describe('#remove()', () => {
-    it('removes an item of the collection', async () => {
+    it('removes an item of the collection', () => {
       let called = false
       col.on('remove', () => {
         called = true
@@ -157,7 +157,7 @@ describe('Collection', () => {
   })
 
   describe('#set()', () => {
-    it('adds item if collection has no key', async () => {
+    it('adds item if collection has no key', () => {
       let called = false
       col.on('add', () => {
         called = true
@@ -176,7 +176,7 @@ describe('Collection', () => {
       })
     })
 
-    it('updates item if collection has key', async () => {
+    it('updates item if collection has key', () => {
       let called = false
       col.on('update', () => {
         called = true
@@ -205,7 +205,7 @@ describe('Collection', () => {
   })
 
   describe('#unset()', () => {
-    it('removes an existing item', async () => {
+    it('removes an existing item', () => {
       col.unset('bar')
       assert.equal(col.has('bar'), false)
 
@@ -219,7 +219,7 @@ describe('Collection', () => {
       col.unset('foo')
     })
 
-    it('accepts an object with an id property', async () => {
+    it('accepts an object with an id property', () => {
       col.unset({ id: 'bar' })
       assert.equal(col.has('bar'), false)
 
@@ -231,7 +231,7 @@ describe('Collection', () => {
   })
 
   describe('#touch()', () => {
-    it('can be used to signal an indirect update', async () => {
+    it('can be used to signal an indirect update', () => {
       const foo = { id: 'foo' }
       col.add(foo)
 
@@ -247,7 +247,7 @@ describe('Collection', () => {
   })
 
   describe('#clear()', () => {
-    it('removes all items from the collection', async () => {
+    it('removes all items from the collection', () => {
       col.clear()
 
       assert.equal(col.size, 0)
