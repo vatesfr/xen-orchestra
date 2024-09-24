@@ -59,7 +59,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       this.cleanup = task.wrap(this.cleanup)
     }
 
-    return task.run(() => this._prepare(isFull))
+    return task.runInside(() => this._prepare(isFull))
   }
 
   async _prepare(isFull) {

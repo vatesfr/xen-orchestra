@@ -162,8 +162,6 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
                     try {
                       const result = await vmBackup.run()
-                      // TODO : handle next line
-                      task.success(result)
                       return result
                     } catch (error) {
                       vmBackupFailed(error)

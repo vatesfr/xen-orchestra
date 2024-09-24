@@ -114,8 +114,6 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                   .run(async () => {
                     try {
                       const result = await vmBackup.run()
-                      // TODO : handle next line
-                      task.success(result)
                       return result
                     } catch (error) {
                       if (isLastRun) {
