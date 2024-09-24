@@ -17,6 +17,7 @@
 - **XO 6**:
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
 - [REST API] Add S3 backup repository information in the `/rest/v0/dashboard` endpoint (PR [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978))
+- [Backups] Display more informations in the _Notes_ column of the backup page (PR [#7977](https://github.com/vatesfr/xen-orchestra/pull/7977))
 
 ### Bug fixes
 
