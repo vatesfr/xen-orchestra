@@ -541,7 +541,7 @@ export async function isPubKeyTooShort({ host }) {
   return cert.publicKey.asymmetricKeyDetails.modulusLength < CERT_PUBKEY_MIN_SIZE
 }
 
-isPubKeyTooShort.description = 'get TLS key information'
+isPubKeyTooShort.description = 'check if host public TLS key is long enough'
 
 isPubKeyTooShort.params = {
   id: { type: 'string' },
