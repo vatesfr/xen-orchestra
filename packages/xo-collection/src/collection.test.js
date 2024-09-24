@@ -12,6 +12,7 @@ function waitTicks(n = 2) {
 
   return new Promise(function (resolve) {
     ;(function waitNextTick() {
+      // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
       } else {
