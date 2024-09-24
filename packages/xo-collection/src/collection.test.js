@@ -1,5 +1,5 @@
 import { beforeEach, describe, it } from 'node:test'
-import assert from 'assert'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
 import fromEvent from 'promise-toolbox/fromEvent'
 
@@ -33,16 +33,16 @@ describe('Collection', () => {
   it('is iterable', () => {
     const iterator = col[Symbol.iterator]()
 
-    assert.deepStrictEqual(iterator.next(), { done: false, value: ['bar', 0] })
-    assert.deepStrictEqual(iterator.next(), { done: true, value: undefined })
+    assert.deepEqual(iterator.next(), { done: false, value: ['bar', 0] })
+    assert.deepEqual(iterator.next(), { done: true, value: undefined })
   })
 
   describe('#keys()', () => {
     it('returns an iterator over the keys', () => {
       const iterator = col.keys()
 
-      assert.deepStrictEqual(iterator.next(), { done: false, value: 'bar' })
-      assert.deepStrictEqual(iterator.next(), { done: true, value: undefined })
+      assert.deepEqual(iterator.next(), { done: false, value: 'bar' })
+      assert.deepEqual(iterator.next(), { done: true, value: undefined })
     })
   })
 
@@ -50,8 +50,8 @@ describe('Collection', () => {
     it('returns an iterator over the values', () => {
       const iterator = col.values()
 
-      assert.deepStrictEqual(iterator.next(), { done: false, value: 0 })
-      assert.deepStrictEqual(iterator.next(), { done: true, value: undefined })
+      assert.deepEqual(iterator.next(), { done: false, value: 0 })
+      assert.deepEqual(iterator.next(), { done: true, value: undefined })
     })
   })
 
@@ -63,15 +63,15 @@ describe('Collection', () => {
       })
 
       col.add('foo', true)
-      assert.strictEqual(col.get('foo'), true)
+      assert.equal(col.get('foo'), true)
 
       // No sync events.
-      assert.strictEqual(called, false)
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'add').then(function (added) {
-        assert.deepStrictEqual(Object.keys(added), ['foo'])
-        assert.strictEqual(added.foo, true)
+        assert.deepEqual(Object.keys(added), ['foo'])
+        assert.equal(added.foo, true)
       })
     })
 
@@ -84,7 +84,7 @@ describe('Collection', () => {
 
       col.add(foo)
 
-      assert.strictEqual(col.get(foo.id), foo)
+      assert.equal(col.get(foo.id), foo)
     })
   })
 
@@ -96,17 +96,17 @@ describe('Collection', () => {
       })
 
       col.update('bar', 1)
-      assert.strictEqual(col.get('bar'), 1)
+      assert.equal(col.get('bar'), 1)
       col.update('bar', 2)
-      assert.strictEqual(col.get('bar'), 2)
+      assert.equal(col.get('bar'), 2)
 
       // No sync events.
-      assert.strictEqual(called, false)
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'update').then(function (updated) {
-        assert.deepStrictEqual(Object.keys(updated), ['bar'])
-        assert.strictEqual(updated.bar, 2)
+        assert.deepEqual(Object.keys(updated), ['bar'])
+        assert.equal(updated.bar, 2)
       })
     })
 
@@ -119,7 +119,7 @@ describe('Collection', () => {
 
       col.update(bar)
 
-      assert.strictEqual(col.get(bar.id), bar)
+      assert.equal(col.get(bar.id), bar)
     })
   })
 
@@ -131,16 +131,16 @@ describe('Collection', () => {
       })
 
       col.update('bar', 1)
-      assert.strictEqual(col.get('bar'), 1) // Will be forgotten by de-duplication
+      assert.equal(col.get('bar'), 1) // Will be forgotten by de-duplication
       col.remove('bar')
 
       // No sync events.
-      assert.strictEqual(called, false)
+      assert.equal(called, false)
 
       // Async event.
       return fromEvent(col, 'remove').then(function (removed) {
-        assert.deepStrictEqual(Object.keys(removed), ['bar'])
-        assert.strictEqual(removed.bar, undefined)
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
 
@@ -151,7 +151,7 @@ describe('Collection', () => {
     it('accepts an object with an id property', () => {
       const bar = { id: 'bar' }
       col.remove(bar)
-      assert.strictEqual(col.has(bar.id), false)
+      assert.equal(col.has(bar.id), false)
     })
   })
 
@@ -163,15 +163,15 @@ describe('Collection', () => {
       })
 
       col.set('foo', true)
-      assert.strictEqual(col.get('foo'), true)
+      assert.equal(col.get('foo'), true)
 
       // No sync events.
-      assert.strictEqual(called, false)
+      assert.equal(called, false)
 
       // Async events.
       return fromEvent(col, 'add').then(function (added) {
-        assert.deepStrictEqual(Object.keys(added), ['foo'])
-        assert.strictEqual(added.foo, true)
+        assert.deepEqual(Object.keys(added), ['foo'])
+        assert.equal(added.foo, true)
       })
     })
 
@@ -182,15 +182,15 @@ describe('Collection', () => {
       })
 
       col.set('bar', 1)
-      assert.strictEqual(col.get('bar'), 1)
+      assert.equal(col.get('bar'), 1)
 
       // No sync events.
-      assert.strictEqual(called, false)
+      assert.equal(called, false)
 
       // Async events.
       return fromEvent(col, 'update').then(function (updated) {
-        assert.deepStrictEqual(Object.keys(updated), ['bar'])
-        assert.strictEqual(updated.bar, 1)
+        assert.deepEqual(Object.keys(updated), ['bar'])
+        assert.equal(updated.bar, 1)
       })
     })
 
@@ -199,18 +199,18 @@ describe('Collection', () => {
 
       col.set(foo)
 
-      assert.strictEqual(col.get(foo.id), foo)
+      assert.equal(col.get(foo.id), foo)
     })
   })
 
   describe('#unset()', () => {
     it('removes an existing item', async () => {
       col.unset('bar')
-      assert.strictEqual(col.has('bar'), false)
+      assert.equal(col.has('bar'), false)
 
       return fromEvent(col, 'remove').then(function (removed) {
-        assert.deepStrictEqual(Object.keys(removed), ['bar'])
-        assert.strictEqual(removed.bar, undefined)
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
 
@@ -220,11 +220,11 @@ describe('Collection', () => {
 
     it('accepts an object with an id property', async () => {
       col.unset({ id: 'bar' })
-      assert.strictEqual(col.has('bar'), false)
+      assert.equal(col.has('bar'), false)
 
       return fromEvent(col, 'remove').then(function (removed) {
-        assert.deepStrictEqual(Object.keys(removed), ['bar'])
-        assert.strictEqual(removed.bar, undefined)
+        assert.deepEqual(Object.keys(removed), ['bar'])
+        assert.equal(removed.bar, undefined)
       })
     })
   })
@@ -238,8 +238,8 @@ describe('Collection', () => {
         col.touch(foo)
 
         return fromEvent(col, 'update', items => {
-          assert.deepStrictEqual(Object.keys(items), ['foo'])
-          assert.strictEqual(items.foo, foo)
+          assert.deepEqual(Object.keys(items), ['foo'])
+          assert.equal(items.foo, foo)
         })
       })
     })
@@ -249,11 +249,11 @@ describe('Collection', () => {
     it('removes all items from the collection', async () => {
       col.clear()
 
-      assert.strictEqual(col.size, 0)
+      assert.equal(col.size, 0)
 
       return fromEvent(col, 'remove').then(items => {
-        assert.deepStrictEqual(Object.keys(items), ['bar'])
-        assert.strictEqual(items.bar, undefined)
+        assert.deepEqual(Object.keys(items), ['bar'])
+        assert.equal(items.bar, undefined)
       })
     })
   })
@@ -342,9 +342,9 @@ describe('Collection', () => {
                 .filter(r => Object.keys(r).length > 0)
 
               if (items) {
-                assert.deepStrictEqual(spy.calls, items, `${event} should have been called with the correct arguments`)
+                assert.deepEqual(spy.calls, items, `${event} should have been called with the correct arguments`)
               } else {
-                assert.strictEqual(spy.calls.length, 0, `${event} should not have been called`)
+                assert.equal(spy.calls.length, 0, `${event} should not have been called`)
               }
             })
           })

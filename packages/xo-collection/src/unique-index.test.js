@@ -1,9 +1,10 @@
-import fromEvent from 'promise-toolbox/fromEvent'
+import { beforeEach, describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
+import fromEvent from 'promise-toolbox/fromEvent'
+
 import { Collection } from './collection'
 import { UniqueIndex } from './unique-index'
-import assert from 'assert'
-import { describe, beforeEach, it } from 'node:test'
 
 // ===================================================================
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, it } from 'node:test'
-import assert from 'assert'
+import assert from 'node:assert/strict'
 import forEach from 'lodash/forEach.js'
 import fromEvent from 'promise-toolbox/fromEvent'
 
@@ -57,7 +57,7 @@ describe('Index', function () {
   })
 
   it('works with existing items', function () {
-    assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+    assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
       byGroup: {
         foo: {
           [item1.id]: item1,
@@ -79,7 +79,7 @@ describe('Index', function () {
     col.add(item5)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -105,7 +105,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item3.id]: item3,
@@ -123,7 +123,7 @@ describe('Index', function () {
     col.remove(item2)
 
     return waitTicks().then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -145,7 +145,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return fromEvent(col, 'finish').then(() => {
-      assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+      assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
         byGroup: {
           foo: {
             [item1.id]: item1bis,
@@ -166,7 +166,7 @@ describe('Index', function () {
       return waitTicks().then(() => {
         byGroup.sweep()
 
-        assert.deepStrictEqual(JSON.parse(JSON.stringify(col.indexes)), {
+        assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
           byGroup: {
             foo: {
               [item1.id]: item1,
