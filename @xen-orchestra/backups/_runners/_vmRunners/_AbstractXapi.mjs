@@ -4,9 +4,9 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
 import {
   DATETIME,
@@ -142,7 +142,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const settings = this._settings
 
     if (this._mustDoSnapshot()) {
-      await Task.run({ name: 'snapshot' }, async () => {
+      await Task.run({ properties: { name: 'snapshot' } }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }

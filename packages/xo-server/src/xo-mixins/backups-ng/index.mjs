@@ -12,7 +12,7 @@ import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
-import { Task } from '@xen-orchestra/backups/Task.mjs'
+import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { handleBackupLog } from '../../_handleBackupLog.mjs'
@@ -157,8 +157,8 @@ export default class BackupNg {
             const vmBackupInfo = new Map()
             return await Task.run(
               {
-                name: 'backup run',
-                onLog: log =>
+                properties: { name: 'backup run' },
+                onProgress: log =>
                   handleBackupLog(log, {
                     vmBackupInfo,
                     app: this._app,
@@ -524,14 +524,14 @@ export default class BackupNg {
           const localTaskIds = { __proto__: null }
           return Task.run(
             {
-              data: {
+              properties: {
                 backupId: id,
                 jobId: metadata.jobId,
+                name: 'restore',
                 srId,
                 time: metadata.timestamp,
               },
-              name: 'restore',
-              onLog: log =>
+              onProgress: log =>
                 handleBackupLog(log, {
                   logger,
                   localTaskIds,
@@ -617,6 +617,7 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
+    // TODO : maybe adapt next line ? also present in other files
     await this._app.tasks
       .create({
         name: 'VM Backup Health Check',
