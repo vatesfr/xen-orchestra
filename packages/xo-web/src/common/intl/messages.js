@@ -969,6 +969,7 @@ const messages = {
   noHost: 'No hosts',
   memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
+  bondMode: 'Bond Mode',
   pif: 'PIF',
   poolNetworkAutomatic: 'Automatic',
   poolNetworkNameLabel: 'Name',
