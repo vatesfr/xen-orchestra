@@ -40,5 +40,10 @@ export type XoDashboard = {
       total: number
     }
     issues: BackupIssue[]
+    vmsProtection: {
+      protected: number
+      unprotected: number
+      notInJob: number
+    }
   }
 }

@@ -2,8 +2,10 @@
   <UiCard>
     <CardTitle>{{ $t('backups') }}</CardTitle>
     <LoadingHero :disabled="isReady" type="card">
-      <DonutChartWithLegend :icon="faServer" :segments :title />
+      <DonutChartWithLegend :icon="faServer" :segments="jobsSegments" :title="jobsTitle" />
       <CardNumbers :label="t('total')" :value="record?.backups?.jobs.total" size="small" />
+      <Divider type="stretch" />
+      <DonutChartWithLegend :icon="faServer" :segments="vmsProtectionSegments" :title="vmsProtectionTitle" />
     </LoadingHero>
   </UiCard>
 </template>
@@ -12,6 +14,7 @@
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
 import CardTitle from '@core/components/card/CardTitle.vue'
 import CardNumbers from '@core/components/CardNumbers.vue'
+import Divider from '@core/components/divider/Divider.vue'
 import DonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
@@ -25,13 +28,13 @@ const { record, isReady } = useDashboardStore().subscribe()
 
 const { t } = useI18n()
 
-const title = computed<DonutChartWithLegendProps['title']>(() => ({
+const jobsTitle = computed<DonutChartWithLegendProps['title']>(() => ({
   label: t('backups.jobs'),
   iconTooltip: t('backups.jobs.based-on-last-three'),
   icon: faCircleInfo,
 }))
 
-const segments = computed<DonutChartWithLegendProps['segments']>(() => [
+const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups.jobs.running-good'),
     value: record.value?.backups?.jobs.successful ?? 0,
@@ -51,6 +54,30 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     label: t('backups.jobs.disabled'),
     value: record.value?.backups?.jobs.disabled ?? 0,
     color: 'disabled',
+  },
+])
+
+const vmsProtectionTitle = computed<DonutChartWithLegendProps['title']>(() => ({
+  label: t('backups.vms-protection'),
+  iconTooltip: t('backups.vms-protection.tooltip'),
+  icon: faCircleInfo,
+}))
+
+const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
+  {
+    label: t('backups.vms-protection.protected'),
+    value: record.value?.backups?.vmsProtection?.protected ?? 0,
+    color: 'success',
+  },
+  {
+    label: t('backups.vms-protection.unprotected'),
+    value: record.value?.backups?.vmsProtection?.unprotected ?? 0,
+    color: 'warning',
+  },
+  {
+    label: t('backups.vms-protection.no-job'),
+    value: record.value?.backups?.vmsProtection?.notInJob ?? 0,
+    color: 'danger',
   },
 ])
 </script>
