@@ -65,11 +65,27 @@ In this scenario, you are deploying directly without any prior Internet access. 
 
 Please [contact us](https://vates.tech/contact) if you need more details.
 
-### Deploy your fully Airgap XOA
+Here's a refined version of your text:
 
-Once you've downloaded the dedicated air-gap XOA provided by our support team, you can easily deploy it by following these steps:
+### Deploy Your Air-Gap XOA
 
-1. Obtain the deployment script: On a machine with Internet access (or another non-air-gap machine), run the following command to download the deployment script: `curl https://xoa.io/deploy > deploy.sh`. Alternatively, you can manually copy the content of https://xoa.io/deploy into a file named `deploy.sh`.
-2. Transfer files to your XCP-ng host: Copy both the `deploy.sh` script and the XOA appliance file (`XOA.xva`) to your air-gapped XCP-ng host.
-3. On your XCP-ng host, ensure that the deploy.sh script is executable by running `chmod +x deploy.sh`. Then, execute the following command to deploy the XOA appliance: `./deploy.sh XOA.xva`
-4. Follow the script instructions: During the deployment, the script will prompt you to enter the necessary network settings such as IP configuration, DNS, and NTP. Follow the instructions in the script to complete the setup.
+After downloading the dedicated air-gap XOA provided by our support team, follow these steps to deploy it:
+
+1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:  
+   ```bash
+   curl https://xoa.io/deploy > deploy.sh
+   ```  
+   Alternatively, you can manually copy the content from https://xoa.io/deploy into a file named `deploy.sh`.
+
+2. **Transfer Files to Your XCP-ng Host**: Copy both the `deploy.sh` script and the XOA appliance file (`XOA.xva`) to your air-gapped XCP-ng host.
+
+3. **Make the Script Executable**: On your XCP-ng host, ensure the `deploy.sh` script is executable by running:  
+   ```bash
+   chmod +x deploy.sh
+   ```  
+   Then, execute the following command to deploy the XOA appliance:  
+   ```bash
+   ./deploy.sh XOA.xva
+   ```
+
+4. **Follow the Script Instructions**: During the deployment, the script will prompt you for essential network settings such as IP configuration, DNS, and NTP. Follow the on-screen instructions to complete the setup.
