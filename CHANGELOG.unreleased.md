@@ -20,6 +20,7 @@
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 - [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
 - [Backup/HealthCheck] Improve error messages on health check timeout (PR [#8016](https://github.com/vatesfr/xen-orchestra/pull/8016))
+- [Pool/Network] Display the bond mode of a network [#7802](https://github.com/vatesfr/xen-orchestra/issues/7802) (PR [#8010](https://github.com/vatesfr/xen-orchestra/pull/8010))
 
 ### Bug fixes
 
@@ -48,6 +49,6 @@
 - xen-api minor
 - xo-cli minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
