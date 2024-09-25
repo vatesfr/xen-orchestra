@@ -173,40 +173,29 @@ async function _getDashboardStats(app) {
     }
   }
 
-  const poolIds = new Set()
-  const hosts = []
-  const writableSrs = []
-  const nonReplicaVms = []
+  const pools = Object.values(app.objects.indexes.type.pool)
+  const hosts = Object.values(app.objects.indexes.type.host)
+  const srs = Object.values(app.objects.indexes.type.SR)
+  const vms = Object.values(app.objects.indexes.type.VM)
+
+  const writableSrs = srs.filter(isSrWritable)
+  const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
   const vmIdsProtected = new Set()
   const vmIdsUnprotected = new Set()
   const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
 
-  for (const obj of app.objects.values()) {
-    if (obj.type === 'pool') {
-      resourcesOverview.nCpus += obj.cpus.cores
-    }
+  pools.forEach(pool => {
+    resourcesOverview.nCpus += pool.cpus.cores
+  })
 
-    if (obj.type === 'host') {
-      hosts.push(obj)
-      poolIds.add(obj.$pool)
-      if (hvSupportedVersions !== undefined && !semver.satisfies(obj.version, hvSupportedVersions[obj.productBrand])) {
-        nHostsEol++
-      }
-      resourcesOverview.memorySize += obj.memory.size
+  hosts.forEach(host => {
+    if (hvSupportedVersions !== undefined && !semver.satisfies(host.version, hvSupportedVersions[host.productBrand])) {
+      nHostsEol++
     }
+    resourcesOverview.memorySize += host.memory.size
+  })
 
-    if (obj.type === 'SR') {
-      if (isSrWritable(obj)) {
-        writableSrs.push(obj)
-      }
-    }
-
-    if (obj.type === 'VM' && !isReplicaVm(obj)) {
-      nonReplicaVms.push(obj)
-    }
-  }
-
-  dashboard.nPools = poolIds.size
+  dashboard.nPools = pools.length
   dashboard.nHosts = hosts.length
   dashboard.nHostsEol = nHostsEol
 
