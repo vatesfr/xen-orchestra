@@ -67,17 +67,16 @@ delete_.params = {
 
 export { delete_ as delete }
 
-export async function runSequence({ idSchedules }) {
-  const t = new Task({ properties: { type: 'xo:schedule:sequence', name: 'Schedule sequence' } })
+export async function runSequence({ schedules }) {
+  const t = this.tasks.create({ type: 'xo:schedule:sequence', name: 'Schedule sequence' })
   await t.run(async () => {
-    const nb = idSchedules.length
+    const nb = schedules.length
     const signal = Task.abortSignal
     for (let i = 0; i < nb; i++) {
-      if (signal.aborted) {
-        throw new Error(signal.reason)
-      }
+      signal.throwIfAborted()
       Task.set('progress', Math.round((i * 100) / nb))
-      const idSchedule = idSchedules[i]
+      const idSchedule = schedules[i]
+      // we can't auto resolve array parameters, we have to resolve them by hand
       const schedule = await this.getSchedule(idSchedule)
       const job = await this.getJob(schedule.jobId)
       await this.runJob(job, schedule)
@@ -85,7 +84,7 @@ export async function runSequence({ idSchedules }) {
   })
 }
 runSequence.permission = 'admin'
-runSequence.description = 'Run a sequence of schedule, one after the other'
+runSequence.description = 'Run a sequence of schedules, one after the other'
 runSequence.params = {
-  idSchedules: { type: 'array', items: { type: 'string' } },
+  schedules: { type: 'array', items: { type: 'string' } },
 }
