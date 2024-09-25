@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- WIP -->
 <template>
   <UiSpinner v-if="busy" class="vts-icon" />
   <div v-else-if="overlayIcon !== undefined && icon !== undefined" class="vts-icon stacked" :class="accent">
