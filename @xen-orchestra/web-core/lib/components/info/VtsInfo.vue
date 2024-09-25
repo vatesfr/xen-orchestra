@@ -1,7 +1,7 @@
 <!-- v2 -->
 <template>
   <div class="vts-info">
-    <VtsIcon :accent="accent" class="icon" :icon="faCircle" :overlay-icon="icon" />
+    <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
     <p class="message"><slot /></p>
   </div>
 </template>
