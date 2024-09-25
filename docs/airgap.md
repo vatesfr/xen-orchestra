@@ -65,8 +65,6 @@ In this scenario, you are deploying directly without any prior Internet access. 
 
 Please [contact us](https://vates.tech/contact) if you need more details.
 
-Here's a refined version of your text:
-
 ### Deploy Your Air-Gap XOA
 
 After downloading the dedicated air-gap XOA provided by our support team, follow these steps to deploy it:
