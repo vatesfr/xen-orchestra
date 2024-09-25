@@ -64,3 +64,28 @@ For details on the steps, refer to the [_Deployment_ section](#deployment).
 In this scenario, you are deploying directly without any prior Internet access. Vates can provide you with pre-registered XOAs that can be deployed directly in your offline environment, eliminating the need for any initial Internet connection. If you have an air gap subscription, our team will build it on-demand for you and provide a dedicated link for download.
 
 Please [contact us](https://vates.tech/contact) if you need more details.
+
+Here's a refined version of your text:
+
+### Deploy Your Air-Gap XOA
+
+After downloading the dedicated air-gap XOA provided by our support team, follow these steps to deploy it:
+
+1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:  
+   ```bash
+   curl https://xoa.io/deploy > deploy.sh
+   ```  
+   Alternatively, you can manually copy the content from https://xoa.io/deploy into a file named `deploy.sh`.
+
+2. **Transfer Files to Your XCP-ng Host**: Copy both the `deploy.sh` script and the XOA appliance file (`XOA.xva`) to your air-gapped XCP-ng host.
+
+3. **Make the Script Executable**: On your XCP-ng host, ensure the `deploy.sh` script is executable by running:  
+   ```bash
+   chmod +x deploy.sh
+   ```  
+   Then, execute the following command to deploy the XOA appliance:  
+   ```bash
+   ./deploy.sh XOA.xva
+   ```
+
+4. **Follow the Script Instructions**: During the deployment, the script will prompt you for essential network settings such as IP configuration, DNS, and NTP. Follow the on-screen instructions to complete the setup.
