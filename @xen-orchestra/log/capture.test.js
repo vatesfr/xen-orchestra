@@ -6,7 +6,7 @@ const { captureLogs, createCaptureTransport } = require('@xen-orchestra/log/capt
 const { configure } = require('@xen-orchestra/log/configure')
 const { createLogger } = require('@xen-orchestra/log')
 
-describe('capture log', () => {
+describe('captureLogs()', () => {
   const logger = createLogger('test-logger')
 
   const logsTransportDefault = []
