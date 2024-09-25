@@ -15,7 +15,7 @@
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
-          <UiIcon :fixed-width="false" :icon="submenuIcon" color="current" class="submenu-icon" />
+          <VtsIcon :fixed-width="false" :icon="submenuIcon" accent="current" class="submenu-icon" />
         </MenuTrigger>
       </template>
       <slot name="submenu" />
@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useContext } from '@core/composables/context.composable'

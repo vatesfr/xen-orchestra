@@ -5,13 +5,13 @@
 <!-- Network v1.0 -->
 <template>
   <FontAwesomeLayers :class="[size, { disabled: stateConfig === undefined }]" class="object-icon">
-    <UiIcon :icon="mainIcon" color="current" />
-    <UiIcon :icon="stateIcon" color="current" :style="stateIconStyle" class="state" />
+    <VtsIcon :icon="mainIcon" accent="current" />
+    <VtsIcon :icon="stateIcon" accent="current" :style="stateIconStyle" class="state" />
   </FontAwesomeLayers>
 </template>
 
 <script generic="TType extends SupportedType" lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { ObjectIconConfig, ObjectIconSize, SupportedState, SupportedType } from '@core/types/object-icon.type'
 import {
   faCheckCircle,
@@ -200,7 +200,7 @@ const stateIconStyle = computed(() => {
   }
 
   return {
-    '--color': `var(${stateConfig.value.color})`,
+    '--vts-icon--color': `var(${stateConfig.value.color})`,
     '--state-icon-translate-x': `${stateConfig.value.translate.x[translateIndex]}%`,
     '--state-icon-translate-y': `${stateConfig.value.translate.y[translateIndex]}%`,
   }

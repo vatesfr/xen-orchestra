@@ -2,8 +2,8 @@ ComplexIcon component usage:
 
 ```vue-template
 <ComplexIcon>
-  <UiIcon :icon="faRotateRight" />
-  <UiIcon :icon="faLightbulb" />
+  <UiIcon :icon="faRotateRight" accent="current" />
+  <UiIcon :icon="faLightbulb" accent="current" />
 </ComplexIcon>
 ```
 

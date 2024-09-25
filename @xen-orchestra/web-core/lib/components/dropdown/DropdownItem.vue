@@ -1,19 +1,24 @@
 <template>
   <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
-    <UiIcon v-if="checkbox" :color :icon="selected ? faSquareCheck : faSquare" />
+    <!-- TODO: replace with correct color typing when available -->
+    <VtsIcon
+      v-if="checkbox"
+      :accent="color === 'normal' ? 'brand' : color"
+      :icon="selected ? faSquareCheck : faSquare"
+    />
     <slot name="icon">
-      <UiIcon :icon color="current" />
+      <VtsIcon :icon accent="current" />
     </slot>
     <div class="label p2 medium text-ellipsis">
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <UiIcon v-if="arrow" :color="disabled ? 'current' : 'normal'" :icon="faAngleRight" class="right-icon" />
+    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'brand'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Color } from '@core/types/color.type'
 import { IK_DROPDOWN_CHECKBOX } from '@core/utils/injection-keys.util'

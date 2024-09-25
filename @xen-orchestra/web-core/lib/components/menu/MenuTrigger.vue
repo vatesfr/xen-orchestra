@@ -1,13 +1,13 @@
 <!-- v1.0 -->
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
-    <UiIcon :busy :icon color="current" />
+    <VtsIcon :busy :icon accent="current" />
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{

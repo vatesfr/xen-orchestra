@@ -1,9 +1,10 @@
 <template>
-  <UiIcon :class="{ disabled }" :color :icon class="chip-icon" fixed-width />
+  <!-- TODO: replace with correct color typing when available -->
+  <VtsIcon :class="{ disabled }" :accent="color === 'normal' ? 'brand' : color" :icon class="chip-icon" fixed-width />
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { Color } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 

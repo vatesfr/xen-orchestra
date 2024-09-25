@@ -6,7 +6,7 @@
         <template v-if="depth > 1">
           <TreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
         </template>
-        <UiIcon :icon color="current" />
+        <VtsIcon :icon accent="current" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>
@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TreeLine from '@core/components/tree/TreeLine.vue'
 import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'

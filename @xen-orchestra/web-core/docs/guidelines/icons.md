@@ -15,7 +15,7 @@ Use the `busy` prop to display a loader icon.
 ```vue
 <template>
   <div>
-    <UiIcon :icon="faDisplay" />
+    <VtsIcon :icon="faDisplay" accent="current" />
   </div>
 </template>
 

@@ -26,7 +26,7 @@
       <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon color="current" class="icon" />
+          <VtsIcon :icon accent="current" class="icon" />
         </slot>
         <div class="text text-ellipsis">
           <slot />
@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TreeLine from '@core/components/tree/TreeLine.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'

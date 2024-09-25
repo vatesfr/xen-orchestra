@@ -7,8 +7,8 @@
     ]"
   >
     <ComplexIcon v-bind="properties">
-      <UiIcon :icon="faRotateRight" />
-      <UiIcon :icon="faLightbulb" />
+      <VtsIcon :icon="faRotateRight" accent="current" />
+      <VtsIcon :icon="faLightbulb" accent="current" />
     </ComplexIcon>
   </ComponentStory>
 </template>
@@ -17,6 +17,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param'
 import ComplexIcon from '@core/components/icon/ComplexIcon.vue'
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { faLightbulb, faRotateRight } from '@fortawesome/free-solid-svg-icons'
 </script>

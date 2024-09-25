@@ -2,14 +2,14 @@
 <template>
   <span :class="[color, { light }]" class="ui-tag typo p3-regular">
     <slot name="icon">
-      <UiIcon :icon color="current" fixed-width />
+      <VtsIcon :icon accent="current" fixed-width />
     </slot>
     <span class="text-ellipsis"><slot /></span>
   </span>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { TagColor } from '@core/types/color.type'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 

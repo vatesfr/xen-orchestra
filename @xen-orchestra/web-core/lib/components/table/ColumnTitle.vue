@@ -9,10 +9,10 @@
       >
         <div class="content">
           <span class="label">
-            <UiIcon :icon color="current" />
+            <VtsIcon :icon accent="current" />
             <slot />
           </span>
-          <UiIcon :icon="currentInteraction?.icon" color="current" />
+          <VtsIcon :icon="currentInteraction?.icon" accent="current" />
         </div>
       </th>
     </template>
@@ -23,7 +23,7 @@
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >
-      <UiIcon :icon="interaction.icon" color="current" />
+      <VtsIcon :icon="interaction.icon" accent="current" />
       {{ interaction.label }}
       <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo p3-regular-italic">
         {{ $t('core.current').toLowerCase() }}
@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

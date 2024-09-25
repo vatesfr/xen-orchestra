@@ -1,15 +1,15 @@
 <!-- v1.0 -->
 <template>
   <li :class="color" class="legend-item">
-    <UiIcon :icon="faCircle" color="current" class="circle-icon" />
+    <VtsIcon :icon="faCircle" accent="brand" class="circle-icon" />
     <span class="label typo p3-regular"><slot /></span>
-    <UiIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" color="normal" />
+    <VtsIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" accent="brand" />
     <span v-if="valueLabel" class="value-and-unit typo c3-semi-bold">{{ valueLabel }}</span>
   </li>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
