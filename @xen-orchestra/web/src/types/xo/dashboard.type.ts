@@ -53,4 +53,9 @@ export type XoDashboard = {
       notInJob: number
     }
   }
+  resourcesOverview: {
+    nCpus: number
+    memorySize: number
+    srSize: number
+  }
 }
