@@ -18,6 +18,7 @@
   - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
 - [REST API] Add S3 backup repository and VMs protection information in the `/rest/v0/dashboard` endpoint (PRs [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978), [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964))
 - [Backups] Display more informations in the _Notes_ column of the backup page (PR [#7977](https://github.com/vatesfr/xen-orchestra/pull/7977))
+- [REST API] Add `/alarms` endpoint and remove alarms from the `/dashboard` and `/messages` endpoints (PR [#7959](https://github.com/vatesfr/xen-orchestra/pull/7959))
 
 ### Bug fixes
 

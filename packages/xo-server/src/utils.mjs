@@ -347,3 +347,7 @@ export const isReplicaVm = vm => 'start' in vm.blockedOperations && vm.other['xo
 
 // -------------------------------------------------------------------
 export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
+
+// -------------------------------------------------------------------
+
+export const isAlarm = alarm => alarm.type === 'message' && alarm.name === 'ALARM'

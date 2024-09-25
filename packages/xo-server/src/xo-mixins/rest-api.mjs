@@ -20,12 +20,12 @@ import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { parse } from 'xo-remote-parser'
 
-import { getUserPublicProperties, isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../utils.mjs'
+import { getUserPublicProperties, isAlarm, isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 import { createPredicate } from 'value-matcher'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
-const ALARM_BODY_REGEX = /^value:\s*(\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
+const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -177,7 +177,6 @@ async function _getDashboardStats(app) {
   const poolIds = new Set()
   const hosts = []
   const writableSrs = []
-  const alarms = []
   const nonReplicaVms = []
   const vmIdsProtected = new Set()
   const vmIdsUnprotected = new Set()
@@ -195,10 +194,6 @@ async function _getDashboardStats(app) {
       if (isSrWritable(obj)) {
         writableSrs.push(obj)
       }
-    }
-
-    if (obj.type === 'message' && obj.name === 'ALARM') {
-      alarms.push(obj)
     }
 
     if (obj.type === 'VM' && !isReplicaVm(obj)) {
@@ -429,40 +424,11 @@ async function _getDashboardStats(app) {
     console.error(error)
   }
 
-  dashboard.alarms = alarms.reduce((acc, { $object, body, time }) => {
-    try {
-      const [, value, name] = body.match(ALARM_BODY_REGEX)
-
-      let object
-      try {
-        object = app.getObject($object)
-      } catch (error) {
-        console.error(error)
-        object = {
-          type: 'unknown',
-          uuid: $object,
-        }
-      }
-
-      acc.push({
-        name,
-        object: {
-          type: object.type,
-          uuid: object.uuid,
-        },
-        timestamp: time,
-        value: +value,
-      })
-    } catch (error) {
-      console.error(error)
-    }
-
-    return acc
-  }, [])
   return dashboard
 }
 const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
 
+const keepNonAlarmMessages = message => message.type === 'message' && !isAlarm(message)
 export default class RestApi {
   #api
 
@@ -548,7 +514,7 @@ export default class RestApi {
         await sendObjects(
           Object.values(
             app.getObjects({
-              filter: every(_ => _.type === 'message' && _.$object === id, handleOptionalUserFilter(query.filter)),
+              filter: every(_ => _.$object === id, keepNonAlarmMessages, handleOptionalUserFilter(query.filter)),
               limit: ifDef(query.limit, Number),
             })
           ),
@@ -557,10 +523,35 @@ export default class RestApi {
           '/messages'
         )
       }
+
+      async function alarms(req, res) {
+        const {
+          object: { id },
+          query,
+        } = req
+        await sendObjects(
+          Object.values(
+            app.getObjects({
+              filter: every(_ => _.$object === id, isAlarm, handleOptionalUserFilter(query.filter)),
+              limit: ifDef(query.limit, Number),
+            })
+          ),
+          req,
+          res,
+          '/alarms'
+        )
+      }
+
       for (const type of types) {
         const id = type.toLocaleLowerCase() + 's'
 
-        collections[id] = { getObject, getObjects, routes: { messages }, isCorrectType: _ => _.type === type, type }
+        collections[id] = {
+          getObject,
+          getObjects,
+          routes: { messages, alarms },
+          isCorrectType: _ => _.type === type,
+          type,
+        }
       }
 
       collections.hosts.routes = {
@@ -808,6 +799,73 @@ export default class RestApi {
       },
     }
     collections.dashboard = {}
+    collections.messages = {
+      getObject(id) {
+        const message = app.getObject(id, 'message')
+        if (isAlarm(message)) {
+          throw noSuchObject(id, 'message')
+        }
+
+        return message
+      },
+      getObjects(filter, limit) {
+        return handleArray(
+          Object.values(
+            app.getObjects({
+              filter: every(keepNonAlarmMessages, filter),
+              limit,
+            })
+          )
+        )
+      },
+    }
+    collections.alarms = {
+      getObject(id, req) {
+        const alarm = app.getObject(id, 'message')
+        if (!isAlarm(alarm)) {
+          throw noSuchObject(id, 'alarm')
+        }
+
+        const { $object, body } = alarm
+        let object = {}
+        try {
+          object = app.getObject($object)
+        } catch (error) {
+          object = {
+            type: 'unknown',
+            uuid: $object,
+          }
+        }
+
+        const { baseUrl } = req
+        const objType = object.type.toLowerCase() + 's'
+        const href = collections[objType] === undefined ? undefined : `${baseUrl}/${objType}/${object.uuid}`
+        const [, value, name] = body.match(ALARM_BODY_REGEX)
+
+        return {
+          ...alarm,
+          body: {
+            value, // Keep the value as a string because NaN, Infinity, -Infinity is not valid JSON
+            name,
+          },
+          object: {
+            type: object.type,
+            uuid: object.uuid,
+            href,
+          },
+        }
+      },
+      getObjects(filter, limit) {
+        return handleArray(
+          Object.values(
+            app.getObjects({
+              filter: every(isAlarm, filter),
+              limit,
+            })
+          )
+        )
+      },
+    }
 
     // normalize collections
     for (const id of Object.keys(collections)) {
