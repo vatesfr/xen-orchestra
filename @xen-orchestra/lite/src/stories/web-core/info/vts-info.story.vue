@@ -2,12 +2,12 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('status').enum('info', 'success', 'warning', 'danger').required().preset('info').widget(),
+      prop('accent').enum('brand', 'success', 'warning', 'danger').required().preset('brand').widget(),
       slot(),
       setting('defaultSlot').widget(text()).preset('message'),
     ]"
   >
-    <UiInfo v-bind="properties">{{ settings.defaultSlot }}</UiInfo>
+    <VtsInfo v-bind="properties">{{ settings.defaultSlot }}</VtsInfo>
   </ComponentStory>
 </template>
 
@@ -15,5 +15,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import UiInfo from '@core/components/info/UiInfo.vue'
+import VtsInfo from '@core/components/info/VtsInfo.vue'
 </script>
