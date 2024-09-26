@@ -231,7 +231,14 @@ export class Xapi extends Base {
 
   // wait for an object to be in a specified state
 
-  waitObjectState(refOrUuid, predicate, { timeout } = {}) {
+  waitObjectState(
+    refOrUuid,
+    predicate,
+    {
+      timeout,
+      timeoutMessage = refOrUuid => `waitObjectState: timeout reached before ${refOrUuid} in expected state`,
+    } = {}
+  ) {
     return new Promise((resolve, reject) => {
       const object = this.getObject(refOrUuid, undefined)
       if (object !== undefined && predicate(object)) {
@@ -248,7 +255,7 @@ export class Xapi extends Base {
       })
 
       if (timeout !== undefined) {
-        const error = new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`)
+        const error = new Error(timeoutMessage(refOrUuid))
         timeoutHandle = setTimeout(() => {
           stop()
           reject(error)

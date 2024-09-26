@@ -49,8 +49,10 @@ export class HealthCheckVmBackup {
         }
 
         // wait for the 'Running' event to be really stored in local xapi object cache
+
         restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
           timeout: remainingTimeout,
+          timeoutMessage: refOrUuid => `timeout reached while waiting for  ${refOrUuid} to be running`,
         })
 
         const running = new Date()
@@ -62,13 +64,12 @@ export class HealthCheckVmBackup {
         // wait for the guest tool version to be defined
         await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
           timeout: remainingTimeout,
+          timeoutMessage: refOrUuid =>
+            `timeout reached while waiting for  ${refOrUuid} to report the driver version through the xen tools. Please check or update the xen tools.`,
         })
 
         const guestToolsReady = new Date()
         remainingTimeout -= guestToolsReady - running
-        if (remainingTimeout < 0) {
-          throw new Error(`local xapi  did not get he guest tools check ${restoredId} after ${timeout / 1000} second`)
-        }
 
         if (waitForScript) {
           const startedRestoredVm = await xapi.waitObjectState(
@@ -79,19 +80,12 @@ export class HealthCheckVmBackup {
                 vm.xenstore_data['vm-data/xo-backup-health-check'] === 'failure'),
             {
               timeout: remainingTimeout,
+              timeoutMessage: refOrUuid =>
+                `timeout reached while waiting for  ${refOrUuid} to report the startup script execution.`,
             }
           )
           const scriptOk = new Date()
           remainingTimeout -= scriptOk - guestToolsReady
-          if (remainingTimeout < 0) {
-            throw new Error(
-              `Backup health check script did not update vm-data/xo-backup-health-check of ${restoredId} after ${
-                timeout / 1000
-              } second, got ${
-                startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check']
-              } instead of 'success' or 'failure'`
-            )
-          }
 
           if (startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check'] !== 'success') {
             const message = startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']
