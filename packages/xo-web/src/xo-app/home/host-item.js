@@ -16,6 +16,7 @@ import {
   editHost,
   fetchHostStats,
   isHostTimeConsistentWithXoaTime,
+  isPubKeyTooShort,
   removeTag,
   startHost,
   stopHost,
@@ -44,6 +45,10 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 })
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
+  isPubKeyTooShort: createSelector(
+    (_, props) => props.item.id,
+    hostId => isPubKeyTooShort(hostId)
+  ),
   needsRestart: createDoesHostNeedRestart((_, props) => props.item),
   nVms: createGetObjectsOfType('VM').count(
     createSelector(
@@ -57,9 +62,11 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 export default class HostItem extends Component {
   state = {
     isHostTimeConsistentWithXoaTime: true,
+    isPubKeyTooShort: false,
   }
 
   componentWillMount() {
+    this.props.isPubKeyTooShort.then(isPubKeyTooShort => this.setState({ isPubKeyTooShort }))
     Promise.resolve(isHostTimeConsistentWithXoaTime(this.props.item)).then(value =>
       this.setState({
         isHostTimeConsistentWithXoaTime: value,
@@ -136,7 +143,16 @@ export default class HostItem extends Component {
     () => this.state.isHostTimeConsistentWithXoaTime,
     this._getAreHostsVersionsEqual,
     () => this.props.state.hostsByPoolId[this.props.item.$pool],
-    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime, areHostsVersionsEqual, poolHosts) => {
+    () => this.state.isPubKeyTooShort,
+    (
+      needsRestart,
+      host,
+      isMaintained,
+      isHostTimeConsistentWithXoaTime,
+      areHostsVersionsEqual,
+      poolHosts,
+      isPubKeyTooShort
+    ) => {
       const alerts = []
 
       if (needsRestart) {
@@ -190,6 +206,21 @@ export default class HostItem extends Component {
           render: (
             <span>
               {proSupportStatus.icon} {_(proSupportStatus.message)}
+            </span>
+          ),
+        })
+      }
+
+      if (isPubKeyTooShort) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <span>
+              <Icon icon='alarm' /> {_('pubKeyTooShort')}
+              <ul>
+                <li>{_('longerCustomCertficate')}</li>
+                <li>{_('longerDefaultCertificate')}</li>
+              </ul>
             </span>
           ),
         })
