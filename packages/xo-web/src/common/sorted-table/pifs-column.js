@@ -34,7 +34,7 @@ class PifItem extends Component {
         <td>{host?.name_label ?? _('unknown')}</td>
         <td>{pif?.ip ?? _('unknown')}</td>
         <td>{pif?.mac ?? _('unknown')}</td>
-        <td>{bond?.mode ?? _('unknown')} </td>
+        <td>{bond?.mode ?? _('unknown')}</td>
         <td>
           {pif?.carrier === undefined ? (
             <span className='tag tag-warning'>{_('unknown')}</span>
@@ -82,7 +82,7 @@ export default class PifsColumn extends BaseComponent {
                 <th>{_('homeTypeHost')}</th>
                 <th>{_('pifAddressLabel')}</th>
                 <th>{_('pifMacLabel')}</th>
-                <th>{_('bondMode')} </th>
+                <th>{_('bondMode')}</th>
                 <th>{_('pifStatusLabel')}</th>
                 <th />
               </tr>
