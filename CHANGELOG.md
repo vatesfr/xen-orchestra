@@ -1,5 +1,7 @@
 # ChangeLog
 
+## **next**
+
 ## **5.98.1** (2024-09-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
