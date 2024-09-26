@@ -21,19 +21,19 @@
 
 ### Released packages
 
-- xen-api patch
-- @xen-orchestra/xapi patch
-- @xen-orchestra/defined patch
-- @xen-orchestra/web-core minor
-- @xen-orchestra/lite minor
-- @xen-orchestra/proxy patch
-- @xen-orchestra/web minor
-- xapi-explore-sr patch
-- xo-cli minor
-- xo-server minor
-- xo-server-backup-reports patch
-- xo-server-netbox minor
-- xo-web minor
+- xen-api 4.2.1
+- @xen-orchestra/xapi 7.4.1
+- @xen-orchestra/defined 0.0.2
+- @xen-orchestra/web-core 0.2.0
+- @xen-orchestra/lite 0.4.0
+- @xen-orchestra/proxy 0.28.15
+- @xen-orchestra/web 0.2.0
+- xapi-explore-sr 0.4.5
+- xo-cli 0.29.0
+- xo-server 5.155.0
+- xo-server-backup-reports 1.4.2
+- xo-server-netbox 1.6.0
+- xo-web 5.156.0
 
 ## **5.98.1** (2024-09-10)
 
