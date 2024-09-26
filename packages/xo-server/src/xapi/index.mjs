@@ -614,16 +614,16 @@ export default class Xapi extends XapiBase {
         }
       }
     }
-    const loop = async () => {
+    const loop = async (_failOnCbtError = false) => {
       try {
         await this.callAsync('VM.migrate_send', ...params)
       } catch (err) {
-        if (err.code === 'VDI_CBT_ENABLED') {
+        if (err.code === 'VDI_CBT_ENABLED' && !_failOnCbtError) {
           // as of 20240619, CBT must be disabled on all disks to allow migration to go through
           // it will be re enabled if needed by backups
           // the next backup after a storage migration will be a full backup
           await this.VM_disableChangedBlockTracking(vm.$ref)
-          return loop()
+          return loop(true)
         }
         if (err.code === 'TOO_MANY_STORAGE_MIGRATES') {
           await pDelay(1e4)
