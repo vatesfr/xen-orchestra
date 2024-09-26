@@ -1,5 +1,40 @@
 # ChangeLog
 
+## **next**
+
+- [SR/Disks] Display information if the VDI is an empty metadata snapshot (PR [#7970](https://github.com/vatesfr/xen-orchestra/pull/7970))
+- [Netbox] Do not synchronize if detected minor version is not supported (PR [#7992](https://github.com/vatesfr/xen-orchestra/pull/7992))
+- [Netbox] Support version 4.1 [#7966](https://github.com/vatesfr/xen-orchestra/issues/7966) (PR [#8002](https://github.com/vatesfr/xen-orchestra/pull/8002))
+- **XO 6**:
+  - [Dashboard] Display backup issues data (PR [#7974](https://github.com/vatesfr/xen-orchestra/pull/7974))
+- [REST API] Add S3 backup repository, VMs protection and resources overview information in the `/rest/v0/dashboard` endpoint (PRs [#7978](https://github.com/vatesfr/xen-orchestra/pull/7978), [#7964](https://github.com/vatesfr/xen-orchestra/pull/7964), [#8005](https://github.com/vatesfr/xen-orchestra/pull/8005))
+- [Backups] Display more informations in the _Notes_ column of the backup page (PR [#7977](https://github.com/vatesfr/xen-orchestra/pull/7977))
+- [REST API] Add `/alarms` endpoint and remove alarms from the `/dashboard` and `/messages` endpoints (PR [#7959](https://github.com/vatesfr/xen-orchestra/pull/7959))
+
+### Bug fixes
+
+- [Hub/Recipes/Kubernetes] Properly sort versions in selector
+- [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
+- [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
+- [REST API] Fix VDI import in VHD format when `Content-Length` is not provided
+- [REST API] Fix Issues with connecting iSCSI LUN to XOA (PR [#8004](https://github.com/vatesfr/xen-orchestra/pull/8004))
+
+### Released packages
+
+- xen-api 4.2.1
+- @xen-orchestra/xapi 7.4.1
+- @xen-orchestra/defined 0.0.2
+- @xen-orchestra/web-core 0.2.0
+- @xen-orchestra/lite 0.4.0
+- @xen-orchestra/proxy 0.28.15
+- @xen-orchestra/web 0.2.0
+- xapi-explore-sr 0.4.5
+- xo-cli 0.29.0
+- xo-server 5.155.0
+- xo-server-backup-reports 1.4.2
+- xo-server-netbox 1.6.0
+- xo-web 5.156.0
+
 ## **5.98.1** (2024-09-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.155.0",
+  "version": "5.156.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -39,7 +39,7 @@
     "@babel/register": "^7.13.8",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/defined": "^0.0.1",
+    "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/log": "^0.6.0",
     "@xen-orchestra/template": "^0.1.0",
     "ansi_up": "^4.0.3",

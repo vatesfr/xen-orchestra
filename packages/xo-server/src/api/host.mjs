@@ -4,9 +4,11 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 import { incorrectState } from 'xo-common/api-errors.js'
+import { X509Certificate } from 'node:crypto'
 
 import backupGuard from './_backupGuard.mjs'
 
+const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
 const IPMI_CACHE = new TTLCache({
   ttl: IPMI_CACHE_TTL,
@@ -528,6 +530,25 @@ setControlDomainMemory.params = {
 
 setControlDomainMemory.resolve = {
   host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function isPubKeyTooShort({ host }) {
+  const certificate = await this.getXapi(host).call('host.get_server_certificate', host._xapiRef)
+
+  const cert = new X509Certificate(certificate)
+  return cert.publicKey.asymmetricKeyDetails.modulusLength < CERT_PUBKEY_MIN_SIZE
+}
+
+isPubKeyTooShort.description = 'check if host public TLS key is long enough'
+
+isPubKeyTooShort.params = {
+  id: { type: 'string' },
+}
+
+isPubKeyTooShort.resolve = {
+  host: ['id', 'host', 'view'],
 }
 
 // -------------------------------------------------------------------

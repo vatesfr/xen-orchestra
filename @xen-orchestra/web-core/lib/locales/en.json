@@ -49,6 +49,7 @@
   "network": "Network",
   "no-data": "No data",
   "object-not-found": "Object {id} can't be found…",
+  "other": "Other",
   "patches": "Patches",
   "power-on-for-console": "Power on your VM to access its console",
   "running-vm": "Running VM | Running VMs",
