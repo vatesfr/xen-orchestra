@@ -312,6 +312,11 @@ async function _getDashboardStats(app) {
     return false
   }
 
+  /**
+   * Some IDs may not exists anymore
+   * @param {object} job
+   * @returns {string[]}
+   */
   function _extractVmIdsFromBackupJob(job) {
     let vmIds
     try {
