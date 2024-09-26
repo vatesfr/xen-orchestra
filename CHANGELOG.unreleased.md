@@ -25,6 +25,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Fix broken _Rolling Pool Update_ pool action [Forum#82867](https://xcp-ng.org/forum/post/82867)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
