@@ -27,7 +27,12 @@
     "ms": "^2.1.2"
   },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
     "postversion": "npm publish --access public",
+    "prepublishOnly": "yarn run build",
+    "pretest": "yarn run build",
     "test": "node --test"
-  }
+  },
+  "main": "dist/index.js"
 }
