@@ -170,7 +170,7 @@ const NewSequence = decorate([
                 form='sequence-form'
                 handler={effects.save}
                 icon='save'
-                redirectOnSuccess={state.isJobInvalid ? undefined : ActionButton.GO_BACK}
+                redirectOnSuccess='/backup/sequences'
                 size='large'
               >
                 {_('formSave')}
