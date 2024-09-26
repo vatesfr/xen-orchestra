@@ -3,7 +3,7 @@
   "available": "Available",
   "backup-issues": "Backup issues",
   "backups": "Backups",
-  "backup-repository": "Backup repository (local, NFS)",
+  "backup-repository": "Backup repository (local, NFS, SMB)",
 
   "backups.jobs": "Jobs",
   "backups.jobs.at-least-one-skipped": "At least one skipped",
@@ -30,6 +30,7 @@
   "n-hosts": "1 host | {n} hosts",
   "no-results": "No results",
   "pools": "Pools",
+  "s3-backup-repository": "S3 backup repository",
   "storage-repository": "Storage repository",
 
   "sidebar.search-tree-view": "Search in treeview",
