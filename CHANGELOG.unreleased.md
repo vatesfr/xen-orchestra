@@ -42,7 +42,7 @@
 - @xen-orchestra/web-core minor
 - xen-api minor
 - xo-cli minor
-- xo-server patch
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
