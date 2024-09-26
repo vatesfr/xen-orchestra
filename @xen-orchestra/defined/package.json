@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/defined",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "ISC",
   "description": "Utilities to help handling (possibly) undefined values",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/defined",
