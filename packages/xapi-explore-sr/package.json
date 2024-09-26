@@ -33,7 +33,7 @@
     "node": ">=8"
   },
   "dependencies": {
-    "@xen-orchestra/defined": "^0.0.1",
+    "@xen-orchestra/defined": "^0.0.2",
     "archy": "^1.0.0",
     "chalk": "^4.1.0",
     "exec-promise": "^0.7.0",

@@ -47,7 +47,7 @@
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.53.1",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/defined": "^0.0.1",
+    "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/fs": "^4.1.7",
     "@xen-orchestra/log": "^0.6.0",
