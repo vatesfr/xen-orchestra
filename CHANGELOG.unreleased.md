@@ -16,6 +16,7 @@
 - **xo-cli**
   - `rest get --output $file` now displays progress information during download
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
+- [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
 
 ### Bug fixes
 
@@ -39,6 +40,7 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xen-api minor
 - xo-cli minor
 - xo-server minor
 <!--packages-end-->
