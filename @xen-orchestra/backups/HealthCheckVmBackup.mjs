@@ -52,15 +52,13 @@ export class HealthCheckVmBackup {
 
         restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
           timeout: remainingTimeout,
-          timeoutMessage: refOrUuid => `timeout reached while waiting for ${refOrUuid} to be running`,
+          timeoutMessage: refOrUuid =>
+            `local xapi  did not get Running state for VM ${refOrUuid} after ${timeout / 1000} second`,
         })
 
         const running = new Date()
         remainingTimeout -= running - started
 
-        if (remainingTimeout < 0) {
-          throw new Error(`local xapi  did not get Running state for VM ${restoredId} after ${timeout / 1000} second`)
-        }
         // wait for the guest tool version to be defined
         await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
           timeout: remainingTimeout,
@@ -84,8 +82,6 @@ export class HealthCheckVmBackup {
                 `timeout reached while waiting for ${refOrUuid} to report the startup script execution.`,
             }
           )
-          const scriptOk = new Date()
-          remainingTimeout -= scriptOk - guestToolsReady
 
           if (startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check'] !== 'success') {
             const message = startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']
