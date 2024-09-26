@@ -11,21 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Hosts] Display a warning for hosts whose TLS key is too short to update to XCP-ng 8.3 (PR [#7995](https://github.com/vatesfr/xen-orchestra/pull/7995))
-  - [Dashboard] Display S3 backup repository data (PR [#8006](https://github.com/vatesfr/xen-orchestra/pull/8006))
-- **xo-cli**
-  - `rest get --output $file` now displays progress information during download
-  - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
-- [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Hub/Recipes/Kubernetes] Properly sort versions in selector
-- [Host/Network] Fix `an error has occurred` briefly displaying in 'Mode' column of the host's Network tab (PR [#7954](https://github.com/vatesfr/xen-orchestra/pull/7954))
-- [REST API] Fix VDI export broken in XO 5.96.0 and not completely fixed in XO 5.98.0
-- [REST API] Fix VDI import in VHD format when `Content-Length` is not provided
 
 ### Packages to release
 
