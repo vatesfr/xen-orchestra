@@ -52,7 +52,7 @@ export class HealthCheckVmBackup {
 
         restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
           timeout: remainingTimeout,
-          timeoutMessage: refOrUuid => `timeout reached while waiting for  ${refOrUuid} to be running`,
+          timeoutMessage: refOrUuid => `timeout reached while waiting for ${refOrUuid} to be running`,
         })
 
         const running = new Date()
@@ -65,7 +65,7 @@ export class HealthCheckVmBackup {
         await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
           timeout: remainingTimeout,
           timeoutMessage: refOrUuid =>
-            `timeout reached while waiting for  ${refOrUuid} to report the driver version through the xen tools. Please check or update the xen tools.`,
+            `timeout reached while waiting for ${refOrUuid} to report the driver version through the Xen tools. Please check or update the Xen tools.`,
         })
 
         const guestToolsReady = new Date()
@@ -81,7 +81,7 @@ export class HealthCheckVmBackup {
             {
               timeout: remainingTimeout,
               timeoutMessage: refOrUuid =>
-                `timeout reached while waiting for  ${refOrUuid} to report the startup script execution.`,
+                `timeout reached while waiting for ${refOrUuid} to report the startup script execution.`,
             }
           )
           const scriptOk = new Date()
