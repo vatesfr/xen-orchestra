@@ -22,6 +22,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Migration/CBT] Fix an infinite loop when migrating a VM with CBT enabled (PR [#8017](https://github.com/vatesfr/xen-orchestra/pull/8017))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
