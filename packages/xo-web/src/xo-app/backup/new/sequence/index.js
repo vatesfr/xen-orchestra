@@ -125,6 +125,7 @@ const NewSequence = decorate([
                               onChange={s => effects.selectSchedule(schedule.key, s)}
                               value={schedule}
                               required
+                              optionProps={{ showState: false }}
                             />
                             <ActionButton
                               size='small'
