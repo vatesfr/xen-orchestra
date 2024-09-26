@@ -9,11 +9,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const backupRepositories = computed(() => {
     return {
-      available: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.available, 1),
-      backups: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.backups, 1),
-      other: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.other, 1),
-      total: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.total, 1),
-      used: formatSizeRaw(baseContext.record.value?.backupRepositories?.other?.size.used, 1),
+      available: formatSizeRaw(baseContext.record.value?.backupRepositories?.other.size.available, 1),
+      backups: formatSizeRaw(baseContext.record.value?.backupRepositories?.other.size.backups, 1),
+      other: formatSizeRaw(baseContext.record.value?.backupRepositories?.other.size.other, 1),
+      total: formatSizeRaw(baseContext.record.value?.backupRepositories?.other.size.total, 1),
+      used: formatSizeRaw(baseContext.record.value?.backupRepositories?.other.size.used, 1),
     }
   })
 

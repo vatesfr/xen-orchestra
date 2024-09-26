@@ -17,7 +17,7 @@ import { computed } from 'vue'
 
 const { record } = useDashboardStore().subscribe()
 
-const usedSize = computed(() => formatSizeRaw(record.value?.backupRepositories?.s3?.size?.backups, 1))
+const usedSize = computed(() => formatSizeRaw(record.value?.backupRepositories?.s3.size.backups, 1))
 </script>
 
 <style scoped lang="postcss">
