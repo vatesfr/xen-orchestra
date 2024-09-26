@@ -25,6 +25,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Logs] Fix private data in API call: password now obfuscated (PR [#8019](https://github.com/vatesfr/xen-orchestra/pull/8019))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
