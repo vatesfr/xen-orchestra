@@ -37,8 +37,8 @@ const COLUMNS = [
 
       return (
         <ol>
-          {scheduleIds.map(scheduleId => (
-            <li key={scheduleId}>
+          {scheduleIds.map((scheduleId, i) => (
+            <li key={`${i}-${scheduleId}`}>
               <Schedule id={scheduleId} showState={false} />
             </li>
           ))}
