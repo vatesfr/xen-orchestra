@@ -48,6 +48,6 @@
 - xen-api minor
 - xo-cli minor
 - xo-server patch
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
