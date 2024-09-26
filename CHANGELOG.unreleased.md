@@ -45,4 +45,6 @@
 - xen-api minor
 - xo-cli minor
 - xo-server minor
+- xo-web patch
+
 <!--packages-end-->

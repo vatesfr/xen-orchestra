@@ -189,7 +189,6 @@ const NewMirrorBackup = decorate([
         }
 
         const settings = { ...state.settings }
-        const schedules = { ...state.schedules }
         await Promise.all([
           ...map(props.schedules, ({ id }) => {
             const schedule = state.schedules[id]
@@ -214,16 +213,16 @@ const NewMirrorBackup = decorate([
                 enabled: schedule.enabled,
               })
               settings[newSchedule.id] = settings[schedule.id]
-              schedules[newSchedule.id] = newSchedule
               delete settings[schedule.id]
-              delete schedules[schedule.id]
             }
           }),
         ])
 
+        const { schedules, ...jobProps } = normalize({ ...state, settings, isIncremental: state.isIncremental })
+
         await editMirrorBackupJob({
           id: props.job.id,
-          ...normalize({ ...state, settings, schedules, isIncremental: state.isIncremental }),
+          ...jobProps,
         })
       },
       resetMirrorBackup: () => (_, props) => getInitialState(props),
