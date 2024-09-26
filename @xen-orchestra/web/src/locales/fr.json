@@ -12,6 +12,12 @@
   "backups.jobs.looks-like-issue": "Il semble qu'il y ait un problème",
   "backups.jobs.running-good": "Tout est ok",
 
+  "backups.vms-protection": "Protection des VMs",
+  "backups.vms-protection.no-job": "Dans aucun job",
+  "backups.vms-protection.protected": "Dans au moins 1 job et protégé",
+  "backups.vms-protection.tooltip": "Une VM est protégée si elle se trouve dans un job, avec une planification activée, et si la dernière exécution a réussi",
+  "backups.vms-protection.unprotected": "Dans au moins 1 job mais sans protection",
+
   "end-of-life": "Fin de vie",
   "eol": "EOL",
   "for-backup": "Pour la sauvegarde",
