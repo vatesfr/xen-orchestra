@@ -60,7 +60,7 @@ const COMMANDS = {
       output,
     } = getopts(args, {
       alias: { output: 'o' },
-      string: 'output',
+      string: ['output'],
       stopEarly: true,
     })
 
