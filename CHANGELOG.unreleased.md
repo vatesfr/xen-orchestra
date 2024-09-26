@@ -13,6 +13,7 @@
 
 - [Hosts] Display a warning for hosts whose TLS key is too short to update to XCP-ng 8.3 (PR [#7995](https://github.com/vatesfr/xen-orchestra/pull/7995))
   - [Dashboard] Display S3 backup repository data (PR [#8006](https://github.com/vatesfr/xen-orchestra/pull/8006))
+- [xo-cli] `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 
 ### Bug fixes
 
@@ -36,5 +37,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-cli minor
 - xo-server minor
 <!--packages-end-->

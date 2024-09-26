@@ -1,10 +1,11 @@
 import { basename, join } from 'node:path'
-import { createWriteStream } from 'node:fs'
+import { createReadStream, createWriteStream } from 'node:fs'
 import { normalize } from 'node:path/posix'
 import { parse as parseContentType } from 'content-type'
 import { pipeline } from 'node:stream'
 import { pipeline as pPipeline } from 'node:stream/promises'
 import { readChunk } from '@vates/read-chunk'
+import { stat } from 'node:fs/promises'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
@@ -115,24 +116,45 @@ const COMMANDS = {
 }
 
 for (const method of ['post', 'put']) {
-  COMMANDS[method] = async function ([path, ...params]) {
-    params = parseParams(params)
+  COMMANDS[method] = async function (args) {
+    const opts = getopts(args, {
+      alias: { input: 'i' },
+      string: ['input'],
+      stopEarly: true,
+    })
 
-    const response = await this.exec(
-      path,
-      process.stdin.isTTY
-        ? {
-            body: JSON.stringify(params),
-            headers: { 'content-type': 'application/json' },
-            method,
-          }
-        : {
-            body: process.stdin,
-            headers: { 'content-type': 'application/octet-stream' },
-            method,
-            query: params,
-          }
-    )
+    const [path, ...rest] = opts._
+    const params = parseParams(rest)
+
+    let response
+    const { input } = opts
+    if (input === '') {
+      response = await this.exec(path, {
+        body: JSON.stringify(params),
+        headers: { 'content-type': 'application/json' },
+        method,
+      })
+    } else {
+      let inputStream, length
+      if (input === '-') {
+        inputStream = process.stdin
+      } else {
+        inputStream = await createReadStream(input)
+        length = (await stat(input)).size
+      }
+
+      const headers = { 'content-type': 'application/octet-stream' }
+      if (length !== undefined) {
+        headers['content-length'] = length
+      }
+
+      response = await this.exec(path, {
+        body: pipeline(inputStream, streamStatsPrinter(length), noop),
+        headers,
+        method,
+        query: params,
+      })
+    }
 
     return stripPrefix(await response.text())
   }
