@@ -34,7 +34,7 @@ class PifItem extends Component {
         <td>{host?.name_label ?? _('unknown')}</td>
         <td>{pif?.ip ?? _('unknown')}</td>
         <td>{pif?.mac ?? _('unknown')}</td>
-        <td>{bond?.mode ?? _('unknown')}</td>
+        <td>{bond?.mode ?? '-'}</td>
         <td>
           {pif?.carrier === undefined ? (
             <span className='tag tag-warning'>{_('unknown')}</span>
