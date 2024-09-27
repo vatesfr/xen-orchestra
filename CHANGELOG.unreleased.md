@@ -27,6 +27,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Fix broken _Rolling Pool Update_ pool action [Forum#82867](https://xcp-ng.org/forum/post/82867)
+- [Logs] Fix private data in API call: password now obfuscated (PR [#8019](https://github.com/vatesfr/xen-orchestra/pull/8019))
 
 ### Packages to release
 

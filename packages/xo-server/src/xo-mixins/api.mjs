@@ -398,10 +398,11 @@ export default class Api {
 
       const resolvedParams = await resolveParams.call(app, method, params)
 
+      // data.params contains obfuscated params
       let result = await (name in NO_LOG_METHODS
         ? method.call(app, resolvedParams)
         : app.tasks
-            .create({ name: 'API call: ' + name, method: name, params, type: 'api.call' }, { clearLogOnSuccess: true })
+            .create({ name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' }, { clearLogOnSuccess: true })
             .run(() => method.call(app, resolvedParams)))
 
       // If nothing was returned, consider this operation a success
