@@ -312,10 +312,15 @@ async function _getDashboardStats(app) {
     return false
   }
 
+  /**
+   * Some IDs may not exists anymore
+   * @param {object} job
+   * @returns {string[]}
+   */
   function _extractVmIdsFromBackupJob(job) {
     let vmIds
     try {
-      vmIds = extractIdsFromSimplePattern(job.vms).filter(vmId => app.hasObject(vmId, 'VM'))
+      vmIds = extractIdsFromSimplePattern(job.vms)
     } catch (_) {
       const predicate = createPredicate(job.vms)
       vmIds = nonReplicaVms.filter(predicate).map(vm => vm.id)
@@ -324,7 +329,7 @@ async function _getDashboardStats(app) {
   }
 
   function _updateVmProtection(vmId, isProtected) {
-    if (vmIdsProtected.has(vmId)) {
+    if (vmIdsProtected.has(vmId) || !app.hasObject(vmId, 'VM')) {
       return
     }
 
