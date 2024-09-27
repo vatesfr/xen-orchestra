@@ -4,6 +4,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
+import { injectState, provideState } from 'reaclette'
 import find from 'lodash/find.js'
 import isEmpty from 'lodash/isEmpty.js'
 
@@ -13,7 +14,16 @@ import Link from './link'
 import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
-import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
+import {
+  isSrWritable,
+  subscribeBackupNgJobs,
+  subscribeMetadataBackupJobs,
+  subscribeProxies,
+  subscribeRemotes,
+  subscribeSchedules,
+  subscribeUsers,
+  subscribeMirrorBackupJobs,
+} from './xo'
 
 // ===================================================================
 
@@ -493,6 +503,62 @@ BackupJob.defaultProps = {
 
 // ===================================================================
 
+export const Schedule = decorate([
+  addSubscriptions(({ id }) => ({
+    schedule: cb => subscribeSchedules(schedules => cb(schedules.find(schedule => schedule.id === id))),
+    backupJobs: subscribeBackupNgJobs,
+    metadataBackupJobs: subscribeMetadataBackupJobs,
+    mirrorBackupJobs: subscribeMirrorBackupJobs,
+  })),
+  provideState({
+    initialState: () => ({}),
+    computed: {
+      job: (_, { backupJobs = [], metadataBackupJobs = [], mirrorBackupJobs = [], schedule }) =>
+        schedule && [...backupJobs, ...metadataBackupJobs, ...mirrorBackupJobs].find(job => job.id === schedule.jobId),
+    },
+  }),
+  injectState,
+  ({ id, schedule, showJob, showState, state: { job } }) => {
+    if (schedule === undefined) {
+      return unknowItem(id, 'schedule')
+    }
+
+    const isEnabled = schedule.enabled
+    const scheduleName = schedule.name.trim()
+    const jobName = job?.name.trim()
+
+    return (
+      <span>
+        {showState && (
+          <span className={`mr-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
+            {isEnabled ? _('stateEnabled') : _('stateDisabled')}
+          </span>
+        )}
+        <span>{scheduleName === '' ? <em>{_('unnamedSchedule')}</em> : scheduleName}</span>
+        {showJob && (
+          <span>
+            {' '}
+            ({job ? jobName === '' ? <em>{_('unnamedJob')}</em> : jobName : unknowItem(schedule.jobId, 'job')})
+          </span>
+        )}
+      </span>
+    )
+  },
+])
+
+Schedule.propTypes = {
+  id: PropTypes.string.isRequired,
+  showState: PropTypes.bool,
+  showJob: PropTypes.bool,
+}
+
+Schedule.defaultProps = {
+  showState: true,
+  showJob: true,
+}
+
+// ===================================================================
+
 export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
@@ -684,18 +750,8 @@ const xoItemToRender = {
 
   PCI: props => <Pci {...props} self />,
 
-  schedule: schedule => {
-    const isEnabled = schedule.enabled
-    const scheduleName = schedule.name.trim()
-    return (
-      <span>
-        <span className={`mr-1 tag tag-${isEnabled ? 'success' : 'danger'}`}>
-          {isEnabled ? _('stateEnabled') : _('stateDisabled')}
-        </span>
-        <span>{scheduleName === '' ? <em>{_('unnamedSchedule')}</em> : scheduleName}</span>
-      </span>
-    )
-  },
+  schedule: props => <Schedule {...props} />,
+
   job: job => <spans>{job.name}</spans>,
 }
 

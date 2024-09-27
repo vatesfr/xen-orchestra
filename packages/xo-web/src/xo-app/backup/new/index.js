@@ -48,6 +48,7 @@ import { canDeltaBackup, constructPattern, destructPattern, FormFeedback, FormGr
 
 export NewMetadataBackup from './metadata'
 export NewMirrorBackup from './mirror'
+export NewSequence from './sequence'
 
 // ===================================================================
 

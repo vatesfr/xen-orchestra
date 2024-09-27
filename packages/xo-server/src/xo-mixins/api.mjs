@@ -316,18 +316,30 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    const apiContext = { __proto__: null, connection }
-
+    let user
     const userId = connection.get('user_id', undefined)
     if (userId !== undefined) {
-      const user = await this._app.getUser(userId)
+      user = await this._app.getUser(userId)
+    }
+
+    return this.runWithApiContext(user, () => {
+      this.apiContext.connection = connection
+
+      return this.#callApiMethod(name, method, params)
+    })
+  }
+
+  async runWithApiContext(user, fn) {
+    const apiContext = { __proto__: null }
+
+    if (user !== undefined) {
       apiContext.user = user
       apiContext.permission = user.permission
     } else {
       apiContext.permission = 'none'
     }
 
-    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))
+    return this.#apiContext.run(apiContext, fn)
   }
 
   async #callApiMethod(name, method, params) {

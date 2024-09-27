@@ -20,11 +20,14 @@
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 - [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
 - [Backup/HealthCheck] Improve error messages on health check timeout (PR [#8016](https://github.com/vatesfr/xen-orchestra/pull/8016))
+- [Backup] Backup job sequences: configure lists of backup jobs to run in order one after the other (PRs [#7985](https://github.com/vatesfr/xen-orchestra/pull/7985), [#8014](https://github.com/vatesfr/xen-orchestra/pull/8014))
 - [Pool/Network] Display the bond mode of a network [#7802](https://github.com/vatesfr/xen-orchestra/issues/7802) (PR [#8010](https://github.com/vatesfr/xen-orchestra/pull/8010))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [REST API] Fix broken _Rolling Pool Update_ pool action [Forum#82867](https://xcp-ng.org/forum/post/82867)
 
 ### Packages to release
 
