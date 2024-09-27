@@ -15,6 +15,7 @@
 - **XO 6**:
   - [Dashboard] Display S3 backup repository data (PR [#8006](https://github.com/vatesfr/xen-orchestra/pull/8006))
   - [Dashboard] Display VMs protection data (PR [#8007](https://github.com/vatesfr/xen-orchestra/pull/8007))
+  - [Dashboard] Display resources overview data (PR [#8009](https://github.com/vatesfr/xen-orchestra/pull/8009))
 - **xo-cli**
   - `rest get --output $file` now displays progress information during download
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information

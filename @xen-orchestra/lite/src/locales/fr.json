@@ -203,7 +203,6 @@
   "theme-light": "Clair",
   "this-vm-cant-be-migrated": "Cette VM ne peut pas être migrée",
   "top-#": "Top {n}",
-  "total-cpus": "Total CPUs",
   "total-free:": "Total libre :",
   "total-used:": "Total utilisé :",
   "unreachable-hosts": "Hôtes inaccessibles",

@@ -69,5 +69,6 @@
   "tasks.quick-view.in-progress": "En cours",
 
   "total": "Total",
+  "total-cpus": "Total CPUs",
   "vms": "VMs"
 }

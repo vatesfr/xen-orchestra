@@ -36,12 +36,15 @@
   "n-hosts": "1 hôte | {n} hôtes",
   "no-results": "Aucun résultat",
   "pools": "Pools",
+  "resources-overview": "Vue d'ensemble des ressources",
   "s3-backup-repository": "Dépot de sauvegarde S3",
   "storage-repository": "Dépot de stockage",
 
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",
 
+  "total-memory": "Mémoire totale",
+  "total-storage-repository": "Total dépot de stockage",
   "up-to-date": "À jour",
   "used": "Utilisé",
   "vm": "VM",

@@ -36,12 +36,15 @@
   "n-hosts": "1 host | {n} hosts",
   "no-results": "No results",
   "pools": "Pools",
+  "resources-overview": "Resources overview",
   "s3-backup-repository": "S3 backup repository",
   "storage-repository": "Storage repository",
 
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
 
+  "total-memory": "Total memory",
+  "total-storage-repository": "Total storage repository",
   "up-to-date": "Up-to-date",
   "used": "Used",
   "vm": "VM",
