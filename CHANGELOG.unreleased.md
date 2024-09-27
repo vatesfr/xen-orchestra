@@ -19,6 +19,7 @@
   - `rest get --output $file` now displays progress information during download
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 - [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
+- [Backup/HealthCheck] Improve error messages on health check timeout (PR [#8016](https://github.com/vatesfr/xen-orchestra/pull/8016))
 
 ### Bug fixes
 
@@ -40,8 +41,10 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xen-api minor
 - xo-cli minor
 - xo-server minor
