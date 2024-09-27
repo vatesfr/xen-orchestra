@@ -19,7 +19,6 @@
   - `rest get --output $file` now displays progress information during download
   - `rest post` and `rest put` now accept `--input $file` to upload a file and display progress information
 - [Backup] Detect invalid VDI exports that are incorrectly reported as successful by XAPI
-- [Backup/HealthCheck] Improve error messages on health check timeout (PR [#8016](https://github.com/vatesfr/xen-orchestra/pull/8016))
 - [Backup] Backup job sequences: configure lists of backup jobs to run in order one after the other (PRs [#7985](https://github.com/vatesfr/xen-orchestra/pull/7985), [#8014](https://github.com/vatesfr/xen-orchestra/pull/8014))
 - [Pool/Network] Display the bond mode of a network [#7802](https://github.com/vatesfr/xen-orchestra/issues/7802) (PR [#8010](https://github.com/vatesfr/xen-orchestra/pull/8010))
 
