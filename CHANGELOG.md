@@ -40,13 +40,13 @@
 - xapi-explore-sr 0.4.5
 - xo-server-backup-reports 1.4.2
 - xo-server-netbox 1.6.0
+- xen-api 4.3.0
+- @xen-orchestra/xapi 7.5.0
 - @xen-orchestra/backups 0.54.0
 - @xen-orchestra/backups-cli 1.0.24
 - @xen-orchestra/immutable-backups 1.0.11
-- @xen-orchestra/proxy 0.28.16
-- xen-api 4.3.0
-- @xen-orchestra/xapi 7.5.0
 - @xen-orchestra/web-core 0.3.0
+- @xen-orchestra/proxy 0.28.16
 - @xen-orchestra/web 0.3.0
 - xo-cli 0.30.0
 - xo-server 5.156.0
