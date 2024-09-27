@@ -311,6 +311,11 @@ export default class Menu extends Component {
             label: 'backupOverviewPage',
           },
           {
+            to: '/backup/sequences',
+            icon: 'menu-backup-sequence',
+            label: 'sequences',
+          },
+          {
             to: '/backup/new',
             icon: 'menu-backup-new',
             label: 'backupNewPage',

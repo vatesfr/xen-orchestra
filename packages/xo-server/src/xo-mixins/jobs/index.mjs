@@ -165,7 +165,7 @@ export default class Jobs {
   }
 
   @decorateWith(defer)
-  async _runJob($defer, job, schedule, data_) {
+  async runJob($defer, job, schedule, data_) {
     const logger = this._logger
     const { id, type } = job
 
@@ -316,7 +316,7 @@ export default class Jobs {
     const jobs = await Promise.all(idSequence.map(id => this.getJob(id)))
 
     for (const job of jobs) {
-      await this._runJob(job, schedule, data)
+      await this.runJob(job, schedule, data)
     }
   }
 }

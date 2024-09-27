@@ -461,8 +461,7 @@ export default class RestApi {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
-            req.user = user
-            return next()
+            return app.runWithApiContext(user, next)
           }
 
           res.sendStatus(401)
@@ -658,7 +657,7 @@ export default class RestApi {
             params.affinityHost = affinity
             params.installRepository = install?.repository
 
-            const vm = await $xapi.createVm(template, params, undefined, req.user.id)
+            const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
             $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
             if (boot) {

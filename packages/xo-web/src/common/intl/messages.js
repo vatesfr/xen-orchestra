@@ -152,6 +152,8 @@ const messages = {
   xcpNg: 'XCP-ng',
   noFileSelected: 'No file selected',
   nRetriesVmBackupFailures: 'Number of retries if VM backup fails',
+  sequence: 'Sequence',
+  sequences: 'Sequences',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -531,7 +533,9 @@ const messages = {
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
+  scheduleSequence: 'Schedule sequence',
   unnamedSchedule: 'Unnamed schedule',
+  unnamedJob: 'Unnamed Job',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
   legacySnapshotsLink: 'You can delete all your legacy backup snapshots.',
@@ -969,6 +973,7 @@ const messages = {
   noHost: 'No hosts',
   memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
+  bondMode: 'Bond Mode',
   pif: 'PIF',
   poolNetworkAutomatic: 'Automatic',
   poolNetworkNameLabel: 'Name',
@@ -1670,6 +1675,7 @@ const messages = {
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
   missingSchedule: 'Missing schedule',
+  unknownSchedule: 'Unknown schedule',
   noDetachedBackups: 'No backups',
   noDuplicatedMacAddresses: 'No duplicated MAC addresses',
   reason: 'Reason',

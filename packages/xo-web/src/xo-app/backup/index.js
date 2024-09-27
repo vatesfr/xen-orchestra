@@ -15,9 +15,10 @@ import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
 import Edit from './edit'
 import FileRestore from './file-restore'
 import Health from './health'
-import NewVmBackup, { NewMetadataBackup, NewMirrorBackup } from './new'
+import NewVmBackup, { NewMetadataBackup, NewMirrorBackup, NewSequence } from './new'
 import Overview from './overview'
 import Restore, { RestoreMetadata } from './restore'
+import Sequences from './sequences'
 
 import Page from '../page'
 
@@ -55,6 +56,9 @@ const HEADER = (
           <NavLink to='/backup/overview'>
             <Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}
           </NavLink>
+          <NavLink to='/backup/sequences'>
+            <Icon icon='menu-backup-sequence' /> {_('sequences')}
+          </NavLink>
           <NavLink to='/backup/new'>
             <Icon icon='menu-backup-new' /> {_('backupNewPage')}
           </NavLink>
@@ -89,6 +93,9 @@ const ChooseBackupType = () => (
             <p>
               <ButtonLink to='backup/new/metadata'>
                 <Icon icon='database' /> {_('backupMetadata')}
+              </ButtonLink>{' '}
+              <ButtonLink to='backup/new/sequence'>
+                <Icon icon='menu-backup-sequence' /> {_('sequence')}
               </ButtonLink>
             </p>
           </CardBlock>
@@ -104,7 +111,9 @@ export default routes('overview', {
   'new/vms': NewVmBackup,
   'new/mirror': NewMirrorBackup,
   'new/metadata': NewMetadataBackup,
+  'new/sequence': NewSequence,
   overview: Overview,
+  sequences: Sequences,
   restore: Restore,
   'restore/metadata': RestoreMetadata,
   'file-restore': FileRestore,

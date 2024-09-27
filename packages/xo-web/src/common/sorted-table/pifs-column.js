@@ -8,7 +8,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
-import { createGetObject, createSelector } from 'selectors'
+import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectPif, disconnectPif } from 'xo'
 
 @connectStore(() => {
@@ -19,11 +19,14 @@ import { connectPif, disconnectPif } from 'xo'
     pif => pif?.attached && !pif?.isBondMaster && (pif?.management || pif?.disallowUnplug)
   )
 
-  return { host, pif, disableUnplug }
+  const bonds = createGetObjectsOfType('bond')
+  const bond = createSelector(pif, bonds, (pif, bonds) => Object.values(bonds).find(bond => bond.master === pif.id))
+
+  return { host, pif, disableUnplug, bond }
 })
 class PifItem extends Component {
   render() {
-    const { pif, host, disableUnplug } = this.props
+    const { pif, host, disableUnplug, bond } = this.props
 
     return (
       <tr>
@@ -31,6 +34,7 @@ class PifItem extends Component {
         <td>{host?.name_label ?? _('unknown')}</td>
         <td>{pif?.ip ?? _('unknown')}</td>
         <td>{pif?.mac ?? _('unknown')}</td>
+        <td>{bond?.mode ?? '-'}</td>
         <td>
           {pif?.carrier === undefined ? (
             <span className='tag tag-warning'>{_('unknown')}</span>
@@ -78,6 +82,7 @@ export default class PifsColumn extends BaseComponent {
                 <th>{_('homeTypeHost')}</th>
                 <th>{_('pifAddressLabel')}</th>
                 <th>{_('pifMacLabel')}</th>
+                <th>{_('bondMode')}</th>
                 <th>{_('pifStatusLabel')}</th>
                 <th />
               </tr>
