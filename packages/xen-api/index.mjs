@@ -26,7 +26,6 @@ import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
-import { readChunk } from '@vates/read-chunk'
 
 const { debug } = createLogger('xen-api')
 
@@ -477,33 +476,6 @@ export class Xapi extends EventEmitter {
         }
       )
     )
-
-    // 2024-09-26 - Work-around a XAPI bug: sometimes the response status is
-    // `200 OK` but the body contains a full HTTP response
-    //
-    // Example:
-    //
-    // ```http
-    // HTTP/1.1 500 Internal Error
-    // content-length: 357
-    // content-type:text/html
-    // connection:close
-    // cache-control:no-cache, no-store
-    //
-    // <html><body><h1>HTTP 500 internal server error</h1>An unexpected error occurred; please wait a while and try again. If the problem persists, please contact your support representative.<h1> Additional information </h1>SR_BACKEND_FAILURE_46: [ ; The VDI is not available [opterr=VDI d63513c8-b662-41cd-a355-a63efb5f073f not detached cleanly];  ]</body></html>
-    // ```
-    //
-    // Related GitHub issue: https://github.com/xapi-project/xen-api/issues/4603
-    //
-    // This code detects this and throw an error
-    const { body } = response
-    const chunk = await readChunk(body, 5)
-    body.unshift(chunk)
-    if (String(chunk) === 'HTTP/') {
-      const error = new Error('invalid HTTP header in response body')
-      Object.defineProperty(error, 'response', { value: response })
-      throw error
-    }
 
     if (pTaskResult !== undefined) {
       response.task = pTaskResult

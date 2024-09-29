@@ -5,6 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createVhdStreamWithLength } from 'vhd-lib'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
 import MultiNbdClient from '@vates/nbd-client/multi.mjs'
@@ -13,6 +14,34 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 import { finished } from 'node:stream'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
+
+// 2024-09-26 - Work-around a XAPI bug: sometimes the response status is
+// `200 OK` but the body contains a full HTTP response
+//
+// Example:
+//
+// ```http
+// HTTP/1.1 500 Internal Error
+// content-length: 357
+// content-type:text/html
+// connection:close
+// cache-control:no-cache, no-store
+//
+// <html><body><h1>HTTP 500 internal server error</h1>An unexpected error occurred; please wait a while and try again. If the problem persists, please contact your support representative.<h1> Additional information </h1>SR_BACKEND_FAILURE_46: [ ; The VDI is not available [opterr=VDI d63513c8-b662-41cd-a355-a63efb5f073f not detached cleanly];  ]</body></html>
+// ```
+//
+// Related GitHub issue: https://github.com/xapi-project/xen-api/issues/4603
+//
+// This function detects this and throw an error
+async function checkVdiExport(stream) {
+  const chunk = await readChunk(stream, 5)
+  stream.unshift(chunk)
+  if (String(chunk) === 'HTTP/') {
+    const error = new Error('invalid HTTP header in response body')
+    Object.defineProperty(error, 'response', { body: await readChunk(stream, 1024) })
+    throw error
+  }
+}
 
 const noop = Function.prototype
 class Vdi {
@@ -157,6 +186,9 @@ class Vdi {
         query,
         task: await this.task_create(`Exporting content of VDI ${vdiName}`),
       })
+
+      await checkVdiExport(body)
+
       return body
     }
 
@@ -214,6 +246,8 @@ class Vdi {
           task: await this.task_create(`Exporting content of VDI ${vdiName}`),
         })
       ).body
+
+      await checkVdiExport(stream)
 
       $defer.onFailure(() => {
         exportStream.on('error', noop).destroy()

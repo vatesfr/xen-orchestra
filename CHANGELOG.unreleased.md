@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi patch
+- xen-api patch
+
 <!--packages-end-->
