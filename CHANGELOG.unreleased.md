@@ -33,7 +33,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/proxy minor
 - @xen-orchestra/xapi patch
 - xen-api patch
+- xo-server minor
 
 <!--packages-end-->
