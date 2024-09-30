@@ -732,7 +732,6 @@ subscribeXostorInterfaces.forceRefresh = sr => {
   subscription?.forceRefresh()
 }
 
-
 const subscribeHostsIpmiSensors = {}
 export const subscribeIpmiSensors = host => {
   const _isAdmin = isAdmin(store.getState())
@@ -1373,7 +1372,7 @@ export const installCertificateOnHost = (id, props) => _call('host.installCertif
 
 export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
 
-export const isPubKeyTooShort = (id) => _call('host.isPubKeyTooShort', { id })
+export const isPubKeyTooShort = id => _call('host.isPubKeyTooShort', { id })
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
