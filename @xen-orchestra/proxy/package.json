@@ -39,7 +39,7 @@
     "@xen-orchestra/mixin": "^0.1.0",
     "@xen-orchestra/mixins": "^0.16.0",
     "@xen-orchestra/self-signed": "^0.2.1",
-    "@xen-orchestra/xapi": "^7.5.1",
+    "@xen-orchestra/xapi": "^7.5.2",
     "ajv": "^8.0.3",
     "app-conf": "^3.0.0",
     "async-iterator-to-stream": "^1.1.0",
@@ -61,7 +61,7 @@
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "xdg-basedir": "^5.1.0",
-    "xen-api": "^4.3.1",
+    "xen-api": "^4.3.2",
     "xo-common": "^0.8.0"
   },
   "devDependencies": {
