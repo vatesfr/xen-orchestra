@@ -1,8 +1,10 @@
 # ChangeLog
 
-## **next**
+## **5.99.0** (2024-09-30)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
 
 - [SR/Disks] Display information if the VDI is an empty metadata snapshot (PR [#7970](https://github.com/vatesfr/xen-orchestra/pull/7970))
 - [Netbox] Do not synchronize if detected minor version is not supported (PR [#7992](https://github.com/vatesfr/xen-orchestra/pull/7992))
@@ -23,6 +25,8 @@
 - [Backup] Backup job sequences: configure lists of backup jobs to run in order one after the other (PRs [#7985](https://github.com/vatesfr/xen-orchestra/pull/7985), [#8014](https://github.com/vatesfr/xen-orchestra/pull/8014))
 - [Pool/Network] Display the bond mode of a network [#7802](https://github.com/vatesfr/xen-orchestra/issues/7802) (PR [#8010](https://github.com/vatesfr/xen-orchestra/pull/8010))
 - [Tasks] Ability to delete XO task logs
+
+### Enhancements
 
 ### Bug fixes
 
@@ -56,7 +60,7 @@
 
 ## **5.98.1** (2024-09-10)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -243,8 +247,6 @@
 - xo-server 5.148.2
 
 ## **5.95.2** (2024-08-28)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
