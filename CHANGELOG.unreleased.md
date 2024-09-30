@@ -15,8 +15,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Migration/CBT] Fix an infinite loop when migrating a VM with CBT enabled (PR [#8017](https://github.com/vatesfr/xen-orchestra/pull/8017))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,10 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/proxy minor
-- @xen-orchestra/xapi patch
-- xen-api patch
-- xo-server minor
 
 <!--packages-end-->
