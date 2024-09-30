@@ -30,5 +30,4 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
 <!--packages-end-->
