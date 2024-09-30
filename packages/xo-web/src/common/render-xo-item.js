@@ -524,8 +524,8 @@ export const Schedule = decorate([
     }
 
     const isEnabled = schedule.enabled
-    const scheduleName = schedule.name.trim()
-    const jobName = job?.name.trim()
+    const scheduleName = (schedule.name ?? '').trim()
+    const jobName = (job?.name ?? '').trim()
 
     return (
       <span>
