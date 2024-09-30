@@ -48,11 +48,11 @@
 - @xen-orchestra/web-core 0.3.0
 - @xen-orchestra/web 0.3.0
 - xo-cli 0.30.0
-- xo-web 5.157.0
 - xen-api 4.3.1
 - @xen-orchestra/xapi 7.5.1
 - @xen-orchestra/proxy 0.29.0
 - xo-server 5.157.0
+- xo-web 5.157.1
 
 ## **5.98.1** (2024-09-10)
 
