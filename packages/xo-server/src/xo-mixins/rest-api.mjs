@@ -9,7 +9,6 @@ import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
-import Disposable from 'promise-toolbox/Disposable'
 import groupBy from 'lodash/groupBy.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
@@ -251,9 +250,8 @@ async function _getDashboardStats(app) {
         continue
       }
 
-      const totalBackupSize = await Disposable.use(app.getBackupsRemoteAdapter(backupRepository), adapter =>
-        adapter.getTotalBackupSize()
-      )
+      const totalBackupSize = await app.getTotalBackupSizeOnRemote(backupRepository.id)
+
       const { available, size, used } = backupRepositoryInfo
 
       const isS3 = type === 's3'
@@ -461,7 +459,8 @@ export default class RestApi {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
-            return app.runWithApiContext(user, next)
+            req.user = user
+            return next()
           }
 
           res.sendStatus(401)
@@ -657,7 +656,7 @@ export default class RestApi {
             params.affinityHost = affinity
             params.installRepository = install?.repository
 
-            const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
+            const vm = await $xapi.createVm(template, params, undefined, req.user.id)
             $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
             if (boot) {

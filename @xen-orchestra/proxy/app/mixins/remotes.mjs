@@ -3,6 +3,7 @@ import { compose } from '@vates/compose'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { getHandler } from '@xen-orchestra/fs'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 
 export default class Remotes {
   constructor(app) {
@@ -25,6 +26,21 @@ export default class Remotes {
               success: false,
               error: error.message ?? String(error),
             })),
+          {
+            params: {
+              remote: { type: 'object' },
+            },
+          },
+        ],
+
+        getTotalBackupSize: [
+          ({ remote }) =>
+            Disposable.use(this.getHandler(remote), handler => {
+              const remoteAdapter = new RemoteAdapter(handler, {
+                debounceResource: app.debounceResource.bind(app),
+              })
+              return remoteAdapter.getTotalBackupSize()
+            }),
           {
             params: {
               remote: { type: 'object' },
