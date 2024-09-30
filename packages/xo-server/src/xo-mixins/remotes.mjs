@@ -10,6 +10,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import patch from '../patch.mjs'
 import { Remotes } from '../models/remote.mjs'
+import Disposable from 'promise-toolbox/Disposable'
 
 // ===================================================================
 
@@ -296,5 +297,17 @@ export default class {
     }
 
     await this._remotes.remove(id)
+  }
+
+  async getTotalBackupSizeOnRemote(id) {
+    const remote = await this._getRemote(id)
+
+    if (remote.proxy !== undefined) {
+      return this._app.callProxyMethod(remote.proxy, 'remote.getTotalBackupSize', {
+        remote,
+      })
+    }
+
+    return Disposable.use(this._app.getBackupsRemoteAdapter(remote), adapter => adapter.getTotalBackupSize())
   }
 }
