@@ -24,7 +24,7 @@
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "promise-toolbox": "^0.21.0",
-    "xen-api": "^4.3.0"
+    "xen-api": "^4.3.1"
   },
   "devDependencies": {
     "tap": "^18.7.0",

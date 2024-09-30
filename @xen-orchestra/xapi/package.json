@@ -16,7 +16,7 @@
   },
   "main": "./index.mjs",
   "peerDependencies": {
-    "xen-api": "^4.3.0"
+    "xen-api": "^4.3.1"
   },
   "scripts": {
     "postversion": "npm publish --access public",
