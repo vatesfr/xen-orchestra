@@ -2843,6 +2843,13 @@ export const abortXoTask = async task => {
   }
 }
 
+export const deleteXoTaskLog = async task => {
+  const response = await fetch(`./rest/v0/tasks/${task.id}`, { method: 'DELETE' })
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+}
+
 // Jobs -------------------------------------------------------------
 
 export const createJob = job => _call('job.create', { job })::tap(subscribeJobs.forceRefresh)

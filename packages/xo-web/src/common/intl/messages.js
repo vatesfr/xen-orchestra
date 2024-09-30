@@ -485,6 +485,7 @@ const messages = {
   jobSkipped: 'Skipped',
   jobSuccess: 'Successful',
   allTasks: 'All',
+  taskDeleteLog: 'Delete task log',
   taskStart: 'Start',
   taskEnd: 'End',
   taskDuration: 'Duration',
