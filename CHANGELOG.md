@@ -32,6 +32,7 @@
 - [REST API] Fix Issues with connecting iSCSI LUN to XOA (PR [#8004](https://github.com/vatesfr/xen-orchestra/pull/8004))
 - [REST API] Fix broken _Rolling Pool Update_ pool action [Forum#82867](https://xcp-ng.org/forum/post/82867)
 - [Logs] Fix private data in API call: password now obfuscated (PR [#8019](https://github.com/vatesfr/xen-orchestra/pull/8019))
+- [Migration/CBT] Fix an infinite loop when migrating a VM with CBT enabled (PR [#8017](https://github.com/vatesfr/xen-orchestra/pull/8017))
 
 ### Released packages
 
@@ -40,17 +41,17 @@
 - xapi-explore-sr 0.4.5
 - xo-server-backup-reports 1.4.2
 - xo-server-netbox 1.6.0
-- xen-api 4.3.0
-- @xen-orchestra/xapi 7.5.0
 - @xen-orchestra/backups 0.54.0
 - @xen-orchestra/backups-cli 1.0.24
 - @xen-orchestra/immutable-backups 1.0.11
 - @xen-orchestra/web-core 0.3.0
-- @xen-orchestra/proxy 0.28.16
 - @xen-orchestra/web 0.3.0
 - xo-cli 0.30.0
-- xo-server 5.156.0
 - xo-web 5.157.0
+- xen-api 4.3.1
+- @xen-orchestra/xapi 7.5.1
+- @xen-orchestra/proxy 0.29.0
+- xo-server 5.157.0
 
 ## **5.98.1** (2024-09-10)
 
