@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Fix a memory leak mainly visible since XO 5.95.1
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,4 +34,5 @@
 <!--packages-start-->
 
 - @vates/task patch
+
 <!--packages-end-->
