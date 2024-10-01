@@ -89,6 +89,10 @@ async function main(args, scriptName) {
   const releaseOrder = computeDepOrder(allPackages)
 
   Object.entries(toRelease).forEach(([packageName, releaseType]) => {
+    if (packageName === '@xen-orchestra/lite') {
+      throw new Error(`Package ${packageName} should not be listed, it's released separately`)
+    }
+
     const rootPackage = allPackages[packageName]
 
     if (!rootPackage) {
