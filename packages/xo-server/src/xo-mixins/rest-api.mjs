@@ -173,10 +173,10 @@ async function _getDashboardStats(app) {
     }
   }
 
-  const pools = Object.values(app.objects.indexes.type.pool)
-  const hosts = Object.values(app.objects.indexes.type.host)
-  const srs = Object.values(app.objects.indexes.type.SR)
-  const vms = Object.values(app.objects.indexes.type.VM)
+  const pools = Object.values(app.objects.indexes.type.pool ?? {})
+  const hosts = Object.values(app.objects.indexes.type.host ?? {})
+  const srs = Object.values(app.objects.indexes.type.SR ?? {})
+  const vms = Object.values(app.objects.indexes.type.VM ?? {})
 
   const writableSrs = srs.filter(isSrWritable)
   const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
