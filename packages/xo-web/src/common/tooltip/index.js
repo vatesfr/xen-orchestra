@@ -62,53 +62,51 @@ export default class Tooltip extends Component {
     tagName: PropTypes.string,
   }
 
+  _node = null
+
   componentDidMount() {
-    this._addListeners()
+    this._updateListeners()
   }
 
   componentWillUnmount() {
     this._removeListeners()
   }
 
-  componentWillReceiveProps(props) {
-    if (props.children !== this.props.children) {
-      this._removeListeners()
-    }
-  }
-
   componentDidUpdate(prevProps) {
-    if (prevProps.children !== this.props.children) {
-      this._addListeners()
-    }
+    this._updateListeners()
   }
 
-  _addListeners() {
-    const node = (this._node = ReactDOM.findDOMNode(this))
+  _updateListeners() {
+    // eslint-disable-next-line react/no-find-dom-node
+    const node = ReactDOM.findDOMNode(this)
 
-    // 2020-06-15: Use pointer events instead of mouse events to workaround
-    // Chrome not firing any mouse event on disabled inputs. Pointer events
-    // should be correctly fired on most browsers and are similar to mouse
-    // events on mouse-controlled devices.
-    // https://github.com/reach/reach-ui/issues/564#issuecomment-620502842
-    // https://caniuse.com/#feat=mdn-api_pointerevent
-    node.addEventListener('pointerenter', this._showTooltip)
-    node.addEventListener('pointerleave', this._hideTooltip)
-    node.addEventListener('pointermove', this._updateTooltip)
+    if (node !== this._node) {
+      this._removeListeners()
+
+      this._node = node
+      if (node !== null) {
+        // 2020-06-15: Use pointer events instead of mouse events to workaround
+        // Chrome not firing any mouse event on disabled inputs. Pointer events
+        // should be correctly fired on most browsers and are similar to mouse
+        // events on mouse-controlled devices.
+        // https://github.com/reach/reach-ui/issues/564#issuecomment-620502842
+        // https://caniuse.com/#feat=mdn-api_pointerevent
+        node.addEventListener('pointerenter', this._showTooltip)
+        node.addEventListener('pointerleave', this._hideTooltip)
+        node.addEventListener('pointermove', this._updateTooltip)
+      }
+    }
   }
 
   _removeListeners() {
-    const node = this._node
     this._hideTooltip()
 
-    if (!node) {
-      return
+    const node = this._node
+    if (node !== null) {
+      node.removeEventListener('pointerenter', this._showTooltip)
+      node.removeEventListener('pointerleave', this._hideTooltip)
+      node.removeEventListener('pointermove', this._updateTooltip)
     }
-
-    node.removeEventListener('pointerenter', this._showTooltip)
-    node.removeEventListener('pointerleave', this._hideTooltip)
-    node.removeEventListener('pointermove', this._updateTooltip)
-
-    this._node = null
   }
 
   _showTooltip = () => {
@@ -123,10 +121,17 @@ export default class Tooltip extends Component {
   }
 
   _hideTooltip = () => {
-    instance.setState({ show: false })
+    if (instance !== undefined) {
+      instance.setState({ show: false })
+    }
   }
 
   _updateTooltip = event => {
+    if (instance === undefined) {
+      return
+    }
+
+    // eslint-disable-next-line react/no-find-dom-node
     const node = ReactDOM.findDOMNode(instance)
     const result = getPosition(event, event.currentTarget, node, instance.state.place, 'solid', {})
 

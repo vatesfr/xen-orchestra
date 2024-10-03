@@ -211,6 +211,69 @@ app ERROR duplicates of the previous log were hidden { nDuplicates: 2 }
 app INFO This is a different message
 ```
 
+#### Capture
+
+> Allow capturing all logs emitted during a call, even through asynchronous operations.
+
+Before being able to use this feature, you need to add the transport:
+
+```js
+import { configure } from '@xen-orchestra/log/configure'
+import { createCaptureTransport } from '@xen-orchestra/log/capture'
+import createConsoleTransport from '@xen-orchestra/log/transports/console'
+
+// transport that will be used globally, when not in a captured environment
+const fallbackTransport = {
+  filter: process.env.DEBUG,
+  level: 'warn',
+
+  transport: createConsoleTransport(),
+}
+
+// create the capture transport and pass it the fallback one
+const captureTransport = createCaptureTransport(fallbackTransport)
+
+// configure @xen-orchestra/log to use our transport
+configure(captureTransport)
+```
+
+Now the `captureLogs(onLog, fn)` can be used:
+
+```js
+import { captureLogs } from '@xen-orchestra/log/capture'
+import { createLogger } from '@xen-orchestra/log'
+
+const logger = createLogger('my-logger')
+
+await captureLogs(
+  log => {
+    // every logs emitted in the async context of `fn` will arrive here
+    //
+    // do not emit logs in this function or this will create a loop.
+  },
+  async () => {
+    logger.debug('synchronous logs are captured')
+
+    setTimeout(() => {
+      logger.debug('logs from asynchronous callbacks too')
+    }, 50)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    logger.debug('logs in async functions or promise chains too')
+
+    // To escape capture, run code in `captureLogs` with `undefined`
+    // as the first param
+    captureLogs(undefined, () => {
+      logger.debug('this log will not be captured')
+    })
+
+    // Returned value and error is forwarded by `captureLogs`
+    return Math.PI
+  }
+)
+```
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
