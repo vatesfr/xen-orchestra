@@ -134,7 +134,18 @@ class Vdi {
   }
 
   async disconnectFromControlDomain(vdiRef) {
-    const vbdRefs = await this.getField('VDI', vdiRef, 'VBDs')
+    let vbdRefs
+    try {
+      vbdRefs = await this.getField('VDI', vdiRef, 'VBDs')
+    } catch (err) {
+      // since we can't get the info of this record we assume it is delete or deleting
+      // this can happen when multiple process compete for the resources
+      // or if xapi is taking too much time to answer to a destroy/data_destroy
+      if (err.code === 'HANDLE_INVALID') {
+        return
+      }
+      throw err
+    }
     await Promise.all(
       vbdRefs.map(async vbdRef => {
         const vmRef = await this.getField('VBD', vbdRef, 'VM')
