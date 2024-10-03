@@ -44,6 +44,8 @@ exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noo
       } else if (type === 'property') {
         ;(taskLog.properties ?? (taskLog.properties = { __proto__: null }))[event.name] = event.value
       } else if (type === 'end') {
+        taskLogs.delete(id)
+
         taskLog.end = event.timestamp
         taskLog.result = event.result
         taskLog.status = event.status

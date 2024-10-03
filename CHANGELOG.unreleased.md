@@ -16,6 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Tooltip] Fix randomly disappearing tooltips (PR [#8031](https://github.com/vatesfr/xen-orchestra/pull/8031))
+- Fix a memory leak mainly visible since XO 5.95.1 (PR [#8030](https://github.com/vatesfr/xen-orchestra/pull/8030))
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @vates/task patch
 - @xen-orchestra/log minor
 - xo-web patch
 
