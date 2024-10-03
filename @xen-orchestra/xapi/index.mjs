@@ -76,7 +76,7 @@ const getPoolInfo = ({ pool } = {}) =>
     name_label: pool.name_label,
   }
 
-function onRetry(error) {
+function logErrorBeforeRetry(error) {
   try {
     warn('retry', {
       attemptNumber: this.attemptNumber,
@@ -87,6 +87,17 @@ function onRetry(error) {
       pool: getPoolInfo(this.this),
     })
   } catch (error) {}
+}
+function disconnectBeforeRetry() {
+  logErrorBeforeRetry.apply(this, arguments)
+  const { arguments: args, this: self } = this
+  const vdiRef = args[0]
+  return self.VDI_disconnectFromControlDomain(vdiRef).catch(error =>
+    warn('VDI_disconnectFromControlDomain failed while retrying', {
+      arguments,
+      error,
+    })
+  )
 }
 
 const logWatcherError = error => warn('error in watcher', { error })
@@ -145,7 +156,7 @@ export class Xapi extends Base {
     super(opts)
     this._callRetryWhenTooManyPendingTasks = {
       ...callRetryWhenTooManyPendingTasks,
-      onRetry,
+      onRetry: logErrorBeforeRetry,
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
     this._maxUncoalescedVdis = maxUncoalescedVdis
@@ -155,7 +166,7 @@ export class Xapi extends Base {
     this._syncHookTimeout = syncHookTimeout
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
-      onRetry,
+      onRetry: disconnectBeforeRetry,
       when: { code: 'VDI_IN_USE' },
     }
 
