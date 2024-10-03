@@ -312,6 +312,11 @@ export default class {
     return token !== undefined && (await this._app.doesUserExist(token.user_id))
   }
 
+  async getAuthenticationTokenUser(id) {
+    const token = await this.getAuthenticationToken(id)
+    return this._app.getUser(token.user_id)
+  }
+
   async updateAuthenticationToken(properties, { description }) {
     const token = await this.getAuthenticationToken(properties)
     patch(token, { description })

@@ -30,11 +30,11 @@ import { URL } from 'url'
 import { verifyTotp } from '@vates/otp'
 
 import { compile as compilePug } from 'pug'
-import { fromCallback, fromEvent } from 'promise-toolbox'
+import { fromCallback, fromEvent, pCatch } from 'promise-toolbox'
 import { ifDef } from '@xen-orchestra/defined'
 
 import fse from 'fs-extra'
-import { invalidCredentials } from 'xo-common/api-errors.js'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { Peer as JsonRpcPeer } from 'json-rpc-peer'
 
 import ensureArray from './_ensureArray.mjs'
@@ -314,8 +314,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       })(req, res, next)
     }
 
-    const { token } = req.cookies
-    if (token !== undefined && (await xo.isValidAuthenticationToken(token))) {
+    if (req.user !== undefined) {
       next()
     } else {
       req.flash('return-url', url)
@@ -572,7 +571,16 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        let target = opts[prefix]
+
+        if (typeof target !== 'string') {
+          const { permission } = target
+          target = target.target
+
+          if (permission !== undefined && !xo.hasPermission(req.user?.permission, permission)) {
+            return res.sendStatus(401)
+          }
+        }
 
         proxy.web(req, res, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
@@ -597,7 +605,16 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        let target = opts[prefix]
+
+        if (typeof target !== 'string') {
+          const { permission } = target
+          target = target.target
+
+          if (permission !== undefined && !xo.hasPermission(req.user?.permission, permission)) {
+            return socket.end('HTTP/1.1 401 Unauthorized\r\n\r\n')
+          }
+        }
 
         proxy.ws(req, socket, head, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
@@ -693,13 +710,13 @@ const setUpApi = (webServer, xo, config, useForwardedHeaders) => {
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
-const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
+const setUpConsoleProxy = (express, xo, useForwardedHeaders) => {
   const webSocketServer = new WebSocketServer({
     noServer: true,
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
-  webServer.on('upgrade', async (req, socket, head) => {
+  express.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
     if (!matches) {
       return
@@ -711,16 +728,10 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
 
       // TODO: factorize permissions checking in an Express middleware.
       {
-        const { token } = parseCookies(req.headers.cookie)
-
-        const remoteAddress = proxyAddr(req, useForwardedHeaders)
-
-        const { user } = await xo.authenticateUser({ token }, { ip: remoteAddress })
+        const { user } = req
         if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
-
-        log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
 
         const data = {
           timestamp: Date.now(),
@@ -849,21 +860,6 @@ export default async function main(args) {
     }
   }
 
-  // Attaches express to the web server.
-  webServer.on('request', (req, res) => {
-    // don't redirect let's encrypt challenge to https
-    if (req.url.startsWith('/.well')) {
-      return
-    }
-    // don't handle proxy requests
-    if (req.url.startsWith('/')) {
-      return express(req, res)
-    }
-  })
-  webServer.on('upgrade', (req, socket, head) => {
-    express.emit('upgrade', req, socket, head)
-  })
-
   const safeMode = includes(args, '--safe-mode')
 
   // Creates main object.
@@ -877,6 +873,41 @@ export default async function main(args) {
     safeMode,
   })
 
+  let useForwardedHeaders = false
+
+  async function authenticateRequest(req) {
+    const cookies = parseCookies(req.headers.cookie)
+
+    const { token = cookies.authenticationToken } = cookies
+    if (token !== undefined) {
+      try {
+        const { user } = await xo.authenticateUser({ token }, { ip: proxyAddr(req, useForwardedHeaders) })
+        req.user = user
+      } catch (error) {
+        if (!invalidCredentials.is(error)) {
+          log.warn({ error })
+        }
+      }
+    }
+  }
+
+  // Attaches express to the web server.
+  webServer.on('request', async (req, res) => {
+    // don't redirect let's encrypt challenge to https
+    if (req.url.startsWith('/.well')) {
+      return
+    }
+    // don't handle proxy requests
+    if (req.url.startsWith('/')) {
+      await authenticateRequest(req)
+      return express(req, res)
+    }
+  })
+  webServer.on('upgrade', async (req, socket, head) => {
+    await authenticateRequest(req)
+    express.emit('upgrade', req, socket, head)
+  })
+
   // Register web server close on XO stop.
   xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
 
@@ -886,7 +917,7 @@ export default async function main(args) {
   // Trigger a clean job.
   await xo.hooks.clean()
 
-  const useForwardedHeaders = (() => {
+  useForwardedHeaders = (() => {
     // recompile the fonction when the setting change
     let useForwardedHeaders
     xo.config.watch('http.useForwardedHeaders', val => {
@@ -911,7 +942,7 @@ export default async function main(args) {
   await setUpPassport(express, xo, config)
 
   // Must be set up before the static files.
-  setUpApi(webServer, xo, config, useForwardedHeaders)
+  setUpApi(express, xo, config, useForwardedHeaders)
 
   setUpProxies(express, config.http.proxies, xo)
 

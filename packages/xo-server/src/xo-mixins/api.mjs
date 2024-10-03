@@ -402,7 +402,10 @@ export default class Api {
       let result = await (name in NO_LOG_METHODS
         ? method.call(app, resolvedParams)
         : app.tasks
-            .create({ name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' }, { clearLogOnSuccess: true })
+            .create(
+              { name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' },
+              { clearLogOnSuccess: true }
+            )
             .run(() => method.call(app, resolvedParams)))
 
       // If nothing was returned, consider this operation a success
@@ -494,6 +497,10 @@ export default class Api {
     log.debug(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
 
     return connection
+  }
+
+  hasPermission(actual = 'none', expected) {
+    return PERMISSIONS[actual] >= PERMISSIONS[expected]
   }
 
   registerApiHttpRequest(method, connection, fn, data, { exposeAllErrors = false, ...opts } = {}) {
