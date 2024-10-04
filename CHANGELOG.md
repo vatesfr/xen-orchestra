@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.99.1** (2024-10-04)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -17,8 +19,6 @@
 - xo-web 5.157.2
 
 ## **5.99.0** (2024-09-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
