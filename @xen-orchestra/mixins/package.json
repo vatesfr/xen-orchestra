@@ -21,7 +21,7 @@
   "dependencies": {
     "@vates/event-listeners-manager": "^1.0.1",
     "@vates/parse-duration": "^0.1.1",
-    "@vates/task": "^0.4.0",
+    "@vates/task": "^0.4.1",
     "@xen-orchestra/log": "^0.6.0",
     "acme-client": "^5.0.0",
     "app-conf": "^3.0.0",
