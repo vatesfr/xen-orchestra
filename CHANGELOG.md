@@ -1,5 +1,21 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Tooltip] Fix randomly disappearing tooltips (PR [#8031](https://github.com/vatesfr/xen-orchestra/pull/8031))
+- Fix a memory leak mainly visible since XO 5.95.1 (PR [#8030](https://github.com/vatesfr/xen-orchestra/pull/8030))
+- [Backup] Force an additional VDI disconnection before retrying on VDI_IN_USE error (PR [#8032](https://github.com/vatesfr/xen-orchestra/pull/8032))
+
+### Released packages
+
+- @vates/task 0.4.1
+- @xen-orchestra/xapi 7.6.0
+- @xen-orchestra/proxy 0.29.1
+- xo-server 5.157.1
+- xo-web 5.157.2
+
 ## **5.99.0** (2024-09-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
