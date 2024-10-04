@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- @xen-orchestra/xapi patch
 - xo-server minor
 
 <!--packages-end-->
