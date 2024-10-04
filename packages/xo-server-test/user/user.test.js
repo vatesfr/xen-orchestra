@@ -1,12 +1,12 @@
-
-import forOwn from 'lodash/forOwn.js'
+// import forOwn from 'lodash/forOwn.js'
 import keyBy from 'lodash/keyBy.js'
-import { test, it, before, after, afterEach, suite } from 'node:test'
+import { test, /* it, */ before, after /*, afterEach */ } from 'node:test'
 import assert from 'node:assert'
 import Xo from 'xo-lib'
-import { accessSync } from 'node:fs'
+// import { accessSync } from 'node:fs'
 
 const SERVER_URL = "http://192.168.1.180"
+/*
 const SIMPLE_USER = {
   email: 'wayne3@vates.fr',
   password: 'batman',
@@ -17,6 +17,7 @@ const ADMIN_USER = {
   password: 'admin',
   permission: 'admin',
 }
+*/
 
 async function connect({ url = SERVER_URL, email, password }) {
   const xo = new Xo.default({ url })
@@ -34,7 +35,7 @@ async function connect({ url = SERVER_URL, email, password }) {
 
 
 let sharedXo
-let cleanupTest = []
+const cleanupTest = []
 before(async () => {
   sharedXo = await connect({
     email: 'admin@admin.net',
@@ -106,14 +107,14 @@ after(async () => {
   cleanupTest.push({ method: 'user.delete', params: { id: userId } })
 
   await t.test('initial connection ok', async () => {
-    let userXo = await connect({
+    const userXo = await connect({
       email: user.email,
       password: user.password
     })
     await userXo.close()
   })
 
-  let userXo = await connect({
+  const userXo = await connect({
     email: user.email,
     password: user.password
   })
@@ -133,7 +134,7 @@ after(async () => {
   })
 
   await t.test('connection with new password ok ', async () => {
-    let userXo = await connect({
+    const userXo = await connect({
       email: user.email,
       password: newPassword
     })
@@ -192,7 +193,7 @@ test('.set', async t =>{
         // @todo ad test of failure for non admin user 
         t.test('with admin connection ', async t=>{
           await sharedXo.call('user.set', {...dataSet, id: userId})
-          let updatedUser = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
+          const updatedUser = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
           for(const [key, value] of Object.entries(dataSet)){
            console.log({key,value, dataSet})
            if(key !== 'password'){
@@ -202,7 +203,7 @@ test('.set', async t =>{
            }
            const userXo = await connect({
              email: testData.email,
-             password: password
+             password
            })
            await userXo.close()
           }

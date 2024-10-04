@@ -1,12 +1,14 @@
-/* eslint-env jest */
+'use strict'
 
 import forOwn from 'lodash/forOwn.js'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import config from '../_config'
-import randomId from '../_randomId'
-import xo from '../_xoConnection'
-import { getDefaultName, getDefaultSchedule } from '../_defaultValues'
+import config from '../_config.js'
+import randomId from '../_randomId.js'
+import xo from '../_xoConnection.js'
+import { getDefaultName, getDefaultSchedule } from '../_defaultValues.js'
+
+import assert from 'node:assert'
 
 const validateBackupJob = (jobInput, jobOutput, createdSchedule) => {
   const expectedObj = {
