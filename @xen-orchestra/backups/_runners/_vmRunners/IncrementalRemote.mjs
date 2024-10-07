@@ -49,11 +49,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
 
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
-    await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis),
-      'writer.checkBaseVdis()',
-      false
-    )
+    await this._callWriters(writer => writer.checkBaseVdis(presentBaseVdis), 'writer.checkBaseVdis()', false)
     // check if the parent vdi are present in all the remotes
     baseUuidToSrcVdi.forEach((srcVdiUuid, baseUuid) => {
       if (!presentBaseVdis.has(baseUuid)) {
