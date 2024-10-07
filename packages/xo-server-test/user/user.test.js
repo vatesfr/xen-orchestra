@@ -1,12 +1,14 @@
 // import forOwn from 'lodash/forOwn.js'
 import keyBy from 'lodash/keyBy.js'
-import { test, /* it, */ before, after /*, afterEach */ } from 'node:test'
+import { describe, test, it, before, after /*, afterEach */ } from 'node:test'
 import assert from 'node:assert'
 import Xo from 'xo-lib'
 // import { accessSync } from 'node:fs'
+import { XoConnection, testWithOtherConnection, testConnection } from '../_xoConnection.js'
+const xo = new XoConnection()
 
-const SERVER_URL = "http://192.168.1.180"
-/*
+const SERVER_URL = 'http://127.0.0.1:8000'
+
 const SIMPLE_USER = {
   email: 'wayne3@vates.fr',
   password: 'batman',
@@ -17,7 +19,6 @@ const ADMIN_USER = {
   password: 'admin',
   permission: 'admin',
 }
-*/
 
 async function connect({ url = SERVER_URL, email, password }) {
   const xo = new Xo.default({ url })
@@ -31,12 +32,10 @@ async function connect({ url = SERVER_URL, email, password }) {
   return xo
 }
 
-
-
-
 let sharedXo
 const cleanupTest = []
 before(async () => {
+  console.log('before')
   sharedXo = await connect({
     email: 'admin@admin.net',
     password: 'admin',
@@ -44,7 +43,7 @@ before(async () => {
 })
 after(async () => {
   console.log('after')
-  for (const { method, params, fn } of cleanupTest) {
+  for (const { method, params /*, fn */ } of cleanupTest) {
     try {
       await sharedXo.call(method, params)
     } catch (err) {
@@ -52,15 +51,14 @@ after(async () => {
     }
   }
   await sharedXo?.close()
-
 })
 
- test('user.create', async t => {
+test('user.create', async t => {
   const data = {
     'User without permission': {
       email: 'wayne1@vates.fr',
       password: 'batman1',
-      permission: 'none'
+      permission: 'none',
     },
     'User with permission': {
       email: 'wayne2@vates.fr',
@@ -77,11 +75,15 @@ after(async () => {
       assert.strictEqual(email, testData.email)
 
       const AUTHORIZED_PROPERTIES = ['authProviders', 'id', 'email', 'groups', 'permission', 'preferences']
-      assert.strictEqual(Object.keys(others).filter(property => !AUTHORIZED_PROPERTIES.includes(property)).length, 0, 'user api must not leak user secrets')
+      assert.strictEqual(
+        Object.keys(others).filter(property => !AUTHORIZED_PROPERTIES.includes(property)).length,
+        0,
+        'user api must not leak user secrets'
+      )
       assert.deepEqual(permission, testData.permission)
       const userXo = await connect({
         email: testData.email,
-        password: testData.password
+        password: testData.password,
       })
       await userXo.close()
     })
@@ -95,8 +97,7 @@ after(async () => {
   })
 })
 
-
- test('changes the actual user password', async t => {
+test('changes the actual user password', async t => {
   const user = {
     email: 'wayne7@vates.fr',
     password: 'batman',
@@ -109,22 +110,23 @@ after(async () => {
   await t.test('initial connection ok', async () => {
     const userXo = await connect({
       email: user.email,
-      password: user.password
+      password: user.password,
     })
     await userXo.close()
   })
 
   const userXo = await connect({
     email: user.email,
-    password: user.password
+    password: user.password,
   })
 
-  await t.test('can\'t change if initilai password is invalid', async () => {
-    await assert.rejects(userXo.call('user.changePassword', {
-      oldPassword: 'WRONG PASSWORD',
-      newPassword,
-    }))
-
+  await t.test("can't change if initilai password is invalid", async () => {
+    await assert.rejects(
+      userXo.call('user.changePassword', {
+        oldPassword: 'WRONG PASSWORD',
+        newPassword,
+      })
+    )
   })
   await t.test('change password ok', async () => {
     await userXo.call('user.changePassword', {
@@ -136,21 +138,22 @@ after(async () => {
   await t.test('connection with new password ok ', async () => {
     const userXo = await connect({
       email: user.email,
-      password: newPassword
+      password: newPassword,
     })
     await userXo.close()
   })
 
   await t.test('connection with old password forbidden ', async () => {
-    await assert.rejects(connect({
-      email: user.email,
-      password: user.password
-    }))
+    await assert.rejects(
+      connect({
+        email: user.email,
+        password: user.password,
+      })
+    )
   })
 })
 
-
- test('.getAll', async t => {
+test('.getAll', async t => {
   const NB = 10
   for (let i = 0; i < NB; i++) {
     const userId = await sharedXo.call('user.create', { email: `${i}@example.com`, password: 'PWD' })
@@ -164,15 +167,14 @@ after(async () => {
       assert.notStrictEqual(users[`${i}@example.com`], undefined)
     }
   })
-}) 
+})
 
-test('.set', async t =>{
-
+test('.set', async t => {
   let password = 'PWD'
   const userId = await sharedXo.call('user.create', { email: `testset@example.com`, password })
   cleanupTest.push({ method: 'user.delete', params: { id: userId } })
 
-  await t.test('success', async ()=>{
+  await t.test('success', async () => {
     const data = {
       'sets an email': { email: 'wayne_modified@vates.fr' },
       'sets a password': { password: 'newPassword' },
@@ -185,155 +187,157 @@ test('.set', async t =>{
             },
           },
         },
-      }
-    } 
-    for(const [title, dataSet] of Object.entries(data)){
-      await t.test(title, async t=>{
-
-        // @todo ad test of failure for non admin user 
-        t.test('with admin connection ', async t=>{
-          await sharedXo.call('user.set', {...dataSet, id: userId})
+      },
+    }
+    for (const [title, testData] of Object.entries(data)) {
+      await t.test(title, async t => {
+        // @todo ad test of failure for non admin user
+        t.test('with admin connection ', async t => {
+          await sharedXo.call('user.set', { ...testData, id: userId })
           const updatedUser = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
-          for(const [key, value] of Object.entries(dataSet)){
-           console.log({key,value, dataSet})
-           if(key !== 'password'){
-             assert.deepStrictEqual(updatedUser[key], value)
-           } else {
-             password = value
-           }
-           const userXo = await connect({
-             email: testData.email,
-             password
-           })
-           await userXo.close()
+          for (const [key, value] of Object.entries(testData)) {
+            console.log({ key, value, testData })
+            if (key !== 'password') {
+              assert.deepStrictEqual(updatedUser[key], value)
+            } else {
+              password = value
+            }
+            const userXo = await connect({
+              email: testData.email,
+              password,
+            })
+            await userXo.close()
           }
         })
-
       })
     }
   })
- 
 })
 
-/*
+function withData(data, fn) {
+  for (const [description, testData] of Object.entries(data)) {
+    it(description, async () => {
+      await fn(testData)
+    })
+  }
+}
 
-
-  describe('.set() :', () => {
-    withData(
-      {
-        'sets an email': { email: 'wayne_modified@vates.fr' },
-        'sets a password': { password: 'newPassword' },
-        'sets a permission': { permission: 'user' },
-        'sets a preference': {
-          preferences: {
-            filters: {
-              VM: {
-                test: 'name_label: test',
-              },
+describe('.set() :', () => {
+  withData(
+    {
+      'sets an email': { email: 'wayne_modified@vates.fr' },
+      'sets a password': { password: 'newPassword' },
+      'sets a permission': { permission: 'user' },
+      'sets a preference': {
+        preferences: {
+          filters: {
+            VM: {
+              test: 'name_label: test',
             },
           },
         },
       },
-      async data => {
-        data.id = await xo.createTempUser(SIMPLE_USER)
-        expect(await xo.call('user.set', data)).toBe(true)
-        expect(await xo.getUser(data.id)).toMatchSnapshot({
-          id: expect.any(String),
-        })
-
-        await testConnection({
-          credentials: {
-            email: data.email === undefined ? SIMPLE_USER.email : data.email,
-            password: data.password === undefined ? SIMPLE_USER.password : data.password,
-          },
-        })
-      }
-    )
-
-    withData(
-      {
-        'fails trying to set an email with a non admin user connection': {
-          email: 'wayne_modified@vates.fr',
-        },
-        'fails trying to set a password with a non admin user connection': {
-          password: 'newPassword',
-        },
-        'fails trying to set a permission with a non admin user connection': {
-          permission: 'user',
-        },
-      },
-      async data => {
-        data.id = await xo.createTempUser({
-          email: 'wayne8@vates.fr',
-          password: 'batman8',
-        })
-        await xo.createTempUser(SIMPLE_USER)
-
-        await testWithOtherConnection(SIMPLE_USER, xo => expect(xo.call('user.set', data)).rejects.toMatchSnapshot())
-      }
-    )
-
-    withData(
-      {
-        'fails trying to set its own permission as a non admin user': SIMPLE_USER,
-        'fails trying to set its own permission as an admin': {
-          email: 'admin2@admin.net',
-          password: 'batman',
-          permission: 'admin',
-        },
-      },
-      async data => {
-        const id = await xo.createTempUser(data)
-        const { email, password } = data
-        await testWithOtherConnection({ email, password }, xo =>
-          expect(xo.call('user.set', { id, permission: 'user' })).rejects.toMatchSnapshot()
-        )
-      }
-    )
-
-    it('fails trying to set a property of a nonexistant user', async () => {
-      await expect(
-        xo.call('user.set', {
-          id: 'non-existent-id',
-          password: SIMPLE_USER.password,
-        })
-      ).rejects.toMatchSnapshot()
-    })
-
-    it.skip('fails trying to set an email already used', async () => {
-      await xo.createTempUser(SIMPLE_USER)
-      const userId2 = await xo.createTempUser({
-        email: 'wayne6@vates.fr',
-        password: 'batman',
+    },
+    async data => {
+      data.id = await xo.createTempUser(SIMPLE_USER)
+      assert.toBe(await xo.call('user.set', data), true)
+      assert.skip(await xo.getUser(data.id), {
+        id: '', // expect.any(String),
       })
 
-      await expect(
-        xo.call('user.set', {
-          id: userId2,
-          email: SIMPLE_USER.email,
-        })
-      ).rejects.toMatchSnapshot()
-    })
+      await testConnection({
+        credentials: {
+          email: data.email === undefined ? SIMPLE_USER.email : data.email,
+          password: data.password === undefined ? SIMPLE_USER.password : data.password,
+        },
+      })
+    }
+  )
+
+  withData(
+    {
+      'fails trying to set an email with a non admin user connection': {
+        email: 'wayne_modified@vates.fr',
+      },
+      'fails trying to set a password with a non admin user connection': {
+        password: 'newPassword',
+      },
+      'fails trying to set a permission with a non admin user connection': {
+        permission: 'user',
+      },
+    },
+    async data => {
+      data.id = await xo.createTempUser({
+        email: 'wayne8@vates.fr',
+        password: 'batman8',
+      })
+      await xo.createTempUser(SIMPLE_USER)
+
+      await testWithOtherConnection(SIMPLE_USER, xo => assert.rejects(xo.call('user.set', data))) // .rejects.toMatchSnapshot())
+    }
+  )
+
+  withData(
+    {
+      'fails trying to set its own permission as a non admin user': SIMPLE_USER,
+      'fails trying to set its own permission as an admin': {
+        email: 'admin2@admin.net',
+        password: 'batman',
+        permission: 'admin',
+      },
+    },
+    async data => {
+      const id = await xo.createTempUser(data)
+      const { email, password } = data
+      await testWithOtherConnection(
+        { email, password },
+        xo => assert.rejects(xo.call('user.set', { id, permission: 'user' })) // .rejects.toMatchSnapshot()
+      )
+    }
+  )
+
+  it('fails trying to set a property of a nonexistant user', async () => {
+    await assert.rejects(
+      xo.call('user.set', {
+        id: 'non-existent-id',
+        password: SIMPLE_USER.password,
+      })
+    ) // .rejects.toMatchSnapshot()
   })
 
-  describe('.delete() :', () => {
-    it('deletes a user successfully with id', async () => {
-      const userId = await xo.call('user.create', SIMPLE_USER)
-      expect(await xo.call('user.delete', { id: userId })).toBe(true)
-      expect(await xo.getUser(userId)).toBe(undefined)
+  it.skip('fails trying to set an email already used', async () => {
+    await xo.createTempUser(SIMPLE_USER)
+    const userId2 = await xo.createTempUser({
+      email: 'wayne6@vates.fr',
+      password: 'batman',
     })
 
-    it('fails trying to delete a user with a nonexistent user', async () => {
-      await expect(xo.call('user.delete', { id: 'nonexistentId' })).rejects.toMatchSnapshot()
-    })
-
-    it('fails trying to delete itself', async () => {
-      const id = await xo.createTempUser(ADMIN_USER)
-      const { email, password } = ADMIN_USER
-      await testWithOtherConnection({ email, password }, xo =>
-        expect(xo.call('user.delete', { id })).rejects.toMatchSnapshot()
-      )
-    })
+    await assert.rejects(
+      xo.call('user.set', {
+        id: userId2,
+        email: SIMPLE_USER.email,
+      })
+    ) // .rejects.toMatchSnapshot()
   })
 })
-*/
+
+describe('.delete() :', () => {
+  it('deletes a user successfully with id', async () => {
+    const userId = await xo.call('user.create', SIMPLE_USER)
+    assert(await xo.call('user.delete', { id: userId }), true)
+    assert(await xo.getUser(userId), undefined)
+  })
+
+  it('fails trying to delete a user with a nonexistent user', async () => {
+    await assert.rejects(xo.call('user.delete', { id: 'nonexisten tId' })) // .rejects.toMatchSnapshot()
+  })
+
+  it('fails trying to delete itself', async () => {
+    const id = await xo.createTempUser(ADMIN_USER)
+    const { email, password } = ADMIN_USER
+    await testWithOtherConnection(
+      { email, password },
+      xo => assert.rejects(xo.call('user.delete', { id })) // .rejects.toMatchSnapshot()
+    )
+  })
+})

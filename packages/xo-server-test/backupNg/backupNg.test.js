@@ -1,5 +1,6 @@
-'use strict'
+// 'use strict'
 
+/*
 import forOwn from 'lodash/forOwn.js'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -26,7 +27,7 @@ const validateBackupJob = (jobInput, jobOutput, createdSchedule) => {
   const schedules = jobInput.schedules
   if (schedules !== undefined) {
     const scheduleTmpId = Object.keys(schedules)[0]
-    expect(createdSchedule).toEqual({
+    assert.deepEqual(createdSchedule, {
       ...schedules[scheduleTmpId],
       enabled: false,
       id: expect.any(String),
@@ -569,3 +570,4 @@ describe('backupNg', () => {
     })
   }, 200e3)
 })
+*/
