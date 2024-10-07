@@ -45,6 +45,7 @@ after(async () => {
   console.log('after')
   for (const { method, params /*, fn */ } of cleanupTest) {
     try {
+      // console.log(cleanupTest)
       await sharedXo.call(method, params)
     } catch (err) {
       console.error('during cleanup', err)
@@ -214,15 +215,15 @@ test('.set', async t => {
   })
 })
 
-function withData(data, fn) {
-  for (const [description, testData] of Object.entries(data)) {
-    it(description, async () => {
-      await fn(testData)
-    })
-  }
-}
-
 describe('.set() :', () => {
+  function withData(data, fn) {
+    for (const [description, testData] of Object.entries(data)) {
+      it(description, async () => {
+        await fn(testData)
+      })
+    }
+  }
+
   withData(
     {
       'sets an email': { email: 'wayne_modified@vates.fr' },
@@ -324,8 +325,8 @@ describe('.set() :', () => {
 describe('.delete() :', () => {
   it('deletes a user successfully with id', async () => {
     const userId = await xo.call('user.create', SIMPLE_USER)
-    assert(await xo.call('user.delete', { id: userId }), true)
-    assert(await xo.getUser(userId), undefined)
+    assert.equal(await xo.call('user.delete', { id: userId }), true)
+    assert.equal(await xo.getUser(userId), undefined)
   })
 
   it('fails trying to delete a user with a nonexistent user', async () => {
@@ -337,7 +338,7 @@ describe('.delete() :', () => {
     const { email, password } = ADMIN_USER
     await testWithOtherConnection(
       { email, password },
-      xo => assert.rejects(xo.call('user.delete', { id })) // .rejects.toMatchSnapshot()
+      async xo => await assert.rejects(xo.call('user.delete', { id })) // .rejects.toMatchSnapshot()
     )
   })
 })

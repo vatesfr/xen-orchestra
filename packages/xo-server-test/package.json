@@ -39,8 +39,8 @@
     "xo-lib": "^0.11.1"
   },
   "scripts": {
-    "watch": "jest --bail --watch",
-    "start": "jest"
+    "watch": "node --test --watch",
+    "start": "node --test"
   },
   "jest": {
     "modulePathIgnorePatterns": [
