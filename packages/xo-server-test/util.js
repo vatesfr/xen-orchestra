@@ -1,7 +1,8 @@
-import expect from 'must'
 import { find, forEach, map, cloneDeep } from 'lodash'
 
-import config from './_config'
+import config from './_config.js'
+
+import { expect } from 'assert'
 
 export const rejectionOf = promise =>
   promise.then(
@@ -141,5 +142,5 @@ export function almostEqual(actual, expected, ignoredAttributes) {
     deepDelete(actual, ignoredAttribute.split('.'))
     deepDelete(expected, ignoredAttribute.split('.'))
   })
-  expect(actual).to.be.eql(expected)
+  expect.equal(actual, expected)
 }

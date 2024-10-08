@@ -19,7 +19,7 @@
   "preferGlobal": false,
   "main": "dist/",
   "engines": {
-    "node": ">=7"
+    "node": ">=14"
   },
   "dependencies": {
     "@babel/cli": "^7.1.5",

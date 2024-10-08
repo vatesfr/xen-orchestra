@@ -9,8 +9,8 @@ import iteratee from 'lodash/iteratee.js'
 import pick from 'lodash/pick.js'
 import { defer } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
-import { parseDuration } from '@vates/parse-duration'
-import {before, after, afterEach} from 'node:test'
+// import { parseDuration } from '@vates/parse-duration'
+// import {before, after, afterEach} from 'node:test'
 
 import config from './_config.js'
 import { getDefaultName } from './_defaultValues.js'
@@ -112,6 +112,7 @@ export class XoConnection extends Xo.default {
   }
 
   async createTempResourceSet(params) {
+    const xo = this // getConnection();
     const { id } = await xo.call('resourceSet.create', params)
     this._tempResourceDisposers.push('resourceSet.delete', { id })
     return id
@@ -225,6 +226,7 @@ export class XoConnection extends Xo.default {
   }
 
   async runBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    const xo = this // getConnection();
     for (let i = 0; i < nExecutions; i++) {
       await xo.call('backupNg.runJob', { id: jobId, schedule: scheduleId })
     }
@@ -284,12 +286,14 @@ export class XoConnection extends Xo.default {
   async deleteDurableResources() {
     await this._cleanDisposers(this._durableResourceDisposers)
   }
-} 
-/*
-const getConnection = credentials => { 
+}
+
+const getConnection = credentials => {
+  const xo = new XoConnection({ url: config.xoConnection.url })
   return xo.connect(credentials)
 }
 
+/*
 before(async () => {
   console.log('before xoconnection')
   xo = new XoConnection({ url: config.xoConnection.url })
