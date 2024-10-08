@@ -51,6 +51,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         type: 'SR',
       },
     })
+    this._prepare = task.wrapInside(this._prepare)
     this.transfer = task.wrapInside(this.transfer)
     if (this._healthCheckSr !== undefined) {
       this.cleanup = task.wrapInside(this.cleanup)
@@ -59,7 +60,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       this.cleanup = task.wrap(this.cleanup)
     }
 
-    return task.runInside(() => this._prepare(isFull))
+    return this._prepare(isFull)
   }
 
   async _prepare(isFull) {
