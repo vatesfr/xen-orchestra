@@ -1,6 +1,6 @@
-<!-- v1.0 -->
+<!-- v3 -->
 <template>
-  <div class="head-bar">
+  <div class="vts-head-bar">
     <div class="label-wrapper">
       <span v-if="slots.icon || icon" class="icon">
         <slot name="icon">
@@ -38,41 +38,41 @@ const slots = defineSlots<{
 </script>
 
 <style lang="postcss" scoped>
-.head-bar {
+.vts-head-bar {
   padding: 0.8rem 1.6rem;
   display: flex;
   gap: 4.8rem;
   align-items: center;
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
-}
 
-.label-wrapper {
-  display: flex;
-  gap: 1.6rem;
-  align-items: center;
-  min-width: 0;
-}
+  .label-wrapper {
+    display: flex;
+    gap: 1.6rem;
+    align-items: center;
+    min-width: 0;
+  }
 
-.label {
-  color: var(--color-neutral-txt-primary);
-}
+  .label {
+    color: var(--color-neutral-txt-primary);
+  }
 
-.icon {
-  font-size: 2.4rem;
-}
+  .icon {
+    font-size: 2.4rem;
+  }
 
-.status {
-  color: var(--color-neutral-txt-secondary);
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
-}
+  .status {
+    color: var(--color-neutral-txt-secondary);
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+  }
 
-.actions {
-  margin-inline-start: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  .actions {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 }
 </style>
