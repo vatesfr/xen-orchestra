@@ -99,16 +99,9 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           }),
         'writer.transfer()'
       )
-      // this will update parent name with the needed alias
-      await this._callWriters(
-        writer =>
-          writer.updateUuidAndChain({
-            isVhdDifferencing,
-            timestamp: metadata.timestamp,
-            vdis: incrementalExport.vdis,
-          }),
-        'writer.updateUuidAndChain()'
-      )
+      // since backups are already chained on source
+      // and we don't rename them nor change their id
+      /// we do not need to call writer.updateUuidAndChain()
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck
