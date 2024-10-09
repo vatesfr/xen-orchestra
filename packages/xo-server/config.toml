@@ -215,3 +215,7 @@ vmTag = 'XOA Proxy'
 
 # The duration for which we can wait for the XOA to be upgraded
 xoaUpgradeTimeout = '5 min'
+
+[rest-api]
+dashboardCacheTimeout = '2 seconds'
+dashboardCacheExpiresIn = '1 min'
