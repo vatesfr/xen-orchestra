@@ -2,6 +2,8 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable n/shebang */
 
+import { ENCRYPTION_KEY } from './_encryptionKey.mjs'
+
 import { asyncEach } from '@vates/async-each'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createLogger } from '@xen-orchestra/log'
@@ -26,7 +28,14 @@ const { fatal, info, warn } = createLogger('xo:backups:mergeWorker')
 // -------------------------------------------------------------------
 
 const main = Disposable.wrap(async function* main(args) {
-  const handler = yield getSyncedHandler({ url: 'file://' + process.cwd() })
+  const url = new URL('file:///')
+  url.pathname = process.cwd
+
+  if (ENCRYPTION_KEY !== undefined) {
+    url.searchParams.set('encryptionKey', ENCRYPTION_KEY)
+  }
+
+  const handler = yield getSyncedHandler({ url })
 
   yield handler.lock(CLEAN_VM_QUEUE)
 
