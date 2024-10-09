@@ -14,7 +14,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-> [Backup] merge older backups in main thread for encrytped remotes
+> [Backup] fix VDI_INCOMPATIBLE_TYPE error
 
 ### Packages to release
 
