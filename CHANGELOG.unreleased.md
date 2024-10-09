@@ -32,5 +32,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- @xen-orchestra/mixin minor
+- xo-server minor
 
 <!--packages-end-->

@@ -351,3 +351,94 @@ export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] ===
 // -------------------------------------------------------------------
 
 export const isAlarm = alarm => alarm.type === 'message' && alarm.name === 'ALARM'
+
+// -------------------------------------------------------------------
+
+/**
+ *
+ * If the value is cached and not expired, it will return
+ * the cached value immediately. If expired or not present, it will invoke the provided
+ * function to fetch the value, cache it, and return it.
+ *
+ * The function also handles timeout for fetching the value, ensuring that if fetching
+ * takes too long, it resolves to `undefined` or returns the expired value based on the
+ * cache's state.
+ *
+ * @param {Map<string, Promise<T>>} cache
+ * @param {string} key
+ * @param {() => (T | Promise<T>)} fn
+ * @param {Object} [options]
+ * @param {number} [options.timeout] - default to 5000ms
+ * @param {number} [options.expiresIn] - default to 60000ms
+ * @param {boolean} [options.forceRefresh] - default to `false`
+ *
+ * @returns {Promise<{value: T, isExpired?: boolean, expires: number} | undefined>}
+ */
+export const getFromAsyncCache = async (
+  cache,
+  key,
+  fn,
+  { expiresIn = 60000, timeout = 5000, forceRefresh = false } = {}
+) => {
+  if (forceRefresh) {
+    cache.delete(key)
+  }
+
+  const value = cache.get(key)
+  let expiredValue
+
+  if (value !== undefined) {
+    let timeoutId
+
+    const timeoutPromise = new Promise(resolve => (timeoutId = setTimeout(resolve, timeout)))
+
+    const isTimeout = (await Promise.race([value, timeoutPromise])) === undefined
+    clearTimeout(timeoutId)
+    if (isTimeout) {
+      return
+    }
+    const cachedValue = await cache.get(key)
+
+    if (cachedValue.expires > Date.now()) {
+      return cachedValue
+    }
+
+    expiredValue = cachedValue
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    function _resolve(value) {
+      const obj = { value, expires: Date.now() + expiresIn }
+      clearTimeout(timeoutId)
+      cache.set(key, Promise.resolve(obj))
+      return resolve(obj)
+    }
+
+    const timeoutId = setTimeout(() => {
+      cache.set(key, _promise)
+      let obj
+      if (expiredValue !== undefined) {
+        obj = {
+          ...expiredValue,
+          isExpired: true,
+        }
+      }
+      resolve(obj)
+    }, timeout)
+
+    const _promise = fn()
+    if (_promise?.then === undefined) {
+      return _resolve(_promise)
+    }
+
+    _promise.then(_resolve)
+    _promise.catch(err => {
+      clearTimeout(timeoutId)
+
+      cache.delete(key)
+      reject(err)
+    })
+  })
+
+  return await promise
+}
