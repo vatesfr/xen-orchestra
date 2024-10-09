@@ -35,6 +35,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
 - xo-server minor
 - xo-web patch
