@@ -58,7 +58,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       const { disableMergeWorker } = this._config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
-      const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'
+      const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function' && !handler.isEncrypted
 
       const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
       await this.#lock.dispose()
