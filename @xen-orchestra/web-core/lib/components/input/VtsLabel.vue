@@ -1,7 +1,7 @@
 <!-- WIP -->
 <template>
   <div :class="accent" class="vts-label">
-    <VtsIcon :accent :icon class="left-icon" />
+    <VtsIcon accent="current" :icon class="left-icon" />
     <span :class="{ required }" class="typo c2-semi-bold label"><slot /></span>
     <!-- @TODO: Replace it by the VtsLink component when available -->
     <a v-if="href" :href class="link">
