@@ -2,14 +2,13 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable n/shebang */
 
-import { ENCRYPTION_KEY } from './_encryptionKey.mjs'
-
 import { asyncEach } from '@vates/async-each'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createLogger } from '@xen-orchestra/log'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import { join } from 'node:path'
 import { load as loadConfig } from 'app-conf'
+import { readChunk } from '@vates/read-chunk'
 import Disposable from 'promise-toolbox/Disposable'
 
 import { getVmBackupDir } from '../_getVmBackupDir.mjs'
@@ -31,8 +30,9 @@ const main = Disposable.wrap(async function* main(args) {
   const url = new URL('file:///')
   url.pathname = process.cwd
 
-  if (ENCRYPTION_KEY !== undefined) {
-    url.searchParams.set('encryptionKey', ENCRYPTION_KEY)
+  const encryptionKey = await readChunk(process.stdin, 1024)
+  if (encryptionKey.length !== 0) {
+    url.searchParams.set('encryptionKey', String(encryptionKey))
   }
 
   const handler = yield getSyncedHandler({ url })

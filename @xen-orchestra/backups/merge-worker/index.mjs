@@ -14,15 +14,17 @@ export const run = async function runMergeWorker(remotePath, { encryptionKey }) 
       return
     }
 
-    spawn(CLI_PATH, {
+    const cp = spawn(CLI_PATH, {
       cwd: remotePath,
       env: {
         ...process.env,
         ENCRYPTION_KEY: encryptionKey,
       },
       detached: true,
-      stdio: 'inherit',
-    }).unref()
+      stdio: ['pipe', 'inherit', 'inherit'],
+    })
+    cp.stdin.end(encryptionKey)
+    cp.unref()
   } catch (error) {
     // we usually don't want to throw if the merge worker failed to start
     return error
