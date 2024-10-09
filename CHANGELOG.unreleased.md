@@ -14,6 +14,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+> [Backup] fix VDI_INCOMPATIBLE_TYPE error
 
 ### Packages to release
 
@@ -31,6 +32,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/log minor
 - xo-server minor
 

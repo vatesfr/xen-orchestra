@@ -204,7 +204,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const snapshots = await xapi.getRecords('VDI', srcVdi.snapshots)
       for (const snapshot of snapshots) {
         if (snapshot.other_config[JOB_ID] === jobId) {
-          this._jobSnapshotVdis.push(snapshot)
+          // don't touch vdi of cbt metadata
+          // if the job does not use them
+          if (this._settings.cbtDestroySnapshotData || snapshot.type !== 'cbt_metadata') {
+            this._jobSnapshotVdis.push(snapshot)
+          }
         }
       }
     }
