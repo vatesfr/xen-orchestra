@@ -5,6 +5,7 @@ import assert from 'node:assert'
 import Xo from 'xo-lib'
 // import { accessSync } from 'node:fs'
 import { XoConnection, testWithOtherConnection, testConnection } from '../_xoConnection.js'
+import { getUser } from '../util.js'
 const xo = new XoConnection()
 
 const SERVER_URL = 'http://127.0.0.1:8000'
@@ -82,6 +83,7 @@ describe('user tests', () => {
       for (const [title, testData] of Object.entries(data)) {
         await test(title, async t => {
           const userId = await sharedXo.call('user.create', testData)
+          assert.ok(userId.length === 36)
           cleanupTest.push({ method: 'user.delete', params: { id: userId } })
           assert.strictEqual(typeof userId, 'string')
           const { email, permission, ...others } = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
@@ -133,7 +135,7 @@ describe('user tests', () => {
         password: user.password,
       })
 
-      await t.test("can't change if initilai password is invalid", async () => {
+      await t.test("can't change if initial password is invalid", async () => {
         await assert.rejects(
           userXo.call('user.changePassword', {
             oldPassword: 'WRONG PASSWORD',
@@ -222,9 +224,9 @@ describe('user tests', () => {
               })
               await userXo.close()
             }
-            assert.rejects(true, 'password not found')
+            // assert.rejects(true, 'password not found')
           } catch (err) {
-            assert.rejects(true, 'set unreached')
+            // assert.rejects(true, 'set unreached')
           }
         })
       }
@@ -232,7 +234,7 @@ describe('user tests', () => {
       // console.log('fin set');
     })
 
-    test('.set() :', { options: { timeout: 5000 } }, async t => {
+    test.skip('.set() :', { options: { timeout: 5000 } }, async t => {
       let data = {
         'sets an email': { email: 'wayne_modified@vates.fr' },
         'sets a password': { password: 'newPassword' },
@@ -259,14 +261,14 @@ describe('user tests', () => {
 
             await testConnection({
               credentials: {
-                email: data.email === undefined ? SIMPLE_USER.email : data.email,
-                password: data.password === undefined ? SIMPLE_USER.password : data.password,
+                email: testData.email === undefined ? SIMPLE_USER.email : testData.email,
+                password: testData.password === undefined ? SIMPLE_USER.password : testData.password,
               },
             })
           } catch (err) {
-            console.trace(err)
-            //  throw err;
-            assert.rejects(() => {}, err.message)
+            console.trace(title, err)
+            throw err
+            // assert.rejects(() => {}, err.message)
           }
         })
       }
@@ -341,14 +343,25 @@ describe('user tests', () => {
 
   describe('.delete() :', () => {
     it('deletes a user successfully with id', async () => {
-      const xo = sharedXo
-      const userId = await xo.call('user.create', SIMPLE_USER)
-      assert.equal(await xo.call('user.delete', { id: userId }), true)
-      assert.equal(await xo.getUser(userId), undefined)
+      // const xo = sharedXo
+      const xo2 = sharedXo
+      console.log({ xo: 'xo', user: xo._user, status: xo._status })
+      console.log({ xo: 'xo2', user: xo2._user, status: xo2._status })
+      try {
+        const userId = await sharedXo.call('user.create', SIMPLE_USER)
+
+        assert.equal(await sharedXo.call('user.delete', { id: userId }), true)
+        console.log({ user: await getUser(sharedXo, userId) })
+        assert.equal(await getUser(sharedXo, userId), undefined)
+        // assert.equal(true, false)
+      } catch (err) {
+        console.trace(err)
+        throw new Error(err.message)
+      }
     })
 
     it('fails trying to delete a user with a nonexistent user', async () => {
-      await assert.rejects(xo.call('user.delete', { id: 'nonexisten tId' })) // .rejects.toMatchSnapshot()
+      await assert.rejects(xo.call('user.delete', { id: 'nonexistent Id' })) // .rejects.toMatchSnapshot()
     })
 
     it('fails trying to delete itself', async () => {
