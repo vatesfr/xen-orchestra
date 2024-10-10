@@ -10,7 +10,8 @@
         "new-cap": ["warn"],  // Fix possible typo in rule
         "no-console": "warn",
         "n/no-unsupported-features/es-builtins": ["warn"],
-      "n/no-unsupported-features/es-syntax": ["warn"]
+        "n/no-unsupported-features/es-syntax": ["warn"],
+        "no-unused-vars": ["warn"]
       }
     }
   ]
