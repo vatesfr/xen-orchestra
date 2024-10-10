@@ -41,6 +41,7 @@ class Netbox {
   #intervalToken
   #netboxVersion
   #xoPools
+  #xoTags
   #removeApiMethods
   #syncInterval
   #syncUsers
@@ -68,6 +69,7 @@ class Netbox {
     this.#syncUsers = configuration.syncUsers ?? false
     this.#token = configuration.token
     this.#xoPools = configuration.pools
+    this.#xoTags = configuration.tags
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
 
     // We don't want to start the auto-sync if the plugin isn't loaded
@@ -503,24 +505,26 @@ class Netbox {
       // Tags
       const nbVmTags = []
       for (const tag of xoVm.tags) {
-        const slug = slugify(tag)
-        let nbTag = find(nbTags, { slug })
-        if (nbTag === undefined) {
-          // TODO: Should we also delete/update tags in Netbox?
-          nbTag = await this.#request('/extras/tags/', 'POST', {
-            name: tag,
-            slug,
-            color: '2598d9',
-            description: 'XO tag',
-          })
-          nbTags[nbTag.id] = nbTag
-        }
-
-        // Edge case: tags "foo" and "Foo" would have the same slug. It's
-        // allowed in XO but not in Netbox so in that case, we only add it once
-        // to Netbox.
-        if (!some(nbVmTags, { id: nbTag.id })) {
-          nbVmTags.push({ id: nbTag.id })
+        if (!this.#xoTags.includes(tag)) {
+          const slug = slugify(tag)
+          let nbTag = find(nbTags, { slug })
+          if (nbTag === undefined) {
+            // TODO: Should we also delete/update tags in Netbox?
+            nbTag = await this.#request('/extras/tags/', 'POST', {
+              name: tag,
+              slug,
+              color: '2598d9',
+              description: 'XO tag',
+            })
+            nbTags[nbTag.id] = nbTag
+          }
+  
+          // Edge case: tags "foo" and "Foo" would have the same slug. It's
+          // allowed in XO but not in Netbox so in that case, we only add it once
+          // to Netbox.
+          if (!some(nbVmTags, { id: nbTag.id })) {
+            nbVmTags.push({ id: nbTag.id })
+          }
         }
       }
 
@@ -593,23 +597,25 @@ class Netbox {
         // Grab the Netbox VM from the list of all VMs so that if the VM is on
         // another cluster, we update the existing object instead of creating a
         // new one
-        const nbVm = allNbVms[xoVm.uuid]
-        delete xoPoolNbVms[xoVm.uuid]
-
-        const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants })
-
-        if (nbVm !== undefined) {
-          // VM found in Netbox: update VM (I.1)
-          const patch = diff(updatedVm, flattenNested(nbVm))
-          if (patch !== undefined) {
-            vmsToUpdate.push(patch)
+        if (!xoVm.tags.some(tag => this.#xoTags.includes(tag))) {
+          const nbVm = allNbVms[xoVm.uuid]
+          delete xoPoolNbVms[xoVm.uuid]
+  
+          const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants })
+  
+          if (nbVm !== undefined) {
+            // VM found in Netbox: update VM (I.1)
+            const patch = diff(updatedVm, flattenNested(nbVm))
+            if (patch !== undefined) {
+              vmsToUpdate.push(patch)
+            } else {
+              // The VM is up to date, just store its name as being used
+              usedNames.push(nbVm.name)
+            }
           } else {
-            // The VM is up to date, just store its name as being used
-            usedNames.push(nbVm.name)
+            // VM not found in Netbox: create VM (I.2)
+            vmsToCreate.push(updatedVm)
           }
-        } else {
-          // VM not found in Netbox: create VM (I.2)
-          vmsToCreate.push(updatedVm)
         }
       }
 
@@ -620,7 +626,7 @@ class Netbox {
         // We check if the VM was moved to another pool in XO
         const xoPool = this.getObject(xoVm?.$pool)
         const nbCluster = allNbClusters[xoPool?.uuid]
-        if (nbCluster !== undefined) {
+        if (nbCluster !== undefined && !xoVm.tags.some(tag => this.#xoTags.includes(tag))) {
           // If the VM is found in XO: update it if necessary (II.1)
           const updatedVm = await createNbVm(xoVm, { nbCluster, nbPlatforms, nbTags, nbTenants })
           const patch = diff(updatedVm, flattenNested(nbVm))
