@@ -1,4 +1,5 @@
 import { useModal } from '@/composables/modal.composable'
+import { isIpv6 } from '@/libs/utils'
 import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type {
   ObjectType,
@@ -90,7 +91,7 @@ export default class XenApi {
   ) {
     const url = new URL('http://localhost')
     url.protocol = window.location.protocol
-    url.hostname = host.address
+    url.hostname = isIpv6(host.address) ? `[${host.address}]` : host.address
     url.pathname = pathname
     url.search = new URLSearchParams({
       ...query,
