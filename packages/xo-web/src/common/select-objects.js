@@ -628,34 +628,29 @@ SelectVdi.propTypes = {
 
 // ===================================================================
 
+export const SelectGpuGroup = makeStoreSelect(
+  () => {
+    const getGpuGroups = createSelector(createGetObjectsOfType('gpuGroup').filter(getPredicate).sort(),
+      (gpuGroups) => filter(gpuGroups, (gpuGroup) => gpuGroup.enabledVgpuTypes.length > 0))
+
+    return {
+      xoObjects: getGpuGroups,
+    }
+  },
+  { placeholder: _('selectGpuGroup') }
+)
+
 export const SelectVgpuType = makeStoreSelect(
   () => {
-    const getVgpuTypes = createSelector(createGetObjectsOfType('vgpuType').filter(getPredicate), vgpuTypes => {
-      const gpuGroups = {}
-      forEach(vgpuTypes, vgpuType => {
-        forEach(vgpuType.gpuGroups, gpuGroup => {
-          if (gpuGroups[gpuGroup] === undefined) {
-            gpuGroups[gpuGroup] = []
-          }
-          gpuGroups[gpuGroup].push({
-            ...vgpuType,
-            gpuGroup,
-          })
-        })
-      })
-
-      return gpuGroups
-    })
-
-    const getGpuGroups = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpuTypes, keys)).sort()
+    const getVgpuTypes = createGetObjectsOfType('vgpuType').filter(getPredicate).sort()
 
     return {
       xoObjects: getVgpuTypes,
-      xoContainers: getGpuGroups,
     }
   },
   { placeholder: _('selectVgpuType') }
 )
+
 
 // ===================================================================
 // Objects from subscriptions.
