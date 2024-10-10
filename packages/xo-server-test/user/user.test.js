@@ -6,7 +6,6 @@ import Xo from 'xo-lib'
 // import { accessSync } from 'node:fs'
 import { XoConnection, testWithOtherConnection, testConnection } from '../_xoConnection.js'
 import { getUser } from '../util.js'
-const xo = new XoConnection()
 
 const SERVER_URL = 'http://127.0.0.1:8000'
 
@@ -21,6 +20,11 @@ const ADMIN_USER = {
   permission: 'admin',
 }
 
+const ERROR_INVALID_CREDENTIALS = /JsonRpcError: invalid credentials/
+const ERROR_USER_CANNOT_DELETE_ITFSELF = /JsonRpcError: a user cannot delete itself/
+const ERROR_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
+
+const xo = new XoConnection()
 /*
 function withData(data, fn) {
   for (const [description, testData] of Object.entries(data)) {
@@ -37,6 +41,7 @@ async function connect({ url = SERVER_URL, email, password }) {
   try {
     await xo.signIn({ email, password })
   } catch (err) {
+    console.log(err.message)
     xo.close()
     throw err
   }
@@ -83,8 +88,8 @@ describe('user tests', () => {
       for (const [title, testData] of Object.entries(data)) {
         await test(title, async t => {
           const userId = await sharedXo.call('user.create', testData)
-          assert.ok(userId.length === 36)
           cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+          assert.ok(userId.length === 36)
           assert.strictEqual(typeof userId, 'string')
           const { email, permission, ...others } = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
           assert.strictEqual(email, testData.email)
@@ -140,7 +145,8 @@ describe('user tests', () => {
           userXo.call('user.changePassword', {
             oldPassword: 'WRONG PASSWORD',
             newPassword,
-          })
+          }),
+          ERROR_INVALID_CREDENTIALS
         )
       })
       await t.test('change password ok', async () => {
@@ -163,7 +169,8 @@ describe('user tests', () => {
           connect({
             email: user.email,
             password: user.password,
-          })
+          }),
+          'JsonRpcError: invalid credentials'
         )
       })
     })
@@ -324,7 +331,7 @@ describe('user tests', () => {
         ) // .rejects.toMatchSnapshot()
       })
 
-      it.skip('fails trying to set an email already used', async () => {
+      it('fails trying to set an email already used', async () => {
         await xo.createTempUser(SIMPLE_USER)
         const userId2 = await xo.createTempUser({
           email: 'wayne6@vates.fr',
@@ -343,34 +350,24 @@ describe('user tests', () => {
 
   describe('.delete() :', () => {
     it('deletes a user successfully with id', async () => {
-      // const xo = sharedXo
-      const xo2 = sharedXo
-      console.log({ xo: 'xo', user: xo._user, status: xo._status })
-      console.log({ xo: 'xo2', user: xo2._user, status: xo2._status })
-      try {
-        const userId = await sharedXo.call('user.create', SIMPLE_USER)
+      const userId = await sharedXo.call('user.create', SIMPLE_USER)
+      assert.notEqual(await getUser(sharedXo, userId), undefined)
 
-        assert.equal(await sharedXo.call('user.delete', { id: userId }), true)
-        console.log({ user: await getUser(sharedXo, userId) })
-        assert.equal(await getUser(sharedXo, userId), undefined)
-        // assert.equal(true, false)
-      } catch (err) {
-        console.trace(err)
-        throw new Error(err.message)
-      }
+      assert.equal(await sharedXo.call('user.delete', { id: userId }), true)
+      assert.equal(await getUser(sharedXo, userId), undefined)
     })
 
     it('fails trying to delete a user with a nonexistent user', async () => {
-      await assert.rejects(xo.call('user.delete', { id: 'nonexistent Id' })) // .rejects.toMatchSnapshot()
+      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent Id' }), ERROR_NO_SUCH_USER)
     })
 
     it('fails trying to delete itself', async () => {
-      const id = await xo.createTempUser(ADMIN_USER)
-      const { email, password } = ADMIN_USER
-      await testWithOtherConnection(
-        { email, password },
-        async xo => await assert.rejects(xo.call('user.delete', { id })) // .rejects.toMatchSnapshot()
-      )
+      const userId = await sharedXo.call('user.create', ADMIN_USER)
+      cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+      assert.notEqual(await getUser(sharedXo, userId), undefined)
+
+      const xo = await connect(ADMIN_USER)
+      await assert.rejects(xo.call('user.delete', { id: userId }), ERROR_USER_CANNOT_DELETE_ITFSELF)
     })
   })
 })
