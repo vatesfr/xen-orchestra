@@ -11,8 +11,11 @@ import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
+import XoLib from 'xo-lib'
 
 import { streamStatsPrinter } from './_streamStatsPrinter.mjs'
+
+const Xo = XoLib.default
 
 const PREFIX = '/rest/v0/'
 
@@ -168,7 +171,9 @@ export async function rest(args) {
 
   const { allowUnauthorized, server, token } = await this.getServerConfig()
 
-  const baseUrl = server
+  // FIXME: extract server parsing in dedicated module/function
+  const baseUrl = new Xo({ url: server })._url.replace(/^ws/, 'http')
+
   const baseOpts = {
     headers: {
       cookie: 'authenticationToken=' + token,
