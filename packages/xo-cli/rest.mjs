@@ -104,21 +104,9 @@ const COMMANDS = {
       throw new Error('unsupported content-type ' + type)
     }
   },
-
-  async patch([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'PATCH',
-    })
-
-    return await response.text()
-  },
 }
 
-for (const method of ['post', 'put']) {
+for (const method of ['patch', 'post', 'put']) {
   COMMANDS[method] = async function (args) {
     const opts = getopts(args, {
       alias: { input: 'i' },

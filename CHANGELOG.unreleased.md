@@ -32,7 +32,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
-- xo-cli patch
+- xo-cli minor
 - xo-server minor
 
 <!--packages-end-->
