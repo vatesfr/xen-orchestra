@@ -47,30 +47,30 @@ ACCENT
 .vts-label {
   display: flex;
   align-items: center;
-}
 
-.left-icon {
-  margin-right: 0.8rem;
-}
-
-.label {
-  color: var(--vts-label--color);
-
-  &.required::after {
-    content: '*';
-    margin-left: 0.4rem;
-    color: var(--color-normal-txt-base);
+  .left-icon {
+    margin-right: 0.8rem;
   }
-}
 
-.link {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-left: auto;
-}
+  .label {
+    color: var(--vts-label--color);
 
-.link-icon {
-  font-size: 0.8rem;
+    &.required::after {
+      content: '*';
+      margin-left: 0.4rem;
+      color: var(--color-normal-txt-base);
+    }
+  }
+
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-left: auto;
+  }
+
+  .link-icon {
+    font-size: 0.8rem;
+  }
 }
 </style>
