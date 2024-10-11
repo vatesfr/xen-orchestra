@@ -91,7 +91,7 @@ export default class XenApi {
   ) {
     const url = new URL('http://localhost')
     url.protocol = window.location.protocol
-    url.hostname = isIpv6(host.address) ? `[${host.address}]` : host.address
+    url.hostname = ipToHostname(host.address)
     url.pathname = pathname
     url.search = new URLSearchParams({
       ...query,
