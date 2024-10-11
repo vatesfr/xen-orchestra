@@ -1,5 +1,6 @@
 /* eslint-env jest */
 
+// eslint-disable-next-line n/no-missing-import
 import { config, waitObjectState, xo } from './../util'
 
 // ===================================================================

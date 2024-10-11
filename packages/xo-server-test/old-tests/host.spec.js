@@ -2,8 +2,10 @@
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 
+// eslint-disable-next-line n/no-missing-import
 import expect from 'must'
 import fromEvent from 'promise-toolbox/fromEvent'
+// eslint-disable-next-line n/no-missing-import
 import { getAllHosts, getConfig, getMainConnection, getVmToMigrateId, waitObjectState } from './util'
 import { find, forEach } from 'lodash'
 
