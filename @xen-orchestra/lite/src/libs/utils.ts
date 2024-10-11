@@ -115,3 +115,7 @@ export const getFirst = <T>(value: T | T[]): T | undefined => (Array.isArray(val
 export function isIpv6(ip: string) {
   return ip.includes(':')
 }
+
+export function ipToHostname(ip: string) {
+  return isIpv6(ip) ? `[${ip}]` : ip
+}
