@@ -1,5 +1,5 @@
 import { useModal } from '@/composables/modal.composable'
-import { isIpv6 } from '@/libs/utils'
+import { ipToHostname } from '@/libs/utils'
 import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type {
   ObjectType,
