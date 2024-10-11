@@ -248,7 +248,9 @@ class Vdi {
     // a CBT export can only work if we have a NBD client and changed blocks
     if (changedBlocks === undefined || nbdClient === undefined) {
       if (baseParentType === 'cbt_metadata') {
-        throw new Error(`can't create a stream from a metadata VDI, fall back to a base `)
+        const e = new Error(`can't create a stream from a metadata VDI, fall back to a base `)
+        e.code = 'VDI_CANT_DO_DELTA'
+        throw e
       }
 
       stream = exportStream = (
