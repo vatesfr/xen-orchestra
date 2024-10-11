@@ -1,5 +1,5 @@
 import { useModal } from '@/composables/modal.composable'
-import { isIpv6 } from '@/libs/utils'
+import { ipToHostname } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'
