@@ -1,0 +1,39 @@
+<!-- v2 -->
+<template>
+  <div class="vts-title">
+    <div class="typo h4-medium label">
+      <slot />
+    </div>
+    <div class="actions">
+      <slot name="actions" />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+defineSlots<{
+  default(): any
+  actions(): any
+}>()
+</script>
+
+<style scoped lang="postcss">
+.vts-title {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  padding-block-end: 0.4rem;
+  border-bottom: 0.1rem solid var(--color-normal-txt-base);
+
+  .label {
+    color: var(--color-normal-txt-base);
+  }
+
+  .actions {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+}
+</style>
