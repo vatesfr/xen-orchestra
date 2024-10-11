@@ -1,10 +1,8 @@
-// import forOwn from 'lodash/forOwn.js'
 import keyBy from 'lodash/keyBy.js'
-import { describe, test, before, after /*, afterEach */ } from 'node:test'
+import { describe, test, before, after } from 'node:test'
 import assert from 'node:assert'
 import Xo from 'xo-lib'
-// import { accessSync } from 'node:fs'
-import { XoConnection, testWithOtherConnection, testConnection } from '../_xoConnection.js'
+import { XoConnection, testWithOtherConnection } from '../_xoConnection.js'
 import { getUser } from '../util.js'
 
 /* TODO use configured server */
@@ -63,9 +61,8 @@ describe('user tests', () => {
     })
   })
   after(async () => {
-    for (const { method, params /*, fn */ } of cleanupTest) {
+    for (const { method, params } of cleanupTest) {
       try {
-        // console.log(cleanupTest)
         await sharedXo.call(method, params)
       } catch (err) {
         console.error('during cleanup', err)
@@ -205,7 +202,6 @@ describe('user tests', () => {
     })
 
     test('.set', async t => {
-      // console.log('début set');
       let email = `testset@example.com`
       let password = 'PWD'
       const userId = await sharedXo.call('user.create', { email, password })
@@ -227,9 +223,6 @@ describe('user tests', () => {
       }
       for (const [title, testData] of Object.entries(data)) {
         await t.test(title, async t => {
-          // try {
-          // console.log(`.set ${title} ${JSON.stringify(testData)} t.test`);
-          // @todo ad test of failure for non admin user
           await sharedXo.call('user.set', { ...testData, id: userId })
           const updatedUser = (await sharedXo.call('user.getAll')).find(({ id }) => id === userId)
           for (const [key, value] of Object.entries(testData)) {
@@ -267,23 +260,8 @@ describe('user tests', () => {
       }
       const nonAdminUserId = await sharedXo.call('user.create', SIMPLE_USER)
       const nonAdminUserXo = await connect(SIMPLE_USER)
-      //   email: 'wayne8@vates.fr',
-      //   password: 'batman8',
-      // })
-      // cleanupTest.push({ method: 'user.delete', params: { id: userId } })
       for (const [title, testData] of Object.entries(data)) {
         await t.test(title, async t => {
-          // prevents ERROR_TOO_FAST_AUTHENTIFICATION_TRIES
-          // await new Promise(resolve => setTimeout(resolve, 2_000))
-
-          // data.id = await xo.createTempUser({
-          //   email: 'wayne8@vates.fr',
-          //   password: 'batman8',
-          // })
-          // await xo.createTempUser(SIMPLE_USER)
-
-          // await testWithOtherConnection(
-          // SIMPLE_USER,
           await assert.rejects(
             nonAdminUserXo.call('user.set', { ...testData, id: userId }),
             ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN
