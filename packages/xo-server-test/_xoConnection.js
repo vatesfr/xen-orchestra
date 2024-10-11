@@ -1,16 +1,21 @@
 /* eslint-env jest */
 import Xo from 'xo-lib'
 import { Collection as XoCollection } from 'xo-collection'
-import { decorateWith } from '@vates/decorate-with'
-import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
+import { decorateClass } from '@vates/decorate-with'
+import defaultsDeep from 'lodash/defaultsDeep.js'
+import find from 'lodash/find.js'
+import forOwn from 'lodash/forOwn.js'
+import iteratee from 'lodash/iteratee.js'
+import pick from 'lodash/pick.js'
 import { defer } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
-import { parseDuration } from '@vates/parse-duration'
+// import { parseDuration } from '@vates/parse-duration'
+// import {before, after, afterEach} from 'node:test'
 
-import config from './_config'
-import { getDefaultName } from './_defaultValues'
+import config from './_config.js'
+import { getDefaultName } from './_defaultValues.js'
 
-class XoConnection extends Xo {
+export class XoConnection extends Xo.default {
   constructor(opts) {
     super(opts)
 
@@ -69,7 +74,6 @@ class XoConnection extends Xo {
     return this.waitObject(id)
   }
 
-  @decorateWith(defer)
   async connect($defer, credentials = pick(config.xoConnection, 'email', 'password')) {
     await this.open()
     $defer.onFailure(() => this.close())
@@ -108,6 +112,7 @@ class XoConnection extends Xo {
   }
 
   async createTempResourceSet(params) {
+    const xo = this // getConnection();
     const { id } = await xo.call('resourceSet.create', params)
     this._tempResourceDisposers.push('resourceSet.delete', { id })
     return id
@@ -221,6 +226,7 @@ class XoConnection extends Xo {
   }
 
   async runBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    const xo = this // getConnection();
     for (let i = 0; i < nExecutions; i++) {
       await xo.call('backupNg.runJob', { id: jobId, schedule: scheduleId })
     }
@@ -287,23 +293,27 @@ const getConnection = credentials => {
   return xo.connect(credentials)
 }
 
-let xo
-beforeAll(async () => {
+/*
+before(async () => {
+  console.log('before xoconnection')
+  xo = new XoConnection({ url: config.xoConnection.url })
+  console.log('set')
   // TOFIX: stop tests if the connection is not established properly and show the error
-  xo = await getConnection()
+  await getConnection()
+  console.log('connected')
 })
-afterAll(async () => {
+after(async () => {
+  console.log('after xoconnection')
   await xo.deleteDurableResources()
   await xo.close()
-  xo = null
 })
 afterEach(async () => {
+  console.log('afterEach xoconnection')
   jest.setTimeout(parseDuration(config.deleteTempResourcesTimeout))
 
   await xo.deleteTempResources()
 })
-
-export { xo as default }
+*/
 
 export const testConnection = ({ credentials }) => getConnection(credentials).then(connection => connection.close())
 
@@ -311,4 +321,8 @@ export const testWithOtherConnection = defer(async ($defer, credentials, functio
   const xoUser = await getConnection(credentials)
   $defer(() => xoUser.close())
   await functionToExecute(xoUser)
+})
+
+decorateClass(XoConnection, {
+  connect: defer,
 })

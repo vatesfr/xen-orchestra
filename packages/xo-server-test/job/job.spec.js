@@ -1,9 +1,13 @@
 /* eslint-env jest */
 
-import { difference, keyBy } from 'lodash'
+// import { difference, keyBy } from 'lodash';
+import lodash from 'lodash'
 
-import config from '../_config'
-import xo, { testWithOtherConnection } from '../_xoConnection'
+import config from '../_config.js'
+import { XoConnection as xo, testWithOtherConnection } from '../_xoConnection.js'
+import { describe, it, afterEach } from 'node:test'
+
+const { difference, keyBy } = lodash
 
 const ADMIN_USER = {
   email: 'admin2@admin.net',
@@ -14,33 +18,33 @@ const ADMIN_USER = {
 describe('job', () => {
   let defaultJob
 
-  beforeAll(() => {
-    defaultJob = {
-      name: 'jobTest',
-      timeout: 2000,
-      type: 'call',
-      key: 'snapshot',
-      method: 'vm.snapshot',
-      paramsVector: {
-        type: 'crossProduct',
-        items: [
-          {
-            type: 'set',
-            values: [
-              {
-                id: config.vms.default,
-                name: 'test-snapshot',
-              },
-            ],
-          },
-        ],
-      },
-    }
-  })
+  // beforeAll(() => {
+  //   defaultJob = {
+  //     name: 'jobTest',
+  //     timeout: 2000,
+  //     type: 'call',
+  //     key: 'snapshot',
+  //     method: 'vm.snapshot',
+  //     paramsVector: {
+  //       type: 'crossProduct',
+  //       items: [
+  //         {
+  //           type: 'set',
+  //           values: [
+  //             {
+  //               id: config.vms.default,
+  //               name: 'test-snapshot',
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //   }
+  // })
 
   describe('.create() :', () => {
     it('creates a new job', async () => {
-      jest.setTimeout(6e3)
+      // jest.setTimeout(6e3)
       const userId = await xo.createTempUser(ADMIN_USER)
       const { email, password } = ADMIN_USER
       await testWithOtherConnection({ email, password }, async xo => {
@@ -201,7 +205,7 @@ describe('job', () => {
     })
 
     it('runs a job', async () => {
-      jest.setTimeout(7e4)
+      // jest.setTimeout(7e4)
       await xo.createTempServer(config.servers.default)
       const jobId = await xo.createTempJob(defaultJob)
       const snapshots = xo.objects.all[config.vms.default].snapshots
