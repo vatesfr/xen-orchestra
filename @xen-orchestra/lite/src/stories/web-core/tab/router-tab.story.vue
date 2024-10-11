@@ -8,9 +8,9 @@
       setting('label').widget(text()).preset('Foobar'),
     ]"
   >
-    <TabList>
+    <VtsTabList>
       <RouterTab v-bind="properties">{{ settings.label }}</RouterTab>
-    </TabList>
+    </VtsTabList>
   </ComponentStory>
 </template>
 
@@ -19,5 +19,5 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import RouterTab from '@/components/RouterTab.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import TabList from '@core/components/tab/TabList.vue'
+import VtsTabList from '@core/components/tab/VtsTabList.vue'
 </script>

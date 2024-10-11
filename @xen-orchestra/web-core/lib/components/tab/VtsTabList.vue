@@ -1,6 +1,6 @@
-<!-- v1.0 -->
+<!-- v2 -->
 <template>
-  <div class="tab-list">
+  <div class="vts-tab-list">
     <slot />
   </div>
 </template>
@@ -16,11 +16,15 @@ const props = withDefaults(
   { disabled: undefined }
 )
 
+defineSlots<{
+  default(): any
+}>()
+
 useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
-.tab-list {
+.vts-tab-list {
   display: flex;
   align-items: stretch;
   height: 5rem;

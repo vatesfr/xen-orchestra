@@ -5,23 +5,23 @@
       <UiObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
   </UiHeadBar>
-  <TabList>
-    <TabItem disabled>{{ $t('dashboard') }}</TabItem>
-    <TabItem active>{{ $t('console') }}</TabItem>
-    <TabItem disabled>{{ $t('alarms') }}</TabItem>
-    <TabItem disabled>{{ $t('stats') }}</TabItem>
-    <TabItem disabled>{{ $t('system') }}</TabItem>
-    <TabItem disabled>{{ $t('network') }}</TabItem>
-    <TabItem disabled>{{ $t('storage') }}</TabItem>
-    <TabItem disabled>{{ $t('tasks') }}</TabItem>
-  </TabList>
+  <VtsTabList>
+    <VtsTabItem disabled>{{ $t('dashboard') }}</VtsTabItem>
+    <VtsTabItem selected>{{ $t('console') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('alarms') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('stats') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('system') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('network') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('storage') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('tasks') }}</VtsTabItem>
+  </VtsTabList>
 </template>
 
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
+import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 

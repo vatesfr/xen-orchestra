@@ -5,32 +5,32 @@
     </template>
     {{ host.name_label }}
   </UiHeadBar>
-  <TabList>
-    <TabItem disabled>{{ $t('dashboard') }}</TabItem>
+  <VtsTabList>
+    <VtsTabItem disabled>{{ $t('dashboard') }}</VtsTabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/console`" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <VtsTabItem :active="isActive" :href tag="a">
         {{ $t('console') }}
-      </TabItem>
+      </VtsTabItem>
     </RouterLink>
-    <TabItem disabled>{{ $t('alarms') }}</TabItem>
-    <TabItem disabled>{{ $t('stats') }}</TabItem>
-    <TabItem disabled>{{ $t('system') }}</TabItem>
-    <TabItem disabled>{{ $t('network') }}</TabItem>
-    <TabItem disabled>{{ $t('storage') }}</TabItem>
-    <TabItem disabled>{{ $t('tasks') }}</TabItem>
+    <VtsTabItem disabled>{{ $t('alarms') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('stats') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('system') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('network') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('storage') }}</VtsTabItem>
+    <VtsTabItem disabled>{{ $t('tasks') }}</VtsTabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
-      <TabItem :active="isActive" :href tag="a">
+      <VtsTabItem :selected="isActive" :href tag="a">
         {{ $t('vms') }}
-      </TabItem>
+      </VtsTabItem>
     </RouterLink>
-  </TabList>
+  </VtsTabList>
 </template>
 
 <script lang="ts" setup>
 import type { XoHost } from '@/types/xo/host.type'
 import type { HostState } from '@core/types/object-icon.type'
-import TabItem from '@core/components/tab/TabItem.vue'
-import TabList from '@core/components/tab/TabList.vue'
+import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
+import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 
