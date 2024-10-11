@@ -7,11 +7,12 @@ import Xo from 'xo-lib'
 import { XoConnection, testWithOtherConnection, testConnection } from '../_xoConnection.js'
 import { getUser } from '../util.js'
 
+/* TODO use configured server */
 const SERVER_URL = 'http://127.0.0.1:8000'
 
 const SIMPLE_USER = {
-  email: 'wayne3@vates.fr',
-  password: 'batman',
+  email: 'simple_user@vates.fr',
+  password: 'robin',
 }
 
 const ADMIN_USER = {
@@ -22,8 +23,12 @@ const ADMIN_USER = {
 
 const ERROR_INVALID_CREDENTIALS = /JsonRpcError: invalid credentials/
 const ERROR_USER_CANNOT_DELETE_ITFSELF = /JsonRpcError: a user cannot delete itself/
-const ERROR_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
+const ERROR_DELETE_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
+const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user non-existent-id/
 const ERROR_INVALID_PARAMETERS = /JsonRpcError: invalid parameters/
+const ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN = /JsonRpcError: this properties can only changed by an administrator/
+const ERROR_USER_CAN_ONLY_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
+const ERROR_USER_ALREADY_EXISTS = /JsonRpcError: the user .* already exists/
 // eslint-disable-next-line no-unused-vars
 const ERROR_TOO_FAST_AUTHENTIFICATION_TRIES = /Error: too fast authentication tries/
 
@@ -206,7 +211,7 @@ describe('user tests', () => {
       const userId = await sharedXo.call('user.create', { email, password })
       cleanupTest.push({ method: 'user.delete', params: { id: userId } })
 
-      const data = {
+      let data = {
         'sets an email': { email: 'wayne_modified@vates.fr' },
         'sets a password': { password: 'newPassword' },
         'sets a permission': { permission: 'user' },
@@ -248,6 +253,106 @@ describe('user tests', () => {
           }
         })
       }
+
+      data = {
+        'fails trying to set an email with a non admin user connection': {
+          email: 'wayne_modified@vates.fr',
+        },
+        'fails trying to set a password with a non admin user connection': {
+          password: 'newPassword',
+        },
+        'fails trying to set a permission with a non admin user connection': {
+          permission: 'user',
+        },
+      }
+      const nonAdminUserId = await sharedXo.call('user.create', SIMPLE_USER)
+      const nonAdminUserXo = await connect(SIMPLE_USER)
+      //   email: 'wayne8@vates.fr',
+      //   password: 'batman8',
+      // })
+      // cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+      for (const [title, testData] of Object.entries(data)) {
+        await t.test(title, async t => {
+          // prevents ERROR_TOO_FAST_AUTHENTIFICATION_TRIES
+          // await new Promise(resolve => setTimeout(resolve, 2_000))
+
+          // data.id = await xo.createTempUser({
+          //   email: 'wayne8@vates.fr',
+          //   password: 'batman8',
+          // })
+          // await xo.createTempUser(SIMPLE_USER)
+
+          // await testWithOtherConnection(
+          // SIMPLE_USER,
+          await assert.rejects(
+            nonAdminUserXo.call('user.set', { ...testData, id: userId }),
+            ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN
+          )
+        })
+      }
+      await nonAdminUserXo.close()
+      await sharedXo.call('user.delete', { id: nonAdminUserId })
+
+      data = {
+        'fails trying to set its own permission as a non admin user': {
+          email: 'user2@user.net',
+          password: 'robin',
+        },
+        'fails trying to set its own permission as an admin': {
+          email: 'admin2@admin.net',
+          password: 'batman',
+          permission: 'admin',
+        },
+      }
+      for (const [title, testData] of Object.entries(data)) {
+        await t.test(title, async t => {
+          // const id = await xo.createTempUser(testData)
+          const userId = await sharedXo.call('user.create', testData)
+          // cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+
+          const { email, password } = testData
+          const xo = await connect({ email, password })
+          await assert.rejects(
+            xo.call('user.set', { id: userId, permission: 'user' }),
+            email.includes('admin')
+              ? ERROR_USER_CAN_ONLY_CHANGE_ITS_OWN_PERMISSION
+              : ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN
+          )
+
+          await sharedXo.call('user.delete', { id: userId })
+        })
+      }
+
+      await test('fails trying to set a property of a nonexistant user', async () => {
+        await assert.rejects(
+          xo.call('user.set', {
+            id: 'non-existent-id',
+            password: SIMPLE_USER.password,
+          }),
+          ERROR_SET_NO_SUCH_USER
+        )
+      })
+
+      await test('fails trying to set an email already used', async () => {
+        const userId = await sharedXo.call('user.create', SIMPLE_USER)
+        const userId2 = await sharedXo.call('user.create', {
+          email: 'wayne6@vates.fr',
+          password: 'batman',
+        })
+
+        await assert
+          .rejects(
+            xo.call('user.set', {
+              id: userId2,
+              email: SIMPLE_USER.email,
+            }),
+            ERROR_USER_ALREADY_EXISTS
+          )
+          .finally(async () => {
+            await sharedXo.call('user.delete', { id: userId })
+            await sharedXo.call('user.delete', { id: userId2 })
+          })
+      })
     })
 
     test.skip('.set() :', { options: { timeout: 5000 } }, async t => {
@@ -377,7 +482,7 @@ describe('user tests', () => {
     })
 
     test('fails trying to delete a user with a nonexistent user', async () => {
-      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent Id' }), ERROR_NO_SUCH_USER)
+      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent Id' }), ERROR_DELETE_NO_SUCH_USER)
     })
 
     test('fails trying to delete itself', async () => {
