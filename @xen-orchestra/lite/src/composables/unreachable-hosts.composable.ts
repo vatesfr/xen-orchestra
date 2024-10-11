@@ -13,7 +13,7 @@ export const useUnreachableHosts = () => {
     difference(nextHosts, previousHosts).forEach(host => {
       const url = new URL('http://localhost')
       url.protocol = window.location.protocol
-      url.hostname = isIpv6(host.address) ? `[${host.address}]` : host.address
+      url.hostname = ipToHostname(host.address)
       fetch(url, { mode: 'no-cors' }).catch(() => unreachableHostsUrls.value.add(url.toString()))
     })
   })
