@@ -33,5 +33,6 @@
 
 - @xen-orchestra/log minor
 - xo-server minor
+- xo-server-test patch
 
 <!--packages-end-->
