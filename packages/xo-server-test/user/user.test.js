@@ -2,7 +2,6 @@ import keyBy from 'lodash/keyBy.js'
 import { describe, test, before, after } from 'node:test'
 import assert from 'node:assert'
 import Xo from 'xo-lib'
-import { XoConnection } from '../_xoConnection.js'
 import { getUser } from '../util.js'
 
 /* TODO use configured server */
@@ -20,12 +19,12 @@ const ADMIN_USER = {
 }
 
 const ERROR_INVALID_CREDENTIALS = /JsonRpcError: invalid credentials/
-const ERROR_USER_CANNOT_DELETE_ITFSELF = /JsonRpcError: a user cannot delete itself/
+const ERROR_USER_CANNOT_DELETE_ITSELF = /JsonRpcError: a user cannot delete itself/
 const ERROR_DELETE_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
 const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user non-existent-id/
 const ERROR_INVALID_PARAMETERS = /JsonRpcError: invalid parameters/
 const ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN = /JsonRpcError: this properties can only changed by an administrator/
-const ERROR_USER_CAN_ONLY_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
+const ERROR_USER_CANNOT_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
 const ERROR_USER_ALREADY_EXISTS = /JsonRpcError: the user .* already exists/
 // eslint-disable-next-line no-unused-vars
 const ERROR_TOO_FAST_AUTHENTIFICATION_TRIES = /Error: too fast authentication tries/
@@ -36,7 +35,6 @@ async function connect({ url = SERVER_URL, email, password }) {
   try {
     await xo.signIn({ email, password })
   } catch (err) {
-    // console.trace(err.message)
     xo.close()
     throw err
   }
@@ -275,16 +273,14 @@ describe('user tests', () => {
       }
       for (const [title, testData] of Object.entries(data)) {
         await t.test(title, async () => {
-          // const id = await xo.createTempUser(testData)
           const userId = await sharedXo.call('user.create', testData)
-          // cleanupTest.push({ method: 'user.delete', params: { id: userId } })
 
           const { email, password } = testData
           const xo = await connect({ email, password })
           await assert.rejects(
             xo.call('user.set', { id: userId, permission: 'user' }),
             email.includes('admin')
-              ? ERROR_USER_CAN_ONLY_CHANGE_ITS_OWN_PERMISSION
+              ? ERROR_USER_CANNOT_CHANGE_ITS_OWN_PERMISSION
               : ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN
           )
 
@@ -344,7 +340,7 @@ describe('user tests', () => {
       assert.notEqual(await getUser(sharedXo, userId), undefined)
 
       const xo = await connect(ADMIN_USER)
-      await assert.rejects(xo.call('user.delete', { id: userId }), ERROR_USER_CANNOT_DELETE_ITFSELF)
+      await assert.rejects(xo.call('user.delete', { id: userId }), ERROR_USER_CANNOT_DELETE_ITSELF)
     })
   })
 })

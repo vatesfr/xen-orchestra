@@ -1,13 +1,10 @@
 /* eslint-env jest */
 
-// import { difference, keyBy } from 'lodash';
-import lodash from 'lodash'
-
 import config from '../_config.js'
-import { XoConnection as xo, testWithOtherConnection } from '../_xoConnection.js'
 import { describe, it, afterEach } from 'node:test'
+import { XoConnection as xo, testWithOtherConnection } from '../_xoConnection.js'
 
-const { difference, keyBy } = lodash
+const { difference, keyBy } = 'lodash'
 
 const ADMIN_USER = {
   email: 'admin2@admin.net',
