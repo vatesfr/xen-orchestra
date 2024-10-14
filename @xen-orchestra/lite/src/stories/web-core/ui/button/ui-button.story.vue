@@ -2,13 +2,13 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('color')
+      prop('accent')
         .type('ButtonColor')
-        .enum('normal', 'success', 'warning', 'danger')
-        .preset('normal')
+        .enum('info', 'success', 'warning', 'danger')
+        .preset('info')
         .required()
         .widget(),
-      prop('level')
+      prop('variant')
         .type('ButtonVariant')
         .enum('primary', 'secondary', 'tertiary')
         .preset('primary')
@@ -42,7 +42,7 @@
     :presets="{
       'Save Button': {
         props: {
-          color: 'success',
+          accent: 'success',
           leftIcon: faFloppyDisk,
           rightIcon: undefined,
         },
@@ -54,7 +54,7 @@
         props: {
           leftIcon: undefined,
           rightIcon: faTrash,
-          color: 'danger',
+          accent: 'danger',
         },
         settings: {
           label: 'Delete',
@@ -70,6 +70,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>

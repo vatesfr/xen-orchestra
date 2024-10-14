@@ -41,7 +41,13 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" size="medium" color="normal" level="tertiary" @click="eventsLog = []">
+            <UiButton
+              v-if="eventsLog.length > 0"
+              size="medium"
+              accent="info"
+              variant="tertiary"
+              @click="eventsLog = []"
+            >
               Clear
             </UiButton>
           </template>
@@ -85,11 +91,11 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
-import UiButton from '@core/components/button/UiButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
