@@ -7,7 +7,7 @@
         <span v-tooltip class="id typo p4-regular-italic text-ellipsis">
           {{ id }}
         </span>
-        <UiButton
+        <VtsButton
           v-if="isSupported && copiableId"
           :left-icon="faCopy"
           level="secondary"
@@ -16,14 +16,14 @@
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}
-        </UiButton>
+        </VtsButton>
       </template>
     </div>
   </td>
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'

@@ -6,9 +6,9 @@
       </template>
 
       <template #buttons>
-        <UiButton size="medium" color="normal" level="tertiary" @click="formatJson()">
+        <VtsButton size="medium" color="normal" level="tertiary" @click="formatJson()">
           {{ $t('reformat') }}
-        </UiButton>
+        </VtsButton>
         <ModalDeclineButton />
         <ModalApproveButton :disabled="!isJsonValid">
           {{ $t('save') }}
@@ -25,7 +25,7 @@ import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { faCode } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
 
