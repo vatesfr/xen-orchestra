@@ -6,7 +6,6 @@
   "overrides": [
     {
       "files": ["*.js", "*.{integ,test}.{js,jsx}"],
-      "excludedFiles": "*.spec.js",  // Exclut les fichiers contenant 'spec'
       "rules": {
         "new-cap": ["warn"],  // Fix possible typo in rule
         "no-console": "warn",

@@ -36,5 +36,6 @@
 - @xen-orchestra/log minor
 - @xen-orchestra/xapi patch
 - xo-server minor
+- xo-server-test patch
 
 <!--packages-end-->
