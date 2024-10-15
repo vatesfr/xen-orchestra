@@ -219,6 +219,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await xapi.barrier()
     // ensure cached object are up to date
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+
+    // get the datetime of the most recent snapshot
+    const datetimes = this._jobSnapshotVdis.map(({ other_config }) => other_config[DATETIME])
+    datetimes.sort()
+    const lastSnapshotDateTime = datetimes.pop()
+
+    // remove older snapshot schedule per schedule
     const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
@@ -231,10 +238,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         ...allSettings[scheduleId],
         ...allSettings[this._vm.uuid],
       }
-      // ensure we never delete the last one for delta
-      const minRetention = this.job.mode === 'delta' ? 1 : 0
-      const retention = Math.max(settings.snapshotRetention ?? 0, minRetention)
+      const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
+        // keep the last snapshot across all schedules for delta
+        // since we'll need it to compute delta for next backup
+        if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+          return
+        }
         const vdis = snapshotPerDatetime[datetime]
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)
