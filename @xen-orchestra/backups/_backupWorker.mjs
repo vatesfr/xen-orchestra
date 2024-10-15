@@ -14,10 +14,10 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { getHandler } from '@xen-orchestra/fs'
 import { parseDuration } from '@vates/parse-duration'
+import { Task } from '@vates/task'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { RemoteAdapter } from './RemoteAdapter.mjs'
-import { Task } from './Task.mjs'
 
 createCachedLookup().patchGlobal()
 
@@ -178,8 +178,8 @@ process.on('message', async message => {
       const result = message.runWithLogs
         ? await Task.run(
             {
-              name: 'backup run',
-              onLog: data =>
+              properties: { name: 'backup run' },
+              onProgress: data =>
                 emitMessage({
                   data,
                   type: 'log',
