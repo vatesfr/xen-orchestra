@@ -104,11 +104,15 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
             }
             return taskByVmId[vmUuid]
           }
-          const vmBackupFailed = error => {
+          const vmBackupFailed = async (error, task) => {
             if (isLastRun) {
-              throw error
+              // ending the task with error
+              return task.run(() => {
+                throw error
+              })
             } else {
-              Task.warning(`Retry the VM backup due to an error`, {
+              // don't end the task
+              task.warning(`Retry the VM backup due to an error`, {
                 attempt: nTriesByVmId[vmUuid],
                 error: error.message,
               })
@@ -123,7 +127,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
 
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
           const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
-          const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
+          const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 2
 
           return this._getRecord('VM', vmUuid).then(
             disposableVm =>
@@ -133,8 +137,10 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                 }
 
                 const task = getVmTask()
+                // error has to be caught in the taskto prevent in failure, but handled outside the task to execute another task.run()
+                let taskError
                 return task
-                  .run(async () => {
+                  .runInside(async () => {
                     const opts = {
                       baseSettings,
                       config,
@@ -159,20 +165,22 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                         throw new Error(`Job mode ${job.mode} not implemented`)
                       }
                     }
-
-                    try {
-                      const result = await vmBackup.run()
-                      return result
-                    } catch (error) {
-                      vmBackupFailed(error)
+                    return vmBackup.run().catch(error => {
+                      taskError = error
+                    })
+                  })
+                  .then(result => {
+                    if (taskError) {
+                      // ending the task with error or not ending the task
+                      vmBackupFailed(taskError, task)
+                    } else {
+                      // ending the task with success
+                      task.run(() => result)
                     }
                   })
                   .catch(noop) // errors are handled by logs
               }),
-            error =>
-              getVmTask().run(() => {
-                vmBackupFailed(error)
-              })
+            error => vmBackupFailed(error, getVmTask())
           )
         }
         const { concurrency } = settings

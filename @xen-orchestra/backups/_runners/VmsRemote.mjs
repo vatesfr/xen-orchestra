@@ -110,21 +110,32 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                   taskByVmId[vmUuid] = new Task(taskStart)
                 }
                 const task = taskByVmId[vmUuid]
+                // error has to be caught in the taskto prevent in failure, but handled outside the task to execute another task.run()
+                let taskError
                 return task
-                  .run(async () => {
-                    try {
-                      const result = await vmBackup.run()
-                      return result
-                    } catch (error) {
+                  .runInside(async () =>
+                    vmBackup.run().catch(error => {
+                      taskError = error
+                    })
+                  )
+                  .then(result => {
+                    if (taskError) {
                       if (isLastRun) {
-                        throw error
+                        // ending the task with error
+                        return task.run(() => {
+                          throw taskError
+                        })
                       } else {
-                        Task.warning(`Retry the VM mirror backup due to an error`, {
+                        // don't end the task
+                        task.warning(`Retry the VM mirror backup due to an error`, {
                           attempt: nTriesByVmId[vmUuid],
-                          error: error.message,
+                          error: taskError.message,
                         })
                         queue.add(vmUuid)
                       }
+                    } else {
+                      // ending the task with success
+                      task.run(() => result)
                     }
                   })
                   .catch(noop)
