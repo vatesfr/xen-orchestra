@@ -2,9 +2,9 @@
 <template>
   <div class="ui-input">
     <VtsIcon :icon accent="current" class="before" />
-    <input :id v-model.trim="modelValue" class="typo p1-regular input" type="search" v-bind="$attrs" />
+    <input :id v-model.trim="modelValue" class="typo p1-regular input" type="search" v-bind="attrs" />
     <VtsIcon
-      v-if="!$attrs.disabled && modelValue"
+      v-if="!attrs.disabled && modelValue"
       :icon="faXmark"
       class="after"
       accent="info"
@@ -18,7 +18,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { uniqueId } from '@core/utils/unique-id.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
+import { computed, useAttrs } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -29,6 +29,8 @@ defineProps<{
 }>()
 
 const modelValue = defineModel<string>({ required: true })
+
+const attrs = useAttrs()
 
 const id = computed(() => uniqueId('input-'))
 </script>

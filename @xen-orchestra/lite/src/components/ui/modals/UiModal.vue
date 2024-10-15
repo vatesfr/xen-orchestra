@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <form class="ui-modal typo p1-regular" v-bind="$attrs" @click.self="modal.decline()">
+    <form class="ui-modal typo p1-regular" v-bind="attrs" @click.self="modal.decline()">
       <slot />
     </form>
   </Teleport>
@@ -12,7 +12,7 @@ import { ColorContext, DisabledContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_MODAL } from '@/types/injection-keys'
 import { useMagicKeys, whenever } from '@vueuse/core'
-import { inject } from 'vue'
+import { inject, useAttrs } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -22,6 +22,8 @@ const props = defineProps<{
   color?: Color
   disabled?: boolean
 }>()
+
+const attrs = useAttrs()
 
 const modal = inject(IK_MODAL)!
 
