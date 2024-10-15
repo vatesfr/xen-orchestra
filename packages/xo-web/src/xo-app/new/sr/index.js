@@ -281,7 +281,7 @@ export default class New extends Component {
           srUuid
         ),
       smb: () => createSrSmb(host.id, name.value, description.value, server.value, username.value, password.value),
-      hba: async () => createSrHba(host.id, name.value, description.value, scsiId, srUuid),
+      hba: () => createSrHba(host.id, name.value, description.value, scsiId, srUuid),
       iscsi: async () => {
         if (srUuid === undefined) {
           const previous = await probeSrIscsiExists(
