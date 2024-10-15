@@ -1,6 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { pipeline } from 'node:stream'
+import { Task } from '@vates/task'
 import isVhdDifferencingDisk from 'vhd-lib/isVhdDifferencingDisk.js'
 import keyBy from 'lodash/keyBy.js'
 import mapValues from 'lodash/mapValues.js'
@@ -11,7 +12,6 @@ import { exportIncrementalVm } from '../../_incrementalVm.mjs'
 import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { IncrementalXapiWriter } from '../_writers/IncrementalXapiWriter.mjs'
-import { Task } from '../../Task.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
 import {
   DATETIME,
