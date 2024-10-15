@@ -16,7 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
-- [New VM] Fix cryptic error notification
+- [New VM] Fix cryptic error notification (PR [#8052](https://github.com/vatesfr/xen-orchestra/pull/8052))
 
 ### Packages to release
 
