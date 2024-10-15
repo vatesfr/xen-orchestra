@@ -2,8 +2,8 @@
 
 import { parseDuration } from '@vates/parse-duration'
 
-import config from '../_config.js'
-import xo from '../_xoConnection.js'
+import config from '../../_config.js'
+import xo from '../../_xoConnection.js'
 
 describe('issue', () => {
   test('4507', async () => {
