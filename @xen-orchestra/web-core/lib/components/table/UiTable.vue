@@ -39,7 +39,7 @@ provide('tableName', props.name)
   :deep(thead) {
     th,
     td {
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
       font-size: 1.4rem;
       font-weight: 400;
       text-transform: uppercase;

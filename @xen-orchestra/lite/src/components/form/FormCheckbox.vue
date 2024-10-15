@@ -81,7 +81,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-normal-txt-item);
+    color: var(--color-info-txt-item);
   }
 }
 
@@ -143,7 +143,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 .icon {
   font-size: var(--checkbox-icon-size);
   position: absolute;
-  color: var(--color-normal-txt-item);
+  color: var(--color-info-txt-item);
 
   filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1)) drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
     drop-shadow(0 0.1875em 0.25em rgba(0, 0, 0, 0.08));
@@ -162,7 +162,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
 
-  --border-color: var(--color-normal-item-base);
+  --border-color: var(--color-info-item-base);
 }
 
 .input:disabled {
@@ -173,32 +173,32 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-normal-item-disabled);
+    --background-color: var(--color-info-item-disabled);
   }
 }
 
 .input:not(:disabled) {
   &:hover + .fake-checkbox,
   &:focus + .fake-checkbox {
-    --border-color: var(--color-normal-item-hover);
+    --border-color: var(--color-info-item-hover);
   }
 
   &:active + .fake-checkbox {
-    --border-color: var(--color-normal-item-active);
+    --border-color: var(--color-info-item-active);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-normal-item-base);
+    --background-color: var(--color-info-item-base);
   }
 
   &:checked:hover + .fake-checkbox,
   &:checked:focus + .fake-checkbox {
-    --background-color: var(--color-normal-item-hover);
+    --background-color: var(--color-info-item-hover);
   }
 
   &:checked:active + .fake-checkbox {
-    --background-color: var(--color-normal-item-active);
+    --background-color: var(--color-info-item-active);
   }
 }
 </style>

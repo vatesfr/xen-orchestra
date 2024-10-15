@@ -36,7 +36,7 @@ const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
 /* COLOR VARIANTS */
 .legend-item {
   &.primary {
-    --circle-color: var(--color-normal-item-base);
+    --circle-color: var(--color-info-item-base);
   }
 
   &.secondary {

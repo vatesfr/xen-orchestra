@@ -34,7 +34,7 @@ img {
 }
 
 .numeric {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   font-size: 96px;
   font-weight: 900;
   letter-spacing: 1em;
@@ -44,7 +44,7 @@ img {
 }
 
 .text {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   font-size: 36px;
   font-weight: 400;
   line-height: 150%;

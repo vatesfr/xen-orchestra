@@ -69,7 +69,7 @@ td[colspan='5'] {
 }
 
 .loader {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   display: block;
   font-size: 4rem;
   margin: 2rem auto 0;

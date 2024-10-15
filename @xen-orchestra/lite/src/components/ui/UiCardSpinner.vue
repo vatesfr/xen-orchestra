@@ -17,7 +17,7 @@ import UiSpinner from '@/components/ui/UiSpinner.vue'
 }
 
 .spinner {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   font-size: 4rem;
 }
 </style>

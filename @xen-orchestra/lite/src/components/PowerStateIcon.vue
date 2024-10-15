@@ -26,7 +26,7 @@ const className = computed(() => `state-${props.state.toLocaleLowerCase()}`)
 
 <style lang="postcss" scoped>
 .power-state-icon {
-  color: var(--color-normal-txt-item);
+  color: var(--color-info-txt-item);
 
   &.state-running {
     color: var(--color-success-item-base);
@@ -37,7 +37,7 @@ const className = computed(() => `state-${props.state.toLocaleLowerCase()}`)
   }
 
   &.state-suspended {
-    color: var(--color-normal-txt-hover);
+    color: var(--color-info-txt-hover);
   }
 
   &.state-halted {

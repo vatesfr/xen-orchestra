@@ -17,7 +17,7 @@ withDefaults(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .user-logo {
-  --border-color: var(--color-normal-txt-base);
+  --border-color: var(--color-info-txt-base);
 }
 
 /* SIZE VARIANTS */

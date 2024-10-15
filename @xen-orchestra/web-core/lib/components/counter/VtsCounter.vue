@@ -46,8 +46,8 @@ VARIANT + ACCENT
 .vts-counter {
   &.variant--primary {
     &.accent--brand {
-      --vts-counter--background-color: var(--color-normal-item-base);
-      --vts-counter--color: var(--color-normal-txt-item);
+      --vts-counter--background-color: var(--color-info-item-base);
+      --vts-counter--color: var(--color-info-txt-item);
     }
 
     &.accent--neutral {
@@ -78,8 +78,8 @@ VARIANT + ACCENT
 
   &.variant--secondary {
     &.accent--brand {
-      --vts-counter--background-color: var(--color-normal-background-selected);
-      --vts-counter--color: var(--color-normal-txt-base);
+      --vts-counter--background-color: var(--color-info-background-selected);
+      --vts-counter--color: var(--color-info-txt-base);
     }
 
     &.accent--neutral {

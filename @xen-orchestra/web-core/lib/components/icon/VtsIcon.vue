@@ -40,10 +40,10 @@ ACCENT
   }
 
   &.brand {
-    --vts-icon--color: var(--color-normal-item-base);
+    --vts-icon--color: var(--color-info-item-base);
 
     &.stacked {
-      --vts-icon__overlay-icon--color: var(--color-normal-txt-item);
+      --vts-icon__overlay-icon--color: var(--color-info-txt-item);
     }
   }
 

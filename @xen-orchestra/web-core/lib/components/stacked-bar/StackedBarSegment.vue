@@ -39,7 +39,7 @@ useResizeObserver(ellipsisElement, ([entry]) => {
 /* COLOR VARIANT */
 .stacked-bar-segment {
   &.primary {
-    --background-color: var(--color-normal-item-base);
+    --background-color: var(--color-info-item-base);
   }
 
   &.success {
@@ -61,7 +61,7 @@ useResizeObserver(ellipsisElement, ([entry]) => {
   justify-content: center;
   align-items: center;
   white-space: nowrap;
-  color: var(--color-normal-txt-item);
+  color: var(--color-info-txt-item);
   background-color: var(--background-color);
   padding-inline: 0.8rem;
 }

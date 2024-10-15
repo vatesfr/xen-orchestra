@@ -539,7 +539,7 @@ async function cancel() {
   justify-content: center;
   align-items: center;
   min-height: 76.5vh;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   text-align: center;
   padding: 5rem;
   margin: auto;
