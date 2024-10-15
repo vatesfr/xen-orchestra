@@ -1,11 +1,8 @@
+import { connect } from '../connect.js'
 import keyBy from 'lodash/keyBy.js'
-import { describe, test, before, after } from 'node:test'
 import assert from 'node:assert'
-import Xo from 'xo-lib'
+import { describe, test, before, after } from 'node:test'
 import { getUser } from '../util.js'
-
-/* TODO use configured server */
-const SERVER_URL = 'http://127.0.0.1:8000'
 
 const SIMPLE_USER = {
   email: 'simple_user@vates.fr',
@@ -29,19 +26,7 @@ const ERROR_USER_ALREADY_EXISTS = /JsonRpcError: the user .* already exists/
 // eslint-disable-next-line no-unused-vars
 const ERROR_TOO_FAST_AUTHENTIFICATION_TRIES = /Error: too fast authentication tries/
 
-async function connect({ url = SERVER_URL, email, password }) {
-  const xo = new Xo.default({ url })
-  await xo.open()
-  try {
-    await xo.signIn({ email, password })
-  } catch (err) {
-    xo.close()
-    throw err
-  }
-  return xo
-}
-
-describe('user tests', () => {
+describe(`user tests on`, () => {
   let sharedXo
   const cleanupTest = []
   before(async () => {
@@ -103,10 +88,18 @@ describe('user tests', () => {
       }
 
       await t.test('fails without email', async () => {
-        await assert.rejects(sharedXo.call('user.create', { password: 'batman' }), ERROR_INVALID_PARAMETERS)
+        const data = { password: 'batman' }
+        await assert.rejects(async () => {
+          const userId = await sharedXo.call('user.create', data)
+          cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+        }, ERROR_INVALID_PARAMETERS)
       })
       await t.test('fails without password', async () => {
-        await assert.rejects(sharedXo.call('user.create', { email: 'batman@example.com' }), ERROR_INVALID_PARAMETERS)
+        const data = { email: 'batman@example.com' }
+        await assert.rejects(async () => {
+          const userId = await sharedXo.call('user.create', data)
+          cleanupTest.push({ method: 'user.delete', params: { id: userId } })
+        }, ERROR_INVALID_PARAMETERS)
       })
     })
 
