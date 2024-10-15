@@ -195,14 +195,14 @@
           </div>
         </FormSection>
 
-        <ButtonGroup>
+        <VtsButtonGroup>
           <UiButton size="medium" color="normal" level="secondary" @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
           <UiButton size="medium" color="normal" level="primary" type="submit">
             {{ $t('deploy') }}
           </UiButton>
-        </ButtonGroup>
+        </VtsButtonGroup>
       </form>
     </UiCard>
   </div>
@@ -225,8 +225,8 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import UiButton from '@core/components/button/UiButton.vue'
+import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
@@ -528,7 +528,7 @@ async function cancel() {
   justify-content: center;
   align-items: center;
   min-height: 76.5vh;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   text-align: center;
   padding: 5rem;
   margin: auto;

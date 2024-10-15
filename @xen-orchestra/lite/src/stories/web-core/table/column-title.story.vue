@@ -10,13 +10,13 @@
       slot(),
     ]"
   >
-    <UiTable vertical-border name="story">
+    <VtsTable vertical-border name="story">
       <thead>
         <tr>
           <ColumnTitle v-bind="properties" id="vm">{{ settings.slot }}</ColumnTitle>
         </tr>
       </thead>
-    </UiTable>
+    </VtsTable>
   </ComponentStory>
 </template>
 
@@ -24,5 +24,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, prop, setting, slot } from '@/libs/story/story-param'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import UiTable from '@core/components/table/UiTable.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 </script>

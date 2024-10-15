@@ -55,14 +55,14 @@ const emit = defineEmits<{
   span {
     cursor: pointer;
     text-decoration: underline;
-    color: var(--color-normal-txt-base);
+    color: var(--color-info-txt-base);
 
     &:hover {
-      color: var(--color-normal-item-hover);
+      color: var(--color-info-item-hover);
     }
 
     &:active {
-      color: var(--color-normal-item-active);
+      color: var(--color-info-item-active);
     }
   }
 }

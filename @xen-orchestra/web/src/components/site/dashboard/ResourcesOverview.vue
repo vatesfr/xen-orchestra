@@ -1,28 +1,33 @@
 <template>
   <UiCard>
-    <CardTitle>{{ $t('resources-overview') }}</CardTitle>
-    <LoadingHero :disabled="isReady" type="card">
+    <UiCardTitle>{{ $t('resources-overview') }}</UiCardTitle>
+    <VtsLoadingHero :disabled="isReady" type="card">
       <div class="line-1">
-        <CardNumbers :label="$t('total-memory')" :value="memorySize?.value" :unit="memorySize?.prefix" size="medium" />
-        <CardNumbers :label="$t('total-cpus')" :value="nCpus" size="medium" />
+        <UiCardNumbers
+          :label="$t('total-memory')"
+          :value="memorySize?.value"
+          :unit="memorySize?.prefix"
+          size="medium"
+        />
+        <UiCardNumbers :label="$t('total-cpus')" :value="nCpus" size="medium" />
       </div>
-      <CardNumbers
+      <UiCardNumbers
         :label="$t('total-storage-repository')"
         :value="srSize?.value"
         :unit="srSize?.prefix"
         size="medium"
       />
-    </LoadingHero>
+    </VtsLoadingHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
 import { formatSizeRaw } from '@/utils/size.util'
-import CardTitle from '@core/components/card/CardTitle.vue'
-import CardNumbers from '@core/components/CardNumbers.vue'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import UiCard from '@core/components/UiCard.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
 
 const { record, isReady } = useDashboardStore().subscribe()

@@ -1,11 +1,11 @@
 <template>
-  <QuickTaskButton :loading="!isReady" :tasks />
+  <VtsQuickTaskButton :loading="!isReady" :tasks />
 </template>
 
 <script lang="ts" setup>
 import { useTaskStore } from '@/stores/xo-rest-api/task.store'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util'
-import QuickTaskButton from '@core/components/task/QuickTaskButton.vue'
+import VtsQuickTaskButton from '@core/components/task/VtsQuickTaskButton.vue'
 import { computed } from 'vue'
 
 const { records, isReady } = useTaskStore().subscribe()

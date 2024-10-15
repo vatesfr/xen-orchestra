@@ -1,28 +1,28 @@
 <template>
   <UiCard>
-    <CardTitle>
+    <UiCardTitle>
       {{ $t('backup-issues') }}
-      <VtsCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
+      <UiCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
       <template #description>{{ $t('in-last-three-jobs') }}</template>
-    </CardTitle>
-    <LoadingHero :disabled="isReady" type="card">
-      <NoDataHero v-if="!hasBackupIssues" type="card" />
+    </UiCardTitle>
+    <VtsLoadingHero :disabled="isReady" type="card">
+      <VtsNoDataHero v-if="!hasBackupIssues" type="card" />
       <div v-else class="backup-items">
-        <BackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
+        <VtsBackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
       </div>
-    </LoadingHero>
+    </VtsLoadingHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
 import { convertBackupIssueToCore } from '@/utils/convert-backup-issue-to-core.util'
-import BackupItem from '@core/components/backup-item/BackupItem.vue'
-import CardTitle from '@core/components/card/CardTitle.vue'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import NoDataHero from '@core/components/state-hero/NoDataHero.vue'
-import UiCard from '@core/components/UiCard.vue'
+import VtsBackupItem from '@core/components/backup-item/VtsBackupItem.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { computed } from 'vue'
 
 const { backupIssues, isReady } = useDashboardStore().subscribe()

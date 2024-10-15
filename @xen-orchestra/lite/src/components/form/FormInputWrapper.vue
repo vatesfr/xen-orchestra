@@ -128,7 +128,7 @@ useContext(DisabledContext, () => props.disabled)
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
 
   & > span {
     text-decoration: underline;

@@ -1,10 +1,10 @@
 <template>
-  <HeadBar>
+  <UiHeadBar>
     <template #icon>
-      <ObjectIcon type="host" :state="host.power_state.toLocaleLowerCase() as HostState" />
+      <UiObjectIcon size="medium" type="host" :state="host.power_state.toLocaleLowerCase() as HostState" />
     </template>
     {{ host.name_label }}
-  </HeadBar>
+  </UiHeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
     <TabItem disabled>{{ $t('console') }}</TabItem>
@@ -25,10 +25,10 @@
 <script lang="ts" setup>
 import type { XoHost } from '@/types/xo/host.type'
 import type { HostState } from '@core/types/object-icon.type'
-import HeadBar from '@core/components/head-bar/HeadBar.vue'
-import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 
 defineProps<{
   host: XoHost
