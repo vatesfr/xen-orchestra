@@ -15,6 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
 - [SR/New] Fix reattach button not displayed for HBA (PR [#7986](https://github.com/vatesfr/xen-orchestra/pull/7986))
 
 ### Packages to release
@@ -34,6 +35,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- @xen-orchestra/xapi patch
 - xo-server minor
 - xo-web patch
 
