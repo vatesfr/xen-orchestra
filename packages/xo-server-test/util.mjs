@@ -1,4 +1,4 @@
-import config from './_config.js'
+import config from './_config.mjs'
 
 import assert from 'node:assert'
 import cloneDeep from 'lodash/cloneDeep.js'

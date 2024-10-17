@@ -12,8 +12,8 @@ import { fromEvent } from 'promise-toolbox'
 // import { parseDuration } from '@vates/parse-duration'
 // import {before, after, afterEach} from 'node:test'
 
-import config from './_config.js'
-import { getDefaultName } from './_defaultValues.js'
+import config from './_config.mjs'
+import { getDefaultName } from './_defaultValues.mjs'
 
 export class XoConnection extends Xo.default {
   constructor(opts) {

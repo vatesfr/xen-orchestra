@@ -1,8 +1,8 @@
 /* eslint-env jest */
 
-import config from '../../_config.js'
+import config from '../../_config.mjs'
 import { describe, it, afterEach } from 'node:test'
-import { XoConnection as xo, testWithOtherConnection } from '../../_xoConnection.js'
+import { XoConnection as xo, testWithOtherConnection } from '../../_xoConnection.mjs'
 
 const { difference, keyBy } = 'lodash'
 
