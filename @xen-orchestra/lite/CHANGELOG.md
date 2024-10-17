@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- Handle IPv6 hosts
+
 ## **0.4.0** (2024-09-30)
 
 - [Settings] Default UI theme is now _auto_ instead of _dark_

@@ -1,4 +1,5 @@
 import { useModal } from '@/composables/modal.composable'
+import { ipToHostname } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'
@@ -12,7 +13,7 @@ export const useUnreachableHosts = () => {
     difference(nextHosts, previousHosts).forEach(host => {
       const url = new URL('http://localhost')
       url.protocol = window.location.protocol
-      url.hostname = host.address
+      url.hostname = ipToHostname(host.address)
       fetch(url, { mode: 'no-cors' }).catch(() => unreachableHostsUrls.value.add(url.toString()))
     })
   })
