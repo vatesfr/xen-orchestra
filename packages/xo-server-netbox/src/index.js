@@ -502,7 +502,12 @@ class Netbox {
 
       // Tags
       const nbVmTags = []
-      for (const tag of xoVm.tags) {
+      for (let tag of xoVm.tags) {
+        tag = tag.trim()
+        if (tag === '') {
+          continue
+        }
+
         const slug = slugify(tag)
         let nbTag = find(nbTags, { slug })
         if (nbTag === undefined) {
