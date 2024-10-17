@@ -15,11 +15,15 @@ import assert from 'node:assert'
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const sr = this._sr
+    if (baseUuidToSrcVdi.size === 0) {
+      // searching for the vdis is expensive
+      // don't do it if there is nothing to find
+      return
+    }
 
     // @todo use an index if possible
     // @todo : this seems similare to decorateVmMetadata
-
-    const replicatedVdis = sr.$VDIs 
+    const replicatedVdis = sr.$VDIs
       .filter(vdi => {
         // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
         return baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
@@ -103,11 +107,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       .filter(_ => !!_)
     // @todo use index ?
 
-    const replicatedVdis = sr.$VDIs
-      .filter(vdi => {
-        // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-        return sourceVdiUuids.includes(vdi?.other_config[COPY_OF])
-      })
+    const replicatedVdis = sr.$VDIs.filter(vdi => {
+      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
+      return sourceVdiUuids.includes(vdi?.other_config[COPY_OF])
+    })
 
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
