@@ -6,7 +6,7 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiButton
+      <VtsButton
         size="medium"
         color="normal"
         :right-icon="faArrowUpRightFromSquare"
@@ -14,7 +14,7 @@
         @click="openUrl('/', true)"
       >
         XO 5
-      </UiButton>
+      </VtsButton>
       <QuickTaskButton />
       <AccountMenu />
     </template>
@@ -42,7 +42,7 @@ import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import PoolTreeList from '@/components/tree/PoolTreeList.vue'
 import { usePoolTree } from '@/composables/pool-tree.composable'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
 import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'

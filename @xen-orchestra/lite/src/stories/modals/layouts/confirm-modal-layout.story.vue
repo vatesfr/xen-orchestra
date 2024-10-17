@@ -6,7 +6,7 @@
       slot('title'),
       slot('subtitle'),
       slot('default'),
-      slot('buttons').help('Meant to receive UiButton components'),
+      slot('buttons').help('Meant to receive VtsButton components'),
       setting('title').preset('Do you confirm?').widget(),
       setting('subtitle').preset('You should be sure about this').widget(),
     ]"
@@ -15,8 +15,8 @@
       <template #title>{{ settings.title }}</template>
       <template #subtitle>{{ settings.subtitle }}</template>
       <template #buttons>
-        <UiButton level="secondary" color="normal" size="medium">I prefer not</UiButton>
-        <UiButton level="primary" color="normal" size="medium">Yes, I'm sure!</UiButton>
+        <VtsButton level="secondary" color="normal" size="medium">I prefer not</VtsButton>
+        <VtsButton level="primary" color="normal" size="medium">Yes, I'm sure!</VtsButton>
       </template>
     </ConfirmModalLayout>
   </ComponentStory>
@@ -26,6 +26,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
 import { iconProp, setting, slot } from '@/libs/story/story-param'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { faShip } from '@fortawesome/free-solid-svg-icons'
 </script>

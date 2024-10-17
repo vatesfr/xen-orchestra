@@ -27,9 +27,9 @@
           <FormCheckbox v-model="rememberMe" />
           {{ $t('keep-me-logged') }}
         </label>
-        <UiButton size="medium" color="normal" level="primary" type="submit" :busy="isConnecting">
+        <VtsButton size="medium" color="normal" level="primary" type="submit" :busy="isConnecting">
           {{ $t('login') }}
-        </UiButton>
+        </VtsButton>
       </template>
     </form>
   </div>
@@ -45,7 +45,7 @@ import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import type { XenApiError } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'

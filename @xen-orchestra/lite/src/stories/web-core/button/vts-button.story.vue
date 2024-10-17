@@ -62,7 +62,7 @@
       },
     }"
   >
-    <UiButton v-bind="properties">{{ settings.label }}</UiButton>
+    <VtsButton v-bind="properties">{{ settings.label }}</VtsButton>
   </ComponentStory>
 </template>
 
@@ -70,6 +70,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>

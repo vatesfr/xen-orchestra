@@ -23,9 +23,9 @@
       </template>
 
       <template #buttons>
-        <UiButton size="medium" color="normal" level="tertiary" @click="addNewFilter()">
+        <VtsButton size="medium" color="normal" level="tertiary" @click="addNewFilter()">
           {{ $t('add-or') }}
-        </UiButton>
+        </VtsButton>
         <ModalDeclineButton />
         <ModalApproveButton :disabled="!isFilterValid">
           {{ $t(editedFilter ? 'update' : 'add') }}
@@ -45,7 +45,7 @@ import UiBadge from '@/components/ui/UiBadge.vue'
 import { getFilterIcon } from '@/libs/utils'
 import type { Filters, NewFilter } from '@/types/filter'
 import { IK_MODAL } from '@/types/injection-keys'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { Or, parse } from 'complex-matcher'
 import { computed, inject, onMounted, ref } from 'vue'
 

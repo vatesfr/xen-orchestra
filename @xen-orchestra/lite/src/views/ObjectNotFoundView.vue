@@ -2,15 +2,15 @@
   <div>
     <img alt="" src="../assets/object-not-found.svg" />
     <p class="text">{{ $t('object-not-found', { id }) }}</p>
-    <UiButton size="medium" color="normal" level="primary" @click="router.push({ name: 'home' })">
+    <VtsButton size="medium" color="normal" level="primary" @click="router.push({ name: 'home' })">
       {{ $t('back-pool-dashboard') }}
-    </UiButton>
+    </VtsButton>
   </div>
 </template>
 
 <script setup lang="ts">
 import { usePageTitleStore } from '@/stores/page-title.store'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
