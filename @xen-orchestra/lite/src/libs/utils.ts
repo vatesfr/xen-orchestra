@@ -111,3 +111,11 @@ export function parseRamUsage(
 }
 
 export const getFirst = <T>(value: T | T[]): T | undefined => (Array.isArray(value) ? value[0] : value)
+
+export function isIpv6(ip: string) {
+  return ip.includes(':')
+}
+
+export function ipToHostname(ip: string) {
+  return isIpv6(ip) ? `[${ip}]` : ip
+}
