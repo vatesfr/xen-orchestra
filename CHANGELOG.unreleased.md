@@ -38,6 +38,7 @@
 - @xen-orchestra/log minor
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
+- xo-cli minor
 - xo-server minor
 - xo-web patch
 
