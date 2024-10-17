@@ -1,8 +1,8 @@
-import { connect } from '../connect.js'
+import { connect } from '../connect.mjs'
 import keyBy from 'lodash/keyBy.js'
 import assert from 'node:assert'
 import { describe, test, before, after } from 'node:test'
-import { getUser } from '../util.js'
+import { getUser } from '../util.mjs'
 
 const SIMPLE_USER = {
   email: 'simple_user@vates.fr',

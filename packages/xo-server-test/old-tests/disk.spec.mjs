@@ -7,7 +7,7 @@ import expect from 'must'
 // ===================================================================
 
 import fromEvent from 'promise-toolbox/fromEvent'
-import { getConfig, getMainConnection, getSrId, waitObjectState } from '../util.js'
+import { getConfig, getMainConnection, getSrId, waitObjectState } from '../util.mjs'
 import map from 'lodash/map.js'
 
 // ===================================================================
