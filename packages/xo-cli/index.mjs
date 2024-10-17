@@ -662,6 +662,41 @@ async function call(args) {
 }
 COMMANDS.call = call
 
+COMMANDS.watch = async function () {
+  const xo = await connect()
+
+  const { stdout } = process
+  const opts = {
+    colors: Boolean(stdout.isTTY),
+    depth: null,
+    sorted: true,
+  }
+
+  const interval = setInterval(
+    async () => {
+      try {
+        await xo.call('xo.getAllObjects')
+        console.log('xo.getAllObjects() - ok')
+      } catch (error) {
+        console.warn('xo.getAllObjects() -', error)
+      }
+    },
+    Math.ceil(Math.random() * 10e3 + 10e3)
+  )
+
+  xo.on('notification', notification => {
+    console.log(notification.method)
+    // stdout.write(inspect(notification, opts) + '\n')
+  })
+
+  return new Promise(resolve => {
+    process.once('SIGINT', () => {
+      clearInterval(interval)
+      resolve(xo.close().then(noop))
+    })
+  })
+}
+
 // ===================================================================
 
 // don't call process.exit() to avoid truncated output
