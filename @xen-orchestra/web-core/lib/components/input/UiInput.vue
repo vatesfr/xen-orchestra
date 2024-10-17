@@ -42,17 +42,17 @@ const id = computed(() => uniqueId('input-'))
   }
 
   &:is(:hover, :focus-visible) {
-    --border-color: var(--color-normal-item-hover);
+    --border-color: var(--color-info-item-hover);
     --background-color: var(--color-neutral-background-primary);
   }
 
   &:focus {
-    --border-color: var(--color-normal-item-base);
+    --border-color: var(--color-info-item-base);
     --background-color: var(--color-neutral-background-primary);
   }
 
   &:active {
-    --border-color: var(--color-normal-item-active);
+    --border-color: var(--color-info-item-active);
     --background-color: var(--color-neutral-background-primary);
   }
 

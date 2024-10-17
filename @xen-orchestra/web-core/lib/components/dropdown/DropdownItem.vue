@@ -51,17 +51,17 @@ const checkbox = inject(
 
     &:is(.active, .selected) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-selected);
+      --background-color: var(--color-info-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-hover);
+      --background-color: var(--color-info-background-hover);
     }
 
     &:is(:active, .pressed) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-active);
+      --background-color: var(--color-info-background-active);
     }
 
     &.disabled {
