@@ -1,13 +1,13 @@
 import appConf from 'app-conf'
 import path from 'path'
-
-/* eslint-env jest */
+import {before} from 'node:test'
+ 
 
 let config
 export { config as default }
 
-beforeAll(async () => {
+before(async () => {
   config = await appConf.load('xo-server-test', {
-    appDir: path.join(__dirname, '..'),
+    appDir: path.join(process.cwd(), '..'),
   })
 })
