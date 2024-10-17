@@ -3,6 +3,7 @@
 ## **next**
 
 - Handle IPv6 hosts
+- [XOA deploy] Configure custom NTP servers
 
 ## **0.4.0** (2024-09-30)
 
