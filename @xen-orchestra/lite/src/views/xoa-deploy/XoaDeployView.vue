@@ -88,6 +88,12 @@
                 </option>
               </FormSelect>
             </FormInputWrapper>
+            <FormInputWrapper
+              :label="$t('deploy-xoa-custom-ntp-servers')"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#setting-a-custom-ntp-server"
+            >
+              <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
+            </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper>
@@ -295,6 +301,7 @@ const openXoa = () => {
 
 const selectedSr = ref<XenApiSr>()
 const selectedNetwork = ref<XenApiNetwork>()
+const ntp = ref('')
 const ipStrategy = ref<'static' | 'dhcp'>('dhcp')
 const requireIpConf = computed(() => ipStrategy.value === 'static')
 
@@ -397,6 +404,10 @@ async function deploy() {
         JSON.stringify({ email: xoaUser.value, password: xoaPwd.value }),
       ]),
     ]
+
+    if (ntp.value !== '') {
+      promises.push(xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/ntp', ntp.value]))
+    }
 
     // TODO: add host to servers with session token?
 
