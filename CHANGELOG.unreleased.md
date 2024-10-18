@@ -20,7 +20,6 @@
 - [New VM] Fix cryptic error notification (PR [#8052](https://github.com/vatesfr/xen-orchestra/pull/8052))
 - [Netbox] Ignore tags that have an empty label (PR [#8056](https://github.com/vatesfr/xen-orchestra/pull/8056))
 
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
