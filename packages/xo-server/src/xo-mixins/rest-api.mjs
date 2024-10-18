@@ -14,17 +14,24 @@ import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
 import semver from 'semver'
-import throttle from 'lodash/throttle.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { parse } from 'xo-remote-parser'
 
-import { getUserPublicProperties, isAlarm, isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../utils.mjs'
+import {
+  getFromAsyncCache,
+  getUserPublicProperties,
+  isAlarm,
+  isReplicaVm,
+  isSrWritable,
+  vmContainsNoBakTag,
+} from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 import { createPredicate } from 'value-matcher'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
+const DASHBOARD_CACHE = new Map()
 
 const { join } = path.posix
 const noop = Function.prototype
@@ -161,6 +168,10 @@ function wrap(middleware, handleNoSuchObject = false) {
 
 async function _getDashboardStats(app) {
   const dashboard = {}
+  const dashboardCacheOps = {
+    timeout: app.config.getOptionalDuration('rest-api.dashboardCacheTimeout'),
+    expiresIn: app.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
+  }
 
   let hvSupportedVersions
   let nHostsEol
@@ -225,37 +236,48 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const s3Brsize = { backups: 0 }
-    const otherBrSize = { available: 0, backups: 0, other: 0, total: 0, used: 0 }
+    const brResult = await getFromAsyncCache(
+      DASHBOARD_CACHE,
+      'backupRepositories',
+      async () => {
+        const s3Brsize = { backups: 0 }
+        const otherBrSize = { available: 0, backups: 0, other: 0, total: 0, used: 0 }
 
-    const backupRepositories = await app.getAllRemotes()
-    const backupRepositoriesInfo = await app.getAllRemotesInfo()
+        const backupRepositories = await app.getAllRemotes()
+        const backupRepositoriesInfo = await app.getAllRemotesInfo()
 
-    for (const backupRepository of backupRepositories) {
-      const { type } = parse(backupRepository.url)
-      const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
+        for (const backupRepository of backupRepositories) {
+          const { type } = parse(backupRepository.url)
+          const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
 
-      if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
-        continue
-      }
+          if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
+            continue
+          }
 
-      const totalBackupSize = await app.getTotalBackupSizeOnRemote(backupRepository.id)
+          const totalBackupSize = await app.getTotalBackupSizeOnRemote(backupRepository.id)
 
-      const { available, size, used } = backupRepositoryInfo
+          const { available, size, used } = backupRepositoryInfo
 
-      const isS3 = type === 's3'
-      const target = isS3 ? s3Brsize : otherBrSize
+          const isS3 = type === 's3'
+          const target = isS3 ? s3Brsize : otherBrSize
 
-      target.backups += totalBackupSize.onDisk
-      if (!isS3) {
-        target.available += available
-        target.other += used - totalBackupSize.onDisk
-        target.total += size
-        target.used += used
-      }
+          target.backups += totalBackupSize.onDisk
+          if (!isS3) {
+            target.available += available
+            target.other += used - totalBackupSize.onDisk
+            target.total += size
+            target.used += used
+          }
+        }
+
+        return { s3: { size: s3Brsize }, other: { size: otherBrSize } }
+      },
+      dashboardCacheOps
+    )
+
+    if (brResult.value !== undefined) {
+      dashboard.backupRepositories = { ...brResult.value, isExpired: brResult.isExpired }
     }
-
-    dashboard.backupRepositories = { s3: { size: s3Brsize }, other: { size: otherBrSize } }
   } catch (error) {
     console.error(error)
   }
@@ -344,81 +366,93 @@ async function _getDashboardStats(app) {
   }
 
   try {
-    const [logs, jobs] = await Promise.all([
-      app.getBackupNgLogsSorted({
-        filter: log => log.message === 'backup' || log.message === 'metadata',
-      }),
-      Promise.all([app.getAllJobs('backup'), app.getAllJobs('mirrorBackup'), app.getAllJobs('metadataBackup')]).then(
-        jobs => jobs.flat(1)
-      ),
-    ])
-    const logsByJob = groupBy(logs, 'jobId')
+    const backupsResult = await getFromAsyncCache(
+      DASHBOARD_CACHE,
+      'backups',
+      async () => {
+        const [logs, jobs] = await Promise.all([
+          app.getBackupNgLogsSorted({
+            filter: log => log.message === 'backup' || log.message === 'metadata',
+          }),
+          Promise.all([
+            app.getAllJobs('backup'),
+            app.getAllJobs('mirrorBackup'),
+            app.getAllJobs('metadataBackup'),
+          ]).then(jobs => jobs.flat(1)),
+        ])
+        const logsByJob = groupBy(logs, 'jobId')
 
-    let disabledJobs = 0
-    let failedJobs = 0
-    let skippedJobs = 0
-    let successfulJobs = 0
-    const backupJobIssues = []
+        let disabledJobs = 0
+        let failedJobs = 0
+        let skippedJobs = 0
+        let successfulJobs = 0
+        const backupJobIssues = []
 
-    for (const job of jobs) {
-      if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
-        _processVmsProtection(job, false)
-        disabledJobs++
-        continue
-      }
+        for (const job of jobs) {
+          if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+            _processVmsProtection(job, false)
+            disabledJobs++
+            continue
+          }
 
-      // Get only the last 3 runs
-      const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
-      if (jobLogs === undefined || jobLogs.length === 0) {
-        _processVmsProtection(job, false)
-        continue
-      }
+          // Get only the last 3 runs
+          const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
+          if (jobLogs === undefined || jobLogs.length === 0) {
+            _processVmsProtection(job, false)
+            continue
+          }
 
-      if (job.type === 'backup') {
-        const lastJobLog = jobLogs[0]
-        const { tasks, status } = lastJobLog
+          if (job.type === 'backup') {
+            const lastJobLog = jobLogs[0]
+            const { tasks, status } = lastJobLog
 
-        if (tasks === undefined) {
-          _processVmsProtection(job, status === 'success')
-        } else {
-          tasks.forEach(task => {
-            _updateVmProtection(task.data.id, task.status === 'success')
-          })
+            if (tasks === undefined) {
+              _processVmsProtection(job, status === 'success')
+            } else {
+              tasks.forEach(task => {
+                _updateVmProtection(task.data.id, task.status === 'success')
+              })
+            }
+          }
+
+          const failedLog = jobLogs.find(log => log.status !== 'success')
+          if (failedLog !== undefined) {
+            const { status } = failedLog
+            if (status === 'failure' || status === 'interrupted') {
+              failedJobs++
+            } else if (status === 'skipped') {
+              skippedJobs++
+            }
+            backupJobIssues.push({ logs: jobLogs.map(log => log.status), name: job.name, type: job.type, uuid: job.id })
+          } else {
+            successfulJobs++
+          }
         }
-      }
 
-      const failedLog = jobLogs.find(log => log.status !== 'success')
-      if (failedLog !== undefined) {
-        const { status } = failedLog
-        if (status === 'failure' || status === 'interrupted') {
-          failedJobs++
-        } else if (status === 'skipped') {
-          skippedJobs++
+        const nVmsProtected = vmIdsProtected.size
+        const nVmsUnprotected = vmIdsUnprotected.size
+        const nVmsNotInJob = nonReplicaVms.length - (nVmsProtected + nVmsUnprotected)
+
+        return {
+          jobs: {
+            disabled: disabledJobs,
+            failed: failedJobs,
+            skipped: skippedJobs,
+            successful: successfulJobs,
+            total: jobs.length,
+          },
+          issues: backupJobIssues,
+          vmsProtection: {
+            protected: nVmsProtected,
+            unprotected: nVmsUnprotected,
+            notInJob: nVmsNotInJob,
+          },
         }
-        backupJobIssues.push({ logs: jobLogs.map(log => log.status), name: job.name, type: job.type, uuid: job.id })
-      } else {
-        successfulJobs++
-      }
-    }
-
-    const nVmsProtected = vmIdsProtected.size
-    const nVmsUnprotected = vmIdsUnprotected.size
-    const nVmsNotInJob = nonReplicaVms.length - (nVmsProtected + nVmsUnprotected)
-
-    dashboard.backups = {
-      jobs: {
-        disabled: disabledJobs,
-        failed: failedJobs,
-        skipped: skippedJobs,
-        successful: successfulJobs,
-        total: jobs.length,
       },
-      issues: backupJobIssues,
-      vmsProtection: {
-        protected: nVmsProtected,
-        unprotected: nVmsUnprotected,
-        notInJob: nVmsNotInJob,
-      },
+      dashboardCacheOps
+    )
+    if (backupsResult.value !== undefined) {
+      dashboard.backups = { ...backupsResult.value, isExpired: backupsResult.isExpired }
     }
   } catch (error) {
     console.error(error)
@@ -426,7 +460,6 @@ async function _getDashboardStats(app) {
 
   return dashboard
 }
-const getDashboardStats = throttle(_getDashboardStats, 6e4, { trailing: false, leading: true })
 
 const keepNonAlarmMessages = message => message.type === 'message' && !isAlarm(message)
 export default class RestApi {
@@ -981,7 +1014,7 @@ export default class RestApi {
     api.get(
       '/dashboard',
       wrap(async (req, res) => {
-        res.json(await getDashboardStats(app))
+        res.json(await _getDashboardStats(app))
       })
     )
 
