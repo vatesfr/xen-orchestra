@@ -167,6 +167,13 @@ Usage:
 
     Examples:
       xo-cli rest put vms/<vm id>/tags/<tag>
+
+  xo-cli watch [--ndjson]
+    Watch and display notifications received from the XO instance
+
+    --ndjson
+      Prints the result in newline-delimited JSON format
+
 ```
 
 #### Register your XO instance

@@ -374,6 +374,12 @@ const help = wrap(
     Examples:
       $name rest put vms/<vm id>/tags/<tag>
 
+  $name watch [--ndjson]
+    Watch and display notifications received from the XO instance
+
+    --ndjson
+      Prints the result in newline-delimited JSON format
+
 $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
@@ -661,6 +667,50 @@ async function call(args) {
   }
 }
 COMMANDS.call = call
+
+COMMANDS.watch = async function (args) {
+  const xo = await connect()
+
+  const { stdout } = process
+
+  let printNotification
+  if (args.length !== 0 && args[0] === '--ndjson') {
+    printNotification = ({ method, params }) => {
+      stdout.write(JSON.stringify({ method, params }) + '\n')
+    }
+  } else {
+    const opts = {
+      colors: Boolean(stdout.isTTY),
+      depth: null,
+      sorted: true,
+    }
+
+    printNotification = ({ method, params }) => {
+      stdout.write(method + ' ' + inspect(params, opts) + '\n\n')
+    }
+  }
+
+  const counts = new Map()
+  xo.on('notification', notification => {
+    const { method } = notification
+    counts.set(method, 1 + (counts.get(method) ?? 0))
+    printNotification(notification)
+  })
+
+  return new Promise(resolve => {
+    process.once('SIGINT', () => {
+      const { stderr } = process
+      stderr.write('\nNumber of notifications per method:\n')
+
+      const sortedCounts = Array.from(counts).sort(([, a], [, b]) => b - a)
+      for (const [method, count] of sortedCounts) {
+        stderr.write(`  ${method}: ${count}\n`)
+      }
+
+      resolve(xo.close().then(noop))
+    })
+  })
+}
 
 // ===================================================================
 
