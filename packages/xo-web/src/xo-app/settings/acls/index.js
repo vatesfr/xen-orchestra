@@ -19,7 +19,7 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
 import { injectState, provideState } from 'reaclette'
-import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
+import { SelectHighLevelObject, SelectRole, SelectSubject, GenericSelectTag } from 'select-objects'
 
 import { createGetObjectsOfType, createSelector } from 'selectors'
 
@@ -110,6 +110,7 @@ export default class Acls extends Component {
       objects: [],
       subjects: [],
       typeFilters: {},
+      tags: [],
     }
   }
 
@@ -145,9 +146,11 @@ export default class Acls extends Component {
   _getObjectPredicate = createSelector(
     () => this.state.typeFilters,
     () => this.state.someTypeFilters,
-    (typeFilters, someTypeFilters) =>
-      ({ type }) =>
-        !someTypeFilters || typeFilters[type]
+    () => this.state.tags,
+    (typeFilters, someTypeFilters, selectedTags) =>
+      ({ type, tags }) =>
+        (!someTypeFilters || typeFilters[type]) &&
+        (selectedTags.length === 0 || selectedTags.some(tag => tags.includes(tag.value)))
   )
 
   _selectAll = () => {
@@ -185,13 +188,38 @@ export default class Acls extends Component {
   }
 
   render() {
-    const { typeFilters, objects, action, subjects } = this.state
+    const { typeFilters, objects, action, subjects, tags } = this.state
 
     return process.env.XOA_PLAN > 2 ? (
       <Container>
         <form>
           <div className='form-group'>
             <SelectSubject multi onChange={this.linkState('subjects')} value={subjects} />
+          </div>
+          <div className='form-group mb-1 d-flex'>
+            <div style={{ flexShrink: 0 }}>
+              <ButtonGroup>
+                {map(TYPES, type => (
+                  <ActionButton
+                    btnStyle={typeFilters[type] ? 'success' : 'secondary'}
+                    handler={this._toggleTypeFilter}
+                    handlerParam={type}
+                    icon={type.toLowerCase()}
+                    key={type}
+                    size='small'
+                    tooltip={_('settingsAclsButtonTooltip' + type)}
+                  />
+                ))}
+              </ButtonGroup>{' '}
+              <ActionButton tooltip='Select all' size='small' icon='add' handler={this._selectAll} />
+            </div>
+            <GenericSelectTag
+              className='ml-1'
+              multi
+              onChange={this.linkState('tags')}
+              value={tags}
+              placeholder={_('filterByTags')}
+            />
           </div>
           <div className='form-group'>
             <SelectHighLevelObject
@@ -200,22 +228,6 @@ export default class Acls extends Component {
               value={objects}
               predicate={this._getObjectPredicate()}
             />
-          </div>
-          <div className='form-group mb-1'>
-            <ButtonGroup>
-              {map(TYPES, type => (
-                <ActionButton
-                  btnStyle={typeFilters[type] ? 'success' : 'secondary'}
-                  handler={this._toggleTypeFilter}
-                  handlerParam={type}
-                  icon={type.toLowerCase()}
-                  key={type}
-                  size='small'
-                  tooltip={_('settingsAclsButtonTooltip' + type)}
-                />
-              ))}
-            </ButtonGroup>{' '}
-            <ActionButton tooltip='Select all' size='small' icon='add' handler={this._selectAll} />
           </div>
           <div className='form-group'>
             <SelectRole onChange={this.linkState('action')} value={action} />
