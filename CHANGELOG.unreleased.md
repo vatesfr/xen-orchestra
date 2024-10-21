@@ -14,7 +14,8 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-> [Backup] fix VDI_INCOMPATIBLE_TYPE error
+
+- [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
 
 ### Packages to release
 
