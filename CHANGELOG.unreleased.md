@@ -16,6 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
+- [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/log minor
 - @xen-orchestra/xapi patch
 - xo-server minor
