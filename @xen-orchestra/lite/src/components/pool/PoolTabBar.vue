@@ -1,5 +1,5 @@
 <template>
-  <TabList :disabled="!isReady">
+  <VtsTabList :disabled="!isReady">
     <RouterTab :to="{ name: 'pool.dashboard', params: { uuid: pool?.uuid } }">
       {{ $t('dashboard') }}
     </RouterTab>
@@ -27,13 +27,13 @@
     <RouterTab :to="{ name: 'pool.vms', params: { uuid: pool?.uuid } }">
       {{ $t('vms') }}
     </RouterTab>
-  </TabList>
+  </VtsTabList>
 </template>
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import TabList from '@core/components/tab/TabList.vue'
+import VtsTabList from '@core/components/tab/VtsTabList.vue'
 
 const { pool, isReady } = usePoolStore().subscribe()
 </script>
