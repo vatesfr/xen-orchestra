@@ -38,6 +38,7 @@
 
 <!--packages-start-->
 
+- @vates/task minor
 - @xen-orchestra/log minor
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch

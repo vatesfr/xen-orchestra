@@ -132,9 +132,13 @@ class Task {
   #end(status, result) {
     assert.equal(this.#status, PENDING)
 
-    this.#status = status
     this.#emit('end', { status, result })
     this.#onProgress = alreadyEnded
+    this.#status = status
+  }
+
+  failure(error) {
+    this.#end(FAILURE, error)
   }
 
   info(message, data) {
@@ -142,10 +146,8 @@ class Task {
   }
 
   #maybeStart() {
-    const startData = this.#startData
-    if (startData !== undefined) {
-      this.#startData = undefined
-      this.#emit('start', startData)
+    if (this.#startData !== undefined) {
+      this.start()
     }
   }
 
@@ -179,6 +181,18 @@ class Task {
     assert.equal(this.status, PENDING)
 
     this.#emit('property', { name, value })
+  }
+
+  start() {
+    const startData = this.#startData
+    assert.notEqual(startData, undefined, 'task has already started')
+
+    this.#startData = undefined
+    this.#emit('start', startData)
+  }
+
+  success(result) {
+    this.#end(SUCCESS, result)
   }
 
   warning(message, data) {

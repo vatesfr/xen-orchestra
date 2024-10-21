@@ -145,6 +145,36 @@ describe('Task', function () {
     })
   })
 
+  describe('#failure()', function () {
+    const error = new Error()
+
+    it('throws if the task has not started yet', function () {
+      const task = createTask()
+
+      assert.throws(() => task.failure(error), { message: 'task has not started yet' })
+    })
+
+    it('throws if the task has already finished', function () {
+      const task = createTask()
+      task.start()
+      task.success()
+
+      assert.throws(() => task.failure(error), { code: 'ERR_ASSERTION' })
+    })
+
+    it('finishes the task and mark it as failed', function () {
+      const task = createTask()
+      task.start()
+      task.failure(error)
+
+      assertEvent(task, {
+        status: 'failure',
+        result: error,
+        type: 'end',
+      })
+    })
+  })
+
   describe('.info()', function () {
     it('does nothing when run outside a task', function () {
       Task.info('foo')
@@ -240,6 +270,52 @@ describe('Task', function () {
             value,
           })
         })
+      })
+    })
+  })
+
+  describe('#start', function () {
+    it('starts the task', function () {
+      const task = createTask()
+      task.start()
+
+      assertEvent(task, { type: 'start' })
+    })
+
+    it('throws when the task has already started', function () {
+      const task = createTask()
+      task.start()
+
+      assert.throws(() => task.start(), { message: 'task has already started' })
+    })
+  })
+
+  describe('#success()', function () {
+    const result = {}
+
+    it('throws if the task has not started yet', function () {
+      const task = createTask()
+
+      assert.throws(() => task.success(result), { message: 'task has not started yet' })
+    })
+
+    it('throws if the task has already finished', function () {
+      const task = createTask()
+      task.start()
+      task.success()
+
+      assert.throws(() => task.success(result), { code: 'ERR_ASSERTION' })
+    })
+
+    it('finishes the task and mark it as successful', function () {
+      const task = createTask()
+      task.start()
+      task.success(result)
+
+      assertEvent(task, {
+        status: 'success',
+        result,
+        type: 'end',
       })
     })
   })
