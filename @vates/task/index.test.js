@@ -307,7 +307,7 @@ describe('Task', function () {
       assert.throws(() => task.success(result), { code: 'ERR_ASSERTION' })
     })
 
-    it('finishes the task and mark it as failed', function () {
+    it('finishes the task and mark it as successful', function () {
       const task = createTask()
       task.start()
       task.success(result)
