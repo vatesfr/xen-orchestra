@@ -63,11 +63,16 @@ export async function exportIncrementalVm(
     } catch (err) {
       if (err.code === 'VDI_CANT_DO_DELTA') {
         // fall back to a base
+        Task.info(`Can't do delta, will try to get a full stream`, { vdi })
         streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
           cancelToken,
           format: 'vhd',
           nbdConcurrency,
           preferNbd,
+        })
+        // only warn if the fall back succeed
+        Task.warning(`Can't do delta with this vdi, transfer will be a full`, {
+          vdi,
         })
       } else {
         throw err
