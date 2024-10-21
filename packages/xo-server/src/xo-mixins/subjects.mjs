@@ -139,8 +139,8 @@ export default class {
       preferences,
     }
   ) {
-    if (await this._users.exists({ email })) {
-      throw new Error(`the user ${email} already exists`)
+    if (await this._users.exists({ email: name })) {
+      throw new Error(`the user ${name} already exists`)
     }
 
     const user = await this.getUser(id)
