@@ -515,7 +515,7 @@ const ALARM_ACTIONS = [
   },
 ]
 
-const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
+const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral', 'pvs_cache'])
 
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
@@ -530,6 +530,10 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
           !HANDLED_VDI_TYPES.has(vdi.VDI_type) || // only for vdi with handled types
           vdi.size === 0 // empty vdi aren't considered as orphans
         ) {
+          return false
+        }
+
+        if (vdi.name_label === 'PVS cache VDI' && vdi.name_description === 'PVS cache VDI') {
           return false
         }
 
