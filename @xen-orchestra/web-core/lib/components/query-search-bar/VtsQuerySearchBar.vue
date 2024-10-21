@@ -1,6 +1,6 @@
-<!-- v1.2 -->
+<!-- v3 -->
 <template>
-  <form class="search-bar" @submit.prevent="emit('search', value)">
+  <form class="vts-query-search-bar" @submit.prevent="emit('search', value)">
     <label v-if="uiStore.isDesktop" :for="id" class="typo p2-regular label">
       {{ $t('core.query-search-bar.label') }}
     </label>
@@ -14,14 +14,7 @@
     <template v-if="uiStore.isDesktop">
       <UiButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
       <Divider type="stretch" />
-      <UiButton
-        v-tooltip="$t('coming-soon')"
-        size="medium"
-        color="normal"
-        level="secondary"
-        :left-icon="faFilter"
-        disabled
-      >
+      <UiButton v-tooltip="$t('coming-soon')" size="medium" color="normal" level="secondary" disabled>
         {{ $t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
@@ -55,13 +48,13 @@ const value = ref<string>('')
 </script>
 
 <style lang="postcss" scoped>
-.search-bar {
+.vts-query-search-bar {
   display: flex;
   gap: 1.6rem;
   align-items: center;
-}
 
-.label {
-  color: var(--color-neutral-txt-secondary);
+  .label {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>
