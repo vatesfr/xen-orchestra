@@ -121,7 +121,19 @@ export async function checkAliases(
 ) {
   const aliasFound = []
   for (const alias of aliasPaths) {
-    const target = await resolveVhdAlias(handler, alias)
+    let target
+    try {
+      target = await resolveVhdAlias(handler, alias)
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        logWarn('missing target of alias', { alias })
+        if (remove) {
+          logInfo('removing alias and non VHD target', { alias, target })
+          await handler.unlink(target)
+          await handler.unlink(alias)
+        }
+      }
+    }
 
     if (!isVhdFile(target)) {
       logWarn('alias references non VHD target', { alias, target })
@@ -201,9 +213,9 @@ export async function cleanVm(
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
-    if(removeTmp && basename(path)[0] === '.'){
+    if (removeTmp && basename(path)[0] === '.') {
       logInfo('deleting temporary VHD', { path })
-        return VhdAbstract.unlink(handler, path)
+      return VhdAbstract.unlink(handler, path)
     }
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
