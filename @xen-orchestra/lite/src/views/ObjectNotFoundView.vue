@@ -38,7 +38,7 @@ img {
 }
 
 .text {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   font-size: 36px;
   font-weight: 400;
   line-height: 150%;

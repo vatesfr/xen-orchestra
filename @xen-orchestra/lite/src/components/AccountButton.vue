@@ -72,7 +72,7 @@ const openSettings = () => router.push({ name: 'settings' })
 
     &:active,
     &.active {
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
     }
   }
 }

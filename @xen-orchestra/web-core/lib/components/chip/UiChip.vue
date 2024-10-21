@@ -36,7 +36,7 @@ const emit = defineEmits<{
   --color: var(--color-neutral-txt-primary);
 
   &.disabled {
-    --color: var(--color-normal-txt-item);
+    --color: var(--color-info-txt-item);
 
     &.info {
       --color: var(--color-neutral-txt-secondary);
@@ -47,14 +47,14 @@ const emit = defineEmits<{
 /* BACKGROUND COLOR VARIANTS */
 .ui-chip {
   &.info {
-    --background-color: var(--color-normal-background-selected);
+    --background-color: var(--color-info-background-selected);
 
     &:is(:hover, .hover, :focus-visible) {
-      --background-color: var(--color-normal-background-hover);
+      --background-color: var(--color-info-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --background-color: var(--color-normal-background-active);
+      --background-color: var(--color-info-background-active);
     }
 
     &.disabled {

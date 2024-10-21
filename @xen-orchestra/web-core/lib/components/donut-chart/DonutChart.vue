@@ -70,7 +70,7 @@ const computedSegments = computed(() => {
   --stroke-color: var(--color-neutral-txt-primary);
 
   &.primary {
-    --stroke-color: var(--color-normal-item-base);
+    --stroke-color: var(--color-info-item-base);
   }
 
   &.secondary {

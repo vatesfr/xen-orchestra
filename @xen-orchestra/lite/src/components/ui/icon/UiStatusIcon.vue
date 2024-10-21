@@ -38,7 +38,7 @@ const icon = computed(() => {
   }
 
   &.info {
-    --icon-color: var(--color-normal-item-base);
+    --icon-color: var(--color-info-item-base);
   }
 
   &.success {

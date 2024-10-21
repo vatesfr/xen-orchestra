@@ -41,18 +41,18 @@ defineSlots<{
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .object-link {
-  --color: var(--color-normal-txt-base);
-  --border-color: var(--color-normal-txt-base);
+  --color: var(--color-info-txt-base);
+  --border-color: var(--color-info-txt-base);
 
   &.is-link {
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-normal-txt-hover);
-      --border-color: var(--color-normal-txt-hover);
+      --color: var(--color-info-txt-hover);
+      --border-color: var(--color-info-txt-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-normal-txt-active);
-      --border-color: var(--color-normal-txt-active);
+      --color: var(--color-info-txt-active);
+      --border-color: var(--color-info-txt-active);
     }
   }
 
