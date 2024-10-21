@@ -41,9 +41,15 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" size="medium" color="normal" level="tertiary" @click="eventsLog = []">
+            <VtsButton
+              v-if="eventsLog.length > 0"
+              size="medium"
+              color="normal"
+              level="tertiary"
+              @click="eventsLog = []"
+            >
               Clear
-            </UiButton>
+            </VtsButton>
           </template>
         </UiCardTitle>
         <div class="events-log">
@@ -85,7 +91,7 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'

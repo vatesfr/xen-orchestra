@@ -12,9 +12,9 @@
       :placeholder="$t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
+      <VtsButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</VtsButton>
       <Divider type="stretch" />
-      <UiButton
+      <VtsButton
         v-tooltip="$t('coming-soon')"
         size="medium"
         color="normal"
@@ -23,7 +23,7 @@
         disabled
       >
         {{ $t('core.query-search-bar.use-query-builder') }}
-      </UiButton>
+      </VtsButton>
     </template>
     <template v-else>
       <ButtonIcon type="submit" :icon="faMagnifyingGlass" />
@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import Divider from '@core/components/divider/Divider.vue'
 import UiInput from '@core/components/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

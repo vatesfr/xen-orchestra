@@ -4,7 +4,7 @@
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-end" border>
         <template #trigger="{ open, isOpen }">
-          <UiButton
+          <VtsButton
             size="medium"
             color="normal"
             level="primary"
@@ -14,7 +14,7 @@
           >
             {{ $t('change-state') }}
             <UiIcon :icon="faAngleDown" />
-          </UiButton>
+          </VtsButton>
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </MenuList>
@@ -52,7 +52,7 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import ButtonIcon from '@core/components/button/ButtonIcon.vue'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButton from '@core/components/button/VtsButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
