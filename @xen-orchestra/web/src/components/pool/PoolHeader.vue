@@ -1,7 +1,7 @@
 <template>
-  <HeadBar :icon="faCity">
+  <VtsHeadBar :icon="faCity">
     {{ pool.name_label }}
-  </HeadBar>
+  </VtsHeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import type { XoPool } from '@/types/xo/pool.type'
-import HeadBar from '@core/components/head-bar/HeadBar.vue'
+import VtsHeadBar from '@core/components/head-bar/VtsHeadBar.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
