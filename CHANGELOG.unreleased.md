@@ -34,6 +34,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/log minor
+- @xen-orchestra/xapi patch
 - xo-server minor
 
 <!--packages-end-->
