@@ -221,9 +221,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
 
     // get the datetime of the most recent snapshot
-    const datetimes = this._jobSnapshotVdis.map(({ other_config }) => other_config[DATETIME])
-    datetimes.sort()
-    const lastSnapshotDateTime = datetimes.pop()
+    const lastSnapshotDateTime = this._jobSnapshotVdis
+      .map(({ other_config }) => other_config[DATETIME])
+      .sort()
+      .pop()
 
     // remove older snapshot schedule per schedule
     const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
