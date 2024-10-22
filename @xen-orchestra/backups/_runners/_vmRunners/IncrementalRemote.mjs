@@ -77,7 +77,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       const hasDifferencingDisk = Object.values(isVhdDifferencing).includes(true)
       if (metadata.isBase === hasDifferencingDisk) {
         warn(`Metadata isBase and real disk value are different`, {
-          metadataIsBae: metadata.isBase,
+          metadataIsBase: metadata.isBase,
           diskIsBase: !hasDifferencingDisk,
           isVhdDifferencing,
         })
