@@ -48,6 +48,11 @@ export default class Config {
     return niceGet(this._config, path)
   }
 
+  getOptionalDuration(path) {
+    const value = this.getOptional(path)
+    return value === undefined ? undefined : parseDuration(value)
+  }
+
   watch(path, cb) {
     // short syntax for the whole config: watch(cb)
     if (typeof path === 'function') {
