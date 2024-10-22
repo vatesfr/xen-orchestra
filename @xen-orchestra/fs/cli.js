@@ -8,17 +8,41 @@ const { getBoundPropertyDescriptor } = require('bind-property-descriptor')
 const { getSyncedHandler } = require('./')
 
 const { getPrototypeOf, ownKeys } = Reflect
-function getAllBoundDescriptors(object) {
+function getAllBoundDescriptors(object, thisArg = object) {
   const descriptors = { __proto__: null }
   let current = object
   do {
     ownKeys(current).forEach(key => {
       if (!(key in descriptors)) {
-        descriptors[key] = getBoundPropertyDescriptor(current, key, object)
+        descriptors[key] = getBoundPropertyDescriptor(current, key, thisArg)
       }
     })
   } while ((current = getPrototypeOf(current)) !== null)
   return descriptors
+}
+
+const extraMethods = {
+  __proto__: null,
+
+  async cat(...files) {
+    const { stdout } = process
+    let onStdoutError
+    stdout.once('error', error => {
+      onStdoutError(error)
+    })
+
+    for (const file of files) {
+      const stream = await this.createReadStream(file)
+
+      // don't use stream.pipeline() as it would close stdout when the first stream finishes
+      await new Promise((resolve, reject) => {
+        stream.once('error', reject).once('end', resolve)
+        onStdoutError = reject
+
+        stream.pipe(stdout)
+      })
+    }
+  },
 }
 
 // https://gist.github.com/julien-f/18161f6032e808d6fa08782951ce3bfb
@@ -52,6 +76,7 @@ async function* main([url, ...args]) {
   const handler = yield getSyncedHandler({ url })
 
   const methods = Object.create(null, getAllBoundDescriptors(handler))
+  Object.defineProperties(methods, getAllBoundDescriptors(extraMethods, handler))
 
   if (args.length === 0) {
     await repl({
