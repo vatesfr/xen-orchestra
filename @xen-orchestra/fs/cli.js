@@ -44,16 +44,33 @@ async function repl({ prompt, context } = {}) {
   })
 }
 
-async function* main([url]) {
+async function* main([url, ...args]) {
   if (url === undefined) {
     throw new TypeError('missing arg <url>')
   }
 
   const handler = yield getSyncedHandler({ url })
-  await repl({
-    prompt: handler.type + '> ',
-    context: Object.create(null, getAllBoundDescriptors(handler)),
-  })
+
+  const methods = Object.create(null, getAllBoundDescriptors(handler))
+
+  if (args.length === 0) {
+    await repl({
+      prompt: handler.type + '> ',
+      context: methods,
+    })
+  } else {
+    const method = args.shift()
+    const fn = methods[method]
+    if (fn === undefined) {
+      const message = 'unknown method: ' + method
+      throw message
+    }
+
+    const result = await fn(...args)
+    if (result !== undefined) {
+      console.log(result)
+    }
+  }
 }
 
 Disposable.wrap(main)(process.argv.slice(2)).catch(error => {
