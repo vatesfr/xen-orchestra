@@ -17,6 +17,7 @@ import semver from 'semver'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { parse } from 'xo-remote-parser'
+
 import {
   getFromAsyncCache,
   getUserPublicProperties,
@@ -475,7 +476,7 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
 
-    // register the route BEFORE the authentication middleware because this route require to not be identified
+    // register the route BEFORE the authentication middleware because this route does not require authentication
     api.post('/users/authentication_tokens', async (req, res) => {
       const authorization = req.headers.authorization ?? ''
       const [, encodedCredentials] = authorization.split(' ')
