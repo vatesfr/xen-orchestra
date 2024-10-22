@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -48,6 +50,6 @@
 - xo-server minor
 - xo-server-audit patch
 - xo-server-netbox patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
