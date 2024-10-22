@@ -1,12 +1,13 @@
 /* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
+// eslint-disable-next-line n/no-missing-import
 import expect from 'must'
 
 // ===================================================================
 
 import fromEvent from 'promise-toolbox/fromEvent'
-import { getConfig, getMainConnection, getSrId, waitObjectState } from './util'
+import { getConfig, getMainConnection, getSrId, waitObjectState } from '../util.mjs'
 import map from 'lodash/map.js'
 
 // ===================================================================

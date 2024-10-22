@@ -2,6 +2,7 @@
 
 import { map, size } from 'lodash'
 
+// eslint-disable-next-line n/no-missing-import
 import { config, rejectionOf, waitObjectState, xo } from './../util'
 
 // ===================================================================
