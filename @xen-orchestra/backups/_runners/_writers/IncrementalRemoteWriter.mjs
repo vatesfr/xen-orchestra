@@ -66,7 +66,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
   async beforeBackup() {
     await super.beforeBackup()
-    return this._cleanVm({ merge: true })
+    return this._cleanVm({ merge: true, remove: true })
   }
 
   prepare({ isFull }) {
