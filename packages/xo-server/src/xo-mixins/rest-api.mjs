@@ -4,7 +4,7 @@ import { defer } from 'golike-defer'
 import { every } from '@vates/predicates'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { ifDef } from '@xen-orchestra/defined'
-import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
@@ -18,6 +18,7 @@ import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { parse } from 'xo-remote-parser'
 
+import { authenticateUserFromToken, isAdmin, isUnauthenticated } from '../rest-api/middlewares/authentications.mjs'
 import {
   getFromAsyncCache,
   getUserPublicProperties,
@@ -476,25 +477,7 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
 
-    api.use((req, res, next) => {
-      const { cookies, ip } = req
-      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
-        ({ user }) => {
-          if (user.permission === 'admin') {
-            return app.runWithApiContext(user, next)
-          }
-
-          res.sendStatus(401)
-        },
-        error => {
-          if (invalidCredentials.is(error)) {
-            res.sendStatus(401)
-          } else {
-            next(error)
-          }
-        }
-      )
-    })
+    api.use(authenticateUserFromToken(app))
 
     const collections = { __proto__: null }
 
@@ -815,6 +798,19 @@ export default class RestApi {
         return handleArray(await app.getAllUsers(), filter, limit)
       },
       routes: {
+        async authentication_token(req, res) {
+          const { filter, limit } = req.query
+
+          const me = app.apiContext.user
+          const user = req.object
+          if (me.id !== user.id) {
+            return res.sendStatus(403)
+          }
+
+          const tokens = await app.getAuthenticationTokensForUser(me.id)
+
+          res.json(handleArray(tokens, filter, limit))
+        },
         async groups(req, res) {
           const { filter, limit } = req.query
           await sendObjects(
@@ -949,12 +945,41 @@ export default class RestApi {
 
     api.get(
       '/',
+      isAdmin(app),
       wrap((req, res) => sendObjects(Object.values(collections), req, res))
     )
 
     // For compatibility redirect from /backups* to /backup
-    api.get('/backups*', (req, res) => {
+    api.get('/backups*', isAdmin(app), (req, res) => {
       res.redirect(308, req.baseUrl + '/backup' + req.params[0])
+    })
+
+    api.get('/users/me*', isAdmin(app), (req, res) => {
+      const user = app.apiContext.user
+      res.redirect(308, req.baseUrl + '/users/' + user.id + req.params[0])
+    })
+
+    api.post('/users/authentication_token', isUnauthenticated(app), async (req, res) => {
+      const authorization = req.headers.authorization ?? ''
+      const [, encodedCredentials] = authorization.split(' ')
+      if (encodedCredentials === undefined) {
+        return res.sendStatus(401)
+      }
+
+      const [username, password] = Buffer.from(encodedCredentials, 'base64').toString().split(':')
+
+      try {
+        const { user } = await app.authenticateUser({ username, password, otp: req.query.otp })
+        const token = await app.createAuthenticationToken({
+          client: req.body.client,
+          userId: user.id,
+          description: req.body.description,
+          expiresIn: req.body.expiresIn,
+        })
+        res.json({ token })
+      } catch (error) {
+        res.status(401).json(error.message)
+      }
     })
 
     const backupTypes = {
@@ -965,6 +990,7 @@ export default class RestApi {
       vm: 'backup',
     }
 
+    api.use('/backup', isAdmin(app))
     api
       .get(
         '/backup',
@@ -1013,11 +1039,13 @@ export default class RestApi {
 
     api.get(
       '/dashboard',
+      isAdmin(app),
       wrap(async (req, res) => {
         res.json(await _getDashboardStats(app))
       })
     )
 
+    api.use('/restore', isAdmin(app))
     api
       .get(
         '/restore',
@@ -1041,6 +1069,7 @@ export default class RestApi {
         })
       )
 
+    api.use('/tasks', isAdmin(app))
     api
       .delete(
         '/tasks',
@@ -1076,6 +1105,7 @@ export default class RestApi {
 
     api.get(
       '/:collection',
+      isAdmin(app),
       wrap(async (req, res) => {
         const { collection, query } = req
 

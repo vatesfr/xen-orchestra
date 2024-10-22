@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Ability to generate an authentication token via `POST /rest/v0/users/authentication_tokens` (using Basic Authentication)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
