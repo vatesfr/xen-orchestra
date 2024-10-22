@@ -476,6 +476,30 @@ export default class RestApi {
     const api = subRouter(express, '/rest/v0')
     this.#api = api
 
+    // register the route BEFORE the authentication middleware because this route does not require authentication
+    api.post('/users/authentication_tokens', async (req, res) => {
+      const authorization = req.headers.authorization ?? ''
+      const [, encodedCredentials] = authorization.split(' ')
+      if (encodedCredentials === undefined) {
+        return res.sendStatus(401)
+      }
+
+      const [username, password] = Buffer.from(encodedCredentials, 'base64').toString().split(':')
+
+      try {
+        const { user } = await app.authenticateUser({ username, password, otp: req.query.otp })
+        const token = await app.createAuthenticationToken({
+          client: req.body.client,
+          userId: user.id,
+          description: req.body.description,
+          expiresIn: req.body.expiresIn,
+        })
+        res.json({ token })
+      } catch (error) {
+        res.status(401).json(error.message)
+      }
+    })
+
     api.use((req, res, next) => {
       const { cookies, ip } = req
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
@@ -815,6 +839,19 @@ export default class RestApi {
         return handleArray(await app.getAllUsers(), filter, limit)
       },
       routes: {
+        async authentication_tokens(req, res) {
+          const { filter, limit } = req.query
+
+          const me = app.apiContext.user
+          const user = req.object
+          if (me.id !== user.id) {
+            return res.sendStatus(403)
+          }
+
+          const tokens = await app.getAuthenticationTokensForUser(me.id)
+
+          res.json(handleArray(tokens, filter, limit))
+        },
         async groups(req, res) {
           const { filter, limit } = req.query
           await sendObjects(
@@ -955,6 +992,11 @@ export default class RestApi {
     // For compatibility redirect from /backups* to /backup
     api.get('/backups*', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup' + req.params[0])
+    })
+
+    api.get('/users/me*', (req, res) => {
+      const user = app.apiContext.user
+      res.redirect(308, req.baseUrl + '/users/' + user.id + req.params[0])
     })
 
     const backupTypes = {

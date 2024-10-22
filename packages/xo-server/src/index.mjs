@@ -149,6 +149,10 @@ async function createExpressApp(config) {
   // access the username and password from the sign in form.
   app.use(bodyParser.urlencoded({ extended: false }))
 
+  // Registers the body-parser json middleware, needed to retrieve
+  // the body of the POST/PUT request in `req.body`
+  app.use(bodyParser.json())
+
   // Registers Passport's middlewares.
   app.use(passport.initialize())
 
