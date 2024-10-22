@@ -43,6 +43,8 @@
 
 <!--packages-start-->
 
+
+- @vates/task minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
