@@ -25,6 +25,7 @@
 - [Netbox] Ignore tags that have an empty label (PR [#8056](https://github.com/vatesfr/xen-orchestra/pull/8056))
 - [Tags] Ability to remove blank tags from VMs/hosts/pools (PR [#8058](https://github.com/vatesfr/xen-orchestra/pull/8058))
 - [Plugin/audit] Do not log call to `host.isPubKeyTooShort` [Forum#84464](https://xcp-ng.org/forum/post/84464)
+- [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
 
 ### Packages to release
 

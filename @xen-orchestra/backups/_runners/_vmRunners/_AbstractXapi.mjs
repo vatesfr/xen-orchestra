@@ -203,7 +203,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     for (const srcVdi of srcVdis) {
       const snapshots = await xapi.getRecords('VDI', srcVdi.snapshots)
       for (const snapshot of snapshots) {
-        if (snapshot.other_config[JOB_ID] === jobId) {
+        // only keep the snapshot related to this backup job
+        // and only if the job is still using  purge snapshot data or if the disk
+        // is not a cbt metadata disk ( expect a type: user for normal disks)
+        if (
+          snapshot.other_config[JOB_ID] === jobId &&
+          (this._settings.cbtDestroySnapshotData || snapshot.type !== 'cbt_metadata')
+        ) {
           this._jobSnapshotVdis.push(snapshot)
         }
       }
