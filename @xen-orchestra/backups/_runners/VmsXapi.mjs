@@ -106,10 +106,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
           }
           const vmBackupFailed = async (error, task) => {
             if (isLastRun) {
-              // ending the task with error
-              return task.run(() => {
-                throw error
-              })
+              return task.failure(error)
             } else {
               // don't end the task
               task.warning(`Retry the VM backup due to an error`, {
@@ -137,7 +134,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                 }
 
                 const task = getVmTask()
-                // error has to be caught in the taskto prevent in failure, but handled outside the task to execute another task.run()
+                // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
                 let taskError
                 return task
                   .runInside(async () => {
@@ -174,8 +171,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       // ending the task with error or not ending the task
                       vmBackupFailed(taskError, task)
                     } else {
-                      // ending the task with success
-                      task.run(() => result)
+                      task.success(result)
                     }
                   })
                   .catch(noop) // errors are handled by logs
