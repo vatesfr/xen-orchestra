@@ -477,11 +477,11 @@ export default class RestApi {
     this.#api = api
 
     // register the route BEFORE the authentication middleware because this route does not require authentication
-    api.post('/users/authentication_tokens', async (req, res) => {
+    api.post('/users/authentication_tokens', json(), async (req, res) => {
       const authorization = req.headers.authorization ?? ''
       const [, encodedCredentials] = authorization.split(' ')
       if (encodedCredentials === undefined) {
-        return res.sendStatus(401)
+        return res.status(401).json('missing credentials')
       }
 
       const [username, password] = Buffer.from(encodedCredentials, 'base64').toString().split(':')
@@ -496,7 +496,12 @@ export default class RestApi {
         })
         res.json({ token })
       } catch (error) {
-        res.status(401).json(error.message)
+        if (invalidCredentials.is(error)) {
+          res.status(401)
+        } else {
+          res.status(400)
+        }
+        res.json(error.message)
       }
     })
 
@@ -845,7 +850,7 @@ export default class RestApi {
           const me = app.apiContext.user
           const user = req.object
           if (me.id !== user.id) {
-            return res.sendStatus(403)
+            return res.status(403).json('You can only see your own authentication tokens')
           }
 
           const tokens = await app.getAuthenticationTokensForUser(me.id)
@@ -996,7 +1001,7 @@ export default class RestApi {
 
     api.get('/users/me*', (req, res) => {
       const user = app.apiContext.user
-      res.redirect(308, req.baseUrl + '/users/' + user.id + req.params[0])
+      res.redirect(307, req.baseUrl + '/users/' + user.id + req.params[0])
     })
 
     const backupTypes = {
