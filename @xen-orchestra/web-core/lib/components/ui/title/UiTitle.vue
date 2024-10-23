@@ -1,24 +1,24 @@
 <!-- v2 -->
 <template>
-  <div class="vts-title">
+  <div class="ui-title">
     <div class="typo h4-medium label">
       <slot />
     </div>
-    <div class="actions">
+    <div v-if="slots.actions" class="actions">
       <slot name="actions" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineSlots<{
+const slots = defineSlots<{
   default(): any
-  actions(): any
+  actions?(): any
 }>()
 </script>
 
 <style scoped lang="postcss">
-.vts-title {
+.ui-title {
   display: flex;
   align-items: center;
   gap: 2.4rem;
