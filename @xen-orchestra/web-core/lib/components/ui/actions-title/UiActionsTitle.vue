@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <span class="vts-actions-title typo p2-regular">
+  <span class="actions-title typo p2-regular">
     <slot />
   </span>
 </template>
@@ -12,7 +12,7 @@ defineSlots<{
 </script>
 
 <style scoped lang="postcss">
-.vts-actions-title {
+.actions-title {
   color: var(--color-neutral-txt-secondary);
 }
 </style>
