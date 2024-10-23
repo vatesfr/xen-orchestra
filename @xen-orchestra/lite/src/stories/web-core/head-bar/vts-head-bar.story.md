@@ -1,7 +1,7 @@
 `HeadBar` component usage with `ObjectIcon` and `UiButton` components:
 
 ```vue-template
-<HeadBar>
+<VtsHeadBar>
   Host name
   <template #icon>
     <ObjectIcon type="host" state="running" size="medium" />
@@ -10,12 +10,12 @@
     <UiButton size="medium" level="primary" color="normal" :left-icon="faPlus">New VM</UiButton>
     <UiButton size="medium" level="secondary" color="normal" :left-icon="faPowerOff">Change state</UiButton>
   </template>
-</HeadBar>
+</VtsHeadBar>
 ```
 
 ```vue-script
 import UiButton from '@core/components/button/UiButton.vue'
-import HeadBar from '@core/components/head-bar/HeadBar.vue'
+import VtsHeadBar from '@core/components/head-bar/VtsHeadBar.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 ```
