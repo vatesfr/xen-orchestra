@@ -98,7 +98,7 @@ const COMMANDS = {
       let line
       while ((line = await readChunk(lines)) !== null) {
         const data = JSON.parse(line)
-        console.log(this.json ? JSON.stringify(data, null, 2) : data)
+        console.log(this.json ? JSON.stringify(data) : data)
       }
     } else {
       throw new Error('unsupported content-type ' + type)
