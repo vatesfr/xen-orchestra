@@ -1,0 +1,452 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`backupNg .runJob() : fails trying to run a backup job with no matching VMs 1`] = `[JsonRpcError: unknown error from the peer]`;
+
+exports[`backupNg .runJob() : fails trying to run a backup job with non-existent vm 1`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Any<Object>,
+  "start": Any<Number>,
+  "status": "failure",
+}
+`;
+
+exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`backupNg create and execute backup with enabled offline backup 1`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 2`] = `
+Object {
+  "data": Any<Object>,
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 3`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 4`] = `
+Object {
+  "data": Any<Object>,
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 5`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 6`] = `
+Object {
+  "data": Any<Object>,
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 7`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 1`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 2`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": "snapshot",
+  "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 3`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": true,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 4`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 5`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 6`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": true,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 7`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 8`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 9`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 10`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": "snapshot",
+  "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 11`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": false,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 12`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 13`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 14`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": false,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 15`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 16`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 17`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 18`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": "snapshot",
+  "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 19`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": true,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 20`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 21`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 22`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": true,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 23`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 24`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 1`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": "snapshot",
+  "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 2`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;

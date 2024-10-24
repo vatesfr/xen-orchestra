@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`job .create() : creates a new job 1`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Any<Object>,
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
+
+exports[`job .create() : fails trying to create a job without job params 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`job .delete() : deletes an existing job 1`] = `[JsonRpcError: no such job [object Object]]`;
+
+exports[`job .delete() : deletes an existing job 2`] = `[JsonRpcError: no such schedule [object Object]]`;
+
+exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
+
+exports[`job .get() : gets an existing job 1`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Any<Object>,
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
+
+exports[`job .getAll() : gets all available jobs 1`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Any<Object>,
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
+
+exports[`job .getAll() : gets all available jobs 2`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest2",
+  "paramsVector": Any<Object>,
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
+
+exports[`job .set() : fails trying to set a job without job.id 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`job .set() : sets a job 1`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.clone",
+  "name": "jobTest",
+  "paramsVector": Any<Object>,
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
