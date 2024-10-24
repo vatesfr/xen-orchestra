@@ -1,4 +1,4 @@
-import type { Tab, TabList } from '@core/types/tab.type'
+import type { Tab, TabList } from '@core/components/tab/tab.type'
 import { computed, type MaybeRefOrGetter, type Ref, toRef } from 'vue'
 
 export function useTabList<TName extends string>(names: TName[], initialTab?: MaybeRefOrGetter<TName>) {
@@ -22,7 +22,7 @@ export function useTabList<TName extends string>(names: TName[], initialTab?: Ma
               event.preventDefault()
               activate(name)
             },
-            active: isActive(name),
+            selected: isActive(name),
           },
         },
       ])
