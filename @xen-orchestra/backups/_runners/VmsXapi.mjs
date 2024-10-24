@@ -167,7 +167,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                     })
                   })
                   .then(result => {
-                    if (taskError) {
+                    if (taskError !== undefined) {
                       // ending the task with error or not ending the task
                       vmBackupFailed(taskError, task)
                     } else {

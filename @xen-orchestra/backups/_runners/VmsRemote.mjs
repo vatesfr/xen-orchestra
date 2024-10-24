@@ -119,20 +119,18 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                     })
                   )
                   .then(result => {
-                    if (taskError) {
-                      if (isLastRun) {
-                        return task.failure(taskError)
-                      } else {
-                        // don't end the task
-                        task.warning(`Retry the VM mirror backup due to an error`, {
-                          attempt: nTriesByVmId[vmUuid],
-                          error: taskError.message,
-                        })
-                        queue.add(vmUuid)
-                      }
-                    } else {
-                      task.success(result)
+                    if (taskError === undefined) {
+                      return task.success(result)
                     }
+                    if (isLastRun) {
+                      return task.failure(taskError)
+                    }
+                    // don't end the task
+                    task.warning(`Retry the VM mirror backup due to an error`, {
+                      attempt: nTriesByVmId[vmUuid],
+                      error: taskError.message,
+                    })
+                    queue.add(vmUuid)
                   })
                   .catch(noop)
               }
