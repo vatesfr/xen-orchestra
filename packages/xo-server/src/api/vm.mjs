@@ -208,25 +208,10 @@ export const create = defer(async function ($defer, params) {
   // create cloud config drive
   let cloudConfigVdiUuid
   if (params.cloudConfig != null) {
-    // Find the SR of the first VDI.
-    let srId
-    forEach(vm.$VBDs, vbdId => {
-      const vbd = this.getObject(vbdId)
-      const vdiId = vbd.VDI
-      if (!vbd.is_cd_drive && vdiId !== undefined) {
-        srId = this.getObject(vdiId).$SR
-        return false
-      }
+    cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm._xapiRef, template._xapiRef, {
+      cloudConfig: params.cloudConfig,
+      networkConfig: params.networkConfig,
     })
-
-    try {
-      cloudConfigVdiUuid = params.coreOs
-        ? await xapi.createCoreOsCloudInitConfigDrive(vm.id, srId, params.cloudConfig)
-        : await xapi.createCloudInitConfigDrive(vm.id, srId, params.cloudConfig, params.networkConfig)
-    } catch (error) {
-      log.warn('vm.create', { vmId: vm.id, srId, error })
-      throw error
-    }
   }
 
   if (resourceSet) {

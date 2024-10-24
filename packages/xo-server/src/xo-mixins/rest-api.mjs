@@ -673,24 +673,74 @@ export default class RestApi {
 
       collections.pools.actions = {
         create_vm: withParams(
-          defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
-            params.affinityHost = affinity
-            params.installRepository = install?.repository
+          defer(
+            async (
+              $defer,
+              { xapiObject: { $xapi } },
+              { affinity, boot, destroyCloudConfigVdi, install, template, cloudConfig, networkConfig, ...params },
+              req
+            ) => {
+              params.affinityHost = affinity
+              params.installRepository = install?.repository
 
-            const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
-            $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+              const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
+              $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
-            if (boot) {
-              await $xapi.callAsync('VM.start', vm.$ref, false, false)
+              let cloudConfigVdiUuid
+              if (cloudConfig !== undefined) {
+                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, $xapi.getObject(template).$ref, {
+                  cloudConfig,
+                  networkConfig,
+                })
+              }
+
+              let timeLimit
+              if (boot) {
+                timeLimit = Date.now() + 10 * 60 * 1000
+                await $xapi.callAsync('VM.start', vm.$ref, false, false)
+              }
+
+              if (destroyCloudConfigVdi && cloudConfigVdiUuid !== undefined && boot) {
+                try {
+                  // wait for the 'Running' event to be really stored in local xapi object cache
+                  await $xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', {
+                    timeout: timeLimit - Date.now(),
+                  })
+
+                  const guestMetricsRef = $xapi.getObject(vm.uuid).guest_metrics
+                  await $xapi
+                    .waitObjectState(guestMetricsRef, gm => gm?.PV_drivers_version?.major !== undefined, {
+                      timeout: timeLimit - Date.now(),
+                    })
+                    .catch(error => {
+                      console.warn('destroy cloud config VDI: failed to wait guest metrics, consider VM as started', {
+                        error,
+                        vm: { uuid: vm.uuid },
+                      })
+                    })
+
+                  const vdi = $xapi.getObject(cloudConfigVdiUuid)
+                  await vdi.$VBDs[0].$unplug()
+                  await vdi.$destroy()
+                } catch (error) {
+                  console.warn('destroy cloud config VDI failed', {
+                    error,
+                    vdi: { uuid: cloudConfigVdiUuid },
+                    vm: { uuid: vm.uuid },
+                  })
+                }
+              }
+
+              return vm.uuid
             }
-
-            return vm.uuid
-          }),
+          ),
           {
             affinity: { type: 'string', optional: true },
             auto_poweron: { type: 'boolean', optional: true },
-            boot: { type: 'boolean', default: false },
+            boot: { type: 'boolean', default: true },
             clone: { type: 'boolean', default: true },
+            cloudConfig: { type: 'string', optional: true },
+            destroyCloudConfigVdi: { type: 'boolean', default: true },
             install: {
               type: 'object',
               optional: true,
@@ -702,6 +752,7 @@ export default class RestApi {
             memory: { type: 'integer', optional: true },
             name_description: { type: 'string', minLength: 0, optional: true },
             name_label: { type: 'string' },
+            networkConfig: { type: 'string', optional: true },
             template: { type: 'string' },
           }
         ),
