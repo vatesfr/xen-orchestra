@@ -77,17 +77,17 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
   &:is(.exact-active, .active) {
     --color: var(--color-neutral-txt-primary);
-    --background-color: var(--color-normal-background-selected);
+    --background-color: var(--color-info-background-selected);
   }
 
   &:hover {
     --color: var(--color-neutral-txt-primary);
-    --background-color: var(--color-normal-background-hover);
+    --background-color: var(--color-info-background-hover);
   }
 
   &:active {
     --color: var(--color-neutral-txt-primary);
-    --background-color: var(--color-normal-background-active);
+    --background-color: var(--color-info-background-active);
   }
 }
 
@@ -128,7 +128,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
 .h-line {
   width: 2rem;
-  border-bottom: 0.1rem solid var(--color-normal-txt-base);
+  border-bottom: 0.1rem solid var(--color-info-txt-base);
   margin-left: -0.4rem;
 }
 </style>

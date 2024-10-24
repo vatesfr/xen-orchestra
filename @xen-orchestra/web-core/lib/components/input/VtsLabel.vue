@@ -58,7 +58,7 @@ ACCENT
     &.required::after {
       content: '*';
       margin-left: 0.4rem;
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
     }
   }
 

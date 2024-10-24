@@ -60,7 +60,7 @@ useEventListener(
     }
 
     code:not(.hljs-code) {
-      background-color: var(--color-normal-background-selected);
+      background-color: var(--color-info-background-selected);
       padding: 0.3rem 0.6rem;
       border-radius: 0.6rem;
     }
@@ -103,11 +103,11 @@ useEventListener(
       background-color: transparent;
 
       &:hover {
-        color: var(--color-normal-txt-base);
+        color: var(--color-info-txt-base);
       }
 
       &:active {
-        color: var(--color-normal-txt-hover);
+        color: var(--color-info-txt-hover);
       }
     }
   }

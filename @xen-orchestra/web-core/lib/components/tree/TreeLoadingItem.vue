@@ -45,7 +45,7 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 .loader {
   flex: 1;
   animation: pulse alternate 1s infinite;
-  background-color: var(--color-normal-background-selected);
+  background-color: var(--color-info-background-selected);
 }
 
 @keyframes pulse {

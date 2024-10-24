@@ -124,7 +124,7 @@ const openInNewTab = () => {
 }
 
 .spinner {
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   display: flex;
   margin: auto;
   width: 10rem;
@@ -144,7 +144,7 @@ const openInNewTab = () => {
   flex-direction: column;
   text-align: center;
   gap: 4rem;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   font-size: 3.6rem;
 }
 
@@ -158,8 +158,8 @@ const openInNewTab = () => {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background-color: var(--color-normal-txt-base);
-    color: var(--color-normal-txt-item);
+    background-color: var(--color-info-txt-base);
+    color: var(--color-info-txt-item);
     text-decoration: none;
     padding: 1.5rem;
     font-size: 1.6rem;
