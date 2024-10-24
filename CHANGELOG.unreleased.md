@@ -48,6 +48,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
+- @xen-orchestra/proxy patch
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
 - xo-cli minor

@@ -154,7 +154,7 @@ export default class Appliance {
               params: { channel: { type: 'string' } },
             },
           ],
-          upgrade: () => callUpdate({ upgrade: true }),
+          upgrade: [() => callUpdate({ upgrade: true }), { unref: true }],
         },
       },
     })
