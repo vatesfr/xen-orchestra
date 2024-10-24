@@ -8,9 +8,9 @@
     <template #app-header>
       <UiButton
         size="medium"
-        color="normal"
+        accent="brand"
         :right-icon="faArrowUpRightFromSquare"
-        level="tertiary"
+        variant="tertiary"
         @click="openUrl('/', true)"
       >
         XO 5
@@ -42,9 +42,9 @@ import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import PoolTreeList from '@/components/tree/PoolTreeList.vue'
 import { usePoolTree } from '@/composables/pool-tree.composable'
-import UiButton from '@core/components/button/UiButton.vue'
 import TreeList from '@core/components/tree/TreeList.vue'
 import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { openUrl } from '@core/utils/open-url.utils'

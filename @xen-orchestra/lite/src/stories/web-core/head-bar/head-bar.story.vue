@@ -19,8 +19,8 @@
         migrating... (34%)
       </template>
       <template v-if="settings.showDemoButtons" #actions>
-        <UiButton size="medium" level="primary" color="normal" :left-icon="faPlus">New VM</UiButton>
-        <UiButton size="medium" level="secondary" color="normal" :left-icon="faPowerOff">Change state</UiButton>
+        <UiButton size="medium" variant="primary" accent="brand" :left-icon="faPlus">New VM</UiButton>
+        <UiButton size="medium" variant="secondary" accent="brand" :left-icon="faPowerOff">Change state</UiButton>
       </template>
     </HeadBar>
   </ComponentStory>
@@ -30,8 +30,8 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, setting, slot } from '@/libs/story/story-param'
 import { boolean } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
 import HeadBar from '@core/components/head-bar/HeadBar.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiSpinner from '@core/components/UiSpinner.vue'
 import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 </script>

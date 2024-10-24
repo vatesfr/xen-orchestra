@@ -7,10 +7,10 @@
     ]"
   >
     <ButtonGroup v-bind="properties">
-      <UiButton level="secondary" color="normal" size="medium">Cancel</UiButton>
-      <UiButton level="primary" color="normal" size="medium">Call to action</UiButton>
+      <UiButton variant="secondary" accent="brand" size="medium">Cancel</UiButton>
+      <UiButton variant="primary" accent="brand" size="medium">Call to action</UiButton>
       <template #tertiary>
-        <UiButton level="tertiary" color="warning" size="medium">Secondary call to action</UiButton>
+        <UiButton variant="tertiary" accent="warning" size="medium">Secondary call to action</UiButton>
       </template>
     </ButtonGroup>
   </ComponentStory>
@@ -20,5 +20,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot } from '@/libs/story/story-param'
 import ButtonGroup from '@core/components/button/ButtonGroup.vue'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 </script>
