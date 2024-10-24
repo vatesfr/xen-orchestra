@@ -1,7 +1,7 @@
 <template>
-  <TreeItemError v-if="hasError">{{ $t('error-no-data') }}</TreeItemError>
+  <VtsTreeItemError v-if="hasError">{{ $t('error-no-data') }}</VtsTreeItemError>
   <template v-else-if="!isReady">
-    <TreeLoadingItem v-for="i in 3" :key="i" :icon="faDisplay" />
+    <VtsTreeLoadingItem v-for="i in 3" :key="i" :icon="faDisplay" />
   </template>
   <InfraVmItem v-for="vm in vms" :key="vm.$ref" :vm-opaque-ref="vm.$ref" />
 </template>
@@ -10,8 +10,8 @@
 import InfraVmItem from '@/components/infra/InfraVmItem.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import TreeItemError from '@core/components/tree/TreeItemError.vue'
-import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
+import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
+import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 

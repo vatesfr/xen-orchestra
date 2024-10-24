@@ -1,6 +1,6 @@
 <template>
-  <LoadingHero v-if="!isReady" type="page" />
-  <ObjectNotFoundHero v-else-if="!pool" :id="route.params.id" />
+  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsObjectNotFoundHero v-else-if="!pool" :id="route.params.id" />
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
     <component :is="Component" :pool />
@@ -11,8 +11,8 @@
 import PoolHeader from '@/components/pool/PoolHeader.vue'
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import type { XoPool } from '@/types/xo/pool.type'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import ObjectNotFoundHero from '@core/components/state-hero/ObjectNotFoundHero.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router/auto'
 

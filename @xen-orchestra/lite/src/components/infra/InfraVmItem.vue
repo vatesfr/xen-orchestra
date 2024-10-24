@@ -1,21 +1,21 @@
 <template>
-  <TreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
-    <TreeItemLabel v-if="isVisible" :route="{ name: 'vm.console', params: { uuid: vm.uuid } }" no-indent>
+  <VtsTreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
+    <UiTreeItemLabel v-if="isVisible" :route="{ name: 'vm.console', params: { uuid: vm.uuid } }" no-indent>
       {{ vm.name_label || '(VM)' }}
       <template #icon>
-        <ObjectIcon :state="vmPowerState!" type="vm" />
+        <UiObjectIcon size="medium" :state="vmPowerState!" type="vm" />
       </template>
-    </TreeItemLabel>
-  </TreeItem>
+    </UiTreeItemLabel>
+  </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
 import type { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
-import TreeItem from '@core/components/tree/TreeItem.vue'
-import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
+import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
+import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import { computed, ref } from 'vue'
 

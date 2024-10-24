@@ -22,9 +22,9 @@
     </template>
 
     <template #footer>
-      <ButtonGroup>
+      <VtsButtonGroup>
         <slot name="buttons" />
-      </ButtonGroup>
+      </VtsButtonGroup>
     </template>
   </ModalContainer>
 </template>
@@ -36,7 +36,7 @@ import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
 import UiTitle from '@/components/ui/UiTitle.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
-import ButtonGroup from '@core/components/button/ButtonGroup.vue'
+import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{

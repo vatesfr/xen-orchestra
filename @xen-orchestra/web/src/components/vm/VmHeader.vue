@@ -1,10 +1,10 @@
 <template>
-  <HeadBar>
+  <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <ObjectIcon :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
+      <UiObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
-  </HeadBar>
+  </UiHeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
     <TabItem active>{{ $t('console') }}</TabItem>
@@ -20,10 +20,10 @@
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
-import HeadBar from '@core/components/head-bar/HeadBar.vue'
-import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 
 defineProps<{
   vm: XoVm

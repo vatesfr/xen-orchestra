@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ $t('alarms') }}
       <template v-if="isReady && alarms.length > 0" #right>
-        <VtsCounter :value="alarms.length" accent="danger" variant="primary" size="small" />
+        <UiCounter :value="alarms.length" accent="danger" variant="primary" size="small" />
       </template>
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">
@@ -46,7 +46,7 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
 import UiButton from '@core/components/button/UiButton.vue'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
 </script>

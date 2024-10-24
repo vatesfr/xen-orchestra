@@ -1,9 +1,9 @@
 <template>
   <UiCard :horizontal="uiStore.isDesktop">
     <BackupRepository />
-    <Divider type="stretch" />
+    <VtsDivider type="stretch" />
     <StorageRepository />
-    <Divider type="stretch" />
+    <VtsDivider type="stretch" />
     <S3BackupRepository />
   </UiCard>
 </template>
@@ -12,8 +12,8 @@
 import BackupRepository from '@/components/site/dashboard/BackupRepository.vue'
 import S3BackupRepository from '@/components/site/dashboard/S3BackupRepository.vue'
 import StorageRepository from '@/components/site/dashboard/StorageRepository.vue'
-import Divider from '@core/components/divider/Divider.vue'
-import UiCard from '@core/components/UiCard.vue'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store'
 
 const uiStore = useUiStore()

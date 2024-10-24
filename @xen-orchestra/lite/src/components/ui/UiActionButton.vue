@@ -62,8 +62,8 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     &:active,
     &.active,
     &.busy {
-      color: var(--color-normal-txt-base);
-      background-color: var(--color-normal-background-selected);
+      color: var(--color-info-txt-base);
+      background-color: var(--color-info-background-selected);
     }
   }
 }

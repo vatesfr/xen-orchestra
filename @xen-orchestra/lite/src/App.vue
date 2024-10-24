@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
+  <div v-if="!route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
   <div v-else>
@@ -10,7 +10,7 @@
         <RouterView />
       </main>
     </div>
-    <TooltipList />
+    <VtsTooltipList />
   </div>
   <ModalList />
 </template>
@@ -24,12 +24,15 @@ import { useChartTheme } from '@/composables/chart-theme.composable'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import TooltipList from '@core/components/tooltip/TooltipList.vue'
+import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 const xenApiStore = useXenApiStore()
 

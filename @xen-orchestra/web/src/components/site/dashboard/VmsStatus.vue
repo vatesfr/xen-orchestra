@@ -1,23 +1,23 @@
 <template>
   <UiCard>
-    <CardTitle>{{ $t('vms-status') }}</CardTitle>
-    <LoadingHero :disabled="isReady" type="card">
-      <DonutChartWithLegend :icon="faDesktop" :segments />
-      <CardNumbers :label="t('total')" :value="vms.length" class="total" size="small" />
-    </LoadingHero>
+    <UiCardTitle>{{ $t('vms-status') }}</UiCardTitle>
+    <VtsLoadingHero :disabled="isReady" type="card">
+      <VtsDonutChartWithLegend :icon="faDesktop" :segments />
+      <UiCardNumbers :label="t('total')" :value="vms.length" class="total" size="small" />
+    </VtsLoadingHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import { VM_POWER_STATE } from '@/types/xo/vm.type'
-import CardTitle from '@core/components/card/CardTitle.vue'
-import CardNumbers from '@core/components/CardNumbers.vue'
-import DonutChartWithLegend, {
+import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
-} from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import UiCard from '@core/components/UiCard.vue'
+} from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
 import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -35,18 +35,18 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
     value: vmsCount.value.running,
-    color: 'success',
+    accent: 'success',
   },
   {
     label: t('vms-status.inactive'),
     value: vmsCount.value.inactive,
-    color: 'secondary',
+    accent: 'neutral',
     tooltip: t('vms-status.inactive.tooltip'),
   },
   {
     label: t('vms-status.unknown'),
     value: vmsCount.value.$other,
-    color: 'disabled',
+    accent: 'muted',
     tooltip: t('vms-status.unknown.tooltip'),
   },
 ])
