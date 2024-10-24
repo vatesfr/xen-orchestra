@@ -515,7 +515,7 @@ export const SelectPif = makeStoreSelect(
 
 // ===================================================================
 
-const GenericSelectTag = makeStoreSelect(
+export const GenericSelectTag = makeStoreSelect(
   (_, props) => ({
     xoObjects: createSelector(
       createGetTags('objects' in props ? (_, props) => props.objects : undefined)

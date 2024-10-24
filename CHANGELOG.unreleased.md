@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
+- [Settings/ACLs] Ability to filter objects by tags (PR [#24820](https://help.vates.tech/#ticket/zoom/24820))
 
 ### Bug fixes
 
@@ -43,7 +44,6 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
 
 - @vates/task minor
 - @xen-orchestra/backups patch
