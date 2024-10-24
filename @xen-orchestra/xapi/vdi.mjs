@@ -58,6 +58,28 @@ class Vdi {
     )
   }
 
+  async destroyCloudConfig(vdiRef, { timeLimit }) {
+    const vbdRef = (await this.getField('VDI', vdiRef, 'VBDs'))[0]
+    const vmRef = await this.getField('VBD', vbdRef, 'VM')
+
+    await this.waitObjectState(vmRef, vm => vm.power_state === 'Running', {
+      timeout: timeLimit - Date.now(),
+    })
+
+    const vm = await this.getRecord('VM', vmRef)
+    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+      timeout: timeLimit - Date.now(),
+    }).catch(error => {
+      warn('failed to wait guest metrics, consider VM as started', {
+        error,
+        vm: { uuid: vm.uuid },
+      })
+    })
+
+    await this.VBD_unplug(vbdRef)
+    await this.VDI_destroy(vdiRef)
+  }
+
   async dataDestroy(vdiRef) {
     await this.callAsync('VDI.data_destroy', vdiRef)
   }

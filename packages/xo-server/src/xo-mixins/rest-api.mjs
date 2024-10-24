@@ -677,7 +677,7 @@ export default class RestApi {
             async (
               $defer,
               { xapiObject: { $xapi } },
-              { affinity, boot, destroyCloudConfigVdi, install, template, cloudConfig, networkConfig, ...params },
+              { affinity, boot, cloudConfig, destroyCloudConfigVdi, install, networkConfig, template, ...params },
               req
             ) => {
               params.affinityHost = affinity
@@ -702,28 +702,11 @@ export default class RestApi {
 
               if (destroyCloudConfigVdi && cloudConfigVdiUuid !== undefined && boot) {
                 try {
-                  // wait for the 'Running' event to be really stored in local xapi object cache
-                  await $xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', {
-                    timeout: timeLimit - Date.now(),
+                  await $xapi.VDI_destroyCloudConfig($xapi.getObject(cloudConfigVdiUuid).$ref, {
+                    timeLimit,
                   })
-
-                  const guestMetricsRef = $xapi.getObject(vm.uuid).guest_metrics
-                  await $xapi
-                    .waitObjectState(guestMetricsRef, gm => gm?.PV_drivers_version?.major !== undefined, {
-                      timeout: timeLimit - Date.now(),
-                    })
-                    .catch(error => {
-                      console.warn('destroy cloud config VDI: failed to wait guest metrics, consider VM as started', {
-                        error,
-                        vm: { uuid: vm.uuid },
-                      })
-                    })
-
-                  const vdi = $xapi.getObject(cloudConfigVdiUuid)
-                  await vdi.$VBDs[0].$unplug()
-                  await vdi.$destroy()
                 } catch (error) {
-                  console.warn('destroy cloud config VDI failed', {
+                  console.error('destroy cloud config VDI failed', {
                     error,
                     vdi: { uuid: cloudConfigVdiUuid },
                     vm: { uuid: vm.uuid },
@@ -737,10 +720,10 @@ export default class RestApi {
           {
             affinity: { type: 'string', optional: true },
             auto_poweron: { type: 'boolean', optional: true },
-            boot: { type: 'boolean', default: true },
+            boot: { type: 'boolean', default: false },
             clone: { type: 'boolean', default: true },
             cloudConfig: { type: 'string', optional: true },
-            destroyCloudConfigVdi: { type: 'boolean', default: true },
+            destroyCloudConfigVdi: { type: 'boolean', default: false },
             install: {
               type: 'object',
               optional: true,

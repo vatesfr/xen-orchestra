@@ -64,27 +64,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
     await xapi.startVm(vm.uuid)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
-      // wait for the 'Running' event to be really stored in local xapi object cache
-      await xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', { timeout: timeLimit - Date.now() })
-
-      // wait for the guest tool version to be defined
-      await xapi
-        .waitObjectState(
-          xapi.getObjectByRef(vm.$ref).guest_metrics,
-          gm => gm?.PV_drivers_version?.major !== undefined,
-          { timeout: timeLimit - Date.now() }
-        )
-        .catch(error => {
-          log.warn('startVmAndDestroyCloudConfigVdi: failed to wait guest metrics, consider VM as started', {
-            error,
-            vm: { uuid: vm.uuid },
-          })
-        })
-
-      // destroy cloud config drive
-      const vdi = xapi.getObjectByUuid(vdiUuid)
-      await vdi.$VBDs[0].$unplug()
-      await vdi.$destroy()
+      await xapi.VDI_destroyCloudConfig(xapi.getObject(vdiUuid).$ref, { timeLimit })
     }
   } catch (error) {
     log.warn('startVmAndDestroyCloudConfigVdi', { error, vdi: { uuid: vdiUuid }, vm: { uuid: vm.uuid } })
