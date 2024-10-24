@@ -1,10 +1,10 @@
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { Task } from '@vates/task'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { importIncrementalVm } from '../../_incrementalVm.mjs'
-import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
@@ -43,20 +43,24 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
-      name: 'export',
-      data: {
+      properties: {
         id: this._sr.uuid,
         isFull,
+        name: 'export',
         name_label: this._sr.name_label,
         type: 'SR',
       },
     })
-    const hasHealthCheckSr = this._healthCheckSr !== undefined
-    this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup, !hasHealthCheckSr)
-    this.healthCheck = task.wrapFn(this.healthCheck, hasHealthCheckSr)
+    this._prepare = task.wrapInside(this._prepare)
+    this.transfer = task.wrapInside(this.transfer)
+    if (this._healthCheckSr !== undefined) {
+      this.cleanup = task.wrapInside(this.cleanup)
+      this.healthCheck = task.wrap(this.healthCheck)
+    } else {
+      this.cleanup = task.wrap(this.cleanup)
+    }
 
-    return task.run(() => this._prepare(isFull))
+    return this._prepare(isFull)
   }
 
   async _prepare(isFull) {
@@ -139,7 +143,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const { uuid: srUuid, $xapi: xapi } = sr
 
     let targetVmRef
-    await Task.run({ name: 'transfer' }, async () => {
+    await Task.run({ properties: { name: 'transfer' } }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),

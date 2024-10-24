@@ -1,9 +1,9 @@
 import { asyncMap } from '@xen-orchestra/async-map'
+import { Task } from '@vates/task'
 
 import { DIR_XO_POOL_METADATA_BACKUPS } from '../RemoteAdapter.mjs'
 import { forkStreamUnpipe } from './_forkStreamUnpipe.mjs'
 import { formatFilenameDate } from '../_filenameDate.mjs'
-import { Task } from '../Task.mjs'
 
 export const PATH_DB_DUMP = '/pool/xmldbdump'
 
@@ -54,8 +54,8 @@ export class PoolMetadataBackup {
       ([remoteId, adapter]) =>
         Task.run(
           {
-            name: `Starting metadata backup for the pool (${pool.$id}) for the remote (${remoteId}). (${job.id})`,
-            data: {
+            properties: {
+              name: `Starting metadata backup for the pool (${pool.$id}) for the remote (${remoteId}). (${job.id})`,
               id: remoteId,
               type: 'remote',
             },
