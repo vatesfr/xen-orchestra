@@ -399,6 +399,35 @@ class Vm {
     return ref
   }
 
+  async createCloudInitConfig(vmRef, templateRef, { cloudConfig, networkConfig }) {
+    const vm = await this.getRecord('VM', vmRef)
+
+    // Find the SR of the first VDI.
+    let sr
+    for (const vbdRef of vm.VBDs) {
+      // not sure that asyncrone
+      const vbd = await this.getRecord('VBD', vbdRef)
+
+      if (vbd.type !== 'CD' && vbd.VDI !== undefined && Ref.isNotEmpty(vbd.VDI)) {
+        sr = await this.getRecord('SR', await this.getField('VDI', vbd.VDI, 'SR'))
+        break
+      }
+    }
+
+    const isCoreOsTemplate = (await this.getField('VM', templateRef, 'name_label')) === 'CoreOS'
+
+    const vmId = vm.uuid
+    const srId = sr.uuid
+    try {
+      return await (isCoreOsTemplate
+        ? this.createCoreOsCloudInitConfigDrive(vmId, srId, cloudConfig)
+        : this.createCloudInitConfigDrive(vmId, srId, cloudConfig, networkConfig))
+    } catch (error) {
+      warn('VM_create', { vmId, srId })
+      throw error
+    }
+  }
+
   async destroy(
     vmRef,
     { deleteDisks = true, force = false, bypassBlockedOperation = force, forceDeleteDefaultTemplate = force } = {}
