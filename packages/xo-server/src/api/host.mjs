@@ -96,8 +96,8 @@ export async function set({
       (host.iscsi_iqn !== undefined
         ? host.set_iscsi_iqn(iscsiIqn)
         : host.update_other_config('iscsi_iqn', iscsiIqn === '' ? null : iscsiIqn)),
-    nameDescription !== undefined && host.set_name_description(nameDescription),
-    nameLabel !== undefined && host.set_name_label(nameLabel),
+    nameDescription !== undefined && host.set_name_description(nameDescription.trim()),
+    nameLabel !== undefined && host.set_name_label(nameLabel.trim()),
     multipathing !== undefined && host.$xapi.setHostMultipathing(host.$id, multipathing),
   ])
 }
