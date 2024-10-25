@@ -29,7 +29,6 @@
 - [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
 - [Backup] keep only one snapshot for all the schedules when snapshot retention is zero (PR [#8051](https://github.com/vatesfr/xen-orchestra/pull/8051))
 
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
