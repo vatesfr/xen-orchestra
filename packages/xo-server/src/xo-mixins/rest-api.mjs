@@ -677,7 +677,7 @@ export default class RestApi {
             async (
               $defer,
               { xapiObject: { $xapi } },
-              { affinity, boot, cloudConfig, destroyCloudConfigVdi, install, networkConfig, template, ...params },
+              { affinity, boot, cloud_config, destroy_cloud_config_vdi, install, network_config, template, ...params },
               req
             ) => {
               params.affinityHost = affinity
@@ -687,9 +687,9 @@ export default class RestApi {
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
               let cloudConfigVdiUuid
-              if (cloudConfig !== undefined) {
-                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, {
-                  networkConfig,
+              if (cloud_config !== undefined) {
+                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, cloud_config, {
+                  networkConfig: network_config,
                 })
               }
 
@@ -699,7 +699,7 @@ export default class RestApi {
                 await $xapi.callAsync('VM.start', vm.$ref, false, false)
               }
 
-              if (destroyCloudConfigVdi && cloudConfigVdiUuid !== undefined && boot) {
+              if (destroy_cloud_config_vdi && cloudConfigVdiUuid !== undefined && boot) {
                 try {
                   await $xapi.VDI_destroyCloudInitConfig($xapi.getObject(cloudConfigVdiUuid).$ref, {
                     timeLimit,
@@ -721,8 +721,8 @@ export default class RestApi {
             auto_poweron: { type: 'boolean', optional: true },
             boot: { type: 'boolean', default: false },
             clone: { type: 'boolean', default: true },
-            cloudConfig: { type: 'string', optional: true },
-            destroyCloudConfigVdi: { type: 'boolean', default: false },
+            cloud_config: { type: 'string', optional: true },
+            destroy_cloud_config_vdi: { type: 'boolean', default: false },
             install: {
               type: 'object',
               optional: true,
@@ -734,7 +734,7 @@ export default class RestApi {
             memory: { type: 'integer', optional: true },
             name_description: { type: 'string', minLength: 0, optional: true },
             name_label: { type: 'string' },
-            networkConfig: { type: 'string', optional: true },
+            network_config: { type: 'string', optional: true },
             template: { type: 'string' },
           }
         ),

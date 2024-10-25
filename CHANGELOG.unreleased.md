@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
-- [REST API] Ability to pass a cloud configuration when creating VM (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
+- [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
 
 ### Bug fixes
 
