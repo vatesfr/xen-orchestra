@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Ability to generate an authentication token via `POST /rest/v0/users/authentication_tokens` (using Basic Authentication) (PR [#8065](https://github.com/vatesfr/xen-orchestra/pull/8065))
+- [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
 
 ### Bug fixes
 
@@ -25,6 +26,9 @@
 - [Netbox] Ignore tags that have an empty label (PR [#8056](https://github.com/vatesfr/xen-orchestra/pull/8056))
 - [Tags] Ability to remove blank tags from VMs/hosts/pools (PR [#8058](https://github.com/vatesfr/xen-orchestra/pull/8058))
 - [Plugin/audit] Do not log call to `host.isPubKeyTooShort` [Forum#84464](https://xcp-ng.org/forum/post/84464)
+- [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
+- [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
+- [Backup] keep only one snapshot for all the schedules when snapshot retention is zero (PR [#8051](https://github.com/vatesfr/xen-orchestra/pull/8051))
 
 ### Packages to release
 
@@ -42,7 +46,10 @@
 
 <!--packages-start-->
 
+
+- @vates/task minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs minor
 - @xen-orchestra/log minor
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
@@ -50,6 +57,7 @@
 - xo-server minor
 - xo-server-audit patch
 - xo-server-netbox patch
-- xo-web patch
+- xo-server-test patch
+- xo-web minor
 
 <!--packages-end-->

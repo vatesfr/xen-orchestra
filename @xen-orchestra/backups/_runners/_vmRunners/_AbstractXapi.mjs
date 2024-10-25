@@ -203,7 +203,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     for (const srcVdi of srcVdis) {
       const snapshots = await xapi.getRecords('VDI', srcVdi.snapshots)
       for (const snapshot of snapshots) {
-        if (snapshot.other_config[JOB_ID] === jobId) {
+        // only keep the snapshot related to this backup job
+        // and only if the job is still using  purge snapshot data or if the disk
+        // is not a cbt metadata disk ( expect a type: user for normal disks)
+        if (
+          snapshot.other_config[JOB_ID] === jobId &&
+          (this._settings.cbtDestroySnapshotData || snapshot.type !== 'cbt_metadata')
+        ) {
           this._jobSnapshotVdis.push(snapshot)
         }
       }
@@ -219,6 +225,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await xapi.barrier()
     // ensure cached object are up to date
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+
+    // get the datetime of the most recent snapshot
+    const lastSnapshotDateTime = this._jobSnapshotVdis
+      .map(({ other_config }) => other_config[DATETIME])
+      .sort()
+      .pop()
+
+    // remove older snapshot schedule per schedule
     const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
     await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
@@ -231,10 +245,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         ...allSettings[scheduleId],
         ...allSettings[this._vm.uuid],
       }
-      // ensure we never delete the last one for delta
-      const minRetention = this.job.mode === 'delta' ? 1 : 0
-      const retention = Math.max(settings.snapshotRetention ?? 0, minRetention)
+      const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
+        // keep the last snapshot across all schedules for delta
+        // since we'll need it to compute delta for next backup
+        if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+          return
+        }
         const vdis = snapshotPerDatetime[datetime]
         let vmRef
         // if there is an attached VM => destroy the VM (Non CBT backups)

@@ -139,7 +139,8 @@ const xml = `
 </methodResponse>
 `
 
-const tree = parseXml(xml)
+// do not normalize or trim whitespaces as it will break string values
+const tree = parseXml(xml, { normalize: false, trim: false })
 
 // it can now be passed to the XML-RPC parser
 xmlRpcParser.parse(tree)

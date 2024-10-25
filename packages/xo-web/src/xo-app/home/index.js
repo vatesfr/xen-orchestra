@@ -480,12 +480,23 @@ const NoObjects = props =>
     createGetObjectsOfType('VM'),
     createGetObjectsOfType('VBD'),
     createGetObjectsOfType('VDI'),
-    (containers, vms, vbds, vdis) =>
+    createGetObjectsOfType('VIF'),
+    (containers, vms, vbds, vdis, vifs) =>
       mapValues(vms, vm =>
         // ComplexMatcher works on own enumerable properties, therefore the
         // injected properties should be non-enumerable
         Object.defineProperties(
-          { ...vm },
+          {
+            ...vm,
+
+            MACs: vm.VIFs.reduce((acc, vifId) => {
+              const vif = vifs[vifId]
+              if (vif !== undefined) {
+                acc.push(vif.MAC)
+              }
+              return acc
+            }, []),
+          },
           {
             container: { value: containers[vm.$container || vm.$pool] },
             vdisUsage: { value: sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage') },
