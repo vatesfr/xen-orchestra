@@ -2031,7 +2031,7 @@ export const createVm = async args => {
     return await _call('vm.create', args)
   } catch (err) {
     handlePoolDoesNotSupportVtpmError(err)
-    throw error
+    throw err
   }
 }
 

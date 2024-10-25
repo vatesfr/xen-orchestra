@@ -52,14 +52,32 @@ export async function exportIncrementalVm(
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
-
-    streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-      baseRef: baseVdi?.$ref,
-      cancelToken,
-      format: 'vhd',
-      nbdConcurrency,
-      preferNbd,
-    })
+    try {
+      streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
+        baseRef: baseVdi?.$ref,
+        cancelToken,
+        format: 'vhd',
+        nbdConcurrency,
+        preferNbd,
+      })
+    } catch (err) {
+      if (err.code === 'VDI_CANT_DO_DELTA') {
+        // fall back to a base
+        Task.info(`Can't do delta, will try to get a full stream`, { vdi })
+        streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
+          cancelToken,
+          format: 'vhd',
+          nbdConcurrency,
+          preferNbd,
+        })
+        // only warn if the fall back succeed
+        Task.warning(`Can't do delta with this vdi, transfer will be a full`, {
+          vdi,
+        })
+      } else {
+        throw err
+      }
+    }
   })
 
   const suspendVdi = vm.$suspend_VDI

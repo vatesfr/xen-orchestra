@@ -26,7 +26,7 @@ remove.resolve = {
 }
 
 remove.params = {
-  tag: { type: 'string' },
+  tag: { type: 'string', minLength: 0 },
   id: { type: 'string' },
 }
 

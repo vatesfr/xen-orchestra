@@ -1,7 +1,15 @@
 import assert from 'assert/strict'
 import test from 'test'
 
-import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils.mjs'
+import {
+  camelToSnakeCase,
+  diffItems,
+  extractProperty,
+  generateToken,
+  getFromAsyncCache,
+  parseSize,
+  parseXml,
+} from './utils.mjs'
 
 const { describe, it } = test
 
@@ -176,5 +184,84 @@ describe('parseSize()', function () {
 
   it('supports the B unit as suffix', function () {
     assert.equal(parseSize('3MB'), 3e6)
+  })
+})
+
+// ===================================================================
+
+const cacheTest = new Map()
+const cacheTimeout = 500
+const cacheExpiresIn = 1000
+const cacheTestOps = { timeout: cacheTimeout, expiresIn: cacheExpiresIn }
+const sleep = times => new Promise(resolve => setTimeout(resolve, times))
+
+describe('getFromAsyncCache()', function () {
+  it('Returns the computed value', async function () {
+    const result = await getFromAsyncCache(cacheTest, 'simpleTest', async () => 'foo')
+    assert.equal(result.value, 'foo')
+  })
+
+  it('Returns the cached value', async function () {
+    const result = await getFromAsyncCache(cacheTest, 'simpleTest', async () => 'bar')
+    assert.equal(result.value, 'foo')
+  })
+
+  it('Recomputes the value if forceRefresh is passed', async function () {
+    const result = await getFromAsyncCache(cacheTest, 'simpleTest', async () => 'baz', {
+      forceRefresh: true,
+    })
+    assert.equal(result.value, 'baz')
+  })
+
+  it('Returns undefined if the fn takes too long to execute, then returns the computed value when the promise is resolved', async function () {
+    const result = await getFromAsyncCache(
+      cacheTest,
+      'timeout',
+      async () => {
+        await sleep(cacheTimeout * 2.5)
+        return 'foo'
+      },
+      cacheTestOps
+    )
+    assert.equal(result.value, undefined)
+
+    const secondResult = await getFromAsyncCache(cacheTest, 'timeout', undefined, cacheTestOps)
+    assert.equal(secondResult.value, undefined)
+
+    const thirdResult = await getFromAsyncCache(cacheTest, 'timeout', undefined, cacheTestOps)
+    assert.equal(thirdResult.value, 'foo')
+  })
+
+  it('If cached value is expired, returns the new computed value', async function () {
+    const result = await getFromAsyncCache(cacheTest, 'expired', async () => 'foo', cacheTestOps)
+    assert.equal(result.value, 'foo')
+
+    await sleep(cacheExpiresIn + 1)
+
+    const secondResult = await getFromAsyncCache(cacheTest, 'expired', async () => 'bar', cacheTestOps)
+    assert.equal(secondResult.value, 'bar')
+  })
+
+  it('If cached value is expired and the fn takes too long time to execute, returns the expired cached value with "isExpired" property and updates the cache when the promise is resolved', async function () {
+    const result = await getFromAsyncCache(cacheTest, 'expiredAndTimeout', async () => 'foo', cacheTestOps)
+    assert.equal(result.value, 'foo')
+
+    await sleep(cacheExpiresIn + 1)
+
+    const secondResult = await getFromAsyncCache(
+      cacheTest,
+      'expiredAndTimeout',
+      async () => {
+        await sleep(cacheTimeout + 1)
+        return 'bar'
+      },
+      cacheTestOps
+    )
+    assert.equal(secondResult.value, 'foo')
+    assert.equal(secondResult.isExpired, true)
+
+    const thirdResult = await getFromAsyncCache(cacheTest, 'expiredAndTimeout', undefined, cacheTestOps)
+    assert.equal(thirdResult.value, 'bar')
+    assert.equal(thirdResult.isExpired, undefined)
   })
 })
