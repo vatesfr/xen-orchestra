@@ -34,8 +34,8 @@ export async function set({
 
   await Promise.all([
     auto_poweron !== undefined && pool.update_other_config('auto_poweron', String(auto_poweron)),
-    nameDescription !== undefined && pool.set_name_description(nameDescription),
-    nameLabel !== undefined && pool.set_name_label(nameLabel),
+    nameDescription !== undefined && pool.set_name_description(nameDescription.trim()),
+    nameLabel !== undefined && pool.set_name_label(nameLabel.trim()),
     migrationCompression !== undefined && pool.set_migration_compression(migrationCompression),
     migrationNetwork !== undefined && pool.update_other_config('xo:migrationNetwork', migrationNetwork),
     backupNetwork !== undefined && pool.update_other_config('xo:backupNetwork', backupNetwork),
