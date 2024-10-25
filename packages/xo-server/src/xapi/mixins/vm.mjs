@@ -378,9 +378,14 @@ const methods = {
       set: 'memory_static_max',
     },
 
-    nameDescription: true,
-
-    nameLabel: true,
+    nameDescription: {
+      set: 'name_description',
+      preprocess: str => str.trim(),
+    },
+    nameLabel: {
+      set: 'name_label',
+      preprocess: str => str.trim(),
+    },
 
     notes: {
       get: vm => vm.other_config['xo:notes'],
