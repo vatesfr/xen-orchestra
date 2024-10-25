@@ -53,7 +53,7 @@
 - xen-api minor
 - xo-cli minor
 - xo-server minor
-- xo-server-audit minor
+- xo-server-audit patch
 - xo-server-netbox patch
 - xo-server-test patch
 - xo-web minor
