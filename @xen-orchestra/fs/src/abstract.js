@@ -388,6 +388,11 @@ export default class RemoteHandlerAbstract {
           info('will update metadata of this remote')
           return this.#createMetadata()
         } else {
+          // to add an new encrypted fs remote, the remote directory must be empty, otherwise metadata.json is not created
+          if (error.code === 'ENOENT' && error.path.includes('metadata.json')) {
+            throw new Error('Remote directory must be empty.')
+          }
+
           warn(
             `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
             { error }

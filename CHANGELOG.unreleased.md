@@ -23,6 +23,7 @@
 
 - [V2V] Fix failing transfer at the power off phase (PR [#7839](https://github.com/vatesfr/xen-orchestra/pull/7839))
 - [Backup/Restore] Fix differential restore with purge snapshot (PR [#8082](https://github.com/vatesfr/xen-orchestra/pull/8082))
+- [Remotes] Fix NFS remote encryption "ENOENT metadata.json" error (PR [#8081](https://github.com/vatesfr/xen-orchestra/pull/8081))
 
 ### Packages to release
 
@@ -42,6 +43,7 @@
 
 - @vates/task minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xen-api minor
