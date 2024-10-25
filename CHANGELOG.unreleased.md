@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
+- [REST API] Ability to pass a cloud configuration when creating VM (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
 
 ### Bug fixes
 
@@ -43,16 +44,16 @@
 
 <!--packages-start-->
 
-
 - @vates/task minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
 - @xen-orchestra/mixin minor
-- @xen-orchestra/xapi patch
+- @xen-orchestra/xapi minor
+- xen-api minor
 - xo-cli minor
 - xo-server minor
-- xo-server-audit patch
+- xo-server-audit minor
 - xo-server-netbox patch
 - xo-server-test patch
 - xo-web minor

@@ -688,8 +688,7 @@ export default class RestApi {
 
               let cloudConfigVdiUuid
               if (cloudConfig !== undefined) {
-                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, $xapi.getObject(template).$ref, {
-                  cloudConfig,
+                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, cloudConfig, {
                   networkConfig,
                 })
               }
@@ -702,11 +701,11 @@ export default class RestApi {
 
               if (destroyCloudConfigVdi && cloudConfigVdiUuid !== undefined && boot) {
                 try {
-                  await $xapi.VDI_destroyCloudConfig($xapi.getObject(cloudConfigVdiUuid).$ref, {
+                  await $xapi.VDI_destroyCloudInitConfig($xapi.getObject(cloudConfigVdiUuid).$ref, {
                     timeLimit,
                   })
                 } catch (error) {
-                  console.error('destroy cloud config VDI failed', {
+                  console.error('destroy cloud init config VDI failed', {
                     error,
                     vdi: { uuid: cloudConfigVdiUuid },
                     vm: { uuid: vm.uuid },

@@ -58,7 +58,7 @@ class Vdi {
     )
   }
 
-  async destroyCloudConfig(vdiRef, { timeLimit }) {
+  async destroyCloudInitConfig(vdiRef, { timeLimit = Date.now() + 10 * 60 * 1000 } = {}) {
     const vbdRef = (await this.getField('VDI', vdiRef, 'VBDs'))[0]
     const vmRef = await this.getField('VBD', vbdRef, 'VM')
 

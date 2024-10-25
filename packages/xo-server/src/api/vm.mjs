@@ -64,7 +64,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
     await xapi.startVm(vm.uuid)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
-      await xapi.VDI_destroyCloudConfig(xapi.getObject(vdiUuid).$ref, { timeLimit })
+      await xapi.VDI_destroyCloudInitConfig(xapi.getObject(vdiUuid).$ref, { timeLimit })
     }
   } catch (error) {
     log.warn('startVmAndDestroyCloudConfigVdi', { error, vdi: { uuid: vdiUuid }, vm: { uuid: vm.uuid } })
@@ -188,8 +188,7 @@ export const create = defer(async function ($defer, params) {
   // create cloud config drive
   let cloudConfigVdiUuid
   if (params.cloudConfig != null) {
-    cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm._xapiRef, template._xapiRef, {
-      cloudConfig: params.cloudConfig,
+    cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm._xapiRef, params.cloudConfig, {
       networkConfig: params.networkConfig,
     })
   }

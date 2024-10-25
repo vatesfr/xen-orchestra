@@ -9,6 +9,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { extract } from '@xen-orchestra/xapi/xoData.mjs'
 import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
@@ -399,13 +400,12 @@ class Vm {
     return ref
   }
 
-  async createCloudInitConfig(vmRef, templateRef, { cloudConfig, networkConfig }) {
+  async createCloudInitConfig(vmRef, cloudConfig, { networkConfig } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
     // Find the SR of the first VDI.
     let sr
     for (const vbdRef of vm.VBDs) {
-      // not sure that asyncrone
       const vbd = await this.getRecord('VBD', vbdRef)
 
       if (vbd.type !== 'CD' && vbd.VDI !== undefined && Ref.isNotEmpty(vbd.VDI)) {
@@ -414,7 +414,10 @@ class Vm {
       }
     }
 
-    const isCoreOsTemplate = (await this.getField('VM', templateRef, 'name_label')) === 'CoreOS'
+    const {
+      creation: { template: templateUuid },
+    } = extract(vm)
+    const isCoreOsTemplate = (await this.getFieldByUuid('VM', templateUuid, 'name_label')) === 'CoreOS'
 
     const vmId = vm.uuid
     const srId = sr.uuid
@@ -423,7 +426,7 @@ class Vm {
         ? this.createCoreOsCloudInitConfigDrive(vmId, srId, cloudConfig)
         : this.createCloudInitConfigDrive(vmId, srId, cloudConfig, networkConfig))
     } catch (error) {
-      warn('VM_create', { vmId, srId })
+      warn('createCloudInitConfig failed', { vmId, srId })
       throw error
     }
   }
