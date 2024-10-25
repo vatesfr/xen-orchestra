@@ -20,8 +20,8 @@ export async function set({
   sr = this.getXapiObject(sr)
 
   await Promise.all([
-    nameDescription !== undefined && sr.set_name_description(nameDescription),
-    nameLabel !== undefined && sr.set_name_label(nameLabel),
+    nameDescription !== undefined && sr.set_name_description(nameDescription.trim()),
+    nameLabel !== undefined && sr.set_name_label(nameLabel.trim()),
   ])
 }
 

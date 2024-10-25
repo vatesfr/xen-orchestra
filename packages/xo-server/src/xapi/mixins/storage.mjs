@@ -103,7 +103,7 @@ const methods = {
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
   async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {
-    const srRef = await this.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
+    const srRef = await this.call('SR.introduce', uuid, nameLabel.trim(), nameDescription.trim(), type, 'user', true, {})
     $defer.onFailure(() => this.forgetSr(srRef))
 
     // XenCenter SR reattach:
