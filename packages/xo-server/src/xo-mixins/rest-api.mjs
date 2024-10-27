@@ -1,33 +1,14 @@
-import { asyncEach } from '@vates/async-each'
-import { createGzip } from 'node:zlib'
-import { defer } from 'golike-defer'
-import { every } from '@vates/predicates'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import { ifDef } from '@xen-orchestra/defined'
-import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
-import { pipeline } from 'node:stream/promises'
-import { json, Router } from 'express'
-import { Readable } from 'node:stream'
-import cloneDeep from 'lodash/cloneDeep.js'
-import groupBy from 'lodash/groupBy.js'
-import path from 'node:path'
-import pDefer from 'promise-toolbox/defer'
-import pick from 'lodash/pick.js'
-import semver from 'semver'
-import * as CM from 'complex-matcher'
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
-import { parse } from 'xo-remote-parser'
+import { Router } from 'express'
+import * as entities from '../rest-api/entities.mjs'
 
-import {
-  getFromAsyncCache,
-  getUserPublicProperties,
-  isAlarm,
-  isReplicaVm,
-  isSrWritable,
-  vmContainsNoBakTag,
-} from '../utils.mjs'
-import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
-import { createPredicate } from 'value-matcher'
+// @TODO:
+// - implement middlewhare to retrieve user from a token
+// - Do a non XAPI collection test (like users,dashboard, group, backups,...)
+//  - maybe rename AbstractXapiCollection into AbstractCollection? (for users, groups, ...) to be able to extends it?
+// - expose an action
+// - handle sync an async actions
+// - how to handle "/" and "/:uuid" with user permission
+// - expose openapi + swagger docs
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
@@ -494,8 +475,6 @@ async function _getDashboardStats(app) {
 
 const keepNonAlarmMessages = message => message.type === 'message' && !isAlarm(message)
 export default class RestApi {
-  #api
-
   constructor(app, { express }) {
     // don't setup the API if express is not present
     //
@@ -504,64 +483,11 @@ export default class RestApi {
       return
     }
 
-    const api = subRouter(express, '/rest/v0')
-    this.#api = api
+    const coreRouter = new Router()
 
-    // register the route BEFORE the authentication middleware because this route does not require authentication
-    api.post('/users/authentication_tokens', json(), async (req, res) => {
-      const authorization = req.headers.authorization ?? ''
-      const [, encodedCredentials] = authorization.split(' ')
-      if (encodedCredentials === undefined) {
-        return res.status(401).json('missing credentials')
-      }
-
-      const [username, password] = Buffer.from(encodedCredentials, 'base64').toString().split(':')
-
-      try {
-        const { user } = await app.authenticateUser({ username, password, otp: req.query.otp })
-        const token = await app.createAuthenticationToken({
-          client: req.body.client,
-          userId: user.id,
-          description: req.body.description,
-          expiresIn: req.body.expiresIn,
-        })
-        res.json({ token })
-      } catch (error) {
-        if (invalidCredentials.is(error)) {
-          res.status(401)
-        } else {
-          res.status(400)
-        }
-        res.json(error.message)
-      }
-    })
-
-    api.use((req, res, next) => {
-      const { cookies, ip } = req
-      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
-        ({ user }) => {
-          if (user.permission === 'admin') {
-            return app.runWithApiContext(user, next)
-          }
-
-          res.sendStatus(401)
-        },
-        error => {
-          if (invalidCredentials.is(error)) {
-            res.sendStatus(401)
-          } else {
-            next(error)
-          }
-        }
-      )
-    })
-
-    const collections = { __proto__: null }
-
-    const withParams = (fn, paramsSchema) => {
-      fn.params = paramsSchema
-      fn.validateParams = compileXoJsonSchema({ type: 'object', properties: cloneDeep(paramsSchema) })
-      return fn
+    for (const entity in entities) {
+      const instance = new entities[entity](app)
+      instance.registerRouter(coreRouter)
     }
 
     {
@@ -1471,32 +1397,7 @@ export default class RestApi {
     )
   }
 
-  registerRestApi(spec, base = '/') {
-    for (const path of Object.keys(spec)) {
-      if (path[0] === '_') {
-        const handler = spec[path]
-        this.#api[path.slice(1)](base, json(), async (req, res, next) => {
-          try {
-            const result = await handler(req, res, next)
-            if (result !== undefined) {
-              const isIterable =
-                result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
-              if (isIterable) {
-                await sendObjects(result, req, res)
-              } else {
-                res.json(result)
-              }
-            }
-          } catch (error) {
-            next(error)
-          }
-        })
-      } else {
-        this.registerRestApi(spec[path], join(base, path))
-      }
-    }
-    return () => {
-      throw new Error('not implemented')
-    }
+  registerRestApi() {
+    //
   }
 }
