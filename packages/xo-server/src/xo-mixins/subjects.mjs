@@ -139,10 +139,6 @@ export default class {
       preferences,
     }
   ) {
-    if (await this._users.exists({ email: name })) {
-      throw new Error(`the user ${name} already exists`)
-    }
-
     const user = await this.getUser(id)
 
     if (name) {
@@ -197,7 +193,7 @@ export default class {
     user.email = user.name
     delete user.name
 
-    await this._users.update(user)
+    await this._users.updateIfNotExists(user)
   }
 
   // Merge this method in getUser() when plain objects.
