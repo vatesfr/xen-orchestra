@@ -98,7 +98,7 @@ handlers.forEach(url => {
     })
 
     describe('#getSize()', () => {
-      before(() => handler.outputFile('file', TEST_DATA))
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
       testWithFileDescriptor('file', 'r', async () => {
         assert.equal(await handler.getSize('file'), TEST_DATA_LEN)
@@ -117,7 +117,6 @@ handlers.forEach(url => {
       })
 
       it('throws ENOENT if no such directory', async () => {
-        await handler.rmtree('dir')
         assert.equal((await rejectionOf(handler.list('dir'))).code, 'ENOENT')
       })
 
@@ -190,7 +189,7 @@ handlers.forEach(url => {
     })
 
     describe('#read()', () => {
-      before(() => handler.outputFile('file', TEST_DATA))
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
       const start = random(TEST_DATA_LEN)
       const size = random(TEST_DATA_LEN)
