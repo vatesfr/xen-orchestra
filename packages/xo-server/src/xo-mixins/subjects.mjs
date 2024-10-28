@@ -193,7 +193,7 @@ export default class {
     user.email = user.name
     delete user.name
 
-    await this._users.updateIfNotExists(user)
+    await this._users.update(user)
   }
 
   // Merge this method in getUser() when plain objects.
