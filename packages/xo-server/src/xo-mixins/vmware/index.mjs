@@ -142,7 +142,9 @@ export default class MigrateVm {
     // ensure the session stays alive
     const interval = setInterval(
       async () => {
-        await esxi.getTransferableVmMetadata(vmId)
+        try {
+          await esxi.fetchProperty('VirtualMachine', vmId, 'config')
+        } catch (_) {}
       },
       15 * 60 * 1000
     )
