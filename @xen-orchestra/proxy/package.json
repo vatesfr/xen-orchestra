@@ -30,7 +30,7 @@
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
-    "@vates/disposable": "^0.1.5",
+    "@vates/disposable": "^0.1.6",
     "@vates/task": "^0.4.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.54.0",

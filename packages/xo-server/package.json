@@ -34,7 +34,7 @@
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
-    "@vates/disposable": "^0.1.5",
+    "@vates/disposable": "^0.1.6",
     "@vates/event-listeners-manager": "^1.0.1",
     "@vates/multi-key-map": "^0.2.0",
     "@vates/obfuscate": "^0.1.0",
