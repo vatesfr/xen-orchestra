@@ -150,17 +150,23 @@ export default class Acls extends Component {
     (typeFilters, someTypeFilters, selectedTags) =>
       ({ type, tags }) =>
         (!someTypeFilters || typeFilters[type]) &&
-        (selectedTags.length === 0 || selectedTags.some(tag => tags.includes(tag.value)))
+        (selectedTags.length === 0 || selectedTags.some(tag => tags?.includes(tag.value)))
   )
 
   _selectAll = () => {
-    const { someTypeFilters, typeFilters } = this.state
+    const { someTypeFilters, typeFilters, tags: selectedTags } = this.state
+
+    const state = store.getState()
 
     const objects = []
     forEach(TYPES, type => {
       if (!someTypeFilters || typeFilters[type]) {
-        const typeObjects = createGetObjectsOfType(type)(store.getState())
-        objects.push(...toArray(typeObjects))
+        const typeObjects = toArray(state.objects.byType[type])
+        const filteredObjects =
+          selectedTags.length === 0
+            ? typeObjects
+            : typeObjects.filter(({ tags }) => selectedTags.some(tag => tags?.includes(tag.value)))
+        objects.push(...filteredObjects)
       }
     })
     this.setState({ objects })
