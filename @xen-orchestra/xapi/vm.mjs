@@ -414,6 +414,10 @@ class Vm {
       }
     }
 
+    if (sr === undefined) {
+      throw new Error("Can't create cloud init config drive for VM without disks")
+    }
+
     const {
       creation: { template: templateUuid },
     } = extract(vm)
