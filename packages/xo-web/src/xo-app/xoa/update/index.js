@@ -343,7 +343,7 @@ const Updates = decorate([
                     handler={effects.upgrade}
                     icon='upgrade'
                   >
-                    {xoaTrialState.state !== 'untrustedTrial' ? _('upgrade') : _('downgrade')}
+                    {_('upgrade')}
                   </ActionButton>
                   <hr />
                   <pre>

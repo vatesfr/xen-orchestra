@@ -2303,7 +2303,6 @@ const messages = {
   update: 'Update',
   refresh: 'Refresh',
   upgrade: 'Upgrade',
-  downgrade: 'Downgrade',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 30 days on {link}.',
   currentVersion: 'Current version:',
