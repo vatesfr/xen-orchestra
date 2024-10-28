@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "limit-concurrency-decorator": "^0.6.0",
     "lodash": "^4.16.2"
   },

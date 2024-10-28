@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/log",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "ISC",
   "description": "Logging system with decoupled producers/consumer",
   "keywords": [

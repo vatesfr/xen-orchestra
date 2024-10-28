@@ -38,7 +38,7 @@
     "@vates/obfuscate": "^0.1.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "http-request-plus": "^1.0.2",

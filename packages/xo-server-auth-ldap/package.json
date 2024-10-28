@@ -31,7 +31,7 @@
     "node": ">=12"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "ensure-array": "^1.0.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",

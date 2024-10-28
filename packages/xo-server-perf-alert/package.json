@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "d3-time-format": "^3.0.0",
     "json5": "^2.0.1",
     "lodash": "^4.17.4"

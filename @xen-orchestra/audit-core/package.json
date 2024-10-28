@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/decorate-with": "^2.1.0",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "golike-defer": "^0.5.1",
     "object-hash": "^2.0.1"
   },
