@@ -62,7 +62,6 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
     "prepublishOnly": "yarn run build",
-    "pretest": "yarn run build",
     "postversion": "npm publish",
     "test": "cd dist && node --test"
   },
