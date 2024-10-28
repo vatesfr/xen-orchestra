@@ -20,7 +20,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
@@ -44,8 +44,5 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
-  },
-  "devDependencies": {
-    "test": "^3.3.0"
   }
 }

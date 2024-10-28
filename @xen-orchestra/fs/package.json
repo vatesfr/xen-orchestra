@@ -53,7 +53,6 @@
     "dotenv": "^16.0.0",
     "rimraf": "^5.0.1",
     "sinon": "^18.0.0",
-    "test": "^3.3.0",
     "tmp": "^0.2.1"
   },
   "scripts": {
@@ -65,7 +64,7 @@
     "prepublishOnly": "yarn run build",
     "pretest": "yarn run build",
     "postversion": "npm publish",
-    "test": "node--test ./dist/"
+    "test": "cd dist && node --test"
   },
   "author": {
     "name": "Vates SAS",

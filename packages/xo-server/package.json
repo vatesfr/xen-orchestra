@@ -154,8 +154,7 @@
     "@babel/preset-env": "^7.11.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.4.3",
-    "test": "^3.3.0"
+    "index-modules": "^0.4.3"
   },
   "scripts": {
     "_build": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
@@ -164,7 +163,7 @@
     "prepublishOnly": "yarn run build",
     "start": "node dist/cli.mjs",
     "pretest": "yarn run build",
-    "test": "node--test dist"
+    "test": "cd dist && node --test"
   },
   "author": {
     "name": "Vates SAS",

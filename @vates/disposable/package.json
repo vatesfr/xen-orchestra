@@ -20,7 +20,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "dependencies": {
     "@vates/multi-key-map": "^0.2.0",
@@ -29,7 +29,6 @@
     "ensure-array": "^1.0.0"
   },
   "devDependencies": {
-    "sinon": "^18.0.0",
-    "test": "^3.2.1"
+    "sinon": "^18.0.0"
   }
 }

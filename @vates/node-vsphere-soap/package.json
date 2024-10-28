@@ -16,9 +16,6 @@
     "soap": "^1.0.0",
     "soap-cookie": "^0.10.1"
   },
-  "devDependencies": {
-    "test": "^3.3.0"
-  },
   "keywords": [
     "vsphere",
     "vcenter",

@@ -19,8 +19,7 @@
     "node": ">=12"
   },
   "devDependencies": {
-    "@vates/xml": "^2.0.0",
-    "test": "^3.3.0"
+    "@vates/xml": "^2.0.0"
   },
   "exports": {
     "./formatter": "./formatter.js",
@@ -28,6 +27,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   }
 }

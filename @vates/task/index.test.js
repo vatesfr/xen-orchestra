@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('node:assert').strict
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 
 const { makeOnProgress } = require('./combineEvents.js')
 const { Task } = require('./index.js')

@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert/strict')
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 
 const { every, not, some } = require('./')
 

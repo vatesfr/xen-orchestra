@@ -1,4 +1,4 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'test'
+import { after, afterEach, before, beforeEach, describe, it } from 'node:test'
 import { strict as assert } from 'assert'
 
 import 'dotenv/config'
