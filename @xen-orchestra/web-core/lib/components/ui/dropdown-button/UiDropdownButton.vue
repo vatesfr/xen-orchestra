@@ -1,5 +1,6 @@
+<!-- v3 -->
 <template>
-  <button type="button" class="dropdown-item" :class="{ selected: selected }" :disabled="isDisabled">
+  <button type="button" class="ui-dropdown-item" :class="{ selected: selected }" :disabled="isDisabled">
     <VtsIcon :icon="leftIcon" accent="current" class="left-icon" fixed-width />
     <span class="typo p1-regular label">
       <slot />
@@ -25,7 +26,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
 </script>
 
 <style scoped lang="postcss">
-.dropdown-item {
+.ui-dropdown-item {
   display: inline-flex;
   align-items: center;
   padding-block: 0.4rem;
@@ -35,6 +36,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
   border: 0.1rem solid var(--color-normal-txt-base);
   border-radius: 9rem;
   cursor: pointer;
+  position: relative;
 
   .label,
   .right-icon,
@@ -78,7 +80,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     }
 
     &:is(.selected) {
-      border: 2px solid var(--color-normal-txt-base);
+      border: 0.2rem solid var(--color-normal-txt-base);
       background-color: var(--color-normal-background-selected);
     }
 
@@ -92,7 +94,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
         right: -0.5rem;
         bottom: -0.5rem;
         left: -0.5rem;
-        border: 2px solid var(--color-normal-txt-base);
+        border: 0.2rem solid var(--color-normal-txt-base);
         border-radius: 0.4rem;
       }
     }
