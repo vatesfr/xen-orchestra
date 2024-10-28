@@ -6,7 +6,7 @@
   "dependencies": {
     "@vates/node-vsphere-soap": "^2.1.1",
     "@vates/read-chunk": "^1.2.0",
-    "@vates/task": "^0.4.1",
+    "@vates/task": "^0.5.0",
     "@xen-orchestra/log": "^0.7.0",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
