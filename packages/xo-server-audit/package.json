@@ -1,6 +1,6 @@
 {
   "name": "xo-server-audit",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "license": "AGPL-3.0-or-later",
   "description": "Audit plugin for XO-Server",
   "keywords": [
@@ -44,9 +44,9 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@xen-orchestra/audit-core": "^0.3.0",
+    "@xen-orchestra/audit-core": "^0.3.1",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "async-iterator-to-stream": "^1.1.0",
     "complex-matcher": "^0.7.1",
     "promise-toolbox": "^0.21.0",

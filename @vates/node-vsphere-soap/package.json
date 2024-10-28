@@ -1,6 +1,6 @@
 {
   "name": "@vates/node-vsphere-soap",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "interface to vSphere SOAP/WSDL from node for interfacing with vCenter or ESXi, forked from node-vsphere-soap",
   "main": "lib/client.mjs",
   "author": "reedog117",
@@ -11,7 +11,7 @@
   },
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "axios": "^1.4.0",
     "soap": "^1.0.0",
     "soap-cookie": "^0.10.1"

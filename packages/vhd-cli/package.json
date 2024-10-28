@@ -23,7 +23,7 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^4.1.7",
+    "@xen-orchestra/fs": "^4.2.0",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
@@ -31,7 +31,7 @@
     "lodash": "^4.17.21",
     "promise-toolbox": "^0.21.0",
     "uuid": "^9.0.0",
-    "vhd-lib": "^4.11.0"
+    "vhd-lib": "^4.11.1"
   },
   "scripts": {
     "postversion": "npm publish",
