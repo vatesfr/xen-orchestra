@@ -12,12 +12,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
 
+      # https://turbo.build/repo/docs/guides/ci-vendors/github-actions#caching-with-github-actionscache
       - name: Cache Turbo
-        # https://github.com/actions/cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: '**/node_modules/.cache/turbo'
-          key: ${{ runner.os }}-turbo-cache
+          path: '.turbo'
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
       - name: Setup Node environment
         # https://github.com/actions/setup-node
