@@ -52,6 +52,7 @@
 - @xen-orchestra/log minor
 - @xen-orchestra/mixin minor
 - @xen-orchestra/xapi patch
+- xen-api minor
 - xo-cli minor
 - xo-server minor
 - xo-server-audit patch
