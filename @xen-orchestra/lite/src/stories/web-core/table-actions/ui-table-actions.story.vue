@@ -4,6 +4,7 @@
     :params="[
       slot(),
       slot('actions').help('Meant to receive actions item like buttons'),
+      slot('groupedBy').help('Meant to receive grouped item like breadcrumb'),
       setting('defaultSlot').widget(text()).preset('message'),
     ]"
   >
@@ -21,6 +22,9 @@
           {{ label.title }}
         </UiButton>
       </template>
+      <template #groupedBy>
+        <span>Grouped By</span>
+      </template>
     </UiTableActions>
   </ComponentStory>
 </template>
@@ -31,20 +35,12 @@ import { setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiButton from '@core/components/button/UiButton.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import {
-  faArrowsAlt,
-  faBuildingCircleArrowRight,
-  faCalendarDays,
-  faCircleChevronRight,
-  faSoap,
-} from '@fortawesome/free-solid-svg-icons'
+import { faArrowsAlt, faCalendarDays, faCircleChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 
 const buttonLabels = ref([
   { title: 'Label', icon: faArrowsAlt },
   { title: 'Label', icon: faCircleChevronRight },
   { title: 'Label', icon: faCalendarDays },
-  { title: 'Label', icon: faBuildingCircleArrowRight },
-  { title: 'Label', icon: faSoap },
 ])
 </script>
