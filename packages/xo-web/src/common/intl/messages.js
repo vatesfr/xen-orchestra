@@ -396,6 +396,7 @@ const messages = {
   action: 'Action',
   item: 'Item',
   noSelectedValue: 'No selected value',
+  filterByTags: 'Filter by tags',
   selectSubjects: 'Choose user(s) and/or group(s)',
   selectObjects: 'Select object(s)…',
   selectRole: 'Choose a role',
