@@ -1,6 +1,6 @@
 import assert from 'assert/strict'
 import forEach from 'lodash/forEach.js'
-import test from 'test'
+import test from 'node:test'
 import { thunkToArray } from './utils.mjs'
 import { crossProduct, mergeObjects } from './math.mjs'
 

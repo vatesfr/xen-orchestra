@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 const { spy, assert } = require('sinon')
 
 const { deduped } = require('./deduped')

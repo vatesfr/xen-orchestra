@@ -30,8 +30,7 @@
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
     "deep-freeze": "^0.0.1",
-    "rimraf": "^5.0.1",
-    "test": "^3.2.1"
+    "rimraf": "^5.0.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -40,6 +39,6 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "postversion": "npm publish",
-    "test": "node--test"
+    "test": "node --test"
   }
 }

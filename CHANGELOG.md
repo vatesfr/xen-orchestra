@@ -2,9 +2,57 @@
 
 ## **next**
 
+### Enhancements
+
+- [REST API] Ability to generate an authentication token via `POST /rest/v0/users/authentication_tokens` (using Basic Authentication) (PR [#8065](https://github.com/vatesfr/xen-orchestra/pull/8065))
+- [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
+
+### Bug fixes
+
+- [Backup/Mirror] Fix `checkbasevdi must be called before updateUuidAndChain` error (PR [#8037](https://github.com/vatesfr/xen-orchestra/pull/8037))
+- [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
+- [SR/New] Fix reattach button not displayed for HBA (PR [#7986](https://github.com/vatesfr/xen-orchestra/pull/7986))
+- [New VM] Fix cryptic error notification (PR [#8052](https://github.com/vatesfr/xen-orchestra/pull/8052))
+- [Netbox] Ignore tags that have an empty label (PR [#8056](https://github.com/vatesfr/xen-orchestra/pull/8056))
+- [Tags] Ability to remove blank tags from VMs/hosts/pools (PR [#8058](https://github.com/vatesfr/xen-orchestra/pull/8058))
+- [Plugin/audit] Do not log call to `host.isPubKeyTooShort` [Forum#84464](https://xcp-ng.org/forum/post/84464)
+- [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
+- [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
+- [Backup] keep only one snapshot for all the schedules when snapshot retention is zero (PR [#8051](https://github.com/vatesfr/xen-orchestra/pull/8051))
+
 ### Released packages
 
-- xo-cli 0.31.0
+- @xen-orchestra/log 0.7.0
+- @vates/disposable 0.1.6
+- @xen-orchestra/fs 4.2.0
+- vhd-lib 4.11.1
+- @vates/fuse-vhd 2.1.2
+- xen-api 4.4.0
+- @vates/nbd-client 3.1.1
+- @vates/node-vsphere-soap 2.1.1
+- @vates/task 0.5.0
+- @xen-orchestra/audit-core 0.3.1
+- @xen-orchestra/xapi 7.6.1
+- @xen-orchestra/backups 0.54.1
+- @xen-orchestra/immutable-backups 1.0.13
+- @xen-orchestra/mixin 0.2.0
+- @xen-orchestra/mixins 0.16.1
+- @xen-orchestra/proxy 0.29.2
+- @xen-orchestra/vmware-explorer 0.8.4
+- xo-cli 0.32.0
+- xo-server 5.158.0
+- xo-server-audit 0.12.1
+- xo-server-auth-ldap 0.10.10
+- xo-server-backup-reports 1.4.3
+- xo-server-load-balancer 0.10.1
+- xo-server-netbox 1.6.1
+- xo-server-perf-alert 0.5.1
+- xo-server-sdn-controller 1.0.11
+- xo-server-test 0.0.1
+- xo-server-transport-nagios 1.0.2
+- xo-server-usage-report 0.10.6
+- xo-server-web-hooks 0.3.4
+- xo-web 5.158.0
 
 ## **5.99.1** (2024-10-04)
 

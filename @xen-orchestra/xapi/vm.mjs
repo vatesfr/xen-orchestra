@@ -9,6 +9,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { extract } from '@xen-orchestra/xapi/xoData.mjs'
 import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
@@ -397,6 +398,41 @@ class Vm {
     }
 
     return ref
+  }
+
+  async createCloudInitConfig(vmRef, cloudConfig, { networkConfig } = {}) {
+    const vm = await this.getRecord('VM', vmRef)
+
+    // Find the SR of the first VDI.
+    let sr
+    for (const vbdRef of vm.VBDs) {
+      const vbd = await this.getRecord('VBD', vbdRef)
+
+      if (vbd.type !== 'CD' && vbd.VDI !== undefined && Ref.isNotEmpty(vbd.VDI)) {
+        sr = await this.getRecord('SR', await this.getField('VDI', vbd.VDI, 'SR'))
+        break
+      }
+    }
+
+    if (sr === undefined) {
+      throw new Error("Can't create cloud init config drive for VM without disks")
+    }
+
+    const {
+      creation: { template: templateUuid },
+    } = extract(vm)
+    const isCoreOsTemplate = (await this.getFieldByUuid('VM', templateUuid, 'name_label')) === 'CoreOS'
+
+    const vmId = vm.uuid
+    const srId = sr.uuid
+    try {
+      return await (isCoreOsTemplate
+        ? this.createCoreOsCloudInitConfigDrive(vmId, srId, cloudConfig)
+        : this.createCloudInitConfigDrive(vmId, srId, cloudConfig, networkConfig))
+    } catch (error) {
+      warn('createCloudInitConfig failed', { vmId, srId })
+      throw error
+    }
   }
 
   async destroy(

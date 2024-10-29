@@ -1,5 +1,5 @@
 import assert from 'assert/strict'
-import test from 'test'
+import test from 'node:test'
 import { createReadStream, readFile } from 'fs'
 import { fromCallback } from 'promise-toolbox'
 

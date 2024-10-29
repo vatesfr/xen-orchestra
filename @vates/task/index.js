@@ -131,6 +131,7 @@ class Task {
 
   #end(status, result) {
     assert.equal(this.#status, PENDING)
+    assert.equal(this.#running, false)
 
     this.#emit('end', { status, result })
     this.#onProgress = alreadyEnded
@@ -172,6 +173,7 @@ class Task {
       this.#running = false
       return result
     } catch (result) {
+      this.#running = false
       this.#end(FAILURE, result)
       throw result
     }

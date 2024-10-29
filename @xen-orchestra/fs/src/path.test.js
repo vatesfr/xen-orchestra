@@ -1,4 +1,4 @@
-import { describe, it } from 'test'
+import { describe, it } from 'node:test'
 import { strict as assert } from 'assert'
 
 import { relativeFromFile } from './path.js'

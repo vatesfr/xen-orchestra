@@ -702,24 +702,56 @@ export default class RestApi {
 
       collections.pools.actions = {
         create_vm: withParams(
-          defer(async ($defer, { xapiObject: { $xapi } }, { affinity, boot, install, template, ...params }, req) => {
-            params.affinityHost = affinity
-            params.installRepository = install?.repository
+          defer(
+            async (
+              $defer,
+              { xapiObject: { $xapi } },
+              { affinity, boot, cloud_config, destroy_cloud_config_vdi, install, network_config, template, ...params },
+              req
+            ) => {
+              params.affinityHost = affinity
+              params.installRepository = install?.repository
 
-            const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
-            $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
+              const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
+              $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
-            if (boot) {
-              await $xapi.callAsync('VM.start', vm.$ref, false, false)
+              let cloudConfigVdiUuid
+              if (cloud_config !== undefined) {
+                cloudConfigVdiUuid = await $xapi.VM_createCloudInitConfig(vm.$ref, cloud_config, {
+                  networkConfig: network_config,
+                })
+              }
+
+              let timeLimit
+              if (boot) {
+                timeLimit = Date.now() + 10 * 60 * 1000
+                await $xapi.callAsync('VM.start', vm.$ref, false, false)
+              }
+
+              if (destroy_cloud_config_vdi && cloudConfigVdiUuid !== undefined && boot) {
+                try {
+                  await $xapi.VDI_destroyCloudInitConfig($xapi.getObject(cloudConfigVdiUuid).$ref, {
+                    timeLimit,
+                  })
+                } catch (error) {
+                  console.error('destroy cloud init config VDI failed', {
+                    error,
+                    vdi: { uuid: cloudConfigVdiUuid },
+                    vm: { uuid: vm.uuid },
+                  })
+                }
+              }
+
+              return vm.uuid
             }
-
-            return vm.uuid
-          }),
+          ),
           {
             affinity: { type: 'string', optional: true },
             auto_poweron: { type: 'boolean', optional: true },
             boot: { type: 'boolean', default: false },
             clone: { type: 'boolean', default: true },
+            cloud_config: { type: 'string', optional: true },
+            destroy_cloud_config_vdi: { type: 'boolean', default: false },
             install: {
               type: 'object',
               optional: true,
@@ -731,6 +763,7 @@ export default class RestApi {
             memory: { type: 'integer', optional: true },
             name_description: { type: 'string', minLength: 0, optional: true },
             name_label: { type: 'string' },
+            network_config: { type: 'string', optional: true },
             template: { type: 'string' },
           }
         ),
@@ -1002,7 +1035,7 @@ export default class RestApi {
     // handle /users/me and /users/me/*
     api.get(/^\/users\/me(\/.*)?$/, (req, res) => {
       const user = app.apiContext.user
-      res.redirect(307, req.baseUrl + '/users/' + user.id + req.params[0])
+      res.redirect(307, req.baseUrl + '/users/' + user.id + (req.params[0] ?? ''))
     })
 
     const backupTypes = {

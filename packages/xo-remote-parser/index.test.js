@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 const { strict: assert } = require('assert')
 
 const deepFreeze = require('deep-freeze')

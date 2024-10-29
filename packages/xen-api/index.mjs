@@ -360,6 +360,10 @@ export class Xapi extends EventEmitter {
     return this._roCall(`${type}.get_${field}`, [ref])
   }
 
+  async getFieldByUuid(type, uuid, field) {
+    return this.getField(type, await this._roCall(`${type}.get_by_uuid`, [uuid]), field)
+  }
+
   setField(type, ref, field, value) {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
@@ -794,14 +798,16 @@ export class Xapi extends EventEmitter {
       // values?
       const params = args[0] === this._sessionId ? args.slice(1) : args
 
+      const duration = Date.now() - startTime
       error.call = {
+        duration,
         method,
         params:
           // it pass server's credentials as param
           method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(params, '* obfuscated *'),
       }
 
-      debug(`${this._humanId}: ${method} [${ms(Date.now() - startTime)}] =!> ${error}`)
+      debug(`${this._humanId}: ${method} [${ms(duration)}] =!> ${error}`)
 
       throw error
     }

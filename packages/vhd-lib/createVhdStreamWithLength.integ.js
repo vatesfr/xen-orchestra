@@ -1,6 +1,6 @@
 'use strict'
 
-const { beforeEach, afterEach, describe, it } = require('test')
+const { beforeEach, afterEach, describe, it } = require('node:test')
 const { strict: assert } = require('assert')
 
 const execa = require('execa')

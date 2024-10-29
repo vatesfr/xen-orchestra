@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('node:assert').strict
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 
 const { makeOnProgress } = require('./combineEvents.js')
 const { Task } = require('./index.js')
@@ -154,6 +154,13 @@ describe('Task', function () {
       assert.throws(() => task.failure(error), { message: 'task has not started yet' })
     })
 
+    it('throws if the task is running', function () {
+      const task = createTask()
+      task.runInside(noop)
+
+      assert.throws(() => task.failure(error), { code: 'ERR_ASSERTION' })
+    })
+
     it('throws if the task has already finished', function () {
       const task = createTask()
       task.start()
@@ -297,6 +304,13 @@ describe('Task', function () {
       const task = createTask()
 
       assert.throws(() => task.success(result), { message: 'task has not started yet' })
+    })
+
+    it('throws if the task is running', function () {
+      const task = createTask()
+      task.runInside(noop)
+
+      assert.throws(() => task.success(result), { code: 'ERR_ASSERTION' })
     })
 
     it('throws if the task has already finished', function () {

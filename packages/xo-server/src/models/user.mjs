@@ -34,4 +34,14 @@ export class Users extends Collection {
     // Adds the user to the collection.
     return /* await */ this.add(properties)
   }
+
+  async update(properties) {
+    const { email } = properties
+
+    if (await this.exists({ email })) {
+      throw new Error(`the user ${email} already exists`)
+    }
+
+    return super.update(properties)
+  }
 }
