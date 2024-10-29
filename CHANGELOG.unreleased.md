@@ -12,6 +12,9 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
+- [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
+  - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -39,5 +42,6 @@
 - @xen-orchestra/xapi minor
 - xen-api minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

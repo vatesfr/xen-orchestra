@@ -742,8 +742,9 @@ export default class NewVm extends BaseComponent {
 
   _buildTemplate = pattern =>
     compileTemplate(pattern, {
+      '{index}': (_, i) => i,
       '{name}': state => state.name_label || '',
-      '%': (_, i) => i,
+      '%': (state, i) => (state.multipleVms ? i : '%'),
     })
 
   _templateHasBiosStrings = createSelector(
