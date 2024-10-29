@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 const assert = require('assert').strict
 const sinon = require('sinon')
 

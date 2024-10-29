@@ -2,7 +2,7 @@
 
 const { VhdAbstract, VhdNegative } = require('..')
 
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 const assert = require('assert/strict')
 const { unpackHeader, unpackFooter } = require('./_utils')
 const { createHeader, createFooter } = require('../_createFooterHeader')

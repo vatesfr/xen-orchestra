@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 const { useFakeTimers, spy, assert } = require('sinon')
 
 const { createDebounceResource } = require('./debounceResource')

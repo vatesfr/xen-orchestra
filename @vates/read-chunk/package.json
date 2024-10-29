@@ -25,14 +25,11 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
-  },
-  "devDependencies": {
-    "test": "^3.2.1"
   },
   "dependencies": {
     "isutf8": "^4.0.0"

@@ -48,6 +48,7 @@
   "deploy": "Deploy",
   "deploy-xoa": "Deploy XOA",
   "deploy-xoa-available-on-desktop": "XOA deployment is available on your desktop interface",
+  "deploy-xoa-custom-ntp-servers": "Custom NTP servers (separated by spaces)",
 
   "deploy-xoa-status.configuring": "Configuring XOA…",
   "deploy-xoa-status.importing": "Importing XOA…",

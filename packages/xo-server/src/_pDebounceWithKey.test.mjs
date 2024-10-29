@@ -1,5 +1,5 @@
 import assert from 'assert/strict'
-import test from 'test'
+import test from 'node:test'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from './_pDebounceWithKey.mjs'
 
 const { describe, it } = test

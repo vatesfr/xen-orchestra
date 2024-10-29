@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert')
-const { describe, it } = require('test')
+const { describe, it } = require('node:test')
 
 const { decorateClass, decorateWith, decorateMethodsWith, perInstance } = require('./')
 

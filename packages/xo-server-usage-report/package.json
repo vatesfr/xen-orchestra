@@ -1,6 +1,6 @@
 {
   "name": "xo-server-usage-report",
-  "version": "0.10.5",
+  "version": "0.10.6",
   "license": "AGPL-3.0-or-later",
   "description": "Report resources usage with their evolution",
   "keywords": [
@@ -31,7 +31,7 @@
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "csv-stringify": "^6.0.0",
     "handlebars": "^4.0.6",
     "html-minifier": "^4.0.0",

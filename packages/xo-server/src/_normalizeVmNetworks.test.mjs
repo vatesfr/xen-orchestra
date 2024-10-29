@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import test from 'test'
+import test from 'node:test'
 
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
 

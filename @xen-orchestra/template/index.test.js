@@ -1,6 +1,6 @@
 'use strict'
 
-const { it } = require('test')
+const { it } = require('node:test')
 const assert = require('assert').strict
 
 const { compileTemplate } = require('.')

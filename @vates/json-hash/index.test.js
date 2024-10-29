@@ -2,7 +2,7 @@
 
 const { jsonHash } = require('@vates/json-hash')
 const assert = require('node:assert/strict')
-const test = require('test')
+const test = require('node:test')
 
 const cases = [
   [null, 'dCNOmK_nSY-12vHzasLXiswzlGT5UHA7jAGYkvmCuQs'],
