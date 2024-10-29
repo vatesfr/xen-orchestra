@@ -32,5 +32,6 @@
 <!--packages-start-->
 
 - @vates/task minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
