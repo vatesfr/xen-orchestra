@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-cli",
-  "version": "0.30.0",
+  "version": "0.32.0",
   "license": "AGPL-3.0-or-later",
   "description": "Basic CLI for Xen-Orchestra",
   "keywords": [

@@ -12,6 +12,7 @@ import stubTrue from 'lodash/stubTrue.js'
 import SslCertificate from '@xen-orchestra/mixins/SslCertificate.mjs'
 import Tasks from '@xen-orchestra/mixins/Tasks.mjs'
 import { Collection as XoCollection } from 'xo-collection'
+import { Index } from 'xo-collection/index.js'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -41,6 +42,7 @@ export default class Xo extends EventEmitter {
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
+    this._objects.createIndex('type', new Index('type'))
 
     this._httpRequestWatchers = { __proto__: null }
 

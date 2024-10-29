@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "4.1.7",
+  "version": "4.2.0",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
@@ -29,7 +29,7 @@
     "@vates/coalesce-calls": "^0.1.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/read-chunk": "^1.2.0",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "bind-property-descriptor": "^2.0.0",
     "decorator-synchronized": "^0.6.0",
     "execa": "^5.0.0",
@@ -53,7 +53,6 @@
     "dotenv": "^16.0.0",
     "rimraf": "^5.0.1",
     "sinon": "^18.0.0",
-    "test": "^3.3.0",
     "tmp": "^0.2.1"
   },
   "scripts": {
@@ -63,9 +62,8 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
     "prepublishOnly": "yarn run build",
-    "pretest": "yarn run build",
     "postversion": "npm publish",
-    "test": "node--test ./dist/"
+    "test": "cd dist && node --test"
   },
   "author": {
     "name": "Vates SAS",

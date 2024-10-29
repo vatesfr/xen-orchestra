@@ -31,7 +31,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/log minor
+- @vates/task minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->

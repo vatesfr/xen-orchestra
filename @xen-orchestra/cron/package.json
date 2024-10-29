@@ -39,10 +39,9 @@
   },
   "scripts": {
     "postversion": "npm publish",
-    "test": "node--test"
+    "test": "node --test"
   },
   "devDependencies": {
-    "sinon": "^18.0.0",
-    "test": "^3.2.1"
+    "sinon": "^18.0.0"
   }
 }

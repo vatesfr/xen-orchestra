@@ -11,8 +11,11 @@ import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
 import set from 'lodash/set.js'
 import split2 from 'split2'
+import XoLib from 'xo-lib'
 
 import { streamStatsPrinter } from './_streamStatsPrinter.mjs'
+
+const Xo = XoLib.default
 
 const PREFIX = '/rest/v0/'
 
@@ -95,27 +98,15 @@ const COMMANDS = {
       let line
       while ((line = await readChunk(lines)) !== null) {
         const data = JSON.parse(line)
-        console.log(this.json ? JSON.stringify(data, null, 2) : data)
+        console.log(this.json ? JSON.stringify(data) : data)
       }
     } else {
       throw new Error('unsupported content-type ' + type)
     }
   },
-
-  async patch([path, ...params]) {
-    const response = await this.exec(path, {
-      body: JSON.stringify(parseParams(params)),
-      headers: {
-        'content-type': 'application/json',
-      },
-      method: 'PATCH',
-    })
-
-    return await response.text()
-  },
 }
 
-for (const method of ['post', 'put']) {
+for (const method of ['patch', 'post', 'put']) {
   COMMANDS[method] = async function (args) {
     const opts = getopts(args, {
       alias: { input: 'i' },
@@ -168,7 +159,9 @@ export async function rest(args) {
 
   const { allowUnauthorized, server, token } = await this.getServerConfig()
 
-  const baseUrl = server
+  // FIXME: extract server parsing in dedicated module/function
+  const baseUrl = new Xo({ url: server })._url.replace(/^ws/, 'http')
+
   const baseOpts = {
     headers: {
       cookie: 'authenticationToken=' + token,

@@ -48,6 +48,7 @@
   "deploy": "Déployer",
   "deploy-xoa": "Déployer XOA",
   "deploy-xoa-available-on-desktop": "Le déploiement de la XOA est disponible sur ordinateur",
+  "deploy-xoa-custom-ntp-servers": "Serveurs NTP (séparés par des espaces)",
 
   "deploy-xoa-status.configuring": "Configuration de la XOA…",
   "deploy-xoa-status.importing": "Importation de la XOA…",
@@ -112,7 +113,6 @@
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
   "language": "Langue",
   "last-week": "Semaine dernière",
-  "learn-more": "En savoir plus",
   "load-now": "Charger maintenant",
   "loading-hosts": "Chargement des hôtes…",
   "login": "Connexion",

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/mixin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "ISC",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/mixin",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",

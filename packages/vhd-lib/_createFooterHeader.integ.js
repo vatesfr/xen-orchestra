@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('test')
+const { test } = require('node:test')
 
 const { createFooter } = require('./_createFooterHeader')
 

@@ -7,17 +7,17 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "engines": {
     "node": ">=14"
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "dependencies": {
     "@vates/decorate-with": "^2.1.0",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "golike-defer": "^0.5.1",
     "object-hash": "^2.0.1"
   },
@@ -26,8 +26,5 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
-  },
-  "devDependencies": {
-    "test": "^3.3.0"
   }
 }

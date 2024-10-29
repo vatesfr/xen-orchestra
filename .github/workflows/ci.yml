@@ -5,34 +5,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Install packages
         run: |
           sudo apt-get update
           sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
+
+      # https://turbo.build/repo/docs/guides/ci-vendors/github-actions#caching-with-github-actionscache
       - name: Cache Turbo
-        # https://github.com/actions/cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: '**/node_modules/.cache/turbo'
-          key: ${{ runner.os }}-turbo-cache
+          path: '.turbo'
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      # https://github.com/actions/setup-node
       - name: Setup Node environment
-        # https://github.com/actions/setup-node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'yarn'
+
       - name: Install project dependencies
         run: yarn
+
       - name: Ensure packages are sorted in CHANGELOG.unreleased.md
         run: ./scripts/gen-deps-list.js --check-order > /dev/null
+
       - name: Ensure yarn.lock is up-to-date
         run: git diff --exit-code yarn.lock
+
       - name: Build the project
         run: yarn build
+
       - name: Unit tests
         run: yarn test-unit
+
       - name: Lint tests
         run: yarn test-lint
+
       - name: Integration tests
         run: sudo yarn test-integration

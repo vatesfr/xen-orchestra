@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const test = require('test')
+const test = require('node:test')
 
 const diff = require('./index.js')
 

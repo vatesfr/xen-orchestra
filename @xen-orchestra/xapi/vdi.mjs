@@ -182,7 +182,9 @@ class Vdi {
     }
 
     const [cbt_enabled, size, uuid, vdiName] = await Promise.all([
-      this.getField('VDI', ref, 'cbt_enabled'),
+      this.getField('VDI', ref, 'cbt_enabled').catch(() => {
+        /* on XS < 7.3 cbt is not supported */
+      }),
       this.getField('VDI', ref, 'virtual_size'),
       this.getField('VDI', ref, 'uuid'),
       this.getField('VDI', ref, 'name_label'),
@@ -248,7 +250,9 @@ class Vdi {
     // a CBT export can only work if we have a NBD client and changed blocks
     if (changedBlocks === undefined || nbdClient === undefined) {
       if (baseParentType === 'cbt_metadata') {
-        throw new Error(`can't create a stream from a metadata VDI, fall back to a base `)
+        const e = new Error(`can't create a stream from a metadata VDI, fall back to a base `)
+        e.code = 'VDI_CANT_DO_DELTA'
+        throw e
       }
 
       stream = exportStream = (
