@@ -1,4 +1,6 @@
-# Full Replication (formerly: Disaster recovery)
+# Full Replication
+
+> **_NOTE:_**  Formerly known as Disaster recovery
 
 Full Replication (FR) encompasses all the ways to recover after losing hosts or storage repositories.
 

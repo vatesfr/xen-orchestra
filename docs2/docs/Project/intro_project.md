@@ -1,4 +1,4 @@
-# Xen Orchestra project
+# About the Xen Orchestra project
 
 Xen Orchestra is an Open Source project created by [Olivier Lambert](https://www.linkedin.com/in/olivier-lambert-22316b26/) with a long story behind it.
 

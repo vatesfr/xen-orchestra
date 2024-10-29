@@ -1,4 +1,4 @@
-# Manage
+# Management overview
 
 Xen Orchestra is based on the concept of **one interface to rule all your pools, hosts and VMs, from any device**. It's made to do any object creation, modification, displays metrics and statistics. In other words, all the tools you need to administer your XCP-ng/Citrix Hypervisor (formerly XenServer) infrastructure efficiently.
 

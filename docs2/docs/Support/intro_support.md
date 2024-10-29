@@ -1,4 +1,4 @@
-# Support
+# Introduction to Support
 
 :::tip
 See the dedicated sub-section to read more about [XOA support and usage](xoa.md).

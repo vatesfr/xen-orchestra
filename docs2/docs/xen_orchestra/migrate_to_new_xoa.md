@@ -1,3 +1,5 @@
+# Migrate to new XOA
+
 ### Deploy new appliance
 
 First step, you have to deploy a new appliance. All needed information is [here](installation.md)

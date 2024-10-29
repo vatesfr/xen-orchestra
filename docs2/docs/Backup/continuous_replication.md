@@ -1,4 +1,6 @@
-# Incremental Replication (formerly : Continuous Replication)
+# Incremental Replication
+
+> **_NOTE:_**  Formerly known as Continuous replication
 
 This feature is an incremental replication system for your XCP-ng or Xenserver VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XCP-ng or XenServer host or just another local storage target.
 
