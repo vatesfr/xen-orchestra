@@ -1,15 +1,19 @@
-import AbstractXapiCollection from './AbstractXapiCollection.mjs'
+import AbstractCollection from './AbstractCollection.mjs'
 
-class Vm extends AbstractXapiCollection {
+class Vm extends AbstractCollection {
   constructor(app) {
     super(app, 'VM')
   }
 
   registerRoutes() {
     super.registerRoutes()
-    this.getRouter().get('/:uuid/name_label', (req, res) => {
-      return res.json(res.locals.object.name_label)
-    })
+    this.getRouter()
+      .get('/foo', (req, res) => {
+        res.json('foo')
+      })
+      .get('/:uuid/name_label', (req, res) => {
+        return res.json(res.locals.object.name_label)
+      })
   }
 }
 

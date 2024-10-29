@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { pipeline } from 'node:stream/promises'
+import AbstractCollection from './AbstractCollection.mjs'
+import pick from 'lodash/pick.js'
 
 // @TODO Move to utils folder
 async function* makeJsonStream(iterable) {
@@ -54,13 +56,23 @@ class AbstractEntity {
   registerRouter(router) {
     this.registerRoutes()
 
-    router.use(`/${this.getType().toLowerCase() + 's'}`, this.getRouter())
+    const prefix = `/${this.getType().toLowerCase()}${this instanceof AbstractCollection ? 's' : ''}`
+    router.use(prefix, this.getRouter())
   }
 
   sendObjects(iterable, req, res) {
     const ndjson = req.headers.accept === 'application/x-ndjson'
     res.setHeader('content-type', ndjson ? 'application/x-ndjson' : 'application/json')
     return pipeline((ndjson ? makeNdJsonStream : makeJsonStream)(iterable), res)
+  }
+
+  sendObject(object, req, res) {
+    const fields = req.query.fields
+    if (fields !== undefined && fields !== '*') {
+      object = pick(object, fields.split())
+    }
+
+    res.json(object)
   }
 }
 

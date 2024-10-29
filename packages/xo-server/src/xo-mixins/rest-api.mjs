@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import * as entities from '../rest-api/entities.mjs'
+import { authenticateUserFromToken } from '../rest-api/middleware.mjs'
 
 // @TODO:
 // - implement middlewhare to retrieve user from a token
@@ -482,6 +483,8 @@ export default class RestApi {
     if (express === undefined) {
       return
     }
+
+    express.use(authenticateUserFromToken(app))
 
     const coreRouter = new Router()
 

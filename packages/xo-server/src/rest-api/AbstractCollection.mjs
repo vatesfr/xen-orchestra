@@ -2,9 +2,8 @@ import CM from 'complex-matcher'
 import { every } from '@vates/predicates'
 import AbstractEntity from './AbstractEntity.mjs'
 import pick from 'lodash/pick.js'
-
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-class AbstractXapiCollection extends AbstractEntity {
+import { noSuchObject } from 'xo-common/api-errors.js'
+class AbstractCollection extends AbstractEntity {
   getObject(uuid) {
     return this.getApp().getObject(uuid, this.getType())
   }
@@ -32,31 +31,26 @@ class AbstractXapiCollection extends AbstractEntity {
 
   registerRoutes() {
     this.getRouter()
-      .param('uuid', (req, res, next) => {
+      .param('uuid', async (req, res, next) => {
         const uuid = req.params.uuid
 
-        if (typeof uuid !== 'string' || !uuidRegex.test(uuid)) {
-          return next(new Error('invalid uuid'))
+        try {
+          res.locals.object = await this.getObject(uuid)
+          next()
+        } catch (error) {
+          if (noSuchObject.is(error)) {
+            return next('route')
+          }
+          next(error)
         }
-
-        res.locals.object = this.getObject(uuid)
-        next()
       })
-      .get(`/`, (req, res) => {
-        const objects = this.getObjects(req.query.filter, req.query.limit, req.query.fields)
+      .get(`/`, async (req, res) => {
+        const objects = await this.getObjects(req.query.filter, req.query.limit, req.query.fields)
 
         this.sendObjects(objects, req, res)
       })
-      .get(`/:uuid`, (req, res) => {
-        const fields = req.query.fields
-        let obj = res.locals.object
-        if (fields !== undefined && fields !== '*') {
-          obj = pick(obj, fields.split())
-        }
-
-        res.json(obj)
-      })
+      .get(`/:uuid`, (req, res) => this.sendObject(res.locals.object, req, res))
   }
 }
 
-export default AbstractXapiCollection
+export default AbstractCollection
