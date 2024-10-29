@@ -69,7 +69,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     }
   }
 
-  &.selected:not(:disabled) {
+  &.selected {
     border: 0.2rem solid var(--color-normal-txt-base);
     background-color: var(--color-normal-background-selected);
   }
