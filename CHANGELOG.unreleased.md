@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @vates/task minor
+
 <!--packages-end-->
