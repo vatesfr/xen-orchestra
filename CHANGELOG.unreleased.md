@@ -11,6 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +34,8 @@
 
 - @vates/task minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
+- xen-api minor
+- xo-server minor
 
 <!--packages-end-->

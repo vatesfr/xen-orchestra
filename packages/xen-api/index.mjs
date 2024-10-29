@@ -360,6 +360,10 @@ export class Xapi extends EventEmitter {
     return this._roCall(`${type}.get_${field}`, [ref])
   }
 
+  async getFieldByUuid(type, uuid, field) {
+    return this.getField(type, await this._roCall(`${type}.get_by_uuid`, [uuid]), field)
+  }
+
   setField(type, ref, field, value) {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
