@@ -139,7 +139,16 @@ export default class MigrateVm {
       }
       coldChainsByNodes[key] = chainCopy
     })
-
+    // ensure the session stays alive
+    const interval = setInterval(
+      async () => {
+        try {
+          await esxi.fetchProperty('VirtualMachine', vmId, 'config')
+        } catch (_) {}
+      },
+      15 * 60 * 1000
+    )
+    $defer(() => clearInterval(interval))
     const vhds = await importDisksFromDatastore($defer, {
       esxi,
       dataStoreToHandlers,
