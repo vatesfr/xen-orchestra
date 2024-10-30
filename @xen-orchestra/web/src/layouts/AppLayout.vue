@@ -8,7 +8,7 @@
     <template #app-header>
       <UiButton
         size="medium"
-        accent="brand"
+        accent="info"
         :right-icon="faArrowUpRightFromSquare"
         variant="tertiary"
         @click="openUrl('/', true)"
