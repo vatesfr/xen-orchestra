@@ -76,6 +76,19 @@ const classNames = computed(() => [
     cursor: not-allowed;
   }
 
+  &:focus-visible {
+    outline: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -0.5rem;
+      border-radius: 0.4rem;
+      border-width: 0.2rem;
+      border-style: solid;
+    }
+  }
+
   /* ACCENT + VARIANT */
 
   &.accent--info {
@@ -84,10 +97,14 @@ const classNames = computed(() => [
       border-color: var(--color-normal-item-base);
       color: var(--color-normal-txt-item);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-normal-item-hover);
         border-color: var(--color-normal-item-hover);
         color: var(--color-normal-txt-item);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-normal-txt-base);
       }
 
       &:active {
@@ -114,10 +131,14 @@ const classNames = computed(() => [
       border-color: var(--color-normal-item-base);
       color: var(--color-normal-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-normal-item-hover);
         color: var(--color-normal-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-normal-txt-base);
       }
 
       &:active {
@@ -144,10 +165,14 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-normal-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-normal-background-hover);
         border-color: var(--color-normal-background-hover);
         color: var(--color-normal-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-normal-txt-base);
       }
 
       &:active {
@@ -176,10 +201,14 @@ const classNames = computed(() => [
       border-color: var(--color-success-item-base);
       color: var(--color-success-txt-item);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-success-item-hover);
         border-color: var(--color-success-item-hover);
         color: var(--color-success-txt-item);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-success-txt-base);
       }
 
       &:active {
@@ -206,10 +235,14 @@ const classNames = computed(() => [
       border-color: var(--color-success-txt-base);
       color: var(--color-success-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-success-txt-hover);
         color: var(--color-success-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-success-txt-base);
       }
 
       &:active {
@@ -236,10 +269,14 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-success-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-success-background-hover);
         border-color: var(--color-success-background-hover);
         color: var(--color-success-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-success-txt-base);
       }
 
       &:active {
@@ -268,10 +305,14 @@ const classNames = computed(() => [
       border-color: var(--color-warning-item-base);
       color: var(--color-warning-txt-item);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-warning-item-hover);
         border-color: var(--color-warning-item-hover);
         color: var(--color-warning-txt-item);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-warning-txt-base);
       }
 
       &:active {
@@ -298,10 +339,14 @@ const classNames = computed(() => [
       border-color: var(--color-warning-txt-base);
       color: var(--color-warning-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-warning-txt-hover);
         color: var(--color-warning-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-warning-txt-base);
       }
 
       &:active {
@@ -328,10 +373,14 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-warning-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-warning-background-hover);
         border-color: var(--color-warning-background-hover);
         color: var(--color-warning-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-warning-txt-base);
       }
 
       &:active {
@@ -360,10 +409,14 @@ const classNames = computed(() => [
       border-color: var(--color-danger-item-base);
       color: var(--color-danger-txt-item);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-danger-item-hover);
         border-color: var(--color-danger-item-hover);
         color: var(--color-danger-txt-item);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-danger-txt-base);
       }
 
       &:active {
@@ -390,10 +443,14 @@ const classNames = computed(() => [
       border-color: var(--color-danger-txt-base);
       color: var(--color-danger-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-danger-txt-hover);
         color: var(--color-danger-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-danger-txt-base);
       }
 
       &:active {
@@ -420,10 +477,14 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-danger-txt-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         background-color: var(--color-danger-background-hover);
         border-color: var(--color-danger-background-hover);
         color: var(--color-danger-txt-hover);
+      }
+
+      &:focus-visible::before {
+        border-color: var(--color-danger-txt-base);
       }
 
       &:active {
