@@ -32,11 +32,10 @@ export default class MultiNbdClient {
    * it tries to spread connections on multiple host
    */
   async connect() {
-    const candidates = [...this.#settings]
+    let candidates = [...this.#settings]
 
-    const promises = []
     const baseOptions = this.#options
-    const  _connect = async () => {
+    const _connect = async () => {
       if (candidates.length === 0) {
         return
       }
@@ -49,6 +48,8 @@ export default class MultiNbdClient {
       try {
         await client.connect()
         this.#clients.push(client)
+        // xapi don't like to have connection to multiple hosts
+        candidates = [nbdInfo]
       } catch (err) {
         client.disconnect().catch(() => {})
         // do not hammer unreachable hosts, once failed, remove from the list
@@ -63,10 +64,10 @@ export default class MultiNbdClient {
         return _connect()
       }
     }
-    for (let i = 0; i < this.#nbdConcurrency; i++) {
-      promises.push(_connect())
+
+    while (this.#clients.length < this.#nbdConcurrency && candidates.length > 0) {
+      await _connect()
     }
-    await Promise.all(promises)
 
     if (this.#clients.length === 0) {
       throw new Error(`Fail to connect to any Nbd client`)
