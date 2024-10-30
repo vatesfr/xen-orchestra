@@ -44,8 +44,8 @@ function parseParams(args) {
 }
 
 function stripPrefix(path) {
-  path = normalize('/' + path)
-  return path.startsWith(PREFIX) ? path.slice(PREFIX.length) : path
+  const normalized = normalize('/' + path)
+  return normalized.startsWith(PREFIX) ? normalized.slice(PREFIX.length) : path
 }
 
 const COMMANDS = {
