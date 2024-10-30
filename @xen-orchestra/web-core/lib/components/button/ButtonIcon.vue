@@ -22,7 +22,7 @@ const props = withDefaults(
     dot?: boolean
     targetScale?: number | { x: number; y: number }
   }>(),
-  { color: 'normal', size: 'medium', targetScale: 1 }
+  { color: 'info', size: 'medium', targetScale: 1 }
 )
 
 const cssTargetScale = computed(() => {
@@ -37,7 +37,7 @@ const cssTargetScale = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .button-icon {
-  &.normal {
+  &.info {
     & {
       --color: var(--color-info-txt-base);
       --background-color: transparent;

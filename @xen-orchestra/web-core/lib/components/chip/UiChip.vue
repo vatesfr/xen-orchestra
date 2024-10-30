@@ -21,7 +21,7 @@ withDefaults(
     color?: Color
     disabled?: boolean
   }>(),
-  { color: 'normal' }
+  { color: 'info' }
 )
 
 const emit = defineEmits<{

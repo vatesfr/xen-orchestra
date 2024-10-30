@@ -1,11 +1,7 @@
 <template>
   <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
     <!-- TODO: replace with correct color typing when available -->
-    <VtsIcon
-      v-if="checkbox"
-      :accent="color === 'normal' ? 'brand' : color"
-      :icon="selected ? faSquareCheck : faSquare"
-    />
+    <VtsIcon v-if="checkbox" :accent="color" :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
       <VtsIcon :icon accent="current" />
     </slot>
@@ -13,7 +9,7 @@
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'brand'" :icon="faAngleRight" class="right-icon" />
+    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'info'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 
@@ -45,7 +41,7 @@ const checkbox = inject(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .dropdown-item {
-  &.normal {
+  &.info {
     --color: var(--color-neutral-txt-primary);
     --background-color: var(--color-neutral-background-primary);
 

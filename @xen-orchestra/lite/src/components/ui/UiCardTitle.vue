@@ -2,7 +2,7 @@
   <div class="ui-section-title" :class="tags.left">
     <component :is="tags.left" v-if="$slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <VtsCounter v-if="count > 0" class="count" :value="count" accent="brand" variant="primary" size="small" />
+      <VtsCounter v-if="count > 0" class="count" :value="count" accent="info" variant="primary" size="small" />
     </component>
     <component :is="tags.right" v-if="$slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>

@@ -6,7 +6,7 @@
     type="button"
   >
     <UserLogo class="logo" size="medium" />
-    <VtsIcon :icon="faAngleDown" class="icon" accent="brand" />
+    <VtsIcon :icon="faAngleDown" class="icon" accent="info" />
   </button>
 </template>
 

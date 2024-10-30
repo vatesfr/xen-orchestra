@@ -1,6 +1,6 @@
 <template>
   <!-- TODO: replace with correct color typing when available -->
-  <VtsIcon :class="{ disabled }" :accent="color === 'normal' ? 'brand' : color" :icon class="chip-icon" fixed-width />
+  <VtsIcon :class="{ disabled }" :accent="color" :icon class="chip-icon" fixed-width />
 </template>
 
 <script lang="ts" setup>

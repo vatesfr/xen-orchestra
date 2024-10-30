@@ -7,7 +7,7 @@
       v-if="!$attrs.disabled && modelValue"
       :icon="faXmark"
       class="after"
-      accent="brand"
+      accent="info"
       @click="modelValue = ''"
     />
   </div>

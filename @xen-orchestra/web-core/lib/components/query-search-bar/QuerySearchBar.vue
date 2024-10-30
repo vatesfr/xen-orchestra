@@ -12,12 +12,12 @@
       :placeholder="$t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
+      <UiButton size="medium" color="info" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
       <Divider type="stretch" />
       <UiButton
         v-tooltip="$t('coming-soon')"
         size="medium"
-        color="normal"
+        color="info"
         level="secondary"
         :left-icon="faFilter"
         disabled

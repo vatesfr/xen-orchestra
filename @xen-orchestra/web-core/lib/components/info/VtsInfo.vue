@@ -19,7 +19,7 @@ import {
 import { computed } from 'vue'
 
 type Props = {
-  accent: 'brand' | 'success' | 'warning' | 'danger'
+  accent: 'info' | 'success' | 'warning' | 'danger'
 }
 
 const props = defineProps<Props>()
@@ -29,7 +29,7 @@ defineSlots<{
 }>()
 
 const iconByAccent: Record<Props['accent'], IconDefinition> = {
-  brand: faInfo,
+  info: faInfo,
   success: faCheck,
   warning: faExclamation,
   danger: faXmark,

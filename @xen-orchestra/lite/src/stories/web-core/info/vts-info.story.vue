@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').enum('brand', 'success', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('info', 'success', 'warning', 'danger').required().preset('info').widget(),
       slot(),
       setting('defaultSlot').widget(text()).preset('message'),
     ]"

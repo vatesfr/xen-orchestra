@@ -8,7 +8,7 @@
           v-if="isReady"
           v-tooltip="$t('running-vm', { count: vmCount })"
           :value="vmCount"
-          accent="brand"
+          accent="info"
           variant="secondary"
           size="small"
         />

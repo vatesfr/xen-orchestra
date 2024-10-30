@@ -14,7 +14,7 @@
         <VtsCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
-          accent="brand"
+          accent="info"
           variant="secondary"
           size="small"
         />

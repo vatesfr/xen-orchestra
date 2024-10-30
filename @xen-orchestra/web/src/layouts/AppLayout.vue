@@ -8,7 +8,7 @@
     <template #app-header>
       <UiButton
         size="medium"
-        color="normal"
+        color="info"
         :right-icon="faArrowUpRightFromSquare"
         level="tertiary"
         @click="openUrl('/', true)"

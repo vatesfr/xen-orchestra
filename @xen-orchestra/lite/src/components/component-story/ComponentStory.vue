@@ -41,7 +41,7 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" size="medium" color="normal" level="tertiary" @click="eventsLog = []">
+            <UiButton v-if="eventsLog.length > 0" size="medium" color="info" level="tertiary" @click="eventsLog = []">
               Clear
             </UiButton>
           </template>

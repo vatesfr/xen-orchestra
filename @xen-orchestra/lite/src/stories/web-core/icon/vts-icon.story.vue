@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('accent').enum('current', 'brand', 'success', 'warning', 'danger').required().preset('current').widget(),
+      prop('accent').enum('current', 'info', 'success', 'warning', 'danger').required().preset('current').widget(),
       iconProp().preset(faCheck),
       prop('overlay-icon')
         .type('IconDefinition')
