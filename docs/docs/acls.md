@@ -9,7 +9,7 @@ ACLs are the permissions for your users or groups. The ACLs view can be accessed
 3. Choose the role for this ACL
 4. Click on "Create"
 
-![](./assets/createacl.png)
+![Create ACL](./assets/createacl.png)
 
 :::tip
 You can click to add multiple objects at the same time!
@@ -17,7 +17,7 @@ You can click to add multiple objects at the same time!
 
 Your ACL is now available in the right list:
 
-![](./assets/acllist.png)
+![ACL list](./assets/acllist.png)
 
 You can edit/remove existing ACLs here.
 

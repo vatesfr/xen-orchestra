@@ -9,4 +9,4 @@ This section contains everyday XenServer administration tasks.
 - [VM import and export](vm_import_export.md)
 - [XenServer Patching](patching.md)
 
-![](./assets/xo5homevms.png)
+![XO5 Homepage with VM list](./assets/xo5homevms.png)
