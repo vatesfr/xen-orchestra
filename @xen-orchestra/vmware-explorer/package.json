@@ -1,12 +1,12 @@
 {
   "license": "ISC",
   "private": false,
-  "version": "0.8.4",
+  "version": "0.8.5",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
     "@vates/node-vsphere-soap": "^2.1.1",
     "@vates/read-chunk": "^1.2.0",
-    "@vates/task": "^0.5.0",
+    "@vates/task": "^0.6.0",
     "@xen-orchestra/log": "^0.7.0",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",

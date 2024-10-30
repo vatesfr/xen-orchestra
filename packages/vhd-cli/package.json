@@ -23,7 +23,7 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^4.2.0",
+    "@xen-orchestra/fs": "^4.2.1",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
