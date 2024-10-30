@@ -6,6 +6,11 @@
 
 - [REST API] Ability to generate an authentication token via `POST /rest/v0/users/authentication_tokens` (using Basic Authentication) (PR [#8065](https://github.com/vatesfr/xen-orchestra/pull/8065))
 - [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
+- [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
+- [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
+  - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
+- [Settings/ACLs] Ability to filter objects by tags (PR [#8068](https://github.com/vatesfr/xen-orchestra/pull/8068))
+- [Netbox] Synchronize VM description and notes/comments (PR [#8083](https://github.com/vatesfr/xen-orchestra/pull/8083))
 
 ### Bug fixes
 
@@ -19,40 +24,45 @@
 - [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
 - [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
 - [Backup] keep only one snapshot for all the schedules when snapshot retention is zero (PR [#8051](https://github.com/vatesfr/xen-orchestra/pull/8051))
+- [V2V] Fix failing transfer at the power off phase (PR [#7839](https://github.com/vatesfr/xen-orchestra/pull/7839))
+- [Backup/Restore] Fix differential restore with purge snapshot (PR [#8082](https://github.com/vatesfr/xen-orchestra/pull/8082))
+- [Remotes] Fix NFS remote encryption "ENOENT metadata.json" error (PR [#8081](https://github.com/vatesfr/xen-orchestra/pull/8081))
 
 ### Released packages
 
 - @xen-orchestra/log 0.7.0
 - @vates/disposable 0.1.6
-- @xen-orchestra/fs 4.2.0
 - vhd-lib 4.11.1
 - @vates/fuse-vhd 2.1.2
-- xen-api 4.4.0
 - @vates/nbd-client 3.1.1
 - @vates/node-vsphere-soap 2.1.1
-- @vates/task 0.5.0
 - @xen-orchestra/audit-core 0.3.1
-- @xen-orchestra/xapi 7.6.1
-- @xen-orchestra/backups 0.54.1
 - @xen-orchestra/immutable-backups 1.0.13
 - @xen-orchestra/mixin 0.2.0
-- @xen-orchestra/mixins 0.16.1
-- @xen-orchestra/proxy 0.29.2
-- @xen-orchestra/vmware-explorer 0.8.4
-- xo-cli 0.32.0
-- xo-server 5.158.0
 - xo-server-audit 0.12.1
 - xo-server-auth-ldap 0.10.10
 - xo-server-backup-reports 1.4.3
 - xo-server-load-balancer 0.10.1
-- xo-server-netbox 1.6.1
 - xo-server-perf-alert 0.5.1
 - xo-server-sdn-controller 1.0.11
 - xo-server-test 0.0.1
 - xo-server-transport-nagios 1.0.2
 - xo-server-usage-report 0.10.6
 - xo-server-web-hooks 0.3.4
-- xo-web 5.158.0
+- @xen-orchestra/fs 4.2.1
+- xen-api 4.5.0
+- @vates/task 0.6.0
+- @xen-orchestra/xapi 7.7.0
+- @xen-orchestra/backups 0.54.2
+- @xen-orchestra/web-core 0.4.0
+- @xen-orchestra/mixins 0.16.2
+- @xen-orchestra/proxy 0.29.3
+- @xen-orchestra/vmware-explorer 0.8.5
+- @xen-orchestra/web 0.3.1
+- xo-cli 0.32.1
+- xo-server 5.159.0
+- xo-server-netbox 1.7.0
+- xo-web 5.159.0
 
 ## **5.99.1** (2024-10-04)
 
