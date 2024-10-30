@@ -36,9 +36,13 @@ export class Users extends Collection {
   }
 
   async update(properties) {
-    const { email } = properties
+    const { id, email } = properties
 
-    if (await this.exists({ email })) {
+    const currentUser = await this.first({ id })
+    const emailUser = await this.first({ email })
+    const emailExists = emailUser !== undefined
+
+    if (emailExists && currentUser.id !== emailUser.id) {
       throw new Error(`the user ${email} already exists`)
     }
 
