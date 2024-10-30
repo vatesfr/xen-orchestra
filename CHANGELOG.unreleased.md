@@ -14,6 +14,7 @@
 - [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
 - [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
   - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
+- [Settings/ACLs] Ability to filter objects by tags (PR [#8068](https://github.com/vatesfr/xen-orchestra/pull/8068))
 - [Netbox] Synchronize VM description and notes/comments (PR [#8083](https://github.com/vatesfr/xen-orchestra/pull/8083))
 
 ### Bug fixes
@@ -21,6 +22,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Fix failing transfer at the power off phase (PR [#7839](https://github.com/vatesfr/xen-orchestra/pull/7839))
+- [Backup/Restore] Fix differential restore with purge snapshot (PR [#8082](https://github.com/vatesfr/xen-orchestra/pull/8082))
 
 ### Packages to release
 
@@ -39,6 +41,7 @@
 <!--packages-start-->
 
 - @vates/task minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xen-api minor

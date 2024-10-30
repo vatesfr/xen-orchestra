@@ -79,8 +79,13 @@ export class ImportVmBackup {
         debug('found disks, wlll search its snapshots', { snapshots: xapiDisk.snapshots })
         for (const snapshotRef of xapiDisk.snapshots) {
           const snapshot = await this._xapi.getRecord('VDI', snapshotRef)
-          debug('handling snapshot', { snapshot })
 
+          debug('handling snapshot', { snapshot })
+          if (snapshot.type === 'cbt_metadata') {
+            // disk without data can't be used as a base
+            debug('cbt metadata snapshot, skip')
+            continue
+          }
           // take only the first snapshot
           if (snapshotCandidate && snapshotCandidate.snapshot_time < snapshot.snapshot_time) {
             debug('already got a better candidate')
