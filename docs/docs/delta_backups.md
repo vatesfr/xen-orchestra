@@ -21,7 +21,7 @@ You can imagine making your first initial key(complete) backup during a weekend,
 - quick to create
 - easy to restore
 
-So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshot.md) mechanism).
+So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshots.md) mechanism).
 
 Even if you lost your whole SR or VM, XOA will restore your VM entirely and automatically, at any date of backup.
 

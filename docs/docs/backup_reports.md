@@ -90,4 +90,4 @@ You need to be an admin:
 
 ## Web hooks
 
-You can also configure web hooks to be sent to a custom server before and/or after a backup job runs. This won't send a formatted report but raw JSON data that you can use in custom scripts on your side. Follow the [web-hooks plugin documentation](./advanced.html#web-hooks) to configure it.
+You can also configure web hooks to be sent to a custom server before and/or after a backup job runs. This won't send a formatted report but raw JSON data that you can use in custom scripts on your side. Follow the [web-hooks plugin documentation](./advanced#web-hooks) to configure it.

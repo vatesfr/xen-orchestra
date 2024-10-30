@@ -31,6 +31,12 @@ const config: Config = {
     locales: ['en'],
   },
 
+  scripts: [
+    {
+      src: '/js/matomo.js',
+      async: true,
+    },
+  ],
   presets: [
     [
       'classic',
@@ -41,7 +47,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/vatesfr/xen-orchestra/tree/master/docs',
         },
         blog: false,
         theme: {
@@ -75,10 +81,10 @@ const config: Config = {
         {
           title: 'Docs',
           items: [
-            {
-              label: 'Tutorial',
-              to: '/docs/intro',
-            },
+            // {
+            //   label: 'Tutorial',
+            //   to: '/docs/intro',
+            // },
           ],
         },
         {
@@ -101,14 +107,14 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
+            // {
+            //   label: 'Blog',
+            //   to: '/blog',
+            // },
+            // {
+            //   label: 'GitHub',
+            //   href: 'https://github.com/facebook/docusaurus',
+            // },
           ],
         },
       ],

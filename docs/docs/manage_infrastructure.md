@@ -573,7 +573,7 @@ When you click on "Install all patches", XOA will do all of the following automa
 You can see [more screenshots here](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0).
 
 :::tip
-If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-xenserver-updates-and-patches).
+If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-updates-and-patches).
 :::
 
 #### Host updates

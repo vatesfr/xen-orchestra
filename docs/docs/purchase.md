@@ -10,7 +10,7 @@ You can buy XOA in multiple ways, depending on your needs. Click on the followin
 
 - [for your company (direct purchase)](purchase.md#direct-purchase)
 - [through your purchase department (purchaser)](purchase.md#via-your-purchase-departement)
-- [for your own client (reseller)](purchase.md#as-a-reseller)
+- [for your own client (reseller)](https://vates.tech/blog/empowering-partnerships-an-inside-look-at-vates-new-partner-program/)
 
 ## Direct purchase
 

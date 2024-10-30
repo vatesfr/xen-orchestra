@@ -73,7 +73,7 @@ You can now login through SSH with the `xoa` username and password you defined i
 
 First you will need to add a second VIF to your Proxy VM. This can be done in the Network tab of the VM in XOA.
 
-After adding the VIF you will need to set an IP for the new NIC, for that you will first need to SSH to the VM [as describe before](/proxy.md#enabling-login-to-proxy-appliance).
+After adding the VIF you will need to set an IP for the new NIC, for that you will first need to SSH to the VM [as describe before](#enabling-login-to-a-proxy-appliance).
 
 Then set the new IP:
 

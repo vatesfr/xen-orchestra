@@ -14,7 +14,7 @@ XOA (**X**en **O**rchestra virtual **A**ppliance) is the pre-installed VM with:
 - extra services (XO Hub, XO Recipies, Advanced metrics, XOSAN…)
 - secured system (sudo, firewall)
 
-It's really trivial to deploy it, as you can see [in the XOA install section](installation.html#xoa).
+It's really trivial to deploy it, as you can see [in the XOA install section](installation.md#xoa).
 
 :::tip
 In any case, we suggest that you try XOA first, regardless your future usage. It's the easiest way to test everything!

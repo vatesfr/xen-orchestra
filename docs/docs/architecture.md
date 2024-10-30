@@ -352,7 +352,7 @@ xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 Our web UI (`xo-web`) and CLI (`xo-cli`) both talk to `xo-server` via the same API. This API works in a kind of "connected mode", using JSON-RPC through websockets, in a way where we can subscribe to any events to always stay up-to-date on the client side.
 
 :::warning
-However, this API was initially meant to only be private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md#rest-api).
+However, this API was initially meant to only be private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md).
 :::
 
 If you need assistance on how to use it:

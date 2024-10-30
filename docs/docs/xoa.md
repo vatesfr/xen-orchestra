@@ -54,7 +54,7 @@ For use on huge infrastructure (more than 500+ VMs), feel free to increase the R
 
 ## Alternative install
 
-Please only use this if you have issues with [the default way to deploy XOA](installation.html#xoa).
+Please only use this if you have issues with [the default way to deploy XOA](installation#xoa).
 
 ### Via a bash script
 
