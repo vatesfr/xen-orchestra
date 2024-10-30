@@ -16,7 +16,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
-type ButtonAccent = 'brand' | 'success' | 'warning' | 'danger'
+type ButtonAccent = 'info' | 'success' | 'warning' | 'danger'
 type ButtonSize = 'small' | 'medium' | 'large'
 
 const props = withDefaults(
@@ -78,19 +78,19 @@ const classNames = computed(() => [
 
   /* ACCENT + VARIANT */
 
-  &.accent--brand {
+  &.accent--info {
     &.variant--primary {
       background-color: var(--color-normal-item-base);
       border-color: var(--color-normal-item-base);
       color: var(--color-normal-txt-item);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-normal-item-hover);
         border-color: var(--color-normal-item-hover);
         color: var(--color-normal-txt-item);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-normal-item-active);
         border-color: var(--color-normal-item-active);
         color: var(--color-normal-txt-item);
@@ -114,13 +114,13 @@ const classNames = computed(() => [
       border-color: var(--color-normal-item-base);
       color: var(--color-normal-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-normal-item-hover);
         color: var(--color-normal-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-normal-item-active);
         color: var(--color-normal-txt-active);
@@ -140,34 +140,32 @@ const classNames = computed(() => [
     }
 
     &.variant--tertiary {
-      &.accent--brand {
+      background-color: transparent;
+      border-color: transparent;
+      color: var(--color-normal-txt-base);
+
+      &:is(:hover, :focus-visible) {
+        background-color: var(--color-normal-background-hover);
+        border-color: var(--color-normal-background-hover);
+        color: var(--color-normal-txt-hover);
+      }
+
+      &:active {
+        background-color: var(--color-normal-background-active);
+        border-color: var(--color-normal-background-active);
+        color: var(--color-normal-txt-active);
+      }
+
+      &:is(:disabled, .disabled) {
         background-color: transparent;
         border-color: transparent;
+        color: var(--color-neutral-txt-secondary);
+      }
+
+      &.busy {
+        background-color: var(--color-normal-background-selected);
+        border-color: var(--color-normal-background-selected);
         color: var(--color-normal-txt-base);
-
-        &:is(:hover, .hover, :focus-visible) {
-          background-color: var(--color-normal-background-hover);
-          border-color: var(--color-normal-background-hover);
-          color: var(--color-normal-txt-hover);
-        }
-
-        &:is(:active, .pressed) {
-          background-color: var(--color-normal-background-active);
-          border-color: var(--color-normal-background-active);
-          color: var(--color-normal-txt-active);
-        }
-
-        &:is(:disabled, .disabled) {
-          background-color: transparent;
-          border-color: transparent;
-          color: var(--color-neutral-txt-secondary);
-        }
-
-        &.busy {
-          background-color: var(--color-normal-background-selected);
-          border-color: var(--color-normal-background-selected);
-          color: var(--color-normal-txt-base);
-        }
       }
     }
   }
@@ -178,13 +176,13 @@ const classNames = computed(() => [
       border-color: var(--color-success-item-base);
       color: var(--color-success-txt-item);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-success-item-hover);
         border-color: var(--color-success-item-hover);
         color: var(--color-success-txt-item);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-success-item-active);
         border-color: var(--color-success-item-active);
         color: var(--color-success-txt-item);
@@ -208,13 +206,13 @@ const classNames = computed(() => [
       border-color: var(--color-success-txt-base);
       color: var(--color-success-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-success-txt-hover);
         color: var(--color-success-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-success-txt-active);
         color: var(--color-success-txt-active);
@@ -238,13 +236,13 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-success-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-success-background-hover);
         border-color: var(--color-success-background-hover);
         color: var(--color-success-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-success-background-active);
         border-color: var(--color-success-background-active);
         color: var(--color-success-txt-active);
@@ -270,13 +268,13 @@ const classNames = computed(() => [
       border-color: var(--color-warning-item-base);
       color: var(--color-warning-txt-item);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-warning-item-hover);
         border-color: var(--color-warning-item-hover);
         color: var(--color-warning-txt-item);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-warning-item-active);
         border-color: var(--color-warning-item-active);
         color: var(--color-warning-txt-item);
@@ -300,13 +298,13 @@ const classNames = computed(() => [
       border-color: var(--color-warning-txt-base);
       color: var(--color-warning-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-warning-txt-hover);
         color: var(--color-warning-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-warning-txt-active);
         color: var(--color-warning-txt-active);
@@ -330,13 +328,13 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-warning-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-warning-background-hover);
         border-color: var(--color-warning-background-hover);
         color: var(--color-warning-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-warning-background-active);
         border-color: var(--color-warning-background-active);
         color: var(--color-warning-txt-active);
@@ -362,13 +360,13 @@ const classNames = computed(() => [
       border-color: var(--color-danger-item-base);
       color: var(--color-danger-txt-item);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-danger-item-hover);
         border-color: var(--color-danger-item-hover);
         color: var(--color-danger-txt-item);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-danger-item-active);
         border-color: var(--color-danger-item-active);
         color: var(--color-danger-txt-item);
@@ -392,13 +390,13 @@ const classNames = computed(() => [
       border-color: var(--color-danger-txt-base);
       color: var(--color-danger-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-danger-txt-hover);
         color: var(--color-danger-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-neutral-background-primary);
         border-color: var(--color-danger-txt-active);
         color: var(--color-danger-txt-active);
@@ -422,13 +420,13 @@ const classNames = computed(() => [
       border-color: transparent;
       color: var(--color-danger-txt-base);
 
-      &:is(:hover, .hover, :focus-visible) {
+      &:is(:hover, :focus-visible) {
         background-color: var(--color-danger-background-hover);
         border-color: var(--color-danger-background-hover);
         color: var(--color-danger-txt-hover);
       }
 
-      &:is(:active, .pressed) {
+      &:active {
         background-color: var(--color-danger-background-active);
         border-color: var(--color-danger-background-active);
         color: var(--color-danger-txt-active);

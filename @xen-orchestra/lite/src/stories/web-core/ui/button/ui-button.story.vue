@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('accent')
-        .type('ButtonColor')
+        .type('ButtonAccent')
         .enum('info', 'success', 'warning', 'danger')
         .preset('info')
         .required()
