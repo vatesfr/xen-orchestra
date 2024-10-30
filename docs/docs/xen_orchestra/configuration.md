@@ -6,7 +6,7 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 The configuration file is located at `/etc/xo-server/config.toml`.
 :::
 
-If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA dedicated section](xoa.md).
+If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA dedicated section](Support/xoa.md).
 
 ## User to run XO-server as
 
