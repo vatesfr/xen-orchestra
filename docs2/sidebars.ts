@@ -34,16 +34,16 @@ const sidebars: SidebarsConfig = {
 export default {
   docs: [
     {
+      type: 'doc',
+      id: 'intro',
+      label: 'Introduction',
+    },
+    {
       type: 'category',
       label: 'Xen Orchestra',
       collapsible: true,
       collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: 'xen_orchestra/intro',
-      },
       items: [
-        'xen_orchestra/intro',
         'xen_orchestra/releases',
         'xen_orchestra/supported_hosts',
         'xen_orchestra/installation',

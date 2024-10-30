@@ -1,3 +1,7 @@
+---
+slug: /
+---
+
 # Xen Orchestra in a nutshell
 
 ![](https://repository-images.githubusercontent.com/8077957/6dcf71fd-bad9-4bfa-933f-b466c52d513d)
