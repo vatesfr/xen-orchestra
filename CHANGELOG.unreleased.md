@@ -15,6 +15,7 @@
 - [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
   - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
 - [Settings/ACLs] Ability to filter objects by tags (PR [#8068](https://github.com/vatesfr/xen-orchestra/pull/8068))
+- [Netbox] Synchronize VM description and notes/comments (PR [#8083](https://github.com/vatesfr/xen-orchestra/pull/8083))
 
 ### Bug fixes
 
@@ -45,6 +46,7 @@
 - @xen-orchestra/xapi minor
 - xen-api minor
 - xo-server minor
+- xo-server-netbox minor
 - xo-web minor
 
 <!--packages-end-->
