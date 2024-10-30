@@ -29,7 +29,7 @@ You need to be logged in to make a purchase. If you don't have an account, pleas
 
 From your account page, click on the purchase menu, then select the edition you need:
 
-![](../assets/directpurchase.png)
+![](./assets/directpurchase.png)
 
 ### Purchase options
 
@@ -47,7 +47,7 @@ The second step is to select your purchase option:
 
 Then you need to fill in your information and select **"Buy for my own use"** (direct purchase)
 
-![](../assets/member_purchase_2.png)
+![](./assets/member_purchase_2.png)
 
 ### Billing information
 
@@ -58,7 +58,7 @@ If you are part of the Eurozone, you will need to provide a valid EU VAT number 
 Transactions outside the Eurozone are VAT free.
 :::
 
-![](../assets/billing_info.png)
+![](./assets/billing_info.png)
 
 ### Select your payment mode
 
@@ -68,7 +68,7 @@ Credit Card, Wire transfer or Bank check are the three payment methods available
 Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
 :::
 
-![](../assets/payment_mode.png)
+![](./assets/payment_mode.png)
 
 :::tip
 All required information for wire transfer and Check payment will be available in the last step of the payment AND on your proforma invoice.
@@ -88,17 +88,17 @@ Typically, you will provide two contacts:
 
 1. First of all, you need to create an account as a purchaser (eg: "purchase.dept@example.com"). Once it's done, you need to go inside the member page, in the **purchases** menu.
 
-![](../assets/purchase-menu.jpg)
+![](./assets/purchase-menu.jpg)
 
 Now, you just have to pick the edition of Xen Orchestra you want to purchase for your IT team.
 
 2. On the first payment screen, after you choose the plan and the subscription method. You can select the option "Buy for another account"
 
-![](../assets/member_purchase_2.png)
+![](./assets/member_purchase_2.png)
 
 3. Once the payment is completed, you will have to bind the plan with the end-user account (technical contact). If the end-user doesn't have an account yet, the system will create one and send an e-mail to your end user.
 
-![](../assets/bind-process.png)
+![](./assets/bind-process.png)
 
 That's it, you have now completed the purchase.
 
@@ -112,7 +112,7 @@ Invoices are available in PDF format. You can find them [in your account](https:
 
 Get in the "Invoices" tab:
 
-![](../assets/invoices.png)
+![](./assets/invoices.png)
 
 :::tip
 You can download your invoice in PDF format, by clicking in the "Export" row, on the invoice name with the PDF extension.
@@ -122,7 +122,7 @@ You can download your invoice in PDF format, by clicking in the "Export" row, on
 
 You can ask for an automatic quote on our website via the pricing page or directly from you personal account page.
 
-![button-quotation](../assets/quotation.png)
+![button-quotation](./assets/quotation.png)
 
 Choose the plan you want, the years of commitment that suits you, then fill out the information required (it should be prefilled with your account information).
 
@@ -132,7 +132,7 @@ If you want to purchase XO using the quote you receive, you just have to enter t
 
 If you choose a Stripe payment, you can always edit the credit card information in case it changes. To do so, you only have to login to your personal account page and access the _profile_ menu.
 
-![](../assets/updatecreditcard.png)
+![](./assets/updatecreditcard.png)
 
 ## Upgrade your plan
 
@@ -142,27 +142,27 @@ If you want to upgrade your active plan to a higher version of Xen Orchestra, yo
 
 1. Connect on your personal account on the [website](https://xen-orchestra.com/#!/login?source=member.index).
 
-![](../assets/upgradestep1.png)
+![](./assets/upgradestep1.png)
 
 2. Go on the purchase menu
 
-![](../assets/upgradestep2.png)
+![](./assets/upgradestep2.png)
 
 3. Pick the line corresponding to the account you want to upgrade. Click on the "upgrade" button on the right.
 
-![](../assets/upgradestep3.png)
+![](./assets/upgradestep3.png)
 
 4. At this point, you will see a standard subscription page. **Choose the same payment method you used to purchase the initial plan** and confirm the purchase.
 
-![](../assets/upgradestep4.png)
+![](./assets/upgradestep4.png)
 
 5. If you chosse wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
 
-![](../assets/upgradestep5.png)
+![](./assets/upgradestep5.png)
 
 6. As for a regular purchase, upload a proof of payment in order for us to activate your new plan as soon as possible.
 
-![](../assets/upgradestep6.png)
+![](./assets/upgradestep6.png)
 
 7. **Enjoy your new plan!**
 

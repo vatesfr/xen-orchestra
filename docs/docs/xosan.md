@@ -73,7 +73,7 @@ For a 6 nodes setup, XOSAN will use in total:
 - 12 GiB RAM
 - All Local LVM disk space
 
-![picture disperse](../assets/disperse6.png)
+![picture disperse](./assets/disperse6.png)
 
 ## XOSAN types
 
@@ -115,7 +115,7 @@ FIXME: this missing img link broke the markdown parser
 
 This is similar to **RAID5**: there is an [algorithm](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) that will generate a kind of parity, being able to continue to work even if 1 node is down. If you reintroduce the node, it will be "healed" automatically.
 
-![picture disperse 3](../assets/disperse3.png)
+![picture disperse 3](./assets/disperse3.png)
 
 If you lose one node, your data are still here. This mode will give you **66% of your total disk space**.
 
@@ -123,7 +123,7 @@ If you lose one node, your data are still here. This mode will give you **66% of
 
 Same than 3, like **RAID5**, you can lose 1 node without service interruption.
 
-![picture disperse 5](../assets/disperse5.png)
+![picture disperse 5](./assets/disperse5.png)
 
 In this case, you'll be able to use up to **80%** of your total storage capacity!
 
@@ -131,9 +131,9 @@ In this case, you'll be able to use up to **80%** of your total storage capacity
 
 It's very similar to **RAID6**. You can lose up to 2 nodes, it will continue to work in read and write.
 
-![picture disperse 6](../assets/disperse6.png)
+![picture disperse 6](./assets/disperse6.png)
 
-![disperse 6 with 2 nodes down](../assets/disperse6_2nodesoff.png)
+![disperse 6 with 2 nodes down](./assets/disperse6_2nodesoff.png)
 
 #### Growing a disperse XOSAN
 
@@ -142,7 +142,7 @@ You can grow a replicated XOSAN by adding extra disperse volumes, in other words
 - To grow a disperse 3, you need 3 new nodes. You'll add the total capacity of each disperse to make a distributed-disperse on 2x3 dispersed nodes.
 - To grow a disperse 6, you need 6 new nodes.
 
-![growing disperse](../assets/disperse3_grow.png)
+![growing disperse](./assets/disperse3_grow.png)
 
 ### Replicated type
 
@@ -162,7 +162,7 @@ Cons:
 
 This type is pretty simple to understand: everything written on one node is mirrored to another one. It's very similar to **RAID 1**.
 
-![picture replication](../assets/replicate2.png)
+![picture replication](./assets/replicate2.png)
 
 If you lose one node, your data are still here. This mode will give you **50% of your total disk space** (e.g with 2x nodes of 100GiB, you'll have only 100GiB of space).
 
@@ -170,7 +170,7 @@ If you lose one node, your data are still here. This mode will give you **50% of
 
 Same than 2-way, but data is replicated on 3 nodes in total.
 
-![picture triplication](../assets/replicate3.png)
+![picture triplication](./assets/replicate3.png)
 
 2 nodes can be destroyed without losing your data. This mode will give you **33% of your total disk space** (e.g with 3x nodes of 100GiB, you'll have only 100GiB of space).
 
@@ -178,7 +178,7 @@ Same than 2-way, but data is replicated on 3 nodes in total.
 
 If you have more than 2 or 3 nodes, it could be interesting to **distribute** data on multiple replicated nodes. This is called "**distributed-replicated**" type. Here is an example with 6 nodes:
 
-![picture distributed-replicated with 6 nodes](../assets/replicate3x2.png)
+![picture distributed-replicated with 6 nodes](./assets/replicate3x2.png)
 
 It's very similar to **RAID 10**. In this example, you'll have 300GiB of data usable.
 
@@ -207,7 +207,7 @@ The easiest way is to use 3-way replication. You can lose completely 2 hosts, it
 
 The usual deal is to create a "group" of 2 replicated nodes (2x2). In a picture:
 
-![2x2 replication](../assets/replicate2x2.png)
+![2x2 replication](./assets/replicate2x2.png)
 
 ##### 5 hosts
 
@@ -222,9 +222,9 @@ You have 2 choices:
 
 There is more fault tolerance on mode 2, but less space usable. It's up to you!
 
-![2x3 mode](../assets/replicate2x3_full.png)
+![2x3 mode](./assets/replicate2x3_full.png)
 
-![3x2 mode](../assets/replicate3x2_full.png)
+![3x2 mode](./assets/replicate3x2_full.png)
 
 #### Growing a replicated XOSAN
 
@@ -270,11 +270,11 @@ After the completion of all the requirements, you can install XOSAN itself.
 
 1. Go in your XOSAN panel in Xen Orchestra.
 
-![xosan-panel](../assets/xosan-panel.png)
+![xosan-panel](./assets/xosan-panel.png)
 
 2. Click on `new` and select the pool on which you want to create a shared cluster. Click on `install it now` to install the XOSAN package on every hosts in the pool.
 
-![xosan-package-install](../assets/xosan-package-install.png)
+![xosan-package-install](./assets/xosan-package-install.png)
 
 3. Select the PIF on which you want to create the XOSAN network.
 
@@ -282,13 +282,13 @@ After the completion of all the requirements, you can install XOSAN itself.
 
 > Note: you can only select on SR on each host. If you select SR with different size, the size of the cluster will be limited by the size of the smallest SR selected. We recommend you to use the same type of SR (SSD/HDD) and with the same size to avoid space loss
 
-![xosan-sr](../assets/xosan-sr.png)
+![xosan-sr](./assets/xosan-sr.png)
 
 5. Select the mode you want to use for your cluster: disperse or replicate.
 
 > We do not recommend the disperse mode for now. See [XOSAN types](https://xen-orchestra.com/docs/xosan_types.html) for additional information about modes.
 
-![xosan-mode](../assets/xosan-mode.png)
+![xosan-mode](./assets/xosan-mode.png)
 
 ### Advanced options
 
@@ -305,13 +305,13 @@ With the advanced option, you can:
 - increase the memory allocated to XOSAN
   > 2GiB is the minimum to allocate to XOSAN. You will get better result with 4GiB and if you have a lot of memory available, 8GiB is the best.
 
-![xosan-advanced](../assets/xosan-advanced.png)
+![xosan-advanced](./assets/xosan-advanced.png)
 
 Once you are ready, you can click on `Create`. XOSAN will automatically deploy itself and create the virtual shared storage you have selected.
 
 > The process can take a few minutes to complete.
 
-![xosan-creation-process](../assets/xosan-creation-process.png)
+![xosan-creation-process](./assets/xosan-creation-process.png)
 
 ## Try it
 
@@ -337,7 +337,7 @@ Register your XOA appliance
 
 Access the XOSAN menu and click on the "new" button. By default, your XOSAN will be a trial license, limited to 50GiB of space.
 
-![activate-trial-xosan](../assets/xosan_trial.png)
+![activate-trial-xosan](./assets/xosan_trial.png)
 
 :::tip
 You will always have the opportunity to upgrade an existing XOSAN cluster which is in trial version to a standard XOSAN license.

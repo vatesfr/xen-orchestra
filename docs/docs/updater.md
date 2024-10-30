@@ -20,27 +20,27 @@ The updater is configurable directly from the web interface, or via the CLI.
 
 The updater is available in the "Update" menu:
 
-![](../assets/xo5updatemenu.png)
+![](./assets/xo5updatemenu.png)
 
 You can see the yellow bell icon: it means your appliance is not registered. You **must register in order to have updates and a trial**.
 
-![](../assets/xo5updatetooltip.png)
+![](./assets/xo5updatetooltip.png)
 
 #### Register
 
 Updates and trials will be available as soon as you register your appliance. To register, use your https://xen-orchestra.com credentials you gave to download it previously (your email and your password):
 
-![](../assets/xo5register.png)
+![](./assets/xo5register.png)
 
 #### Check for new versions
 
 The updater will check for new versions periodically. A green tick in the menu means your version is up to date:
 
-![](../assets/xo5updatetooltipok.png)
+![](./assets/xo5updatetooltipok.png)
 
 However, if you want to start a manual check, you can do it by clicking on the "Update" button:
 
-![](../assets/xo5updatebutton.png)
+![](./assets/xo5updatebutton.png)
 
 ### Release channel
 
@@ -56,20 +56,20 @@ The latest channel will include all the latest improvements available in Xen Orc
 
 :::tip
 To select the release channel of your choice, go to the XOA > Updates view:
-![](../assets/release-channels.png)
+![](./assets/release-channels.png)
 :::
 
 ### Upgrade
 
 If a new version is found, you'll have an upgrade button and its tooltip displayed:
 
-![](../assets/xo5updatetooltipneedupdate.png)
+![](./assets/xo5updatetooltipneedupdate.png)
 
 ### Proxy configuration
 
 If you are behind a proxy, you can edit your proxy settings in this panel:
 
-![](../assets/xo5proxysettings.png)
+![](./assets/xo5proxysettings.png)
 
 ### From the CLI
 
@@ -136,10 +136,10 @@ Starting September 2023, XenServer Updates require authentication:
 
 3. Go to this URL: [https://support.citrix.com/xencenterclientiddownload](https://support.citrix.com/xencenterclientiddownload) and click "Download Client ID"
 
-![Download XenServer Client ID](../assets/xs-client-id-download.png)
+![Download XenServer Client ID](./assets/xs-client-id-download.png)
 
 4. In Xen Orchestra, go to your User Settings page (bottom left-hand corner) and upload the file `xencenter_client_id.json` you just downloaded from the "XenServer Client ID" section
 
-![Upload XenServer Client ID](../assets/xs-client-id-upload.png)
+![Upload XenServer Client ID](./assets/xs-client-id-upload.png)
 
 5. Go to a pool's "Patches" page. You can now install XenServer Updates. If you get a `LICENCE_RESTRICTION` error, it means that [you're missing XenServer licenses on your hosts](https://docs.xenserver.com/en-us/citrix-hypervisor/overview-licensing.html).

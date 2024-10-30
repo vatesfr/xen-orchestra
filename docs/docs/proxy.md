@@ -8,9 +8,9 @@ The most current situation in which you might wish to use a XO proxy are:
 
 ## Architecture
 
-![](../assets/withoutproxy.png)
+![](./assets/withoutproxy.png)
 
-![](../assets/withproxy.png)
+![](./assets/withproxy.png)
 
 ## Deployment
 
@@ -30,7 +30,7 @@ XO proxies require the following resources:
 
 1. Go to the proxies section of your appliance
 
-![](../assets/proxy-section.png)
+![](./assets/proxy-section.png)
 
 2. Deploy a proxy in your infrastructure
 

@@ -50,17 +50,17 @@ This is **only** if you need to make the initial copy without making the whole t
 
 Create the Incremental Replication backup job, and leave it disabled for now. On the main Backup page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the copy to clipboard button:
 
-![](../assets/cr-seed-1.png)
+![](./assets/cr-seed-1.png)
 
 Copy it somewhere temporarily. Now we need to also copy the ID of the job schedule, `backupScheduleId`. Do this by hovering over the schedule name in the same panel as before, and clicking the copy to clipboard button. Keep it with the `backupJobId` you copied previously as we will need them all later:
 
-![](../assets/cr-seed-2.png)
+![](./assets/cr-seed-2.png)
 
 ### Seed creation
 
 Manually create a snapshot on the VM being backed up, then copy this snapshot UUID, `snapshotUuid` from the snapshot panel of the VM:
 
-![](../assets/cr-seed-3.png)
+![](./assets/cr-seed-3.png)
 
 :::warning
 DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
@@ -72,7 +72,7 @@ Export this snapshot to a file, then import it on the target SR.
 
 We need to copy the UUID of this newly created VM as well, `targetVmUuid`:
 
-![](../assets/cr-seed-4.png)
+![](./assets/cr-seed-4.png)
 
 :::warning
 DO not start this VM or it will break the Incremental Replication job! You can rename this VM to more easily remember this.
@@ -127,4 +127,4 @@ In the situation where you need to failover to your destination host, you simply
 If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
 :::
 
-![](../assets/force-start.jpg)
+![](./assets/force-start.jpg)

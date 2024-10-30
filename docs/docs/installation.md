@@ -12,7 +12,7 @@ Log in to your account and use the deploy form [available on this page](https://
 All the deploy code is within your browser, nothing is sent to our server!
 :::
 
-![](../assets/deploy_form.png)
+![](./assets/deploy_form.png)
 
 ### First Login
 
@@ -39,25 +39,25 @@ We don't generate virtual appliances every month (unlike XO code itself). It's v
 
 In your current Free XOA, register it in the "Updates" view in the main menu:
 
-![](../assets/xo5updatemenu.png)
+![](./assets/xo5updatemenu.png)
 
 **To register your appliance, please use your email/password from your previous registration on xen-orchestra.com**:
 
-![](../assets/xo5register.png)
+![](./assets/xo5register.png)
 
 Then you can click on "Start Trial", the green button:
 
-![](../assets/xo5starttrial.png)
+![](./assets/xo5starttrial.png)
 
 Remember to click on the Upgrade button after requesting a trial - this will download the **Premium Edition** for 30 days!
 
-![](../assets/xo5updatebutton.png)
+![](./assets/xo5updatebutton.png)
 
 ### Trial availability
 
 In this update view, you can see when your trial will end:
 
-![](../assets/xo5trialend.png)
+![](./assets/xo5trialend.png)
 
 :::tip
 Don't worry! XOA will still work after the trial: you'll be forced to downgrade to Free version, but you won't lose any configuration data.

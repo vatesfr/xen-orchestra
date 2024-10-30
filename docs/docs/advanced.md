@@ -80,21 +80,21 @@ In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https:
 
 First, select your compatible template (CloudInit ready) and name it:
 
-![](../assets/cloud-init-1.png)
+![](./assets/cloud-init-1.png)
 
 Then, activate the config drive and insert your SSH key. Or you can also use a custom CloudInit configuration:
 
-![](../assets/cloud-init-2.png)
+![](./assets/cloud-init-2.png)
 
 > CloudInit configuration examples are [available here](http://cloudinit.readthedocs.org/en/latest/topics/examples.html).
 
 You can extend the disk size (**in this case, the template disk was 8 GiB originally**). We'll extend it to 20GiB:
 
-![](../assets/cloud-init-3.png)
+![](./assets/cloud-init-3.png)
 
 Finally, create the VM:
 
-![](../assets/cloud-init-4.png)
+![](./assets/cloud-init-4.png)
 
 Now start the VM and SSH to its IP:
 
@@ -242,7 +242,7 @@ The key idea is to be able to schedule any action (migrate, reboot etc.), for th
 
 In the main menu, go to the "Job Manager" section:
 
-![](../assets/jobmanager.png)
+![](./assets/jobmanager.png)
 
 You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configured in 2 steps:
 
@@ -251,19 +251,19 @@ You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configure
 
 Real example, step by step: **Creating a job called "security reboot"** (in this case, restarting "nfs" and "Core1" VMs):
 
-![](../assets/job_create.png)
+![](./assets/job_create.png)
 
 Note that you can execute this job **now** by clicking on the orange play button (to test it for instance):
 
-![](../assets/job_execute.png)
+![](./assets/job_execute.png)
 
 **Schedule the job** (every Sunday at 5:00 AM):
 
-![](../assets/schedule_job.png)
+![](./assets/schedule_job.png)
 
 And that's it! The job is listed in the Overview:
 
-![](../assets/schedule_recap.png)
+![](./assets/schedule_recap.png)
 
 The possibilities are infinite! You can schedule a **lot** of things (any actions on a VM, like migrate, start, clone, suspend etc. Same thing also applies to hosts).
 
@@ -297,18 +297,18 @@ If you have a UPS for your hosts, and lose power, you may have a limited amount 
 
 On the host view, clicking on this button will trigger the _Emergency Shutdown_ procedure:
 
-![](../assets/e-shutdown-1.png)
+![](./assets/e-shutdown-1.png)
 
 1.  **All running VMs will be suspended** (think of it like "hibernate" on your laptop: the RAM will be stored in the storage repository).
 2.  Only after this is complete, the host will be halted.
 
 Here, you can see the running VMs are being suspended:
 
-![](../assets/e-shutdown-2.png)
+![](./assets/e-shutdown-2.png)
 
 And finally, that's it. They are cleanly shut down with the RAM saved to disk to be resumed later:
 
-![](../assets/e-shutdown-3.png)
+![](./assets/e-shutdown-3.png)
 
 Now the host is halted automatically.
 
@@ -341,7 +341,7 @@ From there, you can even manage your existing resources with Terraform!
 
 Synchronize your pools, VMs, network interfaces and IP addresses with your [Netbox](https://docs.netbox.dev/en/stable/) instance.
 
-![](../assets/netbox.png)
+![](./assets/netbox.png)
 
 ## Supported versions
 
@@ -386,7 +386,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
       - Virtualization > virtual machine
       - Virtualization > interface
 
-![](../assets/netbox-permissions.png)
+![](./assets/netbox-permissions.png)
 
 - Create a Netbox user:
   - Go to Admin > Users > Add
@@ -411,7 +411,7 @@ For testing purposes, you can create an API token bound to a Netbox superuser ac
     - Virtualization > interface
   - Name it "uuid" (lower case!)
 
-![](../assets/customfield.png)
+![](./assets/customfield.png)
 
 :::tip
 In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields > Add custom field.

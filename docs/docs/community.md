@@ -10,7 +10,7 @@ If you installed your XO from a 3rd party script (any method outside [our offici
 
 With Xen Orchestra from the sources, you can check your current commit hash in the **About** section:
 
-![](../assets/commitversion.png)
+![](./assets/commitversion.png)
 
 :::tip
 You can compare this hash to the current commit list in [our GitHub repository](https://github.com/vatesfr/xen-orchestra/commits/master).

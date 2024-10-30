@@ -24,7 +24,7 @@ Logs are not "live" tasks. If you restart XOA during a backup, the log associate
 
 Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
 
-![](../assets/log-runId.png)
+![](./assets/log-runId.png)
 
 ## Exclude disks
 
@@ -127,11 +127,11 @@ Snapshots of Windows VMs can be quiesced (especially MS SQL or Exchange services
 
 To see if you have quiesced snapshots for a VM, just go into its snapshot tab, then the "info" icon means it is a quiesced snapshot:
 
-![](../assets/quiesced1.png)
+![](./assets/quiesced1.png)
 
 The tooltip confirms this:
 
-![](../assets/quiesced2.png)
+![](./assets/quiesced2.png)
 
 ## Remotes
 
@@ -169,7 +169,7 @@ Also, read the UI twice when you add an SMB store. If you have:
 
 You'll have to fill it like this:
 
-![](../assets/smb_fill.png)
+![](./assets/smb_fill.png)
 
 :::warning
 PATH TO BACKUP is only needed if you have subfolders in your share.
@@ -266,8 +266,8 @@ This way, without modifying your previous scheduled snapshot, they will be writt
 
 Replicated VMs HA are taken into account by XCP-ng. To avoid the resultant troubles, HA will be disabled from the replicated VMs and a tag indicating this change will be added.
 
-![](../assets/disabled-dr-ha-tag.png)
-![](../assets/disabled-cr-ha-tag.png)
+![](./assets/disabled-dr-ha-tag.png)
+![](./assets/disabled-cr-ha-tag.png)
 
 :::tip
 The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.
@@ -406,7 +406,7 @@ An example in bash is shown in `@xen-orchestra/backups/docs/healtcheck example/w
 
 Go to backup > restore and click on the tick to launch a health check.
 
-![](../assets/restorehealthcheck.png)
+![](./assets/restorehealthcheck.png)
 
 Then, you will select the backup to be checked and a destination SR, which must have enough space for the full restore.
 
@@ -416,7 +416,7 @@ Go to Backup > overview > edit.
 
 Then edit the schedule and check the healthcheck box.
 
-![](../assets/scheduled_healthcheck.png)
+![](./assets/scheduled_healthcheck.png)
 
 You will then need to select the SR used, which must have enough space to restore the VMs. Healthcheck will be done after each VM backup, before starting the next one.
 

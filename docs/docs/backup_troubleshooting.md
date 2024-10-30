@@ -6,7 +6,7 @@ This section is dedicated to help you if you have problems with XO Backups.
 
 While a backup job is running, you should see activity in the "Tasks" view (Menu/Tasks), like this:
 
-![](../assets/export_task.png)
+![](./assets/export_task.png)
 
 Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
 
