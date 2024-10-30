@@ -1,3 +1,6 @@
+---
+slug: backup
+---
 # Introduction to backups
 
 Xen Orchestra is currently the most capable and advanced solution to backup your VMs/infrastructure. There's many ways and solutions to achieve what you need, take time to read them all. Take a look on the [concept section](backups.md) to learn more about how it works.

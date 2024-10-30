@@ -1,3 +1,6 @@
+---
+slug: support
+---
 # Introduction to Support
 
 :::tip

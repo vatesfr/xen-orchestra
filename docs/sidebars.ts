@@ -59,10 +59,6 @@ export default {
       label: 'Management',
       collapsible: true,
       collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: 'manage',
-      },
       items: [
         'manage',
         'manage_infrastructure',
@@ -79,10 +75,6 @@ export default {
       label: 'Backups',
       collapsible: true,
       collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: 'intro_backup',
-      },
       items: [
         'intro_backup',
         'backups',
@@ -103,10 +95,6 @@ export default {
       label: 'Support',
       collapsible: true,
       collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: 'intro_support',
-      },
       items: [
         'intro_support',
         'xoa',
@@ -120,10 +108,6 @@ export default {
       label: 'Project',
       collapsible: true,
       collapsed: true,
-      link: {
-        type: 'generated-index',
-        slug: 'intro_project',
-      },
       items: [
         'intro_project',
         {
