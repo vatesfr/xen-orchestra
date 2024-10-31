@@ -1,16 +1,22 @@
 # ChangeLog
 
-## **next**
+## **5.100.0** (2024-10-31)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
 
 - [REST API] Ability to generate an authentication token via `POST /rest/v0/users/authentication_tokens` (using Basic Authentication) (PR [#8065](https://github.com/vatesfr/xen-orchestra/pull/8065))
 - [Home/VMs] Ability to filter by MAC address (don't forget quotes: `"70:1A:83:62:90:D0"`)
 - [REST API] Ability to pass a cloud configuration when creating VM (For Cloud-Init template) (PR [#8070](https://github.com/vatesfr/xen-orchestra/pull/8070))
-- [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
-  - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
+- [V2V] Fix failing transfer at the power off phase (PR [#7839](https://github.com/vatesfr/xen-orchestra/pull/7839))
 - [Settings/ACLs] Ability to filter objects by tags (PR [#8068](https://github.com/vatesfr/xen-orchestra/pull/8068))
 - [Netbox] Synchronize VM description and notes/comments (PR [#8083](https://github.com/vatesfr/xen-orchestra/pull/8083))
+
+### Enhancements
+
+- [New/VM] cloud-init template variable `%` is replaced by `{index}` to avoid interfering with [Jinja templating](https://jinja.palletsprojects.com/) [Forum#84696](https://xcp-ng.org/forum/post/84696)
+  - To avoid breaking existing workflows, `%` still works when _Multiple VMs_ is enabled but is deprecated.
 
 ### Bug fixes
 
@@ -24,7 +30,6 @@
 - [Backup] fix VDI_INCOMPATIBLE_TYPE error (PR [#8043](https://github.com/vatesfr/xen-orchestra/pull/8043))
 - [Backups] Fix handling of alias without vhd in cleanVm (PR [#8053](https://github.com/vatesfr/xen-orchestra/pull/8053))
 - [Backup] keep only one snapshot for all the schedules when snapshot retention is zero (PR [#8051](https://github.com/vatesfr/xen-orchestra/pull/8051))
-- [V2V] Fix failing transfer at the power off phase (PR [#7839](https://github.com/vatesfr/xen-orchestra/pull/7839))
 - [Backup/Restore] Fix differential restore with purge snapshot (PR [#8082](https://github.com/vatesfr/xen-orchestra/pull/8082))
 - [Remotes] Fix NFS remote encryption "ENOENT metadata.json" error (PR [#8081](https://github.com/vatesfr/xen-orchestra/pull/8081))
 
@@ -66,7 +71,7 @@
 
 ## **5.99.1** (2024-10-04)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -141,8 +146,6 @@
 - xo-web 5.157.1
 
 ## **5.98.1** (2024-09-10)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
