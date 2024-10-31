@@ -9,7 +9,7 @@ import { parseProp } from './utils.mjs'
 export class Users extends Collection {
   async _beforeAdd({ email }) {
     if (await this.exists({ email })) {
-      throw new Error('duplicate email: ' + email)
+      throw new Error(`the user ${email} already exists`)
     }
   }
 
