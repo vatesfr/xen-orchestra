@@ -35,6 +35,16 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
+  // Called before a new model is added
+  //
+  // If throws, the add operation is aborted
+  async _beforeAdd(record) {}
+
+  // Called before a model is updated
+  //
+  // If throws, the update operation is aborted
+  async _beforeUpdate(record, previous) {}
+
   // Prepare a record before storing in the database
   //
   // Input object can be mutated or a new one returned
@@ -44,11 +54,6 @@ export default class Redis extends Collection {
   //
   // Input object can be mutated or a new one returned
   _unserialize(record) {}
-
-  // called
-  async _beforeAdd(record) {}
-
-  async _beforeUpdate(record, previous) {}
 
   constructor({ connection, indexes = [], namespace }) {
     super()
