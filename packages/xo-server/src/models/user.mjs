@@ -35,7 +35,7 @@ export class Users extends Collection {
     return /* await */ this.add(properties)
   }
 
-  async update(properties) {
+  async modify(properties) {
     const { id, email } = properties
 
     const currentUser = await this.first({ id })
