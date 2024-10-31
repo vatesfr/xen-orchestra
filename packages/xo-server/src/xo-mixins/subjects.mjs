@@ -29,6 +29,7 @@ export default class {
       const groupsDb = (this._groups = new Groups({
         connection: redis,
         namespace: 'group',
+        indexes: ['name'],
       }))
       const usersDb = (this._users = new Users({
         connection: redis,
@@ -334,7 +335,7 @@ export default class {
   // -----------------------------------------------------------------
 
   createGroup({ name, provider, providerGroupId }) {
-    return this._groups.create(name, provider, providerGroupId)
+    return this._groups.add({ name, provider, providerGroupId })
   }
 
   async deleteGroup(id) {
