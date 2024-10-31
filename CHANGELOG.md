@@ -60,9 +60,9 @@
 - @xen-orchestra/vmware-explorer 0.8.5
 - @xen-orchestra/web 0.3.1
 - xo-cli 0.32.1
-- xo-server 5.159.0
 - xo-server-netbox 1.7.0
 - xo-web 5.159.0
+- xo-server 5.159.1
 
 ## **5.99.1** (2024-10-04)
 
