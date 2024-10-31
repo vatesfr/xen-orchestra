@@ -69,7 +69,7 @@ const config: Config = {
       },
       items: [
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/vatesfr/xen-orchestra',
           label: 'GitHub',
           position: 'right',
         },
