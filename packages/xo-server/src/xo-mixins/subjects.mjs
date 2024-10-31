@@ -83,7 +83,7 @@ export default class {
       properties.pw_hash = await hash(password)
     }
 
-    return this._users.create(properties)
+    return this._users.add(properties)
   }
 
   async deleteUser(id) {

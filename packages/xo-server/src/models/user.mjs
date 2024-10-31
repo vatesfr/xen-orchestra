@@ -7,6 +7,18 @@ import { parseProp } from './utils.mjs'
 // ===================================================================
 
 export class Users extends Collection {
+  async _beforeAdd({ email }) {
+    if (await this.exists({ email })) {
+      throw new Error(`the user ${email} already exists`)
+    }
+  }
+
+  _beforeUpdate(user, previous) {
+    if (user.email !== previous.email) {
+      return this._beforeAdd(user)
+    }
+  }
+
   _serialize(user) {
     let tmp
     user.authProviders = isEmpty((tmp = user.authProviders)) ? undefined : JSON.stringify(tmp)
@@ -21,27 +33,5 @@ export class Users extends Collection {
     user.authProviders = parseProp('user', user, 'authProviders', undefined)
     user.groups = parseProp('user', user, 'groups', [])
     user.preferences = parseProp('user', user, 'preferences', {})
-  }
-
-  async create(properties) {
-    const { email } = properties
-
-    // Avoid duplicates.
-    if (await this.exists({ email })) {
-      throw new Error(`the user ${email} already exists`)
-    }
-
-    // Adds the user to the collection.
-    return /* await */ this.add(properties)
-  }
-
-  async update(properties) {
-    const { email } = properties
-
-    if (await this.exists({ email })) {
-      throw new Error(`the user ${email} already exists`)
-    }
-
-    return super.update(properties)
   }
 }

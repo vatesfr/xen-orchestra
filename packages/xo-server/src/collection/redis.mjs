@@ -35,6 +35,16 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
+  // Called before a new model is added
+  //
+  // If throws, the add operation is aborted
+  async _beforeAdd(record) {}
+
+  // Called before a model is updated
+  //
+  // If throws, the update operation is aborted
+  async _beforeUpdate(record, previous) {}
+
   // Prepare a record before storing in the database
   //
   // Input object can be mutated or a new one returned
@@ -142,9 +152,6 @@ export default class Redis extends Collection {
         // don't mutate param
         model = JSON.parse(JSON.stringify(model))
 
-        // allow specific serialization
-        model = this._serialize(model) ?? model
-
         // Generate a new identifier if necessary.
         let { id } = model
         if (id === undefined) {
@@ -156,14 +163,23 @@ export default class Redis extends Collection {
 
         const newEntry = await redis.sAdd(prefix + '_ids', id)
 
-        if (!newEntry) {
+        if (newEntry) {
+          try {
+            await this._beforeAdd(model)
+          } catch (error) {
+            await redis.sRem(prefix + '_ids', id)
+            throw error
+          }
+        } else {
           if (!replace) {
             throw new ModelAlreadyExists(id)
           }
 
+          const previous = await this.#get(`${prefix}:${id}`)
+          await this._beforeUpdate(model, this._unserialize(previous) ?? previous)
+
           // remove the previous values from indexes
           if (indexes.length !== 0) {
-            const previous = await this.#get(`${prefix}:${id}`)
             await asyncMapSettled(indexes, index => {
               const value = previous[index]
               if (value !== undefined) {
@@ -172,6 +188,9 @@ export default class Redis extends Collection {
             })
           }
         }
+
+        // allow specific serialization
+        model = this._serialize(model) ?? model
 
         const key = `${prefix}:${id}`
         const promises = [redis.del(key), redis.set(key, JSON.stringify(model))]
