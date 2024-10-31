@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.5.0** (2024-10-31)
 
 - Handle IPv6 hosts (PR [#8044](https://github.com/vatesfr/xen-orchestra/pull/8044))
 - [XOA deploy] Configure custom NTP servers (PR [#8059](https://github.com/vatesfr/xen-orchestra/pull/8059))
