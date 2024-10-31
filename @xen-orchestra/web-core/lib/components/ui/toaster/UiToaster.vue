@@ -1,7 +1,7 @@
 <template>
   <div :class="toasterClass" class="ui-toaster">
     <div class="label">
-      <VtsIcon class="icon" :accent="props.accent" :icon="faCircle" :overlay-icon="icon" />
+      <VtsIcon class="information-icon" :accent="props.accent" :icon="faCircle" :overlay-icon="icon" />
       <div class="content">
         <div class="typo h5-semi-bold">
           <slot />
@@ -10,7 +10,7 @@
           <slot name="description" />
         </div>
       </div>
-      <UiButton class="close-icon" level="tertiary" :color="props.accent" size="medium" :left-icon="faXmark" />
+      <UiButtonIcon class="close-icon" :icon="faXmark" :color="props.accent" />
     </div>
     <div v-if="slots.actions" class="actions">
       <slot name="actions" />
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButtonIcon from '@core/components/button/ButtonIcon.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark, faCheck, faCircle, faInfo, faExclamation } from '@fortawesome/free-solid-svg-icons'
@@ -37,7 +37,7 @@ const slots = defineSlots<{
 
 type Color = 'brand' | 'success' | 'warning' | 'danger'
 
-const states: Record<Color, { icon: IconDefinition; color: 'brand' | 'success' | 'warning' | 'danger' }> = {
+const states: Record<Color, { icon: IconDefinition; color: Color }> = {
   brand: { icon: faInfo, color: 'brand' },
   success: { icon: faCheck, color: 'success' },
   warning: { icon: faExclamation, color: 'warning' },
@@ -62,28 +62,20 @@ const toasterClass = computed(() => {
 
   .label {
     display: flex;
-    justify-items: center;
 
-    .icon {
+    .information-icon {
       margin-bottom: auto;
       font-size: 2.7rem;
-      padding-right: 8px;
+      padding-right: 1.6rem;
     }
 
     .close-icon {
       margin-left: auto;
     }
-
-    .content {
-      display: flex;
-      flex-direction: column;
-    }
   }
 
   .actions {
-    color: var(--color-normal-txt-base);
-    display: flex;
-    justify-content: flex-end;
+    margin-inline-start: auto;
   }
 
   &.brand {
