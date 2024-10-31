@@ -62,17 +62,12 @@ const config: Config = {
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'Xen Orchestra Documentation',
-      logo: {
-        alt: 'Xen Orchestra logo',
-        src: 'img/logo.png',
-        href:'/',
-      },
+      logo: { alt: 'Xen Orchestra logo',src: 'img/logo.png', href:'/'},
       items: [
-        {
-          href: 'https://github.com/vatesfr/xen-orchestra',
-          label: 'GitHub',
-          position: 'right',
-        },
+        {href: 'https://xen-orchestra.com', label: 'Home', position: 'right'},
+        {href: 'https://xen-orchestra.com/blog/', label: 'Blog', position: 'right'},
+        {href: '/', label: 'Documentation', position: 'right'},
+        {href: 'https://github.com/vatesfr/xen-orchestra', label: 'GitHub', position: 'right'},
       ],
     },
     footer: {
