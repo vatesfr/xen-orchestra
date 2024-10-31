@@ -4,8 +4,8 @@
     :params="[
       prop('accent')
         .type('ToasterColor')
-        .enum('brand', 'success', 'warning', 'danger')
-        .preset('brand')
+        .enum('normal', 'success', 'warning', 'danger')
+        .preset('normal')
         .required()
         .widget(),
       prop('actionType').type('Type').enum('button', 'link').preset('button').required().widget(),

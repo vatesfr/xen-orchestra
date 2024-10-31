@@ -35,10 +35,10 @@ const slots = defineSlots<{
   actions?(): any
 }>()
 
-type Color = 'brand' | 'success' | 'warning' | 'danger'
+type Color = 'normal' | 'success' | 'warning' | 'danger'
 
 const states: Record<Color, { icon: IconDefinition; color: Color }> = {
-  brand: { icon: faInfo, color: 'brand' },
+  normal: { icon: faInfo, color: 'normal' },
   success: { icon: faCheck, color: 'success' },
   warning: { icon: faExclamation, color: 'warning' },
   danger: { icon: faXmark, color: 'danger' },
@@ -78,7 +78,7 @@ const toasterClass = computed(() => {
     margin-inline-start: auto;
   }
 
-  &.brand {
+  &.normal {
     background-color: var(--color-normal-background-selected);
     border-color: var(--color-normal-item-base);
   }
