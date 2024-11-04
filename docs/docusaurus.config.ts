@@ -83,7 +83,7 @@ const config: Config = {
             },
             {
               label: 'Installation',
-              href: '/docs/installation',
+              href: '/docs2/installation',
             },
           ],
         },
