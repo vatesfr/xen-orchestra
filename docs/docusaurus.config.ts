@@ -10,10 +10,10 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://xen-orchestra.com/docs/',
+  url: 'https://xen-orchestra.com/',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/docs',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -75,46 +75,59 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Learn',
           items: [
-            // {
-            //   label: 'Tutorial',
-            //   to: '/docs/intro',
-            // },
+            {
+              label: 'Introduction',
+              href: '/',
+            },
+            {
+              label: 'Installation',
+              href: '/docs/installation',
+            },
           ],
         },
         {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Forum',
+              href: 'https://xcp-ng.org/forum',
             },
             {
               label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
+              href: 'https://discord.gg/Hr98F6wRvx',
+            },
+          ],
+        },
+        {
+          title: 'Pro Support',
+          items: [
+            {
+              label: 'Vates Stack',
+              href: 'https://vates.tech',
             },
             {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              label: 'Contact us',
+              href: 'https://vates.tech/contact',
             },
           ],
         },
         {
           title: 'More',
           items: [
-            // {
-            //   label: 'Blog',
-            //   to: '/blog',
-            // },
-            // {
-            //   label: 'GitHub',
-            //   href: 'https://github.com/facebook/docusaurus',
-            // },
+            {
+              label: 'News',
+              href: 'https://xen-orchestra.com/blog/',
+            },
+            {
+              label: 'GitHub',
+              href: 'https://github.com/facebook/docusaurus',
+            },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} XCP-ng Project, Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
