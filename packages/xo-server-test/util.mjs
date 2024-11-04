@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import find from 'lodash/find.js'
 import forEach from 'lodash/forEach.js'
 import map from 'lodash/map.js'
+import { connect } from './connect.mjs'
 
 export const rejectionOf = promise =>
   promise.then(
@@ -15,6 +16,14 @@ export const rejectionOf = promise =>
   )
 
 // =================================================================
+
+export function getConfig() {
+  return config
+}
+
+export async function getMainConnection() {
+  return await connect('http://localhost:8000');
+}
 
 async function getAllUsers(xo) {
   return xo.call('user.getAll')
