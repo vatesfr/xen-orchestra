@@ -35,8 +35,8 @@
 <script lang="ts" setup>
 import UiButton from '@core/components/button/UiButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiInput from '@core/components/input/UiInput.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
