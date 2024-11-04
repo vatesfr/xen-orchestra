@@ -11,7 +11,7 @@
       prop('actionType').type('Type').enum('button', 'link').preset('button').required().widget(),
       setting('label').widget(text()).preset('Migration successful!'),
       setting('description').widget(text()).preset('All went well. 3 VMs have been successfully migrate.'),
-      setting('actions').widget(text()).preset('See tasks'),
+      setting('actions').widget(text()).preset('Label'),
     ]"
   >
     <UiToaster v-bind="properties">
@@ -26,7 +26,7 @@
         >
           {{ settings.actions }}
         </UiButton>
-        <ObjectLink v-else class="typo p1-regular" route="#">See tasks</ObjectLink>
+        <ObjectLink v-else class="link typo p1-regular" route="#">See tasks</ObjectLink>
       </template>
     </UiToaster>
   </ComponentStory>
@@ -40,3 +40,10 @@ import UiButton from '@core/components/button/UiButton.vue'
 import ObjectLink from '@core/components/object-link/ObjectLink.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 </script>
+
+<style lang="postcss" scoped>
+.link {
+  gap: 0 !important;
+}
+</style>
+/
