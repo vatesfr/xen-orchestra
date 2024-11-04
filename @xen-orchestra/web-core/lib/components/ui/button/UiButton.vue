@@ -3,7 +3,7 @@
   <button :class="classNames" :disabled="busy || isDisabled" class="ui-button" type="button">
     <VtsIcon :busy :icon="leftIcon" accent="current" class="icon" fixed-width />
     <slot />
-    <VtsIcon :icon="rightIcon" accent="current" class="icon" fixed-width />
+    <VtsIcon :icon="lockIcon" accent="current" class="icon" fixed-width />
   </button>
 </template>
 
@@ -27,7 +27,7 @@ const props = withDefaults(
     busy?: boolean
     disabled?: boolean
     leftIcon?: IconDefinition
-    rightIcon?: IconDefinition
+    lockIcon?: IconDefinition
   }>(),
   {
     disabled: undefined,
