@@ -32,7 +32,7 @@ export default class MultiNbdClient {
    * it tries to spread connections on multiple host
    */
   async connect() {
-    let candidates = [...this.#settings]
+    const candidates = [...this.#settings]
 
     const baseOptions = this.#options
     const _connect = async () => {
@@ -48,8 +48,6 @@ export default class MultiNbdClient {
       try {
         await client.connect()
         this.#clients.push(client)
-        // xapi don't like to have connection to multiple hosts
-        candidates = [nbdInfo]
       } catch (err) {
         client.disconnect().catch(() => {})
         // do not hammer unreachable hosts, once failed, remove from the list
@@ -64,11 +62,11 @@ export default class MultiNbdClient {
         return _connect()
       }
     }
-
-    while (this.#clients.length < this.#nbdConcurrency && candidates.length > 0) {
+    // don't connect in parallel since this can lead to erace condition
+    // on distritbuted systems ( like the NBD sevrer of the XAPI)
+    for (let i = 0; i < this.#nbdConcurrency; i++) {
       await _connect()
     }
-
     if (this.#clients.length === 0) {
       throw new Error(`Fail to connect to any Nbd client`)
     }
