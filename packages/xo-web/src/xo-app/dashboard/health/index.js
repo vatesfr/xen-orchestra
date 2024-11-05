@@ -515,7 +515,7 @@ const ALARM_ACTIONS = [
   },
 ]
 
-const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral', 'pvs_cache'])
+const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
 
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
