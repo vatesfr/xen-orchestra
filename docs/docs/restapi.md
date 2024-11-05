@@ -61,7 +61,7 @@ The following query parameters are supported:
 - `limit`: max number of objects returned
 - `fields`: if specified, instead of plain URLs, the results will be objects containing the requested fields
 - `filter`: a string that will be used to select only matching objects, see [the syntax documentation](manage_infrastructure.md#live-filter-search)
-- `ndjson`: if specified, the result will be in [NDJSON format](http://ndjson.org/)
+- `ndjson`: if specified, the result will be in [NDJSON format](https://github.com/ndjson/ndjson-spec)
 
 Simple request:
 
