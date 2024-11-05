@@ -8,7 +8,7 @@ const config: Config = {
   title: 'Xen Orchestra | XO Documentation',
   tagline: 'Discover how to use Xen Orchestra',
   favicon: 'img/favicon.ico',
-
+  trailingSlash: false,
   // Set the production url of your site here
   url: 'https://docs.xen-orchestra.com/',
   // Set the /<baseUrl>/ pathname under which your site is served
