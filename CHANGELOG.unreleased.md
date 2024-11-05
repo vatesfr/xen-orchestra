@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Dashboard/Health] Do not count `PVs cachi VDI` in orphan VDIs (PR [#8039](https://github.com/vatesfr/xen-orchestra/pull/8039))
+- [Dashboard/Health] Do not count PVS cache VDI as orphan VDIs (PR [#8039](https://github.com/vatesfr/xen-orchestra/pull/8039))
 
 ### Bug fixes
 
