@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Dashboard/Health] Do not count `PVs cachi VDI` in orphan VDIs (PR [#8039](https://github.com/vatesfr/xen-orchestra/pull/8039))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/log minor
+- xo-web minor
 
 <!--packages-end-->
