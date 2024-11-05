@@ -12,15 +12,15 @@
       </thead>
       <tbody>
         <tr v-for="vm in vms" :key="vm.id">
-          <CellObject :id="vm.data.id">
+          <VtsCellObject :id="vm.data.id">
             <UiObjectLink :route="`/vm/${vm.data.id}/console`">
               <template #icon>
                 <UiObjectIcon size="medium" :state="vm.data.power_state.toLocaleLowerCase() as VmState" type="vm" />
               </template>
               {{ vm.data.name_label }}
             </UiObjectLink>
-          </CellObject>
-          <CellText>{{ vm.data.name_description }}</CellText>
+          </VtsCellObject>
+          <VtsCellText>{{ vm.data.name_description }}</VtsCellText>
         </tr>
       </tbody>
     </VtsTable>
@@ -31,8 +31,8 @@
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { VmState } from '@core/types/object-icon.type'
-import CellObject from '@core/components/cell-object/CellObject.vue'
-import CellText from '@core/components/cell-text/CellText.vue'
+import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
+import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

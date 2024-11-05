@@ -2,7 +2,7 @@
   <div>
     <img alt="" src="../assets/object-not-found.svg" />
     <p class="text">{{ $t('object-not-found', { id }) }}</p>
-    <UiButton size="medium" color="info" level="primary" @click="router.push({ name: 'home' })">
+    <UiButton size="medium" color="normal" level="primary" @click="router.push({ name: 'home' })">
       {{ $t('back-pool-dashboard') }}
     </UiButton>
   </div>

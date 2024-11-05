@@ -1,6 +1,6 @@
-<!-- v1.0 -->
+<!-- WIP -->
 <template>
-  <td class="cell-object">
+  <td class="vts-cell-object">
     <div class="data">
       <slot />
       <template v-if="id !== undefined">
@@ -12,7 +12,7 @@
           :left-icon="faCopy"
           level="secondary"
           size="small"
-          :color="copied ? 'success' : 'info'"
+          :color="copied ? 'success' : 'normal'"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}
@@ -37,18 +37,18 @@ const { isSupported, copy, copied } = useClipboard()
 </script>
 
 <style lang="postcss" scoped>
-.cell-object {
+.vts-cell-object {
   padding: 0.8rem;
   border: 0.1rem solid var(--color-neutral-border);
-}
 
-.data {
-  display: flex;
-  gap: 1.6rem;
-  align-items: center;
-}
+  .data {
+    display: flex;
+    gap: 1.6rem;
+    align-items: center;
+  }
 
-.id {
-  color: var(--color-neutral-txt-secondary);
+  .id {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>

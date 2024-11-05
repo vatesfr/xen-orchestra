@@ -2,7 +2,12 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('color').type('ButtonColor').enum('info', 'success', 'warning', 'danger').preset('info').required().widget(),
+      prop('color')
+        .type('ButtonColor')
+        .enum('normal', 'success', 'warning', 'danger')
+        .preset('normal')
+        .required()
+        .widget(),
       prop('level')
         .type('ButtonVariant')
         .enum('primary', 'secondary', 'tertiary')

@@ -1,11 +1,10 @@
-<!-- v2 -->
-<!-- TODO: add focus interaction to bump to v3 -->
+<!-- v3 -->
 <template>
   <RouterLink v-if="route && !disabled" :to="route" class="ui-user-link is-link typo p3-regular-underline">
     <UiUserLogo size="extra-small" class="logo" />
     {{ username }}
   </RouterLink>
-  <span v-else :class="toVariants({ muted: disabled })" class="ui-user-link typo p3-regular-underline">
+  <span v-else :class="toVariants({ disabled })" class="ui-user-link typo p3-regular-underline">
     <UiUserLogo size="extra-small" class="logo" />
     {{ username }}
   </span>
@@ -30,14 +29,14 @@ defineProps<{
   color: var(--color-info-txt-base);
   gap: 0.8rem;
 
-  &.muted {
+  &.disabled {
     cursor: not-allowed;
   }
 
   /* INTERACTION VARIANTS */
 
   &.is-link {
-    &:is(:hover, :focus-visible) {
+    &:hover {
       color: var(--color-info-txt-hover);
 
       .logo {
@@ -52,9 +51,21 @@ defineProps<{
         border-color: var(--color-info-txt-active);
       }
     }
+
+    &:focus-visible {
+      outline: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -0.6rem;
+        border: 0.2rem solid var(--color-info-txt-base);
+        border-radius: 0.4rem;
+      }
+    }
   }
 
-  &.muted {
+  &.disabled {
     color: var(--color-neutral-txt-secondary);
 
     .logo {

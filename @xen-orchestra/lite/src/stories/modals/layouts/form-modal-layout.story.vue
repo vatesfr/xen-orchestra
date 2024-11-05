@@ -23,8 +23,8 @@
       </div>
 
       <template #buttons>
-        <UiButton level="secondary" color="info" size="medium">Cancel</UiButton>
-        <UiButton level="primary" color="info" size="medium">Migrate 3 VMs</UiButton>
+        <UiButton level="secondary" color="normal" size="medium">Cancel</UiButton>
+        <UiButton level="primary" color="normal" size="medium">Migrate 3 VMs</UiButton>
       </template>
     </FormModalLayout>
   </ComponentStory>

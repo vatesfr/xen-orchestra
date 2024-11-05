@@ -57,7 +57,7 @@ const className = computed(() => {
 /* COLOR VARIANTS */
 .ui-button {
   &.primary {
-    &.info {
+    &.normal {
       --background-color: var(--color-info-item-base);
       --border-color: var(--color-info-item-base);
       --color: var(--color-info-txt-item);
@@ -179,7 +179,7 @@ const className = computed(() => {
   }
 
   &.secondary {
-    &.info {
+    &.normal {
       --background-color: var(--color-neutral-background-primary);
       --border-color: var(--color-info-item-base);
       --color: var(--color-info-txt-base);
@@ -301,7 +301,7 @@ const className = computed(() => {
   }
 
   &.tertiary {
-    &.info {
+    &.normal {
       --background-color: transparent;
       --border-color: transparent;
       --color: var(--color-info-txt-base);

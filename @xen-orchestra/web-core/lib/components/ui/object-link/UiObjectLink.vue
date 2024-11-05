@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <RouterLink v-if="route && !disabled" :to="route" class="ui-object-link is-link typo p3-regular-underline">
     <span class="icon">
@@ -10,7 +10,7 @@
       <slot />
     </span>
   </RouterLink>
-  <span v-else :class="{ muted: disabled }" class="ui-object-link typo p3-regular-underline">
+  <span v-else :class="{ disabled }" class="ui-object-link typo p3-regular-underline">
     <span class="icon">
       <slot name="icon">
         <UiIcon :icon accent="current" />
@@ -46,7 +46,7 @@ defineSlots<{
   color: var(--color-info-txt-base);
   gap: 1rem;
 
-  &.muted {
+  &.disabled {
     color: var(--color-neutral-txt-secondary);
     cursor: not-allowed;
   }
@@ -59,12 +59,24 @@ defineSlots<{
   /* INTERACTION VARIANTS */
 
   &.is-link {
-    &:is(:hover, :focus-visible) {
+    &:hover {
       color: var(--color-info-txt-hover);
     }
 
     &:active {
       color: var(--color-info-txt-active);
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -0.6rem;
+        border: 0.2rem solid var(--color-info-txt-base);
+        border-radius: 0.4rem;
+      }
     }
   }
 }

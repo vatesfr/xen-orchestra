@@ -10,10 +10,10 @@
   >
     <table>
       <tr>
-        <CellText v-bind="properties">
+        <VtsCellText v-bind="properties">
           {{ settings.slot }}
           <template #secondary>{{ settings.secondary }}</template>
-        </CellText>
+        </VtsCellText>
       </tr>
     </table>
   </ComponentStory>
@@ -22,5 +22,5 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { setting, slot } from '@/libs/story/story-param'
-import CellText from '@core/components/cell-text/CellText.vue'
+import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 </script>

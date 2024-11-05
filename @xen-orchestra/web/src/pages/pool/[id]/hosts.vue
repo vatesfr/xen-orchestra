@@ -12,7 +12,7 @@
       </thead>
       <tbody>
         <tr v-for="host in hosts" :key="host.id">
-          <CellObject :id="host.data.id">
+          <VtsCellObject :id="host.data.id">
             <UiObjectLink :route="`/host/${host.data.id}`">
               <template #icon>
                 <UiObjectIcon
@@ -23,8 +23,8 @@
               </template>
               {{ host.data.name_label }}
             </UiObjectLink>
-          </CellObject>
-          <CellText>{{ host.data.name_description }}</CellText>
+          </VtsCellObject>
+          <VtsCellText>{{ host.data.name_description }}</VtsCellText>
         </tr>
       </tbody>
     </VtsTable>
@@ -35,8 +35,8 @@
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { HostState } from '@core/types/object-icon.type'
-import CellObject from '@core/components/cell-object/CellObject.vue'
-import CellText from '@core/components/cell-text/CellText.vue'
+import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
+import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

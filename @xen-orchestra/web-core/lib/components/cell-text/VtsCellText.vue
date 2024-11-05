@@ -1,6 +1,6 @@
-<!-- v1.0 -->
+<!-- WIP -->
 <template>
-  <td class="cell-text">
+  <td class="vts-cell-text">
     <div class="data typo p2-regular">
       <span v-tooltip class="text-ellipsis">
         <slot />
@@ -22,19 +22,19 @@ const slots = defineSlots<{
 </script>
 
 <style lang="postcss" scoped>
-.cell-text {
+.vts-cell-text {
   padding: 0.8rem;
   border: 0.1rem solid var(--color-neutral-border);
   color: var(--color-neutral-txt-primary);
-}
 
-.data {
-  display: flex;
-  gap: 1.6rem;
-  align-items: center;
-}
+  .data {
+    display: flex;
+    gap: 1.6rem;
+    align-items: center;
+  }
 
-.info {
-  color: var(--color-neutral-txt-secondary);
+  .info {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>
