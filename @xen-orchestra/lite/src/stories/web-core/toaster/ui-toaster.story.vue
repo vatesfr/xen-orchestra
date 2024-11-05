@@ -4,29 +4,27 @@
     :params="[
       prop('accent')
         .type('ToasterColor')
-        .enum('normal', 'success', 'warning', 'danger')
-        .preset('normal')
+        .enum('info', 'success', 'warning', 'danger')
+        .preset('info')
         .required()
         .widget(),
-      prop('actionType').type('Type').enum('button', 'link').preset('button').required().widget(),
       setting('label').widget(text()).preset('Migration successful!'),
       setting('description').widget(text()).preset('All went well. 3 VMs have been successfully migrate.'),
       setting('actions').widget(text()).preset('Label'),
+      setting('showLink').widget(boolean()),
+      slot(),
+      slot('description').help('Meant to display description under the label'),
+      slot('actions').help('Meant to receive UiButton or link components'),
     ]"
   >
     <UiToaster v-bind="properties">
       {{ settings.label }}
       <template #description>{{ settings.description }}</template>
       <template #actions>
-        <UiButton
-          v-if="properties.actionType === 'button'"
-          level="tertiary"
-          size="medium"
-          :color="properties.accent === 'danger' ? 'danger' : 'normal'"
-        >
+        <UiObjectLink v-if="settings.showLink" class="link typo p1-regular" route="#">See tasks</UiObjectLink>
+        <UiButton v-else level="tertiary" size="medium" :color="properties.accent === 'danger' ? 'danger' : 'normal'">
           {{ settings.actions }}
         </UiButton>
-        <ObjectLink v-else class="link typo p1-regular" route="#">See tasks</ObjectLink>
       </template>
     </UiToaster>
   </ComponentStory>
@@ -34,16 +32,9 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { prop, setting, slot } from '@/libs/story/story-param'
+import { boolean, text } from '@/libs/story/story-widget'
 import UiButton from '@core/components/button/UiButton.vue'
-import ObjectLink from '@core/components/object-link/ObjectLink.vue'
+import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 </script>
-
-<style lang="postcss" scoped>
-.link {
-  gap: 0 !important;
-}
-</style>
-/
