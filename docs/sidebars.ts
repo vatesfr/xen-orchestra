@@ -118,7 +118,7 @@ export default {
         },
         'code_of_conduct',
         'contributing',
-        'licences',
+        'licenses',
         'roadmap',
         'glossary',
       ],
