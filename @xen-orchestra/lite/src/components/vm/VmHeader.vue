@@ -6,7 +6,7 @@
         <template #trigger="{ open, isOpen }">
           <UiButton
             size="medium"
-            color="info"
+            color="normal"
             level="primary"
             :class="{ pressed: isOpen }"
             :left-icon="faPowerOff"
@@ -20,13 +20,14 @@
       </MenuList>
       <MenuList v-if="vm !== undefined" placement="bottom-end" border>
         <template #trigger="{ open, isOpen }">
-          <ButtonIcon
+          <UiButtonIcon
             v-tooltip="{
               placement: 'left',
               content: $t('more-actions'),
             }"
-            :class="{ active: isOpen }"
+            :selected="isOpen"
             :icon="faEllipsisVertical"
+            accent="info"
             class="more-actions-button"
             size="large"
             @click="open"
@@ -51,9 +52,9 @@ import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPower
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import UiButton from '@core/components/button/UiButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

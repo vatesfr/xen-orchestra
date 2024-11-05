@@ -3,7 +3,7 @@
     <TabItem v-bind="tab(TAB.PROPS, propParams)">Props</TabItem>
     <TabItem class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
       Events
-      <VtsCounter
+      <UiCounter
         v-if="unreadEventsCount > 0"
         :value="unreadEventsCount"
         accent="success"
@@ -41,7 +41,7 @@
         <UiCardTitle>
           Logs
           <template #right>
-            <UiButton v-if="eventsLog.length > 0" size="medium" color="info" level="tertiary" @click="eventsLog = []">
+            <UiButton v-if="eventsLog.length > 0" size="medium" color="normal" level="tertiary" @click="eventsLog = []">
               Clear
             </UiButton>
           </template>
@@ -86,11 +86,11 @@ import {
   type Param,
 } from '@/libs/story/story-param'
 import UiButton from '@core/components/button/UiButton.vue'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'

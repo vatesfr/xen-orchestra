@@ -5,14 +5,14 @@
     class="account-menu-trigger"
     type="button"
   >
-    <UserLogo class="logo" size="medium" />
+    <UiUserLogo class="logo" size="medium" />
     <VtsIcon :icon="faAngleDown" class="icon" accent="info" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UserLogo from '@core/components/user/UserLogo.vue'
+import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { vTooltip } from '@core/directives/tooltip.directive'

@@ -1,12 +1,12 @@
 <template>
   <label class="form-widget">
-    <span v-if="label || $slots.label" class="label">
+    <span v-if="label || slots.label" class="label">
       <slot name="label">
         {{ label }}
       </slot>
     </span>
     <span class="widget">
-      <span v-if="before || $slots.before" class="before">
+      <span v-if="before || slots.before" class="before">
         <slot name="before">
           <UiIcon v-if="isIcon(before)" :icon="before" fixed-width />
           <template v-else>{{ before }}</template>
@@ -15,7 +15,7 @@
       <span class="element">
         <slot />
       </span>
-      <span v-if="after || $slots.after" class="after">
+      <span v-if="after || slots.after" class="after">
         <slot name="after">
           <UiIcon v-if="isIcon(after)" :icon="after" fixed-width />
           <template v-else>{{ after }}</template>
@@ -34,6 +34,13 @@ defineProps<{
   after?: IconDefinition | string | object // See https://github.com/vuejs/core/issues/4294
   label?: string
   inline?: boolean
+}>()
+
+const slots = defineSlots<{
+  default(): any
+  label?(): any
+  before?(): any
+  after?(): any
 }>()
 
 const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon === 'object'

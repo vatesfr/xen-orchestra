@@ -1,11 +1,11 @@
 <template>
   <p v-if="!isVmConsoleAvailable" class="typo h5-medium">{{ $t('power-on-for-console') }}</p>
-  <RemoteConsole v-else :url />
+  <VtsRemoteConsole v-else :url />
 </template>
 
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type'
-import RemoteConsole from '@core/components/console/RemoteConsole.vue'
+import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{
