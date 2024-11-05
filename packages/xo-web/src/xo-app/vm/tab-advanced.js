@@ -1011,7 +1011,12 @@ export default class TabAdvanced extends Component {
                 </tr>
                 {vm.virtualizationMode === 'hvm' && (
                   <tr>
-                    <th>{_('nestedVirt')}</th>
+                    <th>
+                      {_('nestedVirt')}{' '}
+                      <Tooltip content={_('unavailablebleOn')}>
+                        <Icon icon='alarm' className='text-warning' />
+                      </Tooltip>
+                    </th>
                     <td>
                       <Toggle
                         disabled={vm.power_state !== 'Halted'}
