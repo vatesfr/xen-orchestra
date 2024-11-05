@@ -19,6 +19,6 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot } from '@/libs/story/story-param'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 </script>

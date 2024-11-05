@@ -6,7 +6,7 @@
         <template #trigger="{ open, isOpen }">
           <UiButton
             size="medium"
-            accent="normal"
+            accent="info"
             variant="primary"
             :class="{ pressed: isOpen }"
             :left-icon="faPowerOff"
@@ -53,8 +53,8 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuList from '@core/components/menu/MenuList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

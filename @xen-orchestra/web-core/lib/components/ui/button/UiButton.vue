@@ -1,9 +1,9 @@
 <!-- v4 -->
 <template>
-  <button :class="classNames" :disabled="busy || isDisabled" class="ui-button" type="button">
+  <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
     <VtsIcon :busy :icon="leftIcon" accent="current" class="icon" fixed-width />
     <slot />
-    <VtsIcon :icon="lockIcon" accent="current" class="icon" fixed-width />
+    <VtsIcon v-if="lockIcon" :icon="faLock" accent="current" class="icon" fixed-width />
   </button>
 </template>
 
@@ -13,6 +13,7 @@ import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { faLock } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
@@ -26,8 +27,8 @@ const props = withDefaults(
     size: ButtonSize
     busy?: boolean
     disabled?: boolean
+    lockIcon?: boolean
     leftIcon?: IconDefinition
-    lockIcon?: IconDefinition
   }>(),
   {
     disabled: undefined,
@@ -93,58 +94,58 @@ const classNames = computed(() => [
 
   &.accent--info {
     &.variant--primary {
-      background-color: var(--color-normal-item-base);
-      border-color: var(--color-normal-item-base);
-      color: var(--color-normal-txt-item);
+      background-color: var(--color-info-item-base);
+      border-color: var(--color-info-item-base);
+      color: var(--color-info-txt-item);
 
       &:hover {
-        background-color: var(--color-normal-item-hover);
-        border-color: var(--color-normal-item-hover);
-        color: var(--color-normal-txt-item);
+        background-color: var(--color-info-item-hover);
+        border-color: var(--color-info-item-hover);
+        color: var(--color-info-txt-item);
       }
 
       &:focus-visible::before {
-        border-color: var(--color-normal-txt-base);
+        border-color: var(--color-info-txt-base);
       }
 
       &:active {
-        background-color: var(--color-normal-item-active);
-        border-color: var(--color-normal-item-active);
-        color: var(--color-normal-txt-item);
+        background-color: var(--color-info-item-active);
+        border-color: var(--color-info-item-active);
+        color: var(--color-info-txt-item);
       }
 
       &:is(:disabled, .disabled) {
-        background-color: var(--color-normal-item-disabled);
-        border-color: var(--color-normal-item-disabled);
+        background-color: var(--color-info-item-disabled);
+        border-color: var(--color-info-item-disabled);
         color: var(--color-neutral-txt-secondary);
       }
 
       &.busy {
-        background-color: var(--color-normal-item-base);
-        border-color: var(--color-normal-item-base);
-        color: var(--color-normal-txt-item);
+        background-color: var(--color-info-item-base);
+        border-color: var(--color-info-item-base);
+        color: var(--color-info-txt-item);
       }
     }
 
     &.variant--secondary {
       background-color: var(--color-neutral-background-primary);
-      border-color: var(--color-normal-item-base);
-      color: var(--color-normal-txt-base);
+      border-color: var(--color-info-item-base);
+      color: var(--color-info-txt-base);
 
       &:hover {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-normal-item-hover);
-        color: var(--color-normal-txt-hover);
+        border-color: var(--color-info-item-hover);
+        color: var(--color-info-txt-hover);
       }
 
       &:focus-visible::before {
-        border-color: var(--color-normal-txt-base);
+        border-color: var(--color-info-txt-base);
       }
 
       &:active {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-normal-item-active);
-        color: var(--color-normal-txt-active);
+        border-color: var(--color-info-item-active);
+        color: var(--color-info-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -155,30 +156,30 @@ const classNames = computed(() => [
 
       &.busy {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-normal-item-base);
-        color: var(--color-normal-txt-base);
+        border-color: var(--color-info-item-base);
+        color: var(--color-info-txt-base);
       }
     }
 
     &.variant--tertiary {
       background-color: transparent;
       border-color: transparent;
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
 
       &:hover {
-        background-color: var(--color-normal-background-hover);
-        border-color: var(--color-normal-background-hover);
-        color: var(--color-normal-txt-hover);
+        background-color: var(--color-info-background-hover);
+        border-color: var(--color-info-background-hover);
+        color: var(--color-info-txt-hover);
       }
 
       &:focus-visible::before {
-        border-color: var(--color-normal-txt-base);
+        border-color: var(--color-info-txt-base);
       }
 
       &:active {
-        background-color: var(--color-normal-background-active);
-        border-color: var(--color-normal-background-active);
-        color: var(--color-normal-txt-active);
+        background-color: var(--color-info-background-active);
+        border-color: var(--color-info-background-active);
+        color: var(--color-info-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -188,9 +189,9 @@ const classNames = computed(() => [
       }
 
       &.busy {
-        background-color: var(--color-normal-background-selected);
-        border-color: var(--color-normal-background-selected);
-        color: var(--color-normal-txt-base);
+        background-color: var(--color-info-background-selected);
+        border-color: var(--color-info-background-selected);
+        color: var(--color-info-txt-base);
       }
     }
   }

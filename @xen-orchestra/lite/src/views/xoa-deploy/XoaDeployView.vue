@@ -231,8 +231,8 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,

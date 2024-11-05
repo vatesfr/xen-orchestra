@@ -45,8 +45,8 @@ import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
 </script>
