@@ -100,7 +100,7 @@ export default {
         'intro_support',
         'xoa',
         'purchase',
-        'licenses',
+        'license_management',
         'community',
       ],
     },
