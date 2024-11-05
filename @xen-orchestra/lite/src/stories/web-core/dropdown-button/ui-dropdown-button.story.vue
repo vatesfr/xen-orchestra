@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('leftIcon')
+      prop('icon')
         .type('IconDefinition')
         .widget(
           choice(

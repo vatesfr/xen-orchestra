@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <button type="button" class="ui-dropdown-item" :class="{ selected }" :disabled="isDisabled">
-    <VtsIcon :icon="leftIcon" accent="current" class="left-icon" fixed-width />
+    <VtsIcon :icon="icon" accent="current" class="left-icon" fixed-width />
     <span class="typo p1-regular label">
       <slot />
     </span>
@@ -20,7 +20,7 @@ const props = withDefaults(
   defineProps<{
     disabled?: boolean
     selected?: boolean
-    leftIcon?: IconDefinition
+    icon?: IconDefinition
   }>(),
   { disabled: undefined }
 )
@@ -36,42 +36,27 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
   padding-inline: 1.6rem;
   gap: 0.8rem;
   background: var(--color-neutral-background-primary);
-  border: 0.1rem solid var(--color-normal-txt-base);
+  border: 0.1rem solid var(--color-info-txt-base);
   border-radius: 9rem;
   cursor: pointer;
   position: relative;
-
-  .label,
-  .right-icon,
-  .left-icon {
-    color: var(--color-normal-txt-base);
-  }
+  color: var(--color-info-txt-base);
 
   &:hover {
-    border-color: var(--color-normal-txt-hover);
-    background-color: var(--color-normal-background-hover);
-
-    .label,
-    .right-icon,
-    .left-icon {
-      color: var(--color-normal-txt-hover);
-    }
+    border-color: var(--color-info-txt-hover);
+    background-color: var(--color-info-background-hover);
+    color: var(--color-info-txt-hover);
   }
 
   &:active {
-    border-color: var(--color-normal-txt-active);
-    background-color: var(--color-normal-background-active);
-
-    .label,
-    .right-icon,
-    .left-icon {
-      color: var(--color-normal-txt-active);
-    }
+    border-color: var(--color-info-txt-active);
+    background-color: var(--color-info-background-active);
+    color: var(--color-info-txt-active);
   }
 
   &.selected {
-    border: 0.2rem solid var(--color-normal-txt-base);
-    background-color: var(--color-normal-background-selected);
+    border: 0.2rem solid var(--color-info-txt-base);
+    background-color: var(--color-info-background-selected);
   }
 
   &:focus-visible {
@@ -81,7 +66,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
       content: '';
       position: absolute;
       inset: -0.5rem;
-      border: 0.2rem solid var(--color-normal-txt-base);
+      border: 0.2rem solid var(--color-info-txt-base);
       border-radius: 0.4rem;
     }
   }
@@ -90,12 +75,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     cursor: not-allowed;
     border-color: var(--color-neutral-txt-secondary);
     background-color: var(--color-neutral-background-disabled);
-
-    .label,
-    .right-icon,
-    .left-icon {
-      color: var(--color-neutral-txt-secondary);
-    }
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
