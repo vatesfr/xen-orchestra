@@ -12,7 +12,7 @@
           :left-icon="faCopy"
           level="secondary"
           size="small"
-          :color="copied ? 'success' : 'normal'"
+          :color="copied ? 'success' : 'info'"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}

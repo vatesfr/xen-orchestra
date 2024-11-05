@@ -5,7 +5,7 @@
       <VtsCounter
         v-if="pendingCount !== undefined"
         :value="pendingCount"
-        accent="brand"
+        accent="info"
         variant="primary"
         size="small"
       />

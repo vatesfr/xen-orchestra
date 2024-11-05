@@ -95,22 +95,22 @@ const updateInteraction = (interaction: Interaction) => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .column-header.interactive {
-  --color: var(--color-normal-txt-base);
+  --color: var(--color-info-txt-base);
   --background-color: var(--color-neutral-background-primary);
 
   &.focus {
-    --color: var(--color-normal-txt-base);
-    --background-color: var(--color-normal-background-selected);
+    --color: var(--color-info-txt-base);
+    --background-color: var(--color-info-background-selected);
   }
 
   &:hover {
-    --color: var(--color-normal-txt-hover);
-    --background-color: var(--color-normal-background-hover);
+    --color: var(--color-info-txt-hover);
+    --background-color: var(--color-info-background-hover);
   }
 
   &:active {
-    --color: var(--color-normal-txt-active);
-    --background-color: var(--color-normal-background-active);
+    --color: var(--color-info-txt-active);
+    --background-color: var(--color-info-background-active);
   }
 
   &.disabled {

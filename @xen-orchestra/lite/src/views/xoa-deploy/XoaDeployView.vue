@@ -13,7 +13,7 @@
         <strong>{{ $t('check-errors') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
-      <UiButton size="medium" color="normal" level="primary" :left-icon="faDownload" @click="resetValues()">
+      <UiButton size="medium" color="info" level="primary" :left-icon="faDownload" @click="resetValues()">
         {{ $t('xoa-deploy-retry') }}
       </UiButton>
     </template>
@@ -24,7 +24,7 @@
         <h2>{{ $t('xoa-deploy-successful') }}</h2>
         <UiIcon :icon="faCircleCheck" class="success" />
       </div>
-      <UiButton size="medium" color="normal" level="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
+      <UiButton size="medium" color="info" level="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
         {{ $t('access-xoa') }}
       </UiButton>
     </template>
@@ -202,10 +202,10 @@
         </FormSection>
 
         <ButtonGroup>
-          <UiButton size="medium" color="normal" level="secondary" @click="router.back()">
+          <UiButton size="medium" color="info" level="secondary" @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
-          <UiButton size="medium" color="normal" level="primary" type="submit">
+          <UiButton size="medium" color="info" level="primary" type="submit">
             {{ $t('deploy') }}
           </UiButton>
         </ButtonGroup>
@@ -539,7 +539,7 @@ async function cancel() {
   justify-content: center;
   align-items: center;
   min-height: 76.5vh;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   text-align: center;
   padding: 5rem;
   margin: auto;

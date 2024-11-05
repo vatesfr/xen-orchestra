@@ -48,7 +48,7 @@ defineSlots<{
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
 }
 
 .description {

@@ -19,8 +19,8 @@
         migrating... (34%)
       </template>
       <template v-if="settings.showDemoButtons" #actions>
-        <UiButton size="medium" level="primary" color="normal" :left-icon="faPlus">New VM</UiButton>
-        <UiButton size="medium" level="secondary" color="normal" :left-icon="faPowerOff">Change state</UiButton>
+        <UiButton size="medium" level="primary" color="info" :left-icon="faPlus">New VM</UiButton>
+        <UiButton size="medium" level="secondary" color="info" :left-icon="faPowerOff">Change state</UiButton>
       </template>
     </HeadBar>
   </ComponentStory>
@@ -39,6 +39,6 @@ import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 <style lang="postcss" scoped>
 .spinner {
   font-size: 2rem;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
 }
 </style>

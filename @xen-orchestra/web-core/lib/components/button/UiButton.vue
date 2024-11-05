@@ -57,33 +57,33 @@ const className = computed(() => {
 /* COLOR VARIANTS */
 .ui-button {
   &.primary {
-    &.normal {
-      --background-color: var(--color-normal-item-base);
-      --border-color: var(--color-normal-item-base);
-      --color: var(--color-normal-txt-item);
+    &.info {
+      --background-color: var(--color-info-item-base);
+      --border-color: var(--color-info-item-base);
+      --color: var(--color-info-txt-item);
 
       &:is(:hover, .hover, :focus-visible) {
-        --background-color: var(--color-normal-item-hover);
-        --border-color: var(--color-normal-item-hover);
-        --color: var(--color-normal-txt-item);
+        --background-color: var(--color-info-item-hover);
+        --border-color: var(--color-info-item-hover);
+        --color: var(--color-info-txt-item);
       }
 
       &:is(:active, .pressed) {
-        --background-color: var(--color-normal-item-active);
-        --border-color: var(--color-normal-item-active);
-        --color: var(--color-normal-txt-item);
+        --background-color: var(--color-info-item-active);
+        --border-color: var(--color-info-item-active);
+        --color: var(--color-info-txt-item);
       }
 
       &:is(:disabled, .disabled) {
-        --background-color: var(--color-normal-item-disabled);
-        --border-color: var(--color-normal-item-disabled);
+        --background-color: var(--color-info-item-disabled);
+        --border-color: var(--color-info-item-disabled);
         --color: var(--color-neutral-txt-secondary);
       }
 
       &.busy {
-        --background-color: var(--color-normal-item-base);
-        --border-color: var(--color-normal-item-base);
-        --color: var(--color-normal-txt-item);
+        --background-color: var(--color-info-item-base);
+        --border-color: var(--color-info-item-base);
+        --color: var(--color-info-txt-item);
       }
     }
 
@@ -179,21 +179,21 @@ const className = computed(() => {
   }
 
   &.secondary {
-    &.normal {
+    &.info {
       --background-color: var(--color-neutral-background-primary);
-      --border-color: var(--color-normal-item-base);
-      --color: var(--color-normal-txt-base);
+      --border-color: var(--color-info-item-base);
+      --color: var(--color-info-txt-base);
 
       &:is(:hover, .hover, :focus-visible) {
         --background-color: var(--color-neutral-background-primary);
-        --border-color: var(--color-normal-item-hover);
-        --color: var(--color-normal-txt-hover);
+        --border-color: var(--color-info-item-hover);
+        --color: var(--color-info-txt-hover);
       }
 
       &:is(:active, .pressed) {
         --background-color: var(--color-neutral-background-primary);
-        --border-color: var(--color-normal-item-active);
-        --color: var(--color-normal-txt-active);
+        --border-color: var(--color-info-item-active);
+        --color: var(--color-info-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -204,8 +204,8 @@ const className = computed(() => {
 
       &.busy {
         --background-color: var(--color-neutral-background-primary);
-        --border-color: var(--color-normal-item-base);
-        --color: var(--color-normal-txt-base);
+        --border-color: var(--color-info-item-base);
+        --color: var(--color-info-txt-base);
       }
     }
 
@@ -301,21 +301,21 @@ const className = computed(() => {
   }
 
   &.tertiary {
-    &.normal {
+    &.info {
       --background-color: transparent;
       --border-color: transparent;
-      --color: var(--color-normal-txt-base);
+      --color: var(--color-info-txt-base);
 
       &:is(:hover, .hover, :focus-visible) {
-        --background-color: var(--color-normal-background-hover);
-        --border-color: var(--color-normal-background-hover);
-        --color: var(--color-normal-txt-hover);
+        --background-color: var(--color-info-background-hover);
+        --border-color: var(--color-info-background-hover);
+        --color: var(--color-info-txt-hover);
       }
 
       &:is(:active, .pressed) {
-        --background-color: var(--color-normal-background-active);
-        --border-color: var(--color-normal-background-active);
-        --color: var(--color-normal-txt-active);
+        --background-color: var(--color-info-background-active);
+        --border-color: var(--color-info-background-active);
+        --color: var(--color-info-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -325,9 +325,9 @@ const className = computed(() => {
       }
 
       &.busy {
-        --background-color: var(--color-normal-background-selected);
-        --border-color: var(--color-normal-background-selected);
-        --color: var(--color-normal-txt-base);
+        --background-color: var(--color-info-background-selected);
+        --border-color: var(--color-info-background-selected);
+        --color: var(--color-info-txt-base);
       }
     }
 

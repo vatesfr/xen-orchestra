@@ -11,7 +11,7 @@
             Host - {{ i }}
             <template #addons>
               <ButtonIcon v-if="i === 2" :icon="faStar" color="warning" />
-              <VtsCounter accent="brand" value="3" variant="secondary" size="small" />
+              <VtsCounter accent="info" value="3" variant="secondary" size="small" />
             </template>
           </TreeItemLabel>
           <template #sublist>

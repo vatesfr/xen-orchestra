@@ -1,6 +1,6 @@
 <template>
   <!-- TODO: replace with correct color typing when available -->
-  <VtsIcon :class="{ disabled }" :accent="color === 'normal' ? 'brand' : color" :icon class="chip-icon" fixed-width />
+  <VtsIcon :class="{ disabled }" :accent="color" :icon class="chip-icon" fixed-width />
 </template>
 
 <script lang="ts" setup>
@@ -20,7 +20,7 @@ defineProps<{
   color: var(--color-neutral-txt-secondary);
 
   &.disabled {
-    color: var(--color-normal-txt-item);
+    color: var(--color-info-txt-item);
 
     &.info {
       color: var(--color-neutral-txt-secondary);

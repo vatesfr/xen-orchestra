@@ -50,16 +50,16 @@ defineProps<{
 
   &:active,
   &.active {
-    color: var(--color-normal-txt-base);
+    color: var(--color-info-txt-base);
     background-color: var(--color-neutral-background-primary);
   }
 
   &.exact-active {
     color: var(--color-neutral-txt-primary);
-    background-color: var(--color-normal-background-selected);
+    background-color: var(--color-info-background-selected);
 
     .icon {
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
     }
   }
 }

@@ -9,7 +9,7 @@
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type CounterAccent = 'brand' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
+type CounterAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
 type CounterVariant = 'primary' | 'secondary'
 type CounterSize = 'small' | 'medium'
 
@@ -45,9 +45,9 @@ VARIANT + ACCENT
 */
 .vts-counter {
   &.variant--primary {
-    &.accent--brand {
-      --vts-counter--background-color: var(--color-normal-item-base);
-      --vts-counter--color: var(--color-normal-txt-item);
+    &.accent--info {
+      --vts-counter--background-color: var(--color-info-item-base);
+      --vts-counter--color: var(--color-info-txt-item);
     }
 
     &.accent--neutral {
@@ -77,9 +77,9 @@ VARIANT + ACCENT
   }
 
   &.variant--secondary {
-    &.accent--brand {
-      --vts-counter--background-color: var(--color-normal-background-selected);
-      --vts-counter--color: var(--color-normal-txt-base);
+    &.accent--info {
+      --vts-counter--background-color: var(--color-info-background-selected);
+      --vts-counter--color: var(--color-info-txt-base);
     }
 
     &.accent--neutral {

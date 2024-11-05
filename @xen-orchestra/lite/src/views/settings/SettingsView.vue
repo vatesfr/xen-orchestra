@@ -178,10 +178,10 @@ h5 {
     flex-direction: column;
     gap: 1.6em;
     &.selected {
-      color: var(--color-normal-txt-base);
+      color: var(--color-info-txt-base);
 
       img {
-        outline: solid 2px var(--color-normal-txt-base);
+        outline: solid 2px var(--color-info-txt-base);
       }
     }
     &:not(.selected) {

@@ -13,7 +13,7 @@
     <TabList>
       <TabItem v-bind="properties">
         {{ settings.label }}
-        <VtsCounter v-if="settings.counter" :value="settings.counter" accent="brand" variant="primary" size="small" />
+        <VtsCounter v-if="settings.counter" :value="settings.counter" accent="info" variant="primary" size="small" />
       </TabItem>
     </TabList>
   </ComponentStory>

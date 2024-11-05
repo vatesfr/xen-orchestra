@@ -13,7 +13,7 @@ import UiSpinner from '@core/components/UiSpinner.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-export type IconAccent = 'current' | 'brand' | 'success' | 'warning' | 'danger'
+export type IconAccent = 'current' | 'info' | 'success' | 'warning' | 'danger'
 
 defineProps<{
   accent: IconAccent
@@ -39,11 +39,11 @@ ACCENT
     }
   }
 
-  &.brand {
-    --vts-icon--color: var(--color-normal-item-base);
+  &.info {
+    --vts-icon--color: var(--color-info-item-base);
 
     &.stacked {
-      --vts-icon__overlay-icon--color: var(--color-normal-txt-item);
+      --vts-icon__overlay-icon--color: var(--color-info-txt-item);
     }
   }
 

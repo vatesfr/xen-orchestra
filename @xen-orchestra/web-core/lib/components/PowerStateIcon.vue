@@ -28,7 +28,7 @@ const className = computed(() => `state-${props.state}`)
 <style lang="postcss" scoped>
 .power-state-icon {
   &.state-suspended {
-    color: var(--color-normal-txt-item);
+    color: var(--color-info-txt-item);
   }
 
   &.state-running {
@@ -36,7 +36,7 @@ const className = computed(() => `state-${props.state}`)
   }
 
   &.state-paused {
-    color: var(--color-normal-item-active);
+    color: var(--color-info-item-active);
   }
 
   &.state-halted {

@@ -22,7 +22,7 @@ const props = withDefaults(
     dot?: boolean
     targetScale?: number | { x: number; y: number }
   }>(),
-  { color: 'normal', size: 'medium', targetScale: 1 }
+  { color: 'info', size: 'medium', targetScale: 1 }
 )
 
 const cssTargetScale = computed(() => {
@@ -37,26 +37,26 @@ const cssTargetScale = computed(() => {
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .button-icon {
-  &.normal {
+  &.info {
     & {
-      --color: var(--color-normal-txt-base);
+      --color: var(--color-info-txt-base);
       --background-color: transparent;
       --dot-color: var(--color-danger-txt-base);
     }
 
     &:is(.active, .selected) {
-      --color: var(--color-normal-txt-base);
-      --background-color: var(--color-normal-background-selected);
+      --color: var(--color-info-txt-base);
+      --background-color: var(--color-info-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
-      --color: var(--color-normal-txt-hover);
-      --background-color: var(--color-normal-background-hover);
+      --color: var(--color-info-txt-hover);
+      --background-color: var(--color-info-background-hover);
     }
 
     &:is(:active, .pressed) {
-      --color: var(--color-normal-txt-active);
-      --background-color: var(--color-normal-background-active);
+      --color: var(--color-info-txt-active);
+      --background-color: var(--color-info-background-active);
     }
 
     &:is(:disabled, .disabled) {

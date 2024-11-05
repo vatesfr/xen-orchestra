@@ -24,12 +24,12 @@ defineProps<{
 /* COLOR VARIANTS */
 .ui-tag {
   &.primary {
-    --background-color: var(--color-normal-item-base);
-    --color: var(--color-normal-txt-item);
+    --background-color: var(--color-info-item-base);
+    --color: var(--color-info-txt-item);
 
     &.light {
-      --background-color: var(--color-normal-background-selected);
-      --color: var(--color-normal-txt-base);
+      --background-color: var(--color-info-background-selected);
+      --color: var(--color-info-txt-base);
     }
   }
 

@@ -45,14 +45,14 @@ When you set a color context, the variables are updated with the help of CSS cla
 
 ```css
 .color-context-info {
-  --color-context-primary: var(--color-normal-txt-base);
-  --color-context-primary-hover: var(--color-normal-txt-hover);
-  --color-context-primary-active: var(--color-normal-txt-active);
+  --color-context-primary: var(--color-info-txt-base);
+  --color-context-primary-hover: var(--color-info-txt-hover);
+  --color-context-primary-active: var(--color-info-txt-active);
   --color-context-primary-disabled: var(--color-neutral-txt-secondary);
 
-  --color-context-secondary: var(--color-normal-background-selected);
-  --color-context-secondary-hover: var(--color-normal-background-hover);
-  --color-context-secondary-active: var(--color-normal-background-active);
+  --color-context-secondary: var(--color-info-background-selected);
+  --color-context-secondary-hover: var(--color-info-background-hover);
+  --color-context-secondary-active: var(--color-info-background-active);
 }
 
 .color-context-success {
