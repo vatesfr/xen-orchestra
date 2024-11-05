@@ -57,7 +57,7 @@ As a last resort, migrating the VM (more specifically, its disks) to a new stora
 
 ## Parse Error
 
-This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](https://xen-orchestra.com/docs/supported-version.html).
+This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](/supported_hosts#xenserver-formerly-citrix-hypervisor).
 
 ## SR_BACKEND_FAILURE_44
 
