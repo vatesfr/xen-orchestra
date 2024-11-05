@@ -23,6 +23,7 @@ import {
   forgetProxyAppliances,
   getLicenses,
   getProxyApplianceUpdaterState,
+  getProxyServerVersion,
   openTunnelOnProxy,
   registerProxy,
   subscribeProxies,
@@ -272,6 +273,21 @@ const COLUMNS = [
     },
     name: _('upgrade'),
   },
+  {
+    itemRenderer: (proxy, { versionByProxy, upgradesByProxy }) => {
+      const currentVersion = versionByProxy[proxy.id]
+      if (currentVersion === undefined) {
+        return
+      }
+
+      return (
+        <div>
+          <p>{currentVersion}</p>
+        </div>
+      )
+    },
+    name: _('version'),
+  },
 ]
 
 const Proxies = decorate([
@@ -280,11 +296,12 @@ const Proxies = decorate([
       upgradesByProxy: {},
       licensesByVmUuid: {},
       fetchUpgradesTimeout: undefined,
+      versionByProxy: {},
     }),
     effects: {
-      async initialize({ fetchProxyUpgrades }) {
+      async initialize({ fetchProxyUpgrades, fetchProxyVersions }) {
         fetchProxyUpgrades()
-
+        await fetchProxyVersions()
         this.state.licensesByVmUuid = groupBy(
           await getLicenses({ productType: 'xoproxy' }).catch(error => {
             console.warn(error)
@@ -292,6 +309,20 @@ const Proxies = decorate([
           }),
           'boundObjectId'
         )
+      },
+      async fetchProxyVersions() {
+        try {
+          const versionsByProxy = { ...this.state.versionByProxy }
+          await Promise.all(
+            this.props.proxies.map(async ({ id }) => {
+              const version = await getProxyServerVersion(id).catch(() => 'unknown')
+              versionsByProxy[id] = version
+            })
+          )
+          this.state.versionByProxy = versionsByProxy
+        } catch (error) {
+          console.warn(error)
+        }
       },
       finalize() {
         clearTimeout(this.state.fetchUpgradesTimeout)
@@ -386,6 +417,7 @@ const Proxies = decorate([
           data-licensesByVmUuid={state.licensesByVmUuid}
           data-router={router}
           data-upgradesByProxy={state.upgradesByProxy}
+          data-versionByProxy={state.versionByProxy}
           data-upgradeAppliance={effects.upgradeAppliance}
           emptyMessage={
             <span className='text-muted'>

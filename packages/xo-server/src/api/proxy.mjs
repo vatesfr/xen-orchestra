@@ -183,6 +183,18 @@ getApplianceUpdaterState.params = {
   },
 }
 
+export function getServerVersion({ id }) {
+  const versionInfo = this.callProxyMethod(id, 'system.getServerVersion')
+  return versionInfo
+}
+
+getServerVersion.permission = 'admin'
+getServerVersion.params = {
+  id: {
+    type: 'string',
+  },
+}
+
 export async function checkHealth({ id }) {
   try {
     await this.checkProxyHealth(id)
