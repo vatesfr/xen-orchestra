@@ -38,7 +38,7 @@
     "echarts": "^5.4.3",
     "file-saver": "^2.0.5",
     "highlight.js": "^11.9.0",
-    "human-format": "^1.2.0",
+    "human-format": "^1.2.1",
     "iterable-backoff": "^0.1.0",
     "json-rpc-2.0": "^1.7.0",
     "json5": "^2.2.3",
