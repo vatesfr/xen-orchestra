@@ -1,8 +1,8 @@
 <!-- v2 -->
 <template>
-  <div class="ui-textarea">
+  <div class="ui-textarea" :class="toVariants({ accent })">
     <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href><slot /></UiLabel>
-    <textarea v-model="model" :class="accent" :disabled class="textarea" v-bind="$attrs" />
+    <textarea v-model="model" :disabled class="textarea" v-bind="attrs" />
     <UiInfo v-if="slots.info" :accent><slot name="info" /></UiInfo>
   </div>
 </template>
@@ -10,8 +10,9 @@
 <script lang="ts" setup>
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { computed } from 'vue'
+import { computed, useAttrs } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -32,6 +33,8 @@ const slots = defineSlots<{
   info?(): any
 }>()
 
+const attrs = useAttrs()
+
 const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
 </script>
 
@@ -49,8 +52,10 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
     outline: none;
     padding: 0.8rem 1.6rem;
     width: 100%;
+  }
 
-    &.info {
+  &.accent--info {
+    .textarea {
       border-color: var(--color-neutral-border);
 
       &:hover {
@@ -59,7 +64,7 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:active {
         border-color: var(--color-info-item-active);
       }
-      &:focus {
+      &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-info-item-base);
       }
@@ -68,8 +73,10 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
         border-color: var(--color-neutral-border);
       }
     }
+  }
 
-    &.warning {
+  &.accent--warning {
+    .textarea {
       border-color: var(--color-warning-item-base);
 
       &:hover {
@@ -78,7 +85,7 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:active {
         border-color: var(--color-warning-item-active);
       }
-      &:focus {
+      &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-warning-item-base);
       }
@@ -87,8 +94,10 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
         border-color: var(--color-neutral-border);
       }
     }
+  }
 
-    &.danger {
+  &.accent--danger {
+    .textarea {
       border-color: var(--color-danger-item-base);
 
       &:hover {
@@ -97,7 +106,7 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:active {
         border-color: var(--color-danger-item-active);
       }
-      &:focus {
+      &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-danger-item-base);
       }
