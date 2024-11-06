@@ -1,11 +1,6 @@
 <template>
   <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
-    <!-- TODO: replace with correct color typing when available -->
-    <VtsIcon
-      v-if="checkbox"
-      :accent="color === 'normal' ? 'brand' : color"
-      :icon="selected ? faSquareCheck : faSquare"
-    />
+    <VtsIcon v-if="checkbox" :accent="color" :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
       <VtsIcon :icon accent="current" />
     </slot>
@@ -13,14 +8,13 @@
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'brand'" :icon="faAngleRight" class="right-icon" />
+    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'info'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { Color } from '@core/types/color.type'
 import { IK_DROPDOWN_CHECKBOX } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faSquare } from '@fortawesome/free-regular-svg-icons'
@@ -29,7 +23,7 @@ import { computed, inject } from 'vue'
 
 defineProps<{
   arrow?: boolean
-  color: Color
+  color: IconAccent
   disabled?: boolean
   icon?: IconDefinition
   info?: string
@@ -45,23 +39,23 @@ const checkbox = inject(
 <style lang="postcss" scoped>
 /* COLOR VARIANTS */
 .dropdown-item {
-  &.normal {
+  &.info {
     --color: var(--color-neutral-txt-primary);
     --background-color: var(--color-neutral-background-primary);
 
     &:is(.active, .selected) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-selected);
+      --background-color: var(--color-info-background-selected);
     }
 
     &:is(:hover, .hover, :focus-visible) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-hover);
+      --background-color: var(--color-info-background-hover);
     }
 
     &:is(:active, .pressed) {
       --color: var(--color-neutral-txt-primary);
-      --background-color: var(--color-normal-background-active);
+      --background-color: var(--color-info-background-active);
     }
 
     &.disabled {

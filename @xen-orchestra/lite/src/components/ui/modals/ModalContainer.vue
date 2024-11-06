@@ -1,12 +1,12 @@
 <template>
   <div :class="[backgroundClass, { nested: isNested }]" class="modal-container typo p1-regular">
-    <header v-if="$slots.header" class="modal-header">
+    <header v-if="slots.header" class="modal-header">
       <slot name="header" />
     </header>
-    <main v-if="$slots.default" class="modal-content">
+    <main v-if="slots.default" class="modal-content">
       <slot name="default" />
     </main>
-    <footer v-if="$slots.footer" class="modal-footer">
+    <footer v-if="slots.footer" class="modal-footer">
       <slot name="footer" />
     </footer>
   </div>
@@ -23,10 +23,10 @@ const props = defineProps<{
   color?: Color
 }>()
 
-defineSlots<{
-  header: () => any
-  default: () => any
-  footer: () => any
+const slots = defineSlots<{
+  header?(): any
+  default?(): any
+  footer?(): any
 }>()
 
 const { backgroundClass } = useContext(ColorContext, () => props.color)

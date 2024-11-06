@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "7.6.0",
+  "version": "7.7.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -16,27 +16,27 @@
   },
   "main": "./index.mjs",
   "peerDependencies": {
-    "xen-api": "^4.3.1"
+    "xen-api": "^4.5.0"
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
     "@vates/decorate-with": "^2.1.0",
-    "@vates/nbd-client": "^3.1.0",
+    "@vates/nbd-client": "^3.1.1",
     "@vates/read-chunk": "^1.2.0",
-    "@vates/task": "^0.4.1",
+    "@vates/task": "^0.6.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "d3-time-format": "^4.1.0",
     "golike-defer": "^0.5.1",
     "http-request-plus": "^1.0.0",
     "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.11.0",
+    "vhd-lib": "^4.11.1",
     "xo-common": "^0.8.0"
   },
   "private": false,
@@ -44,8 +44,5 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
-  },
-  "devDependencies": {
-    "test": "^3.3.0"
   }
 }

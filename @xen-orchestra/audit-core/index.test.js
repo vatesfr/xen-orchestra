@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert/strict')
-const { afterEach, describe, it } = require('test')
+const { afterEach, describe, it } = require('node:test')
 
 const { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } = require('.')
 

@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it, beforeEach } = require('test')
+const { describe, it, beforeEach } = require('node:test')
 const assert = require('assert').strict
 const { spy } = require('sinon')
 

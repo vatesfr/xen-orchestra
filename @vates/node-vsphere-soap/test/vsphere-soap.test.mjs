@@ -5,7 +5,7 @@
 */
 
 import assert from 'assert'
-import { describe, it } from 'test'
+import { describe, it } from 'node:test'
 
 import * as vc from '../lib/client.mjs'
 

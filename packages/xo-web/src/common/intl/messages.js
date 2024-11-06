@@ -396,6 +396,7 @@ const messages = {
   action: 'Action',
   item: 'Item',
   noSelectedValue: 'No selected value',
+  filterByTags: 'Filter by tags',
   selectSubjects: 'Choose user(s) and/or group(s)',
   selectObjects: 'Select object(s)…',
   selectRole: 'Choose a role',
@@ -2303,7 +2304,6 @@ const messages = {
   update: 'Update',
   refresh: 'Refresh',
   upgrade: 'Upgrade',
-  downgrade: 'Downgrade',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 30 days on {link}.',
   currentVersion: 'Current version:',

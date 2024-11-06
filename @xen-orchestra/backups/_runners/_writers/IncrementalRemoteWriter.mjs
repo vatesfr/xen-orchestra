@@ -66,7 +66,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
   async beforeBackup() {
     await super.beforeBackup()
-    return this._cleanVm({ merge: true })
+    return this._cleanVm({ merge: true, remove: true })
   }
 
   prepare({ isFull }) {
@@ -149,6 +149,9 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         assert.notStrictEqual(parentPath, undefined, 'A differential VHD must have a parent')
         // forbid any kind of loop
         assert.ok(basename(parentPath) < basename(path), `vhd must be sorted to be chained`)
+        // re-chainVhd is mandatory
+        // since the parent may be a alias or not
+        // and the child may be the other
         await chainVhd(handler, parentPath, handler, path)
       }
 

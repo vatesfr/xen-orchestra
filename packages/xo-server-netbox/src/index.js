@@ -459,7 +459,9 @@ class Netbox {
       const nbVm = {
         custom_fields: { uuid: xoVm.uuid },
         name: xoVm.name_label.slice(0, NAME_MAX_LENGTH).trim(),
-        comments: xoVm.name_description.slice(0, DESCRIPTION_MAX_LENGTH).trim(),
+        description: xoVm.name_description.slice(0, DESCRIPTION_MAX_LENGTH).trim(),
+        // Size limit of `comments` is not specified in Netbox doc: let's use the same limit as XO
+        comments: xoVm.other['xo:notes']?.slice(0, 2048).trim() ?? '',
         vcpus: xoVm.CPUs.number,
         disk: Math.floor(
           xoVm.$VBDs
@@ -474,6 +476,15 @@ class Netbox {
         status: xoVm.power_state === 'Running' ? 'active' : 'offline',
         platform: null,
         tags: [],
+      }
+
+      // https://github.com/netbox-community/netbox/blob/develop/docs/release-notes/version-3.4.md#rest-api-changes
+      // `description` fields was introduced in Netbox v3.4.0
+      // - before that version: keep the same behaviour (description → comments)
+      // - after that version: (description → description) and (notes → comments)
+      if (this.#netboxVersion !== undefined && semver.satisfies(this.#netboxVersion, '< 3.4')) {
+        nbVm.comments = nbVm.description
+        delete nbVm.description
       }
 
       // Prior to Netbox v3.3.0: no "site" field on VMs
@@ -502,7 +513,12 @@ class Netbox {
 
       // Tags
       const nbVmTags = []
-      for (const tag of xoVm.tags) {
+      for (let tag of xoVm.tags) {
+        tag = tag.trim()
+        if (tag === '') {
+          continue
+        }
+
         const slug = slugify(tag)
         let nbTag = find(nbTags, { slug })
         if (nbTag === undefined) {

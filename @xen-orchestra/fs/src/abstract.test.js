@@ -1,4 +1,4 @@
-import { after, beforeEach, describe, it } from 'test'
+import { after, beforeEach, describe, it } from 'node:test'
 import { strict as assert } from 'assert'
 import sinon from 'sinon'
 

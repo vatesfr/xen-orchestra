@@ -88,6 +88,12 @@
                 </option>
               </FormSelect>
             </FormInputWrapper>
+            <FormInputWrapper
+              :label="$t('deploy-xoa-custom-ntp-servers')"
+              learn-more-url="https://xen-orchestra.com/docs/xoa.html#setting-a-custom-ntp-server"
+            >
+              <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
+            </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper>
@@ -195,14 +201,14 @@
           </div>
         </FormSection>
 
-        <ButtonGroup>
+        <VtsButtonGroup>
           <UiButton size="medium" color="normal" level="secondary" @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
           <UiButton size="medium" color="normal" level="primary" type="submit">
             {{ $t('deploy') }}
           </UiButton>
-        </ButtonGroup>
+        </VtsButtonGroup>
       </form>
     </UiCard>
   </div>
@@ -225,8 +231,8 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import ButtonGroup from '@core/components/button/ButtonGroup.vue'
 import UiButton from '@core/components/button/UiButton.vue'
+import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
@@ -295,6 +301,7 @@ const openXoa = () => {
 
 const selectedSr = ref<XenApiSr>()
 const selectedNetwork = ref<XenApiNetwork>()
+const ntp = ref('')
 const ipStrategy = ref<'static' | 'dhcp'>('dhcp')
 const requireIpConf = computed(() => ipStrategy.value === 'static')
 
@@ -397,6 +404,10 @@ async function deploy() {
         JSON.stringify({ email: xoaUser.value, password: xoaPwd.value }),
       ]),
     ]
+
+    if (ntp.value !== '') {
+      promises.push(xapi.call('VM.add_to_xenstore_data', [vmRef.value, 'vm-data/ntp', ntp.value]))
+    }
 
     // TODO: add host to servers with session token?
 
@@ -528,7 +539,7 @@ async function cancel() {
   justify-content: center;
   align-items: center;
   min-height: 76.5vh;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
   text-align: center;
   padding: 5rem;
   margin: auto;

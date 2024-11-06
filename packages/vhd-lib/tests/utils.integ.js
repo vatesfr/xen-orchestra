@@ -1,6 +1,6 @@
 'use strict'
 
-const { beforeEach, afterEach, test } = require('test')
+const { beforeEach, afterEach, test } = require('node:test')
 const { strict: assert } = require('assert')
 
 const fs = require('fs-extra')

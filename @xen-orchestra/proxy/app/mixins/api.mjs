@@ -160,7 +160,7 @@ export default class Api {
         getServerVersion: [
           () => appVersion,
           {
-            description: 'returns the version of xo-server',
+            description: 'returns the version of xo-proxy',
           },
         ],
         listMethods: [

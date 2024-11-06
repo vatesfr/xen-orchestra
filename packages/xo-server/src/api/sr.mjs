@@ -339,7 +339,7 @@ export async function createHba({ host, nameLabel, nameDescription, scsiId, srUu
       uuid: srUuid,
       nameLabel,
       nameDescription,
-      type: 'hba',
+      type: 'lvmohba', // SR LVM over HBA https://team.vates.fr/vates/pl/wuedob5cj3bfbmbzeyjjpnxpda
       deviceConfig,
     })
   }

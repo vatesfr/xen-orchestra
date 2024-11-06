@@ -8,7 +8,7 @@ import { alert } from './modal'
 
 const AVAILABLE_TEMPLATE_VARS = {
   '{name}': 'templateNameInfo',
-  '%': 'templateIndexInfo',
+  '{index}': 'templateIndexInfo',
 }
 
 const showAvailableTemplateVars = () =>
@@ -76,7 +76,7 @@ export const NetworkConfigInfo = () => (
 )
 
 export const DEFAULT_CLOUD_CONFIG_TEMPLATE =
-  '#cloud-config\n#hostname: {name}%\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n'
+  '#cloud-config\n#hostname: {name}{index}\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n'
 
 // SOURCE: https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html
 export const DEFAULT_NETWORK_CONFIG_TEMPLATE = `#network:

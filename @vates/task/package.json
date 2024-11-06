@@ -13,16 +13,13 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "0.4.1",
+  "version": "0.6.0",
   "engines": {
     "node": ">=14"
   },
-  "devDependencies": {
-    "test": "^3.3.0"
-  },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test": "node --test"
   },
   "exports": {
     ".": "./index.js",

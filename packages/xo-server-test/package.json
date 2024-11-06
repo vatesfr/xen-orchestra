@@ -1,7 +1,8 @@
 {
   "private": true,
   "name": "xo-server-test",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "type": "module",
   "license": "AGPL-3.0-or-later",
   "description": "Test client for Xo-Server",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test",
@@ -16,9 +17,9 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "main": "dist/",
+  "main": "./",
   "engines": {
-    "node": ">=6"
+    "node": ">=14"
   },
   "dependencies": {
     "@babel/cli": "^7.1.5",
@@ -38,8 +39,8 @@
     "xo-lib": "^0.11.1"
   },
   "scripts": {
-    "watch": "jest --bail --watch",
-    "start": "jest"
+    "watch": "node --test --watch",
+    "start": "node --test"
   },
   "jest": {
     "modulePathIgnorePatterns": [

@@ -8,13 +8,13 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.54.0",
+  "version": "0.54.2",
   "engines": {
     "node": ">=14.18"
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "node--test *.integ.mjs"
+    "test-integration": "node --test *.integ.mjs"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
@@ -23,13 +23,13 @@
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
-    "@vates/disposable": "^0.1.5",
-    "@vates/fuse-vhd": "^2.1.1",
-    "@vates/nbd-client": "^3.1.0",
+    "@vates/disposable": "^0.1.6",
+    "@vates/fuse-vhd": "^2.1.2",
+    "@vates/nbd-client": "^3.1.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^4.1.7",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/fs": "^4.2.1",
+    "@xen-orchestra/log": "^0.7.0",
     "@xen-orchestra/template": "^0.1.0",
     "app-conf": "^3.0.0",
     "compare-versions": "^6.0.0",
@@ -47,19 +47,18 @@
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^4.11.0",
-    "xen-api": "^4.3.1",
+    "vhd-lib": "^4.11.1",
+    "xen-api": "^4.5.0",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
     "fs-extra": "^11.1.0",
     "rimraf": "^5.0.1",
     "sinon": "^18.0.0",
-    "test": "^3.2.1",
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^7.6.0"
+    "@xen-orchestra/xapi": "^7.7.0"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

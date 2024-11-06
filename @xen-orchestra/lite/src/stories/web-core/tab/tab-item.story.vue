@@ -13,7 +13,7 @@
     <TabList>
       <TabItem v-bind="properties">
         {{ settings.label }}
-        <VtsCounter v-if="settings.counter" :value="settings.counter" accent="brand" variant="primary" size="small" />
+        <UiCounter v-if="settings.counter" :value="settings.counter" accent="info" variant="primary" size="small" />
       </TabItem>
     </TabList>
   </ComponentStory>
@@ -23,7 +23,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 </script>

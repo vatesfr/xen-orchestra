@@ -14,15 +14,15 @@
     "url": "https://vates.fr"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.16.0",
+  "version": "0.16.2",
   "engines": {
     "node": ">=15.6"
   },
   "dependencies": {
     "@vates/event-listeners-manager": "^1.0.1",
     "@vates/parse-duration": "^0.1.1",
-    "@vates/task": "^0.4.1",
-    "@xen-orchestra/log": "^0.6.0",
+    "@vates/task": "^0.6.0",
+    "@xen-orchestra/log": "^0.7.0",
     "acme-client": "^5.0.0",
     "app-conf": "^3.0.0",
     "lodash": "^4.17.21",
@@ -31,9 +31,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
-  },
-  "devDependencies": {
-    "test": "^3.2.1"
+    "test": "node --test"
   }
 }

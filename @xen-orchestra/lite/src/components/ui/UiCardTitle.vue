@@ -1,10 +1,10 @@
 <template>
   <div class="ui-section-title" :class="tags.left">
-    <component :is="tags.left" v-if="$slots.default || left" class="left">
+    <component :is="tags.left" v-if="slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <VtsCounter v-if="count > 0" class="count" :value="count" accent="brand" variant="primary" size="small" />
+      <UiCounter v-if="count > 0" class="count" :value="count" accent="info" variant="primary" size="small" />
     </component>
-    <component :is="tags.right" v-if="$slots.right || right" class="right">
+    <component :is="tags.right" v-if="slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
     </component>
   </div>
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import { UiCardTitleLevel } from '@/types/enums'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -24,6 +24,11 @@ const props = withDefaults(
   }>(),
   { count: 0, level: UiCardTitleLevel.Title }
 )
+
+const slots = defineSlots<{
+  default?(): any
+  right?(): any
+}>()
 
 const tags = computed(() => {
   switch (props.level) {
@@ -47,7 +52,7 @@ const tags = computed(() => {
   --section-title-left-color: var(--color-neutral-txt-primary);
   --section-title-left-weight: 500;
   --section-title-right-size: 1.6rem;
-  --section-title-right-color: var(--color-normal-txt-base);
+  --section-title-right-color: var(--color-info-txt-base);
   --section-title-right-weight: 700;
 
   &.h6 {
@@ -60,12 +65,12 @@ const tags = computed(() => {
   &.h5 {
     margin-top: 2rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-normal-txt-base);
+    border-bottom: 1px solid var(--color-info-txt-base);
     --section-title-left-size: 1.6rem;
-    --section-title-left-color: var(--color-normal-txt-base);
+    --section-title-left-color: var(--color-info-txt-base);
     --section-title-left-weight: 700;
     --section-title-right-size: 1.4rem;
-    --section-title-right-color: var(--color-normal-txt-base);
+    --section-title-right-color: var(--color-info-txt-base);
     --section-title-right-weight: 400;
   }
 }

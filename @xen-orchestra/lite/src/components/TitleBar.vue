@@ -36,7 +36,7 @@ defineProps<{
 
 .icon {
   font-size: 2.5rem;
-  color: var(--color-normal-txt-base);
+  color: var(--color-info-txt-base);
 }
 
 .title {

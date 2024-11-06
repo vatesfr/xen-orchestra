@@ -9,7 +9,7 @@
         :disabled="isDisabled"
         :required
         class="select"
-        v-bind="$attrs"
+        v-bind="attrs"
       >
         <slot />
       </select>
@@ -26,7 +26,7 @@
       :disabled="isDisabled"
       :required
       class="textarea"
-      v-bind="$attrs"
+      v-bind="attrs"
     />
     <input
       v-else
@@ -37,7 +37,7 @@
       :disabled="isDisabled"
       :required
       class="input"
-      v-bind="$attrs"
+      v-bind="attrs"
     />
     <span v-if="before !== undefined" class="before">
       <template v-if="typeof before === 'string'">{{ before }}</template>
@@ -59,7 +59,7 @@ import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import { useTextareaAutosize, useVModel } from '@vueuse/core'
-import { computed, type HTMLAttributes, inject, nextTick, ref, watch } from 'vue'
+import { computed, type HTMLAttributes, inject, nextTick, ref, useAttrs, watch } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -83,6 +83,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
+
+const attrs = useAttrs()
 
 const { name: contextColor } = useContext(ColorContext, () => props.color)
 
@@ -199,15 +201,15 @@ defineExpose({
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-normal-item-hover);
+        --border-color: var(--color-info-item-hover);
       }
 
       &:active {
-        --border-color: var(--color-normal-item-active);
+        --border-color: var(--color-info-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-normal-item-base);
+        --border-color: var(--color-info-item-base);
       }
     }
 

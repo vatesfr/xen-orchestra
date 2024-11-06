@@ -1,6 +1,6 @@
 {
   "name": "@vates/fuse-vhd",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "license": "ISC",
   "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fuse-vhd",
@@ -19,12 +19,12 @@
   },
   "main": "./index.mjs",
   "dependencies": {
-    "@xen-orchestra/fs": "^4.1.7",
-    "@xen-orchestra/log": "^0.6.0",
+    "@xen-orchestra/fs": "^4.2.1",
+    "@xen-orchestra/log": "^0.7.0",
     "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.11.0"
+    "vhd-lib": "^4.11.1"
   },
   "bin": {
     "xo-fuse-vhd": "./cli.mjs"

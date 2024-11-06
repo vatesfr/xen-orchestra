@@ -1,3 +1,5 @@
+import { createLogger } from '@xen-orchestra/log'
+
 import { asyncEach } from '@vates/async-each'
 import assert from 'node:assert'
 import * as UUID from 'uuid'
@@ -11,6 +13,7 @@ import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
+const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
   _getRemoteWriter() {
     return IncrementalRemoteWriter
@@ -46,11 +49,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     })
 
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
-    await this._callWriters(
-      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis),
-      'writer.checkBaseVdis()',
-      false
-    )
+    await this._callWriters(writer => writer.checkBaseVdis(presentBaseVdis), 'writer.checkBaseVdis()', false)
     // check if the parent vdi are present in all the remotes
     baseUuidToSrcVdi.forEach((srcVdiUuid, baseUuid) => {
       if (!presentBaseVdis.has(baseUuid)) {
@@ -64,17 +63,29 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
 
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
-      await this._selectBaseVm(metadata)
-      await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
         useChain: false,
       })
-
+      // don't trust metadata too much
+      // recompute if it's a base backup
+      // recompute if disks are differencing or not
       const isVhdDifferencing = {}
 
       await asyncEach(Object.entries(incrementalExport.streams), async ([key, stream]) => {
         isVhdDifferencing[key] = await isVhdDifferencingDisk(stream)
       })
+      const hasDifferencingDisk = Object.values(isVhdDifferencing).includes(true)
+      if (metadata.isBase === hasDifferencingDisk) {
+        warn(`Metadata isBase and real disk value are different`, {
+          metadataIsBase: metadata.isBase,
+          diskIsBase: !hasDifferencingDisk,
+          isVhdDifferencing,
+        })
+      }
+      metadata.isBase = !hasDifferencingDisk
+      metadata.isVhdDifferencing = isVhdDifferencing
+      await this._selectBaseVm(metadata)
+      await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
       incrementalExport.streams = mapValues(incrementalExport.streams, this._throttleStream)
       await this._callWriters(

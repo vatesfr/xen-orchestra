@@ -5,14 +5,14 @@
     class="account-menu-trigger"
     type="button"
   >
-    <UserLogo class="logo" size="medium" />
-    <VtsIcon :icon="faAngleDown" class="icon" accent="brand" />
+    <UiUserLogo class="logo" size="medium" />
+    <VtsIcon :icon="faAngleDown" class="icon" accent="info" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UserLogo from '@core/components/user/UserLogo.vue'
+import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -29,21 +29,21 @@ const isDisabled = useContext(DisabledContext)
 /* COLOR VARIANTS */
 .account-menu-trigger {
   --background-color: transparent;
-  --accent-color: var(--color-normal-txt-base);
+  --accent-color: var(--color-info-txt-base);
 
   &:is(:hover, .hover, :focus-visible) {
-    --background-color: var(--color-normal-background-hover);
-    --accent-color: var(--color-normal-txt-hover);
+    --background-color: var(--color-info-background-hover);
+    --accent-color: var(--color-info-txt-hover);
   }
 
   &:is(:active, .pressed) {
-    --background-color: var(--color-normal-background-active);
-    --accent-color: var(--color-normal-txt-active);
+    --background-color: var(--color-info-background-active);
+    --accent-color: var(--color-info-txt-active);
   }
 
   &.active {
-    --background-color: var(--color-normal-background-selected);
-    --accent-color: var(--color-normal-txt-base);
+    --background-color: var(--color-info-background-selected);
+    --accent-color: var(--color-info-txt-base);
   }
 
   &.disabled {

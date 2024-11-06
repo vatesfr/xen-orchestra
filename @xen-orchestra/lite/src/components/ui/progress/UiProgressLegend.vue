@@ -1,6 +1,6 @@
 <template>
   <div class="legend">
-    <template v-if="$slots.label || label">
+    <template v-if="slots.label || label">
       <span class="circle" />
       <div class="label-container">
         <div v-tooltip="{ vertical: true }" class="label">
@@ -21,6 +21,11 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 defineProps<{
   label?: string
   value?: string
+}>()
+
+const slots = defineSlots<{
+  value(): any
+  label?(): any
 }>()
 </script>
 

@@ -5,7 +5,7 @@ const { parseXml } = require('@vates/xml/parse')
 const { readFileSync } = require('node:fs')
 const { xmlRpcParser } = require('@vates/xml-rpc/parser')
 const assert = require('node:assert/strict')
-const test = require('test')
+const test = require('node:test')
 
 const methodCall = require('./methodCall.js')
 

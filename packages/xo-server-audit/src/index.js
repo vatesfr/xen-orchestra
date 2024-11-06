@@ -33,6 +33,7 @@ const DEFAULT_BLOCKED_LIST = {
   'host.getSchedulerGranularity': true,
   'host.isHostServerTimeConsistent': true,
   'host.isHyperThreadingEnabled': true,
+  'host.isPubKeyTooShort': true,
   'host.stats': true,
   'ipPool.getAll': true,
   'job.get': true,

@@ -64,27 +64,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
     await xapi.startVm(vm.uuid)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
-      // wait for the 'Running' event to be really stored in local xapi object cache
-      await xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', { timeout: timeLimit - Date.now() })
-
-      // wait for the guest tool version to be defined
-      await xapi
-        .waitObjectState(
-          xapi.getObjectByRef(vm.$ref).guest_metrics,
-          gm => gm?.PV_drivers_version?.major !== undefined,
-          { timeout: timeLimit - Date.now() }
-        )
-        .catch(error => {
-          log.warn('startVmAndDestroyCloudConfigVdi: failed to wait guest metrics, consider VM as started', {
-            error,
-            vm: { uuid: vm.uuid },
-          })
-        })
-
-      // destroy cloud config drive
-      const vdi = xapi.getObjectByUuid(vdiUuid)
-      await vdi.$VBDs[0].$unplug()
-      await vdi.$destroy()
+      await xapi.VDI_destroyCloudInitConfig(xapi.getObject(vdiUuid).$ref, { timeLimit })
     }
   } catch (error) {
     log.warn('startVmAndDestroyCloudConfigVdi', { error, vdi: { uuid: vdiUuid }, vm: { uuid: vm.uuid } })
@@ -208,25 +188,9 @@ export const create = defer(async function ($defer, params) {
   // create cloud config drive
   let cloudConfigVdiUuid
   if (params.cloudConfig != null) {
-    // Find the SR of the first VDI.
-    let srId
-    forEach(vm.$VBDs, vbdId => {
-      const vbd = this.getObject(vbdId)
-      const vdiId = vbd.VDI
-      if (!vbd.is_cd_drive && vdiId !== undefined) {
-        srId = this.getObject(vdiId).$SR
-        return false
-      }
+    cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm._xapiRef, params.cloudConfig, {
+      networkConfig: params.networkConfig,
     })
-
-    try {
-      cloudConfigVdiUuid = params.coreOs
-        ? await xapi.createCoreOsCloudInitConfigDrive(vm.id, srId, params.cloudConfig)
-        : await xapi.createCloudInitConfigDrive(vm.id, srId, params.cloudConfig, params.networkConfig)
-    } catch (error) {
-      log.warn('vm.create', { vmId: vm.id, srId, error })
-      throw error
-    }
   }
 
   if (resourceSet) {
