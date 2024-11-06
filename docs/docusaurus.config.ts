@@ -59,8 +59,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
-
+    image: 'img/vates-xo-logo-smol-new-baseline.png',
     navbar: {
       title: 'Xen Orchestra Documentation',
       logo: { alt: 'Xen Orchestra logo',src: 'img/logo.png', href:'/'},
