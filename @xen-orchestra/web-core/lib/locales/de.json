@@ -1,22 +1,16 @@
 {
   "alarms": "Alarme",
-
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
   "bytes.gi": "GiB",
-
   "coming-soon": "Bald verfügbar!",
   "console": "Konsole",
-
   "core.close": "Schließen",
-
   "core.select.all": "Alles auswählen",
   "core.select.none": "Alle abwählen",
-
   "dark-mode.enable": "Aktivieren Sie den Dunkelmodus",
   "dark-mode.disable": "Deaktivieren Sie den Dunkelmodus",
   "dark-mode.auto": "Automatischer Dunkelmodus",
-
   "dashboard": "Dashboard",
   "documentation-name": "{name} Dokumentation",
   "hosts": "Hosts",
@@ -33,11 +27,8 @@
   "running-vm": "VM eingeschalten | VMs eingeschalten",
   "stats": "Statistiken",
   "storage": "Speicher",
-  "support-name": "{name} pro support",
   "system": "System",
-
   "tasks": "Aufgaben",
   "tasks.quick-view": "Schnellansicht der Aufgaben",
-
   "vms": "VMs"
 }

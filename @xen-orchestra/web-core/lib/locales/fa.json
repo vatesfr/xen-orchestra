@@ -1,13 +1,10 @@
 {
   "alarms": "هشدارها",
-
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
   "bytes.gi": "GiB",
-
   "coming-soon": "به زودی!",
   "console": "کنسول",
-
   "core.close": "بستن",
   "core.current": "جاری",
   "core.filter": "فیلتر",
@@ -15,22 +12,17 @@
   "core.hide": "مخفی کردن",
   "core.open": "باز کردن",
   "core.quick-actions": "اقدامات سریع",
-
   "core.select.all": "انتخاب همه",
   "core.select.none": "انتخاب هیچکدام",
-
   "core.sidebar.close": "بستن نوار کناری",
   "core.sidebar.lock": "قفل کردن نوار کناری باز شده",
   "core.sidebar.open": "باز کردن نوار کناری",
   "core.sidebar.unlock": "از حالت قفل خارج کردن نوار کناری",
-
   "core.sort.ascending": "مرتب سازی صعودی",
   "core.sort.descending": "مرتب سازی نزولی",
-
   "dark-mode.enable": "فعال کردن حالت تاریک",
   "dark-mode.disable": "غیر فعال کردن حالت تاریک",
   "dark-mode.auto": "حالت خودکار تاریک",
-
   "dashboard": "داشبورد",
   "documentation-name": "اسناد {name}",
   "learn-more": "بیشتر بدانید",
@@ -44,7 +36,6 @@
   "running-vm": "ماشین های مجازی در حال اجرا | ماشین مجازی در حال اجرا",
   "stats": "آمار",
   "storage": "ذخیره سازی",
-  "support-name": "پشتیبانی حرفه ای {name}",
   "system": "سیستم",
   "tasks": "کارها"
 }
