@@ -54,6 +54,7 @@ const classNames = computed(() => [
     variant: props.variant,
     size: props.size,
     busy: props.busy,
+    lock: props.lockIcon,
     disabled: isDisabled.value,
   }),
 ])
@@ -72,9 +73,8 @@ const classNames = computed(() => [
   outline: none;
   border-style: solid;
 
-  &.busy,
-  &.disabled {
-    cursor: not-allowed;
+  &.lock {
+    cursor: default;
   }
 
   &:focus-visible {

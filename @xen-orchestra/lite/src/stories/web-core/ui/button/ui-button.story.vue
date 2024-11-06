@@ -18,7 +18,7 @@
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
       prop('lockIcon').bool().widget(),
-      prop('rightIcon')
+      prop('leftIcon')
         .type('IconDefinition')
         .widget(
           choice(
