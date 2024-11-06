@@ -485,6 +485,7 @@ ${monitorBodies.join('\n')}`
       return parser
     }
     const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
+    const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
     return {
       ...definition,
       alarmId,
@@ -508,6 +509,10 @@ ${monitorBodies.join('\n')}`
                   }
 
                   if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+                    return false
+                  }
+
+                  if (objectType === 'SR' && !isSrWritable(obj)) {
                     return false
                   }
 
