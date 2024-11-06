@@ -2,13 +2,13 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('color')
-        .type('ButtonColor')
-        .enum('normal', 'success', 'warning', 'danger')
-        .preset('normal')
+      prop('accent')
+        .type('ButtonAccent')
+        .enum('info', 'success', 'warning', 'danger')
+        .preset('info')
         .required()
         .widget(),
-      prop('level')
+      prop('variant')
         .type('ButtonVariant')
         .enum('primary', 'secondary', 'tertiary')
         .preset('primary')
@@ -17,17 +17,8 @@
       prop('size').type('ButtonSize').enum('small', 'medium', 'large').preset('medium').required().widget(),
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
+      prop('lockIcon').bool().widget(),
       prop('leftIcon')
-        .type('IconDefinition')
-        .widget(
-          choice(
-            { label: 'Ship', value: faShip },
-            { label: 'Rocket', value: faRocket },
-            { label: 'Floppy', value: faFloppyDisk },
-            { label: 'Trash', value: faTrash }
-          )
-        ),
-      prop('rightIcon')
         .type('IconDefinition')
         .widget(
           choice(
@@ -42,7 +33,7 @@
     :presets="{
       'Save Button': {
         props: {
-          color: 'success',
+          accent: 'success',
           leftIcon: faFloppyDisk,
           rightIcon: undefined,
         },
@@ -54,7 +45,7 @@
         props: {
           leftIcon: undefined,
           rightIcon: faTrash,
-          color: 'danger',
+          accent: 'danger',
         },
         settings: {
           label: 'Delete',
@@ -70,6 +61,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faFloppyDisk, faRocket, faShip, faTrash } from '@fortawesome/free-solid-svg-icons'
 </script>

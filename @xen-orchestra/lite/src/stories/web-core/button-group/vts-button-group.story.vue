@@ -7,10 +7,10 @@
     ]"
   >
     <VtsButtonGroup v-bind="properties">
-      <UiButton level="secondary" color="normal" size="medium">Cancel</UiButton>
-      <UiButton level="primary" color="normal" size="medium">Call to action</UiButton>
+      <UiButton variant="secondary" accent="info" size="medium">Cancel</UiButton>
+      <UiButton variant="primary" accent="info" size="medium">Call to action</UiButton>
       <template #tertiary>
-        <UiButton level="tertiary" color="warning" size="medium">Secondary call to action</UiButton>
+        <UiButton variant="tertiary" accent="warning" size="medium">Secondary call to action</UiButton>
       </template>
     </VtsButtonGroup>
   </ComponentStory>
@@ -19,6 +19,6 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot } from '@/libs/story/story-param'
-import UiButton from '@core/components/button/UiButton.vue'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 </script>

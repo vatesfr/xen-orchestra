@@ -12,13 +12,13 @@
       :placeholder="$t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" color="normal" level="primary" type="submit">{{ $t('core.search') }}</UiButton>
+      <UiButton size="medium" accent="info" variant="primary" type="submit">{{ $t('core.search') }}</UiButton>
       <VtsDivider type="stretch" />
       <UiButton
         v-tooltip="$t('coming-soon')"
         size="medium"
-        color="normal"
-        level="secondary"
+        accent="info"
+        variant="secondary"
         :left-icon="faFilter"
         disabled
       >
@@ -33,8 +33,8 @@
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@core/components/button/UiButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

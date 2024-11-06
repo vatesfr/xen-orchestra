@@ -10,9 +10,9 @@
         <UiButton
           v-if="isSupported && copiableId"
           :left-icon="faCopy"
-          level="secondary"
+          variant="secondary"
           size="small"
-          :color="copied ? 'success' : 'normal'"
+          :accent="copied ? 'success' : 'info'"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}
@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'

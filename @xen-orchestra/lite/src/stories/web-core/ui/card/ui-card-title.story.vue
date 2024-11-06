@@ -15,7 +15,7 @@
       <UiCounter :value="3" accent="danger" size="medium" variant="primary" />
       <template #info>
         {{ settings.infoSlotContent }}
-        <UiButton level="tertiary" size="small" color="normal" :right-icon="faAngleRight">See all</UiButton>
+        <UiButton variant="tertiary" size="small" accent="info" :right-icon="faAngleRight">See all</UiButton>
       </template>
       <template #description>{{ settings.descriptionSlotContent }}</template>
     </UiCardTitle>
@@ -26,7 +26,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot, setting } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'

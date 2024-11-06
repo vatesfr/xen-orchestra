@@ -11,7 +11,7 @@
         <p class="text typo h4-medium">
           {{ $t('click-to-display-alarms') }}
         </p>
-        <UiButton size="medium" color="normal" level="primary" @click="start">{{ $t('load-now') }}</UiButton>
+        <UiButton size="medium" accent="info" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />
@@ -45,7 +45,7 @@ import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
