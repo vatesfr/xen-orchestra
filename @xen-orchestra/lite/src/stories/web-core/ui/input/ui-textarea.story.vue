@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       model().type('string').preset(''),
-      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('info', 'warning', 'danger').required().preset('info').widget(),
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
       iconProp(),

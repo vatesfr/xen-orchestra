@@ -1,15 +1,15 @@
 <!-- v2 -->
 <template>
   <div class="ui-textarea">
-    <VtsLabel v-if="slots.default" :accent="labelAccent" :required :icon :href><slot /></VtsLabel>
+    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href><slot /></UiLabel>
     <textarea v-model="model" :class="accent" :disabled class="textarea" v-bind="$attrs" />
-    <VtsInfo v-if="slots.info" :accent><slot name="info" /></VtsInfo>
+    <UiInfo v-if="slots.info" :accent><slot name="info" /></UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsInfo from '@core/components/info/VtsInfo.vue'
-import VtsLabel from '@core/components/input/VtsLabel.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
@@ -18,7 +18,7 @@ defineOptions({
 })
 
 const props = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: 'info' | 'warning' | 'danger'
   disabled?: boolean
   href?: string
   icon?: IconDefinition
@@ -32,7 +32,7 @@ const slots = defineSlots<{
   info?(): any
 }>()
 
-const labelAccent = computed(() => (props.disabled ? 'brand' : props.accent))
+const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
 </script>
 
 <style lang="postcss" scoped>
@@ -44,35 +44,35 @@ const labelAccent = computed(() => (props.disabled ? 'brand' : props.accent))
   .textarea {
     border-radius: 0.4rem;
     border-width: 0.1rem;
+    background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;
     padding: 0.8rem 1.6rem;
     width: 100%;
 
-    &:disabled {
-      background-color: var(--color-neutral-background-disabled);
-      border-color: var(--color-neutral-border);
-    }
-
-    &.brand:not(:disabled) {
+    &.info {
       border-color: var(--color-neutral-border);
 
-      &:is(:hover, :focus-visible) {
-        border-color: var(--color-normal-item-hover);
+      &:hover {
+        border-color: var(--color-info-item-hover);
       }
       &:active {
-        border-color: var(--color-normal-item-active);
+        border-color: var(--color-info-item-active);
       }
       &:focus {
         border-width: 0.2rem;
-        border-color: var(--color-normal-item-base);
+        border-color: var(--color-info-item-base);
+      }
+      &:disabled {
+        background-color: var(--color-neutral-background-disabled);
+        border-color: var(--color-neutral-border);
       }
     }
 
-    &.warning:not(:disabled) {
+    &.warning {
       border-color: var(--color-warning-item-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         border-color: var(--color-warning-item-hover);
       }
       &:active {
@@ -82,12 +82,16 @@ const labelAccent = computed(() => (props.disabled ? 'brand' : props.accent))
         border-width: 0.2rem;
         border-color: var(--color-warning-item-base);
       }
+      &:disabled {
+        background-color: var(--color-neutral-background-disabled);
+        border-color: var(--color-neutral-border);
+      }
     }
 
-    &.danger:not(:disabled) {
+    &.danger {
       border-color: var(--color-danger-item-base);
 
-      &:is(:hover, :focus-visible) {
+      &:hover {
         border-color: var(--color-danger-item-hover);
       }
       &:active {
@@ -96,6 +100,10 @@ const labelAccent = computed(() => (props.disabled ? 'brand' : props.accent))
       &:focus {
         border-width: 0.2rem;
         border-color: var(--color-danger-item-base);
+      }
+      &:disabled {
+        background-color: var(--color-neutral-background-disabled);
+        border-color: var(--color-neutral-border);
       }
     }
   }
