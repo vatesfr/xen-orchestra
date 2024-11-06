@@ -19,15 +19,13 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-interface CardNumbersProps {
+const props = defineProps<{
   label: string
   size: TSize
   value?: number
   unit?: string
   max?: TSize extends 'small' ? number : never
-}
-
-const props = defineProps<CardNumbersProps>()
+}>()
 
 const { n } = useI18n()
 

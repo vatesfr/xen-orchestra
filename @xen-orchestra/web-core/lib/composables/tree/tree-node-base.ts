@@ -1,5 +1,5 @@
 import type { Branch } from '@core/composables/tree/branch'
-import type { Identifiable, Labeled, TreeContext, TreeNodeOptions } from '@core/composables/tree/types'
+import type { Identifiable, Labeled, TreeContext, TreeNodeId, TreeNodeOptions } from '@core/composables/tree/types'
 
 export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean
@@ -27,16 +27,16 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
     this.options = options ?? ({} as TreeNodeOptions<TData, TDiscriminator>)
   }
 
-  get id() {
+  get id(): TreeNodeId {
     if (this.options.getId === undefined) {
       return (this.data as Identifiable).id
     }
 
     if (typeof this.options.getId === 'function') {
-      return this.options.getId(this.data)
+      return this.options.getId(this.data as Identifiable)
     }
 
-    return this.data[this.options.getId]
+    return this.data[this.options.getId as keyof TData] as TreeNodeId
   }
 
   get label() {
@@ -45,10 +45,10 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
     }
 
     if (typeof this.options.getLabel === 'function') {
-      return this.options.getLabel(this.data)
+      return this.options.getLabel(this.data as Labeled)
     }
 
-    return this.data[this.options.getLabel]
+    return this.data[this.options.getLabel as keyof TData]
   }
 
   get discriminator() {
