@@ -9,8 +9,14 @@
       />
     </template>
     <MenuItem :icon="faGear" @click="openSettings">{{ $t('settings') }}</MenuItem>
-    <MenuItem :icon="faMessage" @click="openFeedbackUrl">
-      {{ $t('send-us-feedback') }}
+    <MenuItem :icon="faBook" @click="openUrl('https://xcp-ng.org/docs/')">
+      {{ $t('documentation-name', { name: 'XCP-ng' }) }}
+    </MenuItem>
+    <MenuItem :icon="faHeadset" @click="openUrl('https://vates.tech/pricing-and-support/')">
+      {{ $t('support-name', { name: 'XCP-ng' }) }}
+    </MenuItem>
+    <MenuItem :icon="faComments" @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite')">
+      {{ $t('access-forum') }}
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
       {{ $t('log-out') }}
@@ -24,7 +30,7 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faArrowRightFromBracket, faGear, faMessage } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faBook, faComments, faGear, faHeadset } from '@fortawesome/free-solid-svg-icons'
 import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -36,10 +42,9 @@ const logout = () => {
   nextTick(() => router.push({ name: 'home' }))
 }
 
-const openFeedbackUrl = () => {
-  window.open('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite', '_blank', 'noopener')
+const openUrl = (url: string) => {
+  window.open(url, '_blank', 'noopener noreferrer')
 }
-
 const openSettings = () => router.push({ name: 'settings' })
 </script>
 

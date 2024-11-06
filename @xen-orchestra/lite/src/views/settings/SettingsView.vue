@@ -162,9 +162,11 @@ h5 {
 .about .sections {
   display: flex;
   gap: 2em;
+
   div {
     flex-grow: 1;
   }
+
   @media (--mobile) {
     flex-direction: column;
   }
@@ -173,10 +175,12 @@ h5 {
 .appearance .options {
   display: flex;
   gap: 25px;
+
   .option {
     display: flex;
     flex-direction: column;
     gap: 1.6em;
+
     &.selected {
       color: var(--color-info-txt-base);
 
@@ -184,9 +188,11 @@ h5 {
         outline: solid 2px var(--color-info-txt-base);
       }
     }
+
     &:not(.selected) {
       cursor: pointer;
     }
+
     img {
       box-shadow: var(--shadow-100);
       border-radius: 8px;

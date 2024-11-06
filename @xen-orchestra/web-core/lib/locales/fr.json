@@ -40,6 +40,7 @@
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.auto": "Mode sombre automatique",
 
+  "access-forum": "Accès au forum",
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
   "hosts": "Hôtes",
