@@ -90,6 +90,10 @@ const classNames = computed(() => [
     }
   }
 
+  .icon {
+    font-size: 0.8em;
+  }
+
   /* ACCENT + VARIANT */
 
   &.accent--info {
@@ -523,10 +527,6 @@ const classNames = computed(() => [
   &.size--large {
     padding: 1.6rem 2.4rem;
     border-radius: 0.8rem;
-  }
-
-  .icon {
-    font-size: 0.8em;
   }
 }
 </style>

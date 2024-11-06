@@ -17,16 +17,7 @@
       prop('size').type('ButtonSize').enum('small', 'medium', 'large').preset('medium').required().widget(),
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
-      prop('leftIcon')
-        .type('IconDefinition')
-        .widget(
-          choice(
-            { label: 'Ship', value: faShip },
-            { label: 'Rocket', value: faRocket },
-            { label: 'Floppy', value: faFloppyDisk },
-            { label: 'Trash', value: faTrash }
-          )
-        ),
+      prop('lockIcon').bool().widget(),
       prop('rightIcon')
         .type('IconDefinition')
         .widget(
