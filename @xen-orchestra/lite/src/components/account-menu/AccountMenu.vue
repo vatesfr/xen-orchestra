@@ -1,10 +1,12 @@
 <template>
   <MenuList placement="bottom-end" border>
     <template #trigger="{ open, isOpen }">
-      <button type="button" :class="{ active: isOpen }" class="account-button" @click="open">
-        <UiIcon :icon="faCircleUser" class="user-icon" />
-        <UiIcon :icon="faAngleDown" class="dropdown-icon" />
-      </button>
+      <UiAccountMenuButton
+        v-tooltip="isOpen ? false : { content: $t('settings'), placement: 'left' }"
+        :selected="isOpen"
+        size="medium"
+        @click="open($event)"
+      />
     </template>
     <MenuItem :icon="faGear" @click="openSettings">{{ $t('settings') }}</MenuItem>
     <MenuItem :icon="faMessage" @click="openFeedbackUrl">
@@ -17,17 +19,12 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import {
-  faAngleDown,
-  faArrowRightFromBracket,
-  faCircleUser,
-  faGear,
-  faMessage,
-} from '@fortawesome/free-solid-svg-icons'
+import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { faArrowRightFromBracket, faGear, faMessage } from '@fortawesome/free-solid-svg-icons'
 import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -47,44 +44,6 @@ const openSettings = () => router.push({ name: 'settings' })
 </script>
 
 <style lang="postcss" scoped>
-.account-button {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  color: var(--color-neutral-txt-primary);
-  border: none;
-  border-radius: 0.8rem;
-  background-color: var(--color-neutral-background-secondary);
-  gap: 0.8rem;
-
-  &:disabled {
-    color: var(--color-neutral-border);
-  }
-
-  &:not(:disabled) {
-    cursor: pointer;
-
-    &:hover,
-    &:active,
-    &.active {
-      background-color: var(--color-neutral-background-primary);
-    }
-
-    &:active,
-    &.active {
-      color: var(--color-info-txt-base);
-    }
-  }
-}
-
-.user-icon {
-  font-size: 2.4rem;
-}
-
-.dropdown-icon {
-  font-size: 1.6rem;
-}
-
 .menu-item-logout {
   color: var(--color-danger-txt-base);
 }
