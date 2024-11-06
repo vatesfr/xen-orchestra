@@ -9,11 +9,14 @@
       />
     </template>
     <MenuItem :icon="faGear" @click="openSettings">{{ $t('settings') }}</MenuItem>
-    <MenuItem :icon="faBook" @click="openUrl('https://xcp-ng.org/docs/')">
+    <MenuItem :icon="faBook" @click="openUrl('https://docs.xcp-ng.org?utm_campaign=xolite&utm_term=xcpdoc')">
       {{ $t('documentation-name', { name: 'XCP-ng' }) }}
     </MenuItem>
-    <MenuItem :icon="faHeadset" @click="openUrl('https://vates.tech/pricing-and-support/')">
-      {{ $t('support-name', { name: 'XCP-ng' }) }}
+    <MenuItem
+      :icon="faHeadset"
+      @click="openUrl('https://vates.tech/pricing-and-support?utm_campaign=xolite&utm_term=pricing')"
+    >
+      {{ $t('professional-support') }}
     </MenuItem>
     <MenuItem :icon="faComments" @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite')">
       {{ $t('access-forum') }}

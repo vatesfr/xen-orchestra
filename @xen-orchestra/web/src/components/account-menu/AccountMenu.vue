@@ -20,7 +20,7 @@
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ $t('support-name', { name: 'XCP-ng' }) }}
+        {{ $t('professional-support') }}
       </a>
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="logout" @click="logout()">

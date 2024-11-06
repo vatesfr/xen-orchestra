@@ -67,7 +67,7 @@
               <template #key>{{ $t('support') }}</template>
               <template #value>
                 <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.com/">
-                  {{ $t('support-name', { name: 'XCP-ng' }) }}
+                  {{ $t('professional-support') }}
                 </a>
               </template>
             </UiKeyValueRow>
