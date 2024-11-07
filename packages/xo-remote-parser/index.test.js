@@ -118,6 +118,20 @@ const data = deepFreeze({
       compressionOptions: { level: 1 },
     },
   },
+  'S3 with 2 points': {
+    string:
+      's3://a%40b%2Fc%2Bd%3Ae%3D%3A%2F%2F%20:e%40d%2Fc%2Bb%3Aa%3Ds%3A%2F%2F%20@s3-us-west-2.amazonaws.com/test-bucket/dir?allowUnauthorized=false',
+    object: {
+      type: 's3',
+      protocol: 'https',
+      host: 's3-us-west-2.amazonaws.com',
+      path: '/test-bucket/dir',
+      username: 'a@b/c+d:e=:// ',
+      password: 'e@d/c+b:a=s:// ',
+      region: undefined,
+      allowUnauthorized: false,
+    },
+  },
 })
 
 const parseData = deepFreeze({
