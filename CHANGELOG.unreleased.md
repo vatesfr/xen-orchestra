@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins/Perf-alert] Fix unwritable SRs being monitored (https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,6 +37,7 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- xo-server-perf-alert minor
 - xo-web minor
 
 <!--packages-end-->
