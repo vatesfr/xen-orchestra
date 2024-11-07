@@ -42,7 +42,7 @@ export class AddOtpModal extends PureComponent {
             <strong>{_('password')}</strong>
           </Col>
           <Col size={8}>
-            <input className='form-control' onChange={this._saveValue} />
+            <input className='form-control' inputMode='numeric' onChange={this._saveValue} />
             {this.value === this.props.failedToken && <p className='text-warning'>{_('addOtpInvalidPassword')}</p>}
           </Col>
         </Row>
