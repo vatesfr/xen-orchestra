@@ -74,7 +74,7 @@ export const parse = string => {
     object.region = parsed.hash.length < 2 ? undefined : parsed.hash.slice(1) // remove '#'
     object.host = parsed.host
     object.path = parsed.pathname
-    object.username = parsed.username
+    object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
   }
@@ -92,7 +92,7 @@ export const format = ({ type, host, path, port, username, password, domain, pro
   }
   if (type === 's3') {
     string = protocol === 'https' ? 's3://' : 's3+http://'
-    string += `${username}:${encodeURIComponent(password)}@${host}`
+    string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
