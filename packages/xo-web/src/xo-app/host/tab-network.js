@@ -42,9 +42,10 @@ class ConfigureIpModal extends Component {
 
     const { pif } = props
     if (pif) {
+      const ipv6 = pif.ipv6?.[0]?.trim()
       this.state = {
         ...pick(pif, ['ip', 'netmask', 'dns', 'gateway']),
-        ipv6: pif.ipv6?.[0],
+        ipv6: ipv6 === '' ? undefined : ipv6,
       }
     }
   }
