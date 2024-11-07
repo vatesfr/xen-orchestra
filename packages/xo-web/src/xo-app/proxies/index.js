@@ -273,7 +273,7 @@ const COLUMNS = [
     name: _('upgrade'),
   },
   {
-    itemRenderer: proxy => <p>{proxy?.version}</p>,
+    itemRenderer: proxy => <p>{proxy?.version ?? _('unknown')}</p>,
     name: _('version'),
   },
 ]

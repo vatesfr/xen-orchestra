@@ -57,15 +57,20 @@ function addProxyUrl(proxy) {
   proxy.url = url.href
 }
 
-async function getProxyVersion(proxy) {
+async function addProxyVersion(proxy) {
   try {
     const versionInfo = await this.callProxyMethod(proxy.id, 'system.getServerVersion')
 
     proxy.version = versionInfo
   } catch (error) {
-    log.warn('getProxyVersion', { error, proxy })
+    log.warn('addProxyVersion', { error, proxy })
     return
   }
+}
+
+async function populateProxy(proxy) {
+  addProxyUrl.call(this, proxy)
+  await addProxyVersion.call(this, proxy)
 }
 
 export default class Proxy {
@@ -176,8 +181,7 @@ export default class Proxy {
 
   async getProxy(id) {
     const proxy = await this._getProxy(id)
-    addProxyUrl.call(this, proxy)
-    await getProxyVersion.call(this, proxy)
+    await populateProxy.call(this, proxy)
 
     return proxy
   }
@@ -186,8 +190,7 @@ export default class Proxy {
     const proxies = await this._db.get()
     await Promise.all(
       proxies.map(async proxy => {
-        addProxyUrl.call(this, proxy)
-        await getProxyVersion.call(this, proxy)
+        await populateProxy.call(this, proxy)
       })
     )
     return proxies
@@ -204,7 +207,7 @@ export default class Proxy {
     patch(proxy, { address, authenticationToken, name, vmUuid })
     await this._db.update(proxy)
 
-    addProxyUrl(proxy)
+    await populateProxy.call(this, proxy)
     return proxy
   }
 
