@@ -2,18 +2,18 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('item-count').num(),
-      prop('total-item-count').num(),
+      prop('selected-items').required().num(),
+      prop('total-items').required().num(),
       event('toggleSelectAll').args({ value: 'boolean' }),
     ]"
   >
     <UiTopBottomTable
       v-bind="properties"
-      :item-count="itemCount"
-      :items-count="tableItems.length"
+      :selected-items="selectedItems"
+      :total-items="totalItems.length"
       @toggle-select-all="toggleSelect"
     />
-    <div v-for="(item, index) in tableItems" :key="index">
+    <div v-for="(item, index) in totalItems" :key="index">
       <input v-model="item.selected" type="checkbox" /> {{ item.name }}
     </div>
   </ComponentStory>
@@ -25,7 +25,7 @@ import { event, prop } from '@/libs/story/story-param'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { computed, ref } from 'vue'
 
-const tableItems = ref([
+const totalItems = ref([
   { name: 'Item 1', selected: false },
   { name: 'Item 2', selected: false },
   { name: 'Item 3', selected: false },
@@ -39,10 +39,10 @@ const tableItems = ref([
 ])
 
 const toggleSelect = (isSelected: boolean) => {
-  tableItems.value.forEach(item => {
+  totalItems.value.forEach(item => {
     item.selected = isSelected
   })
 }
 
-const itemCount = computed(() => tableItems.value.filter(item => item.selected).length)
+const selectedItems = computed(() => totalItems.value.filter(item => item.selected).length)
 </script>
