@@ -1013,7 +1013,7 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>
                       {_('nestedVirt')}{' '}
-                      <Tooltip content={_('unavailablebleOn')}>
+                      <Tooltip content={_('nestedVirtualizationWarning')}>
                         <a
                           href='https://docs.xcp-ng.org/compute/#-nested-virtualization'
                           target='_blank'
