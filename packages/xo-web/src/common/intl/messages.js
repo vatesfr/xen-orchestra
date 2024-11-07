@@ -1534,7 +1534,7 @@ const messages = {
   unknownOsName: 'Unknown',
   unknownOsKernel: 'Unknown',
   unknownOriginalTemplate: 'Unknown',
-  unavailablebleOn: 'Unstable feature, does not work on XCP-ng/XenServer >= 8.3',
+  unavailablebleOn: 'Unstable feature, insecure for the host, usage is discouraged',
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',

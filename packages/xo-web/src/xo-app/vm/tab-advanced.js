@@ -1014,7 +1014,13 @@ export default class TabAdvanced extends Component {
                     <th>
                       {_('nestedVirt')}{' '}
                       <Tooltip content={_('unavailablebleOn')}>
-                        <Icon icon='alarm' className='text-warning' />
+                        <a
+                          href='https://docs.xcp-ng.org/compute/#-nested-virtualization'
+                          target='_blank'
+                          rel='noreferrer'
+                        >
+                          <Icon icon='alarm' className='text-warning' />
+                        </a>
                       </Tooltip>
                     </th>
                     <td>
