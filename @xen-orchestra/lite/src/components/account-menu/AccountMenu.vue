@@ -18,7 +18,10 @@
     >
       {{ $t('professional-support') }}
     </MenuItem>
-    <MenuItem :icon="faComments" @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite')">
+    <MenuItem
+      :icon="faComments"
+      @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite?utm_campaign=xolite&utm_term=forum')"
+    >
       {{ $t('access-forum') }}
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
