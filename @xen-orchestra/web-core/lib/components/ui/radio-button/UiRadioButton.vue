@@ -1,15 +1,7 @@
 <!-- v4 -->
 <template>
-  <label class="ui-radio-button" v-bind="wrapperAttrs">
-    <input
-      v-model="radioModel"
-      :value="value"
-      :class="classNames"
-      :disabled="isDisabled"
-      type="radio"
-      class="input"
-      v-bind="attrs"
-    />
+  <label class="ui-radio-button" :class="classNames" v-bind="wrapperAttrs">
+    <input v-model="radioModel" :value="value" :disabled="isDisabled" type="radio" class="input" v-bind="attrs" />
     <span class="fake-radio">
       <VtsIcon :icon="faCircle" class="icon" accent="info" />
     </span>
@@ -93,23 +85,12 @@ const classNames = computed(() => [
         border-radius: 0.4rem;
       }
     }
+  }
 
-    &.accent--info {
+  &.accent--info {
+    .input {
       & + .fake-radio {
         border-color: var(--color-info-item-base);
-      }
-
-      &.indeterminate + .fake-radio {
-        background-color: var(--color-info-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-info-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-info-item-active);
-        }
       }
 
       &:hover + .fake-radio {
@@ -153,23 +134,12 @@ const classNames = computed(() => [
         }
       }
     }
+  }
 
-    &.accent--success {
+  &.accent--success {
+    .input {
       & + .fake-radio {
         border-color: var(--color-success-item-base);
-      }
-
-      &.indeterminate + .fake-radio {
-        background-color: var(--color-success-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-success-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-success-item-active);
-        }
       }
 
       &:hover + .fake-radio {
@@ -213,23 +183,12 @@ const classNames = computed(() => [
         }
       }
     }
+  }
 
-    &.accent--warning {
+  &.accent--warning {
+    .input {
       & + .fake-radio {
         border-color: var(--color-warning-item-base);
-      }
-
-      &.indeterminate + .fake-radio {
-        background-color: var(--color-warning-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-warning-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-warning-item-active);
-        }
       }
 
       &:hover + .fake-radio {
@@ -273,26 +232,15 @@ const classNames = computed(() => [
         }
       }
     }
+  }
 
-    &.accent--danger {
+  &.accent--danger {
+    .input {
       & + .fake-radio {
         border-color: var(--color-danger-item-base);
 
         > .icon {
           color: var(--color-danger-txt-item);
-        }
-      }
-
-      &.indeterminate + .fake-radio {
-        background-color: var(--color-danger-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-danger-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-danger-item-active);
         }
       }
 

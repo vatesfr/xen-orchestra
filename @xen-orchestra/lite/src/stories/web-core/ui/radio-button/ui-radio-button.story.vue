@@ -16,10 +16,10 @@
     ]"
   >
     <div>
-      <UiRadioButton v-model="selectedRadio" :value="1" v-bind="properties">{{ settings.defaultSlot }}</UiRadioButton>
+      <UiRadioButton v-model="selectedRadio" value="1" v-bind="properties">{{ settings.defaultSlot }}</UiRadioButton>
     </div>
     <div>
-      <UiRadioButton v-model="selectedRadio" :value="2" v-bind="properties">
+      <UiRadioButton v-model="selectedRadio" value="2" v-bind="properties">
         {{ settings.defaultSlot }}
         <template v-if="settings.info" #info>{{ settings.info }}</template>
       </UiRadioButton>
