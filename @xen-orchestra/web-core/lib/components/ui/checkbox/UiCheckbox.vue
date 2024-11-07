@@ -1,9 +1,9 @@
 <!-- v3 -->
 <template>
-  <label class="ui-checkbox" v-bind="wrapperAttrs">
+  <label class="ui-checkbox" :class="classNames" v-bind="wrapperAttrs">
     <input
       v-model="checkboxModel"
-      :class="[classNames, { indeterminate: isIndeterminate }]"
+      :class="{ indeterminate: isIndeterminate }"
       :disabled="isDisabled"
       type="checkbox"
       class="input"
@@ -16,14 +16,14 @@
       <slot />
     </span>
   </label>
-  <VtsInfo v-if="slots.info" :accent>
+  <UiInfo v-if="slots.info" :accent>
     <slot name="info" />
-  </VtsInfo>
+  </UiInfo>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsInfo from '@core/components/info/VtsInfo.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { toVariants } from '@core/utils/to-variants.util'
@@ -129,8 +129,10 @@ const attrs = useAttrs()
         border-style: solid;
       }
     }
+  }
 
-    &.accent--info {
+  &.accent--info {
+    .input {
       & + .fake-checkbox {
         border-color: var(--color-info-item-base);
       }
@@ -195,8 +197,10 @@ const attrs = useAttrs()
         }
       }
     }
+  }
 
-    &.accent--success {
+  &.accent--success {
+    .input {
       & + .fake-checkbox {
         border-color: var(--color-success-item-base);
       }
@@ -261,8 +265,10 @@ const attrs = useAttrs()
         }
       }
     }
+  }
 
-    &.accent--warning {
+  &.accent--warning {
+    .input {
       & + .fake-checkbox {
         border-color: var(--color-warning-item-base);
       }
@@ -327,8 +333,10 @@ const attrs = useAttrs()
         }
       }
     }
+  }
 
-    &.accent--danger {
+  &.accent--danger {
+    .input {
       & + .fake-checkbox {
         border-color: var(--color-danger-item-base);
 
