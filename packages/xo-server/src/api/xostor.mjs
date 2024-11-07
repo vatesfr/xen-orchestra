@@ -10,6 +10,7 @@ const LV_NAME = 'thin_device'
 const PROVISIONING = Object.values(ENUM_PROVISIONING)
 const VG_NAME = 'linstor_group'
 const MAIN_XOSTOR_DEPENDENCY = 'xcp-ng-linstor'
+// xcp-ng-release-linstor package is used to install the linstor repo, in airgap repos are blocked
 const XOSTOR_DEPENDENCIES = ['xcp-ng-release-linstor', MAIN_XOSTOR_DEPENDENCY]
 
 function checkIfLinstorSr(sr) {
