@@ -105,6 +105,8 @@ module.exports = {
             ],
           },
         ],
+        'no-useless-constructor': 'off',
+        '@typescript-eslint/no-useless-constructor': 'error',
         'no-void': ['error', { allowAsStatement: true }],
         'n/no-missing-import': 'off', // using 'import' plugin instead, to support TS aliases
         'no-redeclare': 'off', // automatically checked by the TypeScript compiler
