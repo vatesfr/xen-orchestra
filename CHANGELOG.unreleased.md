@@ -17,7 +17,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Plugins/Perf-alert] Fix unwritable SRs being monitored (https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
+- [Plugins/Perf-alert] Fix unwritable SRs being monitored [Forum#9619](https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
 
 ### Packages to release
 
