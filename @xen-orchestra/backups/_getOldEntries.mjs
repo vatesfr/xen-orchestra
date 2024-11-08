@@ -1,36 +1,50 @@
+import moment from 'moment-timezone'
+import assert from 'node:assert'
+
+function instantiateTimezonedDateCreator(timezone) {
+  return date => (timezone ? moment.tz(date, timezone) : moment(date))
+}
+
 const LTR_DEFINITIONS = {
   daily: {
-    makeDateFormatter: ({ firstHourOfTheDay = 0 } = {}) => {
+    makeDateFormatter: ({ firstHourOfTheDay = 0, dateCreator } = {}) => {
       return date => {
-        const copy = new Date(date)
-        copy.setHours(copy.getHours() - firstHourOfTheDay)
-        return `${copy.getFullYear()}-${copy.getMonth()}-${copy.getDate()}`
+        const copy = dateCreator(date)
+        copy.hour(copy.hour() - firstHourOfTheDay)
+        return copy.format('YYYY-MM-DD')
       }
     },
   },
   weekly: {
-    makeDateFormatter: ({ firstDayOfWeek = 1 /* sunday is 0 , let's use monday as default instead */ } = {}) => {
+    makeDateFormatter: ({ firstDayOfWeek = 0 /* relative to timezone week start */, dateCreator } = {}) => {
       return date => {
-        const copy = new Date(date)
-        copy.setDate(date.getDate() - ((date.getDay() + 7 - firstDayOfWeek) % 7))
-        return `${copy.getFullYear()}-${copy.getMonth()}-${copy.getDate()}`
+        const copy = dateCreator(date)
+
+        copy.date(date.date() - firstDayOfWeek)
+        // warning, the year in term of week may different from YYYY
+        // since the computation of the first week of a year is timezone dependant
+        return copy.format('gggg-WW')
       }
     },
     ancestor: 'daily',
   },
   monthly: {
-    makeDateFormatter: ({ firstDayOfMonth = 0 } = {}) => {
+    makeDateFormatter: ({ firstDayOfMonth = 0, dateCreator } = {}) => {
       return date => {
-        const copy = new Date(date)
-        copy.setDate(copy.getDate() - firstDayOfMonth)
-        return `${copy.getFullYear()}-${copy.getMonth()}`
+        const copy = dateCreator(date)
+        copy.date(copy.date() - firstDayOfMonth)
+        return copy.format('YYYY-MM')
       }
     },
     ancestor: 'weekly',
   },
   yearly: {
-    makeDateFormatter: () => {
-      return date => `${date.getFullYear()}`
+    makeDateFormatter: ({ firstDayOfYear = 0, dateCreator } = {}) => {
+      return date => {
+        const copy = dateCreator(date)
+        copy.date(copy.date() - firstDayOfYear)
+        return copy.format('YYYY')
+      }
     },
     ancestor: 'monthly',
   },
@@ -44,8 +58,10 @@ const LTR_DEFINITIONS = {
  *  if a bucket is cmpletly empty : it does not count as one, thus it may extend the retention
  * @returns Array<Backup>
  */
-export function getOldEntries(minRetentionCount, entries, { longTermRetention = {} } = {}) {
+export function getOldEntries(minRetentionCount, entries, { longTermRetention = {}, timezone } = {}) {
   const dateBuckets = {}
+  const dateCreator = instantiateTimezonedDateCreator(timezone)
+  // only check buckets that have a retention set
   for (const [duration, { retention, settings }] of Object.entries(longTermRetention)) {
     if (LTR_DEFINITIONS[duration] === undefined) {
       throw new Error(`Retention of type ${retention} is invalid`)
@@ -53,7 +69,7 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
     dateBuckets[duration] = {
       remaining: retention,
       lastMatchingBucket: null,
-      formatter: LTR_DEFINITIONS[duration].makeDateFormatter(settings),
+      formatter: LTR_DEFINITIONS[duration].makeDateFormatter({ ...settings, dateCreator }),
     }
   }
   const nb = entries.length
@@ -61,7 +77,7 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
 
   for (let i = nb - 1; i >= 0; i--) {
     const entry = entries[i]
-    const entryDate = new Date(entry.timestamp)
+    const entryDate = dateCreator(entry.timestamp)
     let shouldBeKept = false
     for (const [duration, { remaining, lastMatchingBucket, formatter }] of Object.entries(dateBuckets)) {
       if (remaining === 0) {
@@ -69,6 +85,13 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
       }
       const bucket = formatter(entryDate)
       if (lastMatchingBucket !== bucket) {
+        if (lastMatchingBucket !== null) {
+          assert.strictEqual(
+            lastMatchingBucket > bucket,
+            true,
+            `entries must be sorted in asc order ${lastMatchingBucket} ${bucket}`
+          )
+        }
         shouldBeKept = true
         dateBuckets[duration].remaining -= 1
         dateBuckets[duration].lastMatchingBucket = bucket

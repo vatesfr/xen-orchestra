@@ -39,7 +39,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
     const oldBackups = getOldEntries(
       settings.exportRetention - 1,
       await adapter.listVmBackups(vm.uuid, _ => _.mode === 'full' && _.scheduleId === scheduleId),
-      { longTermRetention: settings.longTermRetention }
+      { longTermRetention: settings.longTermRetention, timezone: settings.timezone }
     )
     const deleteOldBackups = () => adapter.deleteFullVmBackups(oldBackups)
 

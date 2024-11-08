@@ -96,7 +96,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     const oldEntries = getOldEntries(
       settings.exportRetention - 1,
       await adapter.listVmBackups(vmUuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId),
-      { longTermRetention: settings.longTermRetention }
+      { longTermRetention: settings.longTermRetention, timezone: settings.timezone }
     )
     this._oldEntries = oldEntries
 
