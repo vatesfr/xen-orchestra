@@ -381,6 +381,8 @@ async function getServerTimestamp(xapi, host) {
   return Math.floor(utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000)
 }
 
+const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
+
 class PerfAlertXoPlugin {
   constructor(xo) {
     this._xo = xo
@@ -446,7 +448,6 @@ ${monitorBodies.join('\n')}`
     const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
-    const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
     const parseData = (result, uuid) => {
       const parsedLegend = result.meta.legend.map((l, index) => {
         const [operation, type, uuid, name] = l.split(':')
