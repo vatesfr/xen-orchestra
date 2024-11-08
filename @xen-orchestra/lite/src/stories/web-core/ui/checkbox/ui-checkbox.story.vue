@@ -13,7 +13,7 @@
       slot('info'),
       setting('defaultSlot').widget(text()).preset('Label'),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
-      model().type('boolean').preset(false),
+      model().type('boolean').preset(undefined),
     ]"
   >
     <UiCheckbox v-bind="properties">
