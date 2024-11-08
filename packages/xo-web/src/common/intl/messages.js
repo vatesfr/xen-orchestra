@@ -1004,6 +1004,7 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostsLabel: 'Add hosts',
+  clickLinkForDetails: 'Follow this link for more details',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
@@ -1023,7 +1024,6 @@ const messages = {
   hostSupportEnabled: 'XCP-ng Pro Support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
   pubKeyTooShort: 'TLS key is too small to update host to XCP-ng 8.3',
-  pubKeyTooShortLink: 'Follow this link for more details',
   longerCustomCertficate:
     'If your certificate is custom, you need to install a new one with a key length of 2048 or greater.',
   longerDefaultCertificate:
