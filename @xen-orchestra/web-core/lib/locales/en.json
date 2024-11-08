@@ -1,10 +1,13 @@
 {
   "alarms": "Alarms",
+
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
   "bytes.gi": "GiB",
+
   "coming-soon": "Coming soon!",
   "console": "Console",
+
   "core.copied": "Copied",
   "core.copy-id": "Copy ID",
   "core.close": "Close",
@@ -14,21 +17,28 @@
   "core.hide": "Hide",
   "core.open": "Open",
   "core.quick-actions": "Quick actions",
+
   "core.search": "Search",
+
   "core.query-search-bar.label": "Search Engine",
   "core.query-search-bar.placeholder": "Write your query…",
   "core.query-search-bar.use-query-builder": "Use query builder",
+
   "core.select.all": "Select all",
   "core.select.none": "Select none",
+
   "core.sidebar.close": "Close sidebar",
   "core.sidebar.lock": "Lock sidebar open",
   "core.sidebar.open": "Open sidebar",
   "core.sidebar.unlock": "Unlock sidebar",
+
   "core.sort.ascending": "Sort ascending",
   "core.sort.descending": "Sort descending",
+
   "dark-mode.enable": "Enable dark mode",
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.auto": "Auto dark mode",
+
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
   "hosts": "Hosts",
@@ -50,6 +60,7 @@
   "storage": "Storage",
   "support-name": "{name} pro support",
   "system": "System",
+
   "tasks": "Tasks",
   "tasks.n-subtasks": "{n} subtask | {n} subtasks",
   "tasks.no-tasks": "No tasks",
@@ -58,6 +69,7 @@
   "tasks.quick-view.done": "Done",
   "tasks.quick-view.failed": "Failed",
   "tasks.quick-view.in-progress": "In progress",
+
   "total": "Total",
   "total-cpus": "Total CPUs",
   "vms": "VMs"

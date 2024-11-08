@@ -1,10 +1,13 @@
 {
   "alarms": "Alarmes",
+
   "bytes.ki": "Kio",
   "bytes.mi": "Mio",
   "bytes.gi": "Gio",
+
   "coming-soon": "Bientôt disponible !",
   "console": "Console",
+
   "core.copied": "Copié",
   "core.copy-id": "Copier l'ID",
   "core.close": "Fermer",
@@ -14,21 +17,28 @@
   "core.hide": "Masquer",
   "core.open": "Ouvrir",
   "core.quick-actions": "Actions rapides",
+
   "core.search": "Rechercher",
+
   "core.query-search-bar.label": "Moteur de recherche",
   "core.query-search-bar.placeholder": "Écrivez votre requête…",
   "core.query-search-bar.use-query-builder": "Utiliser le constructeur de requête",
+
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
+
   "core.sidebar.close": "Fermer la barre latérale",
   "core.sidebar.lock": "Verrouiller la barre latérale",
   "core.sidebar.open": "Ouvrir la barre latérale",
   "core.sidebar.unlock": "Déverrouiller la barre latérale",
+
   "core.sort.ascending": "Trier par ordre croissant",
   "core.sort.descending": "Trier par ordre décroissant",
+
   "dark-mode.enable": "Activer le mode sombre",
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.auto": "Mode sombre automatique",
+
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
   "hosts": "Hôtes",
@@ -50,6 +60,7 @@
   "storage": "Stockage",
   "support-name": "Support pro {name}",
   "system": "Système",
+
   "tasks": "Tâches",
   "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
   "tasks.no-tasks": "Aucune tâche",
@@ -58,6 +69,7 @@
   "tasks.quick-view.done": "Terminées",
   "tasks.quick-view.failed": "Échouées",
   "tasks.quick-view.in-progress": "En cours",
+
   "total": "Total",
   "total-cpus": "Total CPUs",
   "vms": "VMs"
