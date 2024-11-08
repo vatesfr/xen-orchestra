@@ -1,8 +1,27 @@
 # ChangeLog
 
-## **5.100.0** (2024-10-31)
+## **5.100.1** (2024-11-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Dashboard/Health] Do not count PVS cache VDI as orphan VDIs [#7938](https://github.com/vatesfr/xen-orchestra/issues/7938) (PR [#8039](https://github.com/vatesfr/xen-orchestra/pull/8039))
+- [OTP] Use numeric mode for easier input on mobile devices
+
+### Bug fixes
+
+- [Remote] Better encoding of special chars in username in remote (PR [#8106](https://github.com/vatesfr/xen-orchestra/pull/8106))
+- [Backup] Connect sequentially to hosts when using multiple NBD to alleviate a race condition leading to `VDI_IN_USE` errors (PR [#8086](https://github.com/vatesfr/xen-orchestra/pull/8086))
+
+### Released packages
+
+- xo-remote-parser 0.9.3
+- @vates/nbd-client 3.1.2
+- xo-server 5.160.0
+- xo-web 5.160.0
+
+## **5.100.0** (2024-10-31)
 
 ### Highlights
 
