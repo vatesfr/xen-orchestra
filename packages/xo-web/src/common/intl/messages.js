@@ -1523,7 +1523,7 @@ const messages = {
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   nestedVirtualizationWarning:
-    'Unstable feature, insecure for the host, usage is discouraged. Click link for more details.',
+    'Unstable feature, insecure for the host, usage is discouraged. Click for more details.',
   vmAffinityHost: 'Affinity host',
   vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
