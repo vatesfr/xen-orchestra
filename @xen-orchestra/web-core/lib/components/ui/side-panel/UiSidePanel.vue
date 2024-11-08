@@ -1,21 +1,12 @@
 <!-- v1 -->
 <template>
   <div class="ui-side-panel" :class="{ error: isError }">
-    <div v-if="slots.actions && !props.busy && !isError && !isEmpty" class="actions">
-      <template v-for="(action, index) in actionsToDisplay" :key="index">
-        <component :is="action" />
-      </template>
-      <UiButtonIcon v-if="moreThanTwoActions" :icon="faEllipsis" accent="info" size="large" @click="toggleDropdown" />
-      <DropdownList v-if="isDropdownOpen" class="dropdown-menu">
-        <template v-for="(action, index) in additionalActions" :key="'extra-' + index">
-          <component :is="action" class="dropdown-item" />
-        </template>
-      </DropdownList>
+    <div v-if="slots.header && !props.busy && !isError && !isEmpty" class="header">
+      <slot name="header" />
     </div>
     <div v-if="slots.content && !props.busy && !isError" class="content">
       <slot name="content" />
     </div>
-    <VtsStateHero v-if="busy" type="card" busy />
     <div v-if="!props.busy && isError" class="error">
       <div v-if="!props.busy && !slots.content" class="empty" />
     </div>
@@ -23,11 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import DropdownList from '@core/components/dropdown/DropdownList.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { faEllipsis } from '@fortawesome/free-solid-svg-icons'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   busy?: boolean
@@ -36,35 +23,22 @@ const props = defineProps<{
 
 const slots = defineSlots<{
   default(): any
+  header?(): any
   content?(): any
-  actions?(): any
 }>()
 
-const isDropdownOpen = ref(false)
-
-const moreThanTwoActions = computed(() => slots.actions?.().length > 2)
-
 const isEmpty = computed(() => slots.content?.().length === 0)
-
-const actionsToDisplay = computed(() => (slots.actions ? slots.actions().slice(0, 2) : []))
-
-const additionalActions = computed(() => (slots.actions ? slots.actions().slice(2) : []))
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value
-}
 </script>
 
 <style scoped lang="postcss">
 .ui-side-panel {
-  //height: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   border: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
 
-  .actions {
+  .header {
     border-bottom: 0.1rem solid var(--color-neutral-border);
     background-color: var(--color-neutral-background-primary);
     display: flex;
@@ -82,24 +56,6 @@ const toggleDropdown = () => {
   &.error {
     padding-top: 15rem;
     background-color: var(--color-danger-background-selected);
-  }
-
-  .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 1000;
-    gap: 0.8rem;
-    padding-inline: 0.8rem;
-  }
-
-  .dropdown-item {
-    padding: 8px 16px;
-    cursor: pointer;
-  }
-
-  .dropdown-item:hover {
-    background-color: #f0f0f0;
   }
 }
 </style>

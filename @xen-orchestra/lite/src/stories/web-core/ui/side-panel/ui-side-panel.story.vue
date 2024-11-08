@@ -8,7 +8,7 @@
       setting('action1').widget(text()).preset('Edit'),
       setting('action2').widget(text()).preset('Delete'),
       slot(),
-      slot('actions').help('Meant to receive UiButton'),
+      slot('header').help('Meant to receive UiButton'),
       slot('content').help('Meant to display cards or other component'),
     ]"
     :presets="{
@@ -41,16 +41,11 @@
     }"
   >
     <UiSidePanel v-bind="properties">
-      <template v-if="!properties.isEmpty" #actions>
+      <template v-if="!properties.isEmpty" #header>
         <UiButton variant="tertiary" size="medium" accent="info" :left-icon="faEdit"> {{ settings.action1 }}</UiButton>
         <UiButton variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">
           {{ settings.action2 }}
         </UiButton>
-        <UiButton variant="tertiary" size="medium" accent="info"> Button 3</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="info"> Button 4</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="info"> Button 5</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="info"> Button 6</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="info"> Button 7</UiButton>
       </template>
       <template v-if="!properties.isEmpty" #content>
         <UiCard>
