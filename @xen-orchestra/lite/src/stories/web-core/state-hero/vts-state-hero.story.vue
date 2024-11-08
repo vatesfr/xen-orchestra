@@ -9,7 +9,7 @@
       setting('defaultSlot').preset('Some text').widget(),
     ]"
   >
-    <VtsStateHero v-bind="properties" class="container">
+    <VtsStateHero v-bind="properties">
       {{ settings.defaultSlot }}
     </VtsStateHero>
   </ComponentStory>
