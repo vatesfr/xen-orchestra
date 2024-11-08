@@ -1,56 +1,49 @@
 <!-- v1 -->
 <template>
-  <div class="ui-radio-button-group-wrapper">
-    <UiLabel v-if="slots.default" :accent="labelAccent">
-      <slot />
-    </UiLabel>
-    <div class="ui-radio-button-group" :class="{ vertical }">
-      <UiRadioButton
-        v-for="(label, index) in labels"
-        :key="index"
-        v-model="selectedRadio"
-        :accent
-        :value="`radio-${index}`"
-      >
+  <div class="ui-radio-button-group">
+    <slot v-if="slots.label || label !== undefined" name="label">
+      <UiLabel :accent="labelAccent">
         {{ label }}
-      </UiRadioButton>
+      </UiLabel>
+    </slot>
+    <div class="group" :class="{ vertical }">
+      <slot />
     </div>
-    <UiInfo v-if="slots.info" :accent>
-      <slot name="info" />
-    </UiInfo>
+    <slot v-if="slots.info || info !== undefined" name="info">
+      <UiInfo :accent>
+        {{ info }}
+      </UiInfo>
+    </slot>
   </div>
 </template>
 
 <script setup lang="ts">
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
-import { computed, ref } from 'vue'
-
-export type RadioButtonGroupAccent = 'info' | 'warning' | 'danger'
+import { computed } from 'vue'
 
 const props = defineProps<{
+  accent: 'info' | 'warning' | 'danger'
+  label?: string
+  info?: string
   vertical?: boolean
-  accent: RadioButtonGroupAccent
-  labels: string[]
 }>()
 
 const slots = defineSlots<{
-  default?(): any
+  default(): any
+  label?(): any
   info?(): any
 }>()
-
-const selectedRadio = ref('')
 const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
 </script>
 
 <style scoped lang="postcss">
-.ui-radio-button-group-wrapper {
+.ui-radio-button-group {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 
-  .ui-radio-button-group {
+  .group {
     display: flex;
     gap: 6.4rem;
 
