@@ -1,8 +1,11 @@
 <template>
   <div :class="type" class="vts-state-hero">
     <UiLoader v-if="busy" class="loader" />
-    <img v-else-if="imageSrc" :src="imageSrc" alt="" class="image" />
-    <p v-if="slots.default" :class="typoClass" class="text">
+    <p v-if="slots.default && type === 'panel' && !busy" :class="typoClass" class="text">
+      <slot />
+    </p>
+    <img v-if="imageSrc && !busy" :src="imageSrc" alt="" class="image" />
+    <p v-if="slots.default && type !== 'panel' && !busy" :class="typoClass" class="text">
       <slot />
     </p>
   </div>
@@ -12,12 +15,12 @@
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed } from 'vue'
 
-export type StateHeroType = 'page' | 'card'
+export type StateHeroType = 'page' | 'card' | 'panel'
 
 const props = defineProps<{
   type: StateHeroType
   busy?: boolean
-  image?: 'no-result' | 'under-construction' | 'no-data' // TODO: 'offline' |  'not-found' | 'all-good' | 'all-done' | 'error'
+  image?: 'no-result' | 'under-construction' | 'no-data' | 'no-selection' | 'error' // TODO: 'offline' |  'not-found' | 'all-good' | 'all-done''
 }>()
 
 const slots = defineSlots<{
@@ -75,6 +78,20 @@ const imageSrc = computed(() => {
 
     .loader {
       font-size: 6rem;
+    }
+  }
+
+  &.panel {
+    gap: 4rem;
+    justify-content: unset;
+    padding-top: 8rem;
+
+    .image {
+      width: 80%;
+    }
+
+    .loader {
+      font-size: 6.4rem;
     }
   }
 }
