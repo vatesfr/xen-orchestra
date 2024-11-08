@@ -111,6 +111,8 @@ defineExpose({
 <style lang="postcss" scoped>
 .vm-console {
   height: 80rem;
+  flex: 1;
+  max-width: 100%;
 
   & > :deep(div) {
     background-color: transparent !important;

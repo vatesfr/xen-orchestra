@@ -4,26 +4,30 @@
     <UiSpinner v-else-if="!isReady" class="spinner" />
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-vm-for-console')" />
     <template v-else-if="vm && vmConsole">
-      <MenuList horizontal>
-        <MenuItem v-if="uiStore.hasUi" :icon="faArrowUpRightFromSquare" @click="openInNewTab">
-          {{ $t('open-console-in-new-tab') }}
-        </MenuItem>
-        <MenuItem
-          :icon="uiStore.hasUi ? faUpRightAndDownLeftFromCenter : faDownLeftAndUpRightToCenter"
-          @click="toggleFullScreen"
-        >
-          {{ $t(uiStore.hasUi ? 'fullscreen' : 'fullscreen-leave') }}
-        </MenuItem>
-        <MenuItem :disabled="!consoleElement" :icon="faKeyboard" @click="sendCtrlAltDel">
-          {{ $t('send-ctrl-alt-del') }}
-        </MenuItem>
-      </MenuList>
       <RemoteConsole
+        v-if="!uiStore.hasUi"
         ref="consoleElement"
         :is-console-available="isConsoleAvailable"
         :location="vmConsole.location"
         class="remote-console"
       />
+      <VtsLayoutConsole v-else>
+        <RemoteConsole
+          ref="consoleElement"
+          :is-console-available="isConsoleAvailable"
+          :location="vmConsole.location"
+          class="remote-console"
+        />
+        <template #actions>
+          <VtsActionsConsole
+            :open-in-new-tab="openInNewTab"
+            :send-ctrl-alt-del="sendCtrlAltDel"
+            :toggle-full-screen="toggleFullScreen"
+          />
+          <VtsDivider type="stretch" />
+          <VtsClipboardConsole />
+        </template>
+      </VtsLayoutConsole>
     </template>
   </div>
 </template>
@@ -39,15 +43,11 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
+import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
+import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faArrowUpRightFromSquare,
-  faDownLeftAndUpRightToCenter,
-  faKeyboard,
-  faUpRightAndDownLeftFromCenter,
-} from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -135,47 +135,5 @@ const openInNewTab = () => {
   flex: 1;
   max-width: 100%;
   height: 100%;
-}
-
-.not-available {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  gap: 4rem;
-  color: var(--color-info-txt-base);
-  font-size: 3.6rem;
-}
-
-.open-in-new-window {
-  position: absolute;
-  top: 0;
-  right: 0;
-  overflow: hidden;
-
-  & > .link {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background-color: var(--color-info-txt-base);
-    color: var(--color-info-txt-item);
-    text-decoration: none;
-    padding: 1.5rem;
-    font-size: 1.6rem;
-    border-radius: 0 0 0 0.8rem;
-    white-space: nowrap;
-    transform: translateX(calc(100% - 4.5rem));
-    transition: transform 0.2s ease-in-out;
-
-    &:hover {
-      transform: translateX(0);
-    }
-  }
-}
-
-.vm-console-view:deep(.menu-list) {
-  background-color: transparent;
-  align-self: center;
 }
 </style>

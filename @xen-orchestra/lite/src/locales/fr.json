@@ -96,7 +96,6 @@
   "following-hosts-unreachable": "Les hôtes suivants sont inaccessibles",
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
-  "fullscreen": "Plein écran",
   "fullscreen-leave": "Quitter plein écran",
   "gateway": "Passerelle",
   "n-gb-left": "{n} Go libres",
@@ -139,7 +138,6 @@
   "object": "Objet",
   "ok": "OK",
   "on-object": "sur {object}",
-  "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
   "or": "Ou",
   "page-not-found": "Cette page est introuvable…",
   "password": "Mot de passe",
@@ -169,7 +167,6 @@
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
-  "send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
   "send-us-feedback": "Envoyez-nous vos commentaires",
 
   "select.network": "Sélectionner un réseau",

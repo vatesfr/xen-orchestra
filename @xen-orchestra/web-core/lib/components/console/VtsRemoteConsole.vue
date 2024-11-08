@@ -97,9 +97,8 @@ const uiStore = useUiStore()
 
 <style lang="postcss" scoped>
 .vts-remote-console {
-  padding: 0.8rem;
   height: 80rem;
-  width: 100%;
+  flex-grow: 1;
   max-width: 100%;
 
   &.mobile {
