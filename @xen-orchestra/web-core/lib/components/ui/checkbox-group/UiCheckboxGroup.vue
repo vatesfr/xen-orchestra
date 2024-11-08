@@ -1,36 +1,37 @@
 <!-- v1 -->
 <template>
   <div class="ui-checkbox-group">
-    <UiLabel v-if="slots.default" :accent="labelAccent">
-      <slot />
-    </UiLabel>
-    <div class="group" :class="{ vertical }">
-      <UiCheckbox v-for="(label, index) in labels" :key="index" :accent>
+    <slot v-if="slots.label || label !== undefined" name="label">
+      <UiLabel :accent="labelAccent">
         {{ label }}
-      </UiCheckbox>
+      </UiLabel>
+    </slot>
+    <div class="group" :class="{ vertical }">
+      <slot />
     </div>
-    <UiInfo v-if="slots.info" :accent>
-      <slot name="info" />
-    </UiInfo>
+    <slot v-if="slots.info || info !== undefined" name="info">
+      <UiInfo :accent>
+        {{ info }}
+      </UiInfo>
+    </slot>
   </div>
 </template>
 
 <script setup lang="ts">
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { computed } from 'vue'
 
-type CheckboxGroupAccent = 'info' | 'warning' | 'danger'
-
 const props = defineProps<{
+  accent: 'info' | 'warning' | 'danger'
+  label?: string
+  info?: string
   vertical?: boolean
-  accent: CheckboxGroupAccent
-  labels: string[]
 }>()
 
 const slots = defineSlots<{
-  default?(): any
+  default(): any
+  label?(): any
   info?(): any
 }>()
 
