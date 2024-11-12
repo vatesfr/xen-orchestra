@@ -16,6 +16,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+> [Backup] Handle slow cbt_enable leading to full backups
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/log minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
