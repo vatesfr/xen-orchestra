@@ -17,6 +17,7 @@ export type XoHost = {
   enabled: boolean
   name_label: string
   name_description: string
+  controlDomain: string
   power_state: HOST_POWER_STATE
   residentVms: XoVm['id'][]
 }

@@ -1,5 +1,5 @@
 <template>
-  <p v-if="!isVmConsoleAvailable" class="typo h5-medium">{{ $t('power-on-for-console') }}</p>
+  <p v-if="!isVmConsoleAvailable" class="typo h5-medium">{{ $t('power-on-vm-for-console') }}</p>
   <VtsRemoteConsole v-else :url />
 </template>
 
