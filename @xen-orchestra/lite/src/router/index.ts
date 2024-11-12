@@ -1,3 +1,4 @@
+import host from '@/router/host'
 import pool from '@/router/pool'
 import story from '@/router/story'
 import vm from '@/router/vm'
@@ -25,17 +26,7 @@ const router = createRouter({
     story,
     pool,
     vm,
-    {
-      path: '/host/:uuid',
-      component: () => import('@/views/host/HostRootView.vue'),
-      children: [
-        {
-          path: '',
-          name: 'host.dashboard',
-          component: () => import('@/views/host/HostDashboardView.vue'),
-        },
-      ],
-    },
+    host,
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',

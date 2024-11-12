@@ -40,7 +40,7 @@ const props = defineProps<{
 }>()
 
 const config: Config = {
-  host: { context: useHostStore().subscribe({ defer: true }), routeName: 'host.dashboard' },
+  host: { context: useHostStore().subscribe({ defer: true }), routeName: 'host.console' },
   vm: { context: useVmStore().subscribe({ defer: true }), routeName: 'vm.console' },
   sr: { context: useSrStore().subscribe({ defer: true }), routeName: undefined },
   pool: { context: usePoolStore().subscribe({ defer: true }), routeName: 'pool.dashboard' },
