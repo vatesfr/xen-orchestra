@@ -15,7 +15,7 @@ export const xoApiDefinition = {
   host: {
     type: 'collection',
     path: 'hosts',
-    fields: 'id,name_label,name_description,power_state,residentVms,$pool',
+    fields: 'id,name_label,name_description,power_state,controlDomain,residentVms,$pool',
     handler: (record: XoHost) => record,
   },
   vm: {

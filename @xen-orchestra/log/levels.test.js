@@ -5,7 +5,7 @@ const assert = require('assert').strict
 
 const { forEach, isInteger } = require('lodash')
 
-const { LEVELS, NAMES, resolve } = require('./_levels')
+const { LEVELS, NAMES, resolve } = require('./levels')
 
 describe('LEVELS', () => {
   it('maps level names to their integer values', () => {

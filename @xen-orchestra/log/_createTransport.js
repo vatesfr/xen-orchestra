@@ -1,6 +1,6 @@
 'use strict'
 
-const { resolve } = require('./_levels')
+const { resolve } = require('./levels.js')
 const compileGlobPattern = require('./_compileGlobPattern.js')
 
 function compileFilter(filter) {

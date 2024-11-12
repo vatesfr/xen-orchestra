@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.159.1",
+  "version": "5.160.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -140,7 +140,7 @@
     "xo-acl-resolver": "^0.5.0",
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",
-    "xo-remote-parser": "^0.9.2",
+    "xo-remote-parser": "^0.9.3",
     "xo-vmdk-to-vhd": "^2.5.7"
   },
   "devDependencies": {

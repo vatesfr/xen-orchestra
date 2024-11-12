@@ -16,10 +16,14 @@ for (const name in LEVELS) {
   NAMES[LEVELS[name]] = name
 }
 
-// resolves to the number representation of a level
-//
-// returns `defaultLevel` if invalid
-const resolve = (level, defaultLevel) => {
+/**
+ * Resolves the number representation of a level
+ *
+ * @param {number|string} level
+ * @param {number} [defaultLevel]
+ * @returns If the passed level is not valid, defaultLevel is returned
+ */
+function resolve(level, defaultLevel) {
   const type = typeof level
   if (type === 'number') {
     if (level in NAMES) {

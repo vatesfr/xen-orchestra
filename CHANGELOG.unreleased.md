@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Dashboard/Health] Do not count PVS cache VDI as orphan VDIs [#7938](https://github.com/vatesfr/xen-orchestra/issues/7938) (PR [#8039](https://github.com/vatesfr/xen-orchestra/pull/8039))
+- Ignore leading and trailing spaces when editing VM/Pools/Hosts/SRs names and descriptions (PR [#8115](https://github.com/vatesfr/xen-orchestra/pull/8115))
 
 ### Bug fixes
 
@@ -35,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/log minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server-perf-alert minor
