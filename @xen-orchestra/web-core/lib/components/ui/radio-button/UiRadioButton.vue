@@ -1,58 +1,41 @@
 <!-- v4 -->
 <template>
-  <label class="ui-radio-button" :class="classNames" v-bind="wrapperAttrs">
-    <input v-model="radioModel" :value="value" :disabled="isDisabled" type="radio" class="input" v-bind="attrs" />
-    <span class="fake-radio">
-      <VtsIcon :icon="faCircle" class="icon" accent="info" />
+  <label :class="variant" class="ui-radio-button typo p1-regular">
+    <span class="radio-container">
+      <input v-model="model" :value :disabled="isDisabled" class="input" type="radio" />
+      <VtsIcon :icon="faCircle" accent="current" class="radio-icon" />
     </span>
-    <span v-if="slots.default" class="typo p1-regular">
-      <slot />
-    </span>
+    <slot />
   </label>
-  <UiInfo v-if="slots.info" :accent>
-    <slot name="info" />
-  </UiInfo>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faCircle } from '@fortawesome/free-solid-svg-icons'
-import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
-
-export type RadioButtonAccent = 'info' | 'success' | 'warning' | 'danger'
-
-defineOptions({ inheritAttrs: false })
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    value: string
-    accent: RadioButtonAccent
+    accent: 'info' | 'success' | 'warning' | 'danger'
+    value: any
     disabled?: boolean
-    wrapperAttrs?: LabelHTMLAttributes
   }>(),
-  { disabled: undefined }
+  {
+    disabled: undefined,
+  }
 )
-const radioModel = defineModel<string>({ required: true })
+const model = defineModel<boolean>()
 
-const slots = defineSlots<{
-  default?(): any
-  info?(): any
+defineSlots<{
+  default(): any
 }>()
 
-const attrs = useAttrs()
+const variant = computed(() => toVariants({ accent: props.accent }))
 
 const isDisabled = useContext(DisabledContext, () => props.disabled)
-
-const classNames = computed(() => [
-  toVariants({
-    accent: props.accent,
-    disabled: isDisabled.value,
-  }),
-])
 </script>
 
 <style lang="postcss" scoped>
@@ -61,250 +44,141 @@ const classNames = computed(() => [
   align-items: center;
   gap: 0.8rem;
 
-  .input {
-    font-size: inherit;
-    position: absolute;
-    pointer-events: none;
-    opacity: 0;
-
-    & + .fake-radio > .icon {
-      opacity: 0;
-    }
-
-    &:checked + .fake-radio > .icon {
-      opacity: 1;
-    }
-
-    &:focus-visible + .fake-radio {
-      outline: none;
-
-      &::before {
-        content: '';
-        position: absolute;
-        inset: -0.6rem;
-        border-radius: 0.4rem;
-      }
+  :focus-visible {
+    outline: none;
+    &::before {
+      position: absolute;
+      content: '';
+      inset: -0.5rem;
+      border: 0.2rem solid var(--color-normal-txt-base);
+      border-radius: 0.4rem;
     }
   }
 
-  &.accent--info {
+  .radio-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0.2rem solid var(--accent-color);
+    background-color: transparent;
+    border-radius: 0.8rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    transition:
+      border-color 0.125s ease-in-out,
+      background-color 0.125s ease-in-out;
+
+    &:has(.input:disabled) {
+      cursor: not-allowed;
+
+      /*
+      TODO: To be removed or kept after a decision has been taken
+      See https://www.figma.com/design/l2O2VvzJRnOCvqxhM7d124?node-id=8-1940#1021964394
+      */
+
+      &:not(:has(.input:checked)) {
+        --accent-color: var(--color-neutral-txt-secondary);
+      }
+    }
+
+    &:has(.input:checked) {
+      background-color: var(--accent-color);
+    }
+
+    /* INPUT */
+
     .input {
-      & + .fake-radio {
-        border-color: var(--color-info-item-base);
-      }
+      opacity: 0;
+      position: absolute;
+      pointer-events: none;
+    }
 
-      &:hover + .fake-radio {
-        border-color: var(--color-info-item-hover);
-      }
+    /* ICON */
 
-      &:focus-visible + .fake-radio::before {
-        border: 0.2rem solid var(--color-info-txt-base);
-      }
+    .radio-icon {
+      font-size: 0.8rem;
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.125s ease-in-out;
+      color: var(--color-neutral-txt-primary);
+    }
 
-      &:active + .fake-radio {
-        border-color: var(--color-info-item-active);
-      }
+    .input:disabled + .radio-icon {
+      color: var(--color-neutral-txt-secondary);
+    }
 
-      &:checked + .fake-radio {
-        border-color: transparent;
-        background-color: var(--color-info-item-base);
-      }
+    .input:checked + .radio-icon {
+      opacity: 1;
+    }
+  }
 
-      &:checked:hover + .fake-radio {
-        background-color: var(--color-info-item-hover);
-      }
+  /* ACCENT */
 
-      &:checked:active + .fake-radio {
-        background-color: var(--color-info-item-active);
-      }
+  &.accent--info {
+    --accent-color: var(--color-info-item-base);
 
-      &:disabled {
-        & + .fake-radio {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
+    &:hover {
+      --accent-color: var(--color-info-item-hover);
+    }
 
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
+    &:active {
+      --accent-color: var(--color-info-item-active);
+    }
 
-        &:checked + .fake-radio {
-          border-color: transparent;
-          background-color: var(--color-info-item-disabled);
-        }
-      }
+    &:has(.input:disabled) {
+      --accent-color: var(--color-info-item-disabled);
     }
   }
 
   &.accent--success {
-    .input {
-      & + .fake-radio {
-        border-color: var(--color-success-item-base);
-      }
+    --accent-color: var(--color-success-item-base);
 
-      &:hover + .fake-radio {
-        border-color: var(--color-success-item-hover);
-      }
+    &:hover {
+      --accent-color: var(--color-success-item-hover);
+    }
 
-      &:focus-visible + .fake-radio::before {
-        border: 0.2rem solid var(--color-success-txt-base);
-      }
+    &:active {
+      --accent-color: var(--color-success-item-active);
+    }
 
-      &:active + .fake-radio {
-        border-color: var(--color-success-item-active);
-      }
-
-      &:checked + .fake-radio {
-        border-color: transparent;
-        background-color: var(--color-success-item-base);
-      }
-
-      &:checked:hover + .fake-radio {
-        background-color: var(--color-success-item-hover);
-      }
-
-      &:checked:active + .fake-radio {
-        background-color: var(--color-success-item-active);
-      }
-
-      &:disabled {
-        & + .fake-radio {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-radio {
-          border-color: transparent;
-          background-color: var(--color-success-item-disabled);
-        }
-      }
+    &:has(.input:disabled) {
+      --accent-color: var(--color-success-item-disabled);
     }
   }
 
   &.accent--warning {
-    .input {
-      & + .fake-radio {
-        border-color: var(--color-warning-item-base);
-      }
+    --accent-color: var(--color-warning-item-base);
 
-      &:hover + .fake-radio {
-        border-color: var(--color-warning-item-hover);
-      }
+    &:hover {
+      --accent-color: var(--color-warning-item-hover);
+    }
 
-      &:focus-visible + .fake-radio::before {
-        border: 0.2rem solid var(--color-warning-txt-base);
-      }
+    &:active {
+      --accent-color: var(--color-warning-item-active);
+    }
 
-      &:active + .fake-radio {
-        border-color: var(--color-warning-item-active);
-      }
-
-      &:checked + .fake-radio {
-        border-color: transparent;
-        background-color: var(--color-warning-item-base);
-      }
-
-      &:checked:hover + .fake-radio {
-        background-color: var(--color-warning-item-hover);
-      }
-
-      &:checked:active + .fake-radio {
-        background-color: var(--color-warning-item-active);
-      }
-
-      &:disabled {
-        & + .fake-radio {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-radio {
-          border-color: transparent;
-          background-color: var(--color-warning-item-disabled);
-        }
-      }
+    &:has(.input:disabled) {
+      --accent-color: var(--color-warning-item-disabled);
     }
   }
 
   &.accent--danger {
-    .input {
-      & + .fake-radio {
-        border-color: var(--color-danger-item-base);
+    --accent-color: var(--color-danger-item-base);
 
-        > .icon {
-          color: var(--color-danger-txt-item);
-        }
-      }
-
-      &:hover + .fake-radio {
-        border-color: var(--color-danger-item-hover);
-      }
-
-      &:focus-visible + .fake-radio::before {
-        border: 0.2rem solid var(--color-danger-txt-base);
-      }
-
-      &:active + .fake-radio {
-        border-color: var(--color-danger-item-active);
-      }
-
-      &:checked + .fake-radio {
-        border-color: transparent;
-        background-color: var(--color-danger-item-base);
-      }
-
-      &:checked:hover + .fake-radio {
-        background-color: var(--color-danger-item-hover);
-      }
-
-      &:checked:active + .fake-radio {
-        background-color: var(--color-danger-item-active);
-      }
-
-      &:disabled {
-        & + .fake-radio {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-radio {
-          border-color: transparent;
-          background-color: var(--color-danger-item-disabled);
-        }
-      }
+    &:hover {
+      --accent-color: var(--color-danger-item-hover);
     }
-  }
 
-  .fake-radio {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 1.6rem;
-    width: 1.6rem;
-    transition:
-      background-color 0.125s ease-in-out,
-      border-color 0.125s ease-in-out;
-    border: 0.2rem solid transparent;
-    border-radius: 1rem;
-    background-color: var(--color-neutral-background-primary);
+    &:active {
+      --accent-color: var(--color-danger-item-active);
+    }
 
-    .icon {
-      transition: opacity 0.125s ease-in-out;
-      font-size: 0.75rem;
-      position: absolute;
-      color: var(--color-info-txt-item);
+    &:has(.input:disabled) {
+      --accent-color: var(--color-danger-item-disabled);
+    }
+
+    .radio-container .radio-icon {
+      color: var(--color-danger-txt-item);
     }
   }
 }
