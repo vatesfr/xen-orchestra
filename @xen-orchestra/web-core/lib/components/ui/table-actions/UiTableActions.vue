@@ -2,10 +2,12 @@
 <template>
   <div class="ui-table-actions">
     <div class="actions">
-      <UiActionsTitle>
-        <slot />
-      </UiActionsTitle>
-      <slot name="actions" />
+      <slot name="title">
+        <UiActionsTitle>
+          {{ title }}
+        </UiActionsTitle>
+      </slot>
+      <slot />
     </div>
     <div v-if="slots.groupedBy">
       <slot name="groupedBy" />
@@ -16,9 +18,13 @@
 <script setup lang="ts">
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 
+defineProps<{
+  title?: string
+}>()
+
 const slots = defineSlots<{
-  actions(): any
   default(): any
+  title(): any
   groupedBy?(): any
 }>()
 </script>
