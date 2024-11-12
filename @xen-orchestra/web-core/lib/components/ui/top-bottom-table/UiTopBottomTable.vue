@@ -3,13 +3,25 @@
   <div class="ui-top-bottom-table">
     <div class="content">
       <span class="typo p3-regular label">
-        {{ $t('core.select.n-selected', { count: selectedItems, total: totalItems }) }}
+        {{ $t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
       </span>
 
-      <UiButton accent="info" size="small" variant="tertiary" @click="emit('toggleSelectAll', true)">
+      <UiButton
+        v-if="selectedItems < totalItems"
+        accent="info"
+        size="small"
+        variant="tertiary"
+        @click="emit('toggleSelectAll', true)"
+      >
         {{ $t('core.select.all') }}
       </UiButton>
-      <UiButton accent="info" size="small" variant="tertiary" @click="emit('toggleSelectAll', false)">
+      <UiButton
+        v-if="selectedItems > 0"
+        accent="info"
+        size="small"
+        variant="tertiary"
+        @click="emit('toggleSelectAll', false)"
+      >
         {{ $t('core.select.unselect') }}
       </UiButton>
     </div>

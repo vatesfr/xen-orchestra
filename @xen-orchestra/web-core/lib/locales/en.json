@@ -27,7 +27,7 @@
   "core.select.all": "Select all",
   "core.select.none": "Select none",
   "core.select.unselect": "Unselect all",
-  "core.select.n-selected": "{count} selected of {total} objects | {count} selected of {total} objects | {count} selected of {total} objects",
+  "core.select.n-selected-of": "{count} selected of {total} objects",
   "core.sidebar.close": "Close sidebar",
   "core.sidebar.lock": "Lock sidebar open",
   "core.sidebar.open": "Open sidebar",
