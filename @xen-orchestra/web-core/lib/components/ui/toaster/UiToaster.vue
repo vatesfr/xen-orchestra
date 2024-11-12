@@ -1,13 +1,13 @@
 <!-- v3 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-toaster">
-    <div class="label">
+    <div class="content">
       <VtsIcon class="information-icon" :accent :icon="faCircle" :overlay-icon="icon" />
-      <div class="content">
+      <div>
         <div class="typo h5-semi-bold">
           <slot />
         </div>
-        <div v-if="slots.description" class="description typo p2-regular">
+        <div v-if="slots.description" class="typo p2-regular">
           <slot name="description" />
         </div>
       </div>
@@ -39,14 +39,13 @@ const slots = defineSlots<{
   actions?(): any
 }>()
 
-const states: Record<ToasterAccent, { icon: IconDefinition; color: ToasterAccent }> = {
-  info: { icon: faInfo, color: 'info' },
-  success: { icon: faCheck, color: 'success' },
-  warning: { icon: faExclamation, color: 'warning' },
-  danger: { icon: faXmark, color: 'danger' },
+const states: Record<ToasterAccent, IconDefinition> = {
+  info: faInfo,
+  success: faCheck,
+  warning: faExclamation,
+  danger: faXmark,
 }
-
-const icon = computed(() => states[props.accent].icon)
+const icon = computed(() => states[props.accent])
 </script>
 
 <style scoped lang="postcss">
@@ -59,25 +58,23 @@ const icon = computed(() => states[props.accent].icon)
   border-radius: 0.4rem;
   gap: 0.8rem;
 
-  .label {
+  .content {
     display: flex;
-
-    .content {
-      margin-inline: 1.6rem 0.8rem;
-    }
+    align-items: flex-start;
+    gap: 1.6rem;
 
     .information-icon {
-      margin-bottom: auto;
       font-size: 2.7rem;
     }
 
     .close-icon {
-      margin-left: auto;
+      margin-inline-start: auto;
+      flex-shrink: 0;
     }
   }
 
   .actions {
-    margin-inline-start: auto;
+    align-self: flex-end;
   }
 
   &.accent--info {

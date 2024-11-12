@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('accent')
-        .type('ToasterColor')
+        .type('ToasterAccent')
         .enum('info', 'success', 'warning', 'danger')
         .preset('info')
         .required()
