@@ -151,7 +151,7 @@ class Vdi {
    * in the raw vdi has changed
    */
   async listChangedBlock(ref, baseRef) {
-    const encoded = await this.call('VDI.list_changed_blocks', baseRef, ref)
+    const encoded = await this.callAsync('VDI.list_changed_blocks', baseRef, ref)
     return Buffer.from(encoded, 'base64')
   }
 
