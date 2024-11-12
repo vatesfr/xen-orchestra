@@ -4,6 +4,7 @@
 
 - [Pool/Dashboard] `Patches` and `Status` cards are displayed with a greater minimum width (PR [#8108](https://github.com/vatesfr/xen-orchestra/pull/8108))
 - [Header] Update user menu button (PR [#8109](https://github.com/vatesfr/xen-orchestra/pull/8109))
+- [VM/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
 
 ## **0.5.0** (2024-10-31)
 
