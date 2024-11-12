@@ -19,6 +19,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/CBT] use asynchronous method to list changed block, reducing the number of fall back to full backup
+- [Backups] handle incremental doing base (full) each time (PR [#8126](https://github.com/vatesfr/xen-orchestra/pull/8126))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/log minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
