@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <button type="button" class="ui-dropdown-item" :class="{ selected }" :disabled="isDisabled">
-    <VtsIcon :icon="icon" accent="current" class="left-icon" fixed-width />
+    <VtsIcon :icon accent="current" class="left-icon" fixed-width />
     <span class="typo p1-regular label">
       <slot />
     </span>
@@ -54,7 +54,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     color: var(--color-info-txt-active);
   }
 
-  &.selected {
+  &.selected:not(:disabled) {
     border: 0.2rem solid var(--color-info-txt-base);
     background-color: var(--color-info-background-selected);
   }
