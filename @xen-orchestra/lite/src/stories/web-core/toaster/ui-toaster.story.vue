@@ -22,7 +22,7 @@
       <template #description>{{ settings.description }}</template>
       <template #actions>
         <UiObjectLink v-if="settings.showLink" class="link typo p1-regular" route="#">See tasks</UiObjectLink>
-        <UiButton v-else level="tertiary" size="medium" :color="properties.accent === 'danger' ? 'danger' : 'normal'">
+        <UiButton v-else variant="tertiary" size="medium" :accent="properties.accent === 'danger' ? 'danger' : 'info'">
           {{ settings.actions }}
         </UiButton>
       </template>
@@ -34,7 +34,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { boolean, text } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 </script>
