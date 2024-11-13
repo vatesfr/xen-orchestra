@@ -69,19 +69,24 @@ Please [contact us](https://vates.tech/contact) if you need more details.
 
 After downloading the dedicated air-gap XOA provided by our support team, follow these steps to deploy it:
 
-1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:  
+1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:
+
    ```bash
    curl https://xoa.io/deploy > deploy.sh
-   ```  
+   ```
+
    Alternatively, you can manually copy the content from https://xoa.io/deploy into a file named `deploy.sh`.
 
 2. **Transfer Files to Your XCP-ng Host**: Copy both the `deploy.sh` script and the XOA appliance file (`XOA.xva`) to your air-gapped XCP-ng host.
 
-3. **Make the Script Executable**: On your XCP-ng host, ensure the `deploy.sh` script is executable by running:  
+3. **Make the Script Executable**: On your XCP-ng host, ensure the `deploy.sh` script is executable by running:
+
    ```bash
    chmod +x deploy.sh
-   ```  
-   Then, execute the following command to deploy the XOA appliance:  
+   ```
+
+   Then, execute the following command to deploy the XOA appliance:
+
    ```bash
    ./deploy.sh XOA.xva
    ```

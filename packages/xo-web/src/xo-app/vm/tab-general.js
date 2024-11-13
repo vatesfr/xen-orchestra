@@ -262,7 +262,7 @@ const GeneralTab = decorate([
                   vmTemplate !== undefined ? (
                     <VmTemplate id={vmTemplate.id} />
                   ) : (
-                    vm.other.base_template_name ?? _('unknown')
+                    (vm.other.base_template_name ?? _('unknown'))
                   ),
               })}
             </p>

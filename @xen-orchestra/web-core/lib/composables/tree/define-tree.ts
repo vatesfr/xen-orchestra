@@ -50,7 +50,7 @@ export function defineTree<
   optionsOrGetChildTree?: TreeNodeOptions<TData, TDiscriminator> | ChildTreeDefinitionGetter<TData, TChildDefinition>,
   getChildTreeOrNone?: ChildTreeDefinitionGetter<TData, TChildDefinition>
 ) {
-  const options = (typeof optionsOrGetChildTree === 'function' ? {} : optionsOrGetChildTree ?? {}) as TreeNodeOptions<
+  const options = (typeof optionsOrGetChildTree === 'function' ? {} : (optionsOrGetChildTree ?? {})) as TreeNodeOptions<
     TData,
     TDiscriminator
   >

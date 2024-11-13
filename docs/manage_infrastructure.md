@@ -639,7 +639,6 @@ Maintenance mode will trigger two actions internally:
 
 This way, you can do whatever is needed on the storage, and when done, re-enable it: all the hosts will be reconnected to it. No manual process to find all VMs related to this SR, shut them down, then disconnect all the PBDs.
 
-
 ### Reclaim free space
 
 If your SAN supports it, Xen Orchestra can instruct your XCP-ng host to send a trim command to perform some cleaning.
