@@ -1,37 +1,28 @@
-<!-- v1 -->
+<!-- wip -->
 <template>
-  <div class="ui-side-panel" :class="{ error: isError }">
-    <div v-if="slots.header && !props.busy && !isError && !isEmpty" class="header">
+  <div class="ui-panel" :class="{ error: props.error }">
+    <div v-if="slots.header" class="header">
       <slot name="header" />
     </div>
-    <div v-if="slots.content && !props.busy && !isError" class="content">
-      <slot name="content" />
-    </div>
-    <div v-if="!props.busy && isError" class="error">
-      <div v-if="!props.busy && !slots.content" class="empty" />
+    <div class="content">
+      <slot />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 const props = defineProps<{
-  busy?: boolean
-  isError?: boolean
+  error?: boolean
 }>()
 
 const slots = defineSlots<{
   default(): any
   header?(): any
-  content?(): any
 }>()
-
-const isEmpty = computed(() => slots.content?.().length === 0)
 </script>
 
 <style scoped lang="postcss">
-.ui-side-panel {
+.ui-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -43,7 +34,9 @@ const isEmpty = computed(() => slots.content?.().length === 0)
     background-color: var(--color-neutral-background-primary);
     display: flex;
     justify-content: flex-end;
-    padding: 4px 16px;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 0.4rem 1.6rem;
   }
 
   .content {
@@ -54,8 +47,11 @@ const isEmpty = computed(() => slots.content?.().length === 0)
   }
 
   &.error {
-    padding-top: 15rem;
     background-color: var(--color-danger-background-selected);
+
+    .content {
+      padding-top: 15rem;
+    }
   }
 }
 </style>
