@@ -55,17 +55,40 @@ const LTR_DEFINITIONS = {
  * return the entries too old to be kept
  *  if multiple entries are i the same time bucket : keep only the most recent one
  *  if an entry is valid in any of the bucket OR the  minRetentionCount : keep it
- *  if a bucket is cmpletly empty : it does not count as one, thus it may extend the retention
+ *  if a bucket is completly empty : it does not count as one, thus it may extend the retention
  * @returns Array<Backup>
  */
 export function getOldEntries(minRetentionCount, entries, { longTermRetention = {}, timezone } = {}) {
+  assert.strictEqual(
+    typeof minRetentionCount,
+    'number',
+    `minRetentionCount must be a number, got ${JSON.stringify(minRetentionCount)}`
+  )
+  assert.strictEqual(
+    minRetentionCount >= 0,
+    true,
+    `minRetentionCount must be a positive number, got ${JSON.stringify(minRetentionCount)}`
+  )
   const dateBuckets = {}
   const dateCreator = instantiateTimezonedDateCreator(timezone)
   // only check buckets that have a retention set
   for (const [duration, { retention, settings }] of Object.entries(longTermRetention)) {
-    if (LTR_DEFINITIONS[duration] === undefined) {
-      throw new Error(`Retention of type ${retention} is invalid`)
-    }
+    assert.notStrictEqual(LTR_DEFINITIONS[duration], undefined, `Retention of type ${duration} is not defined`)
+    assert.notStrictEqual(
+      timezone,
+      undefined,
+      `timezone must defined for ltr, got ${JSON.stringify({ minRetentionCount, longTermRetention, timezone })}`
+    )
+    assert.strictEqual(
+      typeof retention,
+      'number',
+      `retention  of type ${duration} must be a number, got ${JSON.stringify(retention)}`
+    )
+    assert.strictEqual(
+      retention > 0,
+      true,
+      `retention  of type ${duration} must be a positive number, got ${JSON.stringify(retention)}`
+    )
     dateBuckets[duration] = {
       remaining: retention,
       lastMatchingBucket: null,

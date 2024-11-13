@@ -34,6 +34,7 @@ describe('_getOldEntries() should succeed', () => {
           longTermRetention: {
             daily: { retention: 3 },
           },
+          timezone: 'Europe/Paris',
         },
       ],
       expectedIds: [1, 2, 3, 6],
@@ -81,6 +82,7 @@ describe('_getOldEntries() should succeed', () => {
           longTermRetention: {
             monthly: { retention: 3 },
           },
+          timezone: 'Europe/Paris',
         },
       ],
       expectedIds: [1, 3, 4, 6, 7],
@@ -160,5 +162,104 @@ describe('_getOldEntries() should succeed', () => {
   }
 })
 
-describe('_getOldEntries() should fail when called incorrectly', () => {})
-describe('_getOldEntries() should handle picking specific backup to promote', () => {})
+describe('_getOldEntries() should fail when called incorrectly', () => {
+  const tests = [
+    {
+      args: [
+        -1,
+        [
+          { timestamp: 1, id: 1 },
+          { timestamp: 3, id: 2 },
+          { timestamp: 2, id: 3 },
+        ],
+      ],
+      testLabel: 'negative min retention ',
+    },
+    {
+      args: [
+        { not: 'a number' },
+        [
+          { timestamp: 1, id: 1 },
+          { timestamp: 3, id: 2 },
+          { timestamp: 2, id: 3 },
+        ],
+      ],
+      testLabel: 'non number min retention ',
+    },
+    {
+      args: [
+        4,
+        [
+          { timestamp: 1, id: 1 },
+          { timestamp: 2, id: 2 },
+          { timestamp: 3, id: 3 },
+        ],
+        {
+          longTermRetention: {
+            invalidType: { retention: 3 },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'invalid type ltr ',
+    },
+    {
+      args: [
+        3,
+        [
+          { timestamp: 1, id: 1 },
+          { timestamp: 3, id: 2 },
+          { timestamp: 2, id: 3 },
+        ],
+        {
+          longTermRetention: {
+            daily: { retention: 0 },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'zero retention ltr ',
+    },
+    {
+      args: [
+        1,
+        [
+          { timestamp: 1, id: 1 },
+          { timestamp: 2, id: 2 },
+          { timestamp: 3, id: 3 },
+        ],
+        {
+          longTermRetention: {
+            daily: { retention: 'not a number' },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'no timezone ltr ',
+    },
+
+    {
+      args: [
+        5,
+        [
+          { timestamp: new Date('2024-09-01'), id: 1 },
+          { timestamp: new Date('2024-09-03'), id: 3 },
+          { timestamp: new Date('2024-09-02'), id: 2 },
+        ],
+        {
+          longTermRetention: {
+            daily: { retention: 5 },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'unsorted entries ',
+    },
+  ]
+
+  for (const { args, testLabel } of tests) {
+    it(testLabel, () => {
+      assert.throws(() => getOldEntries.apply(null, args), { code: 'ERR_ASSERTION' })
+    })
+  }
+})
