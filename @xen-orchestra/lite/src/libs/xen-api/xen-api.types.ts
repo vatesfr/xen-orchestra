@@ -110,6 +110,7 @@ export interface XenApiHost extends XenApiRecord<'host'> {
   resident_VMs: XenApiVm['$ref'][]
   cpu_info: { cpu_count: string }
   software_version: { product_version: string }
+  control_domain: XenApiVm['$ref']
 }
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
