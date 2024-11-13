@@ -42,9 +42,7 @@
     "semver": "^7.3.6",
     "sorted-object": "^2.0.1",
     "turbo": "^2.0.3",
-    "vue": "^2.7.14",
-    "vue-eslint-parser": "^9.4.3",
-    "vuepress": "^1.4.1"
+    "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
     "node": ">=14",
@@ -105,8 +103,6 @@
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
-    "docs:dev": "NODE_OPTIONS=--openssl-legacy-provider vuepress dev docs",
-    "docs:build": "NODE_OPTIONS=--openssl-legacy-provider vuepress build docs",
     "prepare": "husky install",
     "prettify": "prettier --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
