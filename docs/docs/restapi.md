@@ -381,6 +381,9 @@ $ curl \
 "2b0266aa-c753-6fbc-e4dd-c79be7782052"
 ```
 
-## The future
+## Future Improvements
 
-We are adding features and improving the REST API step by step. If you have interesting use cases or feedback, please ask directly at [text](https://xcp-ng.org/forum/category/12/xen-orchestra)
+We are actively working on enhancing and expanding the REST API with new features and capabilities. If you have specific use cases, ideas, or feedback that you would like to share, feel free to participate in the discussion on our [Xen Orchestra forum](https://xcp-ng.org/forum/category/12/xen-orchestra).
+
+
+
