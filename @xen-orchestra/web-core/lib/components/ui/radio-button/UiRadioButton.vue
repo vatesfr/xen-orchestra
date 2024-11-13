@@ -100,7 +100,6 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
       position: absolute;
       opacity: 0;
       transition: opacity 0.125s ease-in-out;
-      color: var(--color-neutral-txt-primary);
     }
 
     .input:disabled + .radio-icon {
@@ -128,6 +127,10 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     &:has(.input:disabled) {
       --accent-color: var(--color-info-item-disabled);
     }
+
+    .radio-icon {
+      color: var(--color-info-txt-item);
+    }
   }
 
   &.accent--success {
@@ -144,6 +147,10 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     &:has(.input:disabled) {
       --accent-color: var(--color-success-item-disabled);
     }
+
+    .radio-icon {
+      color: var(--color-success-txt-item);
+    }
   }
 
   &.accent--warning {
@@ -159,6 +166,10 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
 
     &:has(.input:disabled) {
       --accent-color: var(--color-warning-item-disabled);
+    }
+
+    .radio-icon {
+      color: var(--color-warning-txt-item);
     }
   }
 
@@ -177,7 +188,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
       --accent-color: var(--color-danger-item-disabled);
     }
 
-    .radio-container .radio-icon {
+    .radio-icon {
       color: var(--color-danger-txt-item);
     }
   }
