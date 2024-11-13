@@ -110,7 +110,6 @@ export default {
           label: 'Changelog',
           href: 'https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#changelog',
         },
-        'code_of_conduct',
         'contributing',
         'licenses',
         'roadmap',
