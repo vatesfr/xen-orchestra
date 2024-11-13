@@ -34,7 +34,7 @@ defineProps<{
       grid-area: 1 / -1;
 
       &:last-child {
-        font-size: 0.75rem;
+        font-size: 50%;
       }
     }
   }
