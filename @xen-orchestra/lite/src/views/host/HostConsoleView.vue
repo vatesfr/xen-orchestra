@@ -78,8 +78,6 @@ const {
   hasError: hasConsoleError,
 } = useConsoleStore().subscribe()
 
-const isReady = computed(() => isHostReady.value && isConsoleReady.value)
-
 const hasError = computed(() => hasHostError.value || hasConsoleError.value)
 
 const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
@@ -89,12 +87,14 @@ const controlDomainVm = computed(() => {
   return controlDomainOpaqueRef ? getRunningVms.value.find(vm => vm.$ref === controlDomainOpaqueRef) : undefined
 })
 
-const isHostRunning = computed(() => controlDomainVm.value?.power_state === VM_POWER_STATE.RUNNING)
-
 const hostConsole = computed(() => {
   const consoleOpaqueRef = controlDomainVm.value?.consoles[0]
   return consoleOpaqueRef ? getConsoleByOpaqueRef(consoleOpaqueRef) : undefined
 })
+
+const isReady = computed(() => isHostReady.value && isConsoleReady.value && controlDomainVm.value)
+
+const isHostRunning = computed(() => controlDomainVm.value?.power_state === VM_POWER_STATE.RUNNING)
 
 const isConsoleAvailable = computed(() =>
   controlDomainVm.value !== undefined ? !isVmOperationPending(controlDomainVm.value, STOP_OPERATIONS) : false
