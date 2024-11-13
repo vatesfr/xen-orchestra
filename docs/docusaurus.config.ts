@@ -1,8 +1,6 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
-
-
+import { themes as prismThemes } from 'prism-react-renderer'
+import type { Config } from '@docusaurus/types'
+import type * as Preset from '@docusaurus/preset-classic'
 
 const config: Config = {
   title: 'Xen Orchestra | XO Documentation',
@@ -46,8 +44,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/vatesfr/xen-orchestra/tree/master/docs',
+          editUrl: 'https://github.com/vatesfr/xen-orchestra/tree/master/docs',
         },
         blog: false,
         theme: {
@@ -62,12 +59,12 @@ const config: Config = {
     image: 'img/vates-xo-logo-smol-new-baseline.png',
     navbar: {
       title: 'Xen Orchestra Documentation',
-      logo: { alt: 'Xen Orchestra logo',src: 'img/logo.png', href:'/'},
+      logo: { alt: 'Xen Orchestra logo', src: 'img/logo.png', href: '/' },
       items: [
-        {href: 'https://xen-orchestra.com', label: 'Home', position: 'right'},
-        {href: 'https://xen-orchestra.com/blog/', label: 'Blog', position: 'right'},
-        {href: '/', label: 'Documentation', position: 'right'},
-        {href: 'https://github.com/vatesfr/xen-orchestra', label: 'GitHub', position: 'right'},
+        { href: 'https://xen-orchestra.com', label: 'Home', position: 'right' },
+        { href: 'https://xen-orchestra.com/blog/', label: 'Blog', position: 'right' },
+        { href: '/', label: 'Documentation', position: 'right' },
+        { href: 'https://github.com/vatesfr/xen-orchestra', label: 'GitHub', position: 'right' },
       ],
     },
     footer: {
@@ -133,6 +130,6 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
-};
+}
 
-export default config;
+export default config

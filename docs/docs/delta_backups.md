@@ -1,6 +1,6 @@
 # Incremental Backups
 
-> **_NOTE:_**  Formerly known as Continuous Delta backups
+> **_NOTE:_** Formerly known as Continuous Delta backups
 
 You can export only the delta (difference) between your current VM disks and a previous snapshot (called here the _reference_). They are called _continuous_ because you'll **never export a full backup** after the first one.
 

@@ -1,4 +1,4 @@
-import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+import type { SidebarsConfig } from '@docusaurus/plugin-content-docs'
 
 /**
  * Creating a sidebar enables you to:
@@ -71,7 +71,7 @@ export default {
         'xosanv2',
       ],
     },
-     {
+    {
       type: 'category',
       label: 'Backups',
       collapsible: true,
@@ -96,13 +96,7 @@ export default {
       label: 'Support',
       collapsible: true,
       collapsed: true,
-      items: [
-        'intro_support',
-        'xoa',
-        'purchase',
-        'license_management',
-        'community',
-      ],
+      items: ['intro_support', 'xoa', 'purchase', 'license_management', 'community'],
     },
     {
       type: 'category',
@@ -124,6 +118,6 @@ export default {
       ],
     },
   ],
-};
+}
 
 //export default sidebars;

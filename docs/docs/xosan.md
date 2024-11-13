@@ -106,9 +106,9 @@ Cons:
 - not all configrations possible (3, 5, 6 nodes and more)
 - limited performances on SSDs (replication is better in this case)
 
-<!-- 
+<!--
 FIXME: this missing img link broke the markdown parser
-![pictore disperse principle]() 
+![pictore disperse principle]()
 -->
 
 #### Disperse 3
