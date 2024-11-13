@@ -6,7 +6,7 @@
       prop('label').str().widget().preset('Label'),
       prop('info').str().widget().preset('message'),
       prop('vertical').bool().widget(),
-      slot().help('Meant to receive a list of checkboxes component'),
+      slot().help('Meant to receive a list of radio button components'),
       slot('label').help('Meant to receive a label UiLabel component or another component'),
       slot('info').help('Meant to receive a message info or UiInfo component or another component'),
     ]"
