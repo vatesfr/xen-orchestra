@@ -1011,7 +1011,18 @@ export default class TabAdvanced extends Component {
                 </tr>
                 {vm.virtualizationMode === 'hvm' && (
                   <tr>
-                    <th>{_('nestedVirt')}</th>
+                    <th>
+                      {_('nestedVirt')}{' '}
+                      <Tooltip content={_('nestedVirtualizationWarning')}>
+                        <a
+                          href='https://docs.xcp-ng.org/compute/#-nested-virtualization'
+                          target='_blank'
+                          rel='noreferrer'
+                        >
+                          <Icon icon='alarm' className='text-warning' />
+                        </a>
+                      </Tooltip>
+                    </th>
                     <td>
                       <Toggle
                         disabled={vm.power_state !== 'Halted'}
