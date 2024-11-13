@@ -210,35 +210,15 @@ There are 3 different roles for your users:
 - Operator
 - Viewer
 
-#### Admin
+Below is a Permissions Matrix which specifies what each role has access too, permissions are set on a per object basis. If you don't expressly grant a user (other than with the Admin role) access to a resource (Virtual Machine, Repository, Network etc) they won't be granted permissions. See Inheritance for more details.  
 
-An object admin can do everything on it, even destroy it. E.g with its admin VM:
-
-- remove it
-- migrate it (to a host with admin permission on it)
-- modify the VM resources, name and description
-- clone it
-- copy it
-- convert it into a template
-- snapshot it (even revert from a snapshot)
-- export it
-- attach/add visible disks
-- same for network cards
-
-#### Operator
-
-An operator can make everyday operations on assigned objects. E.g on a VM:
-
-- eject a CD
-- insert a CD (if he can view the ISO storage repository)
-- start, restart, shutdown, suspend/resume it
-
-All other operations are forbidden.
-
-#### Viewer
-
-A viewer can only see the VM state and its metrics. That's all!
-
+|              | **Create** | **Delete** | **Migrate** | **Modify – CPU, RAM, DISK etc** | **Clone** | **Copy** | **Convert to Template** | **Snapshot** | **Export** | **Attach/Remove Disk (VDIs)** | **Insert/Eject Disk (ISO)** | **General – Overview** | **Stats – Overview** | **Console – Remote Access** | **Console – Start, Shutdown, Reboot** | **Network Management – Conn/Disc.** | **Network Management – Delete** | **Disk Management – Overview** | **Disk Management – Remove from VDI** | **Disk Management – Delete from VM** | **Snapshot – Overview** | **Snapshot – Create/Delete** | **Logs** | **Logs – Delete** | **Advanced – Overview** | **Recovery Start** | **Start on…** | **Clone** | **Convert to Template** | **Remove** | **Boot Order – Change** | **Auto power on** | **Protect from accidental deletion** | **Protect from accidental shutdown** | **Windows Update Tools** | **HA**   | **GPUs** | **NIC type** | **VGA**  | **Video RAM** | **Boot Firmware** |
+| ------------ | ---------- | ---------- | ----------- | ------------------------------- | --------- | -------- | ----------------------- | ------------ | ---------- | ----------------------------- | --------------------------- | ---------------------- | -------------------- | --------------------------- | ------------------------------------- | ----------------------------------- | ------------------------------- | ------------------------------ | ------------------------------------- | ------------------------------------ | ----------------------- | ---------------------------- | -------- | ----------------- | ----------------------- | ------------------ | ------------- | --------- | ----------------------- | ---------- | ----------------------- | ----------------- | ------------------------------------ | ------------------------------------ | ------------------------ | -------- | -------- | ------------ | -------- | ------------- | ----------------- |
+| **<br>**     | **<br>**   | **<br>**   | **<br>**    | **<br>**                        | **<br>**  | **<br>** | **<br>**                | **<br>**     | **<br>**   | **<br>**                      | **<br>**                    | **<br>**               | **<br>**             | **<br>**                    | **<br>**                              | **<br>**                            | **<br>**                        | **<br>**                       | **<br>**                              | **<br>**                             | **<br>**                | **<br>**                     | **<br>** | **<br>**          | **<br>**                | **<br>**           | **<br>**      | **<br>**  | **<br>**                | **<br>**   | **<br>**                | **<br>**          | **<br>**                             | **<br>**                             | **<br>**                 | **<br>** | **<br>** | **<br>**     | **<br>** | **<br>**      | **<br>**          |
+| **Admin**    | **x**      | **x**      | **x**       | **x**                           | **x**     | **x**    | **x**                   | **x**        | **x**      | **x**                         | **x**                       | **x**                  | **x**                | **x**                       | **x**                                 | **x**                               | **x**                           | **x**                          | **x**                                 | **x**                                | **x**                   | **x**                        | **x**    | **x**             | **x**                   | **x**              | **x**         | **x**     | **x**                   | **x**      | **x**                   | **x**             | **x**                                | **x**                                | **x**                    | **x**    | **x**    | **x**        | **x**    | **x**         | **x**             |
+| **Operator** | **<br>**   | **<br>**   | **<br>**    | **<br>**                        | **<br>**  | **<br>** | **<br>**                | **<br>**     | **<br>**   | **<br>**                      | **x**                       | **x**                  | **x**                | **x**                       | **x**                                 | **x**                               | **<br>**                        | **x**                          | **<br>**                              | **<br>**                             | **x**                   | **x**                        | **x**    | **<br>**          | **x**                   | **x**              | **<br>**      | **<br>**  | **<br>**                | **<br>**   | **x**                   | **<br>**          | **<br>**                             | **<br>**                             | **<br>**                 | **<br>** | **<br>** | **<br>**     | **<br>** | **<br>**      | **<br>**          |
+| **Viewer**   | **<br>**   | **<br>**   | **<br>**    | **<br>**                        | **<br>**  | **<br>** | **<br>**                | **<br>**     | **<br>**   | **<br>**                      | **<br>**                    | **x**                  | **x**                | **<br>**                    | **<br>**                              | **<br>**                            | **<br>**                        | **<br>**                       | **<br>**                              | **<br>**                             | **<br>**                | **<br>**                     | **<br>** | **<br>**          | **<br>**                | **<br>**           | **<br>**      | **<br>**  | **<br>**                | **<br>**   | **<br>**                | **<br>**          | **<br>**                             | **<br>**                             | **<br>**                 | **<br>** | **<br>** | **<br>**     | **<br>** | **<br>**      | **<br>**          |
+  
 ### Inheritance
 
 Objects have a hierarchy: a Pool contains all its hosts, containing itself all its VMs.
