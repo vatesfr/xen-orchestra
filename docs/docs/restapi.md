@@ -384,6 +384,3 @@ $ curl \
 ## Future Improvements
 
 We are actively working on enhancing and expanding the REST API with new features and capabilities. If you have specific use cases, ideas, or feedback that you would like to share, feel free to participate in the discussion on our [Xen Orchestra forum](https://xcp-ng.org/forum/category/12/xen-orchestra).
-
-
-
