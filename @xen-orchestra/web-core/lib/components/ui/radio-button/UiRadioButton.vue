@@ -44,17 +44,6 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
   align-items: center;
   gap: 0.8rem;
 
-  :focus-visible {
-    outline: none;
-    &::before {
-      position: absolute;
-      content: '';
-      inset: -0.5rem;
-      border: 0.2rem solid var(--color-normal-txt-base);
-      border-radius: 0.4rem;
-    }
-  }
-
   .radio-container {
     display: inline-flex;
     align-items: center;
@@ -64,10 +53,21 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
     border-radius: 0.8rem;
     width: 1.6rem;
     height: 1.6rem;
+    position: relative;
     transition:
       border-color 0.125s ease-in-out,
       background-color 0.125s ease-in-out;
 
+    &:has(input:focus-visible) {
+      outline: none;
+      &::after {
+        position: absolute;
+        content: '';
+        inset: -0.5rem;
+        border: 0.2rem solid var(--color-info-txt-base);
+        border-radius: 0.4rem;
+      }
+    }
     &:has(.input:disabled) {
       cursor: not-allowed;
 

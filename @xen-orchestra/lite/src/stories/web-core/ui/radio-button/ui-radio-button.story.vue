@@ -2,14 +2,9 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent')
-        .type('RadioButtonAccent')
-        .required()
-        .enum('info', 'success', 'warning', 'danger')
-        .preset('info')
-        .widget(),
+      prop('accent').required().enum('info', 'success', 'warning', 'danger').preset('info').widget(),
       prop('disabled').bool().widget(),
-      slot(),
+      slot().help('Meant to receive a label'),
       setting('defaultSlot').widget(text()).preset('Label'),
     ]"
   >
