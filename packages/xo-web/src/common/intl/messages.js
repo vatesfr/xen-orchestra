@@ -1004,6 +1004,7 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostsLabel: 'Add hosts',
+  clickLinkForDetails: 'Follow this link for more details',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:

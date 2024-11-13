@@ -16,8 +16,8 @@
       Slot names, separated by comma
       <span class="slots">
         <FormInput v-model="slots" />
-        <UiButton size="medium" color="info" level="primary" @click="slots = 'default'">Default</UiButton>
-        <UiButton size="medium" color="info" level="secondary" @click="slots = ''">Clear</UiButton>
+        <UiButton size="medium" accent="info" variant="primary" @click="slots = 'default'">Default</UiButton>
+        <UiButton size="medium" accent="info" variant="secondary" @click="slots = ''">Clear</UiButton>
       </span>
     </div>
 
@@ -37,7 +37,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'

@@ -7,7 +7,7 @@
     placement="bottom-end"
   >
     <template v-if="isMobile" #trigger="{ isOpen, open }">
-      <ButtonIcon :active="isOpen" :icon="faEllipsis" @click="open" />
+      <UiButtonIcon accent="info" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
       {{ $t('change-state') }}
@@ -34,9 +34,9 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import ButtonIcon from '@core/components/button/ButtonIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'

@@ -18,7 +18,7 @@ export default {
   statusLoading: 'Laddar…',
 
   // Original text: 'Page not found'
-  errorPageNotFound: 'Sida hittas ej' ,
+  errorPageNotFound: 'Sida hittas ej',
 
   // Original text: 'no such item'
   errorNoSuchItem: 'Inget sådant objekt',
@@ -1369,7 +1369,7 @@ export default {
 
   // Original text: "Reboot"
   rebootHostLabel: 'Starta om',
-  
+
   // Original text: 'Error while restarting host'
   noHostsAvailableErrorTitle: undefined,
 
@@ -1492,7 +1492,7 @@ export default {
 
   // Original text: 'Add a bonded network'
   networkCreateBondedButton: undefined,
-//FORTSÄTT
+  //FORTSÄTT
   // Original text: "Device"
   pifDeviceLabel: 'Enhet',
 
@@ -2169,7 +2169,8 @@ export default {
   templateDeleteModalTitle: 'Radera VM-mall{templates, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: 'Är du säker du vill radera {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+  templateDeleteModalBody:
+    'Är du säker du vill radera {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
@@ -2770,13 +2771,15 @@ export default {
   emergencyShutdownHostsModalTitle: 'Nödavstängning värd{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: 'Är du säker att du vill stänga ner {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  emergencyShutdownHostsModalMessage:
+    'Är du säker att du vill stänga ner {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: 'Shutdown host'
   stopHostModalTitle: 'Stäng av värd',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: 'Detta kommer stänga ner din värd. Vill du fortsätta? Om det är poolens master, kommer din anslutning till poolen att förloras',
+  stopHostModalMessage:
+    'Detta kommer stänga ner din värd. Vill du fortsätta? Om det är poolens master, kommer din anslutning till poolen att förloras',
 
   // Original text: 'Add host'
   addHostModalTitle: 'Lägg till värd',
@@ -2791,10 +2794,12 @@ export default {
   restartHostModalMessage: 'Detta kommer starta om din värd. Vill du fortsätta?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: 'Starta om Värd{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalTitle:
+    'Starta om Värd{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: 'Är du säker du vill starta om {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
+  restartHostsAgentsModalMessage:
+    'Är du säker du vill starta om {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
   restartHostsModalTitle: 'Starta om Värd{nHosts, plural, one {} other {s}}',
@@ -2995,7 +3000,8 @@ export default {
   alreadyRegisteredModal: 'Ersätt nuvarande registrering',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText: 'Din XO appliance är redan registrerad till {email}. Vill du ersätta denna regitreringen?',
+  alreadyRegisteredModalText:
+    'Din XO appliance är redan registrerad till {email}. Vill du ersätta denna regitreringen?',
 
   // Original text: "Ready for trial?"
   trialReadyModal: 'Redo för testperiod?',
@@ -3029,7 +3035,8 @@ export default {
   serverAllowUnauthorizedCertificates: 'Tillåt oautentiserade certifikat',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: 'Aktivera det om ditt certifikat är avvisat, men det är inte rekomenderat eftersom anslutningen kommer inte vara säkrad',
+  serverUnauthorizedCertificatesInfo:
+    'Aktivera det om ditt certifikat är avvisat, men det är inte rekomenderat eftersom anslutningen kommer inte vara säkrad',
 
   // Original text: 'username'
   serverPlaceHolderUser: 'användarnamn',
@@ -3071,7 +3078,8 @@ export default {
   serverSelfSignedCertError: 'Ogiltigt självsignerat certifikat',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: 'Vill du acceptera självsignerat certifikat för denna servern, även om det minskar säkerheten?',
+  serverSelfSignedCertQuestion:
+    'Vill du acceptera självsignerat certifikat för denna servern, även om det minskar säkerheten?',
 
   // Original text: "Copy VM"
   copyVm: 'Kopiera VM',
@@ -3107,7 +3115,8 @@ export default {
   detachHostModalTitle: 'Koppla bort värd',
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: 'Är du säker du vill koppla bort {host} från poolen? DETTA KOMMER TA BORT ALLA VMs PÅ DESS LOKALA LAGRING OCH STARTA OM VÄRDEN.',
+  detachHostModalMessage:
+    'Är du säker du vill koppla bort {host} från poolen? DETTA KOMMER TA BORT ALLA VMs PÅ DESS LOKALA LAGRING OCH STARTA OM VÄRDEN.',
 
   // Original text: 'Detach'
   detachHost: 'Koppla bort',
@@ -3116,7 +3125,8 @@ export default {
   forgetHostModalTitle: 'Glöm värd',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: 'Är du säker du vill glömma {host} från poolen? Var säker denna inte kan komma tillbaka online, eller använd koppla bort istället',
+  forgetHostModalMessage:
+    'Är du säker du vill glömma {host} från poolen? Var säker denna inte kan komma tillbaka online, eller använd koppla bort istället',
 
   // Original text: 'Forget'
   forgetHost: 'Glöm',
@@ -3296,12 +3306,10 @@ export default {
   noUpdaterCommunity: 'Ingen uppgraderare tillgänglig för Community Edition',
 
   // Original text: "Please consider subscribe and try it with all features for free during 30 days on {link}.""
-  considerSubscribe:
-    'Vänligen överväg att prenumera och testa gratis med alla funktioner på {link}',
+  considerSubscribe: 'Vänligen överväg att prenumera och testa gratis med alla funktioner på {link}',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning:
-    'Manuell uppdatering kan förstöra din nuvarande installation. Använd med försiktighet',
+  noUpdaterWarning: 'Manuell uppdatering kan förstöra din nuvarande installation. Använd med försiktighet',
 
   // Original text: "Current version:"
   currentVersion: 'Aktuell version',
@@ -3326,8 +3334,7 @@ export default {
   trialConsumed: 'Din testperiod har löpt ut. Kontakta oss eller nedgradera till gratisversionen',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    'Din xoa-uppdaterare verkar vara nere. Din XOA kan inte köra fullt ut utan att nå denna tjänst.',
+  trialLocked: 'Din xoa-uppdaterare verkar vara nere. Din XOA kan inte köra fullt ut utan att nå denna tjänst.',
 
   // Original text: "No update information available"
   noUpdateInfo: 'Ingen uppdateringsinformation tillgänglig',
@@ -3351,7 +3358,8 @@ export default {
   promptUpgradeReloadTitle: 'Uppgradering lyckades',
 
   // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?'
-  promptUpgradeReloadMessage: 'Din XOA uppgradering lyckades. Din webbläsare behöver ladda om applikationen. Vill du ladda om nu?',
+  promptUpgradeReloadMessage:
+    'Din XOA uppgradering lyckades. Din webbläsare behöver ladda om applikationen. Vill du ladda om nu?',
 
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra från källkod',
@@ -3363,7 +3371,8 @@ export default {
   disclaimerText2: 'Om ni är ett företag är det bättre att använda vår XO Appliance + Pro support inkluderad:',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: 'Denna version inkluderar inte någon support eller uppdateringar. Använd med försiktighet för kritiska uppgifter',
+  disclaimerText3:
+    'Denna version inkluderar inte någon support eller uppdateringar. Använd med försiktighet för kritiska uppgifter',
 
   // Original text: "Connect PIF"
   connectPif: 'Anslut PIF',
@@ -3651,7 +3660,8 @@ export default {
   srReconnectAllModalMessage: 'Detta kommer återansluta denna SR till alla dess värdar',
 
   // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: 'Detta kommer återansluta varje vald SR till dess värd (lokal SR) eller till varje värd i dess pool (delad SR)',
+  srsReconnectAllModalMessage:
+    'Detta kommer återansluta varje vald SR till dess värd (lokal SR) eller till varje värd i dess pool (delad SR)',
 
   // Original text: 'Disconnect all hosts'
   srDisconnectAllModalTitle: 'Koppla bort alla värdar',
@@ -3660,7 +3670,8 @@ export default {
   srDisconnectAllModalMessage: 'Detta kommer koppla bort denna SR från alla dess värdar',
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: 'Detta kommer koppla bort varje vald SR från dess värd (lokal SR) eller från varje värd i dess pool (shared SR)',
+  srsDisconnectAllModalMessage:
+    'Detta kommer koppla bort varje vald SR från dess värd (lokal SR) eller från varje värd i dess pool (shared SR)',
 
   // Original text: 'Forget SR'
   srForgetModalTitle: 'Glöm SR',
@@ -3788,4 +3799,3 @@ export default {
   // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
   xosanPackRequirements: 'Åtminstone en av dessa versionskrav måste uppfyllas av alla värdar i denna poolen:',
 }
-

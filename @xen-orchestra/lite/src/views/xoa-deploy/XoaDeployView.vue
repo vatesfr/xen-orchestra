@@ -13,7 +13,7 @@
         <strong>{{ $t('check-errors') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
-      <UiButton size="medium" color="info" level="primary" :left-icon="faDownload" @click="resetValues()">
+      <UiButton size="medium" accent="info" variant="primary" :left-icon="faDownload" @click="resetValues()">
         {{ $t('xoa-deploy-retry') }}
       </UiButton>
     </template>
@@ -24,7 +24,7 @@
         <h2>{{ $t('xoa-deploy-successful') }}</h2>
         <UiIcon :icon="faCircleCheck" class="success" />
       </div>
-      <UiButton size="medium" color="info" level="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
+      <UiButton size="medium" accent="info" variant="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
         {{ $t('access-xoa') }}
       </UiButton>
     </template>
@@ -40,7 +40,7 @@
         <UiIcon :icon="faExclamationCircle" />
         {{ $t('keep-page-open') }}
       </p>
-      <UiButton size="medium" :disabled="vmRef === undefined" color="danger" level="secondary" @click="cancel()">
+      <UiButton size="medium" :disabled="vmRef === undefined" accent="danger" variant="secondary" @click="cancel()">
         {{ $t('cancel') }}
       </UiButton>
     </template>
@@ -201,14 +201,14 @@
           </div>
         </FormSection>
 
-        <ButtonGroup>
-          <UiButton size="medium" color="info" level="secondary" @click="router.back()">
+        <VtsButtonGroup>
+          <UiButton size="medium" accent="info" variant="secondary" @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
-          <UiButton size="medium" color="info" level="primary" type="submit">
+          <UiButton size="medium" accent="info" variant="primary" type="submit">
             {{ $t('deploy') }}
           </UiButton>
-        </ButtonGroup>
+        </VtsButtonGroup>
       </form>
     </UiCard>
   </div>
@@ -231,8 +231,8 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import ButtonGroup from '@core/components/button/ButtonGroup.vue'
-import UiButton from '@core/components/button/UiButton.vue'
+import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
