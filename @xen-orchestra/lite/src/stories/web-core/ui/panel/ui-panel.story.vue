@@ -21,9 +21,9 @@
       },
     }"
   >
-    <UiButton variant="primary" size="medium" accent="info" @click="toggle()">Toggle</UiButton>
     <UiSidePanel v-bind="properties" :error="properties.error">
       <template #header>
+        <UiButton variant="tertiary" size="medium" accent="info" @click="toggle()">Toggle</UiButton>
         <UiButton variant="tertiary" size="medium" accent="info" :left-icon="faEdit"> {{ settings.action1 }}</UiButton>
         <UiButton variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">
           {{ settings.action2 }}
