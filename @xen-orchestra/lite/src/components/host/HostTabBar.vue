@@ -13,7 +13,7 @@
       {{ $t('tasks') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.vms', params: { uuid } }" disabled>
-      {{ $t('tasks') }}
+      {{ $t('vms') }}
     </RouterTab>
   </TabList>
 </template>
