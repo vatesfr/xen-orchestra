@@ -2476,23 +2476,6 @@ export const vmWarmMigration = async vm => {
   })
 }
 
-export const vmBlockMigration = async vm => {
-  const reason = 'VM migration is blocked during backup'
-  return await _call('vm.set', { id: resolveId(vm), blockedOperations: { pool_migrate: reason, migrate_send: reason } })
-}
-
-export const vmAllowMigration = async vm => {
-  const reason = 'VM migration is blocked during backup'
-  const { pool_migrate, migrate_send } = vm.blockedOperations
-  return await _call('vm.set', {
-    id: resolveId(vm),
-    blockedOperations: {
-      migrate_send: migrate_send === undefined || migrate_send === reason ? null : migrate_send,
-      pool_migrate: pool_migrate === undefined || pool_migrate === reason ? null : pool_migrate,
-    },
-  })
-}
-
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr, { vm, bootable, mode, position }) =>

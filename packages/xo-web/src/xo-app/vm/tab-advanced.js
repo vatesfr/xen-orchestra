@@ -60,8 +60,6 @@ import {
   vmDetachPcis,
   vmSetUefiMode,
   vmWarmMigration,
-  vmAllowMigration,
-  vmBlockMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
@@ -590,6 +588,22 @@ export default class TabAdvanced extends Component {
     blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
   )
 
+  _getIsMigrationAllowed = () => {
+    createSelector(
+      () => this.props.vm && this.props.vm.blockedOperations,
+      blockedOperations => !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
+    )
+  }
+
+  _onChangeAllowMigration = allow => {
+    editVm(this.props.vm, {
+      blockedOperations: Object.assign.apply(
+        null,
+        ['migrate_send', 'pool_migrate'].map(op => ({ [op]: allow ? null : 'Migration blocked' }))
+      ),
+    })
+  }
+
   _onChangeBlockStop = block =>
     editVm(this.props.vm, {
       blockedOperations: Object.assign.apply(
@@ -723,8 +737,6 @@ export default class TabAdvanced extends Component {
       vusbs,
     } = this.props
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
-    const isMigrationAllowed =
-      vm.blockedOperations?.migrate_send === undefined && vm.blockedOperations?.pool_migrate === undefined
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
     const host = this.props.vmHosts[vm.$container]
@@ -783,13 +795,6 @@ export default class TabAdvanced extends Component {
                   icon='vm-warm-migration'
                   labelId='vmWarmMigration'
                   tooltip={isWarmMigrationAvailable ? undefined : _('availableXoaPremium')}
-                />
-                <TabButton
-                  btnStyle='warning'
-                  handler={isMigrationAllowed ? vmBlockMigration : vmAllowMigration}
-                  handlerParam={vm}
-                  icon='vm-allow-migration'
-                  labelId={isMigrationAllowed ? 'vmBlockMigration' : 'vmAllowMigration'}
                 />
               </span>
             )}
@@ -1012,6 +1017,12 @@ export default class TabAdvanced extends Component {
                   <th>{_('protectFromShutdown')}</th>
                   <td>
                     <Toggle value={this._getIsStopBlocked()} onChange={this._onChangeBlockStop} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('allowMigration')}</th>
+                  <td>
+                    <Toggle value={this._getIsMigrationAllowed()} onChange={this._onChangeAllowMigration} />
                   </td>
                 </tr>
                 <tr>

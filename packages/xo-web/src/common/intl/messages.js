@@ -877,8 +877,6 @@ const messages = {
   vmWarmMigrationProcessInfo:
     'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
-  vmAllowMigration: 'Allow migration',
-  vmBlockMigration: 'Block migration',
 
   // ----- SR general tab -----
   baseCopyTooltip: '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
@@ -1527,6 +1525,7 @@ const messages = {
   autoPowerOn: 'Auto power on',
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
+  allowMigration: 'Allow migration',
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
