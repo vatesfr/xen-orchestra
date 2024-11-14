@@ -6,6 +6,7 @@
 
 - @xen-orchestra/log 0.7.1
 - @xen-orchestra/xapi 7.7.1
+- @xen-orchestra/backups 0.54.3
 
 ## **5.100.1** (2024-11-07)
 
