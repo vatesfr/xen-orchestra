@@ -1,3 +1,4 @@
+/* eslint-disable react/no-string-refs */
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
@@ -945,3 +946,4 @@ export default class New extends Component {
     )
   }
 }
+/* eslint-enable react/no-string-refs */
