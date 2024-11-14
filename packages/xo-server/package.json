@@ -122,6 +122,7 @@
     "semver": "^7.3.2",
     "serve-static": "^1.13.1",
     "set-cookie-parser": "^2.3.5",
+    "sonic-boom": "^4.2.0",
     "source-map-support": "^0.5.16",
     "split-host": "^2.0.0",
     "split2": "^4.1.0",
