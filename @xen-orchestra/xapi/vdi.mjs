@@ -67,7 +67,7 @@ class Vdi {
     })
 
     const vm = await this.getRecord('VM', vmRef)
-    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_detected, {
       timeout: timeLimit - Date.now(),
     }).catch(error => {
       warn('failed to wait guest metrics, consider VM as started', {

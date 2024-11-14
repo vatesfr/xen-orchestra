@@ -20,6 +20,7 @@
 
 - [Backup/CBT] use asynchronous method to list changed block, reducing the number of fall back to full backup
 - [Backups] handle incremental doing base (full) each time (PR [#8126](https://github.com/vatesfr/xen-orchestra/pull/8126))
+- [Backup/Health Check] Better detection of guest tools even when they do not properly report their version number
 
 ### Packages to release
 
