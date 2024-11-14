@@ -11,9 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Ignore leading and trailing spaces when editing VM/Pools/Hosts/SRs names and descriptions (PR [#8115](https://github.com/vatesfr/xen-orchestra/pull/8115))
-- [VM/Advanced] in Nested virtualization section, add warning tooltip and link to documentation (PR [#8107](https://github.com/vatesfr/xen-orchestra/pull/8107))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,6 +33,5 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
-- xo-web minor
 
 <!--packages-end-->
