@@ -7,7 +7,7 @@
       </span>
 
       <UiButton
-        v-if="selectedItems < totalItems"
+        :disabled="selectedItems === totalItems"
         accent="info"
         size="small"
         variant="tertiary"
@@ -16,7 +16,7 @@
         {{ $t('core.select.all') }}
       </UiButton>
       <UiButton
-        v-if="selectedItems > 0"
+        :disabled="selectedItems === 0"
         accent="info"
         size="small"
         variant="tertiary"
