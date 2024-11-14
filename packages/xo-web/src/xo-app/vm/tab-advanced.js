@@ -72,6 +72,7 @@ import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
 import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
+import { blockedOperation } from '../../common/intl/messages'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -589,6 +590,10 @@ export default class TabAdvanced extends Component {
   )
 
   _getIsMigrationAllowed = () => {
+    const blockedOperations = this.props.vm.blockedOperations
+    const isAllowed = this.props.vm && this.props.vm.blockedOperations &&
+    !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
+    console.log({op: "_getIsMigrationAllow", blockedOperations, isAllowed})
     createSelector(
       () => this.props.vm && this.props.vm.blockedOperations,
       blockedOperations => !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
@@ -596,14 +601,33 @@ export default class TabAdvanced extends Component {
   }
 
   _onChangeAllowMigration = allow => {
-    editVm(this.props.vm, {
-      blockedOperations: Object.assign.apply(
-        null,
-        ['migrate_send', 'pool_migrate'].map(op => ({ [op]: allow ? null : 'Migration blocked' }))
-      ),
+      console.log({allow})
+      const reasons = Object.keys(this.props.vm.blockedOperations).join(' ')
+      console.log({reasons})
+      confirm({
+        title: _('allowMigrationTitle'),
+        body: <p>{_('allowMigrationconfirm')} {reasons}</p>,
+      })
+      .then(() => {
+      console.log("the user click ok");
+      console.log({vm: this.props.vm})
+      console.log({time: "before editVm", allow, blockedOperations: this.props.vm.blockedOperations})
+      editVm(this.props.vm, {
+        blockedOperations: Object.assign.apply(
+          null,
+          ['migrate_send', 'pool_migrate'].map(op => ({ [op]: allow ? null : 'Migration blocked' }))
+        ),
+      })
+      .then(() => {
+        console.log({time: "after editVm", allow, blockedOperations: this.props.vm.blockedOperations})
+      })
     })
-  }
-
+    .catch(error => {
+      console.log("the user click cancel");
+      console.log({allow, blockedOperations: this.props.vm.blockedOperations})
+    })
+  };
+  
   _onChangeBlockStop = block =>
     editVm(this.props.vm, {
       blockedOperations: Object.assign.apply(

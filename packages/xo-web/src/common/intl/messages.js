@@ -1481,6 +1481,8 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  allowMigrationTitle: "Allow migration",
+  allowMigrationconfirm: "This will allow migration blocked for this reason: ",
   attachedPcis: 'Attached PCIs',
   attachingDetachingPciNeedVmBoot: 'Attaching/detaching a PCI will be taken into consideration for the next VM boot.',
   attachPcis: 'Attach PCIs',
