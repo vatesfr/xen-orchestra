@@ -7,6 +7,7 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import includes from 'lodash/includes'
 import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
+import { isIPv6 } from 'is-ip'
 import map from 'lodash/map'
 import Page from '../../page'
 import PropTypes from 'prop-types'
@@ -327,7 +328,7 @@ export default class New extends Component {
           host.id,
           name.value,
           description.value,
-          `${server.value}:${path}`,
+          isIPv6(server.value) ? `[${server.value}]:${path}` : `${server.value}:${path}`,
           'nfs',
           username && username.value,
           password && password.value,
