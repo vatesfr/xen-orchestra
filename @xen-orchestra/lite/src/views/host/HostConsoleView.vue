@@ -34,7 +34,7 @@ import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
@@ -69,7 +69,12 @@ const router = useRouter()
 const route = useRoute()
 const uiStore = useUiStore()
 
-const { isReady: isHostReady, getByUuid: getHostByUuid, hasError: hasHostError } = useHostStore().subscribe()
+const {
+  isReady: isHostReady,
+  getByUuid: getHostByUuid,
+  hasError: hasHostError,
+  runningHosts: getRunningHosts,
+} = useHostStore().subscribe()
 const { runningVms: getRunningVms } = useVmStore().subscribe()
 
 const {
@@ -94,7 +99,9 @@ const hostConsole = computed(() => {
 
 const isReady = computed(() => isHostReady.value && isConsoleReady.value && vm.value)
 
-const isHostRunning = computed(() => vm.value?.power_state === VM_POWER_STATE.RUNNING)
+const isHostRunning = computed(() => {
+  return getRunningHosts.value.some(runningHost => runningHost.uuid === host.value?.uuid)
+})
 
 const isConsoleAvailable = computed(() =>
   vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
