@@ -17,6 +17,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+> [Backup] Handle slow cbt_enable leading to full backups
 
 - [Backup/CBT] use asynchronous method to list changed block, reducing the number of fall back to full backup
 - [Backups] handle incremental doing base (full) each time (PR [#8126](https://github.com/vatesfr/xen-orchestra/pull/8126))
