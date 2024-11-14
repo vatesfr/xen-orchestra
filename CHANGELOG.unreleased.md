@@ -41,7 +41,6 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
 - xo-web minor
 
 <!--packages-end-->
