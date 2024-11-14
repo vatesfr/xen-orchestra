@@ -6,17 +6,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 
-const props = withDefaults(
-  defineProps<{
-    disabled?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  disabled?: boolean
+}>()
 
-useContext(DisabledContext, () => props.disabled)
+useDisabled(() => props.disabled)
 </script>
 
 <style lang="postcss" scoped>

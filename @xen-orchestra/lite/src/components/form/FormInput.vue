@@ -53,9 +53,10 @@
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
+import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import { useTextareaAutosize, useVModel } from '@vueuse/core'
@@ -63,22 +64,19 @@ import { computed, type HTMLAttributes, inject, nextTick, ref, useAttrs, watch }
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(
-  defineProps<{
-    id?: string
-    modelValue?: any
-    color?: Color
-    before?: IconDefinition | string
-    after?: IconDefinition | string
-    beforeWidth?: string
-    afterWidth?: string
-    disabled?: boolean
-    required?: boolean
-    right?: boolean
-    wrapperAttrs?: HTMLAttributes
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  id?: string
+  modelValue?: any
+  color?: Color
+  before?: IconDefinition | string
+  after?: IconDefinition | string
+  beforeWidth?: string
+  afterWidth?: string
+  disabled?: boolean
+  required?: boolean
+  right?: boolean
+  wrapperAttrs?: HTMLAttributes
+}>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: any]
@@ -94,7 +92,7 @@ const value = useVModel(props, 'modelValue', emit)
 const isEmpty = computed(() => props.modelValue == null || String(props.modelValue).trim() === '')
 const inputType = inject(IK_INPUT_TYPE, 'input')
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 
 const wrapperClass = computed(() => [
   `form-${inputType}`,
