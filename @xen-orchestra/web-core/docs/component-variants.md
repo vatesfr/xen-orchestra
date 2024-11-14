@@ -5,7 +5,7 @@ A variant is a specific style that a component can have. It is usually determine
 These variants are defined in the Design System and are reflected in the component's CSS.
 
 See also:
-[toVariants utility](../utils/to-variants.util.md) to help you generate variant CSS classes for your components.
+[toVariants utility](../lib/utils/to-variants.util.md) to help you generate variant CSS classes for your components.
 
 ## Base class
 

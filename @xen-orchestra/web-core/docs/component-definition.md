@@ -185,7 +185,7 @@ If no style is applied to the root element, the class name will be omitted
 ```
 
 > [!TIP]
-> See also [Component variants guidelines](./component-variants.md)
+> See also [Component variants guidelines](component-variants.md)
 > to learn how to handle different component styles based on its props or states.
 
 ## Optional slots container SHOULD use `v-if="$slots.<slotName>"`
