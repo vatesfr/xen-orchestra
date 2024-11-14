@@ -9,8 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 import placementJs, { type Options } from 'placement.js'
@@ -20,15 +19,12 @@ defineOptions({
   inheritAttrs: false,
 })
 
-const props = withDefaults(
-  defineProps<{
-    horizontal?: boolean
-    border?: boolean
-    disabled?: boolean
-    placement?: Options['placement']
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  horizontal?: boolean
+  border?: boolean
+  disabled?: boolean
+  placement?: Options['placement']
+}>()
 
 const slots = useSlots()
 const isOpen = ref(false)
@@ -42,7 +38,7 @@ provide(
   computed(() => props.horizontal ?? false)
 )
 
-useContext(DisabledContext, () => props.disabled)
+useDisabled(() => props.disabled)
 
 let clearClickOutsideEvent: (() => void) | undefined
 

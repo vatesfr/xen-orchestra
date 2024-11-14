@@ -13,8 +13,7 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 
@@ -22,7 +21,7 @@ defineProps<{
   active?: boolean
 }>()
 
-const isDisabled = useContext(DisabledContext)
+const isDisabled = useDisabled()
 </script>
 
 <style lang="postcss" scoped>
