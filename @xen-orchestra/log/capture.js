@@ -16,7 +16,7 @@ const asyncStorage = global[symbol] || (global[symbol] = new AsyncLocalStorage()
  * Runs `fn` capturing all emitted logs (sync and async) and forward them to `onLog`.
  *
  * @template {(...args: any) => any} F
- * @param {undefined | (log: object) => void} onLog
+ * @param {undefined | (log: object, fallbackTransport: (log: object) => void) => void} onLog
  * @param {F} fn
  * @returns {ReturnType<F>}
  */
@@ -34,6 +34,11 @@ exports.createCaptureTransport = function createCaptureTransport(fallback) {
   fallback = fallback === undefined ? Function.prototype : createTransport(fallback)
 
   return function captureTransport(log) {
-    ;(asyncStorage.getStore() || fallback)(log)
+    const onLog = asyncStorage.getStore()
+    if (onLog !== undefined) {
+      onLog(log, fallback)
+    } else {
+      fallback(log)
+    }
   }
 }
