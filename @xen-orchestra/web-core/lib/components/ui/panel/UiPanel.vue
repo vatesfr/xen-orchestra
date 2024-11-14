@@ -1,6 +1,6 @@
 <!-- wip -->
 <template>
-  <div class="ui-panel" :class="{ error: props.error }">
+  <div class="ui-panel" :class="{ error }">
     <div v-if="slots.header" class="header">
       <slot name="header" />
     </div>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   error?: boolean
 }>()
 
