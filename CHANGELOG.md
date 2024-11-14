@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.100.2** (2024-11-14)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -23,8 +25,6 @@
 - xo-web 5.161.0
 
 ## **5.100.1** (2024-11-07)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
