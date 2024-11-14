@@ -1,1 +1,0 @@
-full_replication.md
