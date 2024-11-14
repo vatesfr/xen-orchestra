@@ -7,7 +7,7 @@
     "@vates/node-vsphere-soap": "^2.1.1",
     "@vates/read-chunk": "^1.2.0",
     "@vates/task": "^0.6.0",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
     "vhd-lib": "^4.11.1",

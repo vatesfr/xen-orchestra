@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@xen-orchestra/defined": "^0.0.2",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "handlebars": "^4.7.8",
     "human-format": "^1.0.0",
     "lodash": "^4.13.1",

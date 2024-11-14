@@ -21,7 +21,7 @@
     "@vates/stream-reader": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^4.2.1",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "async-iterator-to-stream": "^1.0.2",
     "decorator-synchronized": "^0.6.0",
     "fs-extra": "^11.1.0",

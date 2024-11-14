@@ -29,7 +29,7 @@
     "@vates/read-chunk": "^1.2.0",
     "@vates/task": "^0.6.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "d3-time-format": "^4.1.0",
     "golike-defer": "^0.5.1",
     "http-request-plus": "^1.0.0",

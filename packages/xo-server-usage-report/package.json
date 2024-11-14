@@ -31,7 +31,7 @@
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "csv-stringify": "^6.0.0",
     "handlebars": "^4.0.6",
     "html-minifier": "^4.0.0",

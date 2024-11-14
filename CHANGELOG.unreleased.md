@@ -39,7 +39,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/log minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
