@@ -2,12 +2,19 @@
 
 ## **next**
 
+### Bug fixes
+
+- [Backup/CBT] use asynchronous method to list changed block, reducing the number of fall back to full backup
+- [Backups] handle incremental doing base (full) each time (PR [#8126](https://github.com/vatesfr/xen-orchestra/pull/8126))
+- [Backup/Health Check] Better detection of guest tools even when they do not properly report their version number
+
 ### Released packages
 
 - @xen-orchestra/log 0.7.1
 - @xen-orchestra/xapi 7.7.1
 - @xen-orchestra/backups 0.54.3
 - @xen-orchestra/proxy 0.29.4
+- xo-server 5.161.0
 
 ## **5.100.1** (2024-11-07)
 
