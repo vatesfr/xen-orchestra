@@ -7,6 +7,7 @@
     <UiInput
       :id
       v-model="value"
+      class="ui-query-search-bar-input"
       :aria-label="uiStore.isMobile ? $t('core.query-search-bar.label') : undefined"
       :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
       :placeholder="$t('core.query-search-bar.placeholder')"
@@ -62,6 +63,7 @@ const value = ref<string>('')
 
   .label {
     color: var(--color-neutral-txt-secondary);
+    white-space: nowrap;
   }
 }
 </style>

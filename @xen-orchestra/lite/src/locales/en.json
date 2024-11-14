@@ -59,6 +59,7 @@
 
   "descending": "descending",
   "description": "Description",
+  "device": "Device",
   "dhcp": "DHCP",
   "disabled": "Disabled",
   "display": "Display",
@@ -109,6 +110,8 @@
   "host.inactive": "Inactive",
 
   "invalid-field": "Invalid field",
+  "ip-addresses": "IP Adresses",
+  "ip-mode": "IP mode",
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
   "language": "Language",
@@ -117,6 +120,7 @@
   "loading-hosts": "Loading hosts…",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
+  "mac-address": "MAC address",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
@@ -124,6 +128,7 @@
   "n-missing": "{n} missing",
   "name": "Name",
   "netmask": "Netmask",
+  "network": "Network",
   "network-download": "Download",
   "network-throughput": "Network throughput",
   "network-upload": "Upload",
@@ -145,6 +150,7 @@
   "password": "Password",
   "password-invalid": "Password invalid",
   "pause": "Pause",
+  "pifs": "PIFs",
   "please-confirm": "Please confirm",
   "pool-cpu-usage": "Pool CPU Usage",
   "pool-ram-usage": "Pool RAM Usage",
@@ -166,6 +172,7 @@
 
   "resume": "Resume",
   "save": "Save",
+  "scan-pifs": "Scan PIFs",
   "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
   "selected-vms-in-execution": "Some selected VMs are running",
@@ -210,6 +217,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
+  "vlan": "VLAN",
 
   "vm.active": "Active",
   "vm.inactive": "Inactive",
