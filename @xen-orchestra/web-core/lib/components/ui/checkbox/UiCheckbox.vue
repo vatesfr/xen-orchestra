@@ -1,16 +1,16 @@
 <!-- v3 -->
 <template>
-  <label class="ui-checkbox" :class="classNames" v-bind="wrapperAttrs">
+  <label :class="classNames" class="ui-checkbox" v-bind="wrapperAttrs">
     <input
       v-model="checkboxModel"
       :class="{ indeterminate: isIndeterminate }"
       :disabled="isDisabled"
-      type="checkbox"
       class="input"
+      type="checkbox"
       v-bind="attrs"
     />
     <span class="fake-checkbox">
-      <VtsIcon :icon class="icon" accent="info" />
+      <VtsIcon :icon accent="info" class="icon" />
     </span>
     <span v-if="slots.default" class="typo p1-regular">
       <slot />
@@ -24,8 +24,7 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
@@ -34,14 +33,11 @@ type CheckboxAccent = 'info' | 'success' | 'warning' | 'danger'
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(
-  defineProps<{
-    accent: CheckboxAccent
-    disabled?: boolean
-    wrapperAttrs?: LabelHTMLAttributes
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  accent: CheckboxAccent
+  disabled?: boolean
+  wrapperAttrs?: LabelHTMLAttributes
+}>()
 
 const checkboxModel = defineModel<boolean | undefined>({ default: undefined })
 
@@ -50,7 +46,7 @@ const slots = defineSlots<{
   info?(): any
 }>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 
 const classNames = computed(() => [
   toVariants({

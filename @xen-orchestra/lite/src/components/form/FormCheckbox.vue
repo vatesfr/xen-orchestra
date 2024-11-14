@@ -16,23 +16,19 @@
 
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
 import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from '@/types/injection-keys'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { faCheck, faCircle, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { useVModel } from '@vueuse/core'
 import { computed, type HTMLAttributes, inject, useAttrs } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(
-  defineProps<{
-    modelValue?: unknown
-    disabled?: boolean
-    wrapperAttrs?: HTMLAttributes
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  modelValue?: unknown
+  disabled?: boolean
+  wrapperAttrs?: HTMLAttributes
+}>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -46,7 +42,7 @@ const hasLabel = inject(
   IK_FORM_HAS_LABEL,
   computed(() => false)
 )
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 const icon = computed(() => {
   if (type !== 'checkbox') {
     return faCircle

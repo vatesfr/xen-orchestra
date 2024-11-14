@@ -8,9 +8,10 @@
 
 <script lang="ts" setup>
 import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
+import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_MODAL } from '@/types/injection-keys'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { inject, useAttrs } from 'vue'
 
@@ -28,7 +29,7 @@ const attrs = useAttrs()
 const modal = inject(IK_MODAL)!
 
 useContext(ColorContext, () => props.color)
-useContext(DisabledContext, () => props.disabled || modal.isBusy)
+useDisabled(() => props.disabled || modal.isBusy)
 
 const { escape } = useMagicKeys()
 
