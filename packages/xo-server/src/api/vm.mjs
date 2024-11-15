@@ -148,11 +148,16 @@ export const create = defer(async function ($defer, params) {
   params.vifs =
     vifs &&
     map(vifs, vif => {
+      if (vif.remove) {
+        return vif
+      }
+
       const network = this.getObject(vif.network)
 
       objectIds.push(network.id)
 
       return {
+        device: vif.device,
         mac: vif.mac,
         network: network._xapiId,
         ipv4_allowed: vif.allowedIpv4Addresses,
@@ -315,7 +320,7 @@ create.params = {
       type: 'object',
       properties: {
         // UUID of the network to create the interface in.
-        network: { type: 'string' },
+        network: { type: 'string', optional: true },
 
         mac: {
           optional: true, // Auto-generated per default.
@@ -333,6 +338,17 @@ create.params = {
           type: 'array',
           items: { type: 'string' },
         },
+        device: { type: 'string', optional: true },
+        remove: { type: 'boolean', optional: true },
+
+        // device: {
+        //   optional: true,
+        //   type: 'string',
+        // },
+        // remove: {
+        //   optional: true,
+        //   type: 'boolean',
+        // },
       },
     },
   },

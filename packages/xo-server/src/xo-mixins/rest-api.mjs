@@ -765,6 +765,21 @@ export default class RestApi {
             name_label: { type: 'string' },
             network_config: { type: 'string', optional: true },
             template: { type: 'string' },
+            vifs: {
+              default: [],
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  remove: { type: 'boolean', optional: true },
+                  network: { type: 'string', optional: true },
+                  device: { type: 'string', optional: true },
+                  mac: { type: 'string', optional: true },
+                  ipv4_allowed: { type: 'array', items: { type: 'string' }, optional: true },
+                  ipv6_allowed: { type: 'array', items: { type: 'string' }, optional: true },
+                },
+              },
+            },
           }
         ),
         emergency_shutdown: async ({ xapiObject }) => {
