@@ -595,33 +595,33 @@ export default class TabAdvanced extends Component {
   )
 
   _onChangeAllowMigration = allow => {
-      console.log({allow})
-      const reasons = JSON.stringify(this.props.vm.blockedOperations)
-      console.log({reasons})
-      confirm({
-        title: _('allowMigrationTitle'),
-        body: <p>{_('allowMigrationconfirm')} {reasons}</p>,
-      })
-      .then(() => {
-      console.log("the user click ok");
-      console.log({vm: this.props.vm})
-      console.log({time: "before editVm", allow, blockedOperations: this.props.vm.blockedOperations})
+    const blockedOperations = this.props.vm.blockedOperations
+    const reasons = JSON.stringify(this.props.vm.blockedOperations)
+
+    const toggleBlockedOperations = () =>
       editVm(this.props.vm, {
         blockedOperations: Object.assign.apply(
           null,
           ['migrate_send', 'pool_migrate'].map(op => ({ [op]: allow ? null : 'Migration blocked' }))
         ),
       })
-      .then(() => {
-        console.log({time: "after editVm", allow, blockedOperations: this.props.vm.blockedOperations})
+
+    if (blockedOperations !== undefined && !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)) {
+      toggleBlockedOperations()
+    } else {
+      confirm({
+        title: _('allowMigrationTitle'),
+        body: (
+          <p>
+            {_('allowMigrationconfirm')} {reasons}
+          </p>
+        ),
+      }).then(() => {
+        toggleBlockedOperations()
       })
-    })
-    .catch(error => {
-      console.log("the user click cancel");
-      console.log({allow, blockedOperations: this.props.vm.blockedOperations})
-    })
-  };
-  
+    }
+  }
+
   _onChangeBlockStop = block =>
     editVm(this.props.vm, {
       blockedOperations: Object.assign.apply(
