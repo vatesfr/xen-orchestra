@@ -55,13 +55,5 @@
   "vms-status.inactive.tooltip": "Éteintes ou suspendues",
   "vms-status.running": "Démarrées",
   "vms-status.unknown": "Inconnu",
-  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool",
-
-  "network": "Réseau",
-  "device": "Appareil",
-  "status": "Status",
-  "vlan": "VLAN",
-  "ip-addresses": "Adresses IP",
-  "mac-address": "Adresse MAC",
-  "ip-mode": "Mode IP"
+  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
 }

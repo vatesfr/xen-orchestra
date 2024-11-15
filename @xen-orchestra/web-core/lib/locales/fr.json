@@ -40,11 +40,15 @@
   "dark-mode.auto": "Mode sombre automatique",
 
   "dashboard": "Tableau de bord",
+  "device": "Appareil",
   "documentation-name": "Documentation {name}",
   "hosts": "Hôtes",
+  "ip-addresses": "Adresses IP",
+  "ip-mode": "Mode IP",
   "learn-more": "En savoir plus",
   "loading-in-progress": "Chargement en cours…",
   "log-out": "Se déconnecter",
+  "mac-address": "Adresse MAC",
   "master": "Hôte primaire",
   "n-vms": "1 VM | {n} VMs",
   "network": "Réseau",
@@ -52,11 +56,14 @@
   "object-not-found": "L'objet {id} est introuvable…",
   "other": "Autre",
   "patches": "Patches",
+  "pifs": "PIFs",
   "power-on-vm-for-console": "Allumez votre VM pour accéder à sa console",
   "power-on-host-for-console": "Allumez votre hôte pour accéder à sa console",
   "running-vm": "VM en cours d'exécution | VMs en cours d'exécution",
+  "scan-pifs": "Scanner les PIFs",
   "see-all": "Voir tout",
   "stats": "Stats",
+  "status": "Statut",
   "storage": "Stockage",
   "support-name": "Support pro {name}",
   "system": "Système",
@@ -72,5 +79,6 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "vlan": "VLAN",
   "vms": "VMs"
 }

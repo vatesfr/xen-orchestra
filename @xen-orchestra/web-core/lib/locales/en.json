@@ -40,11 +40,15 @@
   "dark-mode.auto": "Auto dark mode",
 
   "dashboard": "Dashboard",
+  "device": "Device",
   "documentation-name": "{name} documentation",
   "hosts": "Hosts",
+  "ip-addresses": "IP Adresses",
+  "ip-mode": "IP mode",
   "learn-more": "Learn more",
   "loading-in-progress": "Loading in progress…",
   "log-out": "Log out",
+  "mac-address": "MAC address",
   "master": "Primary host",
   "n-vms": "1 VM | {n} VMs",
   "network": "Network",
@@ -52,11 +56,14 @@
   "object-not-found": "Object {id} can't be found…",
   "other": "Other",
   "patches": "Patches",
+  "pifs": "PIFs",
   "power-on-vm-for-console": "Power on your VM to access its console",
   "power-on-host-for-console": "Power on your host to access its console",
   "running-vm": "Running VM | Running VMs",
+  "scan-pifs": "Scan PIFs",
   "see-all": "See all",
   "stats": "Stats",
+  "status": "Status",
   "storage": "Storage",
   "support-name": "{name} pro support",
   "system": "System",
@@ -72,5 +79,6 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "vlan": "VLAN",
   "vms": "VMs"
 }
