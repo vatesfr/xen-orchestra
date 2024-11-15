@@ -17,7 +17,7 @@ The configuration object must have the following properties:
 The function will return an object with the following properties:
 
 - `subscribe(options?: { defer: boolean })`: a function which will register a subscription then return the `context`
-- `$context`: a way to access the `context` object without subscribing (helpful for dependencies)
+- `getContext()`: a way to access the `context` object without subscribing (helpful for dependencies)
 
 ## Basic store
 
@@ -71,8 +71,11 @@ export const useGreetingStore = defineStore('greeting', () => {
     groupStore: useGroupStore(),
   }
 
-  const userGreeting = computed(() => `Hello ${deps.userStore.$context.user.value.name}`)
-  const groupGreeting = computed(() => `Hello ${deps.groupStore.$context.group.value.name}`)
+  const userContext = deps.userStore.getContext()
+  const groupContext = deps.groupStore.getContext()
+
+  const userGreeting = computed(() => `Hello ${userContext.user.value.name}`)
+  const groupGreeting = computed(() => `Hello ${groupContext.group.value.name}`)
 
   const context = {
     userGreeting,

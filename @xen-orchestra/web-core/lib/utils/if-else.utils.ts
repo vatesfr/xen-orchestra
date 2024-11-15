@@ -6,8 +6,8 @@ export interface IfElseOptions extends Pick<WatchOptions, 'immediate'> {}
 
 export function ifElse(
   source: WatchSource<boolean>,
-  onTrue: MaybeArray<VoidFunction>,
-  onFalse: MaybeArray<VoidFunction>,
+  onTrue: MaybeArray<VoidFunction> | undefined,
+  onFalse: MaybeArray<VoidFunction> | undefined,
   options?: IfElseOptions
 ) {
   const onTrueFunctions = toArray(onTrue)

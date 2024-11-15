@@ -15,7 +15,7 @@ export type Subscribe<TDefer extends boolean = false> = (options?: {
 
 export type SubscribableStoreConfig<TContext> = {
   context: TContext
-  onSubscribe: () => void
-  onUnsubscribe: () => void
+  onSubscribe?: () => void
+  onUnsubscribe?: () => void
   isEnabled?: MaybeRefOrGetter<boolean>
 }
