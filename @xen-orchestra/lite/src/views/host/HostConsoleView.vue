@@ -38,8 +38,8 @@ import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
+import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { useUiStore } from '@core/stores/ui.store'
@@ -75,7 +75,7 @@ const {
   hasError: hasHostError,
   runningHosts: getRunningHosts,
 } = useHostStore().subscribe()
-const { runningVms: getRunningVms } = useVmStore().subscribe()
+const { records: getRecords } = useControlDomainStore().subscribe()
 
 const {
   isReady: isConsoleReady,
@@ -89,7 +89,7 @@ const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid'
 
 const vm = computed(() => {
   const controlDomainOpaqueRef = host.value?.control_domain
-  return controlDomainOpaqueRef ? getRunningVms.value.find(vm => vm.$ref === controlDomainOpaqueRef) : undefined
+  return controlDomainOpaqueRef ? getRecords.value.find(vm => vm.$ref === controlDomainOpaqueRef) : undefined
 })
 
 const hostConsole = computed(() => {
