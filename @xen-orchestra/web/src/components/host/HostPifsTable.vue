@@ -107,9 +107,11 @@
                 disabled
                 size="small"
               />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ column.value }}
+              <div v-else-if="column.id === 'ip'" class="ip-addresses">
+                <span class="text-ellipsis">{{ column.value.ip }}</span>
+                <span v-if="column.value.ipv6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.ipv6}` }}</span>
               </div>
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ column.value }}</div>
             </td>
           </tr>
         </template>
@@ -174,17 +176,12 @@ const getNetworkName = (pif: XoPif) => {
 
 const getPifVlan = (pif: XoPif) => (pif.vlan !== -1 ? pif.vlan.toString() : t('none'))
 
-const getIpMode = (pif: XoPif) => {
-  switch (pif.mode) {
-    case 'Static':
-      return t('static')
-    case 'DHCP':
-      return t('dhcp')
-    case 'None':
-      return t('none')
-    default:
-      return t('unknown')
-  }
+const getIPv6Formatted = (pif: XoPif) => pif.ipv6.filter(ip => ip.trim() !== '').length
+
+const getIpConfigurationMode = (ipMode: string) => {
+  if (ipMode === 'Static') return t('static')
+  if (ipMode === 'DHCP') return t('dhcp')
+  return t('none')
 }
 
 const searchQuery = ref('')
@@ -231,9 +228,16 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('device', record => record.device, { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('vlan', record => getPifVlan(record), { label: t('vlan') }),
-    define('ip', record => record.ip, { label: t('ip-addresses') }),
+    define(
+      'ip',
+      record => ({
+        ip: record.ip,
+        ipv6: getIPv6Formatted(record),
+      }),
+      { label: t('ip-addresses') }
+    ),
     define('mac', record => record.mac, { label: t('mac-addresses') }),
-    define('mode', record => getIpMode(record), { label: t('ip-mode') }),
+    define('mode', record => getIpConfigurationMode(record.mode), { label: t('ip-mode') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
@@ -282,6 +286,15 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .ip-addresses {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .ipv6 {
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 }
 </style>
