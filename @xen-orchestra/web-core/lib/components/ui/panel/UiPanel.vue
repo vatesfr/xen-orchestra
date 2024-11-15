@@ -28,6 +28,7 @@ const slots = defineSlots<{
   flex-direction: column;
   border: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
+  position: relative;
 
   .header {
     border-bottom: 0.1rem solid var(--color-neutral-border);
@@ -44,6 +45,8 @@ const slots = defineSlots<{
     flex-direction: column;
     padding: 0.8rem;
     gap: 0.8rem;
+    height: 100%;
+    cursor: default;
   }
 
   &.error {

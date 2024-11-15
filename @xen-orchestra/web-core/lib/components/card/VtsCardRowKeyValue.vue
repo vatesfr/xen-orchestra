@@ -25,11 +25,11 @@ const slots = defineSlots<{
 <style lang="postcss" scoped>
 .vts-card-row-key-value {
   display: flex;
-  align-items: center;
   gap: 0.8rem;
 
   .key {
     min-width: 12rem;
+    max-width: 12rem;
     overflow-wrap: break-word;
     color: var(--color-neutral-txt-secondary);
   }
