@@ -72,7 +72,6 @@ import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
 import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
-import { blockedOperation } from '../../common/intl/messages'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -589,20 +588,15 @@ export default class TabAdvanced extends Component {
     blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
   )
 
-  _getIsMigrationAllowed = () => {
-    const blockedOperations = this.props.vm.blockedOperations
-    const isAllowed = this.props.vm && this.props.vm.blockedOperations &&
-    !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
-    console.log({op: "_getIsMigrationAllow", blockedOperations, isAllowed})
-    createSelector(
-      () => this.props.vm && this.props.vm.blockedOperations,
-      blockedOperations => !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
-    )
-  }
+  _getIsMigrationAllowed = createSelector(
+    () => this.props.vm?.blockedOperations,
+    blockedOperations =>
+      blockedOperations !== undefined && !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
+  )
 
   _onChangeAllowMigration = allow => {
       console.log({allow})
-      const reasons = Object.keys(this.props.vm.blockedOperations).join(' ')
+      const reasons = JSON.stringify(this.props.vm.blockedOperations)
       console.log({reasons})
       confirm({
         title: _('allowMigrationTitle'),
