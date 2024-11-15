@@ -60,12 +60,8 @@
   "deploy-xoa-status.waiting": "Waiting for XOA to respond…",
 
   "descending": "descending",
-  "description": "Description",
-  "device": "Device",
   "dhcp": "DHCP",
-  "disabled": "Disabled",
   "display": "Display",
-  "dns": "DNS",
   "do-you-have-needs": "You have needs and/or expectations? Let us know",
   "documentation": "Documentation",
   "edit": "Edit",
@@ -111,8 +107,6 @@
 
   "host-internal-networks": "Host internal networks",
   "invalid-field": "Invalid field",
-  "ip-addresses": "IP addresses",
-  "ip-mode": "IP mode",
 
   "job.vm-copy.bad-power-state": "VM must be halted",
   "job.vm-copy.in-progress": "Copy in progress…",
@@ -182,9 +176,6 @@
   "locking-mode-default": "Default locking mode",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
-  "mac-address": "MAC address",
-  "mac-addresses": "MAC addresses",
-  "management": "Management",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
@@ -286,7 +277,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
-  "vlan": "Vlan",
+  "vlan": "VLAN",
 
   "vm.active": "Active",
   "vm.inactive": "Inactive",

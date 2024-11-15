@@ -12,7 +12,7 @@
     </span>
     <span class="typo p3-regular label show">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="pageSize" :disabled class="dropdown typo c3-regular" @change="goToFirstPage">
+      <select v-model="localPageSize" :disabled="disabled" class="dropdown typo c3-regular" @change="goToFirstPage">
         <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
           {{ option }}
         </option>
@@ -33,7 +33,7 @@ import {
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
 import { useOffsetPagination } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 
 export type PaginationPayload = {
   currentPage: number
@@ -42,17 +42,42 @@ export type PaginationPayload = {
   endIndex: number
 }
 
-const { totalItems, disabled = false } = defineProps<{
+const {
+  totalItems,
+  disabled = false,
+  currPage,
+  perPage,
+  startIndex,
+  endIndex,
+} = defineProps<{
   totalItems: number
   disabled?: boolean
+  currPage: number
+  perPage: number
+  startIndex: number
+  endIndex: number
 }>()
 
 const emit = defineEmits<{
   change: [payload: PaginationPayload]
+  'update:currPage': [value: number]
+  'update:per-page': [value: number]
+  'update:start-index': [value: number]
+  'update:end-index': [value: number]
 }>()
 
-const pageSize = ref(50)
+const localPageSize = ref(perPage)
+const localCurrentPage = ref(currPage)
 const pageSizeOptions = [10, 50, 100, 150, 200]
+
+watch([() => perPage, () => currPage], ([newPerPage, newCurrPage], [oldPerPage, oldCurrPage]) => {
+  if (newPerPage !== oldPerPage) {
+    localPageSize.value = newPerPage
+  }
+  if (newCurrPage !== oldCurrPage) {
+    localCurrentPage.value = newCurrPage
+  }
+})
 const {
   currentPage,
   currentPageSize,
@@ -63,10 +88,11 @@ const {
   next: goToNextPage,
 } = useOffsetPagination({
   total: () => totalItems,
-  pageSize,
+  pageSize: localPageSize,
+  page: localCurrentPage,
 })
-const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
-const endIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
+const localStartIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
+const localEndIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
 
 const goToFirstPage = () => {
   currentPage.value = 1
@@ -75,12 +101,19 @@ const goToLastPage = () => {
   currentPage.value = pageCount.value
 }
 
+watchEffect(() => {
+  emit('update:currPage', localCurrentPage.value)
+  emit('update:per-page', localPageSize.value)
+  emit('update:start-index', localStartIndex.value)
+  emit('update:end-index', localEndIndex.value)
+})
+
 watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
   emit('change', {
     currentPage: newPage,
     pageSize: newPageSize,
-    startIndex: startIndex.value,
-    endIndex: endIndex.value,
+    startIndex: localStartIndex.value,
+    endIndex: localEndIndex.value,
   })
 })
 </script>
