@@ -3,7 +3,11 @@ import { createSubscribableStoreContext } from '@core/utils/create-subscribable-
 import { defineStore } from 'pinia'
 
 export const useNetworkStore = defineStore('network', () => {
-  const config = createXoStoreConfig('network')
+  const { context: baseContext, ...configRest } = createXoStoreConfig('network')
 
-  return createSubscribableStoreContext(config, {})
+  const context = {
+    ...baseContext,
+  }
+
+  return createSubscribableStoreContext({ context, ...configRest }, {})
 })
