@@ -1,37 +1,37 @@
 <template>
-  <TreeList class="infra-pool-list">
-    <TreeItem :expanded="isExpanded">
-      <TreeItemError v-if="hasError">
+  <VtsTreeList class="infra-pool-list">
+    <VtsTreeItem :expanded="isExpanded">
+      <VtsTreeItemError v-if="hasError">
         {{ $t('error-no-data') }}
-      </TreeItemError>
-      <TreeLoadingItem v-else-if="!isReady || pool === undefined" :icon="faCity" />
-      <TreeItemLabel
+      </VtsTreeItemError>
+      <VtsTreeLoadingItem v-else-if="!isReady || pool === undefined" :icon="faCity" />
+      <UiTreeItemLabel
         v-else
         :icon="faCity"
         :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
         @toggle="toggle()"
       >
         {{ pool.name_label || '(Pool)' }}
-      </TreeItemLabel>
+      </UiTreeItemLabel>
       <template #sublist>
-        <TreeList>
+        <VtsTreeList>
           <InfraHostItems />
           <InfraVmItems />
-        </TreeList>
+        </VtsTreeList>
       </template>
-    </TreeItem>
-  </TreeList>
+    </VtsTreeItem>
+  </VtsTreeList>
 </template>
 
 <script lang="ts" setup>
 import InfraHostItems from '@/components/infra/InfraHostItems.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import TreeItem from '@core/components/tree/TreeItem.vue'
-import TreeItemError from '@core/components/tree/TreeItemError.vue'
-import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
-import TreeList from '@core/components/tree/TreeList.vue'
-import TreeLoadingItem from '@core/components/tree/TreeLoadingItem.vue'
+import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
+import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
+import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
+import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
 

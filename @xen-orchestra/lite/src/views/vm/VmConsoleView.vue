@@ -2,7 +2,7 @@
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
     <div v-if="hasError">{{ $t('error-occurred') }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-for-console')" />
+    <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-vm-for-console')" />
     <template v-else-if="vm && vmConsole">
       <MenuList horizontal>
         <MenuItem v-if="uiStore.hasUi" :icon="faArrowUpRightFromSquare" @click="openInNewTab">

@@ -60,9 +60,9 @@ abstract class BaseParam {
   readonly #name: string
   #presetValue: any
 
-  protected abstract getNamePrefix(): string
+  abstract getNamePrefix(): string
 
-  protected abstract getNameSuffix(): string
+  abstract getNameSuffix(): string
 
   constructor(name: string) {
     this.#name = name
@@ -347,11 +347,11 @@ export class ModelParam extends BaseParam {
   readonly #prop: PropParam
   readonly #event: EventParam
 
-  protected getNameSuffix() {
+  getNameSuffix() {
     return ''
   }
 
-  protected getNamePrefix() {
+  getNamePrefix() {
     return ''
   }
 

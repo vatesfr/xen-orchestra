@@ -91,9 +91,11 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       'writer.updateUuidAndChain()'
     )
 
-    if (!isFull) {
+    if (isFull) {
+      await setVmDeltaChainLength(this._xapi, exportedVm.$ref, 0)
+    } else {
       await setVmDeltaChainLength(this._xapi, exportedVm.$ref, (this._deltaChainLength ?? 0) + 1)
-    } // on a full the delta chain will be null
+    }
 
     // not the case if offlineBackup
     if (exportedVm.is_a_snapshot) {

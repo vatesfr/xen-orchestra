@@ -1,9 +1,9 @@
 <template>
-  <TreeItem :expanded="branch.isExpanded">
-    <TreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
+  <VtsTreeItem :expanded="branch.isExpanded">
+    <UiTreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
-        <VtsCounter
+        <UiCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="info"
@@ -11,14 +11,14 @@
           size="small"
         />
       </template>
-    </TreeItemLabel>
+    </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
-      <TreeList>
+      <VtsTreeList>
         <HostTreeList :branches="treeBranches" />
         <VmTreeList :leaves="vmLeaves" />
-      </TreeList>
+      </VtsTreeList>
     </template>
-  </TreeItem>
+  </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
@@ -26,10 +26,10 @@ import HostTreeList from '@/components/tree/HostTreeList.vue'
 import VmTreeList from '@/components/tree/VmTreeList.vue'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { HostBranch, PoolBranch, VmLeaf } from '@/types/tree.type'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
-import TreeItem from '@core/components/tree/TreeItem.vue'
-import TreeItemLabel from '@core/components/tree/TreeItemLabel.vue'
-import TreeList from '@core/components/tree/TreeList.vue'
+import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
+import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

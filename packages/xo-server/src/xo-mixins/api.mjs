@@ -1,6 +1,14 @@
 import emitAsync from '@xen-orchestra/emit-async'
 import Obfuscate from '@vates/obfuscate'
+import SonicBoom from 'sonic-boom'
+import { captureLogs } from '@xen-orchestra/log/capture'
 import { createLogger } from '@xen-orchestra/log'
+import { finished } from 'node:stream/promises'
+import { inspect } from 'node:util'
+import { join } from 'node:path'
+import { NAMES } from '@xen-orchestra/log/levels'
+import { tmpdir } from 'node:os'
+import { unlink } from 'node:fs/promises'
 
 import cloneDeep from 'lodash/cloneDeep.js'
 import forEach from 'lodash/forEach.js'
@@ -11,7 +19,7 @@ import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
 import Connection from '../connection.mjs'
-import { noop, serializeError } from '../utils.mjs'
+import { noop, safeDateFormat, serializeError } from '../utils.mjs'
 
 import * as errors from 'xo-common/api-errors.js'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
@@ -342,7 +350,7 @@ export default class Api {
     return this.#apiContext.run(apiContext, fn)
   }
 
-  async #callApiMethod(name, method, params) {
+  async #callApiMethod(name, method, { _log, ...params }) {
     const app = this._app
     const startTime = Date.now()
 
@@ -372,6 +380,10 @@ export default class Api {
     )
 
     try {
+      if (_log !== undefined && this.apiContext.permission !== 'admin') {
+        throw errors.unauthorized('admin')
+      }
+
       await checkPermission.call(app, method)
 
       // API methods are in a namespace.
@@ -398,12 +410,64 @@ export default class Api {
 
       const resolvedParams = await resolveParams.call(app, method, params)
 
-      // data.params contains obfuscated params
-      let result = await (name in NO_LOG_METHODS
-        ? method.call(app, resolvedParams)
-        : app.tasks
-            .create({ name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' }, { clearLogOnSuccess: true })
-            .run(() => method.call(app, resolvedParams)))
+      const run = () =>
+        name in NO_LOG_METHODS
+          ? method.call(app, resolvedParams)
+          : app.tasks
+              .create(
+                { name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' },
+                { clearLogOnSuccess: true }
+              )
+              .run(() => method.call(app, resolvedParams))
+
+      if (_log === undefined) {
+        _log = app.config.getOptional(['api', 'logs', name]) ?? false
+      }
+      let result
+      if (_log) {
+        const file = join(tmpdir(), `xo-api-${safeDateFormat(new Date())}-${name}.log`)
+        const stream = new SonicBoom({
+          dest: file,
+          mode: 0o600,
+        }).on('error', error => {
+          captureLogs(undefined, () => log.warn(error))
+        })
+
+        let success = true
+        try {
+          result = await captureLogs((log, fallbackTransport) => {
+            fallbackTransport(log)
+
+            const { time, level, namespace, message, data } = log
+            const line = [time.toISOString(), namespace, '[' + NAMES[level] + ']', message]
+            if (data != null) {
+              line.push(inspect(data))
+            }
+
+            stream.write(line.join(' ') + '\n')
+          }, run)
+        } catch (error) {
+          success = false
+
+          throw error
+        } finally {
+          const deleteFile = success && _log === 'failure'
+
+          if (deleteFile) {
+            stream.destroy()
+          } else {
+            stream.end()
+          }
+
+          await finished(stream)
+
+          if (deleteFile) {
+            await unlink(file).catch(log.warn)
+          }
+        }
+      } else {
+        result = await run()
+      }
 
       // If nothing was returned, consider this operation a success
       // and return true.

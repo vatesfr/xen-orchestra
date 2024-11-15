@@ -556,7 +556,7 @@ const TRANSFORMS = {
       physical_usage: +obj.physical_utilisation,
 
       allocationStrategy:
-        srType === 'linstor' ? obj.$PBDs[0]?.device_config.provisioning ?? 'unknown' : ALLOCATION_BY_TYPE[srType],
+        srType === 'linstor' ? (obj.$PBDs[0]?.device_config.provisioning ?? 'unknown') : ALLOCATION_BY_TYPE[srType],
       current_operations: obj.current_operations,
       inMaintenanceMode: obj.other_config['xo:maintenanceState'] !== undefined,
       name_description: obj.name_description,
@@ -749,9 +749,7 @@ const TRANSFORMS = {
     if (obj.other_config.applies_to) {
       const object = obj.$xapi.getObject(obj.other_config.applies_to, undefined)
       if (object === undefined) {
-        debug(
-          `Unknown other_config.applies_to reference ${obj.other_config.applies_to} in task ${obj.$id}`
-        )
+        debug(`Unknown other_config.applies_to reference ${obj.other_config.applies_to} in task ${obj.$id}`)
       } else {
         applies_to = object.uuid
       }

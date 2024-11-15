@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.159.0",
+  "version": "5.161.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -40,7 +40,7 @@
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.2",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/template": "^0.1.0",
     "ansi_up": "^4.0.3",
     "asap": "^2.0.6",
@@ -139,7 +139,7 @@
     "xo-acl-resolver": "^0.5.0",
     "xo-common": "^0.8.0",
     "xo-lib": "^0.11.1",
-    "xo-remote-parser": "^0.9.2",
+    "xo-remote-parser": "^0.9.3",
     "xo-vmdk-to-vhd": "^2.5.7"
   },
   "scripts": {

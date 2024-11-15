@@ -7,7 +7,6 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
-  
   // Original text: '{key}: {value}'
   keyValue: 'undefined',
 
@@ -999,7 +998,8 @@ export default {
   migrateBackupSchedule: 'مهاجرت به backup NG',
 
   // Original text: 'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?'
-  migrateBackupScheduleMessage: 'این کار نسخه پشتیبان را به یک backup NG مهاجرت خواهد داد. این عملیات قابل برگشت نیست. آیا می خواهید ادامه دهید؟',
+  migrateBackupScheduleMessage:
+    'این کار نسخه پشتیبان را به یک backup NG مهاجرت خواهد داد. این عملیات قابل برگشت نیست. آیا می خواهید ادامه دهید؟',
 
   // Original text: 'Are you sure you want to run {name} ({id})?'
   runBackupNgJobConfirm: 'آیا مطمئن هستید که می خواهید {name} ({id}) را اجرا کنید؟',
@@ -1158,7 +1158,8 @@ export default {
   remoteType: 'نوع',
 
   // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
-  remoteSmbWarningMessage: 'ریموت های SMB برای کار روی ویندوز سرور طراحی شده اند. برای سیستم های دیگر (Linux Samba، که به معنای تقریباً تمام NAS ها است)، لطفاً از NFS استفاده کنید.',
+  remoteSmbWarningMessage:
+    'ریموت های SMB برای کار روی ویندوز سرور طراحی شده اند. برای سیستم های دیگر (Linux Samba، که به معنای تقریباً تمام NAS ها است)، لطفاً از NFS استفاده کنید.',
 
   // Original text: 'Test your remote'
   remoteTestTip: 'ریموت خود را تست کنید',
@@ -1197,7 +1198,8 @@ export default {
   confirmDeleteBackupJobsTitle: 'حذف کار پشتیبان{nJobs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?'
-  confirmDeleteBackupJobsBody: 'آیا مطمئن هستید که می‌خواهید {nJobs, number} کار پشتیبان{nJobs، plural، one {} other {s}} را حذف کنید؟',
+  confirmDeleteBackupJobsBody:
+    'آیا مطمئن هستید که می‌خواهید {nJobs, number} کار پشتیبان{nJobs، plural، one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Name'
   remoteName: 'نام',
@@ -1779,7 +1781,8 @@ export default {
   addHostLabel: 'اضافه کردن میزبان',
 
   // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
-  hostNeedsPatchUpdate: 'این میزبان قبل از اینکه بتواند به استخر اضافه شود نیاز به نصب {patches, number} وصله {patches, plural, one {} other {es}} دارد. این عملیات ممکن است طولانی باشد.',
+  hostNeedsPatchUpdate:
+    'این میزبان قبل از اینکه بتواند به استخر اضافه شود نیاز به نصب {patches, number} وصله {patches, plural, one {} other {es}} دارد. این عملیات ممکن است طولانی باشد.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
   hostNeedsPatchUpdateNoInstall: '.این میزبان نمی تواند به استخر اضافه شود زیرا برخی از وصله ها را ندارد.',
@@ -1818,13 +1821,15 @@ export default {
   noHostsAvailableErrorTitle: 'خطا هنگام راه اندازی مجدد میزبان',
 
   // Original text: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.'
-  noHostsAvailableErrorMessage: 'برخی از ماشین های مجازی را نمی توان قبل از راه اندازی مجدد این میزبان منتقل کرد. لطفاً راه اندازی مجدد اجباری را امتحان کنید.',
+  noHostsAvailableErrorMessage:
+    'برخی از ماشین های مجازی را نمی توان قبل از راه اندازی مجدد این میزبان منتقل کرد. لطفاً راه اندازی مجدد اجباری را امتحان کنید.',
 
   // Original text: 'Error while restarting hosts'
   failHostBulkRestartTitle: 'خطا هنگام راه اندازی مجدد میزبان ها',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: '{failedHosts, number}/{totalHosts, number} میزبان{failedHosts, plural, one {} other {s}} نمی توان راه اندازی مجدد کرد.',
+  failHostBulkRestartMessage:
+    '{failedHosts, number}/{totalHosts, number} میزبان{failedHosts, plural, one {} other {s}} نمی توان راه اندازی مجدد کرد.',
 
   // Original text: 'Reboot to apply updates'
   rebootUpdateHostLabel: 'راه اندازی مجدد برای اعمال به روز رسانی',
@@ -2100,7 +2105,8 @@ export default {
   installPatchWarningTitle: 'نصب وصله توصیه نشده',
 
   // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
-  installPatchWarningContent: 'این کار فقط یک وصله را بر روی این میزبان نصب می کند. این روش توصیه‌شده نیست: لطفاً به نمای وصله استخر بروید و دستورالعمل‌های آنجا را دنبال کنید. اگر در این مورد مطمئن هستید، به هر حال می توانید ادامه دهید',
+  installPatchWarningContent:
+    'این کار فقط یک وصله را بر روی این میزبان نصب می کند. این روش توصیه‌شده نیست: لطفاً به نمای وصله استخر بروید و دستورالعمل‌های آنجا را دنبال کنید. اگر در این مورد مطمئن هستید، به هر حال می توانید ادامه دهید',
 
   // Original text: 'Go to pool'
   installPatchWarningReject: 'رفتن به استخر',
@@ -2112,7 +2118,8 @@ export default {
   patchRelease: 'انتشار',
 
   // Original text: 'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.'
-  updatePluginNotInstalled: 'افزونه آپدیت روی این میزبان نصب نیست. لطفا ابتدا دستور yum install xcp-ng-updater را اجرا کنید.',
+  updatePluginNotInstalled:
+    'افزونه آپدیت روی این میزبان نصب نیست. لطفا ابتدا دستور yum install xcp-ng-updater را اجرا کنید.',
 
   // Original text: 'Show changelog'
   showChangelog: 'نمایش تغییرات',
@@ -2418,7 +2425,8 @@ export default {
   selectVdiMessage: 'فایل VHD را اینجا رها کنید',
 
   // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
-  useQuotaWarning: 'ایجاد این دیسک از سهمیه فضای دیسک از مجموعه منابع {resourceSet} ({spaceLeft} left) استفاده خواهد کرد',
+  useQuotaWarning:
+    'ایجاد این دیسک از سهمیه فضای دیسک از مجموعه منابع {resourceSet} ({spaceLeft} left) استفاده خواهد کرد',
 
   // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
   notEnoughSpaceInResourceSet: 'فضای کافی در مجموعه منابع {resourceSet} ({spaceLeft} left) وجود ندارد',
@@ -2655,7 +2663,8 @@ export default {
   vmChooseCoresPerSocket: 'رفتار پیش فرض',
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: '{nSockets, number} سوکت{nSockets, plural, one {} other {s}} با {nCores, number} هسته{nCores, plural, one {} other {s}} در هر سوکت',
+  vmCoresPerSocket:
+    '{nSockets, number} سوکت{nSockets, plural, one {} other {s}} با {nCores, number} هسته{nCores, plural, one {} other {s}} در هر سوکت',
 
   // Original text: 'None'
   vmCoresPerSocketNone: 'هیچ یک',
@@ -2718,7 +2727,8 @@ export default {
   templateDeleteModalTitle: 'حذف قالب ماشین مجازی{templates, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: 'آیا مطمئنید که میخواهید {templates, plural, one {this} other {these}} قالب {templates, plural, one {} other {s}} را حذف کنید؟',
+  templateDeleteModalBody:
+    'آیا مطمئنید که میخواهید {templates, plural, one {this} other {these}} قالب {templates, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete template{nTemplates, plural, one {} other {s}} failed'
   failedToDeleteTemplatesTitle: 'حذف قالب {nTemplates, plural, one {} other {s}} انجام نشد',
@@ -2730,7 +2740,8 @@ export default {
   deleteDefaultTemplatesTitle: 'حذف قالب پیش فرض {nDefaultTemplates, plural, one {} other {s}}',
 
   // Original text: 'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?'
-  deleteDefaultTemplatesMessage: 'شما در حال تلاش برای حذف کردن {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}} هستید. آیا میخواهید ادامه بدهید؟',
+  deleteDefaultTemplatesMessage:
+    'شما در حال تلاش برای حذف کردن {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}} هستید. آیا میخواهید ادامه بدهید؟',
 
   // Original text: 'Pool{pools, plural, one {} other {s}}'
   poolPanel: 'استخر{pools, plural, one {} other {s}}',
@@ -2793,7 +2804,8 @@ export default {
   ofUsage: '{usage} (of {total})',
 
   // Original text: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})'
-  ofCpusUsage: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
+  ofCpusUsage:
+    '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
 
   // Original text: 'No storage'
   noSrs: 'ذخیره ساز وجود ندارد',
@@ -3225,7 +3237,8 @@ export default {
   resourceSetNew: 'جدید',
 
   // Original text: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.'
-  importVmsList: 'سعی کنید برخی از فایل های ماشین مجازی را در اینجا رها کنید یا برای انتخاب ماشین های مجازی برای بارگذاری کلیک کنید. فقط فایل‌های xva/.ova قابل قبول است.',
+  importVmsList:
+    'سعی کنید برخی از فایل های ماشین مجازی را در اینجا رها کنید یا برای انتخاب ماشین های مجازی برای بارگذاری کلیک کنید. فقط فایل‌های xva/.ova قابل قبول است.',
 
   // Original text: 'No selected VMs.'
   noSelectedVms: 'هیچ ماشین مجازی انتخاب شده ای وجود ندارد.',
@@ -3444,7 +3457,8 @@ export default {
   restoreVmBackupsBulkTitle: 'بازیابی {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.'
-  restoreVmBackupsBulkMessage: 'بازیابی {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} از {nVms, plural, one {its} other {their}} {oldestOrLatest} نسخه پشتیبان.',
+  restoreVmBackupsBulkMessage:
+    'بازیابی {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} از {nVms, plural, one {its} other {their}} {oldestOrLatest} نسخه پشتیبان.',
 
   // Original text: 'oldest'
   oldest: 'قدیمی ترین',
@@ -3477,7 +3491,8 @@ export default {
   deleteVmBackupsBulkTitle: 'حذف کردن نسخه های پشتیبان',
 
   // Original text: 'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?'
-  deleteVmBackupsBulkMessage: 'آیا مطمئن هستید که می‌خواهید همه نسخه‌های پشتیبان را از {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} حذف کنید؟',
+  deleteVmBackupsBulkMessage:
+    'آیا مطمئن هستید که می‌خواهید همه نسخه‌های پشتیبان را از {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} حذف کنید؟',
 
   // Original text: 'delete {nBackups} backup{nBackups, plural, one {} other {s}}'
   deleteVmBackupsBulkConfirmText: 'حذف {nBackups} نسخه پشتیبان{nBackups, plural, one {} other {s}}',
@@ -3537,13 +3552,15 @@ export default {
   emergencyShutdownHostsModalTitle: 'خاموش کردن اضطراری میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: 'آیا مطمئن هستید که می‌خواهید {nHosts, number} میزبان {nHosts, plural, one {} other {s}} را خاموش کنید؟',
+  emergencyShutdownHostsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} میزبان {nHosts, plural, one {} other {s}} را خاموش کنید؟',
 
   // Original text: 'Shutdown host'
   stopHostModalTitle: 'خاموش کردن میزبان',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: 'با این کار میزبان شما خاموش می شود. می خواهید ادامه دهید؟ اگر استخر اصلی باشد، ارتباط شما با استخر قطع خواهد شد',
+  stopHostModalMessage:
+    'با این کار میزبان شما خاموش می شود. می خواهید ادامه دهید؟ اگر استخر اصلی باشد، ارتباط شما با استخر قطع خواهد شد',
 
   // Original text: 'Add host'
   addHostModalTitle: 'اضافه کردن میزبان',
@@ -3558,16 +3575,19 @@ export default {
   restartHostModalMessage: 'با این کار میزبان شما راه اندازی مجدد می شود. می خواهید ادامه دهید؟',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: 'راه اندازی مجدد میزبان{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalTitle:
+    'راه اندازی مجدد میزبان{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: 'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
+  restartHostsAgentsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
   restartHostsModalTitle: 'راه اندازی مجدد میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  restartHostsModalMessage: 'آیا مطمئن هستید که می خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
+  restartHostsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Start VM{vms, plural, one {} other {s}}'
   startVmsModalTitle: 'اجرای ماشین مجازی{vms, plural, one {} other {s}}',
@@ -3588,10 +3608,12 @@ export default {
   blockedStartVmsModalMessage: 'عملیات شروع برای {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} ممنوع است.',
 
   // Original text: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?'
-  startVmsModalMessage: 'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی {vms, plural, one {} other {s}} را اجرا کنید؟',
+  startVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی {vms, plural, one {} other {s}} را اجرا کنید؟',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: '{nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} ناموفق بوده اند.لطفا برای دریافت اطلاعات بیشتر گزارش های خود را بررسی کنید.',
+  failedVmsErrorMessage:
+    '{nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} ناموفق بوده اند.لطفا برای دریافت اطلاعات بیشتر گزارش های خود را بررسی کنید.',
 
   // Original text: 'Start failed'
   failedVmsErrorTitle: 'شروع ناموفق بود',
@@ -3600,13 +3622,15 @@ export default {
   stopHostsModalTitle: 'توقف میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  stopHostsModalMessage: 'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان{nHosts, plural, one {} other {s}} را متوقف کنید؟',
+  stopHostsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان{nHosts, plural, one {} other {s}} را متوقف کنید؟',
 
   // Original text: 'Stop VM{vms, plural, one {} other {s}}'
   stopVmsModalTitle: 'متوقف کردن ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?'
-  stopVmsModalMessage: 'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را متوقف کنید؟',
+  stopVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را متوقف کنید؟',
 
   // Original text: 'Restart VM'
   restartVmModalTitle: 'راه اندازی مجدد ماشین مجازی',
@@ -3624,25 +3648,29 @@ export default {
   suspendVmsModalTitle: 'ماشین مجازی{vms, plural, one {} other {s}} معلق شده است',
 
   // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
-  suspendVmsModalMessage: 'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را به حالت تعلیق درآورید؟',
+  suspendVmsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را به حالت تعلیق درآورید؟',
 
   // Original text: 'Restart VM{vms, plural, one {} other {s}}'
   restartVmsModalTitle: 'راه اندازی مجدد ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?'
-  restartVmsModalMessage: 'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
+  restartVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Snapshot VM{vms, plural, one {} other {s}}'
   snapshotVmsModalTitle: 'اسنپ شات ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?'
-  snapshotVmsModalMessage: 'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را اسنپ شات کنید؟',
+  snapshotVmsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را اسنپ شات کنید؟',
 
   // Original text: 'Delete VM{vms, plural, one {} other {s}}'
   deleteVmsModalTitle: 'حذف ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
-  deleteVmsModalMessage: 'آیا مطمئنید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
+  deleteVmsModalMessage:
+    'آیا مطمئنید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
 
   // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
   deleteVmsConfirmText: 'حذف {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}}',
@@ -3651,7 +3679,8 @@ export default {
   deleteVmModalTitle: 'حذف ماشین مجازی',
 
   // Original text: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
-  deleteVmModalMessage: 'آیا مطمئن هستید که می خواهید این ماشین مجازی را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
+  deleteVmModalMessage:
+    'آیا مطمئن هستید که می خواهید این ماشین مجازی را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
 
   // Original text: 'Blocked operation'
   deleteVmBlockedModalTitle: 'عملیات مسدود شده است',
@@ -3720,37 +3749,43 @@ export default {
   deleteJobsModalTitle: 'حذف کار{nJobs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?'
-  deleteJobsModalMessage: 'آیا مطمئن هستید که می خواهید {nJobs, number} کار{nJobs, plural, one {} other {s}} را حذف کنید؟',
+  deleteJobsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nJobs, number} کار{nJobs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete VBD{nVbds, plural, one {} other {s}}'
   deleteVbdsModalTitle: 'حذف VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  deleteVbdsModalMessage: 'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را حذف کنید؟',
+  deleteVbdsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete VDI'
   deleteVdiModalTitle: 'حذف VDI',
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
-  deleteVdiModalMessage: 'آیا مطمئن هستید که می خواهید این دیسک را حذف کنید؟ تمام داده های روی این دیسک از بین خواهد رفت',
+  deleteVdiModalMessage:
+    'آیا مطمئن هستید که می خواهید این دیسک را حذف کنید؟ تمام داده های روی این دیسک از بین خواهد رفت',
 
   // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
   deleteVdisModalTitle: 'حذف VDI{nVdis, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
-  deleteVdisModalMessage: 'آیا مطمئن هستید که می خواهید {nVdis, number} از دیسک{nVdis, plural, one {} other {s}} را حذف کنید؟ تمام داده های روی این دیسک ها از بین خواهند رفت',
+  deleteVdisModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVdis, number} از دیسک{nVdis, plural, one {} other {s}} را حذف کنید؟ تمام داده های روی این دیسک ها از بین خواهند رفت',
 
   // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
   deleteSchedulesModalTitle: 'حذف زمان بندی{nSchedules, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
-  deleteSchedulesModalMessage: 'آیا مطمئن هستید که می خواهید {nSchedules, number} از زمان بندی{nSchedules, plural, one {} other {s}} را حذف کنید؟',
+  deleteSchedulesModalMessage:
+    'آیا مطمئن هستید که می خواهید {nSchedules, number} از زمان بندی{nSchedules, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete remote{nRemotes, plural, one {} other {s}}'
   deleteRemotesModalTitle: 'حذف ریموت{nRemotes, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?'
-  deleteRemotesModalMessage: 'آیا مطمئن هستید که می خواهید {nRemotes, number} از ریموت{nRemotes, plural, one {} other {s}} را حذف کنید؟',
+  deleteRemotesModalMessage:
+    'آیا مطمئن هستید که می خواهید {nRemotes, number} از ریموت{nRemotes, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Revert your VM'
   revertVmModalTitle: 'ماشین مجازی خود را برگردانید',
@@ -3759,13 +3794,15 @@ export default {
   shareVmInResourceSetModalTitle: 'ماشین مجازی خود را به اشتراک بگذارید',
 
   // Original text: 'This VM will be shared with all the members of the self-service {self}. Are you sure?'
-  shareVmInResourceSetModalMessage: 'این ماشین مجازی با همه اعضای سلف سرویس {self} به اشتراک گذاشته خواهد شد. آیا مطمئن هستید؟',
+  shareVmInResourceSetModalMessage:
+    'این ماشین مجازی با همه اعضای سلف سرویس {self} به اشتراک گذاشته خواهد شد. آیا مطمئن هستید؟',
 
   // Original text: 'Delete VIF{nVifs, plural, one {} other {s}}'
   deleteVifsModalTitle: 'حذف VIF{nVifs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
-  deleteVifsModalMessage: 'آیا مطمئن هستید که می خواهید {nVifs, number} از VIF{nVifs, plural, one {} other {s}} را حذف کنید؟',
+  deleteVifsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVifs, number} از VIF{nVifs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete snapshot'
   deleteSnapshotModalTitle: 'حذف اسنپ شات',
@@ -3777,16 +3814,19 @@ export default {
   deleteSnapshotsModalTitle: 'حذف اسنپ شات{nVms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?'
-  deleteSnapshotsModalMessage: 'آیا مطمئن هستید که می خواهید {nVms, number} از اسنپ شات{nVms, plural, one {} other {s}} را حذف کنید؟',
+  deleteSnapshotsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVms, number} از اسنپ شات{nVms, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Disconnect VBD{nVbds, plural, one {} other {s}}'
   disconnectVbdsModalTitle: 'قطع کردن VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  disconnectVbdsModalMessage: 'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را قطع کنید؟',
+  disconnectVbdsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را قطع کنید؟',
 
   // Original text: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.'
-  revertVmModalMessage: 'آیا مطمئن هستید که می خواهید این ماشین مجازی را به حالت اسنپ شات برگردانید؟ این عمل غیر قابل برگشت است.',
+  revertVmModalMessage:
+    'آیا مطمئن هستید که می خواهید این ماشین مجازی را به حالت اسنپ شات برگردانید؟ این عمل غیر قابل برگشت است.',
 
   // Original text: 'Snapshot before'
   revertVmModalSnapshotBefore: 'اسنپ شات قبل',
@@ -3819,37 +3859,43 @@ export default {
   existingSrModalTitle: 'استفاده قبلی از مخزن ذخیره سازی (SR)',
 
   // Original text: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingSrModalText: 'این مسیر قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
+  existingSrModalText:
+    'این مسیر قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
 
   // Original text: 'Previous LUN Usage'
   existingLunModalTitle: 'استفاده قبلی از LUN',
 
   // Original text: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingLunModalText: 'این LUN قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
+  existingLunModalText:
+    'این LUN قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
 
   // Original text: 'Replace current registration?'
   alreadyRegisteredModal: 'ثبت نام فعلی جایگزین شود؟',
 
   // Original text: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration?'
-  alreadyRegisteredModalText: 'دستگاه XO شما قبلاً با {email} ثبت شده است، آیا می خواهید این ثبت نام را فراموش کرده و جایگزین کنید؟',
+  alreadyRegisteredModalText:
+    'دستگاه XO شما قبلاً با {email} ثبت شده است، آیا می خواهید این ثبت نام را فراموش کرده و جایگزین کنید؟',
 
   // Original text: 'Ready for trial?'
   trialReadyModal: 'آماده برای آزمایش؟',
 
   // Original text: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
-  trialReadyModalText: 'در طول دوره آزمایشی، XOA باید یک اتصال اینترنتی فعال داشته باشد. این محدودیت برای طرح های پولی ما اعمال نمی شود!',
+  trialReadyModalText:
+    'در طول دوره آزمایشی، XOA باید یک اتصال اینترنتی فعال داشته باشد. این محدودیت برای طرح های پولی ما اعمال نمی شود!',
 
   // Original text: 'Cancel task{nTasks, plural, one {} other {s}}'
   cancelTasksModalTitle: 'لغو کار{nTasks, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  cancelTasksModalMessage: 'آیا مطمئن هستید که می‌خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را لغو کنید؟',
+  cancelTasksModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را لغو کنید؟',
 
   // Original text: 'Destroy task{nTasks, plural, one {} other {s}}'
   destroyTasksModalTitle: 'از بین بردن کار{nTasks, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  destroyTasksModalMessage: 'آیا مطمئن هستید که می خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را از بین ببرید؟',
+  destroyTasksModalMessage:
+    'آیا مطمئن هستید که می خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را از بین ببرید؟',
 
   // Original text: 'Label'
   serverLabel: 'برچسب',
@@ -3876,7 +3922,8 @@ export default {
   serverAllowUnauthorizedCertificates: 'اجازه دادن به گواهینامه های غیرمجاز',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: 'اگر گواهی شما رد شد، آن را فعال کنید، اما این کار توصیه نمی شود زیرا اتصال شما ایمن نخواهد بود.',
+  serverUnauthorizedCertificatesInfo:
+    'اگر گواهی شما رد شد، آن را فعال کنید، اما این کار توصیه نمی شود زیرا اتصال شما ایمن نخواهد بود.',
 
   // Original text: 'Disconnect server'
   serverDisconnect: 'قطع کردن سرور',
@@ -3927,7 +3974,8 @@ export default {
   serverSelfSignedCertError: 'گواهینامه self-signed نامعتبر است',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: 'آیا می خواهید گواهینامه self-signed را برای این سرور بپذیرید حتی اگر امنیت را کاهش دهد؟',
+  serverSelfSignedCertQuestion:
+    'آیا می خواهید گواهینامه self-signed را برای این سرور بپذیرید حتی اگر امنیت را کاهش دهد؟',
 
   // Original text: 'Copy VM'
   copyVm: 'کپی کردن ماشین مجازی',
@@ -3969,7 +4017,8 @@ export default {
   detachHostModalTitle: 'جدا کردن میزبان',
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: 'آیا مطمئن هستید که می خواهید {host} را از استخر آن جدا کنید؟ این کار تمام ماشین های مجازی در ذخیره ساز محلی را از بین خواهد برد و میزبان راه اندازی مجدد می شود.',
+  detachHostModalMessage:
+    'آیا مطمئن هستید که می خواهید {host} را از استخر آن جدا کنید؟ این کار تمام ماشین های مجازی در ذخیره ساز محلی را از بین خواهد برد و میزبان راه اندازی مجدد می شود.',
 
   // Original text: 'Detach'
   detachHost: 'جدا کردن',
@@ -3978,7 +4027,8 @@ export default {
   forgetHostModalTitle: 'فراموش کردن میزبان',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: 'آیا مطمئن هستید که می‌خواهید {host} را از استخر آن فراموش کنید؟ مطمئن باشید که این میزبان نمی تواند دوباره آنلاین شود یا به جای آن از جدا کردن استفاده کنید.',
+  forgetHostModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {host} را از استخر آن فراموش کنید؟ مطمئن باشید که این میزبان نمی تواند دوباره آنلاین شود یا به جای آن از جدا کردن استفاده کنید.',
 
   // Original text: 'Forget'
   forgetHost: 'فراموش کردن',
@@ -4176,10 +4226,12 @@ export default {
   noUpdaterCommunity: 'هیچ به‌روزرسانی‌کننده‌ای برای نسخه عمومی در دسترس نیست',
 
   // Original text: 'Please consider subscribing and trying it with all the features for free during 30 days on {link}.'
-  considerSubscribe: 'لطفاً مشترک شدن را در نظر داشته باشید و این محصول را با تمام ویژگی های آن به صورت رایگان در مدت 30 روز در {link} امتحان کنید.',
+  considerSubscribe:
+    'لطفاً مشترک شدن را در نظر داشته باشید و این محصول را با تمام ویژگی های آن به صورت رایگان در مدت 30 روز در {link} امتحان کنید.',
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
-  noUpdaterWarning: 'به‌روزرسانی دستی می‌تواند نصب فعلی شما را به دلیل مشکلات وابستگی خراب کند، این کار را با احتیاط انجام دهید',
+  noUpdaterWarning:
+    'به‌روزرسانی دستی می‌تواند نصب فعلی شما را به دلیل مشکلات وابستگی خراب کند، این کار را با احتیاط انجام دهید',
 
   // Original text: 'Current version:'
   currentVersion: 'نسخه فعلی:',
@@ -4197,13 +4249,15 @@ export default {
   trialStartButton: 'اجرای نسخه آزمایشی',
 
   // Original text: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.'
-  trialAvailableUntil: 'می توانید از نسخه آزمایشی تا {date, date, medium} استفاده کنید. برای دریافت آن، دستگاه خود را ارتقا دهید.',
+  trialAvailableUntil:
+    'می توانید از نسخه آزمایشی تا {date, date, medium} استفاده کنید. برای دریافت آن، دستگاه خود را ارتقا دهید.',
 
   // Original text: 'Your trial has been ended. Contact us or downgrade to Free version'
   trialConsumed: 'نسخه آزمایشی شما به پایان رسیده است. با ما تماس بگیرید یا به نسخه رایگان برگردید',
 
   // Original text: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.'
-  trialLocked: 'به نظر می رسد سرویس xoa-updater شما از کار افتاده است. XOA شما بدون دسترسی به این سرویس نمی تواند به طور کامل اجرا شود.',
+  trialLocked:
+    'به نظر می رسد سرویس xoa-updater شما از کار افتاده است. XOA شما بدون دسترسی به این سرویس نمی تواند به طور کامل اجرا شود.',
 
   // Original text: 'No update information available'
   noUpdateInfo: 'اطلاعات به روز رسانی در دسترس نیست',
@@ -4227,13 +4281,15 @@ export default {
   promptUpgradeReloadTitle: 'ارتقا با موفقیت انجام شد',
 
   // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now?'
-  promptUpgradeReloadMessage: 'XOA شما با موفقیت ارتقا یافته است و مرورگر شما باید برنامه را دوباره بارگیری کند. آیا می خواهید اکنون بارگیری مجدد را انجام دهید؟',
+  promptUpgradeReloadMessage:
+    'XOA شما با موفقیت ارتقا یافته است و مرورگر شما باید برنامه را دوباره بارگیری کند. آیا می خواهید اکنون بارگیری مجدد را انجام دهید؟',
 
   // Original text: 'Upgrade warning'
   upgradeWarningTitle: 'هشدار ارتقا',
 
   // Original text: 'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?'
-  upgradeWarningMessage: 'شما چند کار پشتیبان گیری در حال انجام دارید. اگر همین الان ارتقا دهید، این کارها قطع می شود! آیا مطمئن هستید که میخواهید ادامه دهید؟',
+  upgradeWarningMessage:
+    'شما چند کار پشتیبان گیری در حال انجام دارید. اگر همین الان ارتقا دهید، این کارها قطع می شود! آیا مطمئن هستید که میخواهید ادامه دهید؟',
 
   // Original text: 'Xen Orchestra from the sources'
   disclaimerTitle: 'Xen Orchestra از منابع',
@@ -4242,7 +4298,8 @@ export default {
   disclaimerText1: 'شما از XO از منابع استفاده می کنید! این برای استفاده شخصی/غیرانتفاعی عالی است.',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: 'اگر یک شرکت هستید، بهتر است از آن با برنامه های ما که برای استفاده فوری آماده شده است + پشتیبانی حرفه ای که گنجانده شده است استفاده کنید:',
+  disclaimerText2:
+    'اگر یک شرکت هستید، بهتر است از آن با برنامه های ما که برای استفاده فوری آماده شده است + پشتیبانی حرفه ای که گنجانده شده است استفاده کنید:',
 
   // Original text: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
   disclaimerText3: 'این نسخه با هیچ پشتیبانی و به روز رسانی همراه نیست. برای کارهای مهم با احتیاط از آن استفاده کنید.',
@@ -4362,7 +4419,8 @@ export default {
   deleteSshKeysConfirm: 'حذف کلید SSH{nKeys, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
-  deleteSshKeysConfirmMessage: 'آیا مطمئن هستید که می خواهید {nKeys, number} کلید SSH{nKeys, plural, one {} other {s}} را حذف کنید؟',
+  deleteSshKeysConfirmMessage:
+    'آیا مطمئن هستید که می خواهید {nKeys, number} کلید SSH{nKeys, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Others'
   others: 'دیگران',
@@ -4410,7 +4468,8 @@ export default {
   logDeleteMultiple: 'حذف گزارش{nLogs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
-  logDeleteMultipleMessage: 'آیا مطمئن هستید که می خواهید {nLogs, number} گزارش{nLogs, plural, one {} other {s}} را حذف کنید؟',
+  logDeleteMultipleMessage:
+    'آیا مطمئن هستید که می خواهید {nLogs, number} گزارش{nLogs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete all logs'
   logDeleteAll: 'حذف کردن تمام گزارش ها',
@@ -4560,7 +4619,8 @@ export default {
   confirmDeleteCloudConfigsTitle: 'حذف پیکربندی ابری{nCloudConfigs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?'
-  confirmDeleteCloudConfigsBody: 'آیا مطمئن هستید که می‌خواهید {nCloudConfigs, number} پیکربندی ابری{nCloudConfigs, plural, one {} other {s}} را حذف کنید؟',
+  confirmDeleteCloudConfigsBody:
+    'آیا مطمئن هستید که می‌خواهید {nCloudConfigs, number} پیکربندی ابری{nCloudConfigs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete cloud config'
   deleteCloudConfig: 'حذف پیکربندی ابری',
@@ -4605,7 +4665,8 @@ export default {
   srReconnectAllModalMessage: 'این کار این مخزن ذخیره سازی (SR) را دوباره به همه میزبان هایش متصل می کند.',
 
   // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: 'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را به میزبان خود (مخزن ذخیره سازی محلی) یا به هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) دوباره متصل می کند.',
+  srsReconnectAllModalMessage:
+    'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را به میزبان خود (مخزن ذخیره سازی محلی) یا به هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) دوباره متصل می کند.',
 
   // Original text: 'Disconnect all hosts'
   srDisconnectAllModalTitle: 'قطع کردن تمام میزبان ها',
@@ -4614,7 +4675,8 @@ export default {
   srDisconnectAllModalMessage: 'این کار مخزن ذخیره سازی (SR) را از همه میزبان هایش جدا می کند.',
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: 'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را از میزبان خود (مخزن ذخیره سازی محلی) یا از هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) جدا می کند.',
+  srsDisconnectAllModalMessage:
+    'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را از میزبان خود (مخزن ذخیره سازی محلی) یا از هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) جدا می کند.',
 
   // Original text: 'Forget SR'
   srForgetModalTitle: 'فراموش کردن مخزن ذخیره سازی (SR)',
@@ -4623,10 +4685,12 @@ export default {
   srsForgetModalTitle: 'فراموش کردن مخزن های ذخیره سازی (SR) انتخاب شده',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: 'آیا مطمئن هستید که می خواهید این مخزن ذخیره سازی (SR) را فراموش کنید؟ VDIها روی این ذخیره ساز حذف نمی شوند.',
+  srForgetModalMessage:
+    'آیا مطمئن هستید که می خواهید این مخزن ذخیره سازی (SR) را فراموش کنید؟ VDIها روی این ذخیره ساز حذف نمی شوند.',
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: 'آیا مطمئن هستید که می خواهید همه مخزن های ذخیره سازی (SR) انتخاب شده را فراموش کنید؟ VDIهای موجود در این ذخیره سازها حذف نمی شوند.',
+  srsForgetModalMessage:
+    'آیا مطمئن هستید که می خواهید همه مخزن های ذخیره سازی (SR) انتخاب شده را فراموش کنید؟ VDIهای موجود در این ذخیره سازها حذف نمی شوند.',
 
   // Original text: 'Disconnected'
   srAllDisconnected: 'قطع شده است',
@@ -4686,7 +4750,8 @@ export default {
   xosanInstallIt: 'اکنون آن را نصب کنید!',
 
   // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: 'برخی از هاست ها قبل از اینکه بتوانید یک XOSAN ایجاد کنید، نیاز به راه اندازی مجدد toolstack خود دارند',
+  xosanNeedRestart:
+    'برخی از هاست ها قبل از اینکه بتوانید یک XOSAN ایجاد کنید، نیاز به راه اندازی مجدد toolstack خود دارند',
 
   // Original text: 'Restart toolstacks'
   xosanRestartAgents: 'راه اندازی مجدد toolstackها',
@@ -4740,7 +4805,8 @@ export default {
   xosanAddSubvolume: 'افزودن حجم فرعی…',
 
   // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning: 'این نسخه از مخزن ذخیره سازی (SR) XOSAN از اولین فاز بتا است. می توانید به استفاده از آن ادامه دهید، اما برای تغییر آن باید دیسک های خود را ذخیره کرده و دوباره آن را ایجاد کنید.',
+  xosanWarning:
+    'این نسخه از مخزن ذخیره سازی (SR) XOSAN از اولین فاز بتا است. می توانید به استفاده از آن ادامه دهید، اما برای تغییر آن باید دیسک های خود را ذخیره کرده و دوباره آن را ایجاد کنید.',
 
   // Original text: 'VLAN'
   xosanVlan: 'شبکه مجازی محلی',
@@ -4764,7 +4830,8 @@ export default {
   xosanPackUpdateChecking: 'در حال بررسی برای روز رسانی',
 
   // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.'
-  xosanPackUpdateError: 'خطا هنگام بررسی بسته های XOSAN. لطفاً مطمئن شوید که افزونه Cloud نصب و بارگذاری شده است و به‌روزرسانی‌کننده قابل دسترسی است.',
+  xosanPackUpdateError:
+    'خطا هنگام بررسی بسته های XOSAN. لطفاً مطمئن شوید که افزونه Cloud نصب و بارگذاری شده است و به‌روزرسانی‌کننده قابل دسترسی است.',
 
   // Original text: 'XOSAN resources are unavailable'
   xosanPackUpdateUnavailable: 'منابع XOSAN در دسترس نیستند',
@@ -4941,10 +5008,12 @@ export default {
   licensesTitle: 'لایسنس ها',
 
   // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: 'شما ثبت نام نکرده اید و بنابراین نمی توانید مخزن های ذخیره سازی (SR) XOSAN خود را ایجاد یا مدیریت کنید. {link}',
+  xosanUnregisteredDisclaimer:
+    'شما ثبت نام نکرده اید و بنابراین نمی توانید مخزن های ذخیره سازی (SR) XOSAN خود را ایجاد یا مدیریت کنید. {link}',
 
   // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer: 'برای ایجاد یک مخزن ذخیره سازی (SR) XOSAN باید از دستگاه Xen Orchestra استفاده کنید و یک مجوز XOSAN در {link} خریداری کنید.',
+  xosanSourcesDisclaimer:
+    'برای ایجاد یک مخزن ذخیره سازی (SR) XOSAN باید از دستگاه Xen Orchestra استفاده کنید و یک مجوز XOSAN در {link} خریداری کنید.',
 
   // Original text: 'Register now!'
   registerNow: 'اکنون ثبت نام کنید!',
@@ -4992,7 +5061,8 @@ export default {
   xosanAdminNoLicenseDisclaimer: 'برای مدیریت XOSAN به یک لایسنس در این مخزن ذخیره سازی (SR) نیاز دارید.',
 
   // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer: 'لایسنس XOSAN شما منقضی شده است. شما همچنان می توانید از مخزن ذخیره سازی (SR) استفاده کنید اما دیگر نمی توانید آن را مدیریت کنید.',
+  xosanAdminExpiredLicenseDisclaimer:
+    'لایسنس XOSAN شما منقضی شده است. شما همچنان می توانید از مخزن ذخیره سازی (SR) استفاده کنید اما دیگر نمی توانید آن را مدیریت کنید.',
 
   // Original text: 'Could not check the license on this XOSAN SR'
   xosanCheckLicenseError: 'نمی‌توان لایسنس را بر روی این مخزن ذخیره سازی (SR) XOSAN بررسی کرد',
@@ -5040,5 +5110,6 @@ export default {
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
 
   // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
-  durationFormat: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
+  durationFormat:
+    '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }

@@ -1,6 +1,5 @@
 <template>
   <div v-tooltip="{ selector: '.label' }" :class="[color, { disabled, selected }]" class="dropdown-item">
-    <!-- TODO: replace with correct color typing when available -->
     <VtsIcon v-if="checkbox" :accent="color" :icon="selected ? faSquareCheck : faSquare" />
     <slot name="icon">
       <VtsIcon :icon accent="current" />
@@ -14,9 +13,8 @@
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { Color } from '@core/types/color.type'
 import { IK_DROPDOWN_CHECKBOX } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faSquare } from '@fortawesome/free-regular-svg-icons'
@@ -25,7 +23,7 @@ import { computed, inject } from 'vue'
 
 defineProps<{
   arrow?: boolean
-  color: Color
+  color: IconAccent
   disabled?: boolean
   icon?: IconDefinition
   info?: string

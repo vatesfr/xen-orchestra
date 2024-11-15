@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import DropdownTitle from '@core/components/dropdown/DropdownTitle.vue'
-import UiInput from '@core/components/input/UiInput.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
 const search = defineModel<string>({ default: '' })

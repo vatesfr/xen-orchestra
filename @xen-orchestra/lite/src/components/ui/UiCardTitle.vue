@@ -1,10 +1,10 @@
 <template>
   <div class="ui-section-title" :class="tags.left">
-    <component :is="tags.left" v-if="$slots.default || left" class="left">
+    <component :is="tags.left" v-if="slots.default || left" class="left">
       <slot>{{ left }}</slot>
-      <VtsCounter v-if="count > 0" class="count" :value="count" accent="info" variant="primary" size="small" />
+      <UiCounter v-if="count > 0" class="count" :value="count" accent="info" variant="primary" size="small" />
     </component>
-    <component :is="tags.right" v-if="$slots.right || right" class="right">
+    <component :is="tags.right" v-if="slots.right || right" class="right">
       <slot name="right">{{ right }}</slot>
     </component>
   </div>
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import { UiCardTitleLevel } from '@/types/enums'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -24,6 +24,11 @@ const props = withDefaults(
   }>(),
   { count: 0, level: UiCardTitleLevel.Title }
 )
+
+const slots = defineSlots<{
+  default?(): any
+  right?(): any
+}>()
 
 const tags = computed(() => {
   switch (props.level) {

@@ -2,7 +2,7 @@
 
 const createConsoleTransport = require('./transports/console')
 const createTransport = require('./_createTransport')
-const { LEVELS, resolve } = require('./_levels')
+const { LEVELS, resolve } = require('./levels')
 
 // ===================================================================
 

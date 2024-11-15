@@ -1,4 +1,5 @@
 import { configure } from '@xen-orchestra/log/configure'
+import { createCaptureTransport } from '@xen-orchestra/log/capture'
 import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
@@ -38,11 +39,13 @@ export default class Logs {
       // override env.DEBUG so that spawned process (workers) benefits from the new configuration as well
       process.env.DEBUG = debug
 
-      configure({
-        filter: debug,
-        level,
-        transport: dedupe({ transport: transports }),
-      })
+      configure(
+        createCaptureTransport({
+          filter: debug,
+          level,
+          transport: dedupe({ transport: transports }),
+        })
+      )
     })
   }
 

@@ -12,8 +12,8 @@
       {{ settings.default }}
 
       <template v-if="settings.showDemoButtons" #actions>
-        <UiButton size="medium" level="secondary" color="normal">Label</UiButton>
-        <UiButton size="medium" level="secondary" color="normal">Label</UiButton>
+        <UiButton size="medium" variant="secondary" accent="info">Label</UiButton>
+        <UiButton size="medium" variant="secondary" accent="info">Label</UiButton>
       </template>
     </UiTitle>
   </ComponentStory>
@@ -23,6 +23,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { setting, slot } from '@/libs/story/story-param'
 import { boolean } from '@/libs/story/story-widget'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 </script>

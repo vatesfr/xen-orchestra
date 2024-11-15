@@ -6,7 +6,7 @@ const splitHost = require('split-host')
 // eslint-disable-next-line n/no-extraneous-require
 const { createClient, Facility, Severity, Transport } = require('syslog-client')
 
-const LEVELS = require('../_levels')
+const LEVELS = require('../levels')
 
 // https://github.com/paulgrove/node-syslog-client#syslogseverity
 const LEVEL_TO_SEVERITY = {

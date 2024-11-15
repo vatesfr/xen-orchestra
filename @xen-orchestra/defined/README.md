@@ -21,6 +21,7 @@ npm install --save @xen-orchestra/defined
 Returns the first non-`undefined` value from a list of arguments, evaluating functions if needed.
 
 There is two ways to use this function:
+
 - either with a single array argument: it should return the first non-undefined item
 - or with multiple arguments: it should return the first non-undefined argument
 

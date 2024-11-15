@@ -59,8 +59,8 @@ export class HealthCheckVmBackup {
         const running = new Date()
         remainingTimeout -= running - started
 
-        // wait for the guest tool version to be defined
-        await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+        // wait for the guest tools to be detected
+        await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_detected, {
           timeout: remainingTimeout,
           timeoutMessage: refOrUuid =>
             `timeout reached while waiting for ${refOrUuid} to report the driver version through the Xen tools. Please check or update the Xen tools.`,

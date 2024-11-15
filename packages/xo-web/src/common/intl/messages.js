@@ -1004,6 +1004,7 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostsLabel: 'Add hosts',
+  clickLinkForDetails: 'Follow this link for more details',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
@@ -1522,6 +1523,8 @@ const messages = {
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
+  nestedVirtualizationWarning:
+    'Unstable feature, insecure for the host, usage is discouraged. Click for more details.',
   vmAffinityHost: 'Affinity host',
   vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
