@@ -29,6 +29,7 @@ const slots = defineSlots<{
   gap: 0.8rem;
 
   .key {
+    width: 12rem;
     min-width: 12rem;
     overflow-wrap: break-word;
     color: var(--color-neutral-txt-secondary);
