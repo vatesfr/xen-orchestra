@@ -36,4 +36,10 @@ export const xoApiDefinition = {
     fields: '*',
     handler: (record: XoDashboard) => record,
   },
+  network: {
+    type: 'collection',
+    path: 'networks',
+    fields: '*',
+    handler: record => record,
+  },
 } satisfies ApiDefinition
