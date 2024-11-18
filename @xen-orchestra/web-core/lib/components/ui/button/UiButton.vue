@@ -72,6 +72,7 @@ const classNames = computed(() => [
   border-width: 0.1rem;
   outline: none;
   border-style: solid;
+  white-space: nowrap;
 
   &.lock {
     cursor: default;
