@@ -40,6 +40,6 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-perf-alert minor
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
