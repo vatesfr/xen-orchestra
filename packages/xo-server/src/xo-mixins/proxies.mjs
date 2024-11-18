@@ -63,8 +63,7 @@ async function addProxyVersion(proxy) {
 
     proxy.version = versionInfo
   } catch (error) {
-    log.warn('addProxyVersion', { error, proxy })
-    return
+    log.debug('addProxyVersion', { error, proxy })
   }
 }
 
@@ -188,11 +187,7 @@ export default class Proxy {
 
   async getAllProxies() {
     const proxies = await this._db.get()
-    await Promise.all(
-      proxies.map(async proxy => {
-        await populateProxy.call(this, proxy)
-      })
-    )
+    await Promise.all(proxies.map(proxy => populateProxy.call(this, proxy)))
     return proxies
   }
 
