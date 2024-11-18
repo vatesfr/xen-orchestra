@@ -15,6 +15,7 @@
 - [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
 - **XO 6**:
   - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
+- [backups] Handle VTPM content on incremental backup/replication/restore, including differential restore
 
 ### Bug fixes
 
@@ -36,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/web minor
 - xo-server minor
 - xo-web minor
