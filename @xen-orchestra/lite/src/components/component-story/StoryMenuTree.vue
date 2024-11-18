@@ -4,7 +4,7 @@
       <span
         v-if="node.children.size > 0"
         class="directory typo p1-medium"
-        @click="emit('toggle-directory', node.directory)"
+        @click="emit('toggleDirectory', node.directory)"
       >
         <UiIcon :icon="isOpen(node.directory) ? faFolderOpen : faFolderClosed" />
         {{ formatName(key) }}
@@ -18,7 +18,7 @@
         v-if="isOpen(node.directory)"
         :tree="node.children"
         :opened-directories="openedDirectories"
-        @toggle-directory="emit('toggle-directory', $event)"
+        @toggle-directory="emit('toggleDirectory', $event)"
       />
     </li>
   </ul>
@@ -35,7 +35,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'toggle-directory': [directory: string]
+  toggleDirectory: [directory: string]
 }>()
 
 const isOpen = (directory: string) => props.openedDirectories.has(directory)
