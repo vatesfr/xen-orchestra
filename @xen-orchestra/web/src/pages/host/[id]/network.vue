@@ -22,11 +22,17 @@
             <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
           </template>
         </UiTableActions>
+        <UiTopBottomTable
+          class="selection"
+          :selected-items="selectedItems"
+          :total-items="totalItems.length"
+          @toggle-select-all="toggleSelect"
+        />
         <VtsTable vertical-border class="table">
           <thead>
             <tr>
               <ColumnTitle id="checkbox">
-                <UiCheckbox accent="info" />
+                <UiCheckbox :v-model="test" accent="info" @update:model-value="toggleSelect($event)" />
               </ColumnTitle>
               <ColumnTitle id="network" :icon="faAlignLeft">{{ $t('network') }}</ColumnTitle>
               <ColumnTitle id="device" :icon="faAlignLeft">{{ $t('device') }}</ColumnTitle>
@@ -41,40 +47,46 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="pif in pifs" :key="pif.id">
+            <tr v-for="pif in totalItems" :key="pif.id">
               <VtsCellText>
-                <UiCheckbox accent="info" />
+                <UiCheckbox v-model="pif.selected" accent="info" />
               </VtsCellText>
               <VtsCellObject>
-                <UiObjectLink :route="`/vm/${pif.data.id}/console`">
+                <UiObjectLink :route="`/vm/${pif.id}/console`">
                   <template #icon>
                     <UiComplexIcon size="medium">
                       <VtsIcon :icon="faNetworkWired" accent="current" />
                       <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                     </UiComplexIcon>
                   </template>
-                  {{ pif.data.name_label }}
+                  {{ pif.name_label }}
                 </UiObjectLink>
               </VtsCellObject>
-              <VtsCellText>{{ pif.data.device }}</VtsCellText>
+              <VtsCellText>{{ pif.device }}</VtsCellText>
               <VtsCellObject>
                 <VtsIcon
-                  :accent="getStatusProps(pif.data.status as NetworkStatus).accent"
+                  :accent="getStatusProps(pif.status as NetworkStatus).accent"
                   :icon="faCircle"
-                  :overlay-icon="getStatusProps(pif.data.status as NetworkStatus).icon"
+                  :overlay-icon="getStatusProps(pif.status as NetworkStatus).icon"
                 />
-                <div class="pif-status">{{ pif.data.status }}</div>
+                <div class="pif-status">{{ pif.status }}</div>
               </VtsCellObject>
-              <VtsCellText>{{ pif.data.vlan }}</VtsCellText>
-              <VtsCellText>{{ pif.data.ip }}</VtsCellText>
-              <VtsCellText>{{ pif.data.mac }}</VtsCellText>
-              <VtsCellText>{{ pif.data.ip_mode }}</VtsCellText>
+              <VtsCellText>{{ pif.vlan }}</VtsCellText>
+              <VtsCellText>{{ pif.ip }}</VtsCellText>
+              <VtsCellText>{{ pif.mac }}</VtsCellText>
+              <VtsCellText>{{ pif.ip_mode }}</VtsCellText>
               <VtsCellText class="status-icon">
                 <UiButtonIcon :icon="faEllipsis" size="medium" accent="info" />
               </VtsCellText>
             </tr>
           </tbody>
         </VtsTable>
+        <UiTopBottomTable
+          class="selection"
+          :selected-items="selectedItems"
+          :total-items="totalItems.length"
+          @toggle-select-all="toggleSelect"
+        />
       </div>
     </div>
     <UiPanel class="network-panel">
@@ -144,9 +156,10 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { defineTree } from '@core/composables/tree/define-tree'
+import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+// import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
-import { useTree } from '@core/composables/tree.composable'
+// import { useTree } from '@core/composables/tree.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -163,6 +176,7 @@ import {
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import { computed, ref } from 'vue'
 
 const data = [
   {
@@ -174,6 +188,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: 'e40c1da3-918b-c173-506c-e8c2c069181f',
@@ -184,6 +199,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: '989cd0ad-17f8-c198-15c6-8549da1f3b9f',
@@ -194,6 +210,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: 'bfbacbd4-8a09-c769-4e7e-59c2a0f77095',
@@ -204,6 +221,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: '03a631e2-a39e-7c63-7bb3-ac7a5ef6c47e',
@@ -214,6 +232,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'Static',
+    selected: false,
   },
   {
     id: 'ea57eb75-c55b-d9c9-6cb4-e0ea235eb16f',
@@ -224,6 +243,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: '559b0b63-2173-b6a1-ef65-7155d56401b6',
@@ -234,6 +254,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: '99e196e1-33f9-461b-93e3-d70a0eb29b3e',
@@ -244,6 +265,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'Static',
+    selected: false,
   },
   {
     id: 'cd418934-1f70-22bc-688e-eb6da266aa57',
@@ -254,6 +276,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'DHCP',
+    selected: false,
   },
   {
     id: '6d9c33fc-ebec-240d-e31b-18152911795d',
@@ -264,6 +287,7 @@ const data = [
     ip: '127.0.0.1',
     mac: '00:1A:2B:3C:4D:5E',
     ip_mode: 'Static',
+    selected: false,
   },
 ]
 const cardsContent = [
@@ -301,14 +325,16 @@ const cardsContent = [
   },
 ]
 
-const { filter, predicate } = useTreeFilter()
+const { filter } = useTreeFilter()
 
-const definitions = defineTree(data, {
-  getLabel: 'name_label',
-  predicate,
-})
+// const definitions = defineTree(data, {
+//   getLabel: 'name_label',
+//   predicate,
+// })
 
-const { nodes: pifs } = useTree(definitions, { expand: false })
+const totalItems = ref(data)
+
+// const { nodes: pifs } = useTree(definitions, { expand: false })
 
 type NetworkStatus = 'connected' | 'disconnected' | 'other'
 type NetworkAccent = 'success' | 'warning' | 'danger'
@@ -320,6 +346,16 @@ const states: Record<NetworkStatus, { icon: IconDefinition; accent: NetworkAccen
 }
 
 const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus]
+const selectedItems = computed(() => totalItems.value.filter(item => item.selected).length)
+
+const toggleSelect = (isSelected: boolean) => {
+  totalItems.value.forEach(item => {
+    item.selected = isSelected
+  })
+}
+const test = () => {
+  return false
+}
 </script>
 
 <style scoped lang="postcss">
@@ -339,8 +375,8 @@ const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus
   .table-container {
     margin-top: 2.4rem;
 
-    .table {
-      margin-top: 2.4rem;
+    .selection {
+      margin: 0.8rem 0;
     }
   }
 
