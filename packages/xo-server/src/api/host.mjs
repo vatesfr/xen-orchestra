@@ -23,8 +23,23 @@ const log = createLogger('xo:api:host')
 
 // ===================================================================
 
-export function setMaintenanceMode({ host, maintenance }) {
+export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate }) {
   const xapi = this.getXapi(host)
+
+  if (vmsToForceMigrate) {
+    await Promise.all(
+      vmsToForceMigrate.map(async vmUuid => {
+        const record = await xapi.getRecordByUuid('VM', vmUuid)
+        const ref = record.$ref
+        const blockedOperations = record.blocked_operations
+        await Promise.all(
+          Object.keys(blockedOperations).map(
+            async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation)
+          )
+        )
+      })
+    )
+  }
 
   return maintenance ? xapi.clearHost(xapi.getObject(host)) : xapi.enableHost(host._xapiId)
 }
@@ -34,6 +49,13 @@ setMaintenanceMode.description = 'manage the maintenance mode'
 setMaintenanceMode.params = {
   id: { type: 'string' },
   maintenance: { type: 'boolean' },
+  vmsToForceMigrate: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+    optional: true,
+  },
 }
 
 setMaintenanceMode.resolve = {
