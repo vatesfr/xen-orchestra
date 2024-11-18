@@ -104,6 +104,18 @@ export async function exportIncrementalVm(
     }
   })
 
+  const vtpms = await Promise.all(
+    vm.$VTPMs.map(async vtpm => {
+      let content
+      try {
+        content = await vm.$xapi.call('VTPM.get_contents', vtpm.$ref)
+      } catch (err) {
+        console.error(err)
+      }
+      return content
+    })
+  )
+
   return Object.defineProperty(
     {
       version: '1.1.0',
@@ -113,6 +125,7 @@ export async function exportIncrementalVm(
       vm: {
         ...vm,
       },
+      vtpms,
     },
     'streams',
     {
