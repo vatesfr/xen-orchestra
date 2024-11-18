@@ -28,7 +28,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/template": "^0.1.0",
     "buffer-crc32": "^0.2.13"
   },

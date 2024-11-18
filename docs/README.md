@@ -1,13 +1,41 @@
-# Xen Orchestra
+# Website
 
-![](https://repository-images.githubusercontent.com/8077957/6dcf71fd-bad9-4bfa-933f-b466c52d513d)
+This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-## Introduction
+### Installation
 
-XO (Xen Orchestra) is a complete solution to visualize, manage, backup and delegate your XCP-ng (or XenServer) infrastructure. **No agent** is required for it to work.
+```
+$ yarn
+```
 
-It provides a web UI, a CLI and a REST API, while also getting a Terraform provider among other connectors/plugins.
+### Local Development
 
-## Quick start
+```
+$ yarn start
+```
 
-Log in to your account and use the deploy form available from [Vates website](https://vates.tech/deploy/)
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+### Build
+
+```
+$ yarn build
+```
+
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+### Deployment
+
+Using SSH:
+
+```
+$ USE_SSH=true yarn deploy
+```
+
+Not using SSH:
+
+```
+$ GIT_USER=<Your GitHub username> yarn deploy
+```
+
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.

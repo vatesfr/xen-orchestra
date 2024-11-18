@@ -1,5 +1,5 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined">
+  <UiCard class="pool-dashboard-status" :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ $t('status') }}</UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="!isReady" />
@@ -54,3 +54,9 @@ const totalVmsCount = computed(() => vms.value.length)
 
 const activeVmsCount = computed(() => vms.value.filter(vm => vm.power_state === 'Running').length)
 </script>
+
+<style lang="postcss" scoped>
+.pool-dashboard-status {
+  min-width: 32rem;
+}
+</style>

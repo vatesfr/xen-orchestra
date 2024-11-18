@@ -7,7 +7,8 @@ export default class NfsHandler extends MountHandler {
     const { host, port, path } = parse(remote.url)
     super(remote, opts, {
       type: 'nfs',
-      device: `${host}${port !== undefined ? ':' + port : ''}:${path}`,
+      device: `${host}:${path}`,
+      options: port !== undefined ? `port=${port}` : undefined,
     })
   }
 

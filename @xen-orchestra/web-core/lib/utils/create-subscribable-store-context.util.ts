@@ -60,7 +60,7 @@ export function createSubscribableStoreContext<TContext>(
   }
 
   return {
-    $context: config.context,
+    getContext: () => config.context,
     subscribe,
   }
 }

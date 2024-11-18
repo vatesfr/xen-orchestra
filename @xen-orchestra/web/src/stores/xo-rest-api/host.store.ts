@@ -12,11 +12,13 @@ export const useHostStore = defineStore('host', () => {
     poolStore: usePoolStore(),
   }
 
+  const poolContext = deps.poolStore.getContext()
+
   const { context: baseContext, ...configRest } = createXoStoreConfig('host', {
     sortBy: sortByNameLabel,
   })
 
-  const isMasterHost = (hostId: XoHost['id']) => !!deps.poolStore.$context.records.find(pool => pool.master === hostId)
+  const isMasterHost = (hostId: XoHost['id']) => !!poolContext.records.value.find(pool => pool.master === hostId)
 
   const hostsByPool = computed(() => {
     const hostsByPoolMap = new Map<XoPool['id'], XoHost[]>()

@@ -23,19 +23,19 @@
     "placement.js": "^1.0.0-beta.5"
   },
   "peerDependencies": {
-    "pinia": "^2.1.7",
-    "vue": "~3.4.13",
+    "pinia": "^2.2.6",
+    "vue": "~3.5.12",
     "vue-i18n": "^9.9.0",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
     "@types/novnc__novnc": "^1.5.0",
     "@vue/tsconfig": "^0.5.1",
-    "pinia": "^2.1.7",
-    "vue": "~3.4.13",
+    "pinia": "^2.2.6",
+    "vue": "~3.5.12",
     "vue-i18n": "^9.9.0",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.5"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/web-core",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",

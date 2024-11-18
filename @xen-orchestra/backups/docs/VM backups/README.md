@@ -65,7 +65,7 @@ In case any incoherence is detected, the file is deleted so it will be fully gen
   - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
   - `xo:backup:exported` = 'true' (added at the end of the backup)
 
-### Of created VMs , their associated VDIs and snapshots 
+### Of created VMs , their associated VDIs and snapshots
 
 - `other_config`:
   - `xo:backup:datetime`: format is UTC %Y%m%dT%H:%M:%SZ
