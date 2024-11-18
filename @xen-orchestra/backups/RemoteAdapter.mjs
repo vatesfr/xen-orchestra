@@ -744,7 +744,7 @@ export class RemoteAdapter {
 
   async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
     const handler = this._handler
-    const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
+    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
@@ -760,6 +760,7 @@ export class RemoteAdapter {
       version: '1.0.0',
       vifs,
       vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
+      vtpms,
     }
   }
 

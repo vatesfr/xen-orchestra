@@ -58,7 +58,7 @@ export class ImportVmBackup {
   async _reuseNearestSnapshot($defer, ignoredVdis) {
     const metadata = this._metadata
     const { mapVdisSrs } = this._importIncrementalVmSettings
-    const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
+    const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const streams = {}
     const metdataDir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
@@ -191,6 +191,7 @@ export class ImportVmBackup {
       version: '1.0.0',
       vifs,
       vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
+      vtpms,
     }
   }
 

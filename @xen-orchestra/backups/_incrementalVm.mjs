@@ -294,6 +294,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
     }),
   ])
+  // recreate VTPMs
+  await Promise.all(
+    (incrementalVm.vtpms ?? []).map(async contents => {
+      await xapi.VTPM_create({ VM: vmRef, contents })
+    })
+  )
 
   await Promise.all([
     incrementalVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
