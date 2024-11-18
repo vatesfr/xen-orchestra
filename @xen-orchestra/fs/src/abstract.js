@@ -99,7 +99,7 @@ export default class RemoteHandlerAbstract {
     this.closeFile = sharedLimit(this.closeFile)
     this.copy = sharedLimit(this.copy)
     this.getInfo = sharedLimit(this.getInfo)
-    this.getSize = sharedLimit(this.getSize)
+    this.getSizeOnDisk = sharedLimit(this.getSizeOnDisk)
     this.list = sharedLimit(this.list)
     this.mkdir = sharedLimit(this.mkdir)
     this.openFile = sharedLimit(this.openFile)
@@ -227,13 +227,15 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getInfo(), this._timeout)
   }
 
-  // when using encryption, the file size is aligned with the encryption block size ( 16 bytes )
-  // that means that the size will be 1 to 16 bytes more than the content size + the initialized vector length (16 bytes)
+  // returns the real size occupied by an unencrypted file
+  // encrypted files have metadata and padding that blur the real size
   async getSize(file) {
     assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
+    return this.getSizeOnDisk(file)
+  }
 
-    const size = await timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
-    return size - this.#encryptor.ivLength
+  async getSizeOnDisk(file) {
+    return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
   async __list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
