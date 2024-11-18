@@ -40,6 +40,7 @@
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.auto": "Auto dark mode",
 
+  "access-forum": "Access forum",
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
   "hosts": "Hosts",
@@ -55,11 +56,11 @@
   "patches": "Patches",
   "power-on-vm-for-console": "Power on your VM to access its console",
   "power-on-host-for-console": "Power on your host to access its console",
+  "professional-support": "Professional support",
   "running-vm": "Running VM | Running VMs",
   "see-all": "See all",
   "stats": "Stats",
   "storage": "Storage",
-  "support-name": "{name} pro support",
   "system": "System",
 
   "tasks": "Tasks",
