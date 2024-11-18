@@ -340,15 +340,6 @@ create.params = {
         },
         device: { type: 'string', optional: true },
         remove: { type: 'boolean', optional: true },
-
-        // device: {
-        //   optional: true,
-        //   type: 'string',
-        // },
-        // remove: {
-        //   optional: true,
-        //   type: 'boolean',
-        // },
       },
     },
   },

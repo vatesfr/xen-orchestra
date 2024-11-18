@@ -485,9 +485,9 @@ export default class NewVm extends BaseComponent {
     const resourceSet = this._getResourceSet()
     const { template } = this.props
 
-    // In case the user remove some VIFs created by the template
+    // In case user deletes some VIF created by the template
     // We need to mark them with `remove:true`
-    // so that xo-server correctly remove it
+    // so that xo-server deletes them properly
     if (_VIFs.length < templateVifs.length) {
       const _vifByDevice = keyBy(_VIFs, 'device')
       templateVifs.forEach(templateVif => {
@@ -497,7 +497,6 @@ export default class NewVm extends BaseComponent {
       })
     }
 
-    // return
     // Either use `memory` OR `memory*` params
     let { memory, memoryStaticMax, memoryDynamicMin, memoryDynamicMax } = state
     if ((memoryStaticMax != null || memoryDynamicMin != null) && memoryDynamicMax == null) {
