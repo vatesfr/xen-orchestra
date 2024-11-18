@@ -6,7 +6,7 @@
       :disabled="isDisabled"
       :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
-      v-bind="$attrs"
+      v-bind="attrs"
     />
     <span class="fake-checkbox">
       <UiIcon :fixed-width="false" :icon class="icon" />
@@ -21,7 +21,7 @@ import { DisabledContext } from '@/context'
 import { IK_CHECKBOX_TYPE, IK_FORM_HAS_LABEL } from '@/types/injection-keys'
 import { faCheck, faCircle, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { useVModel } from '@vueuse/core'
-import { computed, type HTMLAttributes, inject } from 'vue'
+import { computed, type HTMLAttributes, inject, useAttrs } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -37,6 +37,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+const attrs = useAttrs()
 
 const value = useVModel(props, 'modelValue', emit)
 const type = inject(IK_CHECKBOX_TYPE, 'checkbox')

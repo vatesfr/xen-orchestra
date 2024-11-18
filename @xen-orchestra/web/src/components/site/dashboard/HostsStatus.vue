@@ -1,22 +1,22 @@
 <template>
   <UiCard>
-    <CardTitle>{{ $t('hosts-status') }}</CardTitle>
-    <LoadingHero :disabled="isReady" type="card">
-      <DonutChartWithLegend :icon="faServer" :segments />
-      <CardNumbers :label="t('total')" :value="hosts.length" class="total" size="small" />
-    </LoadingHero>
+    <UiCardTitle>{{ $t('hosts-status') }}</UiCardTitle>
+    <VtsLoadingHero :disabled="isReady" type="card">
+      <VtsDonutChartWithLegend :icon="faServer" :segments />
+      <UiCardNumbers :label="t('total')" :value="hosts.length" class="total" size="small" />
+    </VtsLoadingHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { HOST_POWER_STATE } from '@/types/xo/host.type'
-import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
-import CardTitle from '@core/components/card/CardTitle.vue'
-import CardNumbers from '@core/components/CardNumbers.vue'
-import DonutChartWithLegend from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import UiCard from '@core/components/UiCard.vue'
+import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -34,17 +34,17 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('hosts-status.running'),
     value: hostsCount.value.running,
-    color: 'success',
+    accent: 'success',
   },
   {
     label: t('hosts-status.halted'),
     value: hostsCount.value.halted,
-    color: 'warning',
+    accent: 'warning',
   },
   {
     label: t('hosts-status.unknown'),
     value: hostsCount.value.$other,
-    color: 'disabled',
+    accent: 'muted',
     tooltip: t('hosts-status.unknown.tooltip'),
   },
 ])

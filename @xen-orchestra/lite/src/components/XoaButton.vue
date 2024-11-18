@@ -2,8 +2,8 @@
   <UiButton
     v-if="xoaFound"
     size="medium"
-    color="info"
-    level="primary"
+    accent="info"
+    variant="primary"
     :left-icon="faArrowUpRightFromSquare"
     class="xoa-button"
     @click="openXoa()"
@@ -13,8 +13,8 @@
   <UiButton
     v-else
     size="medium"
-    color="info"
-    level="primary"
+    accent="info"
+    variant="primary"
     :left-icon="faDownload"
     class="xoa-button"
     @click="openXoaDeploy()"
@@ -26,7 +26,7 @@
 <script lang="ts" setup>
 import type { PRIMARY_ADDRESS_TYPE } from '@/libs/xen-api/xen-api.enums'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faDownload, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'

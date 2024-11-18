@@ -26,7 +26,8 @@
 
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
-
+  "core.select.unselect": "Tout désélectionner",
+  "core.select.n-selected-of": "{count} objet sélectionné sur {total} | {count} objet sélectionné sur {total} | {count} objets sélectionnés sur {total}",
   "core.sidebar.close": "Fermer la barre latérale",
   "core.sidebar.lock": "Verrouiller la barre latérale",
   "core.sidebar.open": "Ouvrir la barre latérale",
@@ -39,6 +40,7 @@
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.auto": "Mode sombre automatique",
 
+  "access-forum": "Accès au forum",
   "dashboard": "Tableau de bord",
   "documentation-name": "Documentation {name}",
   "hosts": "Hôtes",
@@ -52,12 +54,13 @@
   "object-not-found": "L'objet {id} est introuvable…",
   "other": "Autre",
   "patches": "Patches",
-  "power-on-for-console": "Allumez votre VM pour accéder à sa console",
+  "power-on-vm-for-console": "Allumez votre VM pour accéder à sa console",
+  "power-on-host-for-console": "Allumez votre hôte pour accéder à sa console",
+  "professional-support": "Support professionel",
   "running-vm": "VM en cours d'exécution | VMs en cours d'exécution",
   "see-all": "Voir tout",
   "stats": "Stats",
   "storage": "Stockage",
-  "support-name": "Support pro {name}",
   "system": "Système",
 
   "tasks": "Tâches",

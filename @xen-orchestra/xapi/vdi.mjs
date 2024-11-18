@@ -67,7 +67,7 @@ class Vdi {
     })
 
     const vm = await this.getRecord('VM', vmRef)
-    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_detected, {
       timeout: timeLimit - Date.now(),
     }).catch(error => {
       warn('failed to wait guest metrics, consider VM as started', {
@@ -151,7 +151,7 @@ class Vdi {
    * in the raw vdi has changed
    */
   async listChangedBlock(ref, baseRef) {
-    const encoded = await this.call('VDI.list_changed_blocks', baseRef, ref)
+    const encoded = await this.callAsync('VDI.list_changed_blocks', baseRef, ref)
     return Buffer.from(encoded, 'base64')
   }
 

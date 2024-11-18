@@ -9,13 +9,13 @@
     <div class="right">
       <PoolOverrideWarning as-tooltip />
       <XoaButton v-if="isDesktop" />
-      <AccountButton />
+      <AccountMenu />
     </div>
   </header>
 </template>
 
 <script lang="ts" setup>
-import AccountButton from '@/components/AccountButton.vue'
+import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
@@ -37,7 +37,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 5.5rem;
+  height: 5.6rem;
   padding: 1rem;
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);

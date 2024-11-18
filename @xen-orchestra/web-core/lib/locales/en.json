@@ -26,7 +26,8 @@
 
   "core.select.all": "Select all",
   "core.select.none": "Select none",
-
+  "core.select.unselect": "Unselect all",
+  "core.select.n-selected-of": "{count} selected of {total} objects",
   "core.sidebar.close": "Close sidebar",
   "core.sidebar.lock": "Lock sidebar open",
   "core.sidebar.open": "Open sidebar",
@@ -39,6 +40,7 @@
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.auto": "Auto dark mode",
 
+  "access-forum": "Access forum",
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
   "hosts": "Hosts",
@@ -52,12 +54,13 @@
   "object-not-found": "Object {id} can't be found…",
   "other": "Other",
   "patches": "Patches",
-  "power-on-for-console": "Power on your VM to access its console",
+  "power-on-vm-for-console": "Power on your VM to access its console",
+  "power-on-host-for-console": "Power on your host to access its console",
+  "professional-support": "Professional support",
   "running-vm": "Running VM | Running VMs",
   "see-all": "See all",
   "stats": "Stats",
   "storage": "Storage",
-  "support-name": "{name} pro support",
   "system": "System",
 
   "tasks": "Tasks",

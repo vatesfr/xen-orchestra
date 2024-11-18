@@ -228,7 +228,7 @@ export class Text extends Editable {
       throw new Error(error)
     }
 
-    return input.value
+    return input.value.trim()
   }
 
   _onInput = ({ target }) => {

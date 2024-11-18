@@ -8,14 +8,15 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const useHostStore = defineStore('xen-api-host', () => {
-  const deps = { metrics: useHostMetricsStore() }
+  const deps = { metricsStore: useHostMetricsStore() }
+
+  const metricsContext = deps.metricsStore.getContext()
+
   const xenApiStore = useXenApiStore()
 
   const { context: baseContext, ...configRest } = createXapiStoreConfig('host')
 
-  const runningHosts = computed(() =>
-    baseContext.records.value.filter(host => deps.metrics.$context.isHostRunning(host))
-  )
+  const runningHosts = computed(() => baseContext.records.value.filter(host => metricsContext.isHostRunning(host)))
 
   const getStats = ((hostUuid, granularity, ignoreExpired = false, { abortSignal }) => {
     const host = baseContext.getByUuid(hostUuid)

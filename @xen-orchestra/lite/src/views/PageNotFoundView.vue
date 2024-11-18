@@ -3,7 +3,7 @@
     <img alt="" src="../assets/page-not-found.svg" />
     <p class="numeric">404</p>
     <p class="text">{{ $t('page-not-found') }}</p>
-    <UiButton size="medium" color="info" level="primary" @click="router.push({ name: 'home' })">
+    <UiButton size="medium" accent="info" variant="primary" @click="router.push({ name: 'home' })">
       {{ $t('back-pool-dashboard') }}
     </UiButton>
   </div>
@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { usePageTitleStore } from '@/stores/page-title.store'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 

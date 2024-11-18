@@ -29,7 +29,7 @@
     "@vates/coalesce-calls": "^0.1.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/read-chunk": "^1.2.0",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "bind-property-descriptor": "^2.0.0",
     "decorator-synchronized": "^0.6.0",
     "execa": "^5.0.0",
@@ -41,7 +41,7 @@
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^4.1.0",
     "through2": "^4.0.2",
-    "xo-remote-parser": "^0.9.2"
+    "xo-remote-parser": "^0.9.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

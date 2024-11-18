@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
-    "@xen-orchestra/log": "^0.7.0",
+    "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/openflow": "^0.1.2",
     "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.11",

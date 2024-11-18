@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer') // eslint-disable-line n/no-extraneous-
 const prettyFormat = require('pretty-format') // eslint-disable-line n/no-extraneous-require
 
 const { evalTemplate, required } = require('../_utils')
-const { NAMES } = require('../_levels')
+const { NAMES } = require('../levels')
 
 function createTransport({
   // transport options (https://nodemailer.com/smtp/)

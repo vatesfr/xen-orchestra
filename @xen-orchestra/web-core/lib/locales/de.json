@@ -28,11 +28,11 @@
   "network": "Netzwerk",
   "object-not-found": "Objekt {id} wurde nicht gefunden…",
   "patches": "Patches",
-  "power-on-for-console": "Konsole ist nach Start der VM verfügbar",
+  "power-on-vm-for-console": "Konsole ist nach Start der VM verfügbar",
+  "power-on-host-for-console": "Konsole ist nach Start des Hosts verfügbar",
   "running-vm": "VM eingeschalten | VMs eingeschalten",
   "stats": "Statistiken",
   "storage": "Speicher",
-  "support-name": "{name} pro support",
   "system": "System",
 
   "tasks": "Aufgaben",

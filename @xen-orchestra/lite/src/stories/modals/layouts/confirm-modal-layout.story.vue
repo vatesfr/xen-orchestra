@@ -15,8 +15,8 @@
       <template #title>{{ settings.title }}</template>
       <template #subtitle>{{ settings.subtitle }}</template>
       <template #buttons>
-        <UiButton level="secondary" color="info" size="medium">I prefer not</UiButton>
-        <UiButton level="primary" color="info" size="medium">Yes, I'm sure!</UiButton>
+        <UiButton variant="secondary" accent="info" size="medium">I prefer not</UiButton>
+        <UiButton variant="primary" accent="info" size="medium">Yes, I'm sure!</UiButton>
       </template>
     </ConfirmModalLayout>
   </ComponentStory>
@@ -26,6 +26,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
 import { iconProp, setting, slot } from '@/libs/story/story-param'
-import UiButton from '@core/components/button/UiButton.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faShip } from '@fortawesome/free-solid-svg-icons'
 </script>

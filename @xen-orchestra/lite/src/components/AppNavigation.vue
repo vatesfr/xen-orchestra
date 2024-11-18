@@ -1,7 +1,7 @@
 <template>
   <Transition name="slide">
     <nav v-if="isDesktop || isOpen" ref="navElement" :class="{ collapsible: isMobile }" class="app-navigation">
-      <StoryMenu v-if="$route.meta.hasStoryNav" />
+      <StoryMenu v-if="route.meta.hasStoryNav" />
       <InfraPoolList v-else />
     </nav>
   </Transition>
@@ -15,6 +15,9 @@ import { useUiStore } from '@core/stores/ui.store'
 import { onClickOutside, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 const uiStore = useUiStore()
 const { isMobile, isDesktop } = storeToRefs(uiStore)
@@ -58,6 +61,7 @@ whenever(isOpen, () => {
 .slide-leave-active {
   transition: transform 0.3s ease;
 }
+
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(-37rem);

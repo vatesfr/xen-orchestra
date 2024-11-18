@@ -3,7 +3,7 @@
 const compileGlobPattern = require('./_compileGlobPattern.js')
 const createTransport = require('./transports/console')
 const Log = require('./_Log')
-const { LEVELS, resolve } = require('./_levels')
+const { LEVELS, resolve } = require('./levels.js')
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 if (!(symbol in global)) {

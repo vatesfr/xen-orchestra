@@ -9,7 +9,9 @@ const ENUM_PROVISIONING = {
 const LV_NAME = 'thin_device'
 const PROVISIONING = Object.values(ENUM_PROVISIONING)
 const VG_NAME = 'linstor_group'
-const XOSTOR_DEPENDENCIES = ['xcp-ng-release-linstor', 'xcp-ng-linstor']
+const MAIN_XOSTOR_DEPENDENCY = 'xcp-ng-linstor'
+// xcp-ng-release-linstor package is used to install the linstor repo, in airgap repos are blocked
+const XOSTOR_DEPENDENCIES = ['xcp-ng-release-linstor', MAIN_XOSTOR_DEPENDENCY]
 
 function checkIfLinstorSr(sr) {
   if (sr.SR_type !== 'linstor') {
@@ -235,7 +237,6 @@ export const create = defer(async function (
 
     const handleHostsDependencies = defer(async ($defer, hosts) => {
       const boundInstallDependencies = installDependencies.bind(this)
-      const boundUpdateDependencies = updateDependencies.bind(this)
       const pool = Object.values(xapi.objects.indexes.type.pool)[0]
 
       await asyncEach(
@@ -244,13 +245,13 @@ export const create = defer(async function (
           let needInstallPackages = true
 
           try {
-            needInstallPackages = Object.values(
+            needInstallPackages =
               JSON.parse(
                 await pluginCall(xapi, host, 'updater.py', 'query_installed', {
-                  packages: XOSTOR_DEPENDENCIES.join(),
+                  // Only check xcp-ng-linstor because xcp-ng-release-linstor will not be present in an airgap environement
+                  packages: MAIN_XOSTOR_DEPENDENCY,
                 })
-              )
-            ).some(pkg => pkg === '')
+              )[MAIN_XOSTOR_DEPENDENCY] === ''
           } catch (_) {}
 
           if (needInstallPackages) {
@@ -261,7 +262,6 @@ export const create = defer(async function (
             }
             return boundInstallDependencies({ host })
           }
-          return boundUpdateDependencies({ host })
         },
         {
           stopOnError: false,

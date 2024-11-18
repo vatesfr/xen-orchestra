@@ -381,6 +381,8 @@ async function getServerTimestamp(xapi, host) {
   return Math.floor(utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000)
 }
 
+const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
+
 class PerfAlertXoPlugin {
   constructor(xo) {
     this._xo = xo
@@ -508,6 +510,10 @@ ${monitorBodies.join('\n')}`
                   }
 
                   if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+                    return false
+                  }
+
+                  if (objectType === 'SR' && !isSrWritable(obj)) {
                     return false
                   }
 

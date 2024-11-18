@@ -23,10 +23,10 @@ const slots = defineSlots<{
   align-items: center;
   gap: 2.4rem;
   padding-block-end: 0.4rem;
-  border-bottom: 0.1rem solid var(--color-normal-txt-base);
+  border-bottom: 0.1rem solid var(--color-info-txt-base);
 
   .label {
-    color: var(--color-normal-txt-base);
+    color: var(--color-info-txt-base);
   }
 
   .actions {
