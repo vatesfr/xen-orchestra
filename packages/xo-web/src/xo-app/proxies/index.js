@@ -272,6 +272,10 @@ const COLUMNS = [
     },
     name: _('upgrade'),
   },
+  {
+    itemRenderer: proxy => <p>{proxy?.version ?? _('unknown')}</p>,
+    name: _('version'),
+  },
 ]
 
 const Proxies = decorate([
