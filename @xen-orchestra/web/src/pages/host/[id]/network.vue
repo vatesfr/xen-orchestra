@@ -35,7 +35,9 @@
               <ColumnTitle id="ipAddresses" :icon="faAt">{{ $t('ip-addresses') }}</ColumnTitle>
               <ColumnTitle id="macAddress" :icon="faAt">{{ $t('mac-address') }}</ColumnTitle>
               <ColumnTitle id="ipMode" :icon="faCaretDown">{{ $t('ip-mode') }}</ColumnTitle>
-              <ColumnTitle id="more" :icon="faEllipsis" />
+              <ColumnTitle id="more">
+                <UiButtonIcon :icon="faEllipsis" size="medium" accent="info" />
+              </ColumnTitle>
             </tr>
           </thead>
           <tbody>
@@ -67,8 +69,8 @@
               <VtsCellText>{{ pif.data.ip }}</VtsCellText>
               <VtsCellText>{{ pif.data.mac }}</VtsCellText>
               <VtsCellText>{{ pif.data.ip_mode }}</VtsCellText>
-              <VtsCellText>
-                <VtsIcon accent="info" :icon="faEllipsis" />
+              <VtsCellText class="status-icon">
+                <UiButtonIcon :icon="faEllipsis" size="medium" accent="info" />
               </VtsCellText>
             </tr>
           </tbody>
@@ -84,7 +86,41 @@
           {{ $t('delete') }}
         </UiButton>
       </template>
-      <UiCard />
+      <UiCard v-for="card in cardsContent" :key="card.name" class="card">
+        <UiCardTitle>{{ card.name }}</UiCardTitle>
+        <div v-for="(value, key) in card.content" :key="key" class="card-content">
+          <p class="title typo p3-regular">{{ key }}</p>
+          <div v-if="key === 'network'">
+            <UiComplexIcon size="medium">
+              <VtsIcon :icon="faNetworkWired" accent="current" />
+              <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+            </UiComplexIcon>
+          </div>
+          <div v-if="key === 'status' || key === 'physicalStatus'" class="status-icon">
+            <VtsIcon
+              :accent="getStatusProps(value as NetworkStatus).accent"
+              :icon="faCircle"
+              :overlay-icon="getStatusProps(value as NetworkStatus).icon"
+            />
+          </div>
+          <div v-if="key === 'ip_addresses'" class="description ip typo p3-regular">
+            <div v-for="(ip, index) in value" :key="ip" class="ip-address">
+              <p>{{ ip }}</p>
+              <div class="action-buttons">
+                <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+                <UiButtonIcon v-if="index === 0" :icon="faEllipsis" size="medium" accent="info" />
+              </div>
+            </div>
+          </div>
+          <div v-else-if="key === 'tags'" class="tags">
+            <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+          </div>
+          <div v-else class="description typo p3-regular">
+            <p>{{ value }}</p>
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+          </div>
+        </div>
+      </UiCard>
     </UiPanel>
   </div>
 </template>
@@ -97,13 +133,16 @@ import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
@@ -116,6 +155,7 @@ import {
   faCaretDown,
   faCheck,
   faCircle,
+  faCopy,
   faEdit,
   faEllipsis,
   faExclamation,
@@ -226,6 +266,40 @@ const data = [
     ip_mode: 'Static',
   },
 ]
+const cardsContent = [
+  {
+    name: 'PIF',
+    content: {
+      uuid: '71df26a2-678a-49c7-8232-8ebcac4987ab',
+      network: data[0].name_label,
+      device: data[0].device,
+      status: data[0].status,
+      physicalStatus: data[0].status,
+      vlan: data[0].vlan,
+      tags: ['prod', 'QA'],
+    },
+  },
+  {
+    name: 'Network Info',
+    content: {
+      ip_addresses: ['fe80::1a2b:3c4d:5f', '255.255.255.0', '255.255.255.0', '255.255.255.0', '255.255.255.0'],
+      mac_addresses: '00:1A:2B:3C:4D:5E',
+      netmask: '255.255.255.0',
+      dns: '8.8.8.8',
+      gateway: '192.168.1.1',
+      ip_mode: data[0].ip_mode,
+    },
+  },
+  {
+    name: 'Properties',
+    content: {
+      mtu: '1500',
+      speed: '1000 Mb/s',
+      network_block_device: 'Off',
+      default_locking_mode: 'True',
+    },
+  },
+]
 
 const { filter, predicate } = useTreeFilter()
 
@@ -249,15 +323,6 @@ const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus
 </script>
 
 <style scoped lang="postcss">
-.miss-component {
-  padding: 1.6rem;
-  margin: 0.8rem;
-  border: solid 0.1rem var(--color-neutral-border);
-  border-radius: 0.8rem;
-  text-align: center;
-  background-color: lightblue;
-}
-
 .host-network-view {
   display: flex;
   height: 100%;
@@ -289,6 +354,58 @@ const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .card {
+    gap: 0.8rem;
+  }
+
+  .card-content {
+    width: 100%;
+    display: flex;
+    gap: 1.8rem;
+  }
+
+  .title {
+    min-width: 12rem;
+    overflow-wrap: break-word;
+  }
+
+  .description {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    overflow: hidden;
+    gap: 0.8rem;
+
+    & > p {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    &.ip {
+      display: unset;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .ip-address {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tags {
+    width: 100%;
+    display: flex;
+    gap: 0.8rem;
+  }
 }
 </style>
-ø]
