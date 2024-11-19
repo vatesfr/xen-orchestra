@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-web minor
 
