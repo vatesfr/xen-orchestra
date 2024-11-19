@@ -3,7 +3,6 @@ import { strict as assert } from 'assert'
 
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
-import { tmpdir } from 'os'
 
 import { getHandler } from '.'
 
@@ -34,7 +33,7 @@ const rejectionOf = p =>
     reason => reason
   )
 
-const handlers = [`file://${tmpdir()}`]
+const handlers = [`file://${__dirname}`]
 if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
 
