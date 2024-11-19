@@ -1,7 +1,7 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-layout-console">
     <slot />
-    <UiCard>
+    <UiCard class="card">
       <slot name="actions" />
     </UiCard>
   </div>
@@ -28,11 +28,12 @@ const uiStore = useUiStore()
   &.mobile {
     flex-direction: column;
   }
-}
-.ui-card {
-  height: fit-content;
-  gap: 1.6rem;
-  padding: 1.6rem;
-  width: 43rem;
+
+  .card {
+    height: fit-content;
+    gap: 1.6rem;
+    padding: 1.6rem;
+    width: 43rem;
+  }
 }
 </style>

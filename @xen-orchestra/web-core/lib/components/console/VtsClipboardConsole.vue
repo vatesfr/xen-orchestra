@@ -1,8 +1,8 @@
 <template>
   <div class="vts-clipboard-console">
     <UiCardTitle>{{ $t('console-clipboard') }}</UiCardTitle>
-    <UiTextarea accent="info" :model-value="modelValue" />
-    <div class="btn">
+    <UiTextarea v-tooltip="$t('coming-soon')" accent="info" disabled :model-value="modelValue" />
+    <div class="buttons-container">
       <UiButton v-tooltip="$t('coming-soon')" accent="info" variant="primary" size="medium" disabled>
         {{ $t('send') }}
       </UiButton>
@@ -29,9 +29,10 @@ const modelValue = ref('')
   flex-direction: column;
   gap: 0.8rem;
   width: 100%;
-}
-.btn {
-  display: flex;
-  gap: 0.8rem;
+
+  .buttons-container {
+    display: flex;
+    gap: 0.8rem;
+  }
 }
 </style>

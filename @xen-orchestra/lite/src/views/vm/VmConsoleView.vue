@@ -48,6 +48,8 @@ import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vu
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
+import { logicAnd } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -110,6 +112,15 @@ const openInNewTab = () => {
   const routeData = router.resolve({ query: { ui: '0' } })
   window.open(routeData.href, '_blank')
 }
+
+// Temporary workaround to close fullscreen mode on console.
+// Clemence need to design it.
+const { escape } = useMagicKeys()
+const activeElement = useActiveElement()
+const canClose = computed(
+  () => (activeElement.value == null || activeElement.value.tagName !== 'CANVAS') && !uiStore.hasUi
+)
+whenever(logicAnd(escape, canClose), toggleFullScreen)
 </script>
 
 <style lang="postcss" scoped>
