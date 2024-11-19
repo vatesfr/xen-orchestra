@@ -15,12 +15,11 @@ export const useNetworkStore = defineStore('network', () => {
     sortBy: sortByNameLabel,
   })
   const pifContext = deps.pifStore.getContext()
-
-  const currentRoute = useRoute()
+  const route = useRoute()
 
   const pifsByHost = computed(() => {
     return pifContext.pifs.value
-      .filter(pif => pif.$host === (currentRoute.params.id as XoHost['id']))
+      .filter(pif => pif.$host === (route.params.id as XoHost['id']))
       .map(pif => {
         const network = baseContext.records.value.find(network => network.uuid === pif.$network)
 
