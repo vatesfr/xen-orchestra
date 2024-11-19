@@ -277,6 +277,8 @@ const New = decorate([
           settings[''].maxExportRate = undefined
         }
 
+        settings[''].timezone = DEFAULT_SCHEDULE.timezone
+
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
@@ -354,6 +356,8 @@ const New = decorate([
         if (normalizedSettings['']?.maxExportRate <= 0) {
           normalizedSettings[''].maxExportRate = undefined
         }
+
+        settings[''].timezone = DEFAULT_SCHEDULE.timezone
 
         await editBackupNgJob({
           id: props.job.id,
