@@ -599,6 +599,18 @@ const New = decorate([
           reportRecipients: (reportRecipients.splice(key, 1), reportRecipients),
         })
       },
+      setLongTermRetention({ setGlobalSettings }, retention, granularity) {
+        const { propSettings, settings = propSettings } = this.state
+        const longTermRetention = settings.getIn(['', 'longTermRetention']) ?? {}
+
+        if (retention > 0) {
+          longTermRetention[granularity] = { retention, settings: {} }
+        } else {
+          delete longTermRetention[granularity]
+        }
+
+        setGlobalSettings({ longTermRetention: isEmpty(longTermRetention) ? undefined : longTermRetention })
+      },
       setReportWhen:
         ({ setGlobalSettings }, { value }) =>
         () => {
@@ -679,6 +691,10 @@ const New = decorate([
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
       inputTimeoutId: generateId,
+      inputLongTermRetentionDaily: generateId,
+      inputLongTermRetentionWeekly: generateId,
+      inputLongTermRetentionMonthly: generateId,
+      inputLongTermRetentionYearly: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
       // and it's considered active only when the full mode is enabled
@@ -789,6 +805,7 @@ const New = decorate([
       checkpointSnapshot,
       concurrency,
       fullInterval,
+      longTermRetention = {},
       maxExportRate,
       nbdConcurrency = 1,
       nRetriesVmBackupFailures = 0,
@@ -1244,6 +1261,51 @@ const New = decorate([
                 </CardBlock>
               </Card>
               <Schedules />
+              <Card>
+                <CardHeader>{_('longTermRetention')}</CardHeader>
+                <CardBlock>
+                  <FormGroup>
+                    <label htmlFor={state.inputLongTermRetentionDaily}>
+                      <strong>{_('numberOfDailyBackupsKept')}</strong>
+                    </label>
+                    <Number
+                      id={state.inputLongTermRetentionDaily}
+                      onChange={value => effects.setLongTermRetention(value, 'daily')}
+                      value={longTermRetention.daily?.retention}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputLongTermRetentionWeekly}>
+                      <strong>{_('numberOfWeeklyBackupsKept')}</strong>
+                    </label>
+                    <Number
+                      id={state.inputLongTermRetentionWeekly}
+                      onChange={value => effects.setLongTermRetention(value, 'weekly')}
+                      value={longTermRetention.weekly?.retention}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputLongTermRetentionMonthly}>
+                      <strong>{_('numberOfMonthlyBackupsKept')}</strong>
+                    </label>
+                    <Number
+                      id={state.inputLongTermRetentionMonthly}
+                      onChange={value => effects.setLongTermRetention(value, 'monthly')}
+                      value={longTermRetention.monthly?.retention}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputLongTermRetentionYearly}>
+                      <strong>{_('numberOfYearlyBackupsKept')}</strong>
+                    </label>
+                    <Number
+                      id={state.inputLongTermRetentionYearly}
+                      onChange={value => effects.setLongTermRetention(value, 'yearly')}
+                      value={longTermRetention.yearly?.retention}
+                    />
+                  </FormGroup>
+                </CardBlock>
+              </Card>
             </Col>
           </Row>
           <Row>

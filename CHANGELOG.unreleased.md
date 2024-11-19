@@ -17,6 +17,7 @@
   - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
 - [backups] Handle VTPM content on incremental backup/replication/restore, including differential restore (PR [#8139](https://github.com/vatesfr/xen-orchestra/pull/8139))
 - [Host/Advanced] Allow bypassing blocked migration in maintenance mode (PR [#8149](https://github.com/vatesfr/xen-orchestra/pull/8149))
+- [Backup] Long-term retention
 
 ### Bug fixes
 

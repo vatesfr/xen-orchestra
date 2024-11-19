@@ -623,6 +623,11 @@ const messages = {
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   shorterBackupReports: 'Shorter backup reports',
+  longTermRetention: 'Long-term retention of backups',
+  numberOfDailyBackupsKept: 'Number of daily backups kept',
+  numberOfWeeklyBackupsKept: 'Number of weekly backups kept',
+  numberOfMonthlyBackupsKept: 'Number of monthly backups kept',
+  numberOfYearlyBackupsKept: 'Number of yearly backups kept',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
