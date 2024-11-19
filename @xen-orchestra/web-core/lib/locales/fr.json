@@ -58,6 +58,7 @@
   "object-not-found": "L'objet {id} est introuvable…",
   "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
   "other": "Autre",
+  "page-not-found": "Cette page est introuvable…",
   "patches": "Patches",
   "power-on-vm-for-console": "Allumez votre VM pour accéder à sa console",
   "power-on-host-for-console": "Allumez votre hôte pour accéder à sa console",
