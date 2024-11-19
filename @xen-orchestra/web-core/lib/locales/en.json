@@ -6,6 +6,7 @@
   "bytes.gi": "GiB",
 
   "coming-soon": "Coming soon!",
+  "connected": "Connected",
   "console": "Console",
   "console-actions": "Console actions",
   "console-clipboard": "Console clipboard",
@@ -44,7 +45,11 @@
 
   "access-forum": "Access forum",
   "dashboard": "Dashboard",
+  "delete": "Delete",
   "device": "Device",
+  "disconnected": "Disconnected",
+  "disconnected-from-physical-device": "Disconnected from physical device",
+  "dns": "DNS",
   "edit": "Edit",
   "default-locking-mode": "Default locking mode",
   "documentation-name": "{name} documentation",
@@ -64,6 +69,7 @@
   "mbs": "Mb/s",
   "mtu": "MTU",
   "n-vms": "1 VM | {n} VMs",
+  "netmask": "Netmask",
   "network": "Network",
   "network-blocking-device": "Network blocking device",
   "network-information": "Network Information",
@@ -90,6 +96,7 @@
   "send-ctrl-alt-del": "Send Ctrl+Alt+Del",
   "speed": "Speed",
   "stats": "Stats",
+  "status": "Status",
   "storage": "Storage",
   "system": "System",
 
