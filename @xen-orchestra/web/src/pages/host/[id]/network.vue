@@ -65,11 +65,11 @@
               <VtsCellText>{{ pif.device }}</VtsCellText>
               <VtsCellObject>
                 <VtsIcon
-                  :accent="getStatusProps(status(pif) as NetworkStatus).accent"
+                  :accent="getStatusProps(status(pif)).accent"
                   :icon="faCircle"
-                  :overlay-icon="getStatusProps(status(pif) as NetworkStatus).icon"
+                  :overlay-icon="getStatusProps(status(pif)).icon"
                 />
-                <div class="pif-status">{{ getStatusProps(status(pif) as NetworkStatus).text }}</div>
+                <div class="pif-status">{{ $t(getStatusProps(status(pif)).text) }}</div>
               </VtsCellObject>
               <VtsCellText>{{ pif.vlan }}</VtsCellText>
               <VtsCellText>{{ pif.ip }}</VtsCellText>
@@ -115,20 +115,20 @@
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('pif-status') }}</p>
           <VtsIcon
-            :accent="getStatusProps(status(selectedPif[0]) as NetworkStatus).accent"
+            :accent="getStatusProps(status(selectedPif[0])).accent"
             :icon="faCircle"
-            :overlay-icon="getStatusProps(status(selectedPif[0]) as NetworkStatus).icon"
+            :overlay-icon="getStatusProps(status(selectedPif[0])).icon"
           />
-          <p class="typo p3-regular">{{ getStatusProps(status(selectedPif[0]) as NetworkStatus).text }}</p>
+          <p class="typo p3-regular">{{ $t(getStatusProps(status(selectedPif[0])).text) }}</p>
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('physical-interface-status') }}</p>
           <VtsIcon
-            :accent="getStatusProps(status(selectedPif[0]) as NetworkStatus).accent"
+            :accent="getStatusProps(status(selectedPif[0])).accent"
             :icon="faCircle"
-            :overlay-icon="getStatusProps(status(selectedPif[0]) as NetworkStatus).icon"
+            :overlay-icon="getStatusProps(status(selectedPif[0])).icon"
           />
-          <p class="typo p3-regular">{{ getStatusProps(status(selectedPif[0]) as NetworkStatus).text }}</p>
+          <p class="typo p3-regular">{{ $t(getStatusProps(status(selectedPif[0])).text) }}</p>
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('vlan') }}</p>
@@ -238,20 +238,20 @@ const { filter } = useTreeFilter()
 const pifs = computed(() => pifsByHost.value.map(pif => ({ ...pif })))
 const selectedPif = computed(() => pifs.value as XoPif[])
 
-type NetworkStatus = 'connected' | 'disconnected' | 'other'
+type NetworkStatus = 'connected' | 'disconnected' | 'partial'
 type NetworkAccent = 'success' | 'warning' | 'danger'
 
 const states: Record<NetworkStatus, { text: string; icon: IconDefinition; accent: NetworkAccent }> = {
-  connected: { text: 'Connected', icon: faCheck, accent: 'success' },
-  disconnected: { text: 'Disconnected', icon: faCheck, accent: 'danger' },
-  other: { text: 'Disconnected from physical device', icon: faExclamation, accent: 'warning' },
+  connected: { text: 'connected', icon: faCheck, accent: 'success' },
+  disconnected: { text: 'disconnected', icon: faCheck, accent: 'danger' },
+  partial: { text: 'disconnected-from-physical-device', icon: faExclamation, accent: 'warning' },
 }
 const status = (pif: XoPif) => {
   if (pif.attached && pif.carrier) {
     return 'connected'
   }
   if (pif.attached && !pif.carrier) {
-    return 'other'
+    return 'partial'
   }
   return 'disconnected'
 }
