@@ -69,7 +69,7 @@
   "mbs": "Mb/s",
   "mtu": "MTU",
   "n-vms": "1 VM | {n} VMs",
-  "netmask": "Netmask",
+  "netmask": "Masque réseau",
   "network": "Réseau",
   "network-blocking-device": "Appareil de blocage réseau",
   "network-information": "Information du réseau",
