@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
+- **XO 6**:
+  - [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
 
 ### Bug fixes
 
