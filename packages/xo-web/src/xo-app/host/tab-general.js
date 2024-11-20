@@ -69,10 +69,7 @@ export default decorate([
         ipmiSensors?.psuStatus?.filter(psuStatus => psuStatus.Event !== "'Presence detected'"),
       nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
-      biosData: async (_, { host }) => {
-        const data = await check2crsiHostBiosVersion(host)
-        return data
-      },
+      biosData: (_, { host }) => check2crsiHostBiosVersion(host),
     },
   }),
   injectState,
@@ -242,14 +239,14 @@ export default decorate([
           </Row>
         )}
         <br />
-        {biosData && (
+        {biosData !== undefined && biosData.currentBiosVersion && (
           <Row className='text-xs-center'>
             <Col>
               <h2>
                 <Icon icon='bios-version' size='lg' />
               </h2>
               <p>
-                {_('currentBiosVersion')}{' '}
+                {_('currentBiosVersion')} ({biosData.currentBiosVersion}){' '}
                 <b>
                   <Icon
                     icon={biosData.isUpToDate ? 'success' : 'false'}

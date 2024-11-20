@@ -2892,7 +2892,6 @@ const messages = {
   highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
   inletTemperature: 'Inlet temperature',
   ipmi: 'IPMI',
-  latestBiosVersion: 'Latest version',
   nFanStatus: '{n, number}x fan{n, plural, one {} other {s}} status: {status}',
   nPsuStatus: '{n, number}x PSU{n, plural, one {} other {s}} status: {status}',
   outletTemperature: 'Outlet temperature',

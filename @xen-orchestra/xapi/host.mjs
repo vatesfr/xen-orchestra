@@ -1,3 +1,4 @@
+import TTLCache from '@isaacs/ttlcache'
 import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateClass } from '@vates/decorate-with'
@@ -12,6 +13,10 @@ import {
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
   isRelevantIpmiSensor,
 } from './host/_ipmi.mjs'
+
+const HOST_2CRSI_CACHE = new TTLCache({
+  ttl: 6e4,
+})
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -165,15 +170,26 @@ class Host {
 
   async checkBiosUpdate(ref) {
     const biosData = await this.call('host.get_bios_strings', ref)
-    const { 'bios-version': currentBiosVersion } = biosData
+    const { 'bios-version': currentBiosVersion, 'system-product-name': hostServerName } = biosData
 
-    const response = await fetch(
-      'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
-    )
+    if (!HOST_2CRSI_CACHE.has('servers')) {
+      const response = await fetch(
+        'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
+      )
+      const json = await response.json()
+      const servers = json[0]['2CRSi_Servers']
+      HOST_2CRSI_CACHE.set('servers', servers)
+    }
 
-    const parsedData = (await response.json())[0]?.['2CRSi_Servers']
+    const parsedData = HOST_2CRSI_CACHE.get('servers')
 
-    const serverData = parsedData.find(server => server.Server_Name)
+    const normalize = str => str.replace(/[_\s]/g, '').toLowerCase()
+
+    const serverData = parsedData.find(server => normalize(server.Server_Name) === normalize(hostServerName))
+
+    if (serverData === undefined) {
+      return undefined
+    }
 
     const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
     const isUpToDate = currentBiosVersion === latestBiosVersion
