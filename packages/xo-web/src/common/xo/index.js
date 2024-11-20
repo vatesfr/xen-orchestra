@@ -754,6 +754,8 @@ export const subscribeIpmiSensors = host => {
   return subscribeHostsIpmiSensors[hostId]
 }
 
+export const check2crsiHostBiosVersion = host => _call('host.checkBiosUpdate', { id: resolveId(host) })
+
 const subscribeVmSecurebootReadiness = {}
 export const subscribeSecurebootReadiness = id => {
   const vmId = resolveId(id)

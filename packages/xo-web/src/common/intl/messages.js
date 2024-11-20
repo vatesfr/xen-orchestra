@@ -1523,8 +1523,7 @@ const messages = {
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
-  nestedVirtualizationWarning:
-    'Unstable feature, insecure for the host, usage is discouraged. Click for more details.',
+  nestedVirtualizationWarning: 'Unstable feature, insecure for the host, usage is discouraged. Click for more details.',
   vmAffinityHost: 'Affinity host',
   vmNeedToBeHalted: 'The VM needs to be halted',
   vmVga: 'VGA',
@@ -2887,10 +2886,13 @@ const messages = {
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 
   // ----- IPMI -----
+  currentBiosVersion: 'Current BIOS version',
+  downloadBiosUpdate: 'Download BIOS update',
   highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degres})',
   highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
   inletTemperature: 'Inlet temperature',
   ipmi: 'IPMI',
+  latestBiosVersion: 'Latest version',
   nFanStatus: '{n, number}x fan{n, plural, one {} other {s}} status: {status}',
   nPsuStatus: '{n, number}x PSU{n, plural, one {} other {s}} status: {status}',
   outletTemperature: 'Outlet temperature',

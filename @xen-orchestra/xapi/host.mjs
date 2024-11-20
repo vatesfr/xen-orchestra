@@ -162,6 +162,24 @@ class Host {
 
     return ipmiSensorsByDataType
   }
+
+  async checkBiosUpdate(ref) {
+    const biosData = await this.call('host.get_bios_strings', ref)
+    const { 'bios-version': currentBiosVersion } = biosData
+
+    const response = await fetch(
+      'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
+    )
+
+    const parsedData = (await response.json())[0]?.['2CRSi_Servers']
+
+    const serverData = parsedData.find(server => server.Server_Name)
+
+    const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
+    const isUpToDate = currentBiosVersion === latestBiosVersion
+
+    return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
+  }
 }
 export default Host
 

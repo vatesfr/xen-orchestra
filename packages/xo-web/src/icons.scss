@@ -453,6 +453,10 @@
     @extend .fa;
     @extend .fa-tachometer;
   }
+  &-bios-version {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
 
   // VM
   &-vm {

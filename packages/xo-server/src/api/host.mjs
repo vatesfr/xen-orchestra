@@ -630,3 +630,13 @@ getIpmiSensors.params = {
 getIpmiSensors.resolve = {
   host: ['id', 'host', 'administrate'],
 }
+
+export function checkBiosUpdate({ host }) {
+  return this.getXapi(host).host_checkBiosUpdate(host._xapiRef)
+}
+checkBiosUpdate.params = {
+  id: { type: 'string' },
+}
+checkBiosUpdate.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
