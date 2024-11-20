@@ -12,7 +12,7 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
   return {
     run: vms => xapi.vm.resume(Object.fromEntries(vms.map(vm => [vm.$ref, vm.power_state]))),
     validate: (isRunning, vms) => {
-      if (!vms || vms.length === 0) {
+      if (vms.length === 0) {
         throw new JobError(t('job.vm-resume.missing-vms'))
       }
 

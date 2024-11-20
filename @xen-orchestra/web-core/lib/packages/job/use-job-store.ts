@@ -29,13 +29,9 @@ export const useJobStore = defineStore('job', () => {
 
       return (
         identitiesToCheck.length === 0 ||
-        identitiesToCheck.every((identityToCheck, index) => {
-          // if (identityToCheck === ANY) {
-          //   return true
-          // }
-
-          return toArray(identityToCheck).some(identity => runningJob.identities[index]?.includes(identity))
-        })
+        identitiesToCheck.every((identityToCheck, index) =>
+          toArray(identityToCheck).some(identity => runningJob.identities[index]?.includes(identity))
+        )
       )
     })
   }

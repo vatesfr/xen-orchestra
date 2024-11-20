@@ -12,7 +12,7 @@ export const useVmDeleteJob = defineJob('vm.delete', [vmsArg], () => {
   return {
     run: vms => xapi.vm.delete(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
-      if (!vms || vms.length === 0) {
+      if (vms.length === 0) {
         throw new JobError(t('job.vm-delete.missing-vms'))
       }
 
