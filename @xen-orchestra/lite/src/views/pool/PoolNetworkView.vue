@@ -1,7 +1,7 @@
 <template>
-  <div class="network-view-container">
-    <UiCard class="card-wrapper">
-      <div class="networks-container">
+  <div class="pool-network-view">
+    <UiCard class="card">
+      <div class="networks-content">
         <UiTitle>
           {{ $t('network') }}
           <template #actions>
@@ -60,7 +60,7 @@
         </div>
       </div>
       <UiCardSpinner v-if="!isReady" />
-      <div class="host-internal-networks-container">
+      <div class="host-internal-networks-content">
         <UiTitle>
           {{ $t('host-internal-network') }}
           <template #actions>
@@ -175,46 +175,25 @@ watchEffect(() => {
 </script>
 
 <style lang="postcss" scoped>
-.network-view-container {
+.pool-network-view {
   display: flex;
-}
-.card-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
-  margin: 0.8rem;
-
-  .networks-container,
-  .host-internal-networks-container {
+  .card {
     display: flex;
     flex-direction: column;
-    gap: 2.4rem;
-  }
-}
-.ui-info {
-  align-items: center;
-}
-.checkbox-header {
-  width: 4.8rem;
-}
+    gap: 4rem;
+    margin: 0.8rem;
 
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
-  .content-details {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-
-    div:first-child {
-      color: var(--color-neutral-txt-secondary);
-      width: 12rem;
+    .networks-content,
+    .host-internal-networks-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2.4rem;
     }
-    div:nth-child(2) {
-      color: var(--color-neutral-txt-primary);
-      width: 20rem;
+    .ui-info {
+      align-items: center;
+    }
+    .checkbox-header {
+      width: 4.8rem;
     }
   }
 }
