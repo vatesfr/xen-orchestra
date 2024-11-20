@@ -71,7 +71,7 @@
   "n-vms": "1 VM | {n} VMs",
   "netmask": "Netmask",
   "network": "Network",
-  "network-blocking-device": "Network blocking device",
+  "network-block-device": "Network block device",
   "network-information": "Network Information",
   "no-data": "No data",
   "object-not-found": "Object {id} can't be found…",
