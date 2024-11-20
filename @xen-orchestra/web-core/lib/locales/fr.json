@@ -71,7 +71,7 @@
   "n-vms": "1 VM | {n} VMs",
   "netmask": "Masque réseau",
   "network": "Réseau",
-  "network-blocking-device": "Appareil de blocage réseau",
+  "network-block-device": "Appareil de blocage réseau",
   "network-information": "Information du réseau",
   "no-data": "Aucune donnée",
   "object-not-found": "L'objet {id} est introuvable…",
