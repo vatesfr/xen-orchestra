@@ -12,7 +12,7 @@ export const useVmRebootJob = defineJob('vm.reboot', [vmsArg], () => {
   return {
     run: vms => xapi.vm.reboot(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
-      if (!vms || vms.length === 0) {
+      if (vms.length === 0) {
         throw new JobError(t('job.vm-reboot.missing-vms'))
       }
 

@@ -16,7 +16,7 @@ export const useVmCopyJob = defineJob('vm.copy', [vmsArg], () => {
       return xapi.vm.clone(vmRefsToClone)
     },
     validate: (isRunning, vms) => {
-      if (!vms || vms.length === 0) {
+      if (vms.length === 0) {
         throw new JobError(t('job.vm-copy.missing-vms'))
       }
 

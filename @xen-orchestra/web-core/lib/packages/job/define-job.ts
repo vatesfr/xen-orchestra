@@ -97,7 +97,7 @@ export function defineJob<const TJobArgs extends JobArg[], TRunResult>(
           return error
         }
 
-        return new JobError('Unknown job error', name, args.value)
+        return new JobError('Unknown job error', name, args.value, error)
       }
     })
 
