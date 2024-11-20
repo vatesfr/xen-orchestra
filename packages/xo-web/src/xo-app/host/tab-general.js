@@ -239,20 +239,16 @@ export default decorate([
           </Row>
         )}
         <br />
-        {biosData !== undefined && biosData.currentBiosVersion && (
+        {biosData !== undefined && (
           <Row className='text-xs-center'>
             <Col>
-              <h2>
-                <Icon icon='bios-version' size='lg' />
-              </h2>
+              <Icon icon='bios-version' size={3} />
               <p>
-                {_('currentBiosVersion')} ({biosData.currentBiosVersion}){' '}
-                <b>
-                  <Icon
-                    icon={biosData.isUpToDate ? 'success' : 'false'}
-                    className={biosData.isUpToDate ? 'text-success' : 'text-danger'}
-                  />
-                </b>
+                {_('currentBiosVersion', { version: biosData.currentBiosVersion })}{' '}
+                <Icon
+                  icon={biosData.isUpToDate ? 'success' : 'false'}
+                  className={biosData.isUpToDate ? 'text-success' : 'text-danger'}
+                />
                 <br />
                 {!biosData.isUpToDate && (
                   <a href={biosData.biosLink} target='_blank' rel='noopener noreferrer'>

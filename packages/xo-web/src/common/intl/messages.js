@@ -2886,7 +2886,7 @@ const messages = {
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 
   // ----- IPMI -----
-  currentBiosVersion: 'Current BIOS version',
+  currentBiosVersion: 'Current BIOS version: {version}',
   downloadBiosUpdate: 'Download BIOS update',
   highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degres})',
   highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
