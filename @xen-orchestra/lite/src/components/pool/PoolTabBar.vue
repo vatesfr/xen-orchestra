@@ -12,7 +12,7 @@
     <RouterTab :to="{ name: 'pool.system', params: { uuid: pool?.uuid } }" disabled>
       {{ $t('system') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'pool.network', params: { uuid: pool?.uuid } }" disabled>
+    <RouterTab :to="{ name: 'pool.network', params: { uuid: pool?.uuid } }">
       {{ $t('network') }}
     </RouterTab>
     <RouterTab :to="{ name: 'pool.storage', params: { uuid: pool?.uuid } }" disabled>
