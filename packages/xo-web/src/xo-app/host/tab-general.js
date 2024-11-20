@@ -19,6 +19,8 @@ import { Pool } from 'render-xo-item'
 import { isEmpty } from 'lodash'
 import LicenseWarning from './license-warning'
 
+const getPsuName = psu => psu.name.split('_')[0]
+
 export default decorate([
   addSubscriptions(({ host }) => ({
     ipmiSensors: subscribeIpmiSensors(host),
@@ -41,7 +43,7 @@ export default decorate([
         let cpu
         let cpuTemp = 0
         ipmiSensors?.cpuTemp?.forEach(cpuInfo => {
-          const temp = parseFloat(cpuInfo.Reading)
+          const temp = parseFloat(cpuInfo.value.split(' ')[0])
           if (temp > cpuTemp) {
             cpuTemp = temp
             cpuInfo.temp = temp
@@ -55,7 +57,7 @@ export default decorate([
         let fan
         let fanSpeed = 0
         ipmiSensors?.fanSpeed?.forEach(fanInfo => {
-          const speed = parseFloat(fanInfo.Reading)
+          const speed = parseFloat(fanInfo.value.split(' ')[0])
           if (speed > fanSpeed) {
             fanSpeed = speed
             fanInfo.speed = speed
@@ -64,9 +66,13 @@ export default decorate([
         })
         return fan
       },
-      fansKo: (_, { ipmiSensors }) => ipmiSensors?.fanStatus?.filter(fanStatus => fanStatus.Event !== "'OK'"),
+      fansKo: (_, { ipmiSensors }) => ipmiSensors?.fanStatus?.filter(fanStatus => fanStatus.event !== 'ok'),
       psusKo: (_, { ipmiSensors }) =>
-        ipmiSensors?.psuStatus?.filter(psuStatus => psuStatus.Event !== "'Presence detected'"),
+        ipmiSensors?.psuStatus?.filter(psuStatus => {
+          const psuName = getPsuName(psuStatus)
+          const _psuPower = ipmiSensors.psuPower.find(sensor => getPsuName(sensor) === psuName)
+          return psuStatus.event !== 'ok' || Number(_psuPower.value.split(' ')[0]) === 0
+        }),
       nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
       biosData: async (_, { host }) => {
@@ -270,12 +276,12 @@ export default decorate([
                     key: _('ipmi'),
                     value: (
                       <b>
-                        {ipmiSensors.bmcStatus.Event === "'OK'" ? (
-                          <a href={`http://${ipmiSensors.generalInfo.ip}`} target='_blank' rel='noopener noreferrer'>
-                            {ipmiSensors.generalInfo.ip}
+                        {ipmiSensors.bmcStatus.event === 'ok' ? (
+                          <a href={`http://${ipmiSensors.ip.value}`} target='_blank' rel='noopener noreferrer'>
+                            {ipmiSensors.ip.value}
                           </a>
                         ) : (
-                          <span className='text-danger'>{ipmiSensors.bmcStatus.Event}</span>
+                          <span className='text-danger'>{ipmiSensors.bmcStatus.event}</span>
                         )}
                       </b>
                     ),
@@ -284,11 +290,7 @@ export default decorate([
                 <IpmiSensorCard icon='total-power'>
                   {_('keyValue', {
                     key: _('totalPower'),
-                    value: (
-                      <b>
-                        {ipmiSensors.totalPower.Reading} {ipmiSensors.totalPower.Units}
-                      </b>
-                    ),
+                    value: <b>{ipmiSensors.totalPower.value}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='psu'>
@@ -302,7 +304,7 @@ export default decorate([
                           </b>
                         ),
                       })}{' '}
-                      ({psusKo.map(psu => psu.Name.split('_')[0]).join(', ')})
+                      ({psusKo.map(getPsuName).join(', ')})
                       <br />
                     </span>
                   )}
@@ -319,11 +321,7 @@ export default decorate([
                 <IpmiSensorCard icon='cpu-temperature'>
                   {_('highestCpuTemperature', {
                     n: ipmiSensors.cpuTemp.length,
-                    degres: (
-                      <b>
-                        {cpuHighestTemp.temp}°{cpuHighestTemp.Units}
-                      </b>
-                    ),
+                    degres: <b>{cpuHighestTemp.value}</b>,
                   })}
                 </IpmiSensorCard>
               </Row>
@@ -356,31 +354,19 @@ export default decorate([
                 <IpmiSensorCard icon='fan-speed'>
                   {_('highestFanSpeed', {
                     n: ipmiSensors.fanSpeed.length,
-                    speed: (
-                      <b>
-                        {fanHighestSpeed.speed} {fanHighestSpeed.Units}
-                      </b>
-                    ),
+                    speed: <b>{fanHighestSpeed.value}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='inlet'>
                   {_('keyValue', {
                     key: _('inletTemperature'),
-                    value: (
-                      <b>
-                        {ipmiSensors.inletTemp.Reading}°{ipmiSensors.inletTemp.Units}
-                      </b>
-                    ),
+                    value: <b>{ipmiSensors.inletTemp.value}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='outlet'>
                   {_('keyValue', {
                     key: _('outletTemperature'),
-                    value: (
-                      <b>
-                        {ipmiSensors.outletTemp.Reading}°{ipmiSensors.outletTemp.Units}
-                      </b>
-                    ),
+                    value: <b>{ipmiSensors.outletTemp.value}</b>,
                   })}
                 </IpmiSensorCard>
               </Row>

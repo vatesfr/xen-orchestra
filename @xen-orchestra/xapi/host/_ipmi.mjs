@@ -7,7 +7,8 @@ export const IPMI_SENSOR_DATA_TYPE = {
   fanStatus: 'fanStatus',
   fanSpeed: 'fanSpeed',
   psuStatus: 'psuStatus',
-  generalInfo: 'generalInfo',
+  psuPower: 'psuPower',
+  ip: 'ip',
   unknown: 'unknown',
 }
 
@@ -21,6 +22,8 @@ export const IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
     [IPMI_SENSOR_DATA_TYPE.fanStatus]: /^fan[0-9]+_status$/i,
     [IPMI_SENSOR_DATA_TYPE.fanSpeed]: /^fan[0-9]+_r_speed$/i,
     [IPMI_SENSOR_DATA_TYPE.psuStatus]: /^psu[0-9]+_status$/i,
+    [IPMI_SENSOR_DATA_TYPE.psuPower]: /^psu[0-9]+_pin$/i,
+    [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
   },
 }
 const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME).reduce(
@@ -34,12 +37,12 @@ const IPMI_SENSOR_REGEX_BY_PRODUCT_NAME = Object.keys(IPMI_SENSOR_REGEX_BY_DATA_
 )
 
 export const isRelevantIpmiSensor = (data, productName) =>
-  IPMI_SENSOR_REGEX_BY_PRODUCT_NAME[productName].test(data.Name)
+  IPMI_SENSOR_REGEX_BY_PRODUCT_NAME[productName].test(data.name)
 
 export const containsDigit = str => /\d/.test(str)
 
 export const addIpmiSensorDataType = (data, productName) => {
-  const name = data.Name
+  const name = data.name
   const ipmiRegexByDataType = IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName]
 
   for (const dataType in ipmiRegexByDataType) {

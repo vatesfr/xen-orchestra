@@ -8,7 +8,6 @@ import { getCurrentVmUuid } from './_XenStore.mjs'
 import {
   addIpmiSensorDataType,
   containsDigit,
-  IPMI_SENSOR_DATA_TYPE,
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
   isRelevantIpmiSensor,
 } from './host/_ipmi.mjs'
@@ -134,19 +133,20 @@ class Host {
 
     if (
       IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined ||
-      !(await callIpmiPlugin('is_ipmi_device_available'))
+      (await callIpmiPlugin('is_ipmi_device_available')) === 'false'
     ) {
       return {}
     }
 
-    const [stringifiedIpmiSensors, ip] = await Promise.all([
+    const [stringifiedIpmiSensors, stringifiedIpmiIp] = await Promise.all([
       callIpmiPlugin('get_all_sensors'),
       callIpmiPlugin('get_ipmi_lan'),
     ])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
+    const ipmiIp = JSON.parse(stringifiedIpmiIp)
 
     const ipmiSensorsByDataType = {}
-    for (const ipmiSensor of ipmiSensors) {
+    for (const ipmiSensor of [...ipmiSensors, ...ipmiIp]) {
       if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
         continue
       }
@@ -155,15 +155,13 @@ class Host {
       const dataType = ipmiSensor.dataType
 
       if (ipmiSensorsByDataType[dataType] === undefined) {
-        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.Name) ? [] : ipmiSensor
+        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.name) ? [] : ipmiSensor
       }
 
       if (Array.isArray(ipmiSensorsByDataType[ipmiSensor.dataType])) {
         ipmiSensorsByDataType[dataType].push(ipmiSensor)
       }
     }
-
-    ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.generalInfo] = { ip }
 
     return ipmiSensorsByDataType
   }
