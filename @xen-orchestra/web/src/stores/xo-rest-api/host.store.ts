@@ -32,7 +32,6 @@ export const useHostStore = defineStore('host', () => {
 
       hostsByPoolMap.get(poolId)!.push(host)
     })
-
     return hostsByPoolMap
   })
 
