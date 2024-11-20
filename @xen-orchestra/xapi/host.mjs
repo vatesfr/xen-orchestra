@@ -138,15 +138,15 @@ class Host {
       return {}
     }
 
-    const [stringifiedIpmiSensors, stringifiedIpmiIp] = await Promise.all([
+    const [stringifiedIpmiSensors, stringifiedIpmiLan] = await Promise.all([
       callIpmiPlugin('get_all_sensors'),
       callIpmiPlugin('get_ipmi_lan'),
     ])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
-    const ipmiIp = JSON.parse(stringifiedIpmiIp)
+    const ipmiLan = JSON.parse(stringifiedIpmiLan)
 
     const ipmiSensorsByDataType = {}
-    for (const ipmiSensor of [...ipmiSensors, ...ipmiIp]) {
+    for (const ipmiSensor of [...ipmiSensors, ...ipmiLan]) {
       if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
         continue
       }

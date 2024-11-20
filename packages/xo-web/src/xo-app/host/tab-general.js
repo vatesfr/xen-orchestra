@@ -19,7 +19,7 @@ import { Pool } from 'render-xo-item'
 import { isEmpty } from 'lodash'
 import LicenseWarning from './license-warning'
 
-const getPsuName = psu => psu.name.split('_')[0]
+const getSensorName = sensor => sensor.name.split('_')[0]
 
 export default decorate([
   addSubscriptions(({ host }) => ({
@@ -69,12 +69,12 @@ export default decorate([
       fansKo: (_, { ipmiSensors }) => ipmiSensors?.fanStatus?.filter(fanStatus => fanStatus.event !== 'ok'),
       psusKo: (_, { ipmiSensors }) =>
         ipmiSensors?.psuStatus?.filter(psuStatus => {
-          const psuName = getPsuName(psuStatus)
-          const _psuPower = ipmiSensors.psuPower.find(sensor => getPsuName(sensor) === psuName)
-          return psuStatus.event !== 'ok' || Number(_psuPower.value.split(' ')[0]) === 0
+          const psuName = getSensorName(psuStatus)
+          const _psuPower = ipmiSensors.psuPower.find(sensor => getSensorName(sensor) === psuName)
+          return psuStatus.event !== 'ok' || _psuPower === undefined || Number(_psuPower.value.split(' ')[0]) === 0
         }),
-      nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
-      nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
+      nFansOk: ({ fansKo }, { ipmiSensors }) => (ipmiSensors?.fanStatus?.length ?? 0) - (fansKo?.length ?? 0),
+      nPsusOk: ({ psusKo }, { ipmiSensors }) => (ipmiSensors?.psuStatus?.length ?? 0) - (psusKo?.length ?? 0),
       biosData: async (_, { host }) => {
         const biosInfo = await getHostBiosInfo(host)
         return typeof biosInfo === 'object' && biosInfo !== null ? biosInfo : undefined
@@ -276,12 +276,16 @@ export default decorate([
                     key: _('ipmi'),
                     value: (
                       <b>
-                        {ipmiSensors.bmcStatus.event === 'ok' ? (
-                          <a href={`http://${ipmiSensors.ip.value}`} target='_blank' rel='noopener noreferrer'>
-                            {ipmiSensors.ip.value}
-                          </a>
+                        {ipmiSensors.bmcStatus?.event === 'ok' ? (
+                          ipmiSensors.ip !== undefined ? (
+                            <a href={`http://${ipmiSensors.ip.value}`} target='_blank' rel='noopener noreferrer'>
+                              {ipmiSensors.ip.value}
+                            </a>
+                          ) : (
+                            <p>{_('unknown')}</p>
+                          )
                         ) : (
-                          <span className='text-danger'>{ipmiSensors.bmcStatus.event}</span>
+                          <span className='text-danger'>{ipmiSensors.bmcStatus?.event ?? _('unknown')}</span>
                         )}
                       </b>
                     ),
@@ -290,21 +294,21 @@ export default decorate([
                 <IpmiSensorCard icon='total-power'>
                   {_('keyValue', {
                     key: _('totalPower'),
-                    value: <b>{ipmiSensors.totalPower.value}</b>,
+                    value: <b>{ipmiSensors.totalPower?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='psu'>
                   {psusKo !== undefined && psusKo.length !== 0 && (
                     <span>
                       {_('nPsuStatus', {
-                        n: ipmiSensors.psuStatus.length - nPsusOk,
+                        n: (ipmiSensors.psuStatus?.length ?? 0) - nPsusOk,
                         status: (
                           <b>
                             <Icon icon='false' className='text-danger' />
                           </b>
                         ),
                       })}{' '}
-                      ({psusKo.map(getPsuName).join(', ')})
+                      ({psusKo.map(getSensorName).join(', ')})
                       <br />
                     </span>
                   )}
@@ -320,8 +324,8 @@ export default decorate([
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='cpu-temperature'>
                   {_('highestCpuTemperature', {
-                    n: ipmiSensors.cpuTemp.length,
-                    degres: <b>{cpuHighestTemp.value}</b>,
+                    n: ipmiSensors.cpuTemp?.length ?? 0,
+                    degres: <b>{cpuHighestTemp?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
               </Row>
@@ -330,14 +334,14 @@ export default decorate([
                   {fansKo !== undefined && fansKo.length !== 0 && (
                     <span>
                       {_('nFanStatus', {
-                        n: ipmiSensors.fanStatus.length - nFansOk,
+                        n: (ipmiSensors.fanStatus?.length ?? 0) - nFansOk,
                         status: (
                           <b>
                             <Icon icon='false' className='text-danger' />
                           </b>
                         ),
                       })}{' '}
-                      ({fansKo.map(fan => fan.Name.split('_')[0]).join(', ')})
+                      ({fansKo.map(getSensorName).join(', ')})
                       <br />
                     </span>
                   )}
@@ -353,20 +357,20 @@ export default decorate([
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='fan-speed'>
                   {_('highestFanSpeed', {
-                    n: ipmiSensors.fanSpeed.length,
-                    speed: <b>{fanHighestSpeed.value}</b>,
+                    n: ipmiSensors.fanSpeed?.length ?? 0,
+                    speed: <b>{fanHighestSpeed?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='inlet'>
                   {_('keyValue', {
                     key: _('inletTemperature'),
-                    value: <b>{ipmiSensors.inletTemp.value}</b>,
+                    value: <b>{ipmiSensors.inletTemp?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
                 <IpmiSensorCard icon='outlet'>
                   {_('keyValue', {
                     key: _('outletTemperature'),
-                    value: <b>{ipmiSensors.outletTemp.value}</b>,
+                    value: <b>{ipmiSensors.outletTemp?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
               </Row>
