@@ -47,7 +47,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="pif in pifs" :key="pif.uuid">
+            <tr v-for="pif in pifs" :key="pif.id">
               <VtsCellText>
                 <UiCheckbox v-model="pif.selected" accent="info" />
               </VtsCellText>
@@ -63,13 +63,8 @@
                 </UiObjectLink>
               </VtsCellText>
               <VtsCellText>{{ pif.device }}</VtsCellText>
-              <VtsCellObject>
-                <VtsIcon
-                  :accent="getStatusProps(status(pif)).accent"
-                  :icon="faCircle"
-                  :overlay-icon="getStatusProps(status(pif)).icon"
-                />
-                <div class="pif-status">{{ getStatusProps(status(pif)).text }}</div>
+              <VtsCellObject class="pif-status">
+                <PifStatus :icon="faCircle" :pif="pif" />
               </VtsCellObject>
               <VtsCellText>{{ pif.vlan }}</VtsCellText>
               <VtsCellText>{{ pif.ip }}</VtsCellText>
@@ -102,7 +97,7 @@
         <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('uuid') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].uuid }}</p>
+          <p class="typo p3-regular">{{ pifs[0].id }}</p>
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('network') }}</p>
@@ -114,21 +109,11 @@
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('pif-status') }}</p>
-          <VtsIcon
-            :accent="getStatusProps(status(pifs[0])).accent"
-            :icon="faCircle"
-            :overlay-icon="getStatusProps(status(pifs[0])).icon"
-          />
-          <p class="typo p3-regular">{{ getStatusProps(status(pifs[0])).text }}</p>
+          <PifStatus :icon="faCircle" :pif="pifs[0]" card />
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('physical-interface-status') }}</p>
-          <VtsIcon
-            :accent="getStatusProps(status(pifs[0])).accent"
-            :icon="faCircle"
-            :overlay-icon="getStatusProps(status(pifs[0])).icon"
-          />
-          <p class="typo p3-regular">{{ getStatusProps(status(pifs[0])).text }}</p>
+          <PifStatus :icon="faCircle" :pif="pifs[0]" card />
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('vlan') }}</p>
@@ -192,9 +177,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import type { XoPif } from '@/types/xo/pif.type'
-import type { Branded } from '@core/types/utility.type'
+import PifStatus from '@/pages/host/[id]/pifStatus.vue'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -215,7 +199,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
   faArrowsRotate,
@@ -225,48 +208,18 @@ import {
   faCircle,
   faEdit,
   faEllipsis,
-  faExclamation,
   faNetworkWired,
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-const { t } = useI18n()
-
-const route = useRoute()
-
-const { pifsByHost, isReady } = useNetworkStore().subscribe()
-
+const { isReady, pifsByHost } = usePifStore().subscribe()
 const { filter } = useTreeFilter()
+const route = useRoute<'/host/[id]/network'>()
+const pifs = computed(() => pifsByHost.value.get(route.params.id) ?? [])
 
-const pifs = computed(() => {
-  const id = route.params.id as Branded<'host'>
-  return pifsByHost.value.get(id) || []
-})
-
-type NetworkStatus = 'connected' | 'disconnected' | 'partial'
-type NetworkAccent = 'success' | 'warning' | 'danger'
-
-const states = computed<Record<NetworkStatus, { text: string; icon: IconDefinition; accent: NetworkAccent }>>(() => ({
-  connected: { text: t('connected'), icon: faCheck, accent: 'success' },
-  disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
-  partial: { text: t('disconnected-from-physical-device'), icon: faExclamation, accent: 'warning' },
-}))
-
-const status = (pif: XoPif) => {
-  if (pif.attached && pif.carrier) {
-    return 'connected'
-  }
-  if (pif.attached && !pif.carrier) {
-    return 'partial'
-  }
-  return 'disconnected'
-}
-
-const getStatusProps = (status: NetworkStatus) => states.value[status as NetworkStatus]
 const selectedItems = computed(() => pifs.value.filter(item => item.selected).length)
 
 const toggleSelect = (isSelected: boolean) => {
