@@ -1,31 +1,27 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
-import type { XoPool } from '@/types/xo/pool.type'
 
 export type XoPif = {
   $host: XoHost['id']
-  $network: string
-  $poolId: XoPool['id']
+  $network: XoNetwork['id']
   allIps: string[]
   attached: boolean
   carrier: boolean
-  defaultLockingMode: XoNetwork['defaultIsLocked']
+  defaultLockingMode: boolean
   device: string
-  deviceName: string
   dns: string
   gateway: string
+  id: string
   ip: string
   ipv6: string[]
-  ipv6Mode: string
   mac: string
   mode: string
-  mtu: XoNetwork['mtu']
-  nbd: XoNetwork['nbd']
+  mtu: string
+  nbd: boolean
   netmask: string
-  networkLabel: XoNetwork['name_label']
+  networkLabel: string
   selected: boolean
   speed: number
-  tags: XoNetwork['tags']
-  uuid: string
+  tags: string[]
   vlan: number
 }
