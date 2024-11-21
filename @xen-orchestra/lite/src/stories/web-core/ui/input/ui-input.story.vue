@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      model().type('string').preset(''),
+      model().type('string | number').preset(''),
       prop('accent').enum('info', 'warning', 'danger').required().preset('info').widget(),
       prop('type').enum('text', 'number', 'password').required().preset('text').widget(),
       prop('disabled').bool().widget(),

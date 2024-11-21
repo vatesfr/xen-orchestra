@@ -6,7 +6,7 @@
     </UiLabel>
     <div>
       <VtsIcon :icon="iconBefore" accent="current" class="before" />
-      <input v-model.trim="modelValue" class="typo p1-regular input text-truncate" :type :disabled v-bind="attrs" />
+      <input v-model.trim="modelValue" class="typo p1-regular input text-ellipsis" :type :disabled v-bind="attrs" />
       <VtsIcon
         v-if="!attrs.disabled && modelValue && clearable"
         :icon="faXmark"
@@ -31,12 +31,12 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed, useAttrs } from 'vue'
 
 type InputTextAccent = 'info' | 'warning' | 'danger'
-type InputType = 'text' | 'number' | 'password'
+type InputType = 'text' | 'number' | 'password | search'
 
 defineOptions({
   inheritAttrs: false,
 })
-const props = defineProps<{
+const { accent } = defineProps<{
   type: InputType
   accent: InputTextAccent
   disabled?: boolean
@@ -56,7 +56,7 @@ const slots = defineSlots<{
 
 const attrs = useAttrs()
 
-const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
+const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
 </script>
 
 <style lang="postcss" scoped>
@@ -78,12 +78,6 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
     width: 100%;
     padding-block: 0.8rem;
     padding-inline: 1.6rem;
-
-    &.text-truncate {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
 
     &::placeholder {
       color: var(--color-neutral-txt-secondary);
