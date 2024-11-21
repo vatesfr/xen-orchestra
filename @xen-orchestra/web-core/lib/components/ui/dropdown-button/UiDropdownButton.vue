@@ -55,8 +55,8 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
   }
 
   &.selected:not(:disabled) {
-    border: 0.2rem solid var(--color-info-txt-base);
     background-color: var(--color-info-background-selected);
+    outline: 0.1rem solid var(--color-info-txt-base);
   }
 
   &:focus-visible {
