@@ -1335,7 +1335,9 @@ export const toggleMaintenanceMode = async host => {
           vms: (
             <ul>
               {vms.map(vm => (
-                <li key={vm.name_label}>{vm.name_label}</li>
+                <li key={vm.id}>
+                  <Vm id={vm.id} />
+                </li>
               ))}
             </ul>
           ),
