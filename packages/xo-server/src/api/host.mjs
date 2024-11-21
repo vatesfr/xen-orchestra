@@ -1,3 +1,4 @@
+import keyBy from 'lodash'
 import TTLCache from '@isaacs/ttlcache'
 import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
@@ -635,8 +636,41 @@ getIpmiSensors.resolve = {
   host: ['id', 'host', 'administrate'],
 }
 
-export function getBiosInfo({ host }) {
-  return this.getXapi(host).host_getBiosInfo(host._xapiRef, { cache: CACHE_2CRSI })
+export async function getBiosInfo({ host }) {
+  const xapi = this.getXapi(host)
+
+  const biosData = await xapi.call('host.get_bios_strings', host._xapiRef)
+
+  const { 'bios-version': currentBiosVersion, 'system-product-name': hostServerName } = biosData
+
+  if (biosData['system-manufacturer']?.toLowerCase() !== '2crsi') {
+    return
+  }
+
+  if (!CACHE_2CRSI || !CACHE_2CRSI.has('servers')) {
+    const response = await fetch(
+      'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
+    )
+    const json = await response.json()
+    const servers = keyBy(json[0]['2CRSi_Servers'], 'Server_Name')
+
+    if (CACHE_2CRSI) {
+      CACHE_2CRSI.set('servers', servers)
+    }
+  }
+
+  const parsedData = CACHE_2CRSI?.get('servers')
+
+  const serverData = parsedData.find(server => server.Server_Name === hostServerName)
+
+  if (serverData === undefined) {
+    return
+  }
+
+  const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
+  const isUpToDate = currentBiosVersion === latestBiosVersion
+
+  return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
 }
 getBiosInfo.params = {
   id: { type: 'string' },

@@ -6,7 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import store from 'store'
 import HomeTags from 'home-tags'
-import { addTag, check2crsiHostBiosVersion, removeTag, subscribeIpmiSensors } from 'xo'
+import { addTag, getBiosInfo, removeTag, subscribeIpmiSensors } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
@@ -69,7 +69,10 @@ export default decorate([
         ipmiSensors?.psuStatus?.filter(psuStatus => psuStatus.Event !== "'Presence detected'"),
       nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
-      biosData: (_, { host }) => check2crsiHostBiosVersion(host),
+      biosData: async (_, { host }) => {
+        const biosInfo = await getBiosInfo(host)
+        return typeof biosInfo === 'object' && biosInfo ? biosInfo : undefined
+      },
     },
   }),
   injectState,
@@ -81,6 +84,7 @@ export default decorate([
     ipmiSensors,
     state: {
       areHostsVersionsEqual,
+      biosData,
       cpuHighestTemp,
       fanHighestSpeed,
       fansKo,
@@ -88,7 +92,6 @@ export default decorate([
       nFansOk,
       nPsusOk,
       psusKo,
-      biosData,
     },
   }) => {
     const pool = getObject(store.getState(), host.$pool)
@@ -252,7 +255,7 @@ export default decorate([
                 <br />
                 {!biosData.isUpToDate && (
                   <a href={biosData.biosLink} target='_blank' rel='noopener noreferrer'>
-                    {_('downloadBiosUpdate')} ({biosData.latestBiosVersion})
+                    {_('downloadBiosUpdate', { version: biosData.latestBiosVersion })}
                   </a>
                 )}
               </p>
