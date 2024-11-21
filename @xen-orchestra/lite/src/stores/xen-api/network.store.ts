@@ -81,8 +81,14 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
     return baseContext.records.value.filter(network => network.PIFs.length === 0) // Only networks without PIFs
   })
 
+  const getPIFsInformationByNetwork = (network: XenApiNetwork) => {
+    const PIFsOpaqueRefNetwork = network.PIFs
+    return PIFsOpaqueRefNetwork.map(ref => pifContext.records.value.find(pif => pif.$ref === ref)).filter(pif => !!pif)
+  }
+
   const context = {
     ...baseContext,
+    getPIFsInformationByNetwork,
     networksWithVLANs,
     hostInternalNetworks,
   }
