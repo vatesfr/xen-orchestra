@@ -1,7 +1,12 @@
 <template>
   <MenuList border :disabled placement="bottom-end">
     <template #trigger="{ isOpen, open }">
-      <AccountMenuTrigger :active="isOpen" @click="open($event)" />
+      <UiAccountMenuButton
+        v-tooltip="isOpen ? false : { content: $t('account-organization-more'), placement: 'bottom-end' }"
+        :selected="isOpen"
+        size="medium"
+        @click="open($event)"
+      />
     </template>
     <MenuItem :icon="faBook">
       <a
@@ -30,9 +35,10 @@
 </template>
 
 <script lang="ts" setup>
-import AccountMenuTrigger from '@/components/account-menu/AccountMenuTrigger.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { faArrowRightFromBracket, faBook, faHeadset } from '@fortawesome/free-solid-svg-icons'
 
 defineProps<{
