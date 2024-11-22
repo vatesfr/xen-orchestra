@@ -7,7 +7,6 @@ export type XoPif = {
   allIps: string[]
   attached: boolean
   carrier: boolean
-  defaultLockingMode: boolean
   device: string
   dns: string
   gateway: string
@@ -17,11 +16,7 @@ export type XoPif = {
   mac: string
   mode: string
   mtu: string
-  nbd: boolean
   netmask: string
-  networkLabel: string
-  selected: boolean
   speed: number
-  tags: string[]
   vlan: number
 }

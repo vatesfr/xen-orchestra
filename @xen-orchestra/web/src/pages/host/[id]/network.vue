@@ -22,17 +22,11 @@
             <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
           </template>
         </UiTableActions>
-        <UiTopBottomTable
-          class="selection"
-          :selected-items="selectedItems"
-          :total-items="pifs.length"
-          @toggle-select-all="toggleSelect"
-        />
         <VtsTable vertical-border class="table">
           <thead>
             <tr>
               <ColumnTitle id="checkbox">
-                <UiCheckbox accent="info" @update:model-value="toggleSelect($event)" />
+                <UiCheckbox accent="info" />
               </ColumnTitle>
               <ColumnTitle id="network" :icon="faAlignLeft">{{ $t('network') }}</ColumnTitle>
               <ColumnTitle id="device" :icon="faAlignLeft">{{ $t('device') }}</ColumnTitle>
@@ -49,7 +43,7 @@
           <tbody>
             <tr v-for="pif in pifs" :key="pif.id">
               <VtsCellText>
-                <UiCheckbox v-model="pif.selected" accent="info" />
+                <UiCheckbox accent="info" />
               </VtsCellText>
               <VtsCellText>
                 <UiObjectLink>
@@ -59,7 +53,7 @@
                       <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                     </UiComplexIcon>
                   </template>
-                  {{ pif.networkLabel }}
+                  {{ getNetworkInformation(pif, 'name_label') }}
                 </UiObjectLink>
               </VtsCellText>
               <VtsCellText>{{ pif.device }}</VtsCellText>
@@ -76,12 +70,6 @@
             </tr>
           </tbody>
         </VtsTable>
-        <UiTopBottomTable
-          class="selection"
-          :selected-items="selectedItems"
-          :total-items="pifs.length"
-          @toggle-select-all="toggleSelect"
-        />
       </div>
     </div>
     <UiPanel v-if="isReady" class="network-panel">
@@ -101,7 +89,7 @@
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('network') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].networkLabel }}</p>
+          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'name_label') }}</p>
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('device') }}</p>
@@ -122,7 +110,9 @@
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('tags') }}</p>
           <div class="tags">
-            <UiTag v-for="tag in pifs[0].tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <UiTag v-for="tag in getNetworkInformation(pifs[0], 'tags')" :key="tag" accent="info" variant="secondary">
+              {{ tag }}
+            </UiTag>
           </div>
         </div>
       </UiCard>
@@ -165,11 +155,11 @@
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('network-block-device') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].nbd }}</p>
+          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'nbd') }}</p>
         </div>
         <div class="card-content">
           <p class="title typo p3-regular">{{ $t('default-locking-mode') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].defaultLockingMode }}</p>
+          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'defaultIsLocked') }}</p>
         </div>
       </UiCard>
     </UiPanel>
@@ -177,8 +167,11 @@
 </template>
 
 <script setup lang="ts">
-import PifStatus from '@/pages/host/[id]/pifStatus.vue'
+import PifStatus from '@/components/pif/PifStatus.vue'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPif } from '@/types/xo/pif.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -197,7 +190,6 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import {
   faAlignLeft,
@@ -216,16 +208,14 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const { isReady, pifsByHost } = usePifStore().subscribe()
+const { get } = useNetworkStore().subscribe()
 const { filter } = useTreeFilter()
 const route = useRoute<'/host/[id]/network'>()
 const pifs = computed(() => pifsByHost.value.get(route.params.id) ?? [])
 
-const selectedItems = computed(() => pifs.value.filter(item => item.selected).length)
-
-const toggleSelect = (isSelected: boolean) => {
-  pifs.value.forEach(item => {
-    item.selected = isSelected
-  })
+const getNetworkInformation = (pif: XoPif, type: keyof XoNetwork) => {
+  const network: XoNetwork = get(pif.$network)!
+  return network ? network[type] : 'Unknown'
 }
 </script>
 
