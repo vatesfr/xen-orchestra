@@ -9,6 +9,7 @@ LEVELS.ERROR = 50 // fatal for current action
 LEVELS.WARN = 40 // something went wrong but it's not fatal
 LEVELS.INFO = 30 // detail on unusual but normal operation
 LEVELS.DEBUG = 20
+LEVELS.TRACE = 10 // extremely verbose logs
 
 const NAMES = Object.create(null)
 exports.NAMES = NAMES

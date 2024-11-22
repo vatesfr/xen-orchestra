@@ -25,6 +25,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('my-module')
 
+log.trace('extremely verbose log')
 log.debug('only useful for debugging')
 log.info('this information is relevant to the user')
 log.warn('something went wrong but did not prevent current action')

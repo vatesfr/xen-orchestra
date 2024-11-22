@@ -19,7 +19,7 @@ if (!(symbol in global)) {
   const level = resolve(env.LOG_LEVEL, LEVELS.WARN)
 
   global[symbol] = function conditionalTransport(log) {
-    if (log.level >= level || matchDebug(log.namespace)) {
+    if (log.level >= level || (log.level >= LEVELS.DEBUG && matchDebug(log.namespace))) {
       transport(log)
     }
   }

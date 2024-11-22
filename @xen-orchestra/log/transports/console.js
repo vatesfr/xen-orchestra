@@ -2,7 +2,7 @@
 
 const { LEVELS, NAMES } = require('../levels')
 
-const { DEBUG, ERROR, FATAL, INFO, WARN } = LEVELS
+const { DEBUG, ERROR, FATAL, INFO, TRACE, WARN } = LEVELS
 
 let formatLevel, formatNamespace
 if (process.stdout !== undefined && process.stdout.isTTY && process.stderr !== undefined && process.stderr.isTTY) {
@@ -13,6 +13,7 @@ if (process.stdout !== undefined && process.stdout.isTTY && process.stderr !== u
     [ERROR]: '1;31',
     [FATAL]: '1;31',
     [INFO]: '1',
+    [TRACE]: '2',
     [WARN]: '1;33',
   }
   formatLevel = level => {

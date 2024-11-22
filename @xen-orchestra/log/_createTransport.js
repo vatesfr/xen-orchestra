@@ -1,6 +1,6 @@
 'use strict'
 
-const { resolve } = require('./levels.js')
+const { LEVELS, resolve } = require('./levels.js')
 const compileGlobPattern = require('./_compileGlobPattern.js')
 
 function compileFilter(filter) {
@@ -14,7 +14,7 @@ function compileFilter(filter) {
   }
   if (type === 'string') {
     const re = compileGlobPattern(filter)
-    return log => re.test(log.namespace)
+    return log => log.level >= LEVELS.DEBUG && re.test(log.namespace)
   }
 
   if (Array.isArray(filter)) {
