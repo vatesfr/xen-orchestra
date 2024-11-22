@@ -1,6 +1,6 @@
 'use strict'
 
-const { unpackHeader, unpackFooter, sectorsToBytes } = require('./_utils')
+const { unpackHeader, unpackFooter } = require('./_utils')
 const { createLogger } = require('@xen-orchestra/log')
 const { fuFooter, fuHeader, checksumStruct } = require('../_structs')
 const { test, set: setBitmap } = require('../_bitmap')
@@ -248,7 +248,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   // only works if data are in the same handler
-  // and if the full block is modified in child ( which is the case with xcp)
+  // and if the full block is modified in child (which is the case with xcp)
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
     const childBlockPath = child._getFullBlockPath?.(blockId)
@@ -281,7 +281,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
     }
     setBitmap(this.#blockTable, blockId)
-    return sectorsToBytes(this.sectorsPerBlock)
+    return this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
   }
 
   async writeEntireBlock(block) {
