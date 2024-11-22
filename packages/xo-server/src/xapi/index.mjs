@@ -7,6 +7,7 @@ import find from 'lodash/find.js'
 import flatMap from 'lodash/flatMap.js'
 import flatten from 'lodash/flatten.js'
 import isEmpty from 'lodash/isEmpty.js'
+import keyBy from 'lodash/keyBy.js'
 import mapToArray from 'lodash/map.js'
 import mixin from '@xen-orchestra/mixin/legacy.js'
 import ms from 'ms'
@@ -1522,5 +1523,40 @@ export default class Xapi extends XapiBase {
         throw error
       }
     }
+  }
+
+  async getBiosInfo(ref, { cache } = {}) {
+    const biosData = await this.call('host.get_bios_strings', ref)
+
+    const { 'bios-version': currentBiosVersion, 'system-product-name': hostServerName } = biosData
+
+    if (biosData['system-manufacturer']?.toLowerCase() !== '2crsi') {
+      return
+    }
+
+    // this code has race conditions which might lead to multiple fetches in parallel
+    // but it's no big deal
+    if (!cache?.has('servers')) {
+      const response = await fetch(
+        'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
+      )
+      const json = await response.json()
+      const servers = keyBy(json[0]['2CRSi_Servers'], 'Server_Name')
+
+      cache?.set('servers', servers)
+    }
+
+    const parsedData = cache?.get('servers')
+
+    const serverData = parsedData?.[hostServerName]
+
+    if (serverData === undefined) {
+      return
+    }
+
+    const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
+    const isUpToDate = currentBiosVersion === latestBiosVersion
+
+    return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
   }
 }
