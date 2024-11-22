@@ -27,7 +27,6 @@ declare module 'vue-router/auto-routes' {
     '/host/:id': RouteRecordInfo<'/host/:id', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/host/[id]/console': RouteRecordInfo<'/host/[id]/console', '/host/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/host/[id]/network': RouteRecordInfo<'/host/[id]/network', '/host/:id/network', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    '/host/[id]/pifStatus': RouteRecordInfo<'/host/[id]/pifStatus', '/host/:id/pifStatus', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/host/[id]/vms': RouteRecordInfo<'/host/[id]/vms', '/host/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]': RouteRecordInfo<'/pool/[id]', '/pool/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/:id': RouteRecordInfo<'/pool/:id', '/pool/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,

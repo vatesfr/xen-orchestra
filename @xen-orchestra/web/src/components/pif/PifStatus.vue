@@ -2,12 +2,12 @@
   <div class="pif-status">
     <VtsIcon
       v-if="icon"
-      :accent="getStatusProps(status(pif)).accent"
+      :accent="getStatusProps(status).accent"
       :icon="faCircle"
-      :overlay-icon="getStatusProps(status(pif)).icon"
+      :overlay-icon="getStatusProps(status).icon"
     />
     <p class="text-ellipsis" :class="{ 'typo p3-regular': card }">
-      {{ getStatusProps(status(pif)).text }}
+      {{ getStatusProps(status).text }}
     </p>
   </div>
 </template>
@@ -20,7 +20,7 @@ import { faCheck, faCircle, faExclamation } from '@fortawesome/free-solid-svg-ic
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const props = defineProps<{
   icon?: IconDefinition
   pif: XoPif
   card?: boolean
@@ -37,15 +37,15 @@ const states = computed<Record<NetworkStatus, { text: string; icon: IconDefiniti
   partial: { text: t('disconnected-from-physical-device'), icon: faExclamation, accent: 'warning' },
 }))
 
-const status = pif => {
-  if (pif.attached && pif.carrier) {
+const status = computed(() => {
+  if (props.pif.attached && props.pif.carrier) {
     return 'connected'
   }
-  if (pif.attached && !pif.carrier) {
+  if (props.pif.attached && !props.pif.carrier) {
     return 'partial'
   }
   return 'disconnected'
-}
+})
 
 const getStatusProps = (status: NetworkStatus) => states.value[status as NetworkStatus]
 </script>
