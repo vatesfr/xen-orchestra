@@ -33,5 +33,6 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- xen-api minor
 
 <!--packages-end-->
