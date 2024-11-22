@@ -1,6 +1,6 @@
-import keyBy from 'lodash'
-import TTLCache from '@isaacs/ttlcache'
+import keyBy from 'lodash/keyBy.js'
 import semver from 'semver'
+import TTLCache from '@isaacs/ttlcache'
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
@@ -661,7 +661,7 @@ export async function getBiosInfo({ host }) {
 
   const parsedData = CACHE_2CRSI?.get('servers')
 
-  const serverData = parsedData.find(server => server.Server_Name === hostServerName)
+  const serverData = parsedData?.[hostServerName]
 
   if (serverData === undefined) {
     return
