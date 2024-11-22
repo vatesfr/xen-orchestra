@@ -20,6 +20,7 @@
 - [Host/Network] When reconfiguring IP address on a PIF, no IPv6 reconfiguration if no IPv6 (PR [#8119](https://github.com/vatesfr/xen-orchestra/pull/8119))
 - [Remotes] Fix NFS port (PR [#8085](https://github.com/vatesfr/xen-orchestra/pull/8085))
 - [Plugins/Perf-alert] Fix unwritable SRs being monitored [Forum#9619](https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
+- [VM/New] Cloudbase-Init is now correctly supported (PR [#8154](https://github.com/vatesfr/xen-orchestra/pull/8154))
 
 ### Packages to release
 
@@ -37,6 +38,7 @@
 
 <!--packages-start-->
 
+- @vates/fatfs minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
