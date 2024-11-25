@@ -4,26 +4,24 @@
     <UiSpinner v-else-if="!isReady" class="spinner" />
     <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="$t('power-on-host-for-console')" />
     <template v-else-if="host && hostConsole">
-      <MenuList horizontal>
-        <MenuItem v-if="uiStore.hasUi" :icon="faArrowUpRightFromSquare" @click="openInNewTab">
-          {{ $t('open-console-in-new-tab') }}
-        </MenuItem>
-        <MenuItem
-          :icon="uiStore.hasUi ? faUpRightAndDownLeftFromCenter : faDownLeftAndUpRightToCenter"
-          @click="toggleFullScreen"
-        >
-          {{ $t(uiStore.hasUi ? 'fullscreen' : 'fullscreen-leave') }}
-        </MenuItem>
-        <MenuItem :disabled="!consoleElement" :icon="faKeyboard" @click="sendCtrlAltDel">
-          {{ $t('send-ctrl-alt-del') }}
-        </MenuItem>
-      </MenuList>
-      <RemoteConsole
-        ref="consoleElement"
-        :is-console-available="isConsoleAvailable"
-        :location="hostConsole.location"
-        class="remote-console"
-      />
+      <VtsLayoutConsole>
+        <RemoteConsole
+          ref="consoleElement"
+          :is-console-available="isConsoleAvailable"
+          :location="hostConsole.location"
+          class="remote-console"
+        />
+        <template #actions>
+          <VtsActionsConsole
+            :open-in-new-tab="openInNewTab"
+            :send-ctrl-alt-del="sendCtrlAltDel"
+            :toggle-full-screen="toggleFullScreen"
+            :is-fullscreen="!uiStore.hasUi"
+          />
+          <VtsDivider type="stretch" />
+          <VtsClipboardConsole />
+        </template>
+      </VtsLayoutConsole>
     </template>
   </div>
 </template>
@@ -40,15 +38,11 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
+import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
+import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faArrowUpRightFromSquare,
-  faDownLeftAndUpRightToCenter,
-  faKeyboard,
-  faUpRightAndDownLeftFromCenter,
-} from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

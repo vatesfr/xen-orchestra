@@ -15,6 +15,9 @@
   - [VM,Host/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
   - [i18n] Add Czech translation (contribution made by [@p-bo](https://github.com/p-bo)) (PR [#8099](https://github.com/vatesfr/xen-orchestra/pull/8099))
 
+- **XO Lite**:
+  - [Host/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8136](https://github.com/vatesfr/xen-orchestra/pull/8136))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
