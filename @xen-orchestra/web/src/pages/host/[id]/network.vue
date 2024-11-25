@@ -53,7 +53,7 @@
                       <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                     </UiComplexIcon>
                   </template>
-                  {{ getNetworkInformation(pif, 'name_label') }}
+                  {{ getNetworkName(pif) }}
                 </UiObjectLink>
               </VtsCellText>
               <VtsCellText>{{ pif.device }}</VtsCellText>
@@ -72,101 +72,12 @@
         </VtsTable>
       </div>
     </div>
-    <UiPanel v-if="isReady" class="network-panel">
-      <template #header>
-        <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit">
-          {{ $t('edit') }}
-        </UiButton>
-        <UiButton size="medium" variant="tertiary" accent="danger" :left-icon="faTrash">
-          {{ $t('delete') }}
-        </UiButton>
-      </template>
-      <UiCard class="card">
-        <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('uuid') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].id }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('network') }}</p>
-          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'name_label') }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('device') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].device }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('pif-status') }}</p>
-          <PifStatus :icon="faCircle" :pif="pifs[0]" card />
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('physical-interface-status') }}</p>
-          <PifStatus :icon="faCircle" :pif="pifs[0]" card />
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('vlan') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].vlan }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('tags') }}</p>
-          <div class="tags">
-            <UiTag v-for="tag in getNetworkInformation(pifs[0], 'tags')" :key="tag" accent="info" variant="secondary">
-              {{ tag }}
-            </UiTag>
-          </div>
-        </div>
-      </UiCard>
-      <UiCard class="card">
-        <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('ip-addresses') }}</p>
-          <p v-for="ip in pifs[0].allIps" :key="ip" class="ip-address typo p3-regular">{{ ip }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('mac-addresses') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].mac }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('netmask') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].netmask }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('dns') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].dns }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('gateway') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].gateway }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('ip-mode') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].mode }}</p>
-        </div>
-      </UiCard>
-      <UiCard class="card">
-        <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('mtu') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].mtu }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('speed') }}</p>
-          <p class="typo p3-regular">{{ pifs[0].speed }} {{ $t('mbs') }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('network-block-device') }}</p>
-          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'nbd') }}</p>
-        </div>
-        <div class="card-content">
-          <p class="title typo p3-regular">{{ $t('default-locking-mode') }}</p>
-          <p class="typo p3-regular">{{ getNetworkInformation(pifs[0], 'defaultIsLocked') }}</p>
-        </div>
-      </UiCard>
-    </UiPanel>
+    <PifPanel :pif="selectedPif" />
   </div>
 </template>
 
 <script setup lang="ts">
+import PifPanel from '@/components/pif/PifPanel.vue'
 import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -180,15 +91,11 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import {
@@ -212,10 +119,11 @@ const { get } = useNetworkStore().subscribe()
 const { filter } = useTreeFilter()
 const route = useRoute<'/host/[id]/network'>()
 const pifs = computed(() => pifsByHost.value.get(route.params.id) ?? [])
+const selectedPif = computed(() => pifs.value[0] ?? null)
 
-const getNetworkInformation = (pif: XoPif, type: keyof XoNetwork) => {
+const getNetworkName = (pif: XoPif) => {
   const network: XoNetwork = get(pif.$network)!
-  return network ? network[type] : 'Unknown'
+  return network.name_label ? network.name_label : 'Unknown'
 }
 </script>
 
@@ -235,74 +143,12 @@ const getNetworkInformation = (pif: XoPif, type: keyof XoNetwork) => {
 
   .table-container {
     margin-top: 2.4rem;
-
-    .selection {
-      margin: 0.8rem 0;
-    }
-  }
-
-  .network-panel {
-    min-width: 400px;
-    border-top: none;
   }
 
   .pif-status {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .card {
-    gap: 0.8rem;
-  }
-
-  .card-content {
-    width: 100%;
-    display: flex;
-    gap: 1.8rem;
-  }
-
-  .title {
-    min-width: 12rem;
-    overflow-wrap: break-word;
-  }
-
-  .description {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    overflow: hidden;
-    gap: 0.8rem;
-
-    & > p {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex: 1;
-    }
-
-    &.ip {
-      display: unset;
-    }
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-  }
-
-  .ip-address {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .tags {
-    width: 100%;
-    display: flex;
-    gap: 0.8rem;
   }
 }
 </style>
