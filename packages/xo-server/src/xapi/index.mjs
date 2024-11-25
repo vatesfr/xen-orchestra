@@ -1550,7 +1550,7 @@ export default class Xapi extends XapiBase {
       servers = cache.get('servers')
     }
 
-    const serverData = servers?.[hostServerName]
+    const serverData = servers[hostServerName]
 
     if (serverData === undefined) {
       return
@@ -1558,11 +1558,8 @@ export default class Xapi extends XapiBase {
 
     const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
 
-    function convertToSemver(version) {
-      return version.split('.').map(Number).join('.')
-    }
-
-    const isUpToDate = semver.eq(convertToSemver(currentBiosVersion), convertToSemver(latestBiosVersion))
+    // Compare versions loosely to handle non-standard formats
+    const isUpToDate = semver.eq(currentBiosVersion, latestBiosVersion, { loose: true })
 
     return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
   }
