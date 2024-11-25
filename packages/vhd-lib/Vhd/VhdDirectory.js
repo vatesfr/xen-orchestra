@@ -252,6 +252,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
     const childBlockPath = child._getFullBlockPath?.(blockId)
+    let initialSize = 0
     if (
       childBlockPath === undefined ||
       this._handler !== child._handler ||
@@ -262,7 +263,12 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
     try {
       const blockExists = this.containsBlock(blockId)
+      if (blockExists) {
+        initialSize = this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
+      }
+
       await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
+
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
         await this.writeBlockAllocationTable()
@@ -274,6 +280,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
         // it will throw an error if block is missing in parent
         // won't detect if the block was already in parent and is broken/missing in child
+
+        // since we can't know the initizal size, this will create a discrepency
+        // on the size
         const { data } = await this.readBlock(blockId)
         assert.strictEqual(data.length, this.header.blockSize)
       } else {
@@ -281,7 +290,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
     }
     setBitmap(this.#blockTable, blockId)
-    return this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
+    return this._handler.getSizeOnDisk(this._getFullBlockPath(blockId)) - initialSize
   }
 
   async writeEntireBlock(block) {
