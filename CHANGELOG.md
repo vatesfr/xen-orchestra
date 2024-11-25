@@ -6,7 +6,7 @@
 
 - [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
 - **XO 6**:
-- [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
+  - [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
 
 ### Bug fixes
 
@@ -17,12 +17,13 @@
 
 ### Packages to release
 
-- @xen-orchestra/fs minor
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core minor
-- xo-server minor
-- xo-server-perf-alert minor
-- xo-web minor
+- @xen-orchestra/fs 4.4.0
+- @xen-orchestra/web-core 0.6.0
+- @xen-orchestra/proxy 0.29.6
+- @xen-orchestra/web 0.3.3
+- xo-server 5.163.0
+- xo-server-perf-alert 0.7.0
+- xo-web 5.163.0
 
 ## **5.100.2** (2024-11-14)
 
