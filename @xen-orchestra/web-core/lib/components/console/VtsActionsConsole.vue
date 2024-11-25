@@ -2,6 +2,7 @@
   <UiCardTitle>{{ $t('console-actions') }}</UiCardTitle>
   <UiButton
     v-tooltip="toggleFullScreen === undefined ? $t('coming-soon') : undefined"
+    class="button"
     :disabled="toggleFullScreen === undefined"
     accent="info"
     variant="tertiary"
@@ -13,6 +14,7 @@
   </UiButton>
   <UiButton
     v-tooltip="openInNewTab === undefined ? $t('coming-soon') : undefined"
+    class="button"
     :disabled="openInNewTab === undefined"
     accent="info"
     variant="tertiary"
@@ -24,6 +26,7 @@
   </UiButton>
   <UiButton
     v-tooltip="sendCtrlAltDel === undefined ? $t('coming-soon') : undefined"
+    class="button"
     accent="info"
     variant="tertiary"
     size="medium"
@@ -56,7 +59,7 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.ui-button {
+.button {
   align-self: start;
   gap: 0.8rem;
   text-align: left;
