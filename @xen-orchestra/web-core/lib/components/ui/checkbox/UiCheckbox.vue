@@ -43,7 +43,7 @@ const props = withDefaults(
   { disabled: undefined }
 )
 
-const checkboxModel = defineModel<boolean | undefined>({ default: undefined })
+const checkboxModel = defineModel<boolean | undefined | string[]>({ default: undefined })
 
 const slots = defineSlots<{
   default?(): any
