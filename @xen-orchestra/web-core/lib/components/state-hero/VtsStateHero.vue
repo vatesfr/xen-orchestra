@@ -43,8 +43,9 @@ const imageSrc = computed(() => {
   align-items: center;
   justify-content: center;
 
-  .loader {
-    order: 1;
+  .loader,
+  .text {
+    color: var(--color-info-txt-base);
   }
 
   .image {
@@ -57,8 +58,6 @@ const imageSrc = computed(() => {
   }
 
   &.page {
-    gap: 8.2rem;
-
     .text {
       order: 3;
     }
