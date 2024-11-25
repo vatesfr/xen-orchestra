@@ -588,37 +588,45 @@ export default class TabAdvanced extends Component {
     blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
   )
 
-  _getIsMigrationAllowed = createSelector(
+  _getIsMigrationBlocked = createSelector(
     () => this.props.vm?.blockedOperations,
     blockedOperations =>
-      blockedOperations !== undefined && !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)
+      blockedOperations !== undefined && ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations)
   )
 
-  _onChangeAllowMigration = allow => {
+  _onChangeBlockMigration = block => {
     const blockedOperations = this.props.vm.blockedOperations
-    const reasons = JSON.stringify(this.props.vm.blockedOperations)
 
     const toggleBlockedOperations = () =>
       editVm(this.props.vm, {
         blockedOperations: Object.assign.apply(
           null,
-          ['migrate_send', 'pool_migrate'].map(op => ({ [op]: allow ? null : 'Migration blocked' }))
+          ['migrate_send', 'pool_migrate'].map(op => ({ [op]: block ? true : null }))
         ),
       })
 
-    if (blockedOperations !== undefined && !['migrate_send', 'pool_migrate'].every(op => op in blockedOperations)) {
-      toggleBlockedOperations()
-    } else {
+    if (blockedOperations !== undefined && ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations)) {
       confirm({
-        title: _('allowMigrationTitle'),
+        title: _('unblockMigrationTitle'),
         body: (
           <p>
-            {_('allowMigrationconfirm')} {reasons}
+            {_('unblockMigrationconfirm')}
+            <ul>
+              {Object.keys(blockedOperations).map(op => {
+                const reason = blockedOperations[op]
+                if ((op === 'migrate_send' || op === 'pool_migrate') && reason.trim() !== 'true') {
+                  return <li key={op}>{reason}</li>
+                }
+                return null
+              })}
+            </ul>
           </p>
         ),
       }).then(() => {
         toggleBlockedOperations()
       })
+    } else {
+      toggleBlockedOperations()
     }
   }
 
@@ -1038,9 +1046,9 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <th>{_('allowMigration')}</th>
+                  <th>{_('blockMigration')}</th>
                   <td>
-                    <Toggle value={this._getIsMigrationAllowed()} onChange={this._onChangeAllowMigration} />
+                    <Toggle value={this._getIsMigrationBlocked()} onChange={this._onChangeBlockMigration} />
                   </td>
                 </tr>
                 <tr>

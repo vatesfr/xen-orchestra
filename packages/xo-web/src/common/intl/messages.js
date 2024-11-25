@@ -1481,8 +1481,6 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
-  allowMigrationTitle: "Allow migration",
-  allowMigrationconfirm: "This will allow migration blocked for this reason: ",
   attachedPcis: 'Attached PCIs',
   attachingDetachingPciNeedVmBoot: 'Attaching/detaching a PCI will be taken into consideration for the next VM boot.',
   attachPcis: 'Attach PCIs',
@@ -1527,7 +1525,9 @@ const messages = {
   autoPowerOn: 'Auto power on',
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
-  allowMigration: 'Allow migration',
+  blockMigration: 'Block migration',
+  unblockMigrationTitle: 'Unblock migration',
+  unblockMigrationconfirm: 'This will unblock migration',
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
