@@ -261,6 +261,8 @@ module.exports = {
     },
   ],
 
+  ignorePatterns: ['@vates/fatfs/'],
+
   parserOptions: {
     ecmaVersion: 13,
     sourceType: 'script',
