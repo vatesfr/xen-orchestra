@@ -148,16 +148,11 @@ export const create = defer(async function ($defer, params) {
   params.vifs =
     vifs &&
     map(vifs, vif => {
-      if (vif.remove) {
-        return vif
-      }
-
       const network = this.getObject(vif.network)
 
       objectIds.push(network.id)
 
       return {
-        device: vif.device,
         mac: vif.mac,
         network: network._xapiId,
         ipv4_allowed: vif.allowedIpv4Addresses,
@@ -185,7 +180,7 @@ export const create = defer(async function ($defer, params) {
     params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
   }
 
-  const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id)
+  const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id, { destroyAllVifs: true })
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
   const vm = xapi.xo.addObject(xapiVm)
@@ -320,7 +315,7 @@ create.params = {
       type: 'object',
       properties: {
         // UUID of the network to create the interface in.
-        network: { type: 'string', optional: true },
+        network: { type: 'string' },
 
         mac: {
           optional: true, // Auto-generated per default.
@@ -338,8 +333,6 @@ create.params = {
           type: 'array',
           items: { type: 'string' },
         },
-        device: { type: 'string', optional: true },
-        remove: { type: 'boolean', optional: true },
       },
     },
   },

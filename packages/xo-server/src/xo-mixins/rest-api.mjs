@@ -771,12 +771,12 @@ export default class RestApi {
               items: {
                 type: 'object',
                 properties: {
-                  remove: { type: 'boolean', optional: true },
-                  network: { type: 'string', optional: true },
+                  destroy: { type: 'boolean', optional: true },
                   device: { type: 'string', optional: true },
-                  mac: { type: 'string', optional: true },
                   ipv4_allowed: { type: 'array', items: { type: 'string' }, optional: true },
                   ipv6_allowed: { type: 'array', items: { type: 'string' }, optional: true },
+                  mac: { type: 'string', optional: true },
+                  network: { type: 'string', optional: true },
                 },
               },
             },

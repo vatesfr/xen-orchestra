@@ -38,11 +38,9 @@ import {
   isEmpty,
   isEqual,
   join,
-  keyBy,
   map,
   size,
   slice,
-  sortBy,
   sum,
   sumBy,
 } from 'lodash'
@@ -229,9 +227,6 @@ const isVdiPresent = vdi => !vdi.missing
     keys => keys
   )
   const getHosts = createGetObjectsOfType('host')
-  const getTemplateVifs = createGetObjectsOfType('VIF').filter(
-    createSelector(getTemplate, template => vif => vif.$VM === template?.uuid)
-  )
   return (state, props) => ({
     isAdmin: getIsAdmin(state, props),
     isPoolAdmin: getIsPoolAdmin(state, props),
@@ -246,7 +241,6 @@ const isVdiPresent = vdi => !vdi.missing
     srs: getSrs(state, props),
     template: getTemplate(state, props, props.pool === undefined),
     templates: getTemplates(state, props),
-    templateVifs: getTemplateVifs(state, props),
     userSshKeys: getUserSshKeys(state, props),
     hosts: getHosts(state, props),
   })
@@ -456,8 +450,7 @@ export default class NewVm extends BaseComponent {
 
     // Split allowed IPs into IPv4 and IPv6
     const { VIFs } = state
-    const templateVifs = Object.values(this.props.templateVifs)
-    const _VIFs = map(VIFs, (vif, index) => {
+    const _VIFs = map(VIFs, vif => {
       const _vif = { ...vif }
       if (_vif.mac?.trim() === '') {
         delete _vif.mac
@@ -475,27 +468,11 @@ export default class NewVm extends BaseComponent {
           _vif.allowedIpv6Addresses.push(ip)
         }
       })
-
-      if (index + 1 <= templateVifs.length) {
-        _vif.device = String(index)
-      }
       return _vif
     })
 
     const resourceSet = this._getResourceSet()
     const { template } = this.props
-
-    // In case user deletes some VIF created by the template
-    // We need to mark them with `remove:true`
-    // so that xo-server deletes them properly
-    if (_VIFs.length < templateVifs.length) {
-      const _vifByDevice = keyBy(_VIFs, 'device')
-      templateVifs.forEach(templateVif => {
-        if (_vifByDevice[templateVif.device] === undefined) {
-          _VIFs.push({ remove: true, device: templateVif.device })
-        }
-      })
-    }
 
     // Either use `memory` OR `memory*` params
     let { memory, memoryStaticMax, memoryDynamicMin, memoryDynamicMax } = state
@@ -564,7 +541,7 @@ export default class NewVm extends BaseComponent {
     const storeState = store.getState()
     const isInResourceSet = this._getIsInResourceSet()
     const { state } = this.state
-    const { pool, templateVifs } = this.props
+    const { pool } = this.props
     const resourceSet = this._getResolvedResourceSet()
 
     const existingDisks = {}
@@ -588,7 +565,8 @@ export default class NewVm extends BaseComponent {
     const defaultNetworkIds = this._getDefaultNetworkIds(template)
     forEach(
       // iterate template VIFs in device order
-      sortBy(templateVifs, 'device'),
+      template.VIFs.map(id => getObject(storeState, id, resourceSet)).sort((a, b) => a.device - b.device),
+
       vif => {
         VIFs.push({
           network: pool || isInResourceSet(vif.$network) ? vif.$network : defaultNetworkIds[0],

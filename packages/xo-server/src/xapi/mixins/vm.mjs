@@ -47,7 +47,8 @@ const methods = {
       ...props
     } = {},
     checkLimits,
-    creatorId
+    creatorId,
+    { destroyAllVifs = false } = {}
   ) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -188,10 +189,16 @@ const methods = {
       )
     }
 
+    if (destroyAllVifs) {
+      // Destroys the VIFs cloned from the template.
+      await Promise.all(vm.$VIFs.map(vif => this._deleteVif(vif)))
+    }
+
+    // Creates the VIFs specified by the user.
     if (vifs) {
       const devices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
       const _vifsToCreate = []
-      const _vifsToRemove = []
+      const _vifsToDestroy = []
       const vmVifByDevice = keyBy(vm.$VIFs, 'device')
 
       vifs.forEach(vif => {
@@ -202,20 +209,20 @@ const methods = {
         }
 
         const vmVif = vmVifByDevice[vif.device]
-        if (vif.remove) {
+        if (vif.destroy) {
           if (vmVif !== undefined) {
-            _vifsToRemove.push(vmVif)
+            _vifsToDestroy.push(vmVif)
           }
           return
         }
 
         if (vmVif !== undefined) {
-          _vifsToRemove.push(vmVif)
+          _vifsToDestroy.push(vmVif)
         }
         _vifsToCreate.push(vif)
       })
 
-      await Promise.all(_vifsToRemove.map(vif => this._deleteVif(vif)))
+      await Promise.all(_vifsToDestroy.map(vif => this._deleteVif(vif)))
       await Promise.all(
         _vifsToCreate.map(vif =>
           this.VIF_create(
