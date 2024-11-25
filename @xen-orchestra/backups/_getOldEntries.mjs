@@ -2,7 +2,11 @@ import moment from 'moment-timezone'
 import assert from 'node:assert'
 
 function instantiateTimezonedDateCreator(timezone) {
-  return date => (timezone ? moment.tz(date, timezone) : moment(date))
+  return date => {
+    const transformed = timezone ? moment.tz(date, timezone) : moment(date)
+    assert.ok(transformed.isValid(), `date ${date} , timezone ${timezone} is invalid`)
+    return transformed
+  }
 }
 
 const LTR_DEFINITIONS = {

@@ -242,9 +242,9 @@ describe('_getOldEntries() should fail when called incorrectly', () => {
       args: [
         5,
         [
-          { timestamp: new Date('2024-09-01'), id: 1 },
-          { timestamp: new Date('2024-09-03'), id: 3 },
-          { timestamp: new Date('2024-09-02'), id: 2 },
+          { timestamp: +new Date('2024-09-01'), id: 1 },
+          { timestamp: +new Date('2024-09-03'), id: 3 },
+          { timestamp: +new Date('2024-09-02'), id: 2 },
         ],
         {
           longTermRetention: {
@@ -254,6 +254,23 @@ describe('_getOldEntries() should fail when called incorrectly', () => {
         },
       ],
       testLabel: 'unsorted entries ',
+    },
+
+    {
+      args: [
+        5,
+        [
+          { timestamp: 'notadate', id: 1 },
+          { timestamp: 'still not a date, but after', id: 3 },
+        ],
+        {
+          longTermRetention: {
+            daily: { retention: 5 },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'broken date ',
     },
   ]
 
