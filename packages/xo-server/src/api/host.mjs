@@ -7,6 +7,7 @@ import { incorrectState } from 'xo-common/api-errors.js'
 import { X509Certificate } from 'node:crypto'
 
 import backupGuard from './_backupGuard.mjs'
+import { asyncEach } from '@vates/async-each'
 
 const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
@@ -27,17 +28,21 @@ export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate 
   const xapi = this.getXapi(host)
 
   if (vmsToForceMigrate) {
-    await Promise.all(
-      vmsToForceMigrate.map(async vmUuid => {
+    await asyncEach(
+      vmsToForceMigrate,
+      async vmUuid => {
         const record = await xapi.getRecordByUuid('VM', vmUuid)
         const ref = record.$ref
         const blockedOperations = record.blocked_operations
         await Promise.all(
-          Object.keys(blockedOperations).map(
-            async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation)
-          )
+          Object.keys(blockedOperations)
+            .filter(operation => ['pool_migrate', 'migrate_send'].includes(operation))
+            .map(async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation))
         )
-      })
+      },
+      {
+        concurrency: 4,
+      }
     )
   }
 
