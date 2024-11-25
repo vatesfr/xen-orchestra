@@ -1,5 +1,30 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
+- **XO 6**:
+  - [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
+
+### Bug fixes
+
+- [Host/Network] When reconfiguring IP address on a PIF, no IPv6 reconfiguration if no IPv6 (PR [#8119](https://github.com/vatesfr/xen-orchestra/pull/8119))
+- [Remotes] Fix NFS port (PR [#8085](https://github.com/vatesfr/xen-orchestra/pull/8085))
+- [Plugins/Perf-alert] Fix unwritable SRs being monitored [Forum#9619](https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
+- [ISO SR/IPv6] Fix support of IPv6 ISO SR (PR [#8134](https://github.com/vatesfr/xen-orchestra/pull/8134))
+
+### Packages to release
+
+- @xen-orchestra/fs 4.4.0
+- @xen-orchestra/web-core 0.6.0
+- @xen-orchestra/proxy 0.29.6
+- @xen-orchestra/web 0.3.3
+- xo-server 5.163.0
+- xo-server-perf-alert 0.7.0
+- xo-web 5.163.0
+
 ## **5.100.2** (2024-11-14)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

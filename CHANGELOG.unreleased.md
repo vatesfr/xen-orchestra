@@ -11,18 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
-- **XO 6**:
-  - [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Host/Network] When reconfiguring IP address on a PIF, no IPv6 reconfiguration if no IPv6 (PR [#8119](https://github.com/vatesfr/xen-orchestra/pull/8119))
-- [Remotes] Fix NFS port (PR [#8085](https://github.com/vatesfr/xen-orchestra/pull/8085))
-- [Plugins/Perf-alert] Fix unwritable SRs being monitored [Forum#9619](https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
-- [ISO SR/IPv6] Fix support of IPv6 ISO SR (PR [#8134](https://github.com/vatesfr/xen-orchestra/pull/8134))
 
 ### Packages to release
 
@@ -39,12 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/fs minor
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core minor
-- xo-server minor
-- xo-server-perf-alert minor
-- xo-web minor
 
 <!--packages-end-->
