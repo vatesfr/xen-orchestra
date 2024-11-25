@@ -22,6 +22,12 @@
             <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
           </template>
         </UiTableActions>
+        <UiTopBottomTable
+          class="selection"
+          :selected-items="selected.length"
+          :total-items="usableRefs.length"
+          @toggle-select-all="toggleSelect"
+        />
         <VtsTable vertical-border class="table">
           <thead>
             <tr>
@@ -73,6 +79,12 @@
             </tr>
           </tbody>
         </VtsTable>
+        <UiTopBottomTable
+          class="selection"
+          :selected-items="selected.length"
+          :total-items="usableRefs.length"
+          @toggle-select-all="toggleSelect"
+        />
       </div>
     </div>
     <UiPanel class="network-panel">
@@ -106,6 +118,8 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { defineTree } from '@core/composables/tree/define-tree'
+import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -233,10 +247,21 @@ const definitions = defineTree(data, {
   getLabel: 'name_label',
   predicate,
 })
+const { filter } = useTreeFilter()
+const usableRefs = computed(() => data.map(item => item.id))
+const { selected, areAllSelected } = useMultiSelect(usableRefs)
 
 const { nodes: pifs } = useTree(definitions, { expand: false })
 
+const totalItems = ref(data)
+
+const toggleSelect = () => {
+  selected.value = selected.value.length === 0 ? usableRefs.value : []
+}
+
+// const { nodes: pifs } = useTree(definitions, { expand: false })
 type NetworkStatus = 'connected' | 'disconnected' | 'other'
+
 type NetworkAccent = 'success' | 'warning' | 'danger'
 
 const states: Record<NetworkStatus, { icon: IconDefinition; accent: NetworkAccent }> = {
