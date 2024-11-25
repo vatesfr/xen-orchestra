@@ -97,9 +97,7 @@ const uiStore = useUiStore()
 
 <style lang="postcss" scoped>
 .vts-remote-console {
-  padding: 0.8rem;
-  height: 80rem;
-  width: 100%;
+  flex-grow: 1;
   max-width: 100%;
 
   &.mobile {
@@ -110,6 +108,11 @@ const uiStore = useUiStore()
 
   .console {
     height: 100%;
+  }
+
+  /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
+  :deep(canvas) {
+    margin: 0 auto !important;
   }
 }
 </style>
