@@ -50,8 +50,8 @@ describe('_getOldEntries() should succeed', () => {
           { timestamp: +new Date('2024-09-04 00:09:00'), id: 4 }, // week n-2
           { timestamp: +new Date('2024-09-05 00:09:00'), id: 5 }, // week n-2
           { timestamp: +new Date('2024-09-06 00:09:00'), id: 6 }, // week n-2
-          { timestamp: +new Date('2024-09-07 00:09:00'), id: 7 }, // week n-2
-          { timestamp: +new Date('2024-09-09 00:09:00'), id: 8 }, // week n-2 , most recent kept
+          { timestamp: +new Date('2024-09-07 00:09:00'), id: 7 }, // week n-2, most recent kept
+          { timestamp: +new Date('2024-09-09 00:09:00'), id: 8 }, // week n-1, too old
           { timestamp: +new Date('2024-09-15 00:09:00'), id: 9 }, // week n-1  kept
           { timestamp: +new Date('2024-09-22 00:09:00'), id: 10 }, // week n  kept
         ],
