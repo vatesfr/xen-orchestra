@@ -4,7 +4,6 @@ import type { XoNetwork } from '@/types/xo/network.type'
 export type XoPif = {
   $host: XoHost['id']
   $network: XoNetwork['id']
-  allIps: string[]
   attached: boolean
   carrier: boolean
   device: string
