@@ -1,92 +1,6 @@
 <template>
   <div class="host-network-view">
-    <div class="host-network-table-container">
-      <UiTitle type="h4" class="header">
-        <slot>{{ $t('pifs') }}</slot>
-        <template #actions>
-          <UiButton size="medium" variant="secondary" accent="info" :left-icon="faArrowsRotate">
-            {{ $t('scan-pifs') }}
-          </UiButton>
-        </template>
-      </UiTitle>
-      <div class="table-container">
-        <UiQuerySearchBar class="table-query" @search="(value: string) => (filter = value)" />
-        <UiTableActions>
-          <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit" disabled>
-            {{ $t('edit') }}
-          </UiButton>
-          <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faTrash" disabled>
-            {{ $t('delete') }}
-          </UiButton>
-          <template #title>
-            <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
-          </template>
-        </UiTableActions>
-        <UiTopBottomTable
-          class="selection"
-          :selected-items="selected.length"
-          :total-items="usableRefs.length"
-          @toggle-select-all="toggleSelect"
-        />
-        <VtsTable vertical-border class="table">
-          <thead>
-            <tr>
-              <ColumnTitle id="checkbox">
-                <UiCheckbox accent="info" />
-              </ColumnTitle>
-              <ColumnTitle id="network" :icon="faAlignLeft">{{ $t('network') }}</ColumnTitle>
-              <ColumnTitle id="device" :icon="faAlignLeft">{{ $t('device') }}</ColumnTitle>
-              <ColumnTitle id="status" :icon="faPowerOff">{{ $t('status') }}</ColumnTitle>
-              <ColumnTitle id="vlan" :icon="faAlignLeft">{{ $t('vlan') }}</ColumnTitle>
-              <ColumnTitle id="ipAddresses" :icon="faAt">{{ $t('ip-addresses') }}</ColumnTitle>
-              <ColumnTitle id="macAddress" :icon="faAt">{{ $t('mac-address') }}</ColumnTitle>
-              <ColumnTitle id="ipMode" :icon="faCaretDown">{{ $t('ip-mode') }}</ColumnTitle>
-              <ColumnTitle id="more" :icon="faEllipsis" />
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="pif in pifs" :key="pif.id">
-              <VtsCellText>
-                <UiCheckbox accent="info" />
-              </VtsCellText>
-              <VtsCellObject>
-                <UiObjectLink :route="`/vm/${pif.data.id}/console`">
-                  <template #icon>
-                    <UiComplexIcon size="medium">
-                      <VtsIcon :icon="faNetworkWired" accent="current" />
-                      <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                    </UiComplexIcon>
-                  </template>
-                  {{ pif.data.name_label }}
-                </UiObjectLink>
-              </VtsCellObject>
-              <VtsCellText>{{ pif.data.device }}</VtsCellText>
-              <VtsCellObject>
-                <VtsIcon
-                  :accent="getStatusProps(pif.data.status as NetworkStatus).accent"
-                  :icon="faCircle"
-                  :overlay-icon="getStatusProps(pif.data.status as NetworkStatus).icon"
-                />
-                <div class="pif-status">{{ pif.data.status }}</div>
-              </VtsCellObject>
-              <VtsCellText>{{ pif.data.vlan }}</VtsCellText>
-              <VtsCellText>{{ pif.data.ip }}</VtsCellText>
-              <VtsCellText>{{ pif.data.mac }}</VtsCellText>
-              <VtsCellText>{{ pif.data.ip_mode }}</VtsCellText>
-              <VtsCellText>
-                <VtsIcon accent="info" :icon="faEllipsis" />
-              </VtsCellText>
-            </tr>
-          </tbody>
-        </VtsTable>
-        <UiTopBottomTable
-          class="selection"
-          :selected-items="selected.length"
-          :total-items="usableRefs.length"
-          @toggle-select-all="toggleSelect"
-        />
-      </div>
-    </div>
+    <PifTable :pifs="data" />
     <UiPanel class="network-panel">
       <template #header>
         <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit">
@@ -102,17 +16,13 @@
 </template>
 
 <script setup lang="ts">
-import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
-import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
+import PifTable from '@/components/pif/PifTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
-import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
@@ -122,19 +32,15 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
-  faAlignLeft,
-  faArrowsRotate,
-  faAt,
-  faCaretDown,
   faCheck,
   faCircle,
   faEdit,
   faEllipsis,
   faExclamation,
   faNetworkWired,
-  faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -313,6 +219,58 @@ const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .card {
+    gap: 0.8rem;
+  }
+
+  .card-content {
+    width: 100%;
+    display: flex;
+    gap: 1.8rem;
+  }
+
+  .title {
+    min-width: 12rem;
+    overflow-wrap: break-word;
+  }
+
+  .description {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    overflow: hidden;
+    gap: 0.8rem;
+
+    & > p {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    &.ip {
+      display: unset;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .ip-address {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tags {
+    width: 100%;
+    display: flex;
+    gap: 0.8rem;
   }
 }
 </style>
