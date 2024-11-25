@@ -4,14 +4,7 @@
     <UiSpinner v-else-if="!isReady" class="spinner" />
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-vm-for-console')" />
     <template v-else-if="vm && vmConsole">
-      <RemoteConsole
-        v-if="!uiStore.hasUi"
-        ref="consoleElement"
-        :is-console-available="isConsoleAvailable"
-        :location="vmConsole.location"
-        class="remote-console"
-      />
-      <VtsLayoutConsole v-else>
+      <VtsLayoutConsole>
         <RemoteConsole
           ref="consoleElement"
           :is-console-available="isConsoleAvailable"
@@ -23,6 +16,7 @@
             :open-in-new-tab="openInNewTab"
             :send-ctrl-alt-del="sendCtrlAltDel"
             :toggle-full-screen="toggleFullScreen"
+            :is-fullscreen="!uiStore.hasUi"
           />
           <VtsDivider type="stretch" />
           <VtsClipboardConsole />
@@ -113,8 +107,6 @@ const openInNewTab = () => {
   window.open(routeData.href, '_blank')
 }
 
-// Temporary workaround to close fullscreen mode on console.
-// Clemence need to design it.
 const { escape } = useMagicKeys()
 const activeElement = useActiveElement()
 const canClose = computed(

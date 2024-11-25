@@ -1,6 +1,17 @@
 <template>
   <UiCardTitle>{{ $t('console-actions') }}</UiCardTitle>
   <UiButton
+    v-tooltip="toggleFullScreen === undefined ? $t('coming-soon') : undefined"
+    :disabled="toggleFullScreen === undefined"
+    accent="info"
+    variant="tertiary"
+    size="medium"
+    :left-icon="isFullscreen ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter"
+    @click="toggleFullScreen"
+  >
+    {{ $t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
+  </UiButton>
+  <UiButton
     v-tooltip="openInNewTab === undefined ? $t('coming-soon') : undefined"
     :disabled="openInNewTab === undefined"
     accent="info"
@@ -10,17 +21,6 @@
     @click="openInNewTab"
   >
     {{ $t('open-console-in-new-tab') }}
-  </UiButton>
-  <UiButton
-    v-tooltip="toggleFullScreen === undefined ? $t('coming-soon') : undefined"
-    :disabled="toggleFullScreen === undefined"
-    accent="info"
-    variant="tertiary"
-    size="medium"
-    :left-icon="faUpRightAndDownLeftFromCenter"
-    @click="toggleFullScreen"
-  >
-    {{ $t('fullscreen') }}
   </UiButton>
   <UiButton
     v-tooltip="sendCtrlAltDel === undefined ? $t('coming-soon') : undefined"
@@ -39,13 +39,19 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faArrowUpRightFromSquare, faKeyboard, faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons'
+import {
+  faArrowUpRightFromSquare,
+  faDownLeftAndUpRightToCenter,
+  faKeyboard,
+  faUpRightAndDownLeftFromCenter,
+} from '@fortawesome/free-solid-svg-icons'
 
 // temporary undefined for xo6
 defineProps<{
   openInNewTab?: () => void
   toggleFullScreen?: () => void
   sendCtrlAltDel?: () => void
+  isFullscreen?: boolean
 }>()
 </script>
 

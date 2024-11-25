@@ -23,6 +23,7 @@ const uiStore = useUiStore()
 .vts-layout-console {
   display: flex;
   gap: 2.4rem;
+  height: 100%;
   padding: 0.8rem;
 
   &.mobile {
