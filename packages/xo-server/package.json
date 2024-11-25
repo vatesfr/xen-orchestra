@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.161.0",
+  "version": "5.162.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
