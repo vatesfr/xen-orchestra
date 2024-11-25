@@ -14,6 +14,7 @@ import ms from 'ms'
 import noop from 'lodash/noop.js'
 import once from 'lodash/once.js'
 import pick from 'lodash/pick.js'
+import semver from 'semver'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
@@ -1536,26 +1537,32 @@ export default class Xapi extends XapiBase {
 
     // this code has race conditions which might lead to multiple fetches in parallel
     // but it's no big deal
+    let servers
     if (!cache?.has('servers')) {
       const response = await fetch(
         'https://pictures.2cr.si/Images_site_web_Odoo/Pages_produit/VATES-BIOS_BMC_last-version.json'
       )
       const json = await response.json()
-      const servers = keyBy(json[0]['2CRSi_Servers'], 'Server_Name')
+      servers = keyBy(json[0]['2CRSi_Servers'], 'Server_Name')
 
       cache?.set('servers', servers)
+    } else {
+      servers = cache.get('servers')
     }
 
-    const parsedData = cache?.get('servers')
-
-    const serverData = parsedData?.[hostServerName]
+    const serverData = servers?.[hostServerName]
 
     if (serverData === undefined) {
       return
     }
 
     const { 'BIOS-Version': latestBiosVersion, 'BIOS-link': biosLink } = serverData
-    const isUpToDate = currentBiosVersion === latestBiosVersion
+
+    function convertToSemver(version) {
+      return version.split('.').map(Number).join('.')
+    }
+
+    const isUpToDate = semver.eq(convertToSemver(currentBiosVersion), convertToSemver(latestBiosVersion))
 
     return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
   }

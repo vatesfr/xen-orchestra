@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
+- [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
 
 ### Bug fixes
 
@@ -20,7 +21,6 @@
 - [Host/Network] When reconfiguring IP address on a PIF, no IPv6 reconfiguration if no IPv6 (PR [#8119](https://github.com/vatesfr/xen-orchestra/pull/8119))
 - [Remotes] Fix NFS port (PR [#8085](https://github.com/vatesfr/xen-orchestra/pull/8085))
 - [Plugins/Perf-alert] Fix unwritable SRs being monitored [Forum#9619](https://xcp-ng.org/forum/topic/9619/performance-alert-plugin-not-handling-removable-srs-correctly) (PR [#8113](https://github.com/vatesfr/xen-orchestra/pull/8113))
-- [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
 
 ### Packages to release
 

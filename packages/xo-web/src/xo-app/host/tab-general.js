@@ -71,7 +71,7 @@ export default decorate([
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
       biosData: async (_, { host }) => {
         const biosInfo = await getBiosInfo(host)
-        return typeof biosInfo === 'object' && biosInfo ? biosInfo : undefined
+        return typeof biosInfo === 'object' && biosInfo !== null ? biosInfo : undefined
       },
     },
   }),
@@ -241,7 +241,6 @@ export default decorate([
             </Col>
           </Row>
         )}
-        <br />
         {biosData !== undefined && (
           <Row className='text-xs-center'>
             <Col>
@@ -254,7 +253,7 @@ export default decorate([
                 />
                 <br />
                 {!biosData.isUpToDate && (
-                  <a href={biosData.biosLink} target='_blank' rel='noopener noreferrer'>
+                  <a href={biosData.biosLink} target='_blank' rel='noreferrer'>
                     {_('downloadBiosUpdate', { version: biosData.latestBiosVersion })}
                   </a>
                 )}
