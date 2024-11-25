@@ -1,8 +1,8 @@
 <template>
   <ObjectNotFoundWrapper :is-ready="isReady" :uuid-checker="hasUuid">
     <template v-if="uiStore.hasUi">
-      <HostHeader />
-      <HostTabBar :uuid="currentHost!.uuid" />
+      <HostHeader :host="host!" />
+      <HostTabBar :uuid="host!.uuid" />
     </template>
     <RouterView />
   </ObjectNotFoundWrapper>
@@ -23,10 +23,10 @@ const { hasUuid, isReady, getByUuid } = useHostStore().subscribe()
 const route = useRoute()
 const uiStore = useUiStore()
 
-const currentHost = computed(() => getByUuid(route.params.uuid as XenApiHost['uuid']))
+const host = computed(() => getByUuid(route.params.uuid as XenApiHost['uuid']))
 watchEffect(() => {
-  uiStore.currentHostOpaqueRef = currentHost.value?.$ref
+  uiStore.currentHostOpaqueRef = host.value?.$ref
 })
 
-usePageTitleStore().setObject(currentHost)
+usePageTitleStore().setObject(host)
 </script>

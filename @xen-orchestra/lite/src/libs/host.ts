@@ -1,6 +1,8 @@
+import type { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import type { XenApiPatch } from '@/types/xen-api'
+import { castArray } from 'lodash-es'
 
 export async function fetchMissingHostPatches(hostRef: XenApiHost['$ref']): Promise<XenApiPatch[]> {
   const xenApiStore = useXenApiStore()
@@ -15,4 +17,10 @@ export async function fetchMissingHostPatches(hostRef: XenApiHost['$ref']): Prom
     ...rawPatch,
     $id: `${rawPatch.name}-${rawPatch.version}`,
   }))
+}
+
+export const isHostOperationPending = (host: XenApiHost, operations: HOST_OPERATION[] | HOST_OPERATION) => {
+  const currentOperations = Object.values(host.current_operations)
+
+  return castArray(operations).some(operation => currentOperations.includes(operation))
 }

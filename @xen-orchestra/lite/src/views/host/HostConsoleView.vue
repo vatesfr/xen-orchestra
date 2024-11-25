@@ -33,8 +33,8 @@ import monitor from '@/assets/monitor.svg'
 import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
-import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
+import { isHostOperationPending } from '@/libs/host'
+import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
@@ -53,15 +53,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-const STOP_OPERATIONS = [
-  VM_OPERATION.SHUTDOWN,
-  VM_OPERATION.CLEAN_SHUTDOWN,
-  VM_OPERATION.HARD_SHUTDOWN,
-  VM_OPERATION.CLEAN_REBOOT,
-  VM_OPERATION.HARD_REBOOT,
-  VM_OPERATION.PAUSE,
-  VM_OPERATION.SUSPEND,
-]
+const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN]
 
 usePageTitleStore().setTitle(useI18n().t('console'))
 
@@ -73,9 +65,9 @@ const {
   isReady: isHostReady,
   getByUuid: getHostByUuid,
   hasError: hasHostError,
-  runningHosts: getRunningHosts,
+  runningHosts,
 } = useHostStore().subscribe()
-const { records: getRecords } = useControlDomainStore().subscribe()
+const { records: getControlDomains } = useControlDomainStore().subscribe()
 
 const {
   isReady: isConsoleReady,
@@ -87,24 +79,26 @@ const hasError = computed(() => hasHostError.value || hasConsoleError.value)
 
 const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
 
-const vm = computed(() => {
+const controlDomain = computed(() => {
   const controlDomainOpaqueRef = host.value?.control_domain
-  return controlDomainOpaqueRef ? getRecords.value.find(vm => vm.$ref === controlDomainOpaqueRef) : undefined
+  return controlDomainOpaqueRef
+    ? getControlDomains.value.find(controlDomain => controlDomain.$ref === controlDomainOpaqueRef)
+    : undefined
 })
 
 const hostConsole = computed(() => {
-  const consoleOpaqueRef = vm.value?.consoles[0]
+  const consoleOpaqueRef = controlDomain.value?.consoles[0]
   return consoleOpaqueRef ? getConsoleByOpaqueRef(consoleOpaqueRef) : undefined
 })
 
-const isReady = computed(() => isHostReady.value && isConsoleReady.value && vm.value)
+const isReady = computed(() => isHostReady.value && isConsoleReady.value && controlDomain.value)
 
 const isHostRunning = computed(() => {
-  return getRunningHosts.value.some(runningHost => runningHost.uuid === host.value?.uuid)
+  return runningHosts.value.some(runningHost => runningHost.uuid === host.value?.uuid)
 })
 
 const isConsoleAvailable = computed(() =>
-  vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
+  controlDomain.value !== undefined ? !isHostOperationPending(host.value!, STOP_OPERATIONS) : false
 )
 
 const consoleElement = ref()
