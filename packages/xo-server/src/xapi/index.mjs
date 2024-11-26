@@ -1526,7 +1526,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async getBiosInfo(ref, { cache } = {}) {
+  async getHostBiosInfo(ref, { cache } = {}) {
     const biosData = await this.call('host.get_bios_strings', ref)
 
     const { 'bios-version': currentBiosVersion, 'system-product-name': hostServerName } = biosData

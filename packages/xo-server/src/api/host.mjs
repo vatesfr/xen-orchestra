@@ -635,12 +635,12 @@ getIpmiSensors.resolve = {
   host: ['id', 'host', 'administrate'],
 }
 
-export function getBiosInfo({ host }) {
-  return this.getXapi(host).getBiosInfo(host._xapiRef, { cache: CACHE_2CRSI })
+export function getHostBiosInfo({ host }) {
+  return this.getXapi(host).getHostBiosInfo(host._xapiRef, { cache: CACHE_2CRSI })
 }
-getBiosInfo.params = {
+getHostBiosInfo.params = {
   id: { type: 'string' },
 }
-getBiosInfo.resolve = {
+getHostBiosInfo.resolve = {
   host: ['id', 'host', 'administrate'],
 }
