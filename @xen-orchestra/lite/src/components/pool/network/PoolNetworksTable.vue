@@ -37,7 +37,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ 'row-selected': selectedRowId === (row.value as any).network.uuid }"
+              @click="selectRow(row.value)"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <div>
                   <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
@@ -127,7 +132,18 @@ const props = defineProps<{
   isReady: boolean
 }>()
 
+const emit = defineEmits<{
+  rowSelectNetwork: [value: any]
+}>()
+
 const reactiveNetworksWithVLANs = ref(props.networks || [])
+
+const selectedRowId = ref('')
+
+const selectRow = (item: any) => {
+  selectedRowId.value = item.network.uuid
+  emit('rowSelectNetwork', item)
+}
 
 const searchQuery = ref('')
 
@@ -213,17 +229,13 @@ watchEffect(() => {
       }
     }
 
+    .row-selected {
+      background-color: var(--color-info-background-selected);
+    }
+
     .checkbox,
     .more {
       width: 4.8rem;
-    }
-  }
-
-  @media (max-width: 1440px) {
-    .table {
-      table {
-        width: 160rem;
-      }
     }
   }
 }

@@ -1,16 +1,24 @@
 <template>
-  <UiCard class="pool-network-view">
-    <div class="content">
-      <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready />
-      <PoolHostInternalNetworkTable :host-internal-network="reactiveHostInternalNetworks" :is-ready />
-    </div>
-  </UiCard>
+  <div class="pool-network-view">
+    <UiCard class="card">
+      <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready @row-select-network="selectNetwork" />
+      <PoolHostInternalNetworkTable
+        :host-internal-network="reactiveHostInternalNetworks"
+        :is-ready
+        @row-select-host-internal-network="selectNetwork"
+      />
+    </UiCard>
+    <PoolNetworksSidePanel v-if="selectedNetworks" :selected-network="selectedNetworks" :selected-pifs="selectedPIFs" />
+    <div v-else />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import PoolHostInternalNetworkTable from '@/components/pool/network/PoolHostInternalNetworkTable.vue'
+import PoolNetworksSidePanel from '@/components/pool/network/PoolNetworksSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import UiCard from '@/components/ui/UiCard.vue'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { ref, watchEffect } from 'vue'
@@ -18,10 +26,49 @@ import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
+const { networksWithVLANs, hostInternalNetworks, isReady, getPIFsInformationByNetwork } = useNetworkStore().subscribe()
+
+const selectedNetworks = ref<{
+  network: XenApiNetwork
+  status?: string
+  vlan?: string
+}>()
+
+const selectedPIFs = ref<
+  {
+    PIF: XenApiPif
+    host?: {
+      name_label?: string
+      hostStatus?: boolean
+    }
+  }[]
+>()
 
 const reactiveNetworksWithVLANs = ref(networksWithVLANs.value || [])
 const reactiveHostInternalNetworks = ref(hostInternalNetworks.value || [])
+
+const selectNetwork = (item: any) => {
+  if (item.network) {
+    const network = reactiveNetworksWithVLANs.value.find(pif => pif.network.uuid === item.network.uuid)
+    selectedPIFs.value = getPIFsInformationByNetwork(item.network)
+    if (network) {
+      selectedNetworks.value = {
+        network: network.network,
+        status: network.status,
+        vlan: network.vlan,
+      }
+    }
+  } else {
+    const hostInternalNetwork = reactiveHostInternalNetworks.value.find(pif => pif.uuid === item.uuid)
+    if (hostInternalNetwork) {
+      selectedNetworks.value = {
+        network: hostInternalNetwork,
+        status: undefined,
+        vlan: undefined,
+      }
+    }
+  }
+}
 
 watchEffect(() => {
   if (networksWithVLANs.value) {
@@ -35,13 +82,15 @@ watchEffect(() => {
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  border: solid 0.1rem var(--color-neutral-border);
-  margin: 0.8rem;
+  display: flex;
 
-  .content {
+  .card {
     display: flex;
     flex-direction: column;
     gap: 4rem;
+    margin: 0.8rem;
+    border: solid 0.1rem var(--color-neutral-border);
+    border-radius: 0.8rem;
   }
 }
 </style>

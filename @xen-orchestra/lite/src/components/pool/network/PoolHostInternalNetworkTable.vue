@@ -34,7 +34,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ 'row-selected': selectedRowId === (row.value as XenApiNetwork).uuid }"
+              @click="selectRow(row.value)"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <!--             NEED TO REMOVE `as XenApiNetwork` -->
@@ -113,9 +118,20 @@ const props = defineProps<{
   isReady: boolean
 }>()
 
+const emit = defineEmits<{
+  rowSelectHostInternalNetwork: [value: any]
+}>()
+
 const reactiveHostInternalNetworks = ref<XenApiNetwork[]>(props.hostInternalNetwork || [])
 
 const searchQuery = ref('')
+
+const selectedRowId = ref('')
+
+const selectRow = (item: any) => {
+  selectedRowId.value = item.uuid
+  emit('rowSelectHostInternalNetwork', item)
+}
 
 const filteredNetworks = computed(() => {
   return searchQuery.value
@@ -185,17 +201,13 @@ watchEffect(() => {
       }
     }
 
+    .row-selected {
+      background-color: var(--color-info-background-selected);
+    }
+
     .checkbox,
     .more {
       width: 4.8rem;
-    }
-  }
-
-  @media (max-width: 1440px) {
-    .table {
-      table {
-        width: 160rem;
-      }
     }
   }
 }

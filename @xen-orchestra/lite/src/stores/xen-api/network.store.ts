@@ -1,5 +1,6 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -16,6 +17,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
     poolStore: usePoolStore(),
     hostStore: useHostStore(),
     pifStore: usePifStore(),
+    metricsStore: useHostMetricsStore(),
   }
 
   const { context: baseContext, ...configRest } = createXapiStoreConfig('network', {
@@ -25,6 +27,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   const poolContext = deps.poolStore.getContext()
   const hostContext = deps.hostStore.getContext()
   const pifContext = deps.pifStore.getContext()
+  const metricsContext = deps.metricsStore.getContext()
 
   const PIFsByNetwork = computed(() => {
     const PIFsByNetworkMap = new Map<string, XenApiPif[]>()
@@ -72,10 +75,41 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   const hostInternalNetworks = computed(() => {
     return baseContext.records.value.filter(network => network.PIFs.length === 0) // Only networks without PIFs
   })
+  const PIFsInfoByNetwork = computed(() => {
+    const PIFsInfoMap = new Map<
+      string,
+      {
+        PIF: XenApiPif
+        host?: {
+          name_label?: string
+          status?: boolean
+        }
+      }[]
+    >()
+
+    pifContext.records.value.forEach(PIF => {
+      const hostInfo = hostContext.getByOpaqueRef(PIF.host)
+      const hostStatus = hostInfo?.metrics ? metricsContext.getByOpaqueRef(hostInfo.metrics)?.live || false : false
+
+      const enrichedPIF = {
+        PIF,
+        host: {
+          name_label: hostInfo?.name_label,
+          hostStatus,
+        },
+      }
+
+      if (!PIFsInfoMap.has(PIF.network)) {
+        PIFsInfoMap.set(PIF.network, [])
+      }
+      PIFsInfoMap.get(PIF.network)?.push(enrichedPIF)
+    })
+
+    return PIFsInfoMap
+  })
 
   const getPIFsInformationByNetwork = (network: XenApiNetwork) => {
-    const PIFsOpaqueRefNetwork = network.PIFs
-    return PIFsOpaqueRefNetwork.map(ref => pifContext.records.value.find(pif => pif.$ref === ref)).filter(pif => !!pif)
+    return PIFsInfoByNetwork.value.get(network?.$ref) || []
   }
 
   const context = {
