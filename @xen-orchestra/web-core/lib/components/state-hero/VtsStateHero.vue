@@ -94,21 +94,21 @@ const imageSrc = computed(() => {
   }
 
   &.panel {
-    gap: 4rem;
+    gap: 2.4rem;
     justify-content: unset;
     padding-top: 8rem;
 
     .text {
-      order: 2;
+      order: 1;
     }
 
     .loader {
-      order: 1;
+      order: 3;
       font-size: 6.4rem;
     }
 
     .image {
-      order: 3;
+      order: 2;
       width: 80%;
     }
   }
