@@ -44,28 +44,29 @@
         </thead>
         <tbody>
           <tr v-for="row of rows" :key="row.id">
-            <td v-for="column of row.visibleColumns" :key="column.id" class="tyyp p2-regular">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-              <div v-if="column.id === 'network'" class="text-ellipsis">
+              <div v-if="column.id === 'network'" class="network">
                 <UiComplexIcon size="medium">
                   <VtsIcon :icon="faNetworkWired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
-                {{ row.value.name_label }}
+                <p class="text-ellipsis">{{ row.value.name_label }}</p>
               </div>
-              <div v-if="column.id === 'device'">{{ row.value.device }}</div>
-              <div v-if="column.id === 'status'" class="status text-ellipsis">
+              <div v-if="column.id === 'device'" class="text-ellipsis">{{ row.value.device }}</div>
+              <div v-if="column.id === 'status'" class="status">
                 <VtsIcon
+                  class="icon"
                   :accent="getStatusProps(row.value.status as NetworkStatus).accent"
                   :icon="faCircle"
                   :overlay-icon="getStatusProps(row.value.status as NetworkStatus).icon"
                 />
-                {{ row.value.status }}
+                <p class="text-ellipsis">{{ row.value.status }}</p>
               </div>
-              <div v-if="column.id === 'vlan'">{{ row.value.vlan }}</div>
-              <div v-if="column.id === 'ip'">{{ row.value.ip }}</div>
+              <div v-if="column.id === 'vlan'" class="text-ellipsis">{{ row.value.vlan }}</div>
+              <div v-if="column.id === 'ip'" class="text-ellipsis">{{ row.value.ip }}</div>
               <div v-if="column.id === 'mac'" class="text-ellipsis">{{ row.value.mac }}</div>
-              <div v-if="column.id === 'ip_mode'">{{ row.value.ip_mode }}</div>
+              <div v-if="column.id === 'ip_mode'" class="text-ellipsis">{{ row.value.ip_mode }}</div>
               <div v-if="column.id === 'more'">
                 <VtsIcon accent="info" :icon="faEllipsis" />
               </div>
@@ -198,13 +199,21 @@ const getHeaderIcon = (status: pifHeader) => headerIcon[status].icon
     }
 
     td {
-      line-height: 2.2rem;
       padding: 1.1rem;
+    }
+
+    .network {
+      display: flex;
+      gap: 1.6rem;
     }
 
     .status {
       display: flex;
       gap: 0.8rem;
+
+      .icon {
+        font-size: 1.6rem;
+      }
     }
 
     .selection {
