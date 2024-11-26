@@ -61,7 +61,7 @@ const {
   hasError: hasHostError,
   runningHosts,
 } = useHostStore().subscribe()
-const { records: getControlDomains } = useControlDomainStore().subscribe()
+const { records: controlDomains } = useControlDomainStore().subscribe()
 
 const {
   isReady: isConsoleReady,
@@ -76,7 +76,7 @@ const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid'
 const controlDomain = computed(() => {
   const controlDomainOpaqueRef = host.value?.control_domain
   return controlDomainOpaqueRef
-    ? getControlDomains.value.find(controlDomain => controlDomain.$ref === controlDomainOpaqueRef)
+    ? controlDomains.value.find(controlDomain => controlDomain.$ref === controlDomainOpaqueRef)
     : undefined
 })
 

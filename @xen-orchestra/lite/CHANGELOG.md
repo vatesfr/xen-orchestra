@@ -2,9 +2,13 @@
 
 ## **next**
 
-- [Pool/Dashboard] `Patches` and `Status` cards are displayed with a greater minimum width (PR [#8108](https://github.com/vatesfr/xen-orchestra/pull/8108))
+- [Pool/Dashboard] `Patches` and `Status` cards are displayed with a greater minimum width (
+  PR [#8108](https://github.com/vatesfr/xen-orchestra/pull/8108))
 - [Header] Update user menu button (PR [#8109](https://github.com/vatesfr/xen-orchestra/pull/8109))
-- [VM/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
+- [VM/Console] Display _Console Clipboard_ and _Console Actions_ (
+  PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
+- [Host/Console] Display _Console_, _Console Clipboard_ and _Console Actions_ (
+  PR [#8136](https://github.com/vatesfr/xen-orchestra/pull/8136))
 - [i18n] Add Czech translation (contribution made by [@p-bo](https://github.com/p-bo)) (PR [#8098](https://github.com/vatesfr/xen-orchestra/pull/8098))
 
 ## **0.5.0** (2024-10-31)
@@ -18,19 +22,27 @@
 
 ## **0.2.7** (2024-07-31)
 
-- [Pool/Dashboard] Add missing translations for hosts and VMs statuses (PR [#7744](https://github.com/vatesfr/xen-orchestra/pull/7744))
-- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
-- [Access XOA] Support `xo-server`'s' setting `http.publicUrl` to redirect to a custom URL when "Access XOA" button is clicked in XO Lite [Forum#9392](https://xcp-ng.org/forum/topic/9392) (PR [#7849](https://github.com/vatesfr/xen-orchestra/pull/7849))
+- [Pool/Dashboard] Add missing translations for hosts and VMs statuses (
+  PR [#7744](https://github.com/vatesfr/xen-orchestra/pull/7744))
+- [i18n] Add Persian translation (based on the contribution made by [@Jokar-xen](https://github.com/Jokar-xen)) (
+  PR [#7775](https://github.com/vatesfr/xen-orchestra/pull/7775))
+- [Access XOA] Support `xo-server`'s' setting `http.publicUrl` to redirect to a custom URL when "Access XOA" button is
+  clicked in XO Lite [Forum#9392](https://xcp-ng.org/forum/topic/9392) (
+  PR [#7849](https://github.com/vatesfr/xen-orchestra/pull/7849))
 
 ## **0.2.3** (2024-05-31)
 
-- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))
-- [Header] Add link to XOA when XOA is detected on the pool (PR [#7679](https://github.com/vatesfr/xen-orchestra/pull/7679))
-- Add german translation (based on the contribution made by [@borzel](https://github.com/borzel)) (PR [#7686](https://github.com/vatesfr/xen-orchestra/pull/7686))
+- [Pool/Dashboard] In the `Storage usage` card, DVDs are no longer taken into account (
+  PR [#7670](https://github.com/vatesfr/xen-orchestra/pull/7670))
+- [Header] Add link to XOA when XOA is detected on the pool (
+  PR [#7679](https://github.com/vatesfr/xen-orchestra/pull/7679))
+- Add german translation (based on the contribution made by [@borzel](https://github.com/borzel)) (
+  PR [#7686](https://github.com/vatesfr/xen-orchestra/pull/7686))
 
 ## **0.2.2** (2024-04-30)
 
-- [Tree view] Update tree view with new components from design system (PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))
+- [Tree view] Update tree view with new components from design system (
+  PR [#7531](https://github.com/vatesfr/xen-orchestra/pull/7531))
 
 ## **0.2.1** (2024-04-02)
 
@@ -39,13 +51,15 @@
 
 ## **0.2.0** (2024-02-29)
 
-- Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
+- Fix Typescript typings errors when running `yarn type-check` command (
+  PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
 - Introduce PWA Json Manifest (PR [#7291](https://github.com/vatesfr/xen-orchestra/pull/7291))
 
 ## **0.1.7** (2023-12-28)
 
 - [VM/Action] Ability to migrate a VM from its view (PR [#7164](https://github.com/vatesfr/xen-orchestra/pull/7164))
-- Ability to override host address with `master` URL query param (PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
+- Ability to override host address with `master` URL query param (
+  PR [#7187](https://github.com/vatesfr/xen-orchestra/pull/7187))
 - Added tooltip on CPU provisioning warning icon (PR [#7223](https://github.com/vatesfr/xen-orchestra/pull/7223))
 - Add indeterminate state on FormToggle component (PR [#7230](https://github.com/vatesfr/xen-orchestra/pull/7230))
 - Add new UiStatusPanel component (PR [#7227](https://github.com/vatesfr/xen-orchestra/pull/7227))
@@ -55,7 +69,8 @@
 
 ## **0.1.6** (2023-11-30)
 
-- Explicit error if users attempt to connect from a slave host (PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
+- Explicit error if users attempt to connect from a slave host (
+  PR [#7110](https://github.com/vatesfr/xen-orchestra/pull/7110))
 - More compact UI (PR [#7159](https://github.com/vatesfr/xen-orchestra/pull/7159))
 - Fix dashboard host patches list (PR [#7169](https://github.com/vatesfr/xen-orchestra/pull/7169))
 - Ability to export selected VMs (PR [#7174](https://github.com/vatesfr/xen-orchestra/pull/7174))
@@ -82,7 +97,8 @@
 ## **0.1.2** (2023-07-28)
 
 - Ability to export selected VMs as CSV file (PR [#6915](https://github.com/vatesfr/xen-orchestra/pull/6915))
-- [Pool/VMs] Ability to export selected VMs as JSON file (PR [#6911](https://github.com/vatesfr/xen-orchestra/pull/6911))
+- [Pool/VMs] Ability to export selected VMs as JSON file (
+  PR [#6911](https://github.com/vatesfr/xen-orchestra/pull/6911))
 - Add Tasks to Pool Dashboard (PR [#6713](https://github.com/vatesfr/xen-orchestra/pull/6713))
 
 ## **0.1.1** (2023-07-03)
@@ -95,14 +111,19 @@
 - Display CPU usage chart in pool dashboard (PR [#6577](https://github.com/vatesfr/xen-orchestra/pull/6577))
 - Display network throughput chart in pool dashboard (PR [#6610](https://github.com/vatesfr/xen-orchestra/pull/6610))
 - Display RAM usage chart in pool dashboard (PR [#6604](https://github.com/vatesfr/xen-orchestra/pull/6604))
-- Ability to change the state of a VM (PRs [#6571](https://github.com/vatesfr/xen-orchestra/pull/6571) [#6608](https://github.com/vatesfr/xen-orchestra/pull/6608))
+- Ability to change the state of a VM (
+  PRs [#6571](https://github.com/vatesfr/xen-orchestra/pull/6571) [#6608](https://github.com/vatesfr/xen-orchestra/pull/6608))
 - Display CPU provisioning in pool dashboard (PR [#6601](https://github.com/vatesfr/xen-orchestra/pull/6601))
 - Add a star icon near the pool master (PR [#6712](https://github.com/vatesfr/xen-orchestra/pull/6712))
-- Display an error message if the data cannot be fetched (PR [#6525](https://github.com/vatesfr/xen-orchestra/pull/6525))
+- Display an error message if the data cannot be fetched (
+  PR [#6525](https://github.com/vatesfr/xen-orchestra/pull/6525))
 - Add "Under Construction" views (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6673))
-- Ability to change the state of selected VMs from the pool's list of VMs (PR [#6782](https://github.com/vatesfr/xen-orchestra/pull/6782))
-- Ability to copy selected VMs from the pool's list of VMs (PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
-- Ability to delete selected VMs from the pool's list of VMs (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6860))
+- Ability to change the state of selected VMs from the pool's list of VMs (
+  PR [#6782](https://github.com/vatesfr/xen-orchestra/pull/6782))
+- Ability to copy selected VMs from the pool's list of VMs (
+  PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
+- Ability to delete selected VMs from the pool's list of VMs (
+  PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6860))
 
 ## **0.1.0**
 
