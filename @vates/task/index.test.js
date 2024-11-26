@@ -151,7 +151,7 @@ describe('Task', function () {
     it('throws if the task has not started yet', function () {
       const task = createTask()
 
-      assert.throws(() => task.failure(error), { message: 'task has not started yet' })
+      assert.throws(() => task.failure(error), { message: /^task has not started yet\b/ })
     })
 
     it('throws if the task is running', function () {
@@ -262,7 +262,7 @@ describe('Task', function () {
 
     it('throws when the task is not started', function () {
       const task = createTask()
-      assert.throws(() => task.set(name, value), { message: 'task has not started yet' })
+      assert.throws(() => task.set(name, value), { message: /^task has not started yet\b/ })
     })
 
     it(`emits an property message`, async function () {
@@ -303,7 +303,7 @@ describe('Task', function () {
     it('throws if the task has not started yet', function () {
       const task = createTask()
 
-      assert.throws(() => task.success(result), { message: 'task has not started yet' })
+      assert.throws(() => task.success(result), { message: /^task has not started yet\b/ })
     })
 
     it('throws if the task is running', function () {
@@ -356,7 +356,7 @@ describe('Task', function () {
     describe(`#${type}()`, function () {
       it('throws when the task is not started', function () {
         const task = createTask()
-        assert.throws(() => task[type]('foo'), { message: 'task has not started yet' })
+        assert.throws(() => task[type]('foo'), { message: /^task has not started yet\b/ })
       })
 
       it(`emits an ${type} message`, async function () {
