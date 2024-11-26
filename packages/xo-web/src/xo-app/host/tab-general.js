@@ -6,7 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import store from 'store'
 import HomeTags from 'home-tags'
-import { addTag, getHostBiosInfo, removeTag, subscribeIpmiSensors } from 'xo'
+import { addTag, getBiosInfo, removeTag, subscribeIpmiSensors } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
@@ -70,7 +70,7 @@ export default decorate([
       nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
       biosData: async (_, { host }) => {
-        const biosInfo = await getHostBiosInfo(host)
+        const biosInfo = await getBiosInfo(host)
         return typeof biosInfo === 'object' && biosInfo !== null ? biosInfo : undefined
       },
     },
