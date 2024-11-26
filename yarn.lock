@@ -14195,7 +14195,7 @@ module-deps@^6.2.3:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-moment-timezone@^0.5.13, moment-timezone@^0.5.14:
+moment-timezone@^0.5.13, moment-timezone@^0.5.14, moment-timezone@^0.5.46:
   version "0.5.46"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.46.tgz#a21aa6392b3c6b3ed916cd5e95858a28d893704a"
   integrity sha512-ZXm9b36esbe7OmdABqIWJuBBiLLwAjrN7CE+7sYdCCx82Nabt1wHDj8TVseS59QIlfFPbOoiBPm6ca9BioG4hw==
