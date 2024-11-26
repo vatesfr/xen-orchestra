@@ -19,6 +19,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/New] Cloudbase-Init is now correctly supported (PR [#8154](https://github.com/vatesfr/xen-orchestra/pull/8154))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,7 +37,9 @@
 
 <!--packages-start-->
 
+- @vates/fatfs minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->

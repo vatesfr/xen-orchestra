@@ -9567,15 +9567,6 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
-fatfs@^0.10.4:
-  version "0.10.8"
-  resolved "https://registry.yarnpkg.com/fatfs/-/fatfs-0.10.8.tgz#03b6ec0ac2dd284db0ad678379e19d100530380d"
-  integrity sha512-SgtbqGNMwptNXpgLeqSSShm254JIzoVUyyFQBbqMmSPDpKsdZ65vSiS2SzyUI8sMtPvYK62hkuYhXzGZCMt5uQ==
-  dependencies:
-    fifolock "^1.0.0"
-    struct-fu "^1.2.1"
-    xok "^1.0.0"
-
 faye-websocket@~0.7.2:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.7.3.tgz#cc4074c7f4a4dfd03af54dd65c354b135132ce11"
