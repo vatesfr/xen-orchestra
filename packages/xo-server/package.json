@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.161.0",
+  "version": "5.162.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -50,7 +50,7 @@
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/emit-async": "^1.0.0",
-    "@xen-orchestra/fs": "^4.2.1",
+    "@xen-orchestra/fs": "^4.3.0",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/mixin": "^0.2.0",
     "@xen-orchestra/mixins": "^0.16.2",

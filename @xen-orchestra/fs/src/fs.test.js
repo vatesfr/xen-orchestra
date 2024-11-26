@@ -34,6 +34,7 @@ const rejectionOf = p =>
     reason => reason
   )
 
+// TODO : add tests on encrypted remote
 const handlers = [`file://${tmpdir()}`]
 if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
@@ -97,11 +98,12 @@ handlers.forEach(url => {
       })
     })
 
-    describe('#getSize()', () => {
+    // TODO : add test "should throw if remote is encrypted" on #getSize()
+    describe('#getSizeOnDisk()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 
       testWithFileDescriptor('file', 'r', async () => {
-        assert.equal(await handler.getSize('file'), TEST_DATA_LEN)
+        assert.equal(await handler.getSizeOnDisk('file'), TEST_DATA_LEN)
       })
     })
 
