@@ -90,6 +90,10 @@ export enum ON_NORMAL_EXIT {
   RESTART = 'restart',
 }
 
+export enum HOST_OPERATION {
+  SHUTDOWN = 'shutdown',
+}
+
 export enum VM_OPERATION {
   ASSERT_OPERATION_VALID = 'assert_operation_valid',
   AWAITING_MEMORY_LIVE = 'awaiting_memory_live',

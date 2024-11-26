@@ -6,6 +6,7 @@
 - [Header] Update user menu button (PR [#8109](https://github.com/vatesfr/xen-orchestra/pull/8109))
 - [VM/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
 - [i18n] Add Czech translation (contribution made by [@p-bo](https://github.com/p-bo)) (PR [#8098](https://github.com/vatesfr/xen-orchestra/pull/8098))
+- [Host/Console] Display _Console_, _Console Clipboard_ and _Console Actions_ (PR [#8136](https://github.com/vatesfr/xen-orchestra/pull/8136))
 
 ## **0.5.0** (2024-10-31)
 
