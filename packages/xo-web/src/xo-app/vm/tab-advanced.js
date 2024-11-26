@@ -610,7 +610,7 @@ export default class TabAdvanced extends Component {
         title: _('unblockMigrationTitle'),
         body: (
           <p>
-            {_('unblockMigrationconfirm')}
+            {_('unblockMigrationConfirm')}
             <ul>
               {Object.keys(blockedOperations).map(op => {
                 const reason = blockedOperations[op]
