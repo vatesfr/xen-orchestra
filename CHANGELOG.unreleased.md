@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/New] Cloudbase-Init is now correctly supported (PR [#8154](https://github.com/vatesfr/xen-orchestra/pull/8154))
+- [Backups] Correclty use the XO configuration file values (PR [#8161](https://github.com/vatesfr/xen-orchestra/pull/8161))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 <!--packages-start-->
 
 - @vates/fatfs minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
