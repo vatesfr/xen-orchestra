@@ -25,6 +25,10 @@ export const locales: Locales = {
     code: 'fa',
     name: 'Persian',
   },
+  cs: {
+    code: 'cs',
+    name: 'čeština',
+  },
 }
 
 export default createI18n({
