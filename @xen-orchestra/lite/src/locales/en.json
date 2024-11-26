@@ -96,7 +96,7 @@
   "go-back": "Go back",
   "gzip": "gzip",
   "here": "Here",
-
+  "host": "Host",
   "host.active": "Active",
   "host.inactive": "Inactive",
 
@@ -189,6 +189,8 @@
   "no-tasks": "No tasks",
   "not-found": "Not found",
   "object": "Object",
+  "off": "Off",
+  "on": "On",
   "ok": "OK",
   "on-object": "on {object}",
   "or": "Or",
