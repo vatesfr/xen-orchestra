@@ -54,10 +54,11 @@ const imageSrc = computed(() => {
 
   .text {
     order: 3;
-    color: var(--color-info-txt-base);
   }
 
   &.page {
+    gap: 2.4rem;
+
     .text {
       order: 3;
     }
@@ -94,7 +95,7 @@ const imageSrc = computed(() => {
   }
 
   &.panel {
-    gap: 2.4rem;
+    gap: 4rem;
     justify-content: unset;
     padding-top: 8rem;
 
