@@ -605,7 +605,10 @@ export default class TabAdvanced extends Component {
         ),
       })
 
-    if (blockedOperations !== undefined && ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations)) {
+    if (
+      blockedOperations !== undefined &&
+      ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations && blockedOperations[op].trim() !== 'true')
+    ) {
       confirm({
         title: _('unblockMigrationTitle'),
         body: (

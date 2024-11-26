@@ -1527,7 +1527,7 @@ const messages = {
   protectFromShutdown: 'Protect from accidental shutdown',
   blockMigration: 'Block migration',
   unblockMigrationTitle: 'Unblock migration',
-  unblockMigrationConfirm: 'This will unblock migration',
+  unblockMigrationConfirm: 'Are you sure you want to unblock migration for this VM?',
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
