@@ -148,9 +148,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return this._path + '/' + partName
   }
 
-  async _readChunk(partName) {
-    // here we can implement compression and / or crypto
-    const buffer = await this._handler.readFile(this.#getChunkPath(partName))
+  async _readChunk(partName, {fromFileStore = false} = {} ) {
+    const path = this.#getChunkPath(partName)
+    const handler  = this._handler
+    const buffer = fromFileStore ? await  handler.fileStore.read(path): await handler.readFile(path)
 
     const uncompressed = await this.#compressor.decompress(buffer)
     return {
@@ -158,17 +159,23 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer) {
+  async _writeChunk(partName, buffer, {fromFileStore=false} = {}) {
     assert.notStrictEqual(
       this._opts?.flags,
       'r',
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
+    const path = this.#getChunkPath(partName)
+    const handler  = this._handler
+    const compressed = await this.#compressor.compress(buffer)
+
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
-    const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return fromFileStore ? 
+      await  handler.fileStore.write(path, compressed): 
+      await handler.outputFile(path, compressed, { flags })
+
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -208,7 +215,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     if (onlyBitmap) {
       throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDirectory is not implemented`)
     }
-    const { buffer } = await this._readChunk(this.#getBlockPath(blockId))
+    const { buffer } = await this._readChunk(this.#getBlockPath(blockId), {fromFileStore: true})
     return {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
@@ -262,7 +269,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
     try {
       const blockExists = this.containsBlock(blockId)
-      await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
+      await this._handler.fileStore.move(childBlockPath, this._getFullBlockPath(blockId))
       if (!blockExists) {
         setBitmap(this.#blockTable, blockId)
         await this.writeBlockAllocationTable()
@@ -285,7 +292,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
-    await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
+    await this._writeChunk(this.#getBlockPath(block.id), block.buffer, {fromFileStore:true})
     setBitmap(this.#blockTable, block.id)
   }
 

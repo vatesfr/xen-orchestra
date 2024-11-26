@@ -229,4 +229,13 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   _writeFile(file, data, { flags }) {
     return this.#addSyncStackTrace(fs.writeFile, this.getFilePath(file), data, { flag: flags })
   }
+  _link(from,to){
+    // Ensures that the link exists. If the directory structure does not exist, it is created.
+    
+    return this.#addSyncStackTrace(fs.ensureLink, this.getFilePath(from), this.getFilePath(to))
+  }
+  
+  stat(file){
+    return this.#addSyncStackTrace(fs.stat, this.getFilePath(file))
+  }
 }

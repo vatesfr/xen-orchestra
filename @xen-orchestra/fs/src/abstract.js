@@ -13,6 +13,7 @@ import { synchronized } from 'decorator-synchronized'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { getOrCreateStore } from './ImmutableFileStore.js'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -75,6 +76,11 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
+   // a alternative way to organize bug number of little files
+   // intended to be used for deduplicating disk chunks
+
+  #immutableFileStore
+
   #rawEncryptor
 
   get #encryptor() {
@@ -82,6 +88,10 @@ export default class RemoteHandlerAbstract {
       throw new Error(`Can't access to encryptor before remote synchronization`)
     }
     return this.#rawEncryptor
+  }
+
+  get fileStore(){
+    return this.#immutableFileStore
   }
 
   constructor(remote, options = {}) {
@@ -101,6 +111,7 @@ export default class RemoteHandlerAbstract {
     this.getInfo = sharedLimit(this.getInfo)
     this.getSizeOnDisk = sharedLimit(this.getSizeOnDisk)
     this.list = sharedLimit(this.list)
+    this.link = sharedLimit(this.link)
     this.mkdir = sharedLimit(this.mkdir)
     this.openFile = sharedLimit(this.openFile)
     this.outputFile = sharedLimit(this.outputFile)
@@ -334,8 +345,10 @@ export default class RemoteHandlerAbstract {
   @synchronized()
   async sync() {
     await this._sync()
+
     try {
       await this.#checkMetadata()
+      this.#immutableFileStore = await getOrCreateStore({handler: this})
     } catch (error) {
       await this._forget()
       throw error
@@ -676,6 +689,14 @@ export default class RemoteHandlerAbstract {
 
   async _writeFile(file, data, options) {
     throw new Error('Not implemented')
+  }
+
+  async _link(from, to){
+    throw new Error('Not implemented')
+  }
+
+  async link(from, to){
+    return this._link(from,to)
   }
 
   get isEncrypted() {
