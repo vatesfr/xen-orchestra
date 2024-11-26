@@ -404,8 +404,7 @@ export default class BackupNg {
 
     // FIXME: does not take into account default values defined in @xen-orchestra/backups/Backup
     const jobSettings = {
-      ...config.defaultSettings,
-      ...config.vm?.defaultSettings,
+      ...config,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }

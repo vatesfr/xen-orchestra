@@ -17,7 +17,7 @@ const DEFAULT_METADATA_SETTINGS = {
 export const Metadata = class MetadataBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
-    Object.assign(baseSettings, DEFAULT_METADATA_SETTINGS, config.defaultSettings, config.metadata?.defaultSettings)
+    Object.assign(baseSettings, DEFAULT_METADATA_SETTINGS, config)
     Object.assign(baseSettings, job.settings[''])
     return baseSettings
   }

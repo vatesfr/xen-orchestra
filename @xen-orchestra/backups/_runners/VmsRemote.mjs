@@ -31,7 +31,7 @@ const DEFAULT_REMOTE_VM_SETTINGS = {
 export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
-    Object.assign(baseSettings, DEFAULT_REMOTE_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
+    Object.assign(baseSettings, DEFAULT_REMOTE_VM_SETTINGS, config)
     Object.assign(baseSettings, job.settings[''])
     return baseSettings
   }
