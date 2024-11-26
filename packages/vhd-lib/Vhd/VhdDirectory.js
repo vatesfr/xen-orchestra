@@ -264,7 +264,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     try {
       const blockExists = this.containsBlock(blockId)
       if (blockExists) {
-        initialSize = this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
+        initialSize = await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))
       }
 
       await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
@@ -290,7 +290,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
     }
     setBitmap(this.#blockTable, blockId)
-    return this._handler.getSizeOnDisk(this._getFullBlockPath(blockId)) - initialSize
+    return (await this._handler.getSizeOnDisk(this._getFullBlockPath(blockId))) - initialSize
   }
 
   async writeEntireBlock(block) {

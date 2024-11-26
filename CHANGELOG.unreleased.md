@@ -16,6 +16,7 @@
 - **XO 6**:
   - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
 - [backups] Handle VTPM content on incremental backup/replication/restore, including differential restore (PR [#8139](https://github.com/vatesfr/xen-orchestra/pull/8139))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -39,8 +40,8 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- vhd-lib patch
 - xo-server minor
 - xo-web minor
-- vhd-lib patch
 
 <!--packages-end-->
