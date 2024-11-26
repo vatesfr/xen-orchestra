@@ -9,7 +9,7 @@
       </template>
     </UiTitle>
     <div class="table-container">
-      <UiQuerySearchBar class="table-query" @search="(value: string) => (filter = value)" />
+      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions>
         <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit" disabled>
           {{ $t('edit') }}
@@ -96,9 +96,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
-import { defineTree } from '@core/composables/tree/define-tree'
-import { useTreeFilter } from '@core/composables/tree-filter.composable'
-import { useTree } from '@core/composables/tree.composable'
 
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
@@ -115,11 +112,20 @@ import {
   faPowerOff,
   faCaretDown,
 } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   pifs: object[]
 }>()
+
+const searchQuery = ref('')
+
+const filteredPifs = computed(() => {
+  if (!searchQuery.value) return props.pifs
+  return props.pifs.filter(pif =>
+    Object.values(pif).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
+  )
+})
 
 const usableRefs = computed(() => props.pifs.map(item => item.id))
 const { selected, areAllSelected } = useMultiSelect(usableRefs)
@@ -128,7 +134,7 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? usableRefs.value : []
 }
 
-const { visibleColumns, rows } = useTable('pifs', props.pifs, {
+const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', { label: '', isHideable: false }),
@@ -142,15 +148,6 @@ const { visibleColumns, rows } = useTable('pifs', props.pifs, {
     define('more', { label: '', isHideable: false }),
   ],
 })
-
-const { filter, predicate } = useTreeFilter()
-const definitions = defineTree(props.pifs, {
-  getLabel: 'name_label',
-  predicate,
-})
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { nodes: items } = useTree(definitions, { expand: false })
 
 type NetworkStatus = 'connected' | 'disconnected' | 'other'
 
