@@ -1,5 +1,5 @@
-import semver from 'semver'
 import TTLCache from '@isaacs/ttlcache'
+import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
