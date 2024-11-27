@@ -1,0 +1,32 @@
+{
+  "private": false,
+  "name": "@vates/fatfs",
+  "version": "0.11.0",
+  "description": "fs implementation on top of raw FAT16/FAT32 block source",
+  "main": "index.js",
+  "scripts": {
+    "postversion": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra"
+  },
+  "keywords": [
+    "filesystem",
+    "fs",
+    "fat",
+    "fat32",
+    "fat16"
+  ],
+  "author": "Vates SAS",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/vatesfr/xen-orchestra/issues"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "dependencies": {
+    "fifolock": "^1.0.0",
+    "struct-fu": "^1.2.1",
+    "xok": "^1.0.0"
+  }
+}

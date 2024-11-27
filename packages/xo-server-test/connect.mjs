@@ -1,7 +1,16 @@
+import appConf from 'app-conf'
 import Xo from 'xo-lib'
 const XoConnection = Xo.default
 
-const SERVER_URL = process.env.SERVER_URL || 'http://127.0.0.1:80'
+const xoServerHttpConfig = (
+  await appConf.load('xo-server', {
+    appDir: new URL('..', import.meta.url).pathname,
+    ignoreUnknownFormats: true,
+  })
+).http.listen[0]
+const port = xoServerHttpConfig.port || 80
+const hostname = xoServerHttpConfig.hostname || 'localhost'
+const SERVER_URL = `http://${hostname}:${port}`
 
 /**
  * @param params Contains {url, email, password} as the optionnal server url, and the email/password of the user

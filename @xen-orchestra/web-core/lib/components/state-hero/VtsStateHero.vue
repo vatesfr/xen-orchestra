@@ -12,12 +12,12 @@
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { computed } from 'vue'
 
-export type StateHeroType = 'page' | 'card'
+export type StateHeroType = 'page' | 'card' | 'panel'
 
 const props = defineProps<{
   type: StateHeroType
   busy?: boolean
-  image?: 'no-result' | 'under-construction' | 'no-data' // TODO: 'offline' |  'not-found' | 'all-good' | 'all-done' | 'error'
+  image?: 'no-result' | 'under-construction' | 'no-data' | 'no-selection' | 'error' // TODO: 'offline' |  'not-found' | 'all-good' | 'all-done''
 }>()
 
 const slots = defineSlots<{
@@ -43,38 +43,74 @@ const imageSrc = computed(() => {
   align-items: center;
   justify-content: center;
 
-  .image {
-    max-width: 55rem;
-  }
-
   .loader,
   .text {
     color: var(--color-info-txt-base);
   }
 
-  &.page {
-    gap: 8.2rem;
+  .image {
+    order: 2;
+  }
 
-    .image {
-      width: 90%;
-      max-height: none;
+  .text {
+    order: 3;
+  }
+
+  &.page {
+    gap: 2.4rem;
+
+    .text {
+      order: 3;
     }
 
     .loader {
+      order: 1;
       font-size: 10rem;
+    }
+
+    .image {
+      order: 2;
+      width: 90%;
+      max-height: none;
     }
   }
 
   &.card {
     gap: 2rem;
 
-    .image {
-      width: 70%;
-      max-height: 20rem;
+    .text {
+      order: 3;
     }
 
     .loader {
       font-size: 6rem;
+      order: 1;
+    }
+
+    .image {
+      order: 2;
+      width: 70%;
+      max-height: 20rem;
+    }
+  }
+
+  &.panel {
+    gap: 4rem;
+    justify-content: unset;
+    padding-top: 8rem;
+
+    .text {
+      order: 1;
+    }
+
+    .loader {
+      order: 3;
+      font-size: 6.4rem;
+    }
+
+    .image {
+      order: 2;
+      width: 80%;
     }
   }
 }

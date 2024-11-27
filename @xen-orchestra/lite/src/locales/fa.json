@@ -95,7 +95,6 @@
   "following-hosts-unreachable": "میزبان های زیر در دسترس نیستند",
   "force-reboot": "راه اندازی مجدد اجباری",
   "force-shutdown": "خاموش کردن اجباری",
-  "fullscreen": "تمام صفحه",
   "fullscreen-leave": "خروج از حالت تمام صفحه",
   "gateway": "دروازه",
   "n-gb-left": "{n} GB باقی مانده است",
@@ -137,7 +136,6 @@
   "object-not-found": "شیء {id} پیدا نمی شود…",
   "ok": "اوکی",
   "on-object": "در {object}",
-  "open-console-in-new-tab": "باز کردن کنسول در برگه جدید",
   "or": "یا",
   "page-not-found": "این صفحه پیدا نمی شود…",
   "password": "کلمه عبور",
@@ -167,7 +165,6 @@
   "select-compression": "یک فشرده سازی انتخاب کنید",
   "select-destination-host": "یک میزبان مقصد انتخاب کنید",
   "selected-vms-in-execution": "برخی از ماشین های مجازی انتخاب شده در حال اجرا هستند",
-  "send-ctrl-alt-del": "ارسال کلیدهای Ctrl+Alt+Del",
   "send-us-feedback": "برای ما بازخورد ارسال کنید",
 
   "select.network": "یک شبکه انتخاب کنید",

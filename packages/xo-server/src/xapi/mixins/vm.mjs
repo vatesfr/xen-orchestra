@@ -3,6 +3,7 @@ import find from 'lodash/find.js'
 import gte from 'lodash/gte.js'
 import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
+import keyBy from 'lodash/keyBy.js'
 import lte from 'lodash/lte.js'
 import mapToArray from 'lodash/map.js'
 import mapValues from 'lodash/mapValues.js'
@@ -46,7 +47,8 @@ const methods = {
       ...props
     } = {},
     checkLimits,
-    creatorId
+    creatorId,
+    { destroyAllVifs = false } = {}
   ) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -187,19 +189,47 @@ const methods = {
       )
     }
 
-    // Destroys the VIFs cloned from the template.
-    await Promise.all(vm.$VIFs.map(vif => this._deleteVif(vif)))
+    if (destroyAllVifs) {
+      // Destroys the VIFs cloned from the template.
+      await Promise.all(vm.$VIFs.map(vif => this._deleteVif(vif)))
+    }
 
     // Creates the VIFs specified by the user.
     if (vifs) {
       const devices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
+      const _vifsToCreate = []
+      const _vifsToDestroy = []
+      const vmVifByDevice = keyBy(vm.$VIFs, 'device')
+
+      vifs.forEach(vif => {
+        if (vif.device === undefined) {
+          vif.device = devices.shift()
+          _vifsToCreate.push(vif)
+          return
+        }
+
+        const vmVif = vmVifByDevice[vif.device]
+        if (vif.destroy) {
+          if (vmVif !== undefined) {
+            _vifsToDestroy.push(vmVif)
+          }
+          return
+        }
+
+        if (vmVif !== undefined) {
+          _vifsToDestroy.push(vmVif)
+        }
+        _vifsToCreate.push(vif)
+      })
+
+      await Promise.all(_vifsToDestroy.map(vif => this._deleteVif(vif)))
       await Promise.all(
-        mapToArray(vifs, (vif, index) =>
+        _vifsToCreate.map(vif =>
           this.VIF_create(
             {
               ipv4_allowed: vif.ipv4_allowed,
               ipv6_allowed: vif.ipv6_allowed,
-              device: devices[index],
+              device: vif.device,
               locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
               MTU: vif.mtu,
               network: this.getObject(vif.network).$ref,

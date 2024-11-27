@@ -1,7 +1,7 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
+import fatfs from '@vates/fatfs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import fatfs from 'fatfs'
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import flatMap from 'lodash/flatMap.js'
@@ -1370,10 +1370,11 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    let buffer = fatfsBufferInit({ label: 'cidata     ' })
+    const fsLabel = 'cidata     '
+    let buffer = fatfsBufferInit({ label: fsLabel })
 
     // Then, generate a FAT fs
-    const { mkdir, writeFile } = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    const { createLabel, mkdir, writeFile } = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
 
     await Promise.all([
       // preferred datasource: NoCloud
@@ -1394,6 +1395,7 @@ export default class Xapi extends XapiBase {
           ])
         )
       ),
+      createLabel(fsLabel),
     ])
     // only add the MBR for windows VM
     if (vm.platform.viridian === 'true') {

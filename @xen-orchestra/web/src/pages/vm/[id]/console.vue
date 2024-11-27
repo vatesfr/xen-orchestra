@@ -1,11 +1,22 @@
 <template>
   <p v-if="!isVmConsoleAvailable" class="typo h5-medium">{{ $t('power-on-vm-for-console') }}</p>
-  <VtsRemoteConsole v-else :url />
+  <VtsLayoutConsole v-else>
+    <VtsRemoteConsole :url />
+    <template #actions>
+      <VtsActionsConsole />
+      <VtsDivider type="stretch" />
+      <VtsClipboardConsole />
+    </template>
+  </VtsLayoutConsole>
 </template>
 
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type'
+import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
+import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
+import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{

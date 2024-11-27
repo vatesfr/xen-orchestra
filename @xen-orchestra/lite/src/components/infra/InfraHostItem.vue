@@ -1,10 +1,6 @@
 <template>
   <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
-    <UiTreeItemLabel
-      :icon="faServer"
-      :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
-      @toggle="toggle()"
-    >
+    <UiTreeItemLabel :icon="faServer" :route="{ name: 'host.console', params: { uuid: host.uuid } }" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
         <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />

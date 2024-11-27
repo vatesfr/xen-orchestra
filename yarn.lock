@@ -9567,15 +9567,6 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
-fatfs@^0.10.4:
-  version "0.10.8"
-  resolved "https://registry.yarnpkg.com/fatfs/-/fatfs-0.10.8.tgz#03b6ec0ac2dd284db0ad678379e19d100530380d"
-  integrity sha512-SgtbqGNMwptNXpgLeqSSShm254JIzoVUyyFQBbqMmSPDpKsdZ65vSiS2SzyUI8sMtPvYK62hkuYhXzGZCMt5uQ==
-  dependencies:
-    fifolock "^1.0.0"
-    struct-fu "^1.2.1"
-    xok "^1.0.0"
-
 faye-websocket@~0.7.2:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.7.3.tgz#cc4074c7f4a4dfd03af54dd65c354b135132ce11"
@@ -14204,7 +14195,7 @@ module-deps@^6.2.3:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-moment-timezone@^0.5.13, moment-timezone@^0.5.14:
+moment-timezone@^0.5.13, moment-timezone@^0.5.14, moment-timezone@^0.5.46:
   version "0.5.46"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.46.tgz#a21aa6392b3c6b3ed916cd5e95858a28d893704a"
   integrity sha512-ZXm9b36esbe7OmdABqIWJuBBiLLwAjrN7CE+7sYdCCx82Nabt1wHDj8TVseS59QIlfFPbOoiBPm6ca9BioG4hw==

@@ -94,7 +94,6 @@
   "following-hosts-unreachable": "Die folgenden Hosts sind nicht erreichbar",
   "force-reboot": "Neustart erzwingen",
   "force-shutdown": "Herunterfahren erzwingen",
-  "fullscreen": "Vollbild",
   "fullscreen-leave": "Vollbild schließen",
   "gateway": "Gateway",
   "n-gb-left": "{n} GB frei",
@@ -137,7 +136,6 @@
   "object": "Objekt",
   "ok": "OK",
   "on-object": "auf {object}",
-  "open-console-in-new-tab": "Konsole in neuem Reiter öffnen",
   "or": "Oder",
   "page-not-found": "Diese Seite wurde nicht gefunden…",
   "password": "Passwort",
@@ -167,7 +165,6 @@
   "select-compression": "Kompression auswählen",
   "select-destination-host": "Zielhost auswählen",
   "selected-vms-in-execution": "Einige der ausgewählten VMs sind eingeschaltet",
-  "send-ctrl-alt-del": "Ctrl+Alt+Del senden",
   "send-us-feedback": "Gib uns Feedback",
 
   "select.network": "Ein Netzwerk auswählen",

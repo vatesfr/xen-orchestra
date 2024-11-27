@@ -1,6 +1,6 @@
 {
   "name": "xo-server-perf-alert",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "license": "AGPL-3.0-or-later",
   "description": "Sends alerts based on performance criteria",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-perf-alert",

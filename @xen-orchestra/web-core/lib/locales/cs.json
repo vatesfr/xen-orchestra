@@ -1,0 +1,76 @@
+{
+  "alarms": "Výstrahy",
+
+  "bytes.ki": "KiB",
+  "bytes.mi": "MiB",
+  "bytes.gi": "GiB",
+
+  "coming-soon": "Už brzy!",
+  "console": "Konzole",
+
+  "core.copied": "Zkopírováno",
+  "core.copy-id": "Zkopírovat identif.",
+  "core.close": "Zavřít",
+  "core.current": "Stávající",
+  "core.filter": "Filtrovat",
+  "core.group": "Skupina",
+  "core.hide": "Skrýt",
+  "core.open": "Otevřít",
+  "core.quick-actions": "Rychlé akce",
+
+  "core.search": "Hledat",
+
+  "core.query-search-bar.label": "Vyhledávací engine",
+  "core.query-search-bar.placeholder": "Zadejte svůj dotaz…",
+  "core.query-search-bar.use-query-builder": "Použít nástroj pro sestavování dotazů",
+
+  "core.select.all": "Vybrat vše",
+  "core.select.none": "Zrušit výběr všeho",
+
+  "core.sidebar.close": "Zavřít postranní panel",
+  "core.sidebar.lock": "Uzamknout postranní panel v poloze otevřeno",
+  "core.sidebar.open": "Otevřít postranní panel",
+  "core.sidebar.unlock": "Odemknout postranní panel",
+
+  "core.sort.ascending": "Seřadit vzestupně",
+  "core.sort.descending": "Seřadit sestupně",
+
+  "dark-mode.enable": "Zapnout tmavý režim",
+  "dark-mode.disable": "Vypnout tmavý režim",
+  "dark-mode.auto": "Automatický tmavý režim",
+
+  "dashboard": "Přehled",
+  "documentation-name": "Dokumentace k {name}",
+  "hosts": "Hostitelé",
+  "learn-more": "Zjistit více",
+  "loading-in-progress": "Probíhá načítání…",
+  "log-out": "Odhlásit",
+  "master": "Hlavní hostitel",
+  "n-vms": "1 virt. stroj | {n} virt. strojů",
+  "network": "Síť",
+  "no-data": "Žádné údaje",
+  "object-not-found": "Objekt {id} nebylo možné nalézt…",
+  "other": "Ostatní",
+  "patches": "Záplaty",
+  "power-on-vm-for-console": "Konzole virt. stroje bude přístupná až po jeho zapnutí",
+  "power-on-host-for-console": "Konzole virt. stroje bude přístupná až po jeho zapnutí",
+  "professional-support": "Profesionální podpora",
+  "running-vm": "Spuštěný virt. stroj | Spuštěné virt. stroje",
+  "see-all": "Zobrazit vše",
+  "stats": "Statistiky",
+  "storage": "Úložiště",
+  "system": "Systém",
+
+  "tasks": "Úlohy",
+  "tasks.n-subtasks": "{n} podúloha | {n} podúloh",
+  "tasks.no-tasks": "Žádné úlohy",
+  "tasks.quick-view": "Rychlý přehled úlohy",
+  "tasks.quick-view.all": "Vše",
+  "tasks.quick-view.done": "Hotovo",
+  "tasks.quick-view.failed": "Nezdařilo se",
+  "tasks.quick-view.in-progress": "Probíhá",
+
+  "total": "Celkem",
+  "total-cpus": "Celkem procesorů",
+  "vms": "Virt. strojů"
+}
