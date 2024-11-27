@@ -12,7 +12,6 @@ export const usePifStore = defineStore('pif', () => {
 
     baseContext.records.value.forEach(pif => {
       const hostId = pif.$host
-      // const network = networkContext.records.value.find(network => network.id === pif.$network)
       if (!pifsByHostMap.has(hostId)) {
         pifsByHostMap.set(hostId, [])
       }
