@@ -1,6 +1,6 @@
 <template>
   <VtsLoadingHero v-if="!isReady" type="page" />
-  <VtsObjectNotFoundHero v-else-if="!pool" :id="route.params.id" />
+  <VtsObjectNotFoundHero v-else-if="!pool" :id="route.params.id" type="page" />
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
     <component :is="Component" :pool />

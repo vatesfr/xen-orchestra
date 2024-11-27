@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('type').required().enum('page', 'card').preset('card').widget(),
+      prop('type').required().enum('page', 'card', 'table', 'panel').preset('card').widget(),
       prop('disabled').bool().widget(),
       slot(),
       setting('slotContent').preset('Content to show when loader is disabled').widget(),

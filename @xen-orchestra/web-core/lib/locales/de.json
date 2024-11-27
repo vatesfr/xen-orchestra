@@ -19,6 +19,7 @@
 
   "dashboard": "Dashboard",
   "documentation-name": "{name} Dokumentation",
+  "error-no-data": "Fehler beim Datenabruf.",
   "fullscreen": "Vollbild",
   "hosts": "Hosts",
   "learn-more": "Mehr erfahren",
