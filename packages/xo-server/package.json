@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.162.0",
+  "version": "5.163.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -36,7 +36,7 @@
     "@vates/decorate-with": "^2.1.0",
     "@vates/disposable": "^0.1.6",
     "@vates/event-listeners-manager": "^1.0.1",
-    "@vates/fatfs": "^0.10.8",
+    "@vates/fatfs": "^0.11.0",
     "@vates/multi-key-map": "^0.2.0",
     "@vates/obfuscate": "^0.1.0",
     "@vates/otp": "^1.1.0",
