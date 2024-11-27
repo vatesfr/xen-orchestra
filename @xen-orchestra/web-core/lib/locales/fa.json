@@ -32,8 +32,6 @@
   "dark-mode.auto": "حالت خودکار تاریک",
 
   "dashboard": "داشبورد",
-  "delete": "حذف کردن",
-  "dns": "DNS",
   "documentation-name": "اسناد {name}",
   "error-no-data": "خطا، نمی توان داده ها را جمع آوری کرد.",
   "fullscreen": "تمام صفحه",
@@ -42,7 +40,6 @@
   "loading-in-progress": "بارگیری در حال انجام است…",
   "log-out": "خروج",
   "master": "میزبان اصلی",
-  "netmask": "Netmask",
   "network": "شبکه",
   "open-console-in-new-tab": "باز کردن کنسول در برگه جدید",
   "page-not-found": "این صفحه پیدا نمی شود…",
@@ -52,7 +49,6 @@
   "running-vm": "ماشین های مجازی در حال اجرا | ماشین مجازی در حال اجرا",
   "send-ctrl-alt-del": "ارسال کلیدهای Ctrl+Alt+Del",
   "stats": "آمار",
-  "status": "وضعیت",
   "storage": "ذخیره سازی",
   "system": "سیستم",
   "tasks": "کارها"
