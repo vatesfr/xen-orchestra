@@ -61,7 +61,6 @@ const value = ref<string>('')
   align-items: center;
 
   .label {
-    white-space: nowrap;
     color: var(--color-neutral-txt-secondary);
   }
 }

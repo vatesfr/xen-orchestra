@@ -18,8 +18,6 @@
   "dark-mode.auto": "Automatischer Dunkelmodus",
 
   "dashboard": "Dashboard",
-  "delete": "Löschen",
-  "dns": "DNS",
   "documentation-name": "{name} Dokumentation",
   "error-no-data": "Fehler beim Datenabruf.",
   "fullscreen": "Vollbild",
@@ -30,7 +28,6 @@
   "log-out": "Abmelden",
   "master": "Primärer Host",
   "n-vms": "1 VM | {n} VMs",
-  "netmask": "Netzmaske",
   "network": "Netzwerk",
   "object-not-found": "Objekt {id} wurde nicht gefunden…",
   "open-console-in-new-tab": "Konsole in neuem Reiter öffnen",
@@ -41,7 +38,6 @@
   "running-vm": "VM eingeschalten | VMs eingeschalten",
   "send-ctrl-alt-del": "Ctrl+Alt+Del senden",
   "stats": "Statistiken",
-  "status": "Status",
   "storage": "Speicher",
   "system": "System",
 
