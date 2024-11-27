@@ -28,7 +28,7 @@ defineProps<{
 }
 
 .title {
-  //text-align: center;
+  text-align: center;
 }
 
 .subtitle {
