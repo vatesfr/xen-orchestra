@@ -6,7 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import store from 'store'
 import HomeTags from 'home-tags'
-import { addTag, removeTag, subscribeIpmiSensors } from 'xo'
+import { addTag, getHostBiosInfo, removeTag, subscribeIpmiSensors } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
@@ -69,6 +69,10 @@ export default decorate([
         ipmiSensors?.psuStatus?.filter(psuStatus => psuStatus.Event !== "'Presence detected'"),
       nFansOk: ({ fansKo }, { ipmiSensors }) => ipmiSensors?.fanStatus?.length - fansKo?.length,
       nPsusOk: ({ psusKo }, { ipmiSensors }) => ipmiSensors?.psuStatus?.length - psusKo?.length,
+      biosData: async (_, { host }) => {
+        const biosInfo = await getHostBiosInfo(host)
+        return typeof biosInfo === 'object' && biosInfo !== null ? biosInfo : undefined
+      },
     },
   }),
   injectState,
@@ -78,7 +82,17 @@ export default decorate([
     nVms,
     vmController,
     ipmiSensors,
-    state: { areHostsVersionsEqual, cpuHighestTemp, fanHighestSpeed, fansKo, inMemoryVms, nFansOk, nPsusOk, psusKo },
+    state: {
+      areHostsVersionsEqual,
+      biosData,
+      cpuHighestTemp,
+      fanHighestSpeed,
+      fansKo,
+      inMemoryVms,
+      nFansOk,
+      nPsusOk,
+      psusKo,
+    },
   }) => {
     const pool = getObject(store.getState(), host.$pool)
     const vmsFilter = encodeURIComponent(new CM.Property('$container', new CM.String(host.id)).toString())
@@ -223,6 +237,26 @@ export default decorate([
             <Col>
               <p>
                 <Icon icon='alarm' /> {_('notAllHostsHaveTheSameVersion', { pool: <Pool id={host.$pool} link /> })}
+              </p>
+            </Col>
+          </Row>
+        )}
+        {biosData !== undefined && (
+          <Row className='text-xs-center'>
+            <Col>
+              <Icon icon='bios-version' size={3} />
+              <p>
+                {_('currentBiosVersion', { version: biosData.currentBiosVersion })}{' '}
+                <Icon
+                  icon={biosData.isUpToDate ? 'success' : 'false'}
+                  className={biosData.isUpToDate ? 'text-success' : 'text-danger'}
+                />
+                <br />
+                {!biosData.isUpToDate && (
+                  <a href={biosData.biosLink} target='_blank' rel='noreferrer'>
+                    {_('downloadBiosUpdate', { version: biosData.latestBiosVersion })}
+                  </a>
+                )}
               </p>
             </Col>
           </Row>

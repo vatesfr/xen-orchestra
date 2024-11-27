@@ -15,6 +15,10 @@ const IPMI_CACHE = new TTLCache({
   max: 1000,
 })
 
+const CACHE_2CRSI = new TTLCache({
+  ttl: 6e4,
+})
+
 const log = createLogger('xo:api:host')
 
 // ===================================================================
@@ -628,5 +632,15 @@ getIpmiSensors.params = {
   id: { type: 'string' },
 }
 getIpmiSensors.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+export function getBiosInfo({ host }) {
+  return this.getXapi(host).getHostBiosInfo(host._xapiRef, { cache: CACHE_2CRSI })
+}
+getBiosInfo.params = {
+  id: { type: 'string' },
+}
+getBiosInfo.resolve = {
   host: ['id', 'host', 'administrate'],
 }
