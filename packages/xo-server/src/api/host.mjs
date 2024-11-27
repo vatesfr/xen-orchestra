@@ -28,22 +28,15 @@ export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate 
   const xapi = this.getXapi(host)
 
   if (vmsToForceMigrate) {
-    await asyncEach(
-      vmsToForceMigrate,
-      async vmUuid => {
-        const record = await xapi.getRecordByUuid('VM', vmUuid)
-        const ref = record.$ref
-        const blockedOperations = record.blocked_operations
-        await Promise.all(
-          Object.keys(blockedOperations)
-            .filter(operation => ['pool_migrate', 'migrate_send'].includes(operation))
-            .map(async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation))
+    await asyncEach(vmsToForceMigrate, async vmUuid => {
+      const record = await xapi.getRecordByUuid('VM', vmUuid)
+      const ref = record.$ref
+      await Promise.all(
+        ['pool_migrate', 'migrate_send'].map(
+          async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation)
         )
-      },
-      {
-        concurrency: 4,
-      }
-    )
+      )
+    })
   }
 
   return maintenance ? xapi.clearHost(xapi.getObject(host)) : xapi.enableHost(host._xapiId)
