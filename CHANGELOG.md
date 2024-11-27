@@ -20,14 +20,14 @@
 
 ### Packages to release
 
-- @xen-orchestra/fs 4.4.0
-- @xen-orchestra/web-core 0.6.0
-- @xen-orchestra/proxy 0.29.6
-- xo-server 5.163.0
-- xo-server-perf-alert 0.7.0
-- xo-web 5.163.0
+- @xen-orchestra/fs 4.3.0
+- @xen-orchestra/proxy 0.29.5
+- xo-server-perf-alert 0.6.0
+- xo-web 5.162.0
 - @vates/fatfs 0.11.0
+- xo-server 5.163.0
 - @xen-orchestra/web 0.4.0
+- @xen-orchestra/web-core 0.6.0
 
 ## **5.100.2** (2024-11-14)
 
