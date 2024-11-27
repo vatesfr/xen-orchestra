@@ -6,7 +6,6 @@
   "bytes.gi": "GiB",
 
   "coming-soon": "Coming soon!",
-  "connected": "Connected",
   "console": "Console",
   "console-actions": "Console actions",
   "console-clipboard": "Console clipboard",
@@ -48,8 +47,6 @@
   "access-forum": "Access forum",
   "connected": "Connected",
   "dashboard": "Dashboard",
-  "disconnected": "Disconnected",
-  "disconnected-from-physical-device": "Disconnected from physical device",
   "delete": "Delete",
   "device": "Device",
   "disconnected": "Disconnected",
