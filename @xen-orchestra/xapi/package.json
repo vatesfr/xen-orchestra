@@ -36,7 +36,7 @@
     "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^4.11.1",
+    "vhd-lib": "^4.11.2",
     "xo-common": "^0.8.0"
   },
   "private": false,
