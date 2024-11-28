@@ -5,10 +5,17 @@
 ### Enhancements
 
 - [Proxies] Display the current proxy version (PR [#8104](https://github.com/vatesfr/xen-orchestra/pull/8104))
+- [REST/VM] When creating a VM, the template's VIFs are created. It is also possible to create more VIFs or delete/update template's VIFs (PR [#8137](https://github.com/vatesfr/xen-orchestra/pull/8137))
+- [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
+- [backups] Handle VTPM content on incremental backup/replication/restore, including differential restore (PR [#8139](https://github.com/vatesfr/xen-orchestra/pull/8139))
+- [Host/Advanced] Allow bypassing blocked migration in maintenance mode (PR [#8149](https://github.com/vatesfr/xen-orchestra/pull/8149))
+- [Backup] Long-term retention (GFS) (PRs [#7999](https://github.com/vatesfr/xen-orchestra/pull/7999) [#8141](https://github.com/vatesfr/xen-orchestra/pull/8141))
+- [VM/Advanced] Add ability to block/unblock migration (PR [#8129](https://github.com/vatesfr/xen-orchestra/pull/8129))
 - **XO 6**:
   - [Header] Use new `UiAccountMenuButton` component for user menu button (PR [#8143](https://github.com/vatesfr/xen-orchestra/pull/8143))
   - [VM,Host/Console] Display _Console Clipboard_ and _Console Actions_ (PR [#8125](https://github.com/vatesfr/xen-orchestra/pull/8125))
   - [i18n] Add Czech translation (contribution made by [@p-bo](https://github.com/p-bo)) (PR [#8099](https://github.com/vatesfr/xen-orchestra/pull/8099))
+  - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
 
 ### Bug fixes
 
@@ -21,13 +28,18 @@
 ### Packages to release
 
 - @xen-orchestra/fs 4.3.0
-- @xen-orchestra/proxy 0.29.5
 - xo-server-perf-alert 0.6.0
-- xo-web 5.162.0
 - @vates/fatfs 0.11.0
-- xo-server 5.163.0
-- @xen-orchestra/web 0.4.0
-- @xen-orchestra/web-core 0.6.0
+- vhd-lib 4.11.2
+- @xen-orchestra/xapi 7.8.0
+- @xen-orchestra/backups 0.55.0
+- @xen-orchestra/backups-cli 1.0.26
+- @xen-orchestra/immutable-backups 1.0.14
+- @xen-orchestra/web-core 0.7.0
+- @xen-orchestra/proxy 0.29.6
+- @xen-orchestra/web 0.5.0
+- xo-server 5.164.0
+- xo-web 5.163.0
 
 ## **5.100.2** (2024-11-14)
 
