@@ -712,19 +712,6 @@ export default class RestApi {
               params.affinityHost = affinity
               params.installRepository = install?.repository
 
-              const existingVdis = { __proto__: null }
-              const userVdis = []
-
-              params.vdis.forEach(vdi => {
-                const { userdevice, ..._vdi } = vdi
-                if (userdevice !== undefined) {
-                  existingVdis[userdevice] = { ..._vdi, $SR: _vdi.sr }
-                } else {
-                  userVdis.push(_vdi)
-                }
-              })
-              params.existingVdis = existingVdis
-              params.vdis = userVdis
               const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
