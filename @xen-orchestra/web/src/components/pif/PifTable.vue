@@ -55,18 +55,12 @@
               </div>
               <div v-if="column.id === 'device'" class="text-ellipsis">{{ row.value.device }}</div>
               <div v-if="column.id === 'status'" class="status">
-                <VtsIcon
-                  class="icon"
-                  :accent="getStatusProps(row.value.status as NetworkStatus).accent"
-                  :icon="faCircle"
-                  :overlay-icon="getStatusProps(row.value.status as NetworkStatus).icon"
-                />
-                <p class="text-ellipsis">{{ row.value.status }}</p>
+                <PifStatus :pif="row.value" />
               </div>
               <div v-if="column.id === 'vlan'" class="text-ellipsis">{{ row.value.vlan }}</div>
               <div v-if="column.id === 'ip'" class="text-ellipsis">{{ row.value.ip }}</div>
               <div v-if="column.id === 'mac'" class="text-ellipsis">{{ row.value.mac }}</div>
-              <div v-if="column.id === 'ip_mode'" class="text-ellipsis">{{ row.value.ip_mode }}</div>
+              <div v-if="column.id === 'mode'" class="text-ellipsis">{{ row.value.mode }}</div>
               <div v-if="column.id === 'more'">
                 <VtsIcon accent="info" :icon="faEllipsis" />
               </div>
@@ -85,6 +79,8 @@
 </template>
 
 <script setup lang="ts">
+import PifStatus from '@/components/pif/PifStatus.vue'
+import { getNetwork } from '@/fakeGetNetwork'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
@@ -106,7 +102,6 @@ import {
   faCircle,
   faEdit,
   faEllipsis,
-  faExclamation,
   faNetworkWired,
   faTrash,
   faAt,
@@ -119,11 +114,20 @@ const props = defineProps<{
   pifs: object[]
 }>()
 
+const network = ref(getNetwork)
+const pifs = props.pifs.map(pif => ({
+  ...pif,
+  networkID: network.value.id,
+  name_label: network.value.name_label,
+  nbd: network.value.nbd,
+  tags: network.value.tags,
+}))
+
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
-  if (!searchQuery.value) return props.pifs
-  return props.pifs.filter(pif =>
+  if (!searchQuery.value) return pifs
+  return pifs.filter(pif =>
     Object.values(pif).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
 })
@@ -145,24 +149,12 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('vlan', { label: 'Vlan', isHideable: true }),
     define('ip', { label: 'IP Addresses', isHideable: true }),
     define('mac', { label: 'MAC address', isHideable: true }),
-    define('ip_mode', { label: 'IP mode', isHideable: true }),
+    define('mode', { label: 'IP mode', isHideable: true }),
     define('more', { label: '', isHideable: false }),
   ],
 })
 
-type NetworkStatus = 'connected' | 'disconnected' | 'other'
-
-type NetworkAccent = 'success' | 'warning' | 'danger'
-
-const states: Record<NetworkStatus, { icon: IconDefinition; accent: NetworkAccent }> = {
-  connected: { icon: faCheck, accent: 'success' },
-  disconnected: { icon: faCheck, accent: 'danger' },
-  other: { icon: faExclamation, accent: 'warning' },
-}
-
-const getStatusProps = (status: NetworkStatus) => states[status as NetworkStatus]
-
-type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'ip_mode' | 'more'
+type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
 
 const headerIcon: Record<pifHeader, { icon: IconDefinition }> = {
   network: { icon: faAlignLeft },
@@ -171,7 +163,7 @@ const headerIcon: Record<pifHeader, { icon: IconDefinition }> = {
   vlan: { icon: faAlignLeft },
   ip: { icon: faAt },
   mac: { icon: faAt },
-  ip_mode: { icon: faCaretDown },
+  mode: { icon: faCaretDown },
   more: { icon: faEllipsis },
 }
 
