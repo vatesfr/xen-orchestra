@@ -106,7 +106,7 @@
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
 
-  "host-internal-network": "Hébergement de réseaux internes",
+  "host-internal-network": "Réseau interne de l'hôte",
 
   "invalid-field": "Champ invalide",
 
@@ -174,8 +174,8 @@
   "last-week": "Semaine dernière",
   "load-now": "Charger maintenant",
   "loading-hosts": "Chargement des hôtes…",
-  "locking-mode": "Mode verouillé",
-  "locking-mode-default": "Mode verouillé par defaut",
+  "locking-mode": "Mode verrouillé",
+  "locking-mode-default": "Mode verrouillé par défaut",
   "login": "Connexion",
   "login-only-on-master": "La connexion n'est possible que sur l'hôte primaire",
   "more-actions": "Plus d'actions",
@@ -193,6 +193,7 @@
   "new-features-are-coming": "De nouvelles fonctionnalités arrivent bientôt !",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+  "none": "Aucun",
   "no-alarm-triggered": "Aucune alarme déclenchée",
   "no-result": "Aucun résultat",
   "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",

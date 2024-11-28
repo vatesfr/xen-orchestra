@@ -15,15 +15,15 @@
         </UiTableActions>
         <div>
           <UiTopBottomTable
-            :selected-items="selectedItemsNetwork"
+            :selected-items="selectedItemsHostInternalNW"
             :total-items="reactiveNetworksWithVLANs.length"
-            @toggle-select-all="toggleSelectNetwork"
+            @toggle-select-all="toggleSelectHostInternalNW"
           />
           <VtsTable>
             <thead>
               <tr>
                 <th class="checkbox-header">
-                  <UiCheckbox accent="info" @update:model-value="toggleSelectNetwork($event)" />
+                  <UiCheckbox accent="info" @update:model-value="toggleSelectHostInternalNW($event)" />
                 </th>
                 <ColumnTitle id="name" :icon="faAlignLeft">{{ $t('name') }}</ColumnTitle>
                 <ColumnTitle id="description" :icon="faAlignLeft">{{ $t('description') }}</ColumnTitle>
@@ -36,10 +36,10 @@
             <tbody>
               <tr v-for="(item, index) in reactiveNetworksWithVLANs" :key="index">
                 <td>
-                  <UiCheckbox v-model="item.selected" accent="info" />
+                  <UiCheckbox accent="info" />
                 </td>
-                <td>{{ item.name_label }}</td>
-                <td>{{ item.name_description }}</td>
+                <td>{{ item.network.name_label }}</td>
+                <td>{{ item.network.name_description }}</td>
                 <td>
                   <!-- TODO improvement required -->
                   <UiInfo v-if="item.status === 'connected'" accent="success"> {{ item.status }}</UiInfo>
@@ -47,15 +47,15 @@
                   <UiInfo v-else accent="warning"> {{ item.status }}</UiInfo>
                 </td>
                 <td>{{ item.vlan }}</td>
-                <td>{{ item.MTU }}</td>
-                <td>{{ item.default_locking_mode }}</td>
+                <td>{{ item.network.MTU }}</td>
+                <td>{{ item.network.default_locking_mode }}</td>
               </tr>
             </tbody>
           </VtsTable>
           <UiTopBottomTable
-            :selected-items="selectedItemsNetwork"
+            :selected-items="selectedItemsHostInternalNW"
             :total-items="reactiveNetworksWithVLANs.length"
-            @toggle-select-all="toggleSelectNetwork"
+            @toggle-select-all="toggleSelectHostInternalNW"
           />
         </div>
       </div>
@@ -93,7 +93,7 @@
             <tbody>
               <tr v-for="(item, index) in reactiveHostPrivateNetworks" :key="index">
                 <td>
-                  <UiCheckbox v-model="item.selected" accent="info" />
+                  <UiCheckbox accent="info" />
                 </td>
                 <td>{{ item.name_label }}</td>
                 <td>{{ item.name_description }}</td>
@@ -147,16 +147,16 @@ const { networksWithVLANs, hostPrivateNetworks, isReady } = useNetworkStore().su
 const reactiveNetworksWithVLANs = ref(networksWithVLANs.value || [])
 const reactiveHostPrivateNetworks = ref(hostPrivateNetworks.value || [])
 
-const selectedItemsNetwork = computed(() => reactiveNetworksWithVLANs.value.filter(item => item.selected).length)
+// const selectedItemsNetwork = computed(() => reactiveNetworksWithVLANs.value.filter(item => item.selected).length)
 const selectedItemsHostInternalNW = computed(
   () => reactiveHostPrivateNetworks.value.filter(item => item.selected).length
 )
 
-const toggleSelectNetwork = (isSelected: any) => {
-  reactiveNetworksWithVLANs.value.forEach(item => {
-    item.selected = isSelected
-  })
-}
+// const toggleSelectNetwork = (isSelected: any) => {
+//   reactiveNetworksWithVLANs.value.forEach(item => {
+//     item.selected = isSelected
+//   })
+// }
 
 const toggleSelectHostInternalNW = (isSelected: any) => {
   reactiveHostPrivateNetworks.value.forEach(item => {
