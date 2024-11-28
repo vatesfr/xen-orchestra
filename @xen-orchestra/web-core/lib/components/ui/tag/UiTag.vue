@@ -40,7 +40,7 @@ defineSlots<{
   border-radius: 0.4rem;
   vertical-align: middle;
   min-width: 0;
-
+  height: 22px;
   /* COLOR VARIANTS */
 
   &.accent--info {
