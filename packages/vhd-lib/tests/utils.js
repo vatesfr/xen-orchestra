@@ -70,7 +70,7 @@ exports.recoverRawContent = async function recoverRawContent(vhdName, rawName, o
 }
 
 // @ todo how can I call vhd-cli copy from here
-async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
+async function convertToVhdDirectory(rawFileName, vhdFileName, path, { dedup = false } = {}) {
   fs.mkdirp(path)
 
   const srcVhd = await fs.open(vhdFileName, 'r')
@@ -103,15 +103,17 @@ async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
     await fs.read(srcRaw, blockData, 0, blockData.length, offset)
     await fs.writeFile(path + '/blocks/0/' + i, Buffer.concat([bitmap, blockData]))
   }
+
+  await fs.writeFile(path + '/chunk-filters.json', JSON.stringify(['none', dedup]))
   await fs.close(srcRaw)
 }
 exports.convertToVhdDirectory = convertToVhdDirectory
 
-exports.createRandomVhdDirectory = async function createRandomVhdDirectory(path, sizeMB) {
+exports.createRandomVhdDirectory = async function createRandomVhdDirectory(path, sizeMB, { dedup = false } = {}) {
   fs.mkdirp(path)
   const rawFileName = `${path}/temp.raw`
   await createRandomFile(rawFileName, sizeMB)
   const vhdFileName = `${path}/temp.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
-  await convertToVhdDirectory(rawFileName, vhdFileName, path)
+  await convertToVhdDirectory(rawFileName, vhdFileName, path, { dedup })
 }

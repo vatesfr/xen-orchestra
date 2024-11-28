@@ -745,6 +745,7 @@ const xoItemToRender = {
       {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
       <NumericDate timestamp={backup.timestamp} />
+      {backup.dedup === true && <span className='tag tag-info'>deduplicated</span>}{' '}
     </span>
   ),
 

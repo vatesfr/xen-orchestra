@@ -32,6 +32,7 @@ function formatVmBackup(backup) {
 
     id: backup.id,
     isImmutable: backup.isImmutable,
+    dedup: backup.dedup,
     jobId: backup.jobId,
     mode: backup.mode,
     scheduleId: backup.scheduleId,
