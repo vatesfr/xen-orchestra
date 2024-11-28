@@ -80,7 +80,6 @@
 
 <script setup lang="ts">
 import PifStatus from '@/components/pif/PifStatus.vue'
-import { getNetwork } from '@/fakeGetNetwork'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
@@ -114,20 +113,11 @@ const props = defineProps<{
   pifs: object[]
 }>()
 
-const network = ref(getNetwork)
-const pifs = props.pifs.map(pif => ({
-  ...pif,
-  networkID: network.value.id,
-  name_label: network.value.name_label,
-  nbd: network.value.nbd,
-  tags: network.value.tags,
-}))
-
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
-  if (!searchQuery.value) return pifs
-  return pifs.filter(pif =>
+  if (!searchQuery.value) return props.pifs
+  return props.pifs.filter(pif =>
     Object.values(pif).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
 })
