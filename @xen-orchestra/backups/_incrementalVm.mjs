@@ -104,6 +104,18 @@ export async function exportIncrementalVm(
     }
   })
 
+  const vtpms = await Promise.all(
+    vm.$VTPMs.map(async vtpm => {
+      let content
+      try {
+        content = await vm.$xapi.call('VTPM.get_contents', vtpm.$ref)
+      } catch (err) {
+        console.error(err)
+      }
+      return content
+    })
+  )
+
   return Object.defineProperty(
     {
       version: '1.1.0',
@@ -113,6 +125,7 @@ export async function exportIncrementalVm(
       vm: {
         ...vm,
       },
+      vtpms,
     },
     'streams',
     {
@@ -281,6 +294,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
     }),
   ])
+  // recreate VTPMs
+  await Promise.all(
+    (incrementalVm.vtpms ?? []).map(async contents => {
+      await xapi.VTPM_create({ VM: vmRef, contents })
+    })
+  )
 
   await Promise.all([
     incrementalVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
