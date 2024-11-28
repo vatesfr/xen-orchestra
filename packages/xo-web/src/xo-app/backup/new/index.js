@@ -358,15 +358,15 @@ const New = decorate([
           snapshotMode: state.snapshotMode,
         }).toObject()
 
-        if (settings[''] === undefined) {
-          settings[''] = { __proto__: null }
+        if (normalizedSettings[''] === undefined) {
+          normalizedSettings[''] = { __proto__: null }
         }
 
         if (normalizedSettings['']?.maxExportRate <= 0) {
           normalizedSettings[''].maxExportRate = undefined
         }
 
-        settings[''].timezone = DEFAULT_TIMEZONE
+        normalizedSettings[''].timezone = DEFAULT_TIMEZONE
 
         await editBackupNgJob({
           id: props.job.id,
