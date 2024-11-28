@@ -1,16 +1,11 @@
 <template>
-  <div class="pif-status text-ellipsis">
-    <VtsIcon :accent="getStatusProps(status).accent" :icon="faCircle" :overlay-icon="getStatusProps(status).icon" />
-    <p class="text-ellipsis" :class="{ 'typo p3-regular': card }">
-      {{ getStatusProps(status).text }}
-    </p>
-  </div>
+  <UiInfo class="text-ellipsis" :accent="getStatusProps(status).accent">{{ getStatusProps(status).text }}</UiInfo>
 </template>
 
 <script setup lang="ts">
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faCheck, faCircle, faExclamation } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faExclamation } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,11 +37,3 @@ const status = computed(() => {
 
 const getStatusProps = (status: NetworkStatus) => states.value[status as NetworkStatus]
 </script>
-
-<style scoped lang="postcss">
-.pif-status {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-</style>
