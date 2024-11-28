@@ -38,6 +38,7 @@
 
 - @xen-orchestra/backups minor
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
 
