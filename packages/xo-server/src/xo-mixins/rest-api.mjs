@@ -712,6 +712,19 @@ export default class RestApi {
               params.affinityHost = affinity
               params.installRepository = install?.repository
 
+              const existingVdis = { __proto__: null }
+              const userVdis = []
+
+              params.vdis.forEach(vdi => {
+                const { userdevice, ..._vdi } = vdi
+                if (userdevice !== undefined) {
+                  existingVdis[userdevice] = { ..._vdi, $SR: _vdi.sr }
+                } else {
+                  userVdis.push(_vdi)
+                }
+              })
+              params.existingVdis = existingVdis
+              params.vdis = userVdis
               const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
@@ -765,6 +778,32 @@ export default class RestApi {
             name_label: { type: 'string' },
             network_config: { type: 'string', optional: true },
             template: { type: 'string' },
+            vdis: {
+              type: 'array',
+              default: [],
+              items: {
+                type: 'object',
+                properties: {
+                  destroy: { type: 'boolean', optional: true },
+                  userdevice: { type: 'string', optional: true },
+                  size: { type: 'number', optional: true },
+                  sr: { type: 'string', optional: true },
+                  name_description: { type: 'string', optional: true },
+                  name_label: { type: 'string', optional: true },
+                },
+                if: {
+                  not: {
+                    required: ['userdevice'],
+                  },
+                },
+                then: {
+                  required: ['size', 'name_label'],
+                  not: {
+                    required: ['destroy'],
+                  },
+                },
+              },
+            },
             vifs: {
               default: [],
               type: 'array',
