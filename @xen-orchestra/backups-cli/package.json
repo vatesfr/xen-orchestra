@@ -27,7 +27,7 @@
   "scripts": {
     "postversion": "npm publish --access public"
   },
-  "version": "1.0.25",
+  "version": "1.0.26",
   "license": "AGPL-3.0-or-later",
   "author": {
     "name": "Vates SAS",
