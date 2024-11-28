@@ -13,6 +13,7 @@ resourceCacheDelay = '5m'
 [api]
 keepAliveInterval = 10e3
 
+# See https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/README.md#changing-the-default-backup-configuration
 [backups]
 # Mode to use for newly created backup directories
 #
