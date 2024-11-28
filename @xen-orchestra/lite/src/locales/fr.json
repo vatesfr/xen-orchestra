@@ -58,8 +58,6 @@
 
   "descending": "descendant",
   "description": "Description",
-  "dhcp": "DHCP",
-  "dns": "DNS",
   "disabled": "Désactivé",
   "display": "Affichage",
   "do-you-have-needs": "Vous avez des besoins et/ou des attentes ? Faites le nous savoir",
@@ -178,7 +176,6 @@
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
   "n-missing": "{n} manquant | {n} manquants",
   "name": "Nom",
-  "netmask": "Masque réseau",
   "network-download": "Descendant",
   "network-throughput": "Débit du réseau",
   "network-upload": "Montant",

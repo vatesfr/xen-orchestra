@@ -1,0 +1,242 @@
+<template>
+  <UiPanel class="pif-panel">
+    <template #header>
+      <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit">
+        {{ $t('edit') }}
+      </UiButton>
+      <UiButton size="medium" variant="tertiary" accent="danger" :left-icon="faTrash">
+        {{ $t('delete') }}
+      </UiButton>
+    </template>
+    <UiCard class="card">
+      <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('uuid') }}
+        </template>
+        <template #value>
+          {{ props.pif.id }}
+        </template>
+        <template #addons>
+          <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('network') }}
+        </template>
+        <template #value>
+          {{ props.pif.name_label }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('device') }}
+        </template>
+        <template #value>
+          {{ props.pif.device }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('pif-status') }}
+        </template>
+        <template #value>
+          <PifStatus :icon="faCircle" :pif="props.pif" card />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('physical-interface-status') }}
+        </template>
+        <template #value>
+          <PifStatus :icon="faCircle" :pif="props.pif" card />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('vlan') }}
+        </template>
+        <template #value>
+          {{ props.pif.vlan }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('tags') }}
+        </template>
+        <template #value>
+          <div class="tags">
+            <UiTag v-for="tag in pif.tags" :key="tag" accent="info" variant="secondary">
+              {{ tag }}
+            </UiTag>
+          </div>
+        </template>
+      </VtsCardRowKeyValue>
+    </UiCard>
+    <UiCard class="card">
+      <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('ip-addresses') }}
+        </template>
+        <template #value>
+          <p v-for="ip in allIps" :key="ip" class="ip-address">{{ ip }}</p>
+        </template>
+        <template #addons>
+          <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('mac-address') }}
+        </template>
+        <template #value>
+          {{ props.pif.mac }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('netmask') }}
+        </template>
+        <template #value>
+          {{ props.pif.netmask }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('dns') }}
+        </template>
+        <template #value>
+          {{ props.pif.dns }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('gateway') }}
+        </template>
+        <template #value>
+          {{ props.pif.gateway }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('ip-mode') }}
+        </template>
+        <template #value>
+          {{ props.pif.mode }}
+        </template>
+      </VtsCardRowKeyValue>
+    </UiCard>
+    <UiCard class="card">
+      <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('mtu') }}
+        </template>
+        <template #value>
+          {{ props.pif.mtu }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('speed') }}
+        </template>
+        <template #value>
+          {{ props.pif.speed }}
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('network-block-device') }}
+        </template>
+        <template #value>
+          {{ props.pif.nbd }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ $t('default-locking-mode') }}
+        </template>
+        <template #value>
+          {{ props.pif.defaultIsLocked }}
+        </template>
+        <template #addons>
+          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+        </template>
+      </VtsCardRowKeyValue>
+    </UiCard>
+  </UiPanel>
+</template>
+
+<script setup lang="ts">
+import PifStatus from '@/components/pif/PifStatus.vue'
+// import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+// import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+// import type { XoNetwork } from '@/types/xo/network.type'
+// import type { XoPif } from '@/types/xo/pif.type'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
+
+const props = defineProps<{
+  pif: object
+}>()
+
+const allIps = computed(() => {
+  return [props.pif.ip, ...props.pif.ipv6].filter(ip => ip)
+})
+</script>
+
+<style scoped lang="postcss">
+.pif-panel {
+  min-width: 400px;
+  border-top: none;
+}
+
+.card {
+  gap: 0.8rem;
+
+  .tags {
+    width: 100%;
+    display: flex;
+    gap: 0.8rem;
+  }
+}
+</style>
