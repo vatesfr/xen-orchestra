@@ -36,8 +36,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web-core minor
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
 
