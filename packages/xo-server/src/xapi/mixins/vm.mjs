@@ -149,6 +149,17 @@ const methods = {
             return
           }
           let vdi = vbd.$VDI
+
+          if (vdi === undefined) {
+            throw new Error(`No VDI associated with the VBD: ${vbd.uuid}`)
+          }
+
+          if (properties.destroy) {
+            await vdi.$destroy()
+            return
+          }
+          delete properties.destroy
+
           await this._setObjectProperties(vdi, properties)
 
           // if another SR is set, move it there
