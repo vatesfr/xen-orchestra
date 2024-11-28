@@ -8,7 +8,6 @@ import { getCurrentVmUuid } from './_XenStore.mjs'
 import {
   addIpmiSensorDataType,
   containsDigit,
-  IPMI_SENSOR_DATA_TYPE,
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
   isRelevantIpmiSensor,
 } from './host/_ipmi.mjs'
@@ -130,18 +129,24 @@ class Host {
 
   async getIpmiSensors(ref, { cache } = {}) {
     const productName = (await this.call(cache, 'host.get_bios_strings', ref))['system-product-name']?.toLowerCase()
+    const callIpmiPlugin = fn => this.call(cache, 'host.call_plugin', ref, 'ipmitool.py', fn, {})
 
-    if (IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined) {
+    if (
+      IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME[productName] === undefined ||
+      (await callIpmiPlugin('is_ipmi_device_available')) === 'false'
+    ) {
       return {}
     }
 
-    const callSensorPlugin = fn => this.call(cache, 'host.call_plugin', ref, '2crsi-sensors.py', fn, {})
-    // https://github.com/AtaxyaNetwork/xcp-ng-xapi-plugins/tree/ipmi-sensors?tab=readme-ov-file#ipmi-sensors-parser
-    const [stringifiedIpmiSensors, ip] = await Promise.all([callSensorPlugin('get_info'), callSensorPlugin('get_ip')])
+    const [stringifiedIpmiSensors, stringifiedIpmiLan] = await Promise.all([
+      callIpmiPlugin('get_all_sensors'),
+      callIpmiPlugin('get_ipmi_lan'),
+    ])
     const ipmiSensors = JSON.parse(stringifiedIpmiSensors)
+    const ipmiLan = JSON.parse(stringifiedIpmiLan)
 
     const ipmiSensorsByDataType = {}
-    for (const ipmiSensor of ipmiSensors) {
+    for (const ipmiSensor of [...ipmiSensors, ...ipmiLan]) {
       if (!isRelevantIpmiSensor(ipmiSensor, productName)) {
         continue
       }
@@ -150,15 +155,13 @@ class Host {
       const dataType = ipmiSensor.dataType
 
       if (ipmiSensorsByDataType[dataType] === undefined) {
-        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.Name) ? [] : ipmiSensor
+        ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.name) ? [] : ipmiSensor
       }
 
       if (Array.isArray(ipmiSensorsByDataType[ipmiSensor.dataType])) {
         ipmiSensorsByDataType[dataType].push(ipmiSensor)
       }
     }
-
-    ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.generalInfo] = { ip }
 
     return ipmiSensorsByDataType
   }
