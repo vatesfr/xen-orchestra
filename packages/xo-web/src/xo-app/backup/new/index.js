@@ -274,6 +274,10 @@ const New = decorate([
           }
         }
 
+        if (settings[''] === undefined) {
+          settings[''] = { __proto__: null }
+        }
+
         if (settings['']?.maxExportRate <= 0) {
           settings[''].maxExportRate = undefined
         }
@@ -353,6 +357,10 @@ const New = decorate([
           copyMode: state.copyMode,
           snapshotMode: state.snapshotMode,
         }).toObject()
+
+        if (settings[''] === undefined) {
+          settings[''] = { __proto__: null }
+        }
 
         if (normalizedSettings['']?.maxExportRate <= 0) {
           normalizedSettings[''].maxExportRate = undefined
