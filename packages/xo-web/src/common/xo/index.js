@@ -135,6 +135,7 @@ connect()
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
+// eslint-disable-next-line n/no-unsupported-features/node-builtins
 const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
   ? async (method, params) => {
       await _signIn
@@ -142,7 +143,7 @@ const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
       return tap.call(
         xo.call(method, params),
         result => {
-          // eslint-disable-next-line no-console
+          // eslint-disable-next-line no-console, n/no-unsupported-features/node-builtins
           console.debug('API call (%d ms)', Date.now() - now, method, params, result)
         },
         error => {
@@ -1315,7 +1316,39 @@ export const toggleMaintenanceMode = async host => {
       return
     }
   }
-  return _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled })
+  return _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled }).catch(async err => {
+    if (err.message === 'operation blocked') {
+      const residentVmsIds = host.residentVms
+      const vms = residentVmsIds
+        .map(vmId => getObject(store.getState(), vmId))
+        .filter(
+          vm =>
+            vm.type === 'VM' &&
+            vm.power_state === 'Running' &&
+            vm?.blockedOperations &&
+            Object.keys(vm.blockedOperations).length > 0
+        )
+      const vmsToForceMigrate = vms.map(vm => vm.id)
+      confirm({
+        title: _('bypassBlockedMigrationsModalTitle'),
+        body: _('bypassBlockedMigrationsModalMessage', {
+          vms: (
+            <ul>
+              {vms.map(vm => (
+                <li key={vm.id}>
+                  <Vm id={vm.id} />
+                </li>
+              ))}
+            </ul>
+          ),
+        }),
+      }).then(() =>
+        _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled, vmsToForceMigrate })
+      )
+      return
+    }
+    throw err
+  })
 }
 
 export const getHostMissingPatches = async host => {

@@ -221,6 +221,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       vhds,
       vm,
       vmSnapshot,
+      vtpms: deltaExport.vtpms,
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {

@@ -588,6 +588,51 @@ export default class TabAdvanced extends Component {
     blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
   )
 
+  _getIsMigrationBlocked = createSelector(
+    () => this.props.vm?.blockedOperations,
+    blockedOperations =>
+      blockedOperations !== undefined && ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations)
+  )
+
+  _onChangeBlockMigration = block => {
+    const blockedOperations = this.props.vm.blockedOperations
+
+    const toggleBlockedOperations = () =>
+      editVm(this.props.vm, {
+        blockedOperations: Object.assign.apply(
+          null,
+          ['migrate_send', 'pool_migrate'].map(op => ({ [op]: block ? true : null }))
+        ),
+      })
+
+    if (
+      blockedOperations !== undefined &&
+      ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations && blockedOperations[op].trim() !== 'true')
+    ) {
+      return confirm({
+        title: _('unblockMigrationTitle'),
+        body: (
+          <p>
+            {_('unblockMigrationConfirm')}
+            <ul>
+              {Object.keys(blockedOperations).map(op => {
+                const reason = blockedOperations[op]
+                if ((op === 'migrate_send' || op === 'pool_migrate') && reason.trim() !== 'true') {
+                  return <li key={op}>{reason}</li>
+                }
+                return null
+              })}
+            </ul>
+          </p>
+        ),
+      }).then(() =>
+        toggleBlockedOperations()
+      )
+    } else {
+      return toggleBlockedOperations()
+    }
+  }
+
   _onChangeBlockStop = block =>
     editVm(this.props.vm, {
       blockedOperations: Object.assign.apply(
@@ -1001,6 +1046,12 @@ export default class TabAdvanced extends Component {
                   <th>{_('protectFromShutdown')}</th>
                   <td>
                     <Toggle value={this._getIsStopBlocked()} onChange={this._onChangeBlockStop} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('blockMigration')}</th>
+                  <td>
+                    <Toggle value={this._getIsMigrationBlocked()} onChange={this._onChangeBlockMigration} />
                   </td>
                 </tr>
                 <tr>

@@ -13,6 +13,12 @@
 
 - [REST/VM] When creating a VM, the template's VIFs are created. It is also possible to create more VIFs or delete/update template's VIFs (PR [#8137](https://github.com/vatesfr/xen-orchestra/pull/8137))
 - [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
+- **XO 6**:
+  - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
+- [backups] Handle VTPM content on incremental backup/replication/restore, including differential restore (PR [#8139](https://github.com/vatesfr/xen-orchestra/pull/8139))
+- [Host/Advanced] Allow bypassing blocked migration in maintenance mode (PR [#8149](https://github.com/vatesfr/xen-orchestra/pull/8149))
+- [Backup] Long-term retention (GFS) (PRs [#7999](https://github.com/vatesfr/xen-orchestra/pull/7999) [#8141](https://github.com/vatesfr/xen-orchestra/pull/8141))
+- [VM/Advanced] Add ability to block/unblock migration (PR [#8129](https://github.com/vatesfr/xen-orchestra/pull/8129))
 
 ### Bug fixes
 
@@ -34,7 +40,11 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- vhd-lib patch
 - xo-server minor
 - xo-web minor
 

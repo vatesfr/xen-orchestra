@@ -2,7 +2,7 @@ import upperFirst from 'lodash/upperFirst.js'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 export default class Vtpm {
-  async create({ is_unique = false, VM }) {
+  async create({ is_unique = false, VM, contents }) {
     const pool = this.pool
 
     // If VTPM.create is called on a pool that doesn't support VTPM, the errors aren't explicit.
@@ -17,7 +17,11 @@ export default class Vtpm {
     }
 
     try {
-      return await this.call('VTPM.create', VM, is_unique)
+      const ref = await this.call('VTPM.create', VM, is_unique)
+      if (contents !== undefined) {
+        await this.call('VTPM.set_contents', ref, contents)
+      }
+      return ref
     } catch (error) {
       const { code, params } = error
       if (code === 'VM_BAD_POWER_STATE') {

@@ -623,6 +623,11 @@ const messages = {
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   shorterBackupReports: 'Shorter backup reports',
+  longTermRetention: 'Long-term retention of backups',
+  numberOfDailyBackupsKept: 'Number of daily backups kept',
+  numberOfWeeklyBackupsKept: 'Number of weekly backups kept',
+  numberOfMonthlyBackupsKept: 'Number of monthly backups kept',
+  numberOfYearlyBackupsKept: 'Number of yearly backups kept',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -1520,6 +1525,9 @@ const messages = {
   autoPowerOn: 'Auto power on',
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
+  blockMigration: 'Block migration',
+  unblockMigrationTitle: 'Unblock migration',
+  unblockMigrationConfirm: 'Are you sure you want to unblock migration for this VM?',
   ha: 'HA',
   srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
@@ -2001,6 +2009,8 @@ const messages = {
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
+  bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
+  bypassBlockedMigrationsModalMessage: 'This will unblock migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
   emergencyShutdownHostModalMessage: 'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
