@@ -21,6 +21,10 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
+        longTermRetention: {
+          type: 'object',
+          optional: true,
+        },
         maxExportRate: {
           type: 'number',
           minimum: 0,
@@ -38,6 +42,10 @@ const SCHEMA_SETTINGS = {
         },
         preferNbd: {
           type: 'boolean',
+          optional: true,
+        },
+        timezone: {
+          type: 'string',
           optional: true,
         },
       },
