@@ -58,10 +58,8 @@
 
   "descending": "descending",
   "description": "Description",
-  "dhcp": "DHCP",
   "disabled": "Disabled",
   "display": "Display",
-  "dns": "DNS",
   "do-you-have-needs": "You have needs and/or expectations? Let us know",
   "documentation": "Documentation",
   "edit-config": "Edit config",
@@ -178,7 +176,6 @@
   "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",
   "n-missing": "{n} missing",
   "name": "Name",
-  "netmask": "Netmask",
   "network-download": "Download",
   "network-throughput": "Network throughput",
   "network-upload": "Upload",
