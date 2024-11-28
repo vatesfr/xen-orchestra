@@ -7,6 +7,7 @@ import { incorrectState } from 'xo-common/api-errors.js'
 import { X509Certificate } from 'node:crypto'
 
 import backupGuard from './_backupGuard.mjs'
+import { asyncEach } from '@vates/async-each'
 
 const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
@@ -23,8 +24,20 @@ const log = createLogger('xo:api:host')
 
 // ===================================================================
 
-export function setMaintenanceMode({ host, maintenance }) {
+export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate }) {
   const xapi = this.getXapi(host)
+
+  if (vmsToForceMigrate) {
+    await asyncEach(vmsToForceMigrate, async vmUuid => {
+      const record = await xapi.getRecordByUuid('VM', vmUuid)
+      const ref = record.$ref
+      await Promise.all(
+        ['pool_migrate', 'migrate_send'].map(
+          async operation => await xapi.call('VM.remove_from_blocked_operations', ref, operation)
+        )
+      )
+    })
+  }
 
   return maintenance ? xapi.clearHost(xapi.getObject(host)) : xapi.enableHost(host._xapiId)
 }
@@ -34,6 +47,13 @@ setMaintenanceMode.description = 'manage the maintenance mode'
 setMaintenanceMode.params = {
   id: { type: 'string' },
   maintenance: { type: 'boolean' },
+  vmsToForceMigrate: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+    optional: true,
+  },
 }
 
 setMaintenanceMode.resolve = {
