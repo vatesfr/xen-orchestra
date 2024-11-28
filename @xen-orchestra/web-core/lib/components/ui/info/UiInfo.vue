@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p class="message">
+    <p v-tooltip class="message text-ellipsis">
       <slot />
     </p>
   </div>
@@ -10,6 +10,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   faCheck,
   faCircle,
