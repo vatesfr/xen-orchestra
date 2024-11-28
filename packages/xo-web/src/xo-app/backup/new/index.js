@@ -617,7 +617,7 @@ const New = decorate([
         const longTermRetention = settings.getIn(['', 'longTermRetention']) ?? {}
 
         if (retention > 0) {
-          longTermRetention[granularity] = { retention, settings: {} }
+          longTermRetention[granularity] = { retention, settings: {} } // settings will be used for advanced configuration in the future
         } else {
           delete longTermRetention[granularity]
         }
