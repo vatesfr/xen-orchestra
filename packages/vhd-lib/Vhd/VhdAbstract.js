@@ -114,9 +114,10 @@ exports.VhdAbstract = class VhdAbstract {
    * @returns {number} the merged data size
    */
   async mergeBlock(child, blockId) {
+    const isBlockPresent = this.containsBlock(blockId)
     const block = await child.readBlock(blockId)
     await this.writeEntireBlock(block)
-    return block.data.length
+    return isBlockPresent ? 0 : this.fullBlockSize
   }
 
   /**
