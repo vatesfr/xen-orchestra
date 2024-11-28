@@ -43,7 +43,10 @@
   "dark-mode.auto": "Mode sombre automatique",
 
   "access-forum": "Accès au forum",
+  "connected": "Connécté",
   "dashboard": "Tableau de bord",
+  "disconnected": "Déconnécté",
+  "disconnected-from-physical-device": "Déconnécté de l'appareil physique",
   "device": "Appareil",
   "edit": "Éditer",
   "delete": "Supprimer",
