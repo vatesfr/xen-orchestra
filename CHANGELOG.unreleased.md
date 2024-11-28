@@ -13,6 +13,8 @@
 
 - [REST/VM] When creating a VM, the template's VIFs are created. It is also possible to create more VIFs or delete/update template's VIFs (PR [#8137](https://github.com/vatesfr/xen-orchestra/pull/8137))
 - [Host/General] Shows if a BIOS update is available for 2CRSi server (PR [#8146](https://github.com/vatesfr/xen-orchestra/pull/8146))
+- **XO 6**:
+  - Add 404 page (PR [#8145](https://github.com/vatesfr/xen-orchestra/pull/8145))
 
 ### Bug fixes
 
@@ -34,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - xo-server minor
 - xo-web minor
 
