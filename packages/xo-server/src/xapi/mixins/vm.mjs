@@ -5,7 +5,7 @@ import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import keyBy from 'lodash/keyBy.js'
 import lte from 'lodash/lte.js'
-import mapToArray from 'lodash/map.js'
+import forEach from 'lodash/forEach.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
 import { decorateObject } from '@vates/decorate-with'
@@ -140,64 +140,100 @@ const methods = {
       hasBootableDisk = true
     }
 
-    // Modify existing (previous template) disks if necessary
-    existingVdis &&
-      (await Promise.all(
-        mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
-          const vbd = find(vm.$VBDs, { userdevice })
-          if (!vbd) {
-            return
-          }
-          let vdi = vbd.$VDI
+    if (existingVdis !== undefined) {
+      if (vdis === undefined) {
+        vdis = []
+      }
 
-          if (vdi === undefined) {
-            throw new Error(`No VDI associated with the VBD: ${vbd.uuid}`)
-          }
+      forEach(existingVdis, ({ $SR: sr, ...properties }, userdevice) => {
+        const vbd = find(vm.$VBDs, { userdevice })
+        if (!vbd) {
+          return
+        }
 
-          if (properties.destroy) {
-            await vdi.$destroy()
-            return
-          }
-          delete properties.destroy
+        vdis.push({ ...properties, userdevice, sr })
+      })
+    }
 
-          await this._setObjectProperties(vdi, properties)
-
-          // if another SR is set, move it there
-          if (srId) {
-            vdi = await this.moveVdi(vdi.$id, srId)
-          }
-
-          // if the disk is bigger
-          if (size != null && size > vdi.virtual_size) {
-            await this.resizeVdi(vdi.$id, size)
-          }
-        })
-      ))
-
-    // Creates the user defined VDIs.
-    //
-    // TODO: set vm.suspend_SR
-    if (!isEmpty(vdis)) {
+    if (vdis !== undefined && vdis.length > 0) {
       const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
-      await Promise.all(
-        mapToArray(vdis, (vdiDescription, i) =>
+      const _vdisToCreate = []
+      const _vdisToUpdate = []
+      const _vdisToDestroy = []
+
+      vdis.forEach(vdi => {
+        if (vdi.userdevice === undefined) {
+          vdi.userdevice = devices.shift()
+          _vdisToCreate.push(vdi)
+          return
+        }
+
+        // If the userdevice match no vbd, create the VDI
+        const vbd = find(vm.$VBDs, { userdevice: vdi.userdevice })
+        if (vbd === undefined) {
+          if (!vdi.destroy) {
+            const userdeviceIndex = devices.indexOf(vdi.userdevice)
+            if (userdeviceIndex === -1) {
+              throw new Error(
+                `The VDI with userdevice: ${vdi.userdevice} cannot be created. Only pass userdevice if you are sure about what you are doing`
+              )
+            }
+            delete devices[userdeviceIndex]
+            _vdisToCreate.push(vdi)
+          }
+
+          return
+        }
+
+        vdi.$ref = this.getObject(vbd.VDI).$ref
+        if (vdi.destroy) {
+          _vdisToDestroy.push(vdi)
+          return
+        }
+
+        _vdisToUpdate.push(vdi)
+      })
+
+      // TODO: set vm.suspend_SR
+      await Promise.all([
+        ..._vdisToDestroy.map(vdi => this.VDI_destroy(vdi.$ref)),
+        // Creates the user defined VDIs.
+        ..._vdisToCreate.map((vdi, i) =>
           this.VDI_create({
-            name_description: vdiDescription.name_description,
-            name_label: vdiDescription.name_label,
-            virtual_size: vdiDescription.size,
-            SR: this.getObject(vdiDescription.sr || vdiDescription.SR, 'SR').$ref,
+            name_description: vdi.name_description,
+            name_label: vdi.name_label,
+            virtual_size: vdi.size,
+            SR: this.getObject(vdi.sr, 'SR').$ref,
           }).then(vdiRef =>
             this.VBD_create({
               // Either the CD or the 1st disk is bootable (only useful for PV VMs)
               bootable: !(hasBootableDisk || i),
 
-              userdevice: devices[i],
+              userdevice: vdi.userdevice,
               VDI: vdiRef,
               VM: vm.$ref,
             })
           )
-        )
-      )
+        ),
+        // Modify existing (previous template) disks if necessary
+        ..._vdisToUpdate.map(async ({ $ref, sr, size, ...properties }) => {
+          delete properties.destroy
+          delete properties.userdevice
+
+          await this._setObjectProperties({ $ref, $type: 'VDI' }, properties)
+
+          let _vdi = this.getObject($ref)
+          // if another SR is set, move it there
+          if (sr !== undefined) {
+            _vdi = await this.moveVdi(_vdi.$id, sr)
+          }
+
+          // if the disk is bigger
+          if (size != null && size > _vdi.virtual_size) {
+            await this.resizeVdi(_vdi.$id, size)
+          }
+        }),
+      ])
     }
 
     if (destroyAllVifs) {
