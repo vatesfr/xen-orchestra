@@ -20,9 +20,9 @@ const pifsWthNetworkInfo = computed(() =>
     ...pif,
     networkID: network.value.id,
     name_label: network.value.name_label,
-    nbd: network.value.nbd,
+    nbd: network.value.nbd ? 'on' : 'off',
     tags: network.value.tags,
-    defaultIsLocked: network.value.defaultIsLocked,
+    defaultIsLocked: network.value.defaultIsLocked ? 'on' : 'off',
   }))
 )
 const selectedPif = computed(() => pifsWthNetworkInfo.value[0])

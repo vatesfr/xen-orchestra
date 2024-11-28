@@ -35,7 +35,7 @@
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
               </div>
 
-              <div v-else id="network">
+              <div v-else id="network" v-tooltip class="text-ellipsis">
                 <VtsIcon accent="info" :icon="getHeaderIcon(column.id)" />
                 {{ column.label }}
               </div>
@@ -51,17 +51,17 @@
                   <VtsIcon :icon="faNetworkWired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
-                <p class="text-ellipsis">{{ row.value.name_label }}</p>
+                <p v-tooltip class="text-ellipsis">{{ row.value.name_label }}</p>
               </div>
-              <div v-if="column.id === 'device'" class="text-ellipsis">{{ row.value.device }}</div>
-              <div v-if="column.id === 'status'" class="status">
+              <div v-if="column.id === 'device'" v-tooltip class="text-ellipsis">{{ row.value.device }}</div>
+              <div v-if="column.id === 'status'" v-tooltip class="status">
                 <PifStatus :pif="row.value" />
               </div>
-              <div v-if="column.id === 'vlan'" class="text-ellipsis">{{ row.value.vlan }}</div>
-              <div v-if="column.id === 'ip'" class="text-ellipsis">{{ row.value.ip }}</div>
-              <div v-if="column.id === 'mac'" class="text-ellipsis">{{ row.value.mac }}</div>
-              <div v-if="column.id === 'mode'" class="text-ellipsis">{{ row.value.mode }}</div>
-              <div v-if="column.id === 'more'">
+              <div v-if="column.id === 'vlan'" v-tooltip class="text-ellipsis">{{ row.value.vlan }}</div>
+              <div v-if="column.id === 'ip'" v-tooltip class="text-ellipsis">{{ row.value.ip }}</div>
+              <div v-if="column.id === 'mac'" v-tooltip class="text-ellipsis">{{ row.value.mac }}</div>
+              <div v-if="column.id === 'mode'" v-tooltip class="text-ellipsis">{{ row.value.mode }}</div>
+              <div v-if="column.id === 'more'" v-tooltip>
                 <VtsIcon accent="info" :icon="faEllipsis" />
               </div>
             </td>
@@ -92,6 +92,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
