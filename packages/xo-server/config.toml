@@ -75,6 +75,7 @@ defaultSignInPage = '/signin'
 # This is used to mitigate bruteforce attacks without being visible to users.
 throttlingDelay = '2 seconds'
 
+# See https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/README.md#changing-the-default-backup-configuration
 [backups]
 autoUnmountPartitionDelay = '24h'
 

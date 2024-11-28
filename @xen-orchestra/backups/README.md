@@ -12,6 +12,21 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/backu
 npm install --save @xen-orchestra/backups
 ```
 
+## Usage
+
+## Changing the default backup configuration
+
+It is possible to change the default backup configuration by editing the XO configuration file (`config.toml`).
+
+There are multiple sections concerning backups:
+
+- `[backups]` contains values related to the general backup configuration
+- `[backups.defaultSettings]`, `[backups.vm.defaultSettings]` and `[backups.metadata.defaultSettings]` contain values related to backup jobs default settings:
+  - `[backups.vm.defaultSettings]` is related to VM backup jobs
+  - `[backups.metadata.defaultSettings]` is related to metadata backup jobs
+  - `[backups.defaultSettings]` is related to all backup jobs
+  - in case of duplicate value, `[backups.vm.defaultSettings]` and `[backups.metadata.defaultSettings]` will prevail over `[backups.defaultSettings]`, and a defined job setting will prevail over any `defaultSettings`
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
