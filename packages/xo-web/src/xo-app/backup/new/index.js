@@ -53,12 +53,13 @@ export NewSequence from './sequence'
 // ===================================================================
 
 const DEFAULT_RETENTION = 1
+const DEFAULT_TIMEZONE = moment.tz.guess()
 const DEFAULT_SCHEDULE = {
   copyRetention: DEFAULT_RETENTION,
   exportRetention: DEFAULT_RETENTION,
   snapshotRetention: DEFAULT_RETENTION,
   cron: '0 0 * * *',
-  timezone: moment.tz.guess(),
+  timezone: DEFAULT_TIMEZONE,
 }
 const RETENTION_LIMIT = 50
 
@@ -277,7 +278,7 @@ const New = decorate([
           settings[''].maxExportRate = undefined
         }
 
-        settings[''].timezone = DEFAULT_SCHEDULE.timezone
+        settings[''].timezone = DEFAULT_TIMEZONE
 
         await createBackupNgJob({
           name: state.name,
@@ -357,7 +358,7 @@ const New = decorate([
           normalizedSettings[''].maxExportRate = undefined
         }
 
-        settings[''].timezone = DEFAULT_SCHEDULE.timezone
+        settings[''].timezone = DEFAULT_TIMEZONE
 
         await editBackupNgJob({
           id: props.job.id,
