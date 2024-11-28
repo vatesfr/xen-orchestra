@@ -609,7 +609,7 @@ export default class TabAdvanced extends Component {
       blockedOperations !== undefined &&
       ['migrate_send', 'pool_migrate'].some(op => op in blockedOperations && blockedOperations[op].trim() !== 'true')
     ) {
-      confirm({
+      return confirm({
         title: _('unblockMigrationTitle'),
         body: (
           <p>
@@ -625,11 +625,11 @@ export default class TabAdvanced extends Component {
             </ul>
           </p>
         ),
-      }).then(() => {
+      }).then(() =>
         toggleBlockedOperations()
-      })
+      )
     } else {
-      toggleBlockedOperations()
+      return toggleBlockedOperations()
     }
   }
 
