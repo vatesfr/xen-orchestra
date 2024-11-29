@@ -202,6 +202,10 @@ const selectRow = (rowId: string) => {
       padding: 1.1rem;
     }
 
+    .row {
+      cursor: default;
+    }
+
     .row:hover {
       background-color: var(--color-brand-background-hover);
     }
