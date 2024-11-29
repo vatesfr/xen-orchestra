@@ -109,11 +109,11 @@ const imageSrc = computed(() => {
     padding-top: 8rem;
 
     .text {
-      order: 3;
+      order: 1;
     }
 
     .loader {
-      order: 1;
+      order: 3;
       font-size: 6.4rem;
     }
 
@@ -124,7 +124,7 @@ const imageSrc = computed(() => {
   }
 
   &.table {
-    padding: 5rem;
+    padding: 4rem;
     gap: 2.4rem;
 
     .text {
