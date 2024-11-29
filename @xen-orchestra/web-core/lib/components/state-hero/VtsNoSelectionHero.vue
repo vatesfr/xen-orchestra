@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero :type class="vts-coming-soon-hero" image="no-selection">
+  <VtsStateHero :type class="vts-no-selection-hero" image="no-selection">
     {{ $t('select-to-see-details') }}
   </VtsStateHero>
 </template>
