@@ -1,5 +1,7 @@
 <template>
-  <UiInfo class="text-ellipsis" :accent="getStatusProps(status).accent">{{ getStatusProps(status).text }}</UiInfo>
+  <UiInfo class="pif-status text-ellipsis" :accent="getStatusProps(status).accent">
+    <p class="text-ellipsis">{{ getStatusProps(status).text }}</p>
+  </UiInfo>
 </template>
 
 <script setup lang="ts">
@@ -37,3 +39,9 @@ const status = computed(() => {
 
 const getStatusProps = (status: NetworkStatus) => states.value[status as NetworkStatus]
 </script>
+
+<style scoped lang="postcss">
+.pif-status p {
+  font-size: 1.4rem !important;
+}
+</style>

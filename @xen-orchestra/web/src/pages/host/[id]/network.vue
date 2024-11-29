@@ -1,7 +1,10 @@
 <template>
   <div class="host-network-view">
     <PifTable :pifs="pifsWthNetworkInfo" @row-select="selectPif" />
-    <PifPanel :pif="selectedPif" />
+    <PifPanel v-if="selectedPif" :pif="selectedPif" />
+    <UiPanel v-else class="panel">
+      <VtsNoDataHero type="panel" />
+    </UiPanel>
   </div>
 </template>
 
@@ -10,6 +13,8 @@ import PifPanel from '@/components/pif/PifPanel.vue'
 import PifTable from '@/components/pif/PifTable.vue'
 import { getNetwork } from '@/fakeGetNetwork'
 import { pifsByHost } from '@/fakePifStore'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { computed, ref } from 'vue'
 
 const pifs = computed(() => pifsByHost.get('438aca0f-429c-4ae6-accc-93c306e636a0') ?? [])
@@ -37,5 +42,10 @@ const selectPif = (id: string) => {
 .host-network-view {
   display: flex;
   height: 100%;
+
+  .panel {
+    width: 40rem;
+    border-top: none;
+  }
 }
 </style>
