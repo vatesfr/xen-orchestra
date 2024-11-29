@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.6.0** (2024-11-29)
 
 - [Pool/Dashboard] `Patches` and `Status` cards are displayed with a greater minimum width (PR [#8108](https://github.com/vatesfr/xen-orchestra/pull/8108))
 - [Header] Update user menu button (PR [#8109](https://github.com/vatesfr/xen-orchestra/pull/8109))
