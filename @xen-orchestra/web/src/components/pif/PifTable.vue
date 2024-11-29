@@ -43,7 +43,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row of rows" :key="row.id">
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            class="row"
+            :class="{ selected: selectedRowId === row.id }"
+            @click="selectRow(row.id)"
+          >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
               <div v-if="column.id === 'network'" class="network">
@@ -114,6 +120,10 @@ const props = defineProps<{
   pifs: object[]
 }>()
 
+const emit = defineEmits<{
+  rowSelect: [value: string]
+}>()
+
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
@@ -159,6 +169,13 @@ const headerIcon: Record<pifHeader, { icon: IconDefinition }> = {
 }
 
 const getHeaderIcon = (status: pifHeader) => headerIcon[status].icon
+
+const selectedRowId = ref('')
+
+const selectRow = (rowId: string) => {
+  selectedRowId.value = rowId
+  emit('rowSelect', rowId)
+}
 </script>
 
 <style scoped lang="postcss">
@@ -183,6 +200,14 @@ const getHeaderIcon = (status: pifHeader) => headerIcon[status].icon
 
     td {
       padding: 1.1rem;
+    }
+
+    .row:hover {
+      background-color: var(--color-brand-background-hover);
+    }
+
+    .row.selected {
+      background-color: var(--color-brand-background-selected);
     }
 
     .network {
