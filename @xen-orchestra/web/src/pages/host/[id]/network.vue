@@ -1,6 +1,6 @@
 <template>
   <div class="host-network-view">
-    <PifTable :pifs="pifsWthNetworkInfo" />
+    <PifTable :pifs="pifsWthNetworkInfo" @row-select="selectPif" />
     <PifPanel :pif="selectedPif" />
   </div>
 </template>
@@ -15,6 +15,8 @@ import { computed, ref } from 'vue'
 const pifs = computed(() => pifsByHost.get('438aca0f-429c-4ae6-accc-93c306e636a0') ?? [])
 const network = ref(getNetwork)
 
+const selectedPif = ref<object | null>()
+
 const pifsWthNetworkInfo = computed(() =>
   pifs.value.map(pif => ({
     ...pif,
@@ -25,7 +27,10 @@ const pifsWthNetworkInfo = computed(() =>
     defaultIsLocked: network.value.defaultIsLocked ? 'on' : 'off',
   }))
 )
-const selectedPif = computed(() => pifsWthNetworkInfo.value[0])
+
+const selectPif = (id: string) => {
+  selectedPif.value = pifsWthNetworkInfo.value.find(pif => pif.id === id)
+}
 </script>
 
 <style scoped lang="postcss">
