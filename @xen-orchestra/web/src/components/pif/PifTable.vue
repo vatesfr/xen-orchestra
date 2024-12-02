@@ -186,9 +186,16 @@ const selectRow = (rowId: string) => {
   border: solid 0.1rem var(--color-neutral-border);
   border-radius: 0.8rem;
   background-color: var(--color-neutral-background-primary);
+  overflow-x: hidden;
+  width: 100%;
 
   .table-container {
     margin-top: 2.4rem;
+    overflow-x: auto;
+
+    .table {
+      width: 1600px;
+    }
 
     tr:last-child {
       border-bottom: 1px solid var(--color-neutral-border);
