@@ -37,27 +37,14 @@ watchEffect(() => {
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  display: flex;
-
   .card {
-    display: flex;
-    flex-direction: column;
-    gap: 4rem;
+    border: solid 0.1rem var(--color-neutral-border);
     margin: 0.8rem;
 
-    .networks-content,
-    .host-internal-networks-content {
+    .networks-content {
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-    }
-
-    .ui-info {
-      align-items: center;
-    }
-
-    .checkbox-header {
-      width: 4.8rem;
     }
   }
 }
