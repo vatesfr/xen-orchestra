@@ -8,8 +8,8 @@
         </UiButton>
       </template>
     </UiTitle>
-    <div class="table-container">
-      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
+    <div class="table-actions">
+      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       <UiTableActions>
         <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit" disabled>
           {{ $t('edit') }}
@@ -27,6 +27,8 @@
         :total-items="usableRefs.length"
         @toggle-select-all="toggleSelect"
       />
+    </div>
+    <div class="table-container">
       <VtsTable vertical-border class="table">
         <thead>
           <tr>
@@ -60,7 +62,7 @@
                 <p v-tooltip class="text-ellipsis">{{ row.value.name_label }}</p>
               </div>
               <div v-if="column.id === 'device'" v-tooltip class="text-ellipsis">{{ row.value.device }}</div>
-              <div v-if="column.id === 'status'" v-tooltip class="status">
+              <div v-if="column.id === 'status'" v-tooltip>
                 <PifStatus :pif="row.value" />
               </div>
               <div v-if="column.id === 'vlan'" v-tooltip class="text-ellipsis">{{ row.value.vlan }}</div>
@@ -74,13 +76,13 @@
           </tr>
         </tbody>
       </VtsTable>
-      <UiTopBottomTable
-        class="selection"
-        :selected-items="selected.length"
-        :total-items="usableRefs.length"
-        @toggle-select-all="toggleSelect"
-      />
     </div>
+    <UiTopBottomTable
+      class="selection"
+      :selected-items="selected.length"
+      :total-items="usableRefs.length"
+      @toggle-select-all="toggleSelect"
+    />
   </div>
 </template>
 
@@ -187,14 +189,22 @@ const selectRow = (rowId: string) => {
   border-radius: 0.8rem;
   background-color: var(--color-neutral-background-primary);
   overflow-x: hidden;
-  width: 100%;
+
+  .table-actions {
+    margin-top: 2.4rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .selection {
+    margin: 0.8rem 0;
+  }
 
   .table-container {
-    margin-top: 2.4rem;
     overflow-x: auto;
 
     .table {
-      width: 1600px;
+      width: 160rem;
     }
 
     tr:last-child {
@@ -224,19 +234,6 @@ const selectRow = (rowId: string) => {
     .network {
       display: flex;
       gap: 1.6rem;
-    }
-
-    .status {
-      display: flex;
-      gap: 0.8rem;
-
-      .icon {
-        font-size: 1.6rem;
-      }
-    }
-
-    .selection {
-      margin: 0.8rem 0;
     }
   }
 }
