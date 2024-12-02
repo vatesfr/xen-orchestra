@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero class="vts-error-hero" image="error-no-data" :type>{{ $t('error-no-data') }}</VtsStateHero>
+  <VtsStateHero class="vts-error-hero" image="error" :type>{{ $t('error-no-data') }}</VtsStateHero>
 </template>
 
 <script lang="ts" setup>
