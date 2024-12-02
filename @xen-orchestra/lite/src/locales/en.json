@@ -278,6 +278,7 @@
   "vcpus-used": "vCPUs used",
   "version": "Version",
   "vlan": "VLAN",
+
   "vm.active": "Active",
   "vm.inactive": "Inactive",
 
