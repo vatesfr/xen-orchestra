@@ -65,24 +65,20 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
           networksInfoMap.set(network.$ref, networkWithDetails)
         }
         networksInfoMap.set(network.$ref, networkWithDetails)
-
         return networkWithDetails
       })
   })
 
-  const hostPrivateNetworks = computed(() => {
+  const hostInternalNetworks = computed(() => {
     return baseContext.records.value
       .filter(network => network.PIFs.length === 0) // Only networks without PIFs
-      .map(network => ({
-        ...network,
-        selected: false,
-      }))
+      .map(network => network)
   })
 
   const context = {
     ...baseContext,
     networksWithVLANs,
-    hostPrivateNetworks,
+    hostInternalNetworks,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
