@@ -23,6 +23,10 @@
             <th v-if="column.id === 'checkbox'" class="checkbox">
               <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
             </th>
+            <th v-else-if="column.id === 'more'" class="more">
+              <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+              {{ column.label }}
+            </th>
             <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
           </template>
         </tr>
@@ -31,7 +35,7 @@
         <tr v-for="row of rows" :key="row.id">
           <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
             <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-            <!--            MAYBE NEED TO REMOVE `as XenApiNetwork` -->
+            <!--             NEED TO REMOVE `as XenApiNetwork` -->
             <div
               v-if="column.id === 'name_label' && (row.value as XenApiNetwork).name_label"
               v-tooltip="{ placement: 'bottom-end' }"
@@ -76,6 +80,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
@@ -148,3 +153,10 @@ watchEffect(() => {
   }
 })
 </script>
+
+<style scoped lang="postcss">
+.checkbox,
+.more {
+  width: 4.8rem;
+}
+</style>
