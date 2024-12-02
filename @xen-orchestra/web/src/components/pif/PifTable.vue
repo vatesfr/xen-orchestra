@@ -32,7 +32,7 @@
       <VtsTable vertical-border class="table">
         <thead>
           <tr>
-            <th v-for="column of visibleColumns" :key="column.id">
+            <th v-for="column of visibleColumns" :key="column.id" :class="`col-${column.id}`">
               <div v-if="column.id === 'checkbox'" class="checkbox">
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
               </div>
@@ -204,15 +204,27 @@ const selectRow = (rowId: string) => {
     overflow-x: auto;
 
     .table {
-      width: 160rem;
+      .col-checkbox,
+      .col-more,
+      .col-vlan {
+        width: 4.5rem;
+      }
+
+      .col-network,
+      .col-status,
+      .col-ip,
+      .col-mac {
+        width: 17rem;
+      }
+
+      .col-device,
+      .col-mode {
+        width: 9.5rem;
+      }
     }
 
     tr:last-child {
       border-bottom: 1px solid var(--color-neutral-border);
-    }
-
-    th {
-      width: 48px;
     }
 
     td {
@@ -220,11 +232,12 @@ const selectRow = (rowId: string) => {
     }
 
     .row {
-      cursor: default;
+      cursor: pointer;
     }
 
     .row:hover {
       background-color: var(--color-brand-background-hover);
+      transition: all 0.3s ease;
     }
 
     .row.selected {
@@ -234,6 +247,14 @@ const selectRow = (rowId: string) => {
     .network {
       display: flex;
       gap: 1.6rem;
+    }
+  }
+
+  @media (max-width: 1500px) {
+    .table-container {
+      .table {
+        width: 160rem;
+      }
     }
   }
 }
