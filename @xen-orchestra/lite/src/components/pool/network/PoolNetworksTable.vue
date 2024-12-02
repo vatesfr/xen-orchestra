@@ -24,6 +24,10 @@
             <th v-if="column.id === 'checkbox'" class="checkbox">
               <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
             </th>
+            <th v-else-if="column.id === 'more'" class="more">
+              <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+              {{ column.label }}
+            </th>
             <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
           </template>
         </tr>
@@ -34,6 +38,7 @@
             <div>
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
             </div>
+            <!--             NEED TO REMOVE `as any` -->
             <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
               {{ (row.value as any).network.name_label }}
             </div>
@@ -87,6 +92,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -182,3 +188,10 @@ watchEffect(() => {
   }
 })
 </script>
+
+<style scoped lang="postcss">
+.checkbox,
+.more {
+  width: 4.8rem;
+}
+</style>
