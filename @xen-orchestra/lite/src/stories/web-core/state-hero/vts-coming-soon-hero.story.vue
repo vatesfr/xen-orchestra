@@ -1,7 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('type').required().enum('page', 'card').preset('card').widget()]"
+    :params="[prop('type').required().enum('page', 'card', 'table', 'panel').preset('card').widget()]"
   >
     <VtsComingSoonHero v-bind="properties" />
   </ComponentStory>

@@ -41,6 +41,7 @@
 
   "dashboard": "Přehled",
   "documentation-name": "Dokumentace k {name}",
+  "error-no-data": "Chyba – není možné shromažďovat údaje.",
   "hosts": "Hostitelé",
   "learn-more": "Zjistit více",
   "loading-in-progress": "Probíhá načítání…",
