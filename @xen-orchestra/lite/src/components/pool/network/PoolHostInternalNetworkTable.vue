@@ -1,73 +1,81 @@
 <template>
-  <UiTitle>
-    {{ $t('host-internal-network') }}
-    <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
-    </template>
-  </UiTitle>
-  <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
-  <UiTableActions title="Table actions">
-    <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
-    <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
-  </UiTableActions>
-  <div>
-    <UiTopBottomTable
-      :selected-items="selected.length"
-      :total-items="usableRefs.length"
-      @toggle-select-all="toggleSelect"
-    />
-    <VtsTable>
-      <thead>
-        <tr>
-          <template v-for="column of visibleColumns" :key="column.id">
-            <th v-if="column.id === 'checkbox'" class="checkbox">
-              <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-            </th>
-            <th v-else-if="column.id === 'more'" class="more">
-              <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-              {{ column.label }}
-            </th>
-            <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row of rows" :key="row.id">
-          <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-            <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-            <!--             NEED TO REMOVE `as XenApiNetwork` -->
-            <div
-              v-if="column.id === 'name_label' && (row.value as XenApiNetwork).name_label"
-              v-tooltip="{ placement: 'bottom-end' }"
-              class="text-ellipsis"
-            >
-              {{ (row.value as XenApiNetwork).name_label }}
-            </div>
-            <div v-if="column.id === 'name_description'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-              {{ (row.value as XenApiNetwork).name_description }}
-            </div>
-            <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-              {{ (row.value as XenApiNetwork).MTU }}
-            </div>
-            <div
-              v-if="column.id === 'default_locking_mode'"
-              v-tooltip="{ placement: 'bottom-end' }"
-              class="text-ellipsis"
-            >
-              {{ (row.value as XenApiNetwork).default_locking_mode }}
-            </div>
-            <div v-if="column.id === 'more'">
-              <VtsIcon accent="info" :icon="faEllipsis" />
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </VtsTable>
-    <UiTopBottomTable
-      :selected-items="selected.length"
-      :total-items="usableRefs.length"
-      @toggle-select-all="toggleSelect"
-    />
+  <div class="container">
+    <UiTitle>
+      {{ $t('host-internal-networks') }}
+      <template #actions>
+        <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
+      </template>
+    </UiTitle>
+    <div class="content">
+      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
+      <UiTableActions title="Table actions">
+        <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
+        <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
+      </UiTableActions>
+      <UiTopBottomTable
+        :selected-items="selected.length"
+        :total-items="usableRefs.length"
+        @toggle-select-all="toggleSelect"
+      />
+      <div class="table">
+        <VtsTable vertical-border>
+          <thead>
+            <tr>
+              <template v-for="column of visibleColumns" :key="column.id">
+                <th v-if="column.id === 'checkbox'" class="checkbox">
+                  <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+                </th>
+                <th v-else-if="column.id === 'more'" class="more">
+                  <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+                  {{ column.label }}
+                </th>
+                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+              </template>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row of rows" :key="row.id">
+              <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+                <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+                <!--             NEED TO REMOVE `as XenApiNetwork` -->
+                <div
+                  v-if="column.id === 'name_label' && (row.value as XenApiNetwork).name_label"
+                  v-tooltip="{ placement: 'bottom-end' }"
+                  class="text-ellipsis"
+                >
+                  {{ (row.value as XenApiNetwork).name_label }}
+                </div>
+                <div
+                  v-if="column.id === 'name_description'"
+                  v-tooltip="{ placement: 'bottom-end' }"
+                  class="text-ellipsis"
+                >
+                  {{ (row.value as XenApiNetwork).name_description }}
+                </div>
+                <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                  {{ (row.value as XenApiNetwork).MTU }}
+                </div>
+                <div
+                  v-if="column.id === 'default_locking_mode'"
+                  v-tooltip="{ placement: 'bottom-end' }"
+                  class="text-ellipsis"
+                >
+                  {{ (row.value as XenApiNetwork).default_locking_mode }}
+                </div>
+                <div v-if="column.id === 'more'">
+                  <VtsIcon accent="info" :icon="faEllipsis" />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </VtsTable>
+      </div>
+      <UiTopBottomTable
+        :selected-items="selected.length"
+        :total-items="usableRefs.length"
+        @toggle-select-all="toggleSelect"
+      />
+    </div>
   </div>
   <UiCardSpinner v-if="!isReady" />
 </template>
@@ -138,6 +146,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
 })
 
 type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
+
 const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   name_label: { icon: faAlignLeft },
   name_description: { icon: faAlignLeft },
@@ -145,6 +154,7 @@ const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   default_locking_mode: { icon: faCaretDown },
   more: { icon: faEllipsis },
 }
+
 const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
 
 watchEffect(() => {
@@ -155,8 +165,38 @@ watchEffect(() => {
 </script>
 
 <style scoped lang="postcss">
-.checkbox,
-.more {
-  width: 4.8rem;
+.container,
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  gap: 2.4rem;
+
+  .content {
+    gap: 0.8rem;
+
+    .table {
+      overflow-x: auto;
+
+      tr:last-child {
+        border-bottom: 1px solid var(--color-neutral-border);
+      }
+    }
+
+    .checkbox,
+    .more {
+      width: 4.8rem;
+    }
+  }
+
+  @media (max-width: 1440px) {
+    .table {
+      table {
+        width: 160rem;
+      }
+    }
+  }
 }
 </style>
