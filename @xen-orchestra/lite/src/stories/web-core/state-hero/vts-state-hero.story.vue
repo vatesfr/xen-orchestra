@@ -4,7 +4,7 @@
     :params="[
       prop('type').required().enum('page', 'card', 'panel', 'table').preset('card').widget(),
       prop('busy').bool().widget(),
-      prop('image').enum('no-result', 'under-construction', 'no-selection', 'error').widget(),
+      prop('image').enum('no-result', 'under-construction', 'no-selection', 'error', 'no-data').widget(),
       slot(),
       setting('defaultSlot').preset('Some text').widget(),
     ]"
