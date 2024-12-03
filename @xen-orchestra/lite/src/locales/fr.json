@@ -67,7 +67,6 @@
   "documentation": "Documentation",
   "edit-config": "Modifier config",
   "enabled": "Activé",
-  "error-no-data": "Erreur, impossible de collecter les données.",
   "error-occurred": "Une erreur est survenue",
   "export": "Exporter",
   "export-n-vms": "Exporter 1 VM | Exporter {n} VMs",

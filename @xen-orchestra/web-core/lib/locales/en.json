@@ -45,6 +45,7 @@
   "access-forum": "Access forum",
   "dashboard": "Dashboard",
   "documentation-name": "{name} documentation",
+  "error-no-data": "Error, can't collect data.",
   "exit-fullscreen": "Exit fullscreen",
   "fullscreen": "Fullscreen",
   "hosts": "Hosts",
