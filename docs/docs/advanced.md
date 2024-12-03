@@ -91,7 +91,7 @@ Do not check **Shutdown when SysPrep terminates**!
 * `cloudbase-init-unattend.conf`
 * `cloudbase-init.conf`
 
-7. Depending on your system, choose the file that you need and make sure it contains the following three lines, with the same values:
+7. Depending on your needs, choose the file that you need and make sure it contains the following three lines, with the same values:
 
 ```
 ...
