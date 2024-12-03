@@ -1,12 +1,10 @@
 <template>
-  <div class="pool-network-view">
-    <UiCard class="card">
-      <div class="networks-content">
-        <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready />
-        <PoolHostInternalNetworkTable :host-internal-network="reactiveHostInternalNetworks" :is-ready />
-      </div>
-    </UiCard>
-  </div>
+  <UiCard class="pool-network-view">
+    <div class="content">
+      <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready />
+      <PoolHostInternalNetworkTable :host-internal-network="reactiveHostInternalNetworks" :is-ready />
+    </div>
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
@@ -37,15 +35,13 @@ watchEffect(() => {
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  .card {
-    border: solid 0.1rem var(--color-neutral-border);
-    margin: 0.8rem;
+  border: solid 0.1rem var(--color-neutral-border);
+  margin: 0.8rem;
 
-    .networks-content {
-      display: flex;
-      flex-direction: column;
-      gap: 2.4rem;
-    }
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
   }
 }
 </style>
