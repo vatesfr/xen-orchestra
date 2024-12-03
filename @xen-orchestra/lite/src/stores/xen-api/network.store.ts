@@ -93,7 +93,7 @@ function determineStatus(PIFs: XenApiPif[]): string {
     return 'connected'
   }
   if (currentlyAttached.some(Boolean)) {
-    return 'partially connected'
+    return 'partially_connected'
   }
   return 'disconnected'
 }

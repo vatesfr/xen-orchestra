@@ -99,7 +99,7 @@
   "here": "Here",
   "host.active": "Active",
   "host.inactive": "Inactive",
-  "host-internal-network": "Host internal network",
+  "host-internal-networks": "Host internal networks",
   "invalid-field": "Invalid field",
 
   "job.vm-copy.bad-power-state": "VM must be halted",
@@ -178,6 +178,7 @@
   "n-missing": "{n} missing",
   "name": "Name",
   "netmask": "Netmask",
+  "networks": "Networks",
   "network-download": "Download",
   "network-throughput": "Network throughput",
   "network-upload": "Upload",
