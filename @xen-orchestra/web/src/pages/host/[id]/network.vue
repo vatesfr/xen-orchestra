@@ -3,7 +3,7 @@
     <PifTable :pifs="pifsWthNetworkInfo" @row-select="selectPif" />
     <PifPanel v-if="selectedPif" :pif="selectedPif" />
     <UiPanel v-else class="panel">
-      <VtsNoDataHero type="panel" />
+      <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
 </template>
@@ -13,7 +13,7 @@ import PifPanel from '@/components/pif/PifPanel.vue'
 import PifTable from '@/components/pif/PifTable.vue'
 import { getNetwork } from '@/fakeGetNetwork'
 import { pifsByHost } from '@/fakePifStore'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { computed, ref } from 'vue'
 
