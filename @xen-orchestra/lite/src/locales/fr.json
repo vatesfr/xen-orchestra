@@ -99,7 +99,7 @@
   "here": "Ici",
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
-  "host-internal-network": "Réseau interne de l'hôte",
+  "host-internal-networks": "Réseaux interne de l'hôte",
   "invalid-field": "Champ invalide",
 
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
@@ -178,6 +178,7 @@
   "n-missing": "{n} manquant | {n} manquants",
   "name": "Nom",
   "netmask": "Masque réseau",
+  "networks": "Réseaux",
   "network-download": "Descendant",
   "network-throughput": "Débit du réseau",
   "network-upload": "Montant",
