@@ -32,16 +32,18 @@
       <VtsTable vertical-border class="table">
         <thead>
           <tr>
-            <th v-for="column of visibleColumns" :key="column.id" :class="`col-${column.id}`">
-              <div v-if="column.id === 'checkbox'" class="checkbox">
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox" :class="`col-${column.id}`">
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-              </div>
-
-              <div v-else id="network" v-tooltip class="text-ellipsis">
-                <VtsIcon accent="info" :icon="getHeaderIcon(column.id)" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more" :class="`col-${column.id}`">
+                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                 {{ column.label }}
-              </div>
-            </th>
+              </th>
+              <ColumnTitle v-else id="network" :class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
+                {{ column.label }}
+              </ColumnTitle>
+            </template>
           </tr>
         </thead>
         <tbody>
@@ -89,9 +91,11 @@
 <script setup lang="ts">
 import PifStatus from '@/components/pif/PifStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -170,7 +174,9 @@ const headerIcon: Record<pifHeader, { icon: IconDefinition }> = {
   more: { icon: faEllipsis },
 }
 
-const getHeaderIcon = (status: pifHeader) => headerIcon[status].icon
+const getHeaderIcon = (status: pifHeader) => {
+  return headerIcon[status].icon
+}
 
 const selectedRowId = ref('')
 
@@ -214,7 +220,7 @@ const selectRow = (rowId: string) => {
       .col-status,
       .col-ip,
       .col-mac {
-        width: 17rem;
+        width: 20rem;
       }
 
       .col-device,
