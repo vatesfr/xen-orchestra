@@ -143,7 +143,7 @@
   "job.vm-reboot.in-progress": "Reboot in progress…",
   "job.vm-reboot.missing-vms": "No VM to reboot",
 
-  "job.vm-resume.bad-power-state": "VM must be pause or suspended",
+  "job.vm-resume.bad-power-state": "VM must be paused or suspended",
   "job.vm-resume.in-progress": "Resume in progress…",
   "job.vm-resume.missing-vms": "No VM to resume",
 

@@ -2,12 +2,12 @@ import { hostArg, vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import i18n from '@core/i18n'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { useI18n } from 'vue-i18n'
 
 export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () => {
   const xapi = useXenApiStore().getXapi()
-  const { t } = i18n.global
+  const { t } = useI18n()
 
   return {
     run: (vms, host) =>

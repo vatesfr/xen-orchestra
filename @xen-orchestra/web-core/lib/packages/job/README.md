@@ -18,7 +18,7 @@ Let's imagine a job to save a document, which will take `id` and `content` as ar
 
 Should the job be tracked by the document ID? Yes, because `isRunning` could be `true` for file A and `false` for file B.
 
-Should the job be tracked by the document content? No, because `isRunning` should stay `true` for a specific file, even it the `content` value changes.
+Should the job be tracked by the document content? No, because `isRunning` should stay `true` for a specific file, even if the `content` value changes.
 
 ### Defining Job Arguments
 
