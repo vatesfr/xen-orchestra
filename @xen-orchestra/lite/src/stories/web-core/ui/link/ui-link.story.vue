@@ -2,23 +2,22 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('accent').required().enum('brand', 'success', 'warning', 'danger').preset('brand').widget(),
       prop('size').required().enum('small', 'medium').preset('medium').widget(),
-      prop('to').type('IconDefinition').widget(text()),
+      prop('to').str().widget(),
       prop('href').str().widget(),
       iconProp(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
     ]"
   >
-    <VtsLink v-bind="properties">This is a link</VtsLink>
+    <UiLink v-bind="properties">This is a link</UiLink>
 
     <div v-if="!properties.to && !properties.href" class="info">
-      <UiIcon :icon="faInfoCircle" color="normal" />
+      <VtsIcon :icon="faInfoCircle" accent="brand" />
       Link is disabled because no `href` or `to` is provided
     </div>
     <div v-else-if="properties.to && properties.href" class="info">
-      <UiIcon :icon="faExclamationTriangle" color="warning" />
+      <VtsIcon :icon="faExclamationTriangle" accent="brand" />
       `to` is ignored when `href` is provided
     </div>
   </ComponentStory>
@@ -27,9 +26,8 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, prop } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
-import UiIcon from '@core/components/icon/UiIcon.vue'
-import VtsLink from '@core/components/link/VtsLink.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faExclamationTriangle, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 </script>
 

@@ -2,14 +2,14 @@ import type { MaybeRefOrGetter } from 'vue'
 import { computed, toValue } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
-type Options = {
+export type LinkOptions = {
   to?: RouteLocationRaw
   href?: string
   target?: '_blank' | '_self'
   disabled?: boolean
 }
 
-export function useLinkComponent(defaultComponent: string, options: MaybeRefOrGetter<Options>) {
+export function useLinkComponent(defaultComponent: string, options: MaybeRefOrGetter<LinkOptions>) {
   const config = computed(() => toValue(options))
 
   const isDisabled = computed(() => config.value.disabled || (!config.value.to && !config.value.href))
