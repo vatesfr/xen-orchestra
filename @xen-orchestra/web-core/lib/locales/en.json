@@ -66,6 +66,7 @@
   "receive": "Receive",
   "running-vm": "Running VM | Running VMs",
   "see-all": "See all",
+  "select-to-see-details": "Select an element to see details",
   "send": "Send",
   "send-ctrl-alt-del": "Send Ctrl+Alt+Del",
   "stats": "Stats",
