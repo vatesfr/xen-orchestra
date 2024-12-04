@@ -43,9 +43,9 @@ const totalValue = computed(() => props.segments.reduce((total, segment) => tota
 const computedSegments = computed(() => {
   let nextOffset = circumference / 4
 
-  return props.segments.map(segment => {
+  const segments = props.segments.map(segment => {
+    const percent = totalValue.value === 0 ? 0 : (segment.value / totalValue.value) * circumference
     const offset = nextOffset
-    const percent = (segment.value / totalValue.value) * circumference
     nextOffset -= percent
 
     return {
@@ -54,6 +54,17 @@ const computedSegments = computed(() => {
       offset,
     }
   })
+
+  if (segments.every(segment => segment.percent === 0)) {
+    return [
+      {
+        accent: 'muted',
+        percent: circumference,
+        offset: nextOffset,
+      },
+    ]
+  }
+  return segments
 })
 </script>
 
