@@ -699,6 +699,11 @@ const New = decorate([
           backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml',
         })
       },
+      setMergeBackupsSynchronouslyTpl({ setGlobalSettings }, compactMergeTpl) {
+        setGlobalSettings({
+          mergeBackupSynchronouslyTpl: compactMergeTpl ? 'compactMjml' : 'mjml',
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -711,6 +716,7 @@ const New = decorate([
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
+      inputMergeBackupsSynchronously: generateId,
       inputTimeoutId: generateId,
       inputLongTermRetentionDaily: generateId,
       inputLongTermRetentionWeekly: generateId,
@@ -836,6 +842,7 @@ const New = decorate([
       reportRecipients,
       reportWhen = 'failure',
       backupReportTpl = 'mjml',
+      mergeBackupSynchronouslyTpl = 'mjml',
       timeout,
     } = settings.get('') || {}
 
@@ -1228,6 +1235,17 @@ const New = decorate([
                           id={state.inputBackupReportTplId}
                           value={backupReportTpl === 'compactMjml'}
                           onChange={effects.setBackupReportTpl}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputMergeBackupsSynchronously}>
+                          <strong>{_('mergeBackupsSynchronously')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputMergeBackupsSynchronously}
+                          value={mergeBackupSynchronouslyTpl === 'compactMjml'}
+                          onChange={effects.setMergeBackupsSynchronouslyTpl}
                         />
                       </FormGroup>
                     </div>

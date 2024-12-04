@@ -570,6 +570,7 @@ const messages = {
   reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
+  mergeBackupsSynchronously: 'Merge backups synchronously',
   newBackupSelection: 'Select your backup type:',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
