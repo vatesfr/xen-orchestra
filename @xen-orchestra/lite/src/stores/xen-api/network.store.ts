@@ -70,9 +70,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   })
 
   const hostInternalNetworks = computed(() => {
-    return baseContext.records.value
-      .filter(network => network.PIFs.length === 0) // Only networks without PIFs
-      .map(network => network)
+    return baseContext.records.value.filter(network => network.PIFs.length === 0) // Only networks without PIFs
   })
 
   const context = {
