@@ -9,7 +9,9 @@
       />
     </UiCard>
     <PoolNetworksSidePanel v-if="selectedNetworks" :selected-network="selectedNetworks" :selected-pifs="selectedPIFs" />
-    <div v-else />
+    <UiPanel v-else class="panel">
+      <VtsNoSelectionHero type="panel" />
+    </UiPanel>
   </div>
 </template>
 
@@ -21,6 +23,8 @@ import UiCard from '@/components/ui/UiCard.vue'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -91,6 +95,11 @@ watchEffect(() => {
     margin: 0.8rem;
     border: solid 0.1rem var(--color-neutral-border);
     border-radius: 0.8rem;
+  }
+
+  .panel {
+    width: 40rem;
+    border-top: none;
   }
 }
 </style>
