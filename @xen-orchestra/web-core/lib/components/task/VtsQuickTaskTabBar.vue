@@ -1,10 +1,10 @@
 <template>
-  <VtsTabList :disabled="loading">
-    <VtsTabItem v-bind="tabs.pending.bindings">
+  <UiTabList :disabled="loading">
+    <UiTab v-bind="tabs.pending.bindings">
       {{ $t('tasks.quick-view.in-progress') }}
       <UiCounter v-if="pendingCount !== undefined" :value="pendingCount" accent="info" variant="primary" size="small" />
-    </VtsTabItem>
-    <VtsTabItem v-bind="tabs.success.bindings">
+    </UiTab>
+    <UiTab v-bind="tabs.success.bindings">
       {{ $t('tasks.quick-view.done') }}
       <UiCounter
         v-if="successCount !== undefined"
@@ -13,8 +13,8 @@
         variant="primary"
         size="small"
       />
-    </VtsTabItem>
-    <VtsTabItem v-bind="tabs.failure.bindings">
+    </UiTab>
+    <UiTab v-bind="tabs.failure.bindings">
       {{ $t('tasks.quick-view.failed') }}
       <UiCounter
         v-if="failureCount !== undefined"
@@ -23,27 +23,27 @@
         variant="primary"
         size="small"
       />
-    </VtsTabItem>
+    </UiTab>
     <VtsDivider type="tab" />
-    <VtsTabItem v-bind="tabs.all.bindings">
+    <UiTab v-bind="tabs.all.bindings">
       {{ $t('tasks.quick-view.all') }}
-    </VtsTabItem>
+    </UiTab>
     <!--
     TODO
     <UiButton :right-icon="faAngleRight" class="see-all" level="tertiary" size="extra-small">
       {{ $t('see-all') }}
     </UiButton>
     -->
-  </VtsTabList>
+  </UiTabList>
 </template>
 
 <script lang="ts" setup>
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import { useTabList } from '@core/components/tab/tab-list.composable'
-import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
-import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import type { TaskStatus } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import UiTab from '@core/components/ui/tab/UiTab.vue'
+import { useTabList } from '@core/components/ui/tab-list/tab-list.composable'
+import UiTabList from '@core/components/ui/tab-list/UiTabList.vue'
 
 export type TaskTab = TaskStatus | 'all'
 

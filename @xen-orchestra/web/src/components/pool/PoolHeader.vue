@@ -2,32 +2,32 @@
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
   </UiHeadBar>
-  <VtsTabList>
-    <VtsTabItem disabled>{{ $t('dashboard') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('alarms') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('stats') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('system') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('network') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('storage') }}</VtsTabItem>
-    <VtsTabItem disabled>{{ $t('tasks') }}</VtsTabItem>
+  <UiTabList>
+    <UiTab disabled>{{ $t('dashboard') }}</UiTab>
+    <UiTab disabled>{{ $t('alarms') }}</UiTab>
+    <UiTab disabled>{{ $t('stats') }}</UiTab>
+    <UiTab disabled>{{ $t('system') }}</UiTab>
+    <UiTab disabled>{{ $t('network') }}</UiTab>
+    <UiTab disabled>{{ $t('storage') }}</UiTab>
+    <UiTab disabled>{{ $t('tasks') }}</UiTab>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/hosts`" custom>
-      <VtsTabItem :selected="isActive" :href tag="a">
+      <UiTab :selected="isActive" :href tag="a">
         {{ $t('hosts') }}
-      </VtsTabItem>
+      </UiTab>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/vms`" custom>
-      <VtsTabItem :selected="isActive" :href tag="a">
+      <UiTab :selected="isActive" :href tag="a">
         {{ $t('vms') }}
-      </VtsTabItem>
+      </UiTab>
     </RouterLink>
-  </VtsTabList>
+  </UiTabList>
 </template>
 
 <script lang="ts" setup>
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
-import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiTab from '@core/components/ui/tab/UiTab.vue'
+import UiTabList from '@core/components/ui/tab-list/UiTabList.vue'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 
 defineProps<{

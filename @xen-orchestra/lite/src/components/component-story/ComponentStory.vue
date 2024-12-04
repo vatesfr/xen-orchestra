@@ -1,7 +1,7 @@
 <template>
-  <VtsTabList>
-    <VtsTabItem v-bind="tab(TAB.PROPS, propParams)">Props</VtsTabItem>
-    <VtsTabItem class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
+  <UiTabList>
+    <UiTab v-bind="tab(TAB.PROPS, propParams)">Props</UiTab>
+    <UiTab class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
       Events
       <UiCounter
         v-if="unreadEventsCount > 0"
@@ -10,21 +10,21 @@
         variant="primary"
         size="small"
       />
-    </VtsTabItem>
-    <VtsTabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</VtsTabItem>
-    <VtsTabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</VtsTabItem>
+    </UiTab>
+    <UiTab v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTab>
+    <UiTab v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTab>
     <MenuList placement="bottom" border>
       <template #trigger="{ open, isOpen }">
-        <VtsTabItem :selected="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
+        <UiTab :selected="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <UiIcon :icon="faSliders" />
           Presets
-        </VtsTabItem>
+        </UiTab>
       </template>
       <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
         {{ label }}
       </MenuItem>
     </MenuList>
-  </VtsTabList>
+  </UiTabList>
 
   <div :class="{ 'full-width': fullWidthComponent }" class="tabs">
     <UiCard v-if="selectedTab === TAB.NONE" class="tab-content">
@@ -93,10 +93,10 @@ import {
 } from '@/libs/story/story-param'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
-import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTab from '@core/components/ui/tab/UiTab.vue'
+import UiTabList from '@core/components/ui/tab-list/UiTabList.vue'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'

@@ -10,12 +10,12 @@
       setting('counter').widget(text()),
     ]"
   >
-    <VtsTabList>
-      <VtsTabItem v-bind="properties">
+    <UiTabList>
+      <UiTab v-bind="properties">
         {{ settings.label }}
         <UiCounter v-if="settings.counter" :value="settings.counter" accent="info" variant="primary" size="small" />
-      </VtsTabItem>
-    </VtsTabList>
+      </UiTab>
+    </UiTabList>
   </ComponentStory>
 </template>
 
@@ -23,7 +23,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import VtsTabItem from '@core/components/tab/VtsTabItem.vue'
-import VtsTabList from '@core/components/tab/VtsTabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiTab from '@core/components/ui/tab/UiTab.vue'
+import UiTabList from '@core/components/ui/tab-list/UiTabList.vue'
 </script>

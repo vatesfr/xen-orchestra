@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <component :is="tag" :class="classNames" class="vts-tab-item">
+  <component :is="tag" :class="classNames" class="ui-tab">
     <slot />
   </component>
 </template>
@@ -12,14 +12,15 @@ import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    disabled?: boolean
-    selected?: boolean
-    tag?: string
-  }>(),
-  { tag: 'span', disabled: undefined }
-)
+const {
+  tag = 'span',
+  disabled = undefined,
+  selected,
+} = defineProps<{
+  disabled?: boolean
+  selected?: boolean
+  tag?: string
+}>()
 
 defineSlots<{
   default(): any
@@ -27,14 +28,14 @@ defineSlots<{
 
 const { isMobile } = storeToRefs(useUiStore())
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useContext(DisabledContext, () => disabled)
 
 const classNames = computed(() => {
   return [
     isMobile.value ? 'typo c3-semi-bold' : 'typo c1-semi-bold',
     {
       disabled: isDisabled.value,
-      selected: props.selected,
+      selected,
       mobile: isMobile.value,
     },
   ]
@@ -42,7 +43,7 @@ const classNames = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.vts-tab-item {
+.ui-tab {
   display: flex;
   align-items: center;
   gap: 1.6rem;
@@ -59,19 +60,21 @@ const classNames = computed(() => {
 
   /* INTERACTION VARIANTS */
 
-  &:hover {
-    border-color: var(--color-normal-item-hover);
-    background-color: var(--color-normal-background-hover);
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-info-item-hover);
+    background-color: var(--color-info-background-hover);
   }
 
   &:active {
-    border-color: var(--color-normal-item-active);
-    background-color: var(--color-normal-background-active);
+    border-color: var(--color-info-item-active);
+    background-color: var(--color-info-background-active);
   }
 
   &.selected {
-    border-color: var(--color-normal-item-base);
-    background-color: var(--color-normal-background-selected);
+    border-color: var(--color-info-item-base);
+    background-color: var(--color-info-background-selected);
   }
 
   &.disabled {
