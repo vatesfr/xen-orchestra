@@ -71,6 +71,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
+import XenstoreCreateModal from './xenstore-create-modal'
 import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
@@ -753,6 +754,22 @@ export default class TabAdvanced extends Component {
     success(_('propagateCertificatesTitle'), _('propagateCertificatesSuccessful'))
   }
 
+  _addXenstoreEntry = async () => {
+    const xsEntry = await confirm({
+      title: _('addXenstoreEntry'),
+      icon: 'add',
+      body: <XenstoreCreateModal />,
+    })
+    await editVm(this.props.vm, { xenStoreData: xsEntry })
+  }
+
+  _onChangeXenstoreEntry = key => async value => {
+    value = value.trim()
+    await editVm(this.props.vm, {
+      xenStoreData: { [key]: value === '' ? null : value },
+    })
+  }
+
   render() {
     const {
       container,
@@ -1316,6 +1333,27 @@ export default class TabAdvanced extends Component {
                     <Toggle value={vm.viridian} onChange={value => editVm(vm, { viridian: value })} />
                   </td>
                 </tr>
+              </tbody>
+            </table>
+            <br />
+            <h3>{_('xenstore')}</h3>
+            <i className='text-info'>
+              <Icon icon='info' /> {_('rebootRequiredAfterXenstoreChanges')}
+            </i>
+            <br />
+            <ActionButton btnStyle='primary' handler={this._addXenstoreEntry} icon='add'>
+              {_('addXenstoreEntry')}
+            </ActionButton>
+            <table className='mt-1 table table-hover'>
+              <tbody>
+                {Object.entries(vm.xenStoreData).map(([key, value]) => (
+                  <tr key={key}>
+                    <th>{key}</th>
+                    <td>
+                      <Text value={value} onChange={this._onChangeXenstoreEntry(key)} />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             <br />

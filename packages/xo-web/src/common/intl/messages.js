@@ -1481,6 +1481,7 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  addXenstoreEntry: 'Add new xenstore entry',
   attachedPcis: 'Attached PCIs',
   attachingDetachingPciNeedVmBoot: 'Attaching/detaching a PCI will be taken into consideration for the next VM boot.',
   attachPcis: 'Attach PCIs',
@@ -1500,6 +1501,8 @@ const messages = {
   propagateCertificates: "Copy the pool's default UEFI certificates to the VM",
   propagateCertificatesSuccessful: 'Certificates propagated successfully',
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
+  rebootRequiredAfterXenstoreChanges: 'A reboot is required after any xenstore changes',
+  vmDataNamespaceMandatory: 'The "vm-data" namespace is mandatory',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1508,6 +1511,7 @@ const messages = {
     "You must know what you are doing, because it could break your setup (if you didn't install the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)",
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
+  xenstore: 'Xenstore',
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',
