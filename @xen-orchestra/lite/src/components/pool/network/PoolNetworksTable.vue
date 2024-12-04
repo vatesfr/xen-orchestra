@@ -54,7 +54,7 @@
                   {{ (row.value as any).network.name_description }}
                 </div>
                 <div v-if="column.id === 'status'" class="status">
-                  <PoolNetworksPifStatus :pif="row.value" />
+                  <PoolNetworksPifStatus :status="(row.value as any).status" />
                 </div>
                 <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                   {{ (row.value as any).vlan }}
