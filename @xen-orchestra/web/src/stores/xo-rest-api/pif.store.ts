@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const usePifStore = defineStore('pif', () => {
-  const { context: baseContext, ...restConfig } = createXoStoreConfig('pif')
+  const { context: baseContext, ...configRest } = createXoStoreConfig('pif')
   const pifsByHost = computed<Map<string, XoPif[]>>(() => {
     const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
 
@@ -24,5 +24,5 @@ export const usePifStore = defineStore('pif', () => {
     ...baseContext,
     pifsByHost,
   }
-  return createSubscribableStoreContext({ context, ...restConfig }, {})
+  return createSubscribableStoreContext({ context, ...configRest }, {})
 })
