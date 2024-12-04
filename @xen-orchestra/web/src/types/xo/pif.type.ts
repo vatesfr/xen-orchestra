@@ -10,7 +10,7 @@ export type XoPif = {
   device: string
   dns: string
   gateway: string
-  id: Branded<'pif>'>
+  id: Branded<'pif'>
   ip: string
   ipv6: string[]
   mac: string
