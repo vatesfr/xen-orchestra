@@ -363,7 +363,7 @@ async function deploy() {
 
     vmRef.value = (
       (await xapi.call('VM.import', [
-        'http://xoa.io:8888/',
+        'http://xoa.io/xva',
         selectedSr.value.$ref,
         false, // full_restore
         false, // force
