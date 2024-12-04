@@ -12,7 +12,7 @@
         class="icon"
         size="small"
         :icon="faAngleDoubleLeft"
-        @click="goToFirstPage"
+        @click="goToFirstPage()"
       />
       <UiButtonIcon
         :disabled="isFirstPage"
@@ -20,7 +20,7 @@
         class="icon"
         size="small"
         :icon="faAngleLeft"
-        @click="goToPreviousPage"
+        @click="prev()"
       />
       <UiButtonIcon
         :disabled="isLastPage"
@@ -28,7 +28,7 @@
         class="icon"
         size="small"
         :icon="faAngleRight"
-        @click="goToNextPage"
+        @click="next()"
       />
       <UiButtonIcon
         :disabled="isLastPage"
@@ -36,13 +36,13 @@
         class="icon"
         size="small"
         :icon="faAngleDoubleRight"
-        @click="goToLastPage"
+        @click="goToLastPage()"
       />
     </div>
 
     <span class="typo p3-regular label">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="itemsPerPage" :disabled class="dropdown typo c3-regular" @change="updatePagination">
+      <select v-model="pageSize" class="dropdown typo c3-regular" @change="updatePagination">
         <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
           {{ option }}
         </option>
@@ -62,40 +62,31 @@ import {
   faAngleLeft,
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
-import { ref, computed } from 'vue'
+import { useOffsetPagination } from '@vueuse/core'
+import { computed, ref } from 'vue'
 
 const { totalItems } = defineProps<{
   totalItems: number
   disabled?: boolean
 }>()
 
-const currentPage = ref(1)
-const itemsPerPage = ref(50)
+const pageSize = ref(50)
 const pageSizeOptions = [10, 50, 100, 150, 200]
-
-const totalPages = computed(() => Math.ceil(totalItems / itemsPerPage.value))
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value + 1)
-const endIndex = computed(() => Math.min(currentPage.value * itemsPerPage.value, totalItems))
-
-const isFirstPage = computed(() => currentPage.value === 1)
-const isLastPage = computed(() => currentPage.value === totalPages.value)
+const { currentPage, currentPageSize, pageCount, isFirstPage, isLastPage, prev, next } = useOffsetPagination({
+  total: totalItems,
+  pageSize,
+  // onPageChange: add fetch data,
+  // onPageSizeChange: add fetch data,
+})
+const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
+const endIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
 
 const goToFirstPage = () => {
   currentPage.value = 1
 }
-
-const goToPreviousPage = () => {
-  if (currentPage.value > 1) currentPage.value -= 1
-}
-
-const goToNextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value += 1
-}
-
 const goToLastPage = () => {
-  currentPage.value = totalPages.value
+  currentPage.value = pageCount.value
 }
-
 const updatePagination = () => {
   currentPage.value = 1
 }
@@ -123,7 +114,7 @@ const updatePagination = () => {
 
       &:active {
         border-color: var(--color-info-item-active);
-        background-color: var(--color-info-item-active);
+        background-color: var(--color-info-background-active);
       }
 
       &:disabled {
@@ -148,10 +139,9 @@ const updatePagination = () => {
 
     .dropdown {
       cursor: pointer;
-      padding: 2px 6px;
+      padding: 0.2rem 0.6rem;
       height: 2.6rem;
       width: 4.8rem;
-      gap: 0.8rem;
       appearance: none;
       border-radius: 0.4rem;
       color: var(--color-info-txt-base);
@@ -177,6 +167,11 @@ const updatePagination = () => {
         + .icon {
           color: var(--color-neutral-txt-secondary);
         }
+      }
+
+      &:active {
+        background-color: var(--color-info-background-active);
+        border-color: var(--color-info-item-active);
       }
 
       &:focus-visible {
