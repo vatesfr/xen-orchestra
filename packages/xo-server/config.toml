@@ -80,6 +80,7 @@ throttlingDelay = '2 seconds'
 [backups]
 autoUnmountPartitionDelay = '24h'
 
+# Disables VHD merges running in background
 disableMergeWorker = false
 
 # Mode to use for newly created backup directories

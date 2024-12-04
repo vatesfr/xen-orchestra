@@ -20,6 +20,7 @@ keepAliveInterval = 10e3
 #
 # https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
 dirMode = 0o700
+# Disables VHD merges running in background
 disableMergeWorker = false
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 vhdDirectoryCompression = 'brotli'
