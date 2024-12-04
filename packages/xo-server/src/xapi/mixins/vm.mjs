@@ -8,6 +8,7 @@ import lte from 'lodash/lte.js'
 import forEach from 'lodash/forEach.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
@@ -16,6 +17,8 @@ import { Ref } from 'xen-api'
 import { parseSize } from '../../utils.mjs'
 
 import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
+
+const log = createLogger('xo:server:xapi:vm')
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -140,6 +143,7 @@ const methods = {
       hasBootableDisk = true
     }
 
+    // Compatibility with legacy code
     if (existingVdis !== undefined) {
       if (vdis === undefined) {
         vdis = []
@@ -154,16 +158,15 @@ const methods = {
         vdis.push({ ...properties, userdevice, sr })
       })
     }
+    // End compatibility with legacy code
 
     if (vdis !== undefined && vdis.length > 0) {
-      const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const _vdisToCreate = []
       const _vdisToUpdate = []
       const _vdisToDestroy = []
 
       vdis.forEach(vdi => {
         if (vdi.userdevice === undefined) {
-          vdi.userdevice = devices.shift()
           _vdisToCreate.push(vdi)
           return
         }
@@ -171,17 +174,12 @@ const methods = {
         // If the userdevice match no vbd, create the VDI
         const vbd = find(vm.$VBDs, { userdevice: vdi.userdevice })
         if (vbd === undefined) {
-          if (!vdi.destroy) {
-            const userdeviceIndex = devices.indexOf(vdi.userdevice)
-            if (userdeviceIndex === -1) {
-              throw new Error(
-                `The VDI with userdevice: ${vdi.userdevice} cannot be created. Only pass userdevice if you are sure about what you are doing`
-              )
-            }
-            delete devices[userdeviceIndex]
-            _vdisToCreate.push(vdi)
+          if (vdi.destroy) {
+            log.warn('VDI ignored because it is marked as "destroy"', vdi)
+            return
           }
 
+          _vdisToCreate.push(vdi)
           return
         }
 
@@ -198,27 +196,26 @@ const methods = {
       await Promise.all([
         ..._vdisToDestroy.map(vdi => this.VDI_destroy(vdi.$ref)),
         // Creates the user defined VDIs.
-        ..._vdisToCreate.map((vdi, i) =>
-          this.VDI_create({
+        ..._vdisToCreate.map(async (vdi, i) => {
+          const vdiRef = await this.VDI_create({
             name_description: vdi.name_description,
             name_label: vdi.name_label,
             virtual_size: vdi.size,
             SR: this.getObject(vdi.sr, 'SR').$ref,
-          }).then(vdiRef =>
-            this.VBD_create({
-              // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-              bootable: !(hasBootableDisk || i),
+          })
+          $defer.onFailure(() => this.VDI_destroy(vdiRef))
 
-              userdevice: vdi.userdevice,
-              VDI: vdiRef,
-              VM: vm.$ref,
-            })
-          )
-        ),
+          await this.VBD_create({
+            // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+            bootable: !(hasBootableDisk || i),
+            userdevice: vdi.userdevice,
+            VDI: vdiRef,
+            VM: vm.$ref,
+          })
+        }),
         // Modify existing (previous template) disks if necessary
-        ..._vdisToUpdate.map(async ({ $ref, sr, size, ...properties }) => {
+        ..._vdisToUpdate.map(async ({ $ref, sr, size, userdevice, ...properties }) => {
           delete properties.destroy
-          delete properties.userdevice
 
           await this._setObjectProperties({ $ref, $type: 'VDI' }, properties)
 
@@ -228,8 +225,13 @@ const methods = {
             _vdi = await this.moveVdi(_vdi.$id, sr)
           }
 
-          // if the disk is bigger
-          if (size != null && size > _vdi.virtual_size) {
+          // update VDI size if is bigger
+          if (size !== null) {
+            if (size < _vdi.virtual_size) {
+              throw new Error(
+                `Unable to update to a smaller VDI size for VDI with PBD userdevice: ${userdevice}. Current size: ${_vdi.virtual_size}, new size: ${size}`
+              )
+            }
             await this.resizeVdi(_vdi.$id, size)
           }
         }),
