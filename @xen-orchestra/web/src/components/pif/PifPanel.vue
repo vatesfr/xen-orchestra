@@ -28,7 +28,7 @@
             {{ $t('network') }}
           </template>
           <template #value>
-            {{ getNetworkData(pif, 'name_label') }}
+            {{ getNetworkData('name_label') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -50,7 +50,7 @@
             {{ $t('pif-status') }}
           </template>
           <template #value>
-            <PifStatus :icon="faCircle" :pif="props.pif" card />
+            <PifStatus :pif="props.pif" card />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -58,7 +58,7 @@
             {{ $t('physical-interface-status') }}
           </template>
           <template #value>
-            <PifStatus :icon="faCircle" :pif="props.pif" card />
+            <PifStatus :pif="props.pif" card />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -66,7 +66,7 @@
             {{ $t('vlan') }}
           </template>
           <template #value>
-            {{ props.pif.vlan }}
+            {{ getPifData('vlan') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -77,8 +77,9 @@
             {{ $t('tags') }}
           </template>
           <template #value>
-            <div class="tags">
-              <UiTag v-for="tag in getTags(pif)" :key="tag" accent="info" variant="secondary">
+            <div v-if="!Array.isArray(getNetworkData('tags'))">{{ getNetworkData('tags') }}</div>
+            <div v-else class="tags">
+              <UiTag v-for="tag in getNetworkData('tags')" :key="tag" accent="info" variant="secondary">
                 {{ tag }}
               </UiTag>
             </div>
@@ -95,7 +96,8 @@
             {{ $t('ip-addresses') }}
           </template>
           <template #value>
-            <p v-for="ip in allIps" :key="ip" v-tooltip class="ip-address text-ellipsis">{{ ip }}</p>
+            <p v-for="ip in allIps" :key="ip" v-tooltip class="ip-address text-ellipsis">{{ getPifData('ip') }}</p>
+            <p v-if="!allIps.length">{{ getPifData('ip') }}</p>
           </template>
           <template #addons>
             <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
@@ -118,7 +120,7 @@
             {{ $t('netmask') }}
           </template>
           <template #value>
-            {{ props.pif.netmask }}
+            {{ getPifData('netmask') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -129,7 +131,7 @@
             {{ $t('dns') }}
           </template>
           <template #value>
-            {{ props.pif.dns }}
+            {{ getPifData('dns') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -140,7 +142,7 @@
             {{ $t('gateway') }}
           </template>
           <template #value>
-            {{ props.pif.gateway }}
+            {{ getPifData('gateway') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -183,7 +185,7 @@
             {{ $t('network-block-device') }}
           </template>
           <template #value>
-            {{ $t(`${getNetworkData(pif, 'nbd')}`) }}
+            {{ $t(`${getNetworkData('nbd')}`) }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -194,7 +196,7 @@
             {{ $t('default-locking-mode') }}
           </template>
           <template #value>
-            {{ $t(`${getNetworkData(pif, 'defaultIsLocked')}`) }}
+            {{ $t(`${getNetworkData('defaultIsLocked')}`) }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -232,17 +234,25 @@ const allIps = computed(() => {
   return [props.pif.ip, ...props.pif.ipv6].filter(ip => ip)
 })
 
-const getNetworkData = (pif: XoPif, type: keyof XoNetwork) => {
-  const network: XoNetwork = get(pif.$network)!
-  if (type === 'name_label') {
-    return network.name_label ? network.name_label : 'Unknown'
-  } else if (type === 'nbd' || type === 'defaultIsLocked') {
-    return network[type] ? 'on' : 'off'
+const getNetworkData = (type: keyof XoNetwork) => {
+  const network: XoNetwork = get(props.pif.$network)!
+
+  switch (type) {
+    case 'name_label':
+      return network.name_label || '-'
+    case 'nbd':
+    case 'defaultIsLocked':
+      return network[type] ? 'on' : 'off'
+    case 'tags':
+      return network.tags.length ? network.tags : '-'
+    default:
+      return undefined
   }
 }
-const getTags = (pif: XoPif) => {
-  const network: XoNetwork = get(pif.$network)!
-  return network.tags.length > 0 ? network.tags : []
+
+const getPifData = (type: keyof XoPif) => {
+  const value = type === 'vlan' ? props.pif.vlan : props.pif[type]
+  return value === -1 || value === '' ? '-' : value
 }
 </script>
 

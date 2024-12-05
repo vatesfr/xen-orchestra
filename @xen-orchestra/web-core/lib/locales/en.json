@@ -75,6 +75,7 @@
   "n-vms": "1 VM | {n} VMs",
   "network": "Network",
   "no-data": "No data",
+  "none": "None",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
   "on": "On",
@@ -116,6 +117,7 @@
   "tags": "Tags",
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Unknown",
   "uuid": "Uuid",
   "vlan": "VLAN",
   "vms": "VMs"
