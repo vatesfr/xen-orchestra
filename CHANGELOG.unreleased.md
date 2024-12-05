@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host/Patches] Users with non-admin permissions on hosts can no longer update them (PR [#8176](https://github.com/vatesfr/xen-orchestra/pull/8176))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,5 +36,6 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xen-api minor
+- xo-server patch
 
 <!--packages-end-->
