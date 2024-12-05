@@ -1,6 +1,6 @@
 <template>
   <UiInfo class="pif-status text-ellipsis" :accent="getStatusProps(status).accent">
-    <p class="text-ellipsis">{{ getStatusProps(status).text }}</p>
+    <p class="text-ellipsis" :class="{ card }">{{ getStatusProps(status).text }}</p>
   </UiInfo>
 </template>
 
@@ -41,7 +41,7 @@ const getStatusProps = (status: NetworkStatus) => states.value[status as Network
 </script>
 
 <style scoped lang="postcss">
-.pif-status p {
+p:not(.card) {
   font-size: 1.4rem !important;
 }
 </style>

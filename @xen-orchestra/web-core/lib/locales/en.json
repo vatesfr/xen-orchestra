@@ -76,6 +76,7 @@
   "network-block-device": "Network block device",
   "network-information": "Network Information",
   "no-data": "No data",
+  "none": "None",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
   "on": "On",
@@ -118,6 +119,7 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Unknown",
   "uuid": "Uuid",
   "vlan": "VLAN",
   "vms": "VMs"

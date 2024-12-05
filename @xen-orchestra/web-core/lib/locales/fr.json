@@ -76,6 +76,7 @@
   "network-block-device": "Appareil de blocage réseau",
   "network-information": "Information du réseau",
   "no-data": "Aucune donnée",
+  "none": "Aucun",
   "object-not-found": "L'objet {id} est introuvable…",
   "off": "Éteint",
   "on": "Allumé",
@@ -117,6 +118,7 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Inconnu",
   "uuid": "Uuid",
   "vlan": "VLAN",
   "vms": "VMs"
