@@ -149,15 +149,15 @@ const toggleSelect = () => {
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', { label: '', isHideable: false }),
-    define('network', { label: 'Network', isHideable: true }),
-    define('device', { label: 'Device', isHideable: true }),
-    define('status', { label: 'Status', isHideable: true }),
-    define('vlan', { label: 'Vlan', isHideable: true }),
-    define('ip', { label: 'IP Addresses', isHideable: true }),
-    define('mac', { label: 'MAC address', isHideable: true }),
-    define('mode', { label: 'IP mode', isHideable: true }),
-    define('more', { label: '', isHideable: false }),
+    define('checkbox', () => '', { label: '', isHideable: false }),
+    define('network', () => '', { label: 'Network', isHideable: true }),
+    define('device', () => '', { label: 'Device', isHideable: true }),
+    define('status', () => '', { label: 'Status', isHideable: true }),
+    define('vlan', () => '', { label: 'Vlan', isHideable: true }),
+    define('ip', () => '', { label: 'IP Addresses', isHideable: true }),
+    define('mac', () => '', { label: 'MAC address', isHideable: true }),
+    define('mode', () => '', { label: 'IP mode', isHideable: true }),
+    define('more', () => '', { label: '', isHideable: false }),
   ],
 })
 
