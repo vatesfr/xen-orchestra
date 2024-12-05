@@ -1,10 +1,16 @@
 <template>
   <div class="pool-network-view">
     <UiCard class="card">
-      <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready @row-select-network="selectNetwork" />
+      <PoolNetworksTable
+        :networks="reactiveNetworksWithVLANs"
+        :is-ready
+        :selected-row-id="selectedNetworkRowId"
+        @row-select-network="selectNetwork"
+      />
       <PoolHostInternalNetworkTable
         :host-internal-network="reactiveHostInternalNetworks"
         :is-ready
+        :selected-row-id="selectedHostInternalRowId"
         @row-select-host-internal-network="selectNetwork"
       />
     </UiCard>
@@ -51,10 +57,17 @@ const selectedPIFs = ref<
 const reactiveNetworksWithVLANs = ref(networksWithVLANs.value || [])
 const reactiveHostInternalNetworks = ref(hostInternalNetworks.value || [])
 
-const selectNetwork = (item: any) => {
-  if (item.network) {
-    const network = reactiveNetworksWithVLANs.value.find(pif => pif.network.uuid === item.network.uuid)
-    selectedPIFs.value = getPIFsInformationByNetwork(item.network)
+const selectedNetworkRowId = ref<string | null>(null)
+const selectedHostInternalRowId = ref<string | null>(null)
+
+const selectNetwork = (payload: { item: any; table: string }) => {
+  if (payload.table === 'network') {
+    selectedHostInternalRowId.value = null
+
+    selectedNetworkRowId.value = payload.item.network.uuid
+
+    const network = reactiveNetworksWithVLANs.value.find(pif => pif.network.uuid === payload.item.network.uuid)
+    selectedPIFs.value = getPIFsInformationByNetwork(payload.item.network)
     if (network) {
       selectedNetworks.value = {
         network: network.network,
@@ -63,7 +76,12 @@ const selectNetwork = (item: any) => {
       }
     }
   } else {
-    const hostInternalNetwork = reactiveHostInternalNetworks.value.find(pif => pif.uuid === item.uuid)
+    const hostInternalNetwork = reactiveHostInternalNetworks.value.find(pif => pif.uuid === payload.item.uuid)
+
+    selectedNetworkRowId.value = null
+
+    selectedHostInternalRowId.value = payload.item.uuid
+
     if (hostInternalNetwork) {
       selectedNetworks.value = {
         network: hostInternalNetwork,
