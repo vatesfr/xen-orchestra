@@ -153,7 +153,7 @@
             {{ $t('ip-mode') }}
           </template>
           <template #value>
-            {{ props.pif.mode }}
+            {{ getPifData('mode') }}
           </template>
         </VtsCardRowKeyValue>
       </div>
@@ -245,14 +245,22 @@ const getNetworkData = (type: keyof XoNetwork) => {
       return network[type] ? 'on' : 'off'
     case 'tags':
       return network.tags.length ? network.tags : '-'
-    default:
-      return undefined
   }
 }
 
 const getPifData = (type: keyof XoPif) => {
-  const value = type === 'vlan' ? props.pif.vlan : props.pif[type]
-  return value === -1 || value === '' ? '-' : value
+  const value = props.pif[type]
+
+  switch (type) {
+    case 'vlan':
+      return value === -1 ? '-' : value
+    case 'netmask':
+    case 'dns':
+    case 'gateway':
+      return value === '' ? '-' : props.pif.netmask
+    case 'mode':
+      return value === 'None' ? '-' : value
+  }
 }
 </script>
 

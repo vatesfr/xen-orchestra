@@ -72,7 +72,7 @@
               </div>
               <div v-if="column.id === 'ip'" v-tooltip class="text-ellipsis">{{ row.value.ip }}</div>
               <div v-if="column.id === 'mac'" v-tooltip class="text-ellipsis">{{ row.value.mac }}</div>
-              <div v-if="column.id === 'mode'" v-tooltip class="text-ellipsis">{{ row.value.mode }}</div>
+              <div v-if="column.id === 'mode'" v-tooltip class="text-ellipsis">{{ getPifData(row.value, 'mode') }}</div>
               <div v-if="column.id === 'more'" v-tooltip>
                 <VtsIcon accent="info" :icon="faEllipsis" />
               </div>
@@ -141,10 +141,8 @@ const getNetworkName = (pif: XoPif) => {
   return network.name_label ? network.name_label : ''
 }
 
-const getPifData = (pif: XoPif, type: keyof XoPif) => {
-  const value = type === 'vlan' ? pif.vlan : pif[type]
-  return value === -1 || value === '' ? '' : value
-}
+const getPifData = (pif: XoPif, type: keyof XoPif) =>
+  (type === 'vlan' && pif[type] === -1) || (type === 'mode' && pif[type] === 'None') ? '' : pif[type]
 
 const searchQuery = ref('')
 
