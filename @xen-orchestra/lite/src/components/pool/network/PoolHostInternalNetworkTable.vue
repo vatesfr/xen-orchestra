@@ -17,7 +17,7 @@
         :total-items="usableRefs.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
+      <div v-if="filteredNetworks.length > 0" class="table">
         <VtsTable vertical-border>
           <thead>
             <tr>
@@ -34,7 +34,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ 'row-selected': selectedRowId === (row.value as XenApiNetwork).uuid }"
+              @click="selectRow(row.value, 'host-internal-network')"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <!--             NEED TO REMOVE `as XenApiNetwork` -->
@@ -70,6 +75,12 @@
           </tbody>
         </VtsTable>
       </div>
+
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+
+      <UiCardSpinner v-if="!isReady" />
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="usableRefs.length"
@@ -77,7 +88,6 @@
       />
     </div>
   </div>
-  <UiCardSpinner v-if="!isReady" />
 </template>
 
 <script setup lang="ts">
@@ -85,6 +95,7 @@ import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -111,11 +122,20 @@ import { computed, ref, watchEffect } from 'vue'
 const props = defineProps<{
   hostInternalNetwork: XenApiNetwork[]
   isReady: boolean
+  selectedRowId: string | null
+}>()
+
+const emit = defineEmits<{
+  rowSelectHostInternalNetwork: [value: any]
 }>()
 
 const reactiveHostInternalNetworks = ref<XenApiNetwork[]>(props.hostInternalNetwork || [])
 
 const searchQuery = ref('')
+
+const selectRow = (item: any, table: string) => {
+  emit('rowSelectHostInternalNetwork', { item, table })
+}
 
 const filteredNetworks = computed(() => {
   return searchQuery.value
@@ -180,22 +200,23 @@ watchEffect(() => {
     .table {
       overflow-x: auto;
 
+      tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 1px solid var(--color-neutral-border);
       }
     }
 
+    .row-selected {
+      background-color: var(--color-info-background-selected);
+    }
+
     .checkbox,
     .more {
       width: 4.8rem;
-    }
-  }
-
-  @media (max-width: 1440px) {
-    .table {
-      table {
-        width: 160rem;
-      }
     }
   }
 }
