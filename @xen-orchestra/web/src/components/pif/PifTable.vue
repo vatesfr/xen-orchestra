@@ -33,10 +33,10 @@
         <thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox" :class="`col-${column.id}`">
+              <th v-if="column.id === 'checkbox'" :class="`col-${column.id}`">
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
               </th>
-              <th v-else-if="column.id === 'more'" class="more" :class="`col-${column.id}`">
+              <th v-else-if="column.id === 'more'" :class="`col-${column.id}`">
                 <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                 {{ column.label }}
               </th>
