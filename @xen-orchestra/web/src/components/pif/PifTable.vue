@@ -56,7 +56,7 @@
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-              <div v-if="column.id === 'network'" class="network">
+              <div v-if="column.id === 'network' && getNetworkName(row.value)" class="network">
                 <UiComplexIcon size="medium">
                   <VtsIcon :icon="faNetworkWired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
@@ -65,9 +65,11 @@
               </div>
               <div v-if="column.id === 'device'" v-tooltip class="text-ellipsis">{{ row.value.device }}</div>
               <div v-if="column.id === 'status'" v-tooltip>
-                <PifStatus :pif="row.value" />
+                <PifStatus class="status" :pif="row.value" />
               </div>
-              <div v-if="column.id === 'vlan'" v-tooltip class="text-ellipsis">{{ row.value.vlan }}</div>
+              <div v-if="column.id === 'vlan'" v-tooltip class="text-ellipsis">
+                {{ getPifData(row.value, 'vlan') }}
+              </div>
               <div v-if="column.id === 'ip'" v-tooltip class="text-ellipsis">{{ row.value.ip }}</div>
               <div v-if="column.id === 'mac'" v-tooltip class="text-ellipsis">{{ row.value.mac }}</div>
               <div v-if="column.id === 'mode'" v-tooltip class="text-ellipsis">{{ row.value.mode }}</div>
@@ -136,7 +138,12 @@ const { get, isReady } = useNetworkStore().subscribe()
 
 const getNetworkName = (pif: XoPif) => {
   const network: XoNetwork = get(pif.$network)!
-  return network.name_label ? network.name_label : 'Unknown'
+  return network.name_label ? network.name_label : ''
+}
+
+const getPifData = (pif: XoPif, type: keyof XoPif) => {
+  const value = type === 'vlan' ? pif.vlan : pif[type]
+  return value === -1 || value === '' ? '' : value
 }
 
 const searchQuery = ref('')
@@ -262,6 +269,10 @@ const selectRow = (rowId: XoPif['id']) => {
     .network {
       display: flex;
       gap: 1.6rem;
+    }
+
+    .status {
+      font-size: 8.4rem !important;
     }
   }
 
