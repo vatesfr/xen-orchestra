@@ -54,7 +54,7 @@
         :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
+      <div v-if="filteredNetworks.length > 0" class="table">
         <VtsTable vertical-border>
           <thead>
             <tr>
@@ -77,7 +77,7 @@
               v-for="row of rows"
               :key="row.id"
               :class="{ 'row-selected': selectedRowId === (row.value as any).network.uuid }"
-              @click="selectRow(row.value)"
+              @click="selectRow(row.value, 'network')"
             >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
@@ -91,6 +91,12 @@
           </tbody>
         </VtsTable>
       </div>
+
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+
+      <UiCardSpinner v-if="!isReady" />
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="networkUuids.length"
@@ -98,7 +104,6 @@
       />
     </div>
   </div>
-  <UiCardSpinner v-if="!isReady" />
 </template>
 
 <script setup lang="ts">
@@ -109,6 +114,7 @@ import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import type { Status } from '@/types/status'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -142,6 +148,7 @@ const { networks, isReady } = defineProps<{
     vlan?: string
   }[]
   isReady: boolean
+  selectedRowId: string | null
 }>()
 
 const emit = defineEmits<{
@@ -149,11 +156,8 @@ const emit = defineEmits<{
 }>()
 
 
-const selectedRowId = ref('')
-
-const selectRow = (item: any) => {
-  selectedRowId.value = item.network.uuid
-  emit('rowSelectNetwork', item)
+const selectRow = (item: any, table: string) => {
+  emit('rowSelectNetwork', { item, table })
 }
 
 const searchQuery = ref('')
@@ -230,6 +234,11 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
 
     .table {
       overflow-x: auto;
+
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
 
       tr:last-child {
         border-bottom: 1px solid var(--color-neutral-border);
