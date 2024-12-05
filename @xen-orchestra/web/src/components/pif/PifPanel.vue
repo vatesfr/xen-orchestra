@@ -28,7 +28,7 @@
             {{ $t('network') }}
           </template>
           <template #value>
-            {{ props.pif.name_label }}
+            {{ getNetworkData(pif, 'name_label') }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -78,7 +78,7 @@
           </template>
           <template #value>
             <div class="tags">
-              <UiTag v-for="tag in pif.tags" :key="tag" accent="info" variant="secondary">
+              <UiTag v-for="tag in getTags(pif)" :key="tag" accent="info" variant="secondary">
                 {{ tag }}
               </UiTag>
             </div>
@@ -183,7 +183,7 @@
             {{ $t('network-block-device') }}
           </template>
           <template #value>
-            {{ $t(`${props.pif.nbd}`) }}
+            {{ $t(`${getNetworkData(pif, 'nbd')}`) }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -194,7 +194,7 @@
             {{ $t('default-locking-mode') }}
           </template>
           <template #value>
-            {{ $t(`${props.pif.defaultIsLocked}`) }}
+            {{ $t(`${getNetworkData(pif, 'defaultIsLocked')}`) }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -207,10 +207,9 @@
 
 <script setup lang="ts">
 import PifStatus from '@/components/pif/PifStatus.vue'
-// import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-// import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-// import type { XoNetwork } from '@/types/xo/network.type'
-// import type { XoPif } from '@/types/xo/pif.type'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPif } from '@/types/xo/pif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -223,14 +222,28 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-// TODO: Replace mocked data by store and type values
 const props = defineProps<{
-  pif: object | null | undefined
+  pif: XoPif
 }>()
+
+const { get } = useNetworkStore().subscribe()
 
 const allIps = computed(() => {
   return [props.pif.ip, ...props.pif.ipv6].filter(ip => ip)
 })
+
+const getNetworkData = (pif: XoPif, type: keyof XoNetwork) => {
+  const network: XoNetwork = get(pif.$network)!
+  if (type === 'name_label') {
+    return network.name_label ? network.name_label : 'Unknown'
+  } else if (type === 'nbd' || type === 'defaultIsLocked') {
+    return network[type] ? 'on' : 'off'
+  }
+}
+const getTags = (pif: XoPif) => {
+  const network: XoNetwork = get(pif.$network)!
+  return network.tags.length > 0 ? network.tags : []
+}
 </script>
 
 <style scoped lang="postcss">

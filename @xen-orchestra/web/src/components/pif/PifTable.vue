@@ -1,5 +1,5 @@
 <template>
-  <div class="pif-table">
+  <div v-if="isReady" class="pif-table">
     <UiTitle type="h4" class="header">
       <slot>{{ $t('pifs') }}</slot>
       <template #actions>
@@ -61,7 +61,7 @@
                   <VtsIcon :icon="faNetworkWired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
-                <p v-tooltip class="text-ellipsis">{{ row.value.name_label }}</p>
+                <p v-tooltip class="text-ellipsis">{{ getNetworkName(row.value) }}</p>
               </div>
               <div v-if="column.id === 'device'" v-tooltip class="text-ellipsis">{{ row.value.device }}</div>
               <div v-if="column.id === 'status'" v-tooltip>
@@ -90,6 +90,9 @@
 
 <script setup lang="ts">
 import PifStatus from '@/components/pif/PifStatus.vue'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPif } from '@/types/xo/pif.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -105,7 +108,6 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -123,12 +125,19 @@ import {
 import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  pifs: object[]
+  pifs: XoPif[]
 }>()
 
 const emit = defineEmits<{
-  rowSelect: [value: string]
+  rowSelect: [value: XoPif['id']]
 }>()
+
+const { get, isReady } = useNetworkStore().subscribe()
+
+const getNetworkName = (pif: XoPif) => {
+  const network: XoNetwork = get(pif.$network)!
+  return network.name_label ? network.name_label : 'Unknown'
+}
 
 const searchQuery = ref('')
 
@@ -150,13 +159,13 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('network', () => '', { label: 'Network', isHideable: true }),
-    define('device', () => '', { label: 'Device', isHideable: true }),
+    define('network', record => record.$network, { label: 'Network', isHideable: true }),
+    define('device', record => record.device, { label: 'Device', isHideable: true }),
     define('status', () => '', { label: 'Status', isHideable: true }),
-    define('vlan', () => '', { label: 'Vlan', isHideable: true }),
-    define('ip', () => '', { label: 'IP Addresses', isHideable: true }),
-    define('mac', () => '', { label: 'MAC address', isHideable: true }),
-    define('mode', () => '', { label: 'IP mode', isHideable: true }),
+    define('vlan', record => record.vlan, { label: 'Vlan', isHideable: true }),
+    define('ip', record => record.ip, { label: 'IP Addresses', isHideable: true }),
+    define('mac', record => record.mac, { label: 'MAC address', isHideable: true }),
+    define('mode', record => record.mode, { label: 'IP mode', isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -178,9 +187,9 @@ const getHeaderIcon = (status: pifHeader) => {
   return headerIcon[status].icon
 }
 
-const selectedRowId = ref('')
+const selectedRowId = ref<XoPif['id']>()
 
-const selectRow = (rowId: string) => {
+const selectRow = (rowId: XoPif['id']) => {
   selectedRowId.value = rowId
   emit('rowSelect', rowId)
 }
