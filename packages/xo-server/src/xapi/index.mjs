@@ -566,8 +566,8 @@ export default class Xapi extends XapiBase {
     for (const vbd of vbds) {
       if (vbd.type === 'Disk') {
         const vdi = vbd.$VDI
-        // Ignore VDI snapshots which have a parent
-        if (vdi.$snapshot_of !== undefined) {
+        // We need to be sure it's not a snapshot (prevent VDI_NOT_IN_MAP error)
+        if (vdi.is_a_snapshot && vdi.$snapshot_of !== undefined) {
           continue
         }
         vdis[vdi.$ref] = getMigrationSrRef(vdi)
