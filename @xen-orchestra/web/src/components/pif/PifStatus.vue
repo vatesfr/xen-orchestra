@@ -1,11 +1,12 @@
 <template>
   <UiInfo class="pif-status text-ellipsis" :accent="getStatusProps(status).accent">
-    <p class="text-ellipsis" :class="{ card }">{{ getStatusProps(status).text }}</p>
+    <p v-tooltip class="text-ellipsis" :class="{ card }">{{ getStatusProps(status).text }}</p>
   </UiInfo>
 </template>
 
 <script setup lang="ts">
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCheck, faExclamation } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

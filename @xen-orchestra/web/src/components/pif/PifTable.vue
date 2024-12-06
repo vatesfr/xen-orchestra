@@ -40,7 +40,7 @@
                 <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                 {{ column.label }}
               </th>
-              <ColumnTitle v-else id="network" :class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
+              <ColumnTitle v-else id="network" :header-class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
                 {{ column.label }}
               </ColumnTitle>
             </template>
@@ -225,21 +225,24 @@ const selectRow = (rowId: XoPif['id']) => {
 
     .table {
       .col-checkbox,
-      .col-more,
-      .col-vlan {
+      .col-more {
         width: 4.5rem;
       }
 
-      .col-network,
-      .col-status,
-      .col-ip,
-      .col-mac {
+      :deep(.col-vlan) {
+        width: 8.5rem;
+      }
+
+      :deep(.col-network, .col-status, .col-ip, .col-mac),
+      :deep(.col-status),
+      :deep(.col-ip),
+      :deep(.col-mac) {
         width: 20rem;
       }
 
-      .col-device,
-      .col-mode {
-        width: 9.5rem;
+      :deep(.col-device),
+      :deep(.col-mode) {
+        width: 11rem;
       }
     }
 
