@@ -15,7 +15,11 @@
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
     <TabItem disabled>{{ $t('stats') }}</TabItem>
     <TabItem disabled>{{ $t('system') }}</TabItem>
-    <TabItem disabled>{{ $t('network') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/network`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('network') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ $t('storage') }}</TabItem>
     <TabItem disabled>{{ $t('tasks') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
