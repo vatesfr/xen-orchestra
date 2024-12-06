@@ -257,6 +257,7 @@ const getPifData = (type: keyof XoPif) => {
     case 'netmask':
     case 'dns':
     case 'gateway':
+    case 'ip':
       return value === '' ? '-' : props.pif.netmask
     case 'mode':
       return value === 'None' ? '-' : value
