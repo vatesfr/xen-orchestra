@@ -1,6 +1,5 @@
 import assert from 'assert'
 import dns from 'dns'
-import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map.js'
@@ -756,7 +755,7 @@ export class Xapi extends EventEmitter {
     ignoreErrors.call(this._watchEvents())
   }
 
-  watchTask(ref) {
+  async watchTask(ref) {
     const watchers = this._taskWatchers
     if (watchers === undefined) {
       throw new Error('Xapi#watchTask() requires events watching')
@@ -778,7 +777,19 @@ export class Xapi extends EventEmitter {
 
       watcher = watchers[ref] = defer()
     }
-    return this._addSyncStackTrace(watcher.promise)
+
+    debug(`${this._humanId}: watching task`, { ref })
+    try {
+      const result = await this._addSyncStackTrace(watcher.promise)
+
+      debug(`${this._humanId}: task succeeded`, { ref, result })
+
+      return result
+    } catch (error) {
+      debug(`${this._humanId}: task failed`, { ref, error })
+
+      throw error
+    }
   }
 
   // ===========================================================================
@@ -786,28 +797,38 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   async _call(method, args = [], timeout = this._callTimeout(method, args)) {
+    // it pass server's credentials as param
+    const obfuscated =
+      method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(args, '* obfuscated *')
+
+    // do not log the session ID
+    //
+    // TODO: should log at the session level to avoid logging sensitive
+    // values?
+    if (obfuscated[0] === this._sessionId) {
+      obfuscated[0] = '* session id *'
+    }
+
+    const callId = Math.random().toString(36).slice(2)
     const startTime = Date.now()
+    debug(`${this._humanId}: ${method} started`, { callId, args: obfuscated })
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
-      debug(`${this._humanId}: ${method}(...) [${ms(Date.now() - startTime)}] ==> ${kindOf(result)}`)
-      return result
-    } catch (error) {
-      // do not log the session ID
-      //
-      // TODO: should log at the session level to avoid logging sensitive
-      // values?
-      const params = args[0] === this._sessionId ? args.slice(1) : args
 
       const duration = Date.now() - startTime
+      debug(`${this._humanId}: ${method} succeeded after ${ms(duration)}`, { callId, result })
+
+      return result
+    } catch (error) {
+      const duration = Date.now() - startTime
+
+      debug(`${this._humanId}: ${method} failed after ${ms(duration)}`, { callId, error })
+
       error.call = {
         duration,
         method,
-        params:
-          // it pass server's credentials as param
-          method === 'session.login_with_password' ? '* obfuscated *' : Obfuscate.replace(params, '* obfuscated *'),
+        params: obfuscated,
       }
-
-      debug(`${this._humanId}: ${method} [${ms(duration)}] =!> ${error}`)
 
       throw error
     }
