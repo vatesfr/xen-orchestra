@@ -6,7 +6,7 @@
     <RouterTab :to="{ name: 'host.console', params: { uuid } }">
       {{ $t('console') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.network', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: 'host.network', params: { uuid } }">
       {{ $t('network') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.tasks', params: { uuid } }" disabled>
