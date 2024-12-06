@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Host/Patches] Users with non-admin permissions on hosts can no longer update them (PR [#8176](https://github.com/vatesfr/xen-orchestra/pull/8176))
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -33,5 +35,6 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- xo-server patch
 
 <!--packages-end-->

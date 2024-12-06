@@ -193,7 +193,10 @@ export async function installPatches({ pool, patches, hosts }) {
     xapi = pool.$xapi
     hosts = Object.values(xapi.objects.indexes.type.host)
   } else {
-    hosts = hosts.map(_ => this.getXapiObject(_))
+    hosts = await asyncMap(hosts, async hostId => {
+      await this.checkPermissions([[hostId, 'administrate']])
+      return this.getXapiObject(hostId)
+    })
     opts.hosts = hosts
     xapi = hosts[0].$xapi
     pool = xapi.pool
