@@ -3,12 +3,12 @@
   <MenuList :disabled placement="bottom-start" border>
     <template #trigger="{ open, isOpen }">
       <th
-        :class="{ interactive, disabled, focus: isOpen }"
+        :class="[headerClass, { interactive, disabled, focus: isOpen }]"
         class="column-header"
         @click="ev => (interactive ? open(ev) : noop())"
       >
-        <div class="content">
-          <span class="label">
+        <div class="content text-ellipsis">
+          <span v-tooltip class="label">
             <VtsIcon :icon accent="current" />
             <slot />
           </span>
@@ -58,6 +58,7 @@ const props = withDefaults(
     icon?: IconDefinition
     interactive?: boolean
     disabled?: boolean
+    headerClass?: string
   }>(),
   {
     disabled: false,
