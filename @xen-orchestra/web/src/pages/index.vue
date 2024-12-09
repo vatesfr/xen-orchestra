@@ -16,10 +16,10 @@ import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
 import Patches from '@/components/site/dashboard/Patches.vue'
+import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
-import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 </script>
 
 <style lang="postcss" scoped>

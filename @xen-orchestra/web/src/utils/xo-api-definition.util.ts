@@ -2,6 +2,7 @@ import type { ApiDefinition } from '@/types/xo'
 import type { XoDashboard } from '@/types/xo/dashboard.type'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoServer } from '@/types/xo/server.type'
 import type { XoTask } from '@/types/xo/task.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
@@ -35,5 +36,11 @@ export const xoApiDefinition = {
     path: 'dashboard',
     fields: '*',
     handler: (record: XoDashboard) => record,
+  },
+  server: {
+    type: 'collection',
+    path: 'servers',
+    fields: '*',
+    handler: (record: XoServer) => record,
   },
 } satisfies ApiDefinition
