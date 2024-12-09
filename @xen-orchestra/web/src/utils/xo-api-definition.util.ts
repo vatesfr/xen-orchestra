@@ -1,6 +1,8 @@
 import type { ApiDefinition } from '@/types/xo'
 import type { XoDashboard } from '@/types/xo/dashboard.type'
 import type { XoHost } from '@/types/xo/host.type'
+import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoTask } from '@/types/xo/task.type'
 import type { XoVm } from '@/types/xo/vm.type'
@@ -9,7 +11,7 @@ export const xoApiDefinition = {
   pool: {
     type: 'collection',
     path: 'pools',
-    fields: 'id,name_label,master',
+    fields: 'id,name_label,master,$pool',
     handler: (record: XoPool) => record,
   },
   host: {
@@ -35,5 +37,17 @@ export const xoApiDefinition = {
     path: 'dashboard',
     fields: '*',
     handler: (record: XoDashboard) => record,
+  },
+  pif: {
+    type: 'collection',
+    path: 'pifs',
+    fields: '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,mode,mtu,netmask,speed,vlan',
+    handler: (record: XoPif) => record,
+  },
+  network: {
+    type: 'collection',
+    path: 'networks',
+    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs',
+    handler: (record: XoNetwork) => record,
   },
 } satisfies ApiDefinition
