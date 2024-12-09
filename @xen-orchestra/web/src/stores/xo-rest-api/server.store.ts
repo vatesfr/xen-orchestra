@@ -1,4 +1,4 @@
-import { SERVER_STATUS } from '@/types/server.type'
+import { SERVER_STATUS } from '@/types/xo/server.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'

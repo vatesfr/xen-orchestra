@@ -1,4 +1,5 @@
-import type { RecordId } from '@/types/xo-object.type'
+import type { XoPool } from '@/types/xo/pool.type'
+import type { Branded } from '@core/types/utility.type'
 
 export enum SERVER_STATUS {
   CONNECTED = 'connected',
@@ -10,7 +11,7 @@ type BaseServer = {
   allowUnauthorized: boolean
   enabled: boolean
   host: string
-  id: RecordId<'server'>
+  id: Branded<'server'>
   label: string | undefined
   readOnly: boolean
   type: 'server'
@@ -19,7 +20,7 @@ type BaseServer = {
 
 type ConnectedServer = BaseServer & {
   status: SERVER_STATUS.CONNECTED
-  poolId: RecordId<'pool'>
+  poolId: XoPool['id']
 }
 
 type ConnectingServer = BaseServer & {
@@ -31,4 +32,4 @@ type DisconnectedServer = BaseServer & {
   error?: any
 }
 
-export type Server = ConnectedServer | ConnectingServer | DisconnectedServer
+export type XoServer = ConnectedServer | ConnectingServer | DisconnectedServer

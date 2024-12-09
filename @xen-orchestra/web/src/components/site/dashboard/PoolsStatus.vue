@@ -1,23 +1,23 @@
 <template>
   <UiCard>
-    <CardTitle>{{ $t('pools-status') }}</CardTitle>
-    <LoadingHero :disabled="isReady" type="card">
-      <DonutChartWithLegend :icon="faCity" :segments />
-      <CardNumbers :value="servers.length" class="total" label="Total" size="small" />
-    </LoadingHero>
+    <UiCardTitle>{{ $t('pools-status') }}</UiCardTitle>
+    <VtsLoadingHero :disabled="isReady" type="card">
+      <VtsDonutChartWithLegend :icon="faCity" :segments />
+      <UiCardNumbers :value="servers.length" class="total" label="Total" size="small" />
+    </VtsLoadingHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
-import { SERVER_STATUS } from '@/types/server.type'
-import CardTitle from '@core/components/card/CardTitle.vue'
-import CardNumbers from '@core/components/CardNumbers.vue'
-import DonutChartWithLegend, {
+import { SERVER_STATUS } from '@/types/xo/server.type'
+import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
-} from '@core/components/donut-chart-with-legend/DonutChartWithLegend.vue'
-import LoadingHero from '@core/components/state-hero/LoadingHero.vue'
-import UiCard from '@core/components/UiCard.vue'
+} from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -35,18 +35,18 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('pools-status.connected'),
     value: serversCount.value.connected,
-    color: 'success',
+    accent: 'success',
   },
   {
     label: t('pools-status.unreachable'),
     value: serversCount.value.unreachable,
-    color: 'warning',
+    accent: 'warning',
     tooltip: t('pools-status.unreachable.tooltip'),
   },
   {
     label: t('pools-status.unknown'),
     value: serversCount.value.$other,
-    color: 'disabled',
+    accent: 'muted',
     tooltip: t('pools-status.unknown.tooltip'),
   },
 ])
