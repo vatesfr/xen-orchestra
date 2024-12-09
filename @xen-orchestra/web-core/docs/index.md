@@ -26,3 +26,4 @@
 # Packages
 
 - [Job System](../lib/packages/job/README.md)
+- [Menu System](../lib/packages/menu/README.md)
