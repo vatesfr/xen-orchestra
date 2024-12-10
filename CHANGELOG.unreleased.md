@@ -22,6 +22,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM] Fix `VDI_NOT_IN_MAP` error during migration (PR [#8179](https://github.com/vatesfr/xen-orchestra/pull/8179))
+- [Backups/CBT] Improve enabling/disabling CBT on slower storages (PR [#8184](https://github.com/vatesfr/xen-orchestra/pull/8184))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -41,7 +44,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
+- @xen-orchestra/xapi minor
 - xen-api minor
 - xo-server minor
 - xo-web minor
