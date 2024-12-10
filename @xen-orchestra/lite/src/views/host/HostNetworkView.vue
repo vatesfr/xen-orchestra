@@ -3,10 +3,12 @@
     <UiCard class="container">
       <HostPifTable />
     </UiCard>
+    <HostPifSidePanel />
   </div>
 </template>
 
 <script lang="ts" setup>
+import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifTable from '@/components/host/network/HostPifTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import UiCard from '@core/components/ui/card/UiCard.vue'
