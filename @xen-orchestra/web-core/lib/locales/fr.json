@@ -49,6 +49,7 @@
   "delete": "Supprimer",
   "description": "Description",
   "device": "Appareil",
+  "disabled": "Désactivé",
   "disconnected": "Déconnecté",
   "disconnected-from-physical-device": "Déconnécté de l'appareil physique",
   "documentation-name": "Documentation {name}",
@@ -107,6 +108,7 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unlocked": "Déverrouillé",
   "vlan": "VLAN",
   "vms": "VMs"
 }

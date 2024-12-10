@@ -72,7 +72,7 @@
                   v-tooltip="{ placement: 'bottom-end' }"
                   class="text-ellipsis"
                 >
-                  {{ (row.value as any).defaultIsLocked }}
+                  {{ getLockingMode((row.value as any).defaultIsLocked) }}
                 </div>
                 <div v-if="column.id === 'more'">
                   <VtsIcon accent="info" :icon="faEllipsis" />
@@ -186,6 +186,10 @@ const getPifsStatus = (network: XoNetwork) => {
     return 'partially_connected'
   }
   return 'disconnected'
+}
+
+const getLockingMode = (network: XoNetwork) => {
+  return network.defaultIsLocked ? t('disabled') : t('unlocked')
 }
 
 const usableRefs = computed(() => reactiveNetworksWithVLANs.value.map(item => item.id))

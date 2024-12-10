@@ -60,7 +60,7 @@
                   v-tooltip="{ placement: 'bottom-end' }"
                   class="text-ellipsis"
                 >
-                  {{ (row.value as XoNetwork).defaultIsLocked }}
+                  {{ getLockingMode((row.value as any).defaultIsLocked) }}
                 </div>
                 <div v-if="column.id === 'more'">
                   <VtsIcon accent="info" :icon="faEllipsis" />
@@ -105,12 +105,13 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   hostInternalNetwork: XoNetwork[]
   isReady: boolean
 }>()
-
+const { t } = useI18n()
 const reactiveHostInternalNetworks = ref<XoNetwork[]>(props.hostInternalNetwork || [])
 
 const searchQuery = ref('')
@@ -154,6 +155,10 @@ const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
 }
 
 const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
+
+const getLockingMode = (network: XoNetwork) => {
+  return network.defaultIsLocked ? t('disabled') : t('unlocked')
+}
 
 watchEffect(() => {
   if (props.hostInternalNetwork) {
