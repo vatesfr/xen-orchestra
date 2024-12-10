@@ -150,7 +150,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           try {
             // enable CBT on all disks if possible
             const diskRefs = await xapi.VM_getDisks(vm.$ref)
-            await Promise.all(diskRefs.map(diskRef => xapi.call('VDI.enable_cbt', diskRef)))
+            await Promise.all(diskRefs.map(diskRef => xapi.callAsync('VDI.enable_cbt', diskRef)))
           } catch (error) {
             Task.info(`couldn't enable CBT`, error)
           }
