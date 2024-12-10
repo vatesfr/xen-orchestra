@@ -15,7 +15,9 @@ const props = defineProps<{
   pif: any
   card?: boolean
 }>()
+
 const { t } = useI18n()
+
 type NetworkStatus = 'connected' | 'disconnected' | 'partial'
 type NetworkAccent = 'success' | 'warning' | 'danger'
 const states = computed<Record<NetworkStatus, { text: string; icon: IconDefinition; accent: NetworkAccent }>>(() => ({
@@ -23,6 +25,7 @@ const states = computed<Record<NetworkStatus, { text: string; icon: IconDefiniti
   disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
   partial: { text: t('disconnected-from-physical-device'), icon: faExclamation, accent: 'warning' },
 }))
+
 const status = computed(() => {
   if (props.pif.currently_attached) {
     return 'connected'

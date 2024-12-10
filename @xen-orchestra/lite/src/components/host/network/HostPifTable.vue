@@ -34,11 +34,16 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ selected: selectedRowId === row.id }"
+              @click="selectRow(row.id)"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <div v-if="column.id === 'network'" class="network">
-                  <UiComplexIcon size="medium" class="icon">
+                  <UiComplexIcon size="medium">
                     <VtsIcon :icon="faNetworkWired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
@@ -120,6 +125,16 @@ const { pifs } = defineProps<{
   isReady: boolean
 }>()
 
+const emit = defineEmits<{
+  rowSelect: [value: XenApiPif['uuid']]
+}>()
+const selectedRowId = ref<XenApiPif['uuid']>()
+
+const selectRow = (rowId: XenApiPif['uuid']) => {
+  selectedRowId.value = rowId
+  emit('rowSelect', rowId)
+}
+
 const { getByOpaqueRef } = useNetworkStore().subscribe()
 
 const getNetworkName = (pif: string) => {
@@ -152,9 +167,9 @@ const { visibleColumns, rows } = useTable('pifs', filteredNetworks, {
     define('device', { label: 'Device', isHideable: true }),
     define('status', () => '', { label: 'Status', isHideable: true }),
     define('VLAN', { label: 'Vlan', isHideable: true }),
-    define('IP', { label: 'IP', isHideable: true }),
-    define('MAC', { label: 'MAC', isHideable: true }),
-    define('ip_configuration_mode', { label: 'Mode', isHideable: true }),
+    define('IP', { label: 'IP Addresses', isHideable: true }),
+    define('MAC', { label: 'MAC Addresses', isHideable: true }),
+    define('ip_configuration_mode', { label: 'IP Mode', isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -199,9 +214,18 @@ const getHeaderIcon = (status: pifHeader) => headerIcon[status].icon
         }
       }
 
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 1px solid var(--color-neutral-border);
       }
+    }
+
+    .row-selected {
+      background-color: var(--color-info-background-selected);
     }
 
     .checkbox,
