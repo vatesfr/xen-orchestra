@@ -7,68 +7,52 @@
     </template>
     <UiCard v-if="selectedNetwork" class="card-container">
       <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
-        {{ (selectedNetwork as any)?.network.name_label }}
+        {{ selectedNetwork.name_label }}
       </UiCardTitle>
       <div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('id') }}</div>
-          <div class="value text-ellipsis">{{ (selectedNetwork as any)?.network.id }}</div>
-          <UiButtonIcon
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copyToClipboard((selectedNetwork as any)?.network.id)"
-          />
+          <div class="value text-ellipsis">{{ selectedNetwork.id }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(selectedNetwork.id)" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('description') }}</div>
-          <div class="value text-ellipsis">{{ (selectedNetwork as any)?.network.name_description }}</div>
+          <div class="value text-ellipsis">{{ selectedNetwork.name_description }}</div>
           <UiButtonIcon
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard((selectedNetwork as any)?.network.name_description)"
+            @click="copyToClipboard(selectedNetwork.name_description)"
           />
         </div>
-        <div v-if="(selectedNetwork as any)?.vlan" class="typo p3-regular content">
+        <div v-if="selectedPifs[0].vlan" class="typo p3-regular content">
           <div class="title">{{ $t('vlan') }}</div>
-          <div class="value">{{ (selectedNetwork as any)?.vlan }}</div>
+          <!--          <div class="value">{{ selectedPifs[0].vlan }}</div> -->
+          <div class="value">{{ getNetworkVlan(selectedPifs[0].vlan) }}</div>
           <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('mtu') }}</div>
-          <div class="value">{{ (selectedNetwork as any)?.network.MTU }}</div>
-          <UiButtonIcon
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copyToClipboard((selectedNetwork as any)?.network.MTU)"
-          />
+          <div class="value">{{ selectedNetwork.MTU }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(selectedNetwork.MTU)" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ (selectedNetwork as any)?.network.nbd }}</div>
+          <div class="value">{{ selectedNetwork.nbd }}</div>
           <UiButtonIcon
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard((selectedNetwork as any)?.network.nbd)"
+            @click="copyToClipboard(selectedNetwork.nbd.toString())"
           />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value default-locking">{{ (selectedNetwork as any)?.network.default_locking_mode }}</div>
+          <div class="value">{{ selectedNetwork.defaultIsLocked }}</div>
         </div>
       </div>
     </UiCard>
-    <UiCard
-      v-if="
-        selectedNetwork.network &&
-        (selectedNetwork as any)?.network.PIFs &&
-        (selectedNetwork as any)?.network.PIFs.length > 0
-      "
-      class="card-container"
-    >
+    <UiCard v-if="selectedNetwork && selectedNetwork.PIFs && selectedNetwork.PIFs.length > 0" class="card-container">
       <div class="typo p1-medium">
         {{ $t('pifs') }}
         <UiCounter :value="selectedPIFsLength" variant="primary" size="small" accent="neutral" />
@@ -76,7 +60,7 @@
       <table class="simple-table">
         <thead>
           <tr>
-            <th class="text-left typo p3-regular text-ellipsis">
+            <th class="text-left typo p3-regular text-ellipsis host">
               {{ $t('host') }}
             </th>
             <th class="text-left typo p3-regular text-ellipsis">
@@ -90,39 +74,24 @@
         </thead>
         <tbody>
           <tr v-for="pif in selectedPifs" :key="pif.id">
-            <td class="typo p3-regular text-ellipsis">
-              <UiObjectIcon :state="getHost(pif.$host).power_state ? 'running' : 'disabled'" type="host" size="small" />
-              <a>
+            <td class="typo p3-regular text-ellipsis host">
+              <UiObjectIcon
+                :state="getHost(pif.$host)!.power_state ? 'running' : 'disabled'"
+                type="host"
+                size="small"
+              />
+              <a v-tooltip class="host text-ellipsis">
                 {{ getHost(pif.$host)!.name_label }}
               </a>
             </td>
-            <td class="typo p3-regular">{{ pif.device }}</td>
-            <td class="typo p3-regular">
-              <PifStatus :pif />
+            <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
+            <td class="typo p3-regular status">
+              <PifStatus card :pif />
             </td>
             <td>
               <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
             </td>
           </tr>
-          <!--          <tr v-for="selected in selectedPifs" :key="selected.PIF.id"> -->
-          <!--            <td class="typo p3-regular"> -->
-          <!--              <UiObjectIcon :state="selected?.host?.hostStatus ? 'running' : 'disabled'" type="host" size="small" /> -->
-          <!--              <a> -->
-          <!--                {{ selected?.host?.name_label }} -->
-          <!--              </a> -->
-          <!--            </td> -->
-          <!--            <td class="typo p3-regular"> -->
-          <!--              {{ selected.PIF.device }} -->
-          <!--            </td> -->
-          <!--            <td class="typo p3-regular"> -->
-          <!--              <UiInfo v-if="selected.PIF.attached" accent="success"> {{ $t('connected') }}</UiInfo> -->
-          <!--              <UiInfo v-else-if="!selected.PIF.attached" accent="danger"> {{ $t('disconnected') }}</UiInfo> -->
-          <!--              <UiInfo v-else accent="warning"> {{ $t('partially-connected') }}</UiInfo> -->
-          <!--            </td> -->
-          <!--            <td> -->
-          <!--              <UiButtonIcon size="small" accent="info" :icon="faAngleRight" /> -->
-          <!--            </td> -->
-          <!--          </tr> -->
         </tbody>
       </table>
     </UiCard>
@@ -143,28 +112,28 @@ import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight, faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
-
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const { selectedPifs, selectedNetwork } = defineProps<{
-  selectedNetwork?: {
-    network: XoNetwork
-    status?: string
-    selected?: boolean
-    vlan?: string
-  }
-  selectedPifs?: XoPif[]
+const { selectedNetwork, selectedPifs } = defineProps<{
+  selectedNetwork: XoNetwork
+  selectedPifs: XoPif[]
 }>()
 
-const { records } = useHostStore().subscribe()
+const { t } = useI18n()
 
+const { records } = useHostStore().subscribe()
 const selectedPIFsLength = computed(() => selectedPifs!.length.toString())
 const copyToClipboard = (text: string | number) => {
   const stringText = String(text)
   navigator.clipboard.writeText(stringText)
 }
-const getHost = id => {
+const getHost = (id: XoPif['$host']) => {
   return records.value.find(host => host.id === id)
+}
+
+const getNetworkVlan = (vlan: XoPif['vlan']) => {
+  return vlan !== -1 ? vlan.toString() : t('none')
 }
 </script>
 
@@ -190,11 +159,7 @@ const getHost = id => {
 
       .value {
         color: var(--color-neutral-txt-primary);
-        width: 20rem;
-      }
-
-      .default-locking {
-        width: 23rem;
+        width: 25rem;
       }
     }
 
@@ -203,6 +168,25 @@ const getHost = id => {
     }
 
     .simple-table {
+      td {
+        padding: 0 0.4rem;
+      }
+
+      td.host {
+        width: 13rem;
+        max-width: 13rem;
+      }
+
+      td.device {
+        width: 6rem;
+        max-width: 6rem;
+      }
+
+      td.status {
+        width: 12rem;
+        max-width: 12rem;
+      }
+
       tbody tr {
         cursor: pointer;
 

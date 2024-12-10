@@ -40,7 +40,7 @@
             <tr
               v-for="row of rows"
               :key="row.id"
-              :class="{ 'row-selected': selectedRowId === (row.value as any).network.id }"
+              :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
               @click="selectRow(row.value, 'network')"
             >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
@@ -48,30 +48,31 @@
                   <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 </div>
                 <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).network.name_label }}
+                  {{ (row.value as any).name_label }}
                 </div>
                 <div
                   v-if="column.id === 'name_description'"
                   v-tooltip="{ placement: 'bottom-end' }"
                   class="text-ellipsis"
                 >
-                  {{ (row.value as any).network.name_description }}
+                  {{ (row.value as any).name_description }}
                 </div>
                 <div v-if="column.id === 'status'" class="status">
-                  <PoolNetworksPifStatus :status="(row.value as any).status" />
+                  <PoolNetworksPifStatus :status="getPifsStatus(row.value)" />
                 </div>
                 <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                   {{ (row.value as any).vlan }}
+                  {{ getNetworkVlan(row.value) }}
                 </div>
                 <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).network.MTU }}
+                  {{ (row.value as any).MTU }}
                 </div>
                 <div
                   v-if="column.id === 'default_locking_mode'"
                   v-tooltip="{ placement: 'bottom-end' }"
                   class="text-ellipsis"
                 >
-                  {{ (row.value as any).network.defaultIsLocked }}
+                  {{ (row.value as any).defaultIsLocked }}
                 </div>
                 <div v-if="column.id === 'more'">
                   <VtsIcon accent="info" :icon="faEllipsis" />
@@ -95,6 +96,7 @@
 
 <script setup lang="ts">
 import PoolNetworksPifStatus from '@/components/pool/PoolNetworkPifStatus.vue'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -124,13 +126,10 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
-  networks: {
-    network: XoNetwork
-    status?: string
-    vlan?: string
-  }[]
+  networks: XoNetwork[]
   isReady: boolean
   selectedRowId: string | null
 }>()
@@ -138,6 +137,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   rowSelectNetwork: [value: any]
 }>()
+
+const { t } = useI18n()
+
+const { records: pifs } = usePifStore().subscribe()
+
 const reactiveNetworksWithVLANs = ref(props.networks || [])
 
 const selectRow = (item: any, table: string) => {
@@ -154,31 +158,61 @@ const filteredNetworks = computed(() => {
     : reactiveNetworksWithVLANs.value
 })
 
-const usableRefs = computed(() => reactiveNetworksWithVLANs.value.map(item => item.network.id))
+const getNetworkVlan = (network: XoNetwork) => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
+  if (networkPIFs.length > 0) {
+    return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
+  }
+}
+
+const getPifsStatus = (network: XoNetwork) => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
+
+  let allConnected = true
+  let partiallyConnected = false
+  for (const pif of networkPIFs) {
+    const { carrier, attached } = pif
+    if (!(carrier && attached)) {
+      allConnected = false
+    }
+    if (carrier || attached) {
+      partiallyConnected = true
+    }
+  }
+  if (allConnected) {
+    return 'connected'
+  }
+  if (partiallyConnected) {
+    return 'partially_connected'
+  }
+  return 'disconnected'
+}
+
+const usableRefs = computed(() => reactiveNetworksWithVLANs.value.map(item => item.id))
 const { selected, areAllSelected } = useMultiSelect(usableRefs)
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? usableRefs.value : []
 }
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
-  rowId: record => record.network.id,
+  rowId: record => record.id,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', record => record.network.name_label, {
+    define('name_label', record => record.name_label, {
       label: 'Name',
       isHideable: true,
     }),
-    define('name_description', record => record.network.name_description, {
+    define('name_description', record => record.name_description, {
       label: 'Description',
       isHideable: true,
     }),
     define('status', { label: 'PIFS Status', isHideable: true }),
     define('vlan', { label: 'VLAN', isHideable: true }),
-    define('MTU', record => record.network.MTU, {
+    define('MTU', record => record.MTU, {
       label: 'MTU',
       isHideable: true,
     }),
-    define('default_locking_mode', record => record.network.defaultIsLocked, {
+    define('default_locking_mode', record => record.defaultIsLocked, {
       label: 'Default Locking mode',
       isHideable: true,
     }),

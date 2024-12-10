@@ -2,19 +2,19 @@
   <div class="pool-network-view">
     <UiCard class="card">
       <PoolNetworksTable
-        :networks="reactiveNetworksWithVLANs"
+        :networks="networksWithPIFs"
         :is-ready
         :selected-row-id="selectedNetworkRowId"
         @row-select-network="selectNetwork"
       />
       <PoolHostInternalNetworkTable
-        :host-internal-network="reactiveHostInternalNetworks"
+        :host-internal-network="hostInternalNetworks"
         :is-ready
         :selected-row-id="selectedHostInternalRowId"
         @row-select-host-internal-network="selectNetwork"
       />
     </UiCard>
-    <PoolNetworksSidePanel v-if="selectedNetworks" :selected-network="selectedNetworks" :selected-pifs="selectedPIFs" />
+    <PoolNetworksSidePanel v-if="selectedNetwork" :selected-network :selected-pifs="selectedPIFs" />
     <UiPanel v-else class="panel">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -32,62 +32,35 @@ import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { watchEffect, ref } from 'vue'
+import { ref } from 'vue'
 
-const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
+const { networksWithPIFs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
 
-const selectedNetworks = ref<{
-  network: XoNetwork
-  status?: string
-  vlan?: string
-}>()
-const selectedPIFs = ref<
-  {
-    PIF: XoPif
-    host?: {
-      name_label?: string
-      hostStatus?: boolean
-    }
-  }[]
->()
-
-const reactiveNetworksWithVLANs = ref(networksWithVLANs.value || [])
-const reactiveHostInternalNetworks = ref(hostInternalNetworks.value || [])
+const selectedNetwork = ref<XoNetwork | undefined>(undefined)
+const selectedPIFs = ref<XoPif[] | undefined>(undefined)
 
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
-const selectNetwork = (payload: { item: any; table: string }) => {
+
+const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
   if (payload.table === 'network') {
     selectedHostInternalRowId.value = null
-    selectedNetworkRowId.value = payload.item.network.id
-    const network = reactiveNetworksWithVLANs.value.find(pif => pif.network.id === payload.item.network.id)
-    selectedPIFs.value = pifsByNetwork.value.get(network!.network.id)
+    selectedNetworkRowId.value = payload.item.id
+    const network = networksWithPIFs.value.find(network => network.id === payload.item.id)
+    selectedPIFs.value = pifsByNetwork.value.get(network!.id)
     if (network) {
-      selectedNetworks.value = network
+      selectedNetwork.value = network
     }
   } else {
-    const hostInternalNetwork = reactiveHostInternalNetworks.value.find(pif => pif.id === payload.item.id)
+    const hostInternalNetwork = hostInternalNetworks.value.find(pif => pif.id === payload.item.id)
     selectedNetworkRowId.value = null
     selectedHostInternalRowId.value = payload.item.id
     if (hostInternalNetwork) {
-      selectedNetworks.value = {
-        network: hostInternalNetwork,
-        status: undefined,
-        vlan: undefined,
-      }
+      selectedNetwork.value = hostInternalNetwork
     }
   }
 }
-
-watchEffect(() => {
-  if (networksWithVLANs.value) {
-    reactiveNetworksWithVLANs.value = networksWithVLANs.value || []
-  }
-  if (hostInternalNetworks.value) {
-    reactiveHostInternalNetworks.value = hostInternalNetworks.value || []
-  }
-})
 </script>
 
 <style scoped lang="postcss">
