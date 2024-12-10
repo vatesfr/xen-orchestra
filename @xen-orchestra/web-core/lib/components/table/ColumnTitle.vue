@@ -7,8 +7,8 @@
         class="column-header"
         @click="ev => (interactive ? open(ev) : noop())"
       >
-        <div class="content">
-          <span class="label">
+        <div class="content text-ellipsis">
+          <span v-tooltip class="label">
             <VtsIcon :icon accent="current" />
             <slot />
           </span>
