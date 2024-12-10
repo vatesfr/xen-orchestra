@@ -13,6 +13,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
