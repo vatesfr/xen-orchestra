@@ -74,6 +74,8 @@
   "network-block-device": "Network block device",
   "new": "New",
   "no-data": "No data",
+  "no-result": "No result",
+  "no-network-detected": "No network detected",
   "none": "None",
   "object-not-found": "Object {id} can't be found…",
   "open-console-in-new-tab": "Open console in new tab",

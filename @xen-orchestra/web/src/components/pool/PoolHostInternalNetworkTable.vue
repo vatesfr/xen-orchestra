@@ -69,6 +69,15 @@
             </tr>
           </tbody>
         </VtsTable>
+        <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+          <div>{{ $t('no-result') }}</div>
+        </VtsStateHero>
+        <VtsStateHero v-if="hostInternalNetwork.length === 0" type="table" image="no-data">
+          <div>{{ $t('no-network-detected') }}</div>
+        </VtsStateHero>
+        <VtsStateHero v-if="hasError" type="table" image="error">
+          <div>{{ $t('error-no-data') }}</div>
+        </VtsStateHero>
       </div>
       <UiTopBottomTable
         :selected-items="selected.length"
@@ -82,6 +91,7 @@
 <script setup lang="ts">
 import type { XoNetwork } from '@/types/xo/network.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -110,6 +120,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   hostInternalNetwork: XoNetwork[]
   isReady: boolean
+  hasError: boolean
 }>()
 const { t } = useI18n()
 const reactiveHostInternalNetworks = ref<XoNetwork[]>(props.hostInternalNetwork || [])

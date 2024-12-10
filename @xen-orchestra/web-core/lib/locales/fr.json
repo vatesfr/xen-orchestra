@@ -74,6 +74,8 @@
   "network-block-device": "Dispositif de blocage réseau",
   "new": "Nouveau",
   "no-data": "Aucune donnée",
+  "no-result": "Aucun résulat",
+  "no-network-detected": "Aucun réseau détécté",
   "none": "Aucun",
   "object-not-found": "L'objet {id} est introuvable…",
   "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",

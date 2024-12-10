@@ -4,12 +4,14 @@
       <PoolNetworksTable
         :networks="networksWithPIFs"
         :is-ready
+        :has-error
         :selected-row-id="selectedNetworkRowId"
         @row-select-network="selectNetwork"
       />
       <PoolHostInternalNetworkTable
         :host-internal-network="hostInternalNetworks"
         :is-ready
+        :has-error
         :selected-row-id="selectedHostInternalRowId"
         @row-select-host-internal-network="selectNetwork"
       />
@@ -34,7 +36,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { ref } from 'vue'
 
-const { networksWithPIFs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
+const { networksWithPIFs, hostInternalNetworks, isReady, hasError } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
 
 const selectedNetwork = ref<XoNetwork | undefined>(undefined)
@@ -42,7 +44,6 @@ const selectedPIFs = ref<XoPif[] | undefined>(undefined)
 
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
-
 const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
   if (payload.table === 'network') {
     selectedHostInternalRowId.value = null

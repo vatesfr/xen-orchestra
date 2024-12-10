@@ -84,6 +84,12 @@
         <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
           <div>{{ $t('no-result') }}</div>
         </VtsStateHero>
+        <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
+          <div>{{ $t('no-network-detected') }}</div>
+        </VtsStateHero>
+        <VtsStateHero v-if="hasError" type="table" image="error">
+          <div>{{ $t('error-no-data') }}</div>
+        </VtsStateHero>
       </div>
       <UiTopBottomTable
         :selected-items="selected.length"
@@ -131,6 +137,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   networks: XoNetwork[]
   isReady: boolean
+  hasError: boolean
   selectedRowId: string | null
 }>()
 
