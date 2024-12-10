@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,6 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->

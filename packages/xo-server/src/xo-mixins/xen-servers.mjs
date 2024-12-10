@@ -467,6 +467,8 @@ export default class XenServers {
             // Register the updated object.
             xapi.waitObject(id, addObject)
           },
+          getXenServerIdByObject: this.getXenServerIdByObject.bind(this),
+          getXenServerWithCredentials: this.getXenServerWithCredentials.bind(this),
         }
       })()
 
