@@ -13,6 +13,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xen-api minor
