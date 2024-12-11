@@ -13,13 +13,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-<<<<<<< HEAD
 - [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
 - [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
 - [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
-=======
 - [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
->>>>>>> b659fe5e4 (back)
 
 ### Bug fixes
 

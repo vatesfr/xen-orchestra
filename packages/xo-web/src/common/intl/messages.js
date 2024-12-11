@@ -54,6 +54,7 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  notYetAvailableForXs8: 'Not yet available for XenServer 8',
   moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',

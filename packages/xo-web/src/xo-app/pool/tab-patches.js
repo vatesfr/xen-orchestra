@@ -22,6 +22,7 @@ import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import size from 'lodash/size.js'
 import some from 'lodash/some.js'
+import { isXsHostWithCdnPatches } from 'xo/utils'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 
@@ -59,7 +60,8 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
-    disabled: (_, { pool, needsCredentials }) => pool.HA_enabled || needsCredentials,
+    disabled: (_, { isXsHostWithCdnPatches, pool, needsCredentials }) =>
+      pool.HA_enabled || needsCredentials || isXsHostWithCdnPatches,
     handler: (patches, { pool }) => installPatches(patches, pool),
     icon: 'host-patch-update',
     label: _('install'),
@@ -223,14 +225,16 @@ export default class TabPatches extends Component {
   render() {
     const {
       hostPatches,
-      master: { productBrand },
+      master: { productBrand, version },
       missingPatches = [],
       pool,
       poolHosts,
       userPreferences,
     } = this.props
 
-    const needsCredentials = productBrand !== 'XCP-ng' && userPreferences.xsCredentials === undefined
+    const _isXsHostWithCdnPatches = isXsHostWithCdnPatches({ version, productBrand })
+    const needsCredentials =
+      productBrand !== 'XCP-ng' && !_isXsHostWithCdnPatches && userPreferences.xsCredentials === undefined
 
     const isSingleHost = size(poolHosts) < 2
 
@@ -246,7 +250,11 @@ export default class TabPatches extends Component {
                 <TabButton
                   btnStyle='primary'
                   disabled={
-                    hasAXostor || isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost
+                    hasAXostor ||
+                    isEmpty(missingPatches) ||
+                    hasMultipleVmsRunningOnLocalStorage ||
+                    isSingleHost ||
+                    _isXsHostWithCdnPatches
                   }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
@@ -261,14 +269,16 @@ export default class TabPatches extends Component {
                           })
                         : isSingleHost
                           ? _('multiHostPoolUpdate')
-                          : undefined
+                          : _isXsHostWithCdnPatches
+                            ? _('notYetAvailableForXs8')
+                            : undefined
                   }
                 />
               )}
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}
-                disabled={isEmpty(missingPatches) || pool.HA_enabled || needsCredentials}
+                disabled={isEmpty(missingPatches) || pool.HA_enabled || needsCredentials || _isXsHostWithCdnPatches}
                 handler={installAllPatchesOnPool}
                 icon='host-patch-update'
                 labelId='installPoolPatches'
@@ -277,7 +287,9 @@ export default class TabPatches extends Component {
                     ? _('highAvailabilityNotDisabledTooltip')
                     : needsCredentials
                       ? _('xsCredentialsMissingShort')
-                      : undefined
+                      : _isXsHostWithCdnPatches
+                        ? _('notYetAvailableForXs8')
+                        : undefined
                 }
               />
             </Col>
@@ -318,18 +330,25 @@ export default class TabPatches extends Component {
                     actions={ACTIONS}
                     collection={missingPatches}
                     columns={MISSING_PATCH_COLUMNS}
+                    data-isXsHostWithCdnPatches={_isXsHostWithCdnPatches}
                     data-pool={pool}
                     data-needsCredentials={needsCredentials}
                     stateUrlParam='s_missing'
                   />
                 </Col>
               </Row>
-              <Row>
-                <Col>
-                  <h3>{_('hostAppliedPatches')}</h3>
-                  <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} stateUrlParam='s_installed' />
-                </Col>
-              </Row>
+              {!_isXsHostWithCdnPatches && (
+                <Row>
+                  <Col>
+                    <h3>{_('hostAppliedPatches')}</h3>
+                    <SortedTable
+                      collection={hostPatches}
+                      columns={INSTALLED_PATCH_COLUMNS}
+                      stateUrlParam='s_installed'
+                    />
+                  </Col>
+                </Row>
+              )}
             </div>
           )}
         </Container>
