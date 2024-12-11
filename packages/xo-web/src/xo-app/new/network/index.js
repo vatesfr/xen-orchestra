@@ -63,11 +63,12 @@ If and only if the PIF:
 For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
 */
 const canSupportPrivateNetwork = (pool, pif) =>
-  pool != null &&
-  (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
-  pif.mode !== 'None' &&
-  !pif.isBondSlave &&
-  pif.$host === pool.master
+  pool === undefined
+    ? false
+    : (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
+      pif.mode !== 'None' &&
+      !pif.isBondSlave &&
+      pif.$host === pool.master
 
 const NewNetwork = decorate([
   connectStore(() => ({
