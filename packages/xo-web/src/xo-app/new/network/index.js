@@ -63,7 +63,8 @@ If and only if the PIF:
 For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
 */
 const canSupportPrivateNetwork = (pool, pif) =>
-  pool === undefined
+  pool !== undefined &&
+  pif !== undefined &&
     ? false
     : (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
       pif.mode !== 'None' &&
