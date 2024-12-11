@@ -291,7 +291,7 @@ watchEffect(() => {
 
       :deep(.col-name_label),
       :deep(.col-name_description) {
-        width: 30rem;
+        width: 20rem;
       }
     }
 
@@ -307,14 +307,6 @@ watchEffect(() => {
 
   .row-selected {
     background-color: var(--color-info-background-selected);
-  }
-
-  @media (max-width: 1500px) {
-    .table-container {
-      .table {
-        width: 160rem;
-      }
-    }
   }
 }
 </style>
