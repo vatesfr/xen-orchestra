@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM] Fix `VDI_NOT_IN_MAP` error during migration (PR [#8179](https://github.com/vatesfr/xen-orchestra/pull/8179))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
