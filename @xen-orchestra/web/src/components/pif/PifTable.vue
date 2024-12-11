@@ -202,14 +202,6 @@ const selectRow = (rowId: XoPif['id']) => {
 
 <style scoped lang="postcss">
 .pif-table {
-  height: fit-content;
-  padding: 1.6rem;
-  margin: 0.8rem;
-  border: solid 0.1rem var(--color-neutral-border);
-  border-radius: 0.8rem;
-  background-color: var(--color-neutral-background-primary);
-  overflow-x: hidden;
-
   .table-actions {
     margin-top: 2.4rem;
     display: flex;
