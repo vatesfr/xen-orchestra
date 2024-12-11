@@ -58,7 +58,6 @@
 
   "descending": "descending",
   "dhcp": "DHCP",
-  "disabled": "Disabled",
   "display": "Display",
   "dns": "DNS",
   "do-you-have-needs": "You have needs and/or expectations? Let us know",
@@ -185,7 +184,6 @@
   "news": "News",
   "news-name": "{name} news",
   "no-alarm-triggered": "No alarm triggered",
-  "no-result": "No result",
   "no-selected-vm-can-be-exported": "No selected VM can be exported",
   "no-selected-vm-can-be-migrated": "No selected VM can be migrated",
   "no-tasks": "No tasks",

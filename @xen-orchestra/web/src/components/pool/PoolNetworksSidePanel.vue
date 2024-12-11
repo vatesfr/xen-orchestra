@@ -1,58 +1,48 @@
 <template>
-  <UiPanel v-if="selectedNetwork" class="pool-network-side-panel">
+  <UiPanel v-if="network" class="pool-network-side-panel">
     <template #header>
       <UiButton variant="tertiary" size="medium" accent="info" :left-icon="faEdit">{{ $t('edit') }}</UiButton>
       <UiButton variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">{{ $t('delete') }}</UiButton>
       <UiButtonIcon accent="info" size="medium" :icon="faEllipsis" />
     </template>
-    <UiCard v-if="selectedNetwork" class="card-container">
+    <UiCard v-if="network" class="card-container">
       <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
-        {{ selectedNetwork.name_label }}
+        {{ network.name_label }}
       </UiCardTitle>
       <div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('id') }}</div>
-          <div class="value text-ellipsis">{{ selectedNetwork.id }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(selectedNetwork.id)" />
+          <div class="value text-ellipsis">{{ network.id }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.id)" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('description') }}</div>
-          <div class="value text-ellipsis">{{ selectedNetwork.name_description }}</div>
-          <UiButtonIcon
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.name_description)"
-          />
+          <div class="value text-ellipsis">{{ network.name_description }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.name_description)" />
         </div>
-        <div v-if="selectedPifs[0].vlan" class="typo p3-regular content">
+        <div v-if="pifs[0].vlan" class="typo p3-regular content">
           <div class="title">{{ $t('vlan') }}</div>
           <!--          <div class="value">{{ selectedPifs[0].vlan }}</div> -->
-          <div class="value">{{ getNetworkVlan(selectedPifs[0].vlan) }}</div>
+          <div class="value">{{ getNetworkVlan(pifs[0].vlan) }}</div>
           <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('mtu') }}</div>
-          <div class="value">{{ selectedNetwork.MTU }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(selectedNetwork.MTU)" />
+          <div class="value">{{ network.MTU }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.MTU)" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ selectedNetwork.nbd }}</div>
-          <UiButtonIcon
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.nbd.toString())"
-          />
+          <div class="value">{{ network.nbd }}</div>
+          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.nbd.toString())" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value">{{ selectedNetwork.defaultIsLocked }}</div>
+          <div class="value">{{ network.defaultIsLocked }}</div>
         </div>
       </div>
     </UiCard>
-    <UiCard v-if="selectedNetwork && selectedNetwork.PIFs && selectedNetwork.PIFs.length > 0" class="card-container">
+    <UiCard v-if="network && network.PIFs && network.PIFs.length > 0" class="card-container">
       <div class="typo p1-medium">
         {{ $t('pifs') }}
         <UiCounter :value="selectedPIFsLength" variant="primary" size="small" accent="neutral" />
@@ -73,7 +63,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="pif in selectedPifs" :key="pif.id">
+          <tr v-for="pif in pifs" :key="pif.id">
             <td class="typo p3-regular text-ellipsis host">
               <UiObjectIcon
                 :state="getHost(pif.$host)!.power_state ? 'running' : 'disabled'"
@@ -115,15 +105,15 @@ import { faAngleRight, faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { selectedNetwork, selectedPifs } = defineProps<{
-  selectedNetwork: XoNetwork
-  selectedPifs: XoPif[]
+const props = defineProps<{
+  network: XoNetwork
+  pifs: XoPif[]
 }>()
 
 const { t } = useI18n()
 
 const { records } = useHostStore().subscribe()
-const selectedPIFsLength = computed(() => selectedPifs!.length.toString())
+const selectedPIFsLength = computed(() => props.pifs!.length.toString())
 const copyToClipboard = (text: string | number) => {
   const stringText = String(text)
   navigator.clipboard.writeText(stringText)

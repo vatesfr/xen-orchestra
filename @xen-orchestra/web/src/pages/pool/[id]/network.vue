@@ -16,7 +16,7 @@
         @row-select-host-internal-network="selectNetwork"
       />
     </UiCard>
-    <PoolNetworksSidePanel v-if="selectedNetwork" :selected-network :selected-pifs="selectedPIFs" />
+    <PoolNetworksSidePanel v-if="selectedNetwork" :network="selectedNetwork" :pifs="selectedPifs" />
     <UiPanel v-else class="panel">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -40,7 +40,7 @@ const { networksWithPIFs, hostInternalNetworks, isReady, hasError } = useNetwork
 const { pifsByNetwork } = usePifStore().subscribe()
 
 const selectedNetwork = ref<XoNetwork | undefined>(undefined)
-const selectedPIFs = ref<XoPif[] | undefined>(undefined)
+const selectedPifs = ref<XoPif[]>([])
 
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
@@ -49,7 +49,7 @@ const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
     selectedHostInternalRowId.value = null
     selectedNetworkRowId.value = payload.item.id
     const network = networksWithPIFs.value.find(network => network.id === payload.item.id)
-    selectedPIFs.value = pifsByNetwork.value.get(network!.id)
+    selectedPifs.value = pifsByNetwork.value.get(network!.id) || []
     if (network) {
       selectedNetwork.value = network
     }
