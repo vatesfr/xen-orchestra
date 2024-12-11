@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM] Fix `VDI_NOT_IN_MAP` error during migration (PR [#8179](https://github.com/vatesfr/xen-orchestra/pull/8179))
+- [New/Network] Fix `Pool is undefined` when creating a private network (PR [#8188](https://github.com/vatesfr/xen-orchestra/pull/8188))
 
 ### Packages to release
 
@@ -40,5 +41,6 @@
 - @xen-orchestra/xapi patch
 - xen-api minor
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->
