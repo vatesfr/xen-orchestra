@@ -389,7 +389,7 @@ class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
-    $defer.onFailure.call(this, 'VM.destroy', ref)
+    $defer.onFailure.call(this, 'call', 'VM.destroy', ref)
 
     bios_strings = cleanBiosStrings(bios_strings)
     if (bios_strings !== undefined) {

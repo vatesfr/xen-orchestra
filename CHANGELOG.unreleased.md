@@ -37,6 +37,7 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xen-api minor
 - xo-server patch
 
