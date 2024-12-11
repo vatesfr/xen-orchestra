@@ -463,7 +463,7 @@ class Vm {
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
-      await this.call('VM.hard_shutdown', vmRef)
+      await this.callAsync('VM.hard_shutdown', vmRef)
     }
 
     await Promise.all([
@@ -480,7 +480,7 @@ class Vm {
 
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
-    await this.call('VM.destroy', vmRef)
+    await this.callAsync('VM.destroy', vmRef)
 
     await Promise.all([
       asyncMap(vm.snapshots, snapshotRef =>
