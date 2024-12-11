@@ -67,7 +67,8 @@ export const set = defer(async function ($defer, params) {
     await xapi.resizeVdi(ref, size)
   }
   if ('cbt' in params) {
-    params.cbt ? await xapi.call('VDI.enable_cbt', ref) : await xapi.call('VDI.disable_cbt', ref)
+    const method = params.cbt ? 'VDI.enable_cbt' : 'VDI.disable_cbt'
+    await xapi.callAsync(method, ref)
   }
 
   // Other fields.

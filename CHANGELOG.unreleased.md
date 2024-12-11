@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups/CBT] Improve enabling/disabling CBT on slower storages (PR [#8184](https://github.com/vatesfr/xen-orchestra/pull/8184))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xen-api minor
