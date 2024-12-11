@@ -1,12 +1,12 @@
 <template>
-  <div class="container">
+  <div class="pool-networks-table">
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
         <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
       </template>
     </UiTitle>
-    <div class="content">
+    <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
         <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
@@ -20,77 +20,80 @@
         :total-items="usableRefs.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
-        <VtsTable vertical-border>
-          <thead>
-            <tr>
-              <template v-for="column of visibleColumns" :key="column.id">
-                <th v-if="column.id === 'checkbox'" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-                </th>
-                <th v-else-if="column.id === 'more'" class="more">
-                  <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-                  {{ column.label }}
-                </th>
-                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
-              </template>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row of rows"
-              :key="row.id"
-              :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
-              @click="selectRow(row.value, 'network')"
-            >
-              <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                <div>
-                  <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                </div>
-                <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).name_label }}
-                </div>
-                <div
-                  v-if="column.id === 'name_description'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as any).name_description }}
-                </div>
-                <div v-if="column.id === 'status'" class="status">
-                  <PoolNetworksPifStatus :status="getPifsStatus(row.value)" />
-                </div>
-                <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).vlan }}
-                  {{ getNetworkVlan(row.value) }}
-                </div>
-                <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).MTU }}
-                </div>
-                <div
-                  v-if="column.id === 'default_locking_mode'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ getLockingMode((row.value as any).defaultIsLocked) }}
-                </div>
-                <div v-if="column.id === 'more'">
-                  <VtsIcon accent="info" :icon="faEllipsis" />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </VtsTable>
-        <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-          <div>{{ $t('no-result') }}</div>
-        </VtsStateHero>
-        <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
-          <div>{{ $t('no-network-detected') }}</div>
-        </VtsStateHero>
-        <VtsStateHero v-if="hasError" type="table" image="error">
-          <div>{{ $t('error-no-data') }}</div>
-        </VtsStateHero>
-      </div>
+    </div>
+    <div class="table-container">
+      <VtsTable class="table" vertical-border>
+        <thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+                {{ column.label }}
+              </th>
+              <ColumnTitle v-else id="networks" :header-class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
+                {{ column.label }}
+              </ColumnTitle>
+            </template>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
+            @click="selectRow(row.value, 'network')"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+              <div>
+                <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              </div>
+              <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ (row.value as any).name_label }}
+              </div>
+              <div
+                v-if="column.id === 'name_description'"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+              >
+                {{ (row.value as any).name_description }}
+              </div>
+              <div v-if="column.id === 'status'" class="status">
+                <PoolNetworksPifStatus :status="getPifsStatus(row.value)" />
+              </div>
+              <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ (row.value as any).vlan }}
+                {{ getNetworkVlan(row.value) }}
+              </div>
+              <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ (row.value as any).MTU }}
+              </div>
+              <div
+                v-if="column.id === 'default_locking_mode'"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+              >
+                {{ getLockingMode((row.value as any).defaultIsLocked) }}
+              </div>
+              <div v-if="column.id === 'more'">
+                <VtsIcon accent="info" :icon="faEllipsis" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </VtsTable>
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
+        <div>{{ $t('no-network-detected') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="hasError" type="table" image="error">
+        <div>{{ $t('error-no-data') }}</div>
+      </VtsStateHero>
+      <!--      </div> -->
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="usableRefs.length"
@@ -250,38 +253,67 @@ watchEffect(() => {
 </script>
 
 <style scoped lang="postcss">
-.container,
-.content {
+.pool-networks-table,
+.table-actions {
   display: flex;
   flex-direction: column;
 }
 
-.container {
+.pool-networks-table {
   gap: 2.4rem;
+  overflow: hidden;
 
-  .content {
+  .table-actions {
     gap: 0.8rem;
+  }
+
+  .table-container {
+    //overflow-x: auto;
 
     .table {
-      overflow-x: auto;
-
-      tbody tr:hover {
-        cursor: pointer;
-        background-color: var(--color-info-background-hover);
+      .checkbox,
+      .more {
+        width: 4.5rem;
       }
 
-      tr:last-child {
-        border-bottom: 1px solid var(--color-neutral-border);
+      :deep(.col-vlan),
+      :deep(.col-MTU) {
+        width: 8.5rem;
+      }
+
+      :deep(.col-status) {
+        width: 18rem;
+      }
+
+      :deep(.col-default_locking_mode) {
+        width: 22rem;
+      }
+
+      :deep(.col-name_label),
+      :deep(.col-name_description) {
+        width: 20rem;
       }
     }
 
-    .row-selected {
-      background-color: var(--color-info-background-selected);
+    tbody tr:hover {
+      cursor: pointer;
+      background-color: var(--color-info-background-hover);
     }
 
-    .checkbox,
-    .more {
-      width: 4.8rem;
+    tr:last-child {
+      border-bottom: 1px solid var(--color-neutral-border);
+    }
+  }
+
+  .row-selected {
+    background-color: var(--color-info-background-selected);
+  }
+
+  @media (max-width: 1500px) {
+    .table-container {
+      .table {
+        width: 160rem;
+      }
     }
   }
 }

@@ -44,6 +44,7 @@ const selectedPifs = ref<XoPif[]>([])
 
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
+
 const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
   if (payload.table === 'network') {
     selectedHostInternalRowId.value = null

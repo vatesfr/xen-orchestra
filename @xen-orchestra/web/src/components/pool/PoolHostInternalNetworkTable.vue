@@ -34,7 +34,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
+              @click="selectRow(row.value, 'hostInternalNetwork')"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <!--             NEED TO REMOVE `as XoNetwork` -->
@@ -121,9 +126,19 @@ const props = defineProps<{
   hostInternalNetwork: XoNetwork[]
   isReady: boolean
   hasError: boolean
+  selectedRowId: string | null
 }>()
+
+const emit = defineEmits<{
+  rowSelectHostInternalNetwork: [value: any]
+}>()
+
 const { t } = useI18n()
 const reactiveHostInternalNetworks = ref<XoNetwork[]>(props.hostInternalNetwork || [])
+
+const selectRow = (item: any, table: string) => {
+  emit('rowSelectHostInternalNetwork', { item, table })
+}
 
 const searchQuery = ref('')
 
@@ -194,9 +209,18 @@ watchEffect(() => {
     .table {
       overflow-x: auto;
 
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 1px solid var(--color-neutral-border);
       }
+    }
+
+    .row-selected {
+      background-color: var(--color-info-background-selected);
     }
 
     .checkbox,
