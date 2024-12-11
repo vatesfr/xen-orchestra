@@ -1,48 +1,19 @@
 <!-- v2 -->
 <template>
   <div class="ui-table-pagination">
+    <div class="buttons-container">
+      <UiPaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
+      <UiPaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="goToPreviousPage()" />
+      <UiPaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="goToNextPage()" />
+      <UiPaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="goToLastPage()" />
+    </div>
     <span class="typo p3-regular label">
       {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
     </span>
-
-    <div class="buttons-content">
-      <UiButtonIcon
-        :disabled="isFirstPage"
-        accent="info"
-        class="icon"
-        size="small"
-        :icon="faAngleDoubleLeft"
-        @click="goToFirstPage()"
-      />
-      <UiButtonIcon
-        :disabled="isFirstPage"
-        accent="info"
-        class="icon"
-        size="small"
-        :icon="faAngleLeft"
-        @click="prev()"
-      />
-      <UiButtonIcon
-        :disabled="isLastPage"
-        accent="info"
-        class="icon"
-        size="small"
-        :icon="faAngleRight"
-        @click="next()"
-      />
-      <UiButtonIcon
-        :disabled="isLastPage"
-        accent="info"
-        class="icon"
-        size="small"
-        :icon="faAngleDoubleRight"
-        @click="goToLastPage()"
-      />
-    </div>
-
+    <span class="typo p3-regular label"> {{ $t('core.separator') }}</span>
     <span class="typo p3-regular label">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="pageSize" class="dropdown typo c3-regular" @change="updatePagination">
+      <select v-model="pageSize" :disabled class="dropdown typo c3-regular" @change="goToFirstPage">
         <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
           {{ option }}
         </option>
@@ -54,7 +25,7 @@
 
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiPaginationButton from '@core/components/ui/table-pagination/pagination-button/UiPaginationButton.vue'
 import {
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -63,20 +34,30 @@ import {
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
 import { useOffsetPagination } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const { totalItems } = defineProps<{
   totalItems: number
   disabled?: boolean
 }>()
 
+const emit = defineEmits<{
+  paginationChange: [{ currentPage: number; pageSize: number; startIndex: number; endIndex: number }]
+}>()
+
 const pageSize = ref(50)
 const pageSizeOptions = [10, 50, 100, 150, 200]
-const { currentPage, currentPageSize, pageCount, isFirstPage, isLastPage, prev, next } = useOffsetPagination({
+const {
+  currentPage,
+  currentPageSize,
+  pageCount,
+  isFirstPage,
+  isLastPage,
+  prev: goToPreviousPage,
+  next: goToNextPage,
+} = useOffsetPagination({
   total: totalItems,
   pageSize,
-  // onPageChange: add fetch data,
-  // onPageSizeChange: add fetch data,
 })
 const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
 const endIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
@@ -87,9 +68,15 @@ const goToFirstPage = () => {
 const goToLastPage = () => {
   currentPage.value = pageCount.value
 }
-const updatePagination = () => {
-  currentPage.value = 1
-}
+
+watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
+  emit('paginationChange', {
+    currentPage: newPage,
+    pageSize: newPageSize,
+    startIndex: startIndex.value,
+    endIndex: endIndex.value,
+  })
+})
 </script>
 
 <style scoped lang="postcss">
@@ -98,36 +85,9 @@ const updatePagination = () => {
   align-items: center;
   gap: 0.8rem;
 
-  .buttons-content {
+  .buttons-container {
     display: flex;
     gap: 0.2rem;
-
-    .icon {
-      background-color: var(--color-neutral-background-primary);
-      border: 0.1rem solid var(--color-neutral-border);
-      font-size: 1rem;
-
-      &:hover {
-        border-color: var(--color-info-item-hover);
-        background-color: var(--color-info-background-hover);
-      }
-
-      &:active {
-        border-color: var(--color-info-item-active);
-        background-color: var(--color-info-background-active);
-      }
-
-      &:disabled {
-        background-color: var(--color-neutral-background-disabled);
-        border-color: transparent;
-
-        &:hover,
-        &:active {
-          background-color: var(--color-neutral-background-disabled);
-          border-color: transparent;
-        }
-      }
-    }
   }
 
   .label {
