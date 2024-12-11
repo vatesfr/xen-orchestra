@@ -22,7 +22,6 @@
         </div>
         <div v-if="pifs[0].vlan" class="typo p3-regular content">
           <div class="title">{{ $t('vlan') }}</div>
-          <!--          <div class="value">{{ selectedPifs[0].vlan }}</div> -->
           <div class="value">{{ getNetworkVlan(pifs[0].vlan) }}</div>
           <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
         </div>
@@ -33,12 +32,12 @@
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ network.nbd }}</div>
+          <div class="value">{{ getNbd(network) }}</div>
           <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.nbd.toString())" />
         </div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value">{{ network.defaultIsLocked }}</div>
+          <div class="value">{{ getLockingMode(network) }}</div>
         </div>
       </div>
     </UiCard>
@@ -125,6 +124,14 @@ const getHost = (id: XoPif['$host']) => {
 const getNetworkVlan = (vlan: XoPif['vlan']) => {
   return vlan !== -1 ? vlan.toString() : t('none')
 }
+
+const getLockingMode = (network: XoNetwork) => {
+  return network.defaultIsLocked ? t('disabled') : t('unlocked')
+}
+
+const getNbd = (network: XoNetwork) => {
+  return network.nbd ? t('on') : t('off')
+}
 </script>
 
 <style scoped lang="postcss">
@@ -144,7 +151,7 @@ const getNetworkVlan = (vlan: XoPif['vlan']) => {
 
       .title {
         color: var(--color-neutral-txt-secondary);
-        min-width: 12rem;
+        min-width: 14rem;
       }
 
       .value {

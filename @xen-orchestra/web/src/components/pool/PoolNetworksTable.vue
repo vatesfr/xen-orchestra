@@ -268,7 +268,7 @@ watchEffect(() => {
   }
 
   .table-container {
-    //overflow-x: auto;
+    overflow-x: auto;
 
     .table {
       .checkbox,
@@ -286,12 +286,12 @@ watchEffect(() => {
       }
 
       :deep(.col-default_locking_mode) {
-        width: 22rem;
+        width: 18rem;
       }
 
       :deep(.col-name_label),
       :deep(.col-name_description) {
-        width: 20rem;
+        width: 30rem;
       }
     }
 

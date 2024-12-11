@@ -76,6 +76,7 @@ const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
     margin: 0.8rem;
     border: solid 0.1rem var(--color-neutral-border);
     border-radius: 0.8rem;
+    overflow: hidden;
   }
 
   .panel {

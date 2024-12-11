@@ -1,12 +1,12 @@
 <template>
-  <div class="container">
+  <div class="pool-host-internal-networks-table">
     <UiTitle>
       {{ $t('host-internal-networks') }}
       <template #actions>
         <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
       </template>
     </UiTitle>
-    <div class="content">
+    <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
         <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
@@ -17,79 +17,82 @@
         :total-items="usableRefs.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
-        <VtsTable vertical-border>
-          <thead>
-            <tr>
-              <template v-for="column of visibleColumns" :key="column.id">
-                <th v-if="column.id === 'checkbox'" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-                </th>
-                <th v-else-if="column.id === 'more'" class="more">
-                  <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-                  {{ column.label }}
-                </th>
-                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
-              </template>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row of rows"
-              :key="row.id"
-              :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
-              @click="selectRow(row.value, 'hostInternalNetwork')"
-            >
-              <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                <!--             NEED TO REMOVE `as XoNetwork` -->
-                <div
-                  v-if="column.id === 'name_label' && (row.value as XoNetwork).name_label"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as XoNetwork).name_label }}
-                </div>
-                <div
-                  v-if="column.id === 'name_description'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as XoNetwork).name_description }}
-                </div>
-                <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as XoNetwork).MTU }}
-                </div>
-                <div
-                  v-if="column.id === 'defaultIsLocked'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ getLockingMode((row.value as any).defaultIsLocked) }}
-                </div>
-                <div v-if="column.id === 'more'">
-                  <VtsIcon accent="info" :icon="faEllipsis" />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </VtsTable>
-        <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-          <div>{{ $t('no-result') }}</div>
-        </VtsStateHero>
-        <VtsStateHero v-if="hostInternalNetwork.length === 0" type="table" image="no-data">
-          <div>{{ $t('no-network-detected') }}</div>
-        </VtsStateHero>
-        <VtsStateHero v-if="hasError" type="table" image="error">
-          <div>{{ $t('error-no-data') }}</div>
-        </VtsStateHero>
-      </div>
-      <UiTopBottomTable
-        :selected-items="selected.length"
-        :total-items="usableRefs.length"
-        @toggle-select-all="toggleSelect"
-      />
     </div>
+
+    <div class="table-container">
+      <VtsTable class="table" vertical-border>
+        <thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+                {{ column.label }}
+              </th>
+              <ColumnTitle v-else id="networks" :header-class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
+                {{ column.label }}
+              </ColumnTitle>
+            </template>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
+            @click="selectRow(row.value, 'hostInternalNetwork')"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+              <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              <!--             NEED TO REMOVE `as XoNetwork` -->
+              <div
+                v-if="column.id === 'name_label' && (row.value as XoNetwork).name_label"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+              >
+                {{ (row.value as XoNetwork).name_label }}
+              </div>
+              <div
+                v-if="column.id === 'name_description'"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+              >
+                {{ (row.value as XoNetwork).name_description }}
+              </div>
+              <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ (row.value as XoNetwork).MTU }}
+              </div>
+              <div
+                v-if="column.id === 'default_locking_mode'"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+              >
+                {{ getLockingMode((row.value as any).defaultIsLocked) }}
+              </div>
+              <div v-if="column.id === 'more'">
+                <VtsIcon accent="info" :icon="faEllipsis" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </VtsTable>
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="hostInternalNetwork.length === 0" type="table" image="no-data">
+        <div>{{ $t('no-network-detected') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="hasError" type="table" image="error">
+        <div>{{ $t('error-no-data') }}</div>
+      </VtsStateHero>
+    </div>
+    <UiTopBottomTable
+      :selected-items="selected.length"
+      :total-items="usableRefs.length"
+      @toggle-select-all="toggleSelect"
+    />
   </div>
 </template>
 
@@ -165,18 +168,18 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('name_label', { label: 'Name', isHideable: true }),
     define('name_description', { label: 'Description', isHideable: true }),
     define('MTU', { label: 'MTU', isHideable: true }),
-    define('defaultIsLocked', { label: 'Default Locking mode', isHideable: true }),
+    define('default_locking_mode', { label: 'Default Locking mode', isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
 
-type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'defaultIsLocked' | 'more'
+type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
 
 const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   name_label: { icon: faAlignLeft },
   name_description: { icon: faAlignLeft },
   MTU: { icon: faHashtag },
-  defaultIsLocked: { icon: faCaretDown },
+  default_locking_mode: { icon: faCaretDown },
   more: { icon: faEllipsis },
 }
 
@@ -194,43 +197,59 @@ watchEffect(() => {
 </script>
 
 <style scoped lang="postcss">
-.container,
-.content {
+.pool-host-internal-networks-table,
+.table-actions {
   display: flex;
   flex-direction: column;
 }
 
-.container {
+.pool-host-internal-networks-table {
   gap: 2.4rem;
+  overflow: hidden;
 
-  .content {
+  .table-actions {
     gap: 0.8rem;
+  }
+
+  .table-container {
+    overflow-x: auto;
 
     .table {
-      overflow-x: auto;
-
-      tbody tr:hover {
-        cursor: pointer;
-        background-color: var(--color-info-background-hover);
+      .checkbox,
+      .more {
+        width: 4.5rem;
       }
 
-      tr:last-child {
-        border-bottom: 1px solid var(--color-neutral-border);
+      :deep(.col-MTU) {
+        width: 8.5rem;
+      }
+
+      :deep(.col-default_locking_mode) {
+        width: 18rem;
+      }
+
+      :deep(.col-name_label),
+      :deep(.col-name_description) {
+        width: 30rem;
       }
     }
 
-    .row-selected {
-      background-color: var(--color-info-background-selected);
+    tbody tr:hover {
+      cursor: pointer;
+      background-color: var(--color-info-background-hover);
     }
 
-    .checkbox,
-    .more {
-      width: 4.8rem;
+    tr:last-child {
+      border-bottom: 1px solid var(--color-neutral-border);
     }
   }
 
-  @media (max-width: 1440px) {
-    .table {
+  .row-selected {
+    background-color: var(--color-info-background-selected);
+  }
+
+  @media (max-width: 1500px) {
+    .table-container {
       table {
         width: 160rem;
       }
