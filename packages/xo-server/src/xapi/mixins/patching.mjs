@@ -1,14 +1,15 @@
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
+import keyBy from 'lodash/keyBy.js'
 import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
+import semver from 'semver'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
-
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
@@ -44,10 +45,15 @@ const LISTING_DEBOUNCE_TIME_MS = 60000
 
 async function _listMissingPatches(hostId) {
   const host = this.getObject(hostId)
+  // if xcp => listXcpUpdates
+  // else if XS >= 8.4 => listXsUpdates
+  // else => listInstallablePatches
   return _isXcp(host)
     ? this._listXcpUpdates(host)
-    : // TODO: list paid patches of free hosts as well so the UI can show them
-      this._listInstallablePatches(host)
+    : semver.gt(host.software_version.product_version, '8.3.0') // ensure thie news system update come from the 8.4.0 version and not from 8.3.0!
+      ? this._listXsUpdates(host)
+      : // TODO: list paid patches of free hosts as well so the UI can show them
+        this._listInstallablePatches(host)
 }
 
 const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE_TIME_MS, hostId => hostId)
@@ -155,6 +161,60 @@ const methods = {
     }
 
     return result
+  },
+
+  // Only for XS >= 8.4
+  // Maybe have a method that fetch the endpoint and cache the result? (since the fetch may take some time)
+  // then call this method for listXsUpdates.
+  // And maybe install patches?
+  //
+  async _listXsUpdates(host) {
+    const { xo } = this
+
+    const serverId = xo.getXenServerIdByObject({ $pool: host.$pool.uuid, id: host.uuid })
+    const server = await xo.getXenServerWithCredentials(serverId)
+
+    const credentials = Buffer.from(`${server.username}:${server.password}`).toString('base64')
+    const url = new URL(`http://${server.host}/updates`) // HTTPS or HTTP?
+    const resp = await fetch(url, { headers: { Authorization: `Basic ${credentials}` } })
+    const json = await resp.json()
+
+    const updateById = keyBy(json.updates, 'id')
+
+    const updatesInfo = json.hosts.find(_host => _host.ref === host.$ref)
+    if (updatesInfo === undefined) {
+      throw new Error(`Host ref: ${host.$ref} match no hosts`) // What if host up to date?
+    }
+
+    const hostUpdates = updatesInfo.updates.map(updateId => {
+      const update = updateById[updateId]
+
+      // update.guidance use this pattern:
+      // guidance: {
+      //  mandatory: [...],
+      //  recommended: [...]
+      //  full: [...],
+      // }
+      const guidances = Array.from(new Set(Object.values(update.guidance).flat())).join(', ')
+
+      // issued date are in invalid format: '20240926T08:30:08Z'
+      // add - to resepct the ISO 8601 format
+      const formattedDate = update.issued.replace(/^(\d{4})(\d{2})(\d{2})T/, '$1-$2-$3T')
+
+      // Sometimes the update description can be an empty string.
+      // So I add the update summary to always have some context
+      const description = `${update.summary}\n${update.description}`
+
+      return {
+        date: formattedDate,
+        description,
+        documentationUrl: update.URL,
+        guidance: guidances,
+        name: update.id,
+      }
+    })
+
+    return hostUpdates
   },
 
   // list all patches provided by Citrix for this host version regardless

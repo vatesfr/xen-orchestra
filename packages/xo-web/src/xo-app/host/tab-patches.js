@@ -23,7 +23,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: patch => (
-      <a href={patch.documentationUrl} rel='noopener noreferrer' target='_blank'>
+      <a href={patch.documentationUrl} rel='noopener noreferrer' target='_blank' style={{ whiteSpace: 'pre-line' }}>
         {patch.description}
       </a>
     ),
@@ -163,7 +163,7 @@ class XcpPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches || pool?.HA_enabled}
+              // disabled={!hasMissingPatches || pool?.HA_enabled}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
