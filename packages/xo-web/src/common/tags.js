@@ -260,6 +260,7 @@ export default class Tags extends Component {
 const TAG_TO_MESSAGE_ID = {
   'xo:no-bak': 'tagNoBak',
   'xo:notify-on-snapshot': 'tagNotifyOnSnapshot',
+  'xo:no-health-check': 'tagNoHealthCheck',
 }
 
 @addSubscriptions({
