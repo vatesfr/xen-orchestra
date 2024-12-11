@@ -11,6 +11,7 @@ import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { installAllPatchesOnHost, restartHost } from 'xo'
 import isEmpty from 'lodash/isEmpty.js'
+import { isXsHostWithCdnPatches } from 'xo/utils'
 
 import { createGetObject } from '../../common/selectors'
 
@@ -23,7 +24,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: patch => (
-      <a href={patch.documentationUrl} rel='noopener noreferrer' target='_blank'>
+      <a href={patch.documentationUrl} rel='noopener noreferrer' target='_blank' style={{ whiteSpace: 'pre-line' }}>
         {patch.description}
       </a>
     ),
@@ -196,6 +197,7 @@ class XenServerPatches extends Component {
   render() {
     const { host, hostPatches, installAllPatches, missingPatches, pool } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
+    const _isXsHostWithCdnPatches = isXsHostWithCdnPatches(host)
     return (
       <Container>
         <Row>
@@ -210,12 +212,18 @@ class XenServerPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches || pool.HA_enabled}
+              disabled={!hasMissingPatches || pool.HA_enabled || _isXsHostWithCdnPatches}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
-              tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
+              tooltip={
+                pool.HA_enabled
+                  ? _('highAvailabilityNotDisabledTooltip')
+                  : hasMissingPatches && _isXsHostWithCdnPatches
+                    ? _('notYetAvailableForXs8')
+                    : undefined
+              }
             />
           </Col>
         </Row>
@@ -227,12 +235,14 @@ class XenServerPatches extends Component {
             </Col>
           </Row>
         )}
-        <Row>
-          <Col>
-            <h3>{_('hostAppliedPatches')}</h3>
-            <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} stateUrlParam='s_installed' />
-          </Col>
-        </Row>
+        {!_isXsHostWithCdnPatches && (
+          <Row>
+            <Col>
+              <h3>{_('hostAppliedPatches')}</h3>
+              <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} stateUrlParam='s_installed' />
+            </Col>
+          </Row>
+        )}
       </Container>
     )
   }
