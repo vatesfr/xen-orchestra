@@ -62,7 +62,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="pif in pifs" :key="pif.id">
+          <tr v-for="pif in pifs" :key="pif.id" @click="redirectToHostNetwork(pif)">
             <td class="typo p3-regular text-ellipsis host">
               <UiObjectIcon
                 :state="getHost(pif.$host)!.power_state ? 'running' : 'disabled'"
@@ -103,12 +103,13 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight, faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   network: XoNetwork
   pifs: XoPif[]
 }>()
-
+const router = useRouter()
 const { t } = useI18n()
 
 const { records } = useHostStore().subscribe()
@@ -131,6 +132,10 @@ const getLockingMode = (network: XoNetwork) => {
 
 const getNbd = (network: XoNetwork) => {
   return network.nbd ? t('on') : t('off')
+}
+const redirectToHostNetwork = (pif: XoPif) => {
+  router.push(`/host/${pif.$host}/network`)
+  // TODO: Select the right row in network table
 }
 </script>
 
@@ -165,6 +170,9 @@ const getNbd = (network: XoNetwork) => {
     }
 
     .simple-table {
+      border-spacing: 0;
+      padding: 0.4rem;
+
       td {
         padding: 0 0.4rem;
       }
@@ -190,10 +198,6 @@ const getNbd = (network: XoNetwork) => {
         &:hover {
           background-color: var(--color-info-background-hover);
         }
-      }
-
-      thead tr th {
-        color: var(--color-neutral-txt-secondary);
       }
 
       tbody tr td {
