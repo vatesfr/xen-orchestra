@@ -268,13 +268,5 @@ const selectRow = (rowId: XoPif['id']) => {
       font-size: 8.4rem !important;
     }
   }
-
-  @media (max-width: 1500px) {
-    .table-container {
-      .table {
-        width: 160rem;
-      }
-    }
-  }
 }
 </style>
