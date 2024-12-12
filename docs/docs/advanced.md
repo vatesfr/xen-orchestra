@@ -38,29 +38,77 @@ Firewall:
 
 ![](https://xen-orchestra.com/blog/content/images/2019/11/firewallstats.png)
 
-## Cloud init
+## Cloud-init and Cloudbase-init
 
-Cloud-init is a program "that handles the early initialization of a cloud instance"[^n]. In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
+### Cloud-init (Linux)
 
-- setting the hostname
-- add ssh keys
-- automatically grow the file system
-- create users
-- and a lot more!
+Cloud-init is a program "that handles the early initialization of a cloud instance".  
+In other words, on a "cloud-init"-ready template VM, you can pass a lot of data at first boot, such as:
 
-This tool is pretty standard and used everywhere. A lot of existing cloud templates are using it.
+- Set the host name
+- Add SSH keys
+- Automatically grow the file system
+- Create users
+- And a lot more!
 
-So it means very easily customizing your VM when you create it from a compatible template. It brings you closer to the "instance" principle, like in Amazon cloud or OpenStack.
+This tool is pretty standard and used everywhere. A lot of existing cloud templates use it.
+
+This means that you can easily customize your VM when you create it from a compatible template. It brings you closer to the "instance" principle like in Amazon Cloud or OpenStack.
+
+### Cloudbase-init (Windows)
+
+As of release 5.101, Xen Orchestra also supports Cloudbase-init. This tool provides equivalent functionality to Cloud-init but is specifically designed for Windows virtual machines.
 
 ### Requirements
 
-You only need to use a template of a VM with CloudInit installed inside it. [Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
+You only need to use a template of a VM with Cloud-init (for Linux VMs) or Cloudbase-init (for Windows VMs) installed inside it.  
+[Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
 
 :::tip
-In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
+In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
 :::
 
-### Example: How to create a Cloud Init template with Ubuntu 22.04 LTS?
+### Example: How to create a Cloudbase-init template with Windows Server 2019?
+1. Create a VM.
+2. Install Windows Server 2019 on it.
+3. Upon boot, install Cloudbase-Init.  
+To do that, run the following commands:  
+
+```
+# For 64-bit environments
+curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi --output installer.msi
+installer.msi
+
+# For 32-bit environments
+curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi --output installer.msi
+installer.msi
+```
+
+4. At the end of the installation, check the option **Run Sysprep**.  
+Do not check **Shutdown when SysPrep terminates**!
+5. (Optional). Delete the .msi installer.
+6. The Cloudbase-init installer creates these configuration files:
+* `cloudbase-init-unattend.conf`
+* `cloudbase-init.conf`
+
+7. Depending on your needs, choose the file that you need and make sure it contains the following three lines, with the same values:
+
+```
+...
+config_drive_vfat=true
+...
+metadata_services=cloudbaseinit.metadata.services.nocloudservice.NoCloudConfigDriveService
+plugins=cloudbaseinit.plugins.common.userdata.UserDataPlugin
+...
+```
+
+If the file does not contain these lines or if the values are different, modify the file and set it to the values above.  
+Cloudbase-init needs these settings to find the configuration disk and set up your VM.
+
+8. Shut the VM down.
+9. Convert the VM to a template.
+
+### Example: How to create a Cloud-init template with Ubuntu 22.04 LTS?
 
 1. Create a VM with e.g. 2 CPU, 8 GiB of RAM, 10 GiB of disk space, and install Ubuntu 22.04 LTS on it.
 2. Upon reboot, `apt update` and `apt upgrade` the machine.
