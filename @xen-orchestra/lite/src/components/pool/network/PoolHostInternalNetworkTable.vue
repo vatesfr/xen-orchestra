@@ -14,7 +14,7 @@
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
       <div class="table">
@@ -37,33 +37,9 @@
             <tr v-for="row of rows" :key="row.id">
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                <!--             NEED TO REMOVE `as XenApiNetwork` -->
-                <div
-                  v-if="column.id === 'name_label' && (row.value as XenApiNetwork).name_label"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as XenApiNetwork).name_label }}
-                </div>
-                <div
-                  v-if="column.id === 'name_description'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as XenApiNetwork).name_description }}
-                </div>
-                <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as XenApiNetwork).MTU }}
-                </div>
-                <div
-                  v-if="column.id === 'default_locking_mode'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as XenApiNetwork).default_locking_mode }}
-                </div>
-                <div v-if="column.id === 'more'">
-                  <VtsIcon accent="info" :icon="faEllipsis" />
+                <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
+                <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                  {{ column.value }}
                 </div>
               </td>
             </tr>
@@ -72,7 +48,7 @@
       </div>
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
     </div>
@@ -106,31 +82,31 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref } from 'vue'
 
-const props = defineProps<{
-  hostInternalNetwork: XenApiNetwork[]
+const { networks, isReady } = defineProps<{
+  networks: XenApiNetwork[]
   isReady: boolean
 }>()
-
-const reactiveHostInternalNetworks = ref<XenApiNetwork[]>(props.hostInternalNetwork || [])
 
 const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
-  return searchQuery.value
-    ? reactiveHostInternalNetworks.value.filter(network =>
-        Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
-      )
-    : reactiveHostInternalNetworks.value
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+  if (!searchTerm) {
+    return networks
+  }
+  return networks.filter(network =>
+    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  )
 })
 
-const usableRefs = computed(() => reactiveHostInternalNetworks.value.map(item => item.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
-const { selected, areAllSelected } = useMultiSelect(usableRefs)
+const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
 const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? usableRefs.value : []
+  selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
@@ -145,9 +121,9 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   ],
 })
 
-type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
+type NetworkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
 
-const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
+const headerIcon: Record<NetworkHeader, { icon: IconDefinition }> = {
   name_label: { icon: faAlignLeft },
   name_description: { icon: faAlignLeft },
   MTU: { icon: faHashtag },
@@ -155,13 +131,7 @@ const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   more: { icon: faEllipsis },
 }
 
-const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
-
-watchEffect(() => {
-  if (props.hostInternalNetwork) {
-    reactiveHostInternalNetworks.value = props.hostInternalNetwork || []
-  }
-})
+const getHeaderIcon = (status: NetworkHeader) => headerIcon[status].icon
 </script>
 
 <style scoped lang="postcss">
