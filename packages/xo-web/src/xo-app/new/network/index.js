@@ -65,11 +65,10 @@ For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
 const canSupportPrivateNetwork = (pool, pif) =>
   pool !== undefined &&
   pif !== undefined &&
-    ? false
-    : (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
-      pif.mode !== 'None' &&
-      !pif.isBondSlave &&
-      pif.$host === pool.master
+  (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
+  pif.mode !== 'None' &&
+  !pif.isBondSlave &&
+  pif.$host === pool.master
 
 const NewNetwork = decorate([
   connectStore(() => ({
