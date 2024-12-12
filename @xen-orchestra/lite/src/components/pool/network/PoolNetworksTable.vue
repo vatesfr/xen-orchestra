@@ -3,7 +3,9 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
+        <UiDropdownButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">
+          {{ $t('new') }}
+        </UiDropdownButton>
       </template>
     </UiTitle>
     <div class="content">
@@ -17,7 +19,7 @@
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
       <div class="table">
@@ -39,38 +41,13 @@
           <tbody>
             <tr v-for="row of rows" :key="row.id">
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                <div>
-                  <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+                <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+                <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
+                <div v-else-if="column.id === 'status'" class="status">
+                  <PoolNetworksPifStatus :status="column.value" />
                 </div>
-                <!--             NEED TO REMOVE `as any` -->
-                <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).network.name_label }}
-                </div>
-                <div
-                  v-if="column.id === 'name_description'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as any).network.name_description }}
-                </div>
-                <div v-if="column.id === 'status'" class="status">
-                  <PoolNetworksPifStatus :status="(row.value as any).status" />
-                </div>
-                <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).vlan }}
-                </div>
-                <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ (row.value as any).network.MTU }}
-                </div>
-                <div
-                  v-if="column.id === 'default_locking_mode'"
-                  v-tooltip="{ placement: 'bottom-end' }"
-                  class="text-ellipsis"
-                >
-                  {{ (row.value as any).network.default_locking_mode }}
-                </div>
-                <div v-if="column.id === 'more'">
-                  <VtsIcon accent="info" :icon="faEllipsis" />
+                <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                  {{ column.value }}
                 </div>
               </td>
             </tr>
@@ -79,7 +56,7 @@
       </div>
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
     </div>
@@ -98,6 +75,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -116,9 +94,9 @@ import {
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref } from 'vue'
 
-const props = defineProps<{
+const { networks, isReady } = defineProps<{
   networks: {
     network: XenApiNetwork
     status?: string
@@ -127,24 +105,24 @@ const props = defineProps<{
   isReady: boolean
 }>()
 
-const reactiveNetworksWithVLANs = ref(props.networks || [])
-
 const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
-  return searchQuery.value
-    ? reactiveNetworksWithVLANs.value.filter(network =>
-        Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
-      )
-    : reactiveNetworksWithVLANs.value
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+  if (!searchTerm) {
+    return networks
+  }
+  return networks.filter(network =>
+    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  )
 })
 
-const usableRefs = computed(() => reactiveNetworksWithVLANs.value.map(item => item.network.uuid))
+const networkUuids = computed(() => networks.map(network => network.network.uuid))
 
-const { selected, areAllSelected } = useMultiSelect(usableRefs)
+const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
 const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? usableRefs.value : []
+  selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
@@ -173,8 +151,8 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   ],
 })
 
-type networkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode' | 'more'
-const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
+type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode' | 'more'
+const headerIcon: Record<NetworkHeader, { icon: IconDefinition }> = {
   name_label: { icon: faAlignLeft },
   name_description: { icon: faAlignLeft },
   status: { icon: faPowerOff },
@@ -183,13 +161,7 @@ const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   default_locking_mode: { icon: faCaretDown },
   more: { icon: faEllipsis },
 }
-const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
-
-watchEffect(() => {
-  if (props.networks) {
-    reactiveNetworksWithVLANs.value = props.networks || []
-  }
-})
+const getHeaderIcon = (status: NetworkHeader) => headerIcon[status].icon
 </script>
 
 <style scoped lang="postcss">
