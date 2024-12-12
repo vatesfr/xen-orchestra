@@ -3,7 +3,14 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiDropdownButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">
+        <UiDropdownButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faPlus"
+          variant="secondary"
+          accent="info"
+          size="medium"
+        >
           {{ $t('new') }}
         </UiDropdownButton>
       </template>
@@ -11,11 +18,36 @@
     <div class="content">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
-        <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
-        <UiButton :left-icon="faCopy" variant="tertiary" accent="info" size="medium">
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faEdit"
+          variant="tertiary"
+          accent="info"
+          size="medium"
+        >
+          {{ $t('edit') }}
+        </UiButton>
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faCopy"
+          variant="tertiary"
+          accent="info"
+          size="medium"
+        >
           {{ $t('copy-info-json') }}
         </UiButton>
-        <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faTrash"
+          variant="tertiary"
+          accent="danger"
+          size="medium"
+        >
+          {{ $t('delete') }}
+        </UiButton>
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
@@ -65,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import PoolNetworksPifStatus from '@/components/pool/network/PoolNetworksPifStatus.vue'
+import PoolNetworksPifStatus, { type Status } from '@/components/pool/network/PoolNetworksPifStatus.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
@@ -99,7 +131,7 @@ import { computed, ref } from 'vue'
 const { networks, isReady } = defineProps<{
   networks: {
     network: XenApiNetwork
-    status?: string
+    status?: Status
     vlan?: string
   }[]
   isReady: boolean
