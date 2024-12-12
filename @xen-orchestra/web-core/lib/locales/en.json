@@ -43,7 +43,10 @@
   "dark-mode.auto": "Auto dark mode",
 
   "access-forum": "Access forum",
+  "connected": "Connected",
   "dashboard": "Dashboard",
+  "disconnected": "Disconnected",
+  "disconnected-from-physical-device": "Disconnected from physical device",
   "documentation-name": "{name} documentation",
   "error-no-data": "Error, can't collect data.",
   "exit-fullscreen": "Exit fullscreen",

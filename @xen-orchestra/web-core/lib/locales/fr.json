@@ -43,7 +43,10 @@
   "dark-mode.auto": "Mode sombre automatique",
 
   "access-forum": "Accès au forum",
+  "connected": "Connecté",
   "dashboard": "Tableau de bord",
+  "disconnected": "Déconnecté",
+  "disconnected-from-physical-device": "Déconnécté de l'appareil physique",
   "documentation-name": "Documentation {name}",
   "error-no-data": "Erreur, impossible de collecter les données.",
   "exit-fullscreen": "Quitter le plein écran",
