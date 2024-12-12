@@ -131,7 +131,7 @@ const methods = {
       }
     }
 
-    let hasBootableDisk = !!find(vm.$VBDs, 'bootable')
+    let hasBootableDisk = false
 
     // Inserts the CD if necessary.
     if (installMethod === 'cd') {
@@ -165,16 +165,18 @@ const methods = {
       const _vdisToUpdate = []
       const _vdisToDestroy = []
 
-      vdis.forEach(vdi => {
-        if (vdi.userdevice === undefined) {
+      vdis.forEach(({ destroy, ...vdi }) => {
+        const { userdevice } = vdi
+
+        if (userdevice === undefined) {
           _vdisToCreate.push(vdi)
           return
         }
 
         // If the userdevice match no vbd, create the VDI
-        const vbd = find(vm.$VBDs, { userdevice: vdi.userdevice })
+        const vbd = find(vm.$VBDs, { userdevice })
         if (vbd === undefined) {
-          if (vdi.destroy) {
+          if (destroy) {
             log.warn('VDI ignored because it is marked as "destroy"', vdi)
             return
           }
@@ -183,8 +185,12 @@ const methods = {
           return
         }
 
+        if (vbd.VDI === Ref.EMPTY) {
+          throw new Error(`VBD with userdevice: ${userdevice} exist but has no VDI`)
+        }
+
         vdi.$ref = this.getObject(vbd.VDI).$ref
-        if (vdi.destroy) {
+        if (destroy) {
           _vdisToDestroy.push(vdi)
           return
         }
@@ -192,9 +198,17 @@ const methods = {
         _vdisToUpdate.push(vdi)
       })
 
+      await Promise.all(_vdisToDestroy.map(vdi => this.VDI_destroy(vdi.$ref)))
+
+      // Some VBDs may be destroyed with the VDI_destroy. We need to get a fresh VBDs list
+      const vbds = (await this.getField('VM', vmRef, 'VBDs')).map(vbdRef => this.getObject(vbdRef))
+
+      if (!hasBootableDisk) {
+        hasBootableDisk = vbds.some(vbd => vbd.bootable)
+      }
+
       // TODO: set vm.suspend_SR
       await Promise.all([
-        ..._vdisToDestroy.map(vdi => this.VDI_destroy(vdi.$ref)),
         // Creates the user defined VDIs.
         ..._vdisToCreate.map(async (vdi, i) => {
           const vdiRef = await this.VDI_create({
@@ -205,9 +219,13 @@ const methods = {
           })
           $defer.onFailure(() => this.VDI_destroy(vdiRef))
 
+          // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+          let bootable = false
+          if (!hasBootableDisk && i === 0) {
+            bootable = true
+          }
           await this.VBD_create({
-            // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-            bootable: !(hasBootableDisk || i),
+            bootable,
             userdevice: vdi.userdevice,
             VDI: vdiRef,
             VM: vm.$ref,
@@ -215,8 +233,6 @@ const methods = {
         }),
         // Modify existing (previous template) disks if necessary
         ..._vdisToUpdate.map(async ({ $ref, sr, size, userdevice, ...properties }) => {
-          delete properties.destroy
-
           await this._setObjectProperties({ $ref, $type: 'VDI' }, properties)
 
           let _vdi = this.getObject($ref)
