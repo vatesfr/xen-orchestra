@@ -7,85 +7,92 @@
       </UiButton>
       <UiButtonIcon disabled accent="info" size="medium" :icon="faEllipsis" />
     </template>
-    <UiCard v-if="network" class="card-container">
-      <UiCardTitle class="typo p1-medium">
-        <p v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ network.name_label }}</p>
-      </UiCardTitle>
-      <div>
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('id') }}</div>
-          <div v-tooltip class="value text-ellipsis">{{ network.id }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.id)" />
+    <div class="card-container">
+      <UiCard v-if="network">
+        <UiCardTitle class="typo p1-medium">
+          <p v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ network.name_label }}</p>
+        </UiCardTitle>
+        <div>
+          <div class="typo p3-regular content">
+            <div class="title">{{ $t('id') }}</div>
+            <div v-tooltip class="value text-ellipsis">{{ network.id }}</div>
+            <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.id)" />
+          </div>
+          <div class="typo p3-regular content">
+            <div class="title">{{ $t('description') }}</div>
+            <div class="value text-ellipsis">{{ network.name_description }}</div>
+            <UiButtonIcon
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copyToClipboard(network.name_description)"
+            />
+          </div>
+          <div v-if="pifs[0].vlan" class="typo p3-regular content">
+            <div class="title">{{ $t('vlan') }}</div>
+            <div class="value">{{ getNetworkVlan(pifs[0].vlan) }}</div>
+            <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
+          </div>
+          <div class="typo p3-regular content">
+            <div class="title">{{ $t('mtu') }}</div>
+            <div class="value">{{ network.MTU }}</div>
+            <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.MTU)" />
+          </div>
+          <div class="typo p3-regular content">
+            <div class="title">{{ $t('network-block-device') }}</div>
+            <div class="value">{{ getNbd(network) }}</div>
+            <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.nbd.toString())" />
+          </div>
+          <div class="typo p3-regular content">
+            <div class="title">{{ $t('locking-mode-default') }}</div>
+            <div class="value">{{ getLockingMode(network) }}</div>
+          </div>
         </div>
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('description') }}</div>
-          <div class="value text-ellipsis">{{ network.name_description }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.name_description)" />
+      </UiCard>
+      <UiCard v-if="network && network.PIFs && network.PIFs.length > 0">
+        <div class="typo p1-medium">
+          {{ $t('pifs') }}
+          <UiCounter :value="selectedPIFsLength" variant="primary" size="small" accent="neutral" />
         </div>
-        <div v-if="pifs[0].vlan" class="typo p3-regular content">
-          <div class="title">{{ $t('vlan') }}</div>
-          <div class="value">{{ getNetworkVlan(pifs[0].vlan) }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
-        </div>
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('mtu') }}</div>
-          <div class="value">{{ network.MTU }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.MTU)" />
-        </div>
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ getNbd(network) }}</div>
-          <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.nbd.toString())" />
-        </div>
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value">{{ getLockingMode(network) }}</div>
-        </div>
-      </div>
-    </UiCard>
-    <UiCard v-if="network && network.PIFs && network.PIFs.length > 0" class="card-container">
-      <div class="typo p1-medium">
-        {{ $t('pifs') }}
-        <UiCounter :value="selectedPIFsLength" variant="primary" size="small" accent="neutral" />
-      </div>
-      <table class="simple-table">
-        <thead>
-          <tr>
-            <th class="text-left typo p3-regular text-ellipsis host">
-              {{ $t('host') }}
-            </th>
-            <th class="text-left typo p3-regular text-ellipsis">
-              {{ $t('device') }}
-            </th>
-            <th class="text-left typo p3-regular text-ellipsis">
-              {{ $t('pifs-status') }}
-            </th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="pif in pifs" :key="pif.id" @click="redirectToHostNetwork(pif)">
-            <td class="typo p3-regular text-ellipsis host">
-              <UiObjectIcon
-                :state="getHost(pif.$host)!.power_state ? 'running' : 'disabled'"
-                type="host"
-                size="small"
-              />
-              <a v-tooltip class="host text-ellipsis">
-                {{ getHost(pif.$host)!.name_label }}
-              </a>
-            </td>
-            <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
-            <td class="typo p3-regular status">
-              <PifStatus card :pif />
-            </td>
-            <td>
-              <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </UiCard>
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th class="text-left typo p3-regular text-ellipsis host">
+                {{ $t('host') }}
+              </th>
+              <th class="text-left typo p3-regular text-ellipsis">
+                {{ $t('device') }}
+              </th>
+              <th class="text-left typo p3-regular text-ellipsis">
+                {{ $t('pifs-status') }}
+              </th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="pif in pifs" :key="pif.id" @click="redirectToHostNetwork(pif)">
+              <td class="typo p3-regular text-ellipsis host">
+                <UiObjectIcon
+                  :state="getHost(pif.$host)!.power_state ? 'running' : 'disabled'"
+                  type="host"
+                  size="small"
+                />
+                <a v-tooltip class="host text-ellipsis">
+                  {{ getHost(pif.$host)!.name_label }}
+                </a>
+              </td>
+              <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
+              <td class="typo p3-regular status">
+                <PifStatus card :pif />
+              </td>
+              <td>
+                <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </UiCard>
+    </div>
   </UiPanel>
 </template>
 
@@ -151,6 +158,8 @@ const redirectToHostNetwork = (pif: XoPif) => {
     flex-direction: column;
     gap: 1.6rem;
     cursor: default;
+    position: sticky;
+    top: 1rem;
 
     .content {
       display: flex;
