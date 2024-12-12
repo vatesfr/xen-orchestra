@@ -1,8 +1,8 @@
 <template>
   <UiCard class="pool-network-view">
     <div class="content">
-      <PoolNetworksTable :networks="reactiveNetworksWithVLANs" :is-ready />
-      <PoolHostInternalNetworkTable :host-internal-network="reactiveHostInternalNetworks" :is-ready />
+      <PoolNetworksTable :networks="networksWithVLANs" :is-ready />
+      <PoolHostInternalNetworkTable :networks="hostInternalNetworks" :is-ready />
     </div>
   </UiCard>
 </template>
@@ -13,24 +13,11 @@ import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
 const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
-
-const reactiveNetworksWithVLANs = ref(networksWithVLANs.value || [])
-const reactiveHostInternalNetworks = ref(hostInternalNetworks.value || [])
-
-watchEffect(() => {
-  if (networksWithVLANs.value) {
-    reactiveNetworksWithVLANs.value = networksWithVLANs.value || []
-  }
-  if (hostInternalNetworks.value) {
-    reactiveHostInternalNetworks.value = hostInternalNetworks.value || []
-  }
-})
 </script>
 
 <style lang="postcss" scoped>
