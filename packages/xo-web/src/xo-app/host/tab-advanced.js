@@ -37,6 +37,7 @@ import {
   isPciHidden,
   isPciPassthroughAvailable,
   isNetDataInstalledOnHost,
+  getMdadmHealth,
   getPlugin,
   getSmartctlHealth,
   getSmartctlInformation,
@@ -319,6 +320,8 @@ export default class extends Component {
       )
     }
 
+    const mdadmHealth = await getMdadmHealth(host).catch(console.error)
+
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(host).catch(() => null),
       isSmartctlHealthEnabled,
@@ -326,6 +329,8 @@ export default class extends Component {
       smartctlUnhealthyDevices,
       unhealthyDevicesAlerts,
       isPciPassthroughAvailable: _isPciPassthroughAvailable,
+      mdadmHealthAvailable: mdadmHealth?.raid ? mdadmHealth : null,
+      mdadmState: mdadmHealth.raid?.State,
     })
   }
 
@@ -394,6 +399,8 @@ export default class extends Component {
       isSmartctlHealthEnabled,
       unhealthyDevicesAlerts,
       smartctlUnhealthyDevices,
+      mdadmHealthAvailable,
+      mdadmState,
     } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
@@ -688,6 +695,12 @@ export default class extends Component {
                       ))}
                   </td>
                 </tr>
+                {mdadmHealthAvailable && (
+                  <tr>
+                    <th>{_('raidStatus')}</th>
+                    <td>{mdadmState === 'clean' || mdadmState === 'active' ? _('raidHealthy') : mdadmState}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
             <br />

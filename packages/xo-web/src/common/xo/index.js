@@ -1403,6 +1403,8 @@ export const getSmartctlHealth = host => _call('host.getSmartctlHealth', { id: r
 export const getSmartctlInformation = (host, deviceNames) =>
   _call('host.getSmartctlInformation', { id: resolveId(host), deviceNames })
 
+export const getMdadmHealth = host => _call('host.getMdadmHealth', { id: resolveId(host) })
+
 export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
 
 export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
