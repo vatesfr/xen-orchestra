@@ -3,14 +3,41 @@
     <UiTitle>
       {{ $t('host-internal-networks') }}
       <template #actions>
-        <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faPlus"
+          variant="secondary"
+          accent="info"
+          size="medium"
+        >
+          {{ $t('new') }}
+        </UiButton>
       </template>
     </UiTitle>
     <div class="content">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
-        <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
-        <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faEdit"
+          variant="tertiary"
+          accent="info"
+          size="medium"
+        >
+          {{ $t('edit') }}
+        </UiButton>
+        <UiButton
+          v-tooltip="$t('coming-soon')"
+          disabled
+          :left-icon="faTrash"
+          variant="tertiary"
+          accent="danger"
+          size="medium"
+        >
+          {{ $t('delete') }}
+        </UiButton>
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
