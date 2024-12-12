@@ -1,11 +1,34 @@
 <template>
-  <PageUnderConstruction />
+  <UiCard class="pool-network-view">
+    <div class="content">
+      <PoolNetworksTable :networks="networksWithVLANs" :is-ready />
+      <PoolHostInternalNetworkTable :networks="hostInternalNetworks" :is-ready />
+    </div>
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
-import PageUnderConstruction from '@/components/PageUnderConstruction.vue'
+import PoolHostInternalNetworkTable from '@/components/pool/network/PoolHostInternalNetworkTable.vue'
+import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
+import UiCard from '@/components/ui/UiCard.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
+
+const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
 </script>
+
+<style lang="postcss" scoped>
+.pool-network-view {
+  border: solid 0.1rem var(--color-neutral-border);
+  margin: 0.8rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+}
+</style>
