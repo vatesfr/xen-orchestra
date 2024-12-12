@@ -61,7 +61,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ selected: selectedRowId === row.id }"
+              @click="selectRow(row.id)"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
@@ -134,6 +139,16 @@ const { pifs } = defineProps<{
   isReady: boolean
 }>()
 
+const emit = defineEmits<{
+  rowSelect: [value: XenApiPif['uuid']]
+}>()
+const selectedRowId = ref<XenApiPif['uuid']>()
+
+const selectRow = (rowId: XenApiPif['uuid']) => {
+  selectedRowId.value = rowId
+  emit('rowSelect', rowId)
+}
+
 const { t } = useI18n()
 
 const { getByOpaqueRef } = useNetworkStore().subscribe()
@@ -173,9 +188,9 @@ const { visibleColumns, rows } = useTable('pifs', filteredNetworks, {
     define('device', { label: 'Device', isHideable: true }),
     define('status', record => record.currently_attached, { label: 'Status', isHideable: true }),
     define('VLAN', record => getVlanData(record.VLAN), { label: 'Vlan', isHideable: true }),
-    define('IP', { label: 'IP', isHideable: true }),
-    define('MAC', { label: 'MAC', isHideable: true }),
-    define('ip_configuration_mode', { label: 'Mode', isHideable: true }),
+    define('IP', { label: 'IP Addresses', isHideable: true }),
+    define('MAC', { label: 'MAC Addresses', isHideable: true }),
+    define('ip_configuration_mode', { label: 'IP Mode', isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -215,9 +230,18 @@ const getHeaderIcon = (status: PifHeader) => headerIcon[status].icon
         gap: 1.8rem;
       }
 
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 1px solid var(--color-neutral-border);
       }
+    }
+
+    .row-selected {
+      background-color: var(--color-info-background-selected);
     }
 
     .checkbox,
