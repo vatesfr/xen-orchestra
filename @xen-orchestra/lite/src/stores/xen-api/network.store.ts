@@ -1,3 +1,4 @@
+import type { Status } from '@/components/pool/network/PoolNetworksPifStatus.vue'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
@@ -46,7 +47,14 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   })
 
   const networksWithVLANs = computed(() => {
-    const networksInfoMap = new Map<string, { network: XenApiNetwork; vlan: string; status: string }>()
+    const networksInfoMap = new Map<
+      string,
+      {
+        network: XenApiNetwork
+        vlan: string
+        status: Status
+      }
+    >()
 
     return baseContext.records.value
       .filter(network => network.PIFs.length > 0)
@@ -82,7 +90,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
 
-function determineStatus(PIFs: XenApiPif[]): string {
+function determineStatus(PIFs: XenApiPif[]): Status {
   if (PIFs.length === 0) {
     return 'disconnected'
   }
@@ -91,7 +99,7 @@ function determineStatus(PIFs: XenApiPif[]): string {
     return 'connected'
   }
   if (currentlyAttached.some(Boolean)) {
-    return 'partially_connected'
+    return 'partial'
   }
   return 'disconnected'
 }
