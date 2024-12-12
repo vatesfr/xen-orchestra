@@ -1569,4 +1569,24 @@ export default class Xapi extends XapiBase {
 
     return { currentBiosVersion, latestBiosVersion, biosLink, isUpToDate }
   }
+
+  async getHostMdadmHealth(hostId, { cache } = {}) {
+    if (cache?.has(hostId)) {
+      return cache.get(hostId)
+    }
+    try {
+      const result = await this.call('host.call_plugin', this.getObject(hostId).$ref, 'raid.py', 'check_raid_pool', {})
+      const parsedResult = JSON.parse(result)
+
+      cache?.set(hostId, parsedResult)
+
+      return parsedResult
+    } catch (error) {
+      if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+        return null
+      } else {
+        throw error
+      }
+    }
+  }
 }

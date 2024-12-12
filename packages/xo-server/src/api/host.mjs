@@ -20,6 +20,10 @@ const CACHE_2CRSI = new TTLCache({
   ttl: 6e4,
 })
 
+const CACHE_MDADM = new TTLCache({
+  ttl: 6e5,
+})
+
 const log = createLogger('xo:api:host')
 
 // ===================================================================
@@ -621,6 +625,20 @@ getSmartctlInformation.params = {
 }
 
 getSmartctlInformation.resolve = {
+  host: ['id', 'host', 'view'],
+}
+
+export function getMdadmHealth({ host }) {
+  return this.getXapi(host).getHostMdadmHealth(host._xapiId, { cache: CACHE_MDADM })
+}
+
+getMdadmHealth.description = 'get mdadm health status'
+
+getMdadmHealth.params = {
+  id: { type: 'string' },
+}
+
+getMdadmHealth.resolve = {
   host: ['id', 'host', 'view'],
 }
 
