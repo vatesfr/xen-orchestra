@@ -174,6 +174,8 @@ export default class Jobs extends Component {
       'host.start',
       'host.stop',
       'job.runSequence',
+      'pool.rollingUpdate',
+      'pool.rollingReboot',
       'vm.attachDisk',
       'vm.clone',
       'vm.convertToTemplate',
