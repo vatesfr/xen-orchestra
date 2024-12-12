@@ -3,6 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('accent').enum('neutral', 'warning', 'danger').required().preset('neutral').widget(),
+      prop('for').str().widget(),
       prop('required').bool().widget(),
       prop('href').str().widget(),
       slot(),
