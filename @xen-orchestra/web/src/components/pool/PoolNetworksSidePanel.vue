@@ -6,13 +6,13 @@
       <UiButtonIcon accent="info" size="medium" :icon="faEllipsis" />
     </template>
     <UiCard v-if="network" class="card-container">
-      <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
-        {{ network.name_label }}
+      <UiCardTitle class="typo p1-medium">
+        <p v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ network.name_label }}</p>
       </UiCardTitle>
       <div>
         <div class="typo p3-regular content">
           <div class="title">{{ $t('id') }}</div>
-          <div class="value text-ellipsis">{{ network.id }}</div>
+          <div v-tooltip class="value text-ellipsis">{{ network.id }}</div>
           <UiButtonIcon accent="info" size="medium" :icon="faCopy" @click="copyToClipboard(network.id)" />
         </div>
         <div class="typo p3-regular content">
@@ -148,6 +148,7 @@ const redirectToHostNetwork = (pif: XoPif) => {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+    cursor: default;
 
     .content {
       display: flex;

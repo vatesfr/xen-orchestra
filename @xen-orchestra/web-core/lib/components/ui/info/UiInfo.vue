@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p class="message">
+    <p class="message text-ellipsis">
       <slot />
     </p>
   </div>
