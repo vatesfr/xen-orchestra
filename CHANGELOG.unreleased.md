@@ -13,6 +13,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host] In host and advanced view, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -39,6 +41,7 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xen-api minor
-- xo-server patch
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
