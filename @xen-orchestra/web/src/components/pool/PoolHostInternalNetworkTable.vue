@@ -3,14 +3,20 @@
     <UiTitle>
       {{ $t('host-internal-networks') }}
       <template #actions>
-        <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
+        <UiButton disabled :left-icon="faPlus" variant="secondary" accent="info" size="medium">
+          {{ $t('new') }}
+        </UiButton>
       </template>
     </UiTitle>
     <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
-        <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
-        <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
+        <UiButton disabled :left-icon="faEdit" variant="tertiary" accent="info" size="medium">
+          {{ $t('edit') }}
+        </UiButton>
+        <UiButton disabled :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">
+          {{ $t('delete') }}
+        </UiButton>
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
@@ -41,35 +47,30 @@
           <tr
             v-for="row of rows"
             :key="row.id"
-            :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
+            :class="{ 'row-selected': selectedRowId === row.id }"
             @click="selectRow(row.value, 'hostInternalNetwork')"
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-              <!--             NEED TO REMOVE `as XoNetwork` -->
               <div
-                v-if="column.id === 'name_label' && (row.value as XoNetwork).name_label"
+                v-if="column.id === 'name_label' && column.value"
                 v-tooltip="{ placement: 'bottom-end' }"
                 class="text-ellipsis"
               >
-                {{ (row.value as XoNetwork).name_label }}
+                {{ column.value }}
               </div>
               <div
                 v-if="column.id === 'name_description'"
                 v-tooltip="{ placement: 'bottom-end' }"
                 class="text-ellipsis"
               >
-                {{ (row.value as XoNetwork).name_description }}
+                {{ column.value }}
               </div>
               <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ (row.value as XoNetwork).MTU }}
+                {{ column.value }}
               </div>
-              <div
-                v-if="column.id === 'default_locking_mode'"
-                v-tooltip="{ placement: 'bottom-end' }"
-                class="text-ellipsis"
-              >
-                {{ getLockingMode((row.value as any).defaultIsLocked) }}
+              <div v-if="column.id === 'defaultIsLocked'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ getLockingMode(column.value) }}
               </div>
               <div v-if="column.id === 'more'">
                 <VtsIcon accent="info" :icon="faEllipsis" />
@@ -168,25 +169,25 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('name_label', { label: 'Name', isHideable: true }),
     define('name_description', { label: 'Description', isHideable: true }),
     define('MTU', { label: 'MTU', isHideable: true }),
-    define('default_locking_mode', { label: 'Default Locking mode', isHideable: true }),
+    define('defaultIsLocked', { label: 'Default Locking mode', isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
 
-type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
+type networkHeader = 'name_label' | 'name_description' | 'MTU' | 'defaultIsLocked' | 'more'
 
 const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   name_label: { icon: faAlignLeft },
   name_description: { icon: faAlignLeft },
   MTU: { icon: faHashtag },
-  default_locking_mode: { icon: faCaretDown },
+  defaultIsLocked: { icon: faCaretDown },
   more: { icon: faEllipsis },
 }
 
 const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
 
-const getLockingMode = (network: XoNetwork) => {
-  return network.defaultIsLocked ? t('disabled') : t('unlocked')
+const getLockingMode = (lockingMode: boolean) => {
+  return lockingMode ? t('disabled') : t('unlocked')
 }
 
 watchEffect(() => {

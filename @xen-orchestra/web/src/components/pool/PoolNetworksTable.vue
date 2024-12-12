@@ -3,21 +3,25 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiButton :left-icon="faPlus" variant="secondary" accent="info" size="medium">{{ $t('new') }}</UiButton>
+        <UiDropdownButton disabled>{{ $t('new') }}</UiDropdownButton>
       </template>
     </UiTitle>
     <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions title="Table actions">
-        <UiButton :left-icon="faEdit" variant="tertiary" accent="info" size="medium">{{ $t('edit') }}</UiButton>
-        <UiButton :left-icon="faCopy" variant="tertiary" accent="info" size="medium">
+        <UiButton disabled :left-icon="faEdit" variant="tertiary" accent="info" size="medium">
+          {{ $t('edit') }}
+        </UiButton>
+        <UiButton disabled :left-icon="faCopy" variant="tertiary" accent="info" size="medium">
           {{ $t('copy-info-json') }}
         </UiButton>
-        <UiButton :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">{{ $t('delete') }}</UiButton>
+        <UiButton disabled :left-icon="faTrash" variant="tertiary" accent="danger" size="medium">
+          {{ $t('delete') }}
+        </UiButton>
       </UiTableActions>
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="usableIds.length"
         @toggle-select-all="toggleSelect"
       />
     </div>
@@ -43,7 +47,7 @@
           <tr
             v-for="row of rows"
             :key="row.id"
-            :class="{ 'row-selected': selectedRowId === (row.value as any).id }"
+            :class="{ 'row-selected': selectedRowId === row.id }"
             @click="selectRow(row.value, 'network')"
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
@@ -51,31 +55,30 @@
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
               </div>
               <div v-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ (row.value as any).name_label }}
+                {{ column.value }}
               </div>
               <div
                 v-if="column.id === 'name_description'"
                 v-tooltip="{ placement: 'bottom-end' }"
                 class="text-ellipsis"
               >
-                {{ (row.value as any).name_description }}
+                {{ column.value }}
               </div>
               <div v-if="column.id === 'status'" class="status">
-                <PoolNetworksPifStatus :status="getPifsStatus(row.value)" />
+                <PoolNetworksPifStatus :network="row.value" />
               </div>
               <div v-if="column.id === 'vlan'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ (row.value as any).vlan }}
                 {{ getNetworkVlan(row.value) }}
               </div>
               <div v-if="column.id === 'MTU'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ (row.value as any).MTU }}
+                {{ column.value }}
               </div>
               <div
                 v-if="column.id === 'default_locking_mode'"
                 v-tooltip="{ placement: 'bottom-end' }"
                 class="text-ellipsis"
               >
-                {{ getLockingMode((row.value as any).defaultIsLocked) }}
+                {{ getLockingMode(column.value) }}
               </div>
               <div v-if="column.id === 'more'">
                 <VtsIcon accent="info" :icon="faEllipsis" />
@@ -93,10 +96,9 @@
       <VtsStateHero v-if="hasError" type="table" image="error">
         <div>{{ $t('error-no-data') }}</div>
       </VtsStateHero>
-      <!--      </div> -->
       <UiTopBottomTable
         :selected-items="selected.length"
-        :total-items="usableRefs.length"
+        :total-items="usableIds.length"
         @toggle-select-all="toggleSelect"
       />
     </div>
@@ -114,6 +116,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -130,11 +133,10 @@ import {
   faEdit,
   faEllipsis,
   faHashtag,
-  faPlus,
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -152,8 +154,6 @@ const { t } = useI18n()
 
 const { records: pifs } = usePifStore().subscribe()
 
-const reactiveNetworksWithVLANs = ref(props.networks || [])
-
 const selectRow = (item: any, table: string) => {
   emit('rowSelectNetwork', { item, table })
 }
@@ -162,10 +162,10 @@ const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   return searchQuery.value
-    ? reactiveNetworksWithVLANs.value.filter(network =>
+    ? props.networks.filter(network =>
         Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
       )
-    : reactiveNetworksWithVLANs.value
+    : props.networks
 })
 
 const getNetworkVlan = (network: XoNetwork) => {
@@ -175,37 +175,14 @@ const getNetworkVlan = (network: XoNetwork) => {
   }
 }
 
-const getPifsStatus = (network: XoNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
-
-  let allConnected = true
-  let partiallyConnected = false
-  for (const pif of networkPIFs) {
-    const { carrier, attached } = pif
-    if (!(carrier && attached)) {
-      allConnected = false
-    }
-    if (carrier || attached) {
-      partiallyConnected = true
-    }
-  }
-  if (allConnected) {
-    return 'connected'
-  }
-  if (partiallyConnected) {
-    return 'partially_connected'
-  }
-  return 'disconnected'
+const getLockingMode = (lockingMode: boolean) => {
+  return lockingMode ? t('disabled') : t('unlocked')
 }
 
-const getLockingMode = (network: XoNetwork) => {
-  return network.defaultIsLocked ? t('disabled') : t('unlocked')
-}
-
-const usableRefs = computed(() => reactiveNetworksWithVLANs.value.map(item => item.id))
-const { selected, areAllSelected } = useMultiSelect(usableRefs)
+const usableIds = computed(() => props.networks.map(network => network.id))
+const { selected, areAllSelected } = useMultiSelect(usableIds)
 const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? usableRefs.value : []
+  selected.value = selected.value.length === 0 ? usableIds.value : []
 }
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
@@ -220,8 +197,8 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
       label: 'Description',
       isHideable: true,
     }),
-    define('status', { label: 'PIFS Status', isHideable: true }),
-    define('vlan', { label: 'VLAN', isHideable: true }),
+    define('status', () => '', { label: 'PIFS Status', isHideable: true }),
+    define('vlan', () => '', { label: 'VLAN', isHideable: true }),
     define('MTU', record => record.MTU, {
       label: 'MTU',
       isHideable: true,
@@ -245,11 +222,6 @@ const headerIcon: Record<networkHeader, { icon: IconDefinition }> = {
   more: { icon: faEllipsis },
 }
 const getHeaderIcon = (status: networkHeader) => headerIcon[status].icon
-watchEffect(() => {
-  if (props.networks) {
-    reactiveNetworksWithVLANs.value = props.networks || []
-  }
-})
 </script>
 
 <style scoped lang="postcss">

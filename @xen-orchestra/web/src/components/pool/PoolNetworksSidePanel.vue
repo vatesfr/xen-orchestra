@@ -1,9 +1,11 @@
 <template>
   <UiPanel v-if="network" class="pool-network-side-panel">
     <template #header>
-      <UiButton variant="tertiary" size="medium" accent="info" :left-icon="faEdit">{{ $t('edit') }}</UiButton>
-      <UiButton variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">{{ $t('delete') }}</UiButton>
-      <UiButtonIcon accent="info" size="medium" :icon="faEllipsis" />
+      <UiButton disabled variant="tertiary" size="medium" accent="info" :left-icon="faEdit">{{ $t('edit') }}</UiButton>
+      <UiButton disabled variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">
+        {{ $t('delete') }}
+      </UiButton>
+      <UiButtonIcon disabled accent="info" size="medium" :icon="faEllipsis" />
     </template>
     <UiCard v-if="network" class="card-container">
       <UiCardTitle class="typo p1-medium">

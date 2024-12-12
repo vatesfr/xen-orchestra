@@ -1,26 +1,17 @@
 <template>
-  <UiInfo :accent="statusProps.accent">
-    <span>{{ statusProps.text }}</span>
-  </UiInfo>
+  <PifStatus :pifs="networkPIFs" />
 </template>
 
 <script setup lang="ts">
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import PifStatus from '@/components/pif/PifStatus.vue'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import type { XoNetwork } from '@/types/xo/network.type'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
-const { status } = defineProps<{
-  status: 'connected' | 'disconnected' | 'partially_connected'
+const { network } = defineProps<{
+  network: XoNetwork
 }>()
 
-const { t } = useI18n()
-
-type NetworkAccent = 'success' | 'warning' | 'danger'
-
-const statusMap: Record<string, { text: string; accent: NetworkAccent }> = {
-  connected: { text: t('connected'), accent: 'success' },
-  disconnected: { text: t('disconnected'), accent: 'danger' },
-  partially_connected: { text: t('partially-connected'), accent: 'warning' },
-}
-const statusProps = computed(() => statusMap[status])
+const { records: pifs } = usePifStore().subscribe()
+const networkPIFs = computed(() => pifs.value.filter(pif => network.PIFs.includes(pif.id)))
 </script>
