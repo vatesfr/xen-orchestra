@@ -2,7 +2,7 @@
   <div class="pool-network-view">
     <UiCard class="card">
       <PoolNetworksTable
-        :networks="networksWithPIFs"
+        :networks="networksWithPifs"
         :is-ready
         :has-error
         :selected-row-id="selectedNetworkRowId"
@@ -34,22 +34,23 @@ import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
-const { networksWithPIFs, hostInternalNetworks, isReady, hasError } = useNetworkStore().subscribe()
+const { records: networks, isReady, hasError } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
-
 const selectedNetwork = ref<XoNetwork | undefined>(undefined)
 const selectedPifs = ref<XoPif[]>([])
-
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
+
+const networksWithPifs = computed(() => networks.value.filter(network => network.PIFs.length > 0))
+const hostInternalNetworks = computed(() => networks.value.filter(network => network.PIFs.length === 0))
 
 const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
   if (payload.table === 'network') {
     selectedHostInternalRowId.value = null
     selectedNetworkRowId.value = payload.item.id
-    const network = networksWithPIFs.value.find(network => network.id === payload.item.id)
+    const network = networksWithPifs.value.find(network => network.id === payload.item.id)
     selectedPifs.value = pifsByNetwork.value.get(network!.id) || []
     if (network) {
       selectedNetwork.value = network
