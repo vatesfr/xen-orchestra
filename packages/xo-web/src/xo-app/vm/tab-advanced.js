@@ -71,7 +71,7 @@ import { SelectSuspendSr } from 'select-suspend-sr'
 import BootOrder from './boot-order'
 import VusbCreateModal from './vusb-create-modal'
 import PciAttachModal from './pci-attach-modal'
-import XenstoreCreateModal from './xenstore-create-modal'
+import XenStoreCreateModal, { XENSTORE_PREFIX } from './xenstore-create-modal'
 import { subscribeSecurebootReadiness, subscribeGetGuestSecurebootReadiness } from '../../common/xo'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
@@ -626,9 +626,7 @@ export default class TabAdvanced extends Component {
             </ul>
           </p>
         ),
-      }).then(() =>
-        toggleBlockedOperations()
-      )
+      }).then(() => toggleBlockedOperations())
     } else {
       return toggleBlockedOperations()
     }
@@ -756,19 +754,28 @@ export default class TabAdvanced extends Component {
 
   _addXenstoreEntry = async () => {
     const xsEntry = await confirm({
-      title: _('addXenstoreEntry'),
+      title: _('addXenStoreEntry'),
       icon: 'add',
-      body: <XenstoreCreateModal />,
+      body: <XenStoreCreateModal />,
     })
+    if (xsEntry === undefined) {
+      return
+    }
+
     await editVm(this.props.vm, { xenStoreData: xsEntry })
   }
 
-  _onChangeXenstoreEntry = key => async value => {
+  _getOnChangeXenStoreEntry = key => async value => {
     value = value.trim()
     await editVm(this.props.vm, {
       xenStoreData: { [key]: value === '' ? null : value },
     })
   }
+
+  _getXenStoreData = createSelector(
+    () => this.props.vm,
+    vm => Object.entries(vm.xenStoreData).filter(([key]) => key.startsWith(XENSTORE_PREFIX))
+  )
 
   render() {
     const {
@@ -791,6 +798,7 @@ export default class TabAdvanced extends Component {
     const isDisabled = poolGuestSecurebootReadiness === 'not_ready' || vm.boot.firmware !== 'uefi'
     const vtpmId = vm.VTPMs[0]
     const pciAttachButtonTooltip = this._getPciAttachButtonTooltip()
+    const xenstoreData = this._getXenStoreData()
 
     return (
       <Container>
@@ -1336,21 +1344,26 @@ export default class TabAdvanced extends Component {
               </tbody>
             </table>
             <br />
-            <h3>{_('xenstore')}</h3>
-            <i className='text-info'>
-              <Icon icon='info' /> {_('rebootRequiredAfterXenstoreChanges')}
-            </i>
+            <h3>{_('xenStore')}</h3>
+            <div className='text-info'>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('rebootRequiredAfterXenStoreChanges')}
+              </i>
+              <i className='d-block'>
+                <Icon icon='info' /> {_('deleteEntryDeleteValue')}
+              </i>
+            </div>
             <br />
             <ActionButton btnStyle='primary' handler={this._addXenstoreEntry} icon='add'>
-              {_('addXenstoreEntry')}
+              {_('addXenStoreEntry')}
             </ActionButton>
             <table className='mt-1 table table-hover'>
               <tbody>
-                {Object.entries(vm.xenStoreData).map(([key, value]) => (
+                {xenstoreData.map(([key, value]) => (
                   <tr key={key}>
                     <th>{key}</th>
                     <td>
-                      <Text value={value} onChange={this._onChangeXenstoreEntry(key)} />
+                      <Text value={value} onChange={this._getOnChangeXenStoreEntry(key)} />
                     </td>
                   </tr>
                 ))}

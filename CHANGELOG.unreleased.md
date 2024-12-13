@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Advanced] Ability to create/edit/delete xenstore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
+- [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
 
 ### Bug fixes
 
