@@ -1,11 +1,10 @@
 <template>
-  <UiInfo class="pif-status text-ellipsis" :accent="statusProps.accent">
-    <p v-tooltip class="text-ellipsis" :class="{ card }">{{ statusProps.text }}</p>
+  <UiInfo class="status-indicator text-ellipsis" :accent="computedStatusProps.accent">
+    <p v-tooltip class="text-ellipsis" :class="{ card }">{{ computedStatusProps.text }}</p>
   </UiInfo>
 </template>
 
 <script setup lang="ts">
-import type { XoPif } from '@/types/xo/pif.type'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -14,31 +13,38 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
-  pif?: XoPif
-  pifs?: XoPif[]
+  items?: any | any[]
   card?: boolean
 }>()
 
 const { t } = useI18n()
 
-type NetworkStatus = 'connected' | 'disconnected' | 'partially_connected'
-type NetworkAccent = 'success' | 'warning' | 'danger'
+type Status = 'connected' | 'disconnected' | 'partially_connected'
+type StatusAccent = 'success' | 'warning' | 'danger'
 
-const states: Record<NetworkStatus, { text: string; icon: IconDefinition; accent: NetworkAccent }> = {
-  connected: { text: t('connected'), icon: faCheck, accent: 'success' },
-  disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
-  partially_connected: { text: t('disconnected-from-physical-device'), icon: faExclamation, accent: 'warning' },
+const defaultStatusLogic = (items: any[]): string => {
+  if (items.every(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier && item.attached))) {
+    return 'connected'
+  }
+  if (items.some(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier || item.attached))) {
+    return 'partially_connected'
+  }
+  return 'disconnected'
 }
 
-const status = computed<NetworkStatus>(() => {
-  const pifs = props.pifs || (props.pif ? [props.pif] : [])
+const states: Record<Status, { text: string; icon?: IconDefinition; accent: StatusAccent }> = {
+  connected: { text: t('connected'), icon: faCheck, accent: 'success' },
+  disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
+  partially_connected: { text: t('partially-connected'), icon: faExclamation, accent: 'warning' },
+}
 
-  if (pifs.every(pif => pif.carrier && pif.attached)) return 'connected'
-  if (pifs.some(pif => pif.carrier || pif.attached)) return 'partially_connected'
-  return 'disconnected'
+const items = computed(() => (Array.isArray(props.items) ? props.items : props.items ? [props.items] : []))
+
+const status = computed(() => {
+  return defaultStatusLogic(items.value)
 })
 
-const statusProps = computed(() => states[status.value])
+const computedStatusProps = computed(() => states[status.value as Status])
 </script>
 
 <style scoped lang="postcss">
