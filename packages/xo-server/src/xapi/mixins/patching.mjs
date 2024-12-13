@@ -234,7 +234,8 @@ const methods = {
 
     const hostUpdates = updatesInfo.updates.map(updateId => {
       const update = updateById[updateId]
-      const guidances = Array.from(new Set(Object.values(update.guidance).flat())).join(', ')
+
+      const guidances = new Set(Object.values(update.guidance).flat())
 
       // issued date are in invalid format: '20240926T08:30:08Z'
       // add - to resepct the ISO 8601 format
@@ -248,7 +249,7 @@ const methods = {
         date: formattedDate,
         description,
         documentationUrl: update.URL === 'None' ? undefined : update.URL,
-        guidance: guidances,
+        guidance: Array.from(guidances).join(', '),
         name: update.id,
       }
     })
