@@ -107,6 +107,7 @@ const imageSrc = computed(() => {
     gap: 4rem;
     justify-content: unset;
     padding-top: 8rem;
+    position: relative;
 
     .text {
       order: 1;
