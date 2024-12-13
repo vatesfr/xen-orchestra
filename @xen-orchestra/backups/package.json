@@ -13,6 +13,9 @@
     "node": ">=14.18"
   },
   "scripts": {
+    "build": "npx tsc && npm run prettify",
+    "dev": "npx tsc -w",
+    "prettify": "prettier --write '*.mjs'",
     "postversion": "npm publish --access public",
     "test-integration": "node --test *.integ.mjs"
   },
