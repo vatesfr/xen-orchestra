@@ -569,16 +569,39 @@ export async function cleanVm(
     // systematically update size and differentials after a merge
 
     // @todo : after 2024-04-01 remove the fixmetadata options since the size computation is fixed
+    console.log({mergedSize, fixMetadata, fileSystemSize, size})
     if (mergedSize || (fixMetadata && fileSystemSize !== size)) {
       metadata.size = mergedSize ?? fileSystemSize ?? size
 
       if (mergedSize) {
-        // all disks are now key disk
+        // Dynamically rebuild the isVhdDifferencing metadata
         metadata.isVhdDifferencing = {}
+
+        const vdiChains = {} // Map of VDI IDs to their chain of VHDs
+
+        // Build VDI chains from metadata
         for (const id of Object.values(metadata.vdis ?? {})) {
-          metadata.isVhdDifferencing[`${id}.vhd`] = false
+          const vhdPath = `${id}.vhd`
+
+          // Check if this VHD has a parent
+          const parent = metadata.parent?.[vhdPath]
+          if (parent) {
+            vdiChains[id] = vdiChains[id] || []
+            vdiChains[id].push({ vhd: vhdPath, isDifferencing: true })
+          } else {
+            // No parent means it's a key disk
+            vdiChains[id] = [{ vhd: vhdPath, isDifferencing: false }]
+          }
+        }
+
+        // Update the metadata for isVhdDifferencing
+        for (const chain of Object.values(vdiChains)) {
+          for (const { vhd, isDifferencing } of chain) {
+            metadata.isVhdDifferencing[vhd] = isDifferencing
+          }
         }
       }
+
       mustRegenerateCache = true
       try {
         await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
