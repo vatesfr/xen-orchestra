@@ -141,8 +141,8 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
     })
   }
 
-  async stream(opts) {
-    const stream = await super.stream(opts)
+  async vhdStream(opts) {
+    const stream = await super.vhdStream(opts)
 
     stream._nbd = true
     return stream

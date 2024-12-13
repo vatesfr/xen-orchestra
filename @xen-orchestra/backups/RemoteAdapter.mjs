@@ -734,7 +734,7 @@ export class RemoteAdapter {
     }
     const synthetic = disposableSynthetic.value
     await synthetic.readBlockAllocationTable()
-    const stream = await synthetic.stream()
+    const stream = await synthetic.vhdStream()
 
     stream.on('end', disposeOnce)
     stream.on('close', disposeOnce)

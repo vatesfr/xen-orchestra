@@ -163,7 +163,7 @@ export class ImportVmBackup {
           debug('got vhd negative')
 
           // update the stream with the negative vhd stream
-          stream = await negativeVhd.stream()
+          stream = await negativeVhd.vhdStream()
           vdis[vdiRef].baseVdi = snapshotCandidate
         } catch (error) {
           // can be a broken VHD chain, a vhd chain with a key backup, ....
@@ -175,7 +175,7 @@ export class ImportVmBackup {
       // didn't make a negative stream : fallback to classic stream
       if (stream === undefined) {
         debug('use legacy restore')
-        stream = await parentVhd.stream()
+        stream = await parentVhd.vhdStream()
       }
 
       stream.on('end', disposeOnce)

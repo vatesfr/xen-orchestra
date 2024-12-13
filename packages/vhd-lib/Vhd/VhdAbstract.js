@@ -261,7 +261,7 @@ exports.VhdAbstract = class VhdAbstract {
   }
   // progress is called with currentBlock, numberOfBlocs
   // it's an approximation, ignoring the footer/header/bat size
-  stream({ onProgress } = {}) {
+  vhdStream({ onProgress } = {}) {
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)

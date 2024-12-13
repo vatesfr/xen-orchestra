@@ -61,7 +61,7 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     return { vdi, vhd }
   } else {
     // delta mode works only in vhd mode for now
-    const stream = vhd.stream()
+    const stream = vhd.vhdStream()
     await vhd.readBlockAllocationTable()
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
   }
