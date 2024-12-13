@@ -22,6 +22,16 @@ const { t } = useI18n()
 type Status = 'connected' | 'disconnected' | 'partially_connected'
 type StatusAccent = 'success' | 'warning' | 'danger'
 
+const defaultStatusLogic = (items: any[]): string => {
+  if (items.every(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier && item.attached))) {
+    return 'connected'
+  }
+  if (items.some(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier || item.attached))) {
+    return 'partially_connected'
+  }
+  return 'disconnected'
+}
+
 const states: Record<Status, { text: string; icon?: IconDefinition; accent: StatusAccent }> = {
   connected: { text: t('connected'), icon: faCheck, accent: 'success' },
   disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
@@ -30,18 +40,8 @@ const states: Record<Status, { text: string; icon?: IconDefinition; accent: Stat
 
 const items = computed(() => (Array.isArray(props.items) ? props.items : props.items ? [props.items] : []))
 
-const status = computed<Status>(() => {
-  if (
-    items.value.every(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier && item.attached))
-  ) {
-    return 'connected'
-  }
-  if (
-    items.value.some(item => ('currentlyAttached' in item ? item.currentlyAttached : item.carrier || item.attached))
-  ) {
-    return 'partially_connected'
-  }
-  return 'disconnected'
+const status = computed(() => {
+  return defaultStatusLogic(items.value)
 })
 
 const computedStatusProps = computed(() => states[status.value as Status])
