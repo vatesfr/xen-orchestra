@@ -38,7 +38,7 @@ import { computed, ref } from 'vue'
 
 const { records: networks, isReady, hasError } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
-const selectedNetwork = ref<XoNetwork | undefined>(undefined)
+const selectedNetwork = ref<XoNetwork | null>(null)
 const selectedPifs = ref<XoPif[]>([])
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
@@ -47,21 +47,32 @@ const networksWithPifs = computed(() => networks.value.filter(network => network
 const hostInternalNetworks = computed(() => networks.value.filter(network => network.PIFs.length === 0))
 
 const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
-  if (payload.table === 'network') {
+  const resetSelections = () => {
     selectedHostInternalRowId.value = null
-    selectedNetworkRowId.value = payload.item.id
-    const network = networksWithPifs.value.find(network => network.id === payload.item.id)
-    selectedPifs.value = pifsByNetwork.value.get(network!.id) || []
-    if (network) {
-      selectedNetwork.value = network
-    }
-  } else {
-    const hostInternalNetwork = hostInternalNetworks.value.find(pif => pif.id === payload.item.id)
     selectedNetworkRowId.value = null
-    selectedHostInternalRowId.value = payload.item.id
-    if (hostInternalNetwork) {
-      selectedNetwork.value = hostInternalNetwork
-    }
+    selectedPifs.value = []
+    selectedNetwork.value = null
+  }
+
+  const handleNetworkSelection = (networkId: string) => {
+    selectedNetworkRowId.value = networkId
+    const network = networksWithPifs.value.find(n => n.id === networkId)
+    selectedPifs.value = pifsByNetwork.value.get(network?.id || '') || []
+    selectedNetwork.value = network || null
+  }
+
+  const handleHostInternalSelection = (hostInternalId: string) => {
+    selectedHostInternalRowId.value = hostInternalId
+    const hostInternalNetwork = hostInternalNetworks.value.find(pif => pif.id === hostInternalId)
+    selectedNetwork.value = hostInternalNetwork || null
+  }
+
+  resetSelections()
+
+  if (payload.table === 'network') {
+    handleNetworkSelection(payload.item.id)
+  } else {
+    handleHostInternalSelection(payload.item.id)
   }
 }
 </script>
