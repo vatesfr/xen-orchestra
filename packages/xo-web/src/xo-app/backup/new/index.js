@@ -1240,7 +1240,10 @@ const New = decorate([
                       <FormGroup>
                         <label htmlFor={state.inputMergeBackupsSynchronously}>
                           <strong>{_('mergeBackupsSynchronously')}</strong>
-                        </label>
+                        </label>{' '}
+                        <Tooltip content={_('mergeBackupsSynchronouslyTooltip')}>
+                          <Icon icon='info' />
+                        </Tooltip>
                         <Toggle
                           className='pull-right'
                           id={state.inputMergeBackupsSynchronously}
