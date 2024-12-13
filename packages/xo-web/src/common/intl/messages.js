@@ -1987,7 +1987,7 @@ const messages = {
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
   vmsTags: 'VMs tags',
   tagNoBak: 'VMs with this tag will not be backed up {reason, select, null {} other {({reason})}}',
-  tagNoHealthCheck: 'VMs with this tag will not tested by health check {reason, select, null {} other {({reason})}}',
+  tagNoHealthCheck: 'VMs with this tag will not be tested by health check {reason, select, null {} other {({reason})}}',
   tagNotifyOnSnapshot: 'An email will be sent when a VM with this tag is snapshotted',
   nbdConnections: `NBD connections`,
   speedLimitNoUnit: 'Speed limit',

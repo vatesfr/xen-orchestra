@@ -43,5 +43,6 @@
 - @xen-orchestra/xapi patch
 - xen-api minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
