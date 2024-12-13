@@ -28,7 +28,7 @@
               @click="copyToClipboard(network.name_description)"
             />
           </div>
-          <div v-if="pifs[0].vlan" class="typo p3-regular content">
+          <div v-if="pifs.length > 0 && pifs[0].vlan" class="typo p3-regular content">
             <div class="title">{{ $t('vlan') }}</div>
             <div class="value">{{ getNetworkVlan(pifs[0].vlan) }}</div>
             <UiButtonIcon accent="info" size="medium" :icon="faCopy" />
