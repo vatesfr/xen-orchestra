@@ -14,6 +14,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
+- [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
 
 ### Bug fixes
 
@@ -41,6 +42,6 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xen-api minor
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
