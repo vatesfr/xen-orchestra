@@ -56,7 +56,7 @@ const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
 
   const handleNetworkSelection = (networkId: string) => {
     selectedNetworkRowId.value = networkId
-    const network = networksWithPifs.value.find(n => n.id === networkId)
+    const network = networksWithPifs.value.find(network => network.id === networkId)
     selectedPifs.value = pifsByNetwork.value.get(network?.id || '') || []
     selectedNetwork.value = network || null
   }
