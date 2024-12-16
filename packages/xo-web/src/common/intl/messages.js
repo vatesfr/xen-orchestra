@@ -570,6 +570,9 @@ const messages = {
   reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
+  mergeBackupsSynchronously: 'Merge backups synchronously',
+  mergeBackupsSynchronouslyTooltip:
+    'This will use more resources on the backup thread, but ensure there is no locking error when chaining multiple backup jobs on the same remote',
   newBackupSelection: 'Select your backup type:',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
