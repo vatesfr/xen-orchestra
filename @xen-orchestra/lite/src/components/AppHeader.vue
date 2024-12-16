@@ -43,7 +43,7 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
   background-color: var(--color-neutral-background-secondary);
 
   img {
-    width: 4rem;
+    width: 3.7rem;
   }
 
   .text-logo {
