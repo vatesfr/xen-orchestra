@@ -33,4 +33,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
+
 <!--packages-end-->
