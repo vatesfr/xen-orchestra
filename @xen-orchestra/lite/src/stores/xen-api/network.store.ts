@@ -1,5 +1,5 @@
 import type { Status } from '@/components/pool/network/PoolNetworksPifStatus.vue'
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -27,7 +27,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   const hostContext = deps.hostStore.getContext()
   const pifContext = deps.pifStore.getContext()
 
-  const PIFsByNetwork = computed(() => {
+  const pifsByNetwork = computed(() => {
     const PIFsByNetworkMap = new Map<string, XenApiPif[]>()
 
     const poolMasterRef = poolContext.pool.value?.master
@@ -46,36 +46,18 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
     return PIFsByNetworkMap
   })
 
-  const networksWithVLANs = computed(() => {
-    const networksInfoMap = new Map<
-      string,
-      {
-        network: XenApiNetwork
-        vlan: string
-        status: Status
-      }
-    >()
-
-    return baseContext.records.value
+  const networksWithVLANs = computed(() =>
+    baseContext.records.value
       .filter(network => network.PIFs.length > 0)
       .map(network => {
-        const relatedPifs = PIFsByNetwork.value.get(network.$ref) || []
+        const relatedPifs = pifsByNetwork.value.get(network.$ref) || []
         const vlan =
           relatedPifs.length > 0 ? (relatedPifs[0].VLAN === -1 ? t('none') : relatedPifs[0].VLAN.toString()) : ''
         const status = determineStatus(relatedPifs)
 
-        const networkWithDetails = {
-          network,
-          vlan,
-          status,
-        }
-        if (!networksInfoMap.has(network.$ref)) {
-          networksInfoMap.set(network.$ref, networkWithDetails)
-        }
-        networksInfoMap.set(network.$ref, networkWithDetails)
-        return networkWithDetails
+        return { network, vlan, status }
       })
-  })
+  )
 
   const hostInternalNetworks = computed(() => {
     return baseContext.records.value.filter(network => network.PIFs.length === 0) // Only networks without PIFs
