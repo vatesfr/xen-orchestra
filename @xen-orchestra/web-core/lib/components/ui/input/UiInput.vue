@@ -1,19 +1,12 @@
 <!-- v5 -->
 <template>
   <div class="ui-input" :class="toVariants({ accent })">
-    <UiLabel v-if="slots.default || label" :accent="labelAccent" :required :icon="labelIcon" :href :html-for="inputId">
+    <UiLabel v-if="slots.default || label" :accent="labelAccent" :required :icon="labelIcon" :href :for="id">
       <slot>{{ label }}</slot>
     </UiLabel>
     <div>
       <VtsIcon :icon accent="current" class="before" />
-      <input
-        :id="inputId"
-        v-model.trim="modelValue"
-        class="typo p1-regular input text-ellipsis"
-        :type
-        :disabled
-        v-bind="attrs"
-      />
+      <input :id v-model.trim="modelValue" class="typo p1-regular input text-ellipsis" :type :disabled v-bind="attrs" />
       <VtsIcon
         v-if="!attrs.disabled && modelValue && clearable"
         :icon="faXmark"
@@ -38,13 +31,13 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed, useAttrs, useId } from 'vue'
 
 type InputAccent = 'info' | 'warning' | 'danger'
-type InputType = 'text' | 'number' | 'password | search'
+type InputType = 'text' | 'number' | 'password' | 'search'
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const { accent, id } = defineProps<{
+const { accent, id = useId() } = defineProps<{
   accent: InputAccent
   label?: string
   info?: string
@@ -64,8 +57,6 @@ const slots = defineSlots<{
   default?(): any
   info?(): any
 }>()
-
-const inputId = computed(() => id || useId())
 
 const attrs = useAttrs()
 
