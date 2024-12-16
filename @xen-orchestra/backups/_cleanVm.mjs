@@ -9,8 +9,8 @@ import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
 import { RemoteVhdDiskChain } from './disks/RemoteVhdDiskChain.mjs'
 import { MergeRemoteDisk } from './disks/MergeRemoteDisk.mjs'
 
-import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
+import { Task } from '@vates/task'
 import handlerPath from '@xen-orchestra/fs/path'
 
 const { DISK_TYPES } = Constants
@@ -530,7 +530,7 @@ export async function cleanVm(
 
   await Promise.all([
     ...unusedVhdsDeletion,
-    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : () => Promise.resolve()),
+    toMerge.length !== 0 && (merge ? Task.run({ properties: { name: 'merge' } }, doMerge) : () => Promise.resolve()),
     asyncMap(unusedXvas, path => {
       logWarn('unused XVA', { path })
       if (remove) {
