@@ -4,12 +4,12 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Disposable } from 'promise-toolbox'
 import { createPredicate } from 'value-matcher'
+import { Task } from '@vates/task'
 
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
-import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   _filterPredicate
