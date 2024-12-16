@@ -10,8 +10,7 @@
     <span class="typo p3-regular label">
       {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
     </span>
-    <span class="typo p3-regular label"> {{ $t('core.separator') }}</span>
-    <span class="typo p3-regular label">{{ $t('core.show-by') }}</span>
+    <span class="typo p3-regular label show">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
       <select v-model="pageSize" :disabled class="dropdown typo c3-regular" @change="goToFirstPage">
         <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
@@ -92,6 +91,11 @@ watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
 
   .label {
     color: var(--color-neutral-txt-secondary);
+  }
+
+  .show::before {
+    content: '-';
+    margin-right: 0.8rem;
   }
 
   .dropdown-wrapper {
