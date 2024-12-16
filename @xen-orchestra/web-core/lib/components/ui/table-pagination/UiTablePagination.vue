@@ -2,10 +2,10 @@
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">
-      <UiPaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
-      <UiPaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="goToPreviousPage()" />
-      <UiPaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="goToNextPage()" />
-      <UiPaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="goToLastPage()" />
+      <PaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
+      <PaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="goToPreviousPage()" />
+      <PaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="goToNextPage()" />
+      <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="goToLastPage()" />
     </div>
     <span class="typo p3-regular label">
       {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiPaginationButton from '@core/components/ui/table-pagination/pagination-button/UiPaginationButton.vue'
+import PaginationButton from '@core/components/ui/table-pagination/PaginationButton.vue'
 import {
   faAngleDoubleLeft,
   faAngleDoubleRight,

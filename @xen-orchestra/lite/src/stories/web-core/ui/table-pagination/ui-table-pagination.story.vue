@@ -1,7 +1,11 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('total-items').required().preset(100).num(), prop('disabled').bool().widget(), event('change')]"
+    :params="[
+      prop('total-items').required().preset(100).num().widget(),
+      prop('disabled').bool().widget(),
+      event('change'),
+    ]"
   >
     <UiTablePagination v-bind="properties" />
   </ComponentStory>

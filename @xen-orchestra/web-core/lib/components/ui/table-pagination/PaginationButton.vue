@@ -1,5 +1,5 @@
 <template>
-  <UiButtonIcon :disabled accent="info" class="ui-pagination-button" size="small" :icon />
+  <UiButtonIcon :disabled accent="info" class="pagination-button" size="small" :icon />
 </template>
 
 <script setup lang="ts">
@@ -13,30 +13,21 @@ const { disabled, icon } = defineProps<{
 </script>
 
 <style scoped lang="postcss">
-.ui-pagination-button.accent--info {
-  background-color: var(--color-neutral-background-primary);
+.pagination-button.accent--info {
   border: 0.1rem solid var(--color-neutral-border);
   font-size: 1rem;
 
   &:hover {
     border-color: var(--color-info-item-hover);
-    background-color: var(--color-info-background-hover);
   }
 
   &:active {
     border-color: var(--color-info-item-active);
-    background-color: var(--color-info-background-active);
   }
 
   &:disabled {
     background-color: var(--color-neutral-background-disabled);
     border-color: transparent;
-
-    &:hover,
-    &:active {
-      background-color: var(--color-neutral-background-disabled);
-      border-color: transparent;
-    }
   }
 }
 </style>
