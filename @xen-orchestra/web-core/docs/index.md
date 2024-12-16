@@ -1,6 +1,6 @@
 # Guidelines
 
-- [Component Definition](./component-definition.md)
+- [Component Definition](./guidelines/index.md)
 - [Component Variants](./component-variants.md)
 - [Internationalization (i18n)](./i18n.md)
 - [Icons](./icons.md)
