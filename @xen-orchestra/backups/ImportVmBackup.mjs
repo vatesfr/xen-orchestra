@@ -2,9 +2,9 @@ import assert from 'node:assert'
 
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
-import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'
+import { Task } from '@vates/task'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
@@ -244,7 +244,7 @@ export class ImportVmBackup {
 
     return Task.run(
       {
-        name: 'transfer',
+        properties: { name: 'transfer' },
       },
       async () => {
         const xapi = this._xapi
