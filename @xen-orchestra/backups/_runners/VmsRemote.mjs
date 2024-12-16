@@ -1,9 +1,9 @@
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { Task } from '@vates/task'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
-import { Task } from '../Task.mjs'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
@@ -76,7 +76,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           }
           nTriesByVmId[vmUuid]++
 
-          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
           const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
 
@@ -110,23 +110,27 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                   taskByVmId[vmUuid] = new Task(taskStart)
                 }
                 const task = taskByVmId[vmUuid]
+                // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
+                let taskError
                 return task
-                  .run(async () => {
-                    try {
-                      const result = await vmBackup.run()
-                      task.success(result)
-                      return result
-                    } catch (error) {
-                      if (isLastRun) {
-                        throw error
-                      } else {
-                        Task.warning(`Retry the VM mirror backup due to an error`, {
-                          attempt: nTriesByVmId[vmUuid],
-                          error: error.message,
-                        })
-                        queue.add(vmUuid)
-                      }
+                  .runInside(async () =>
+                    vmBackup.run().catch(error => {
+                      taskError = error
+                    })
+                  )
+                  .then(result => {
+                    if (taskError === undefined) {
+                      return task.success(result)
                     }
+                    if (isLastRun) {
+                      return task.failure(taskError)
+                    }
+                    // don't end the task
+                    task.warning(`Retry the VM mirror backup due to an error`, {
+                      attempt: nTriesByVmId[vmUuid],
+                      error: taskError.message,
+                    })
+                    queue.add(vmUuid)
                   })
                   .catch(noop)
               }
