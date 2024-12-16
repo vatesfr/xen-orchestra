@@ -42,7 +42,7 @@ const { totalItems } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  paginationChange: [{ currentPage: number; pageSize: number; startIndex: number; endIndex: number }]
+  change: [{ currentPage: number; pageSize: number; startIndex: number; endIndex: number }]
 }>()
 
 const pageSize = ref(50)
@@ -70,7 +70,7 @@ const goToLastPage = () => {
 }
 
 watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
-  emit('paginationChange', {
+  emit('change', {
     currentPage: newPage,
     pageSize: newPageSize,
     startIndex: startIndex.value,
