@@ -1,7 +1,7 @@
 {
   "name": "@xen-orchestra/web-core",
   "type": "module",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": false,
   "exports": {
     "./*": {
