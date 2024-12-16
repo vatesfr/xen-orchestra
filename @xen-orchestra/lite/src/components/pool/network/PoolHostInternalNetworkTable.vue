@@ -16,7 +16,7 @@
       </template>
     </UiTitle>
     <div class="content">
-      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
+      <UiQuerySearchBar class="table-query" @search="value => (searchQuery = value)" />
       <UiTableActions title="Table actions">
         <UiButton
           v-tooltip="$t('coming-soon')"
@@ -56,7 +56,7 @@
                   <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                   {{ column.label }}
                 </th>
-                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+                <ColumnTitle v-else :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
               </template>
             </tr>
           </thead>
@@ -150,15 +150,15 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
 
 type NetworkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode' | 'more'
 
-const headerIcon: Record<NetworkHeader, { icon: IconDefinition }> = {
-  name_label: { icon: faAlignLeft },
-  name_description: { icon: faAlignLeft },
-  MTU: { icon: faHashtag },
-  default_locking_mode: { icon: faCaretDown },
-  more: { icon: faEllipsis },
+const headerIcon: Record<NetworkHeader, IconDefinition> = {
+  name_label: faAlignLeft,
+  name_description: faAlignLeft,
+  MTU: faHashtag,
+  default_locking_mode: faCaretDown,
+  more: faEllipsis,
 }
 
-const getHeaderIcon = (status: NetworkHeader) => headerIcon[status].icon
+const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
 </script>
 
 <style scoped lang="postcss">
