@@ -16,7 +16,7 @@
       </template>
     </UiTitle>
     <div class="content">
-      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
+      <UiQuerySearchBar class="table-query" @search="value => (searchQuery = value)" />
       <UiTableActions title="Table actions">
         <UiButton
           v-tooltip="$t('coming-soon')"
@@ -66,7 +66,9 @@
                   <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                   {{ column.label }}
                 </th>
-                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+                <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
+                  {{ column.label }}
+                </ColumnTitle>
               </template>
             </tr>
           </thead>
@@ -75,9 +77,7 @@
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
-                <div v-else-if="column.id === 'status'" class="status">
-                  <PoolNetworksPifStatus :status="column.value" />
-                </div>
+                <PoolNetworksPifStatus v-else-if="column.id === 'status'" :status="column.value" />
                 <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                   {{ column.value }}
                 </div>
@@ -184,16 +184,16 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
 })
 
 type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode' | 'more'
-const headerIcon: Record<NetworkHeader, { icon: IconDefinition }> = {
-  name_label: { icon: faAlignLeft },
-  name_description: { icon: faAlignLeft },
-  status: { icon: faPowerOff },
-  vlan: { icon: faAlignLeft },
-  MTU: { icon: faHashtag },
-  default_locking_mode: { icon: faCaretDown },
-  more: { icon: faEllipsis },
+const headerIcon: Record<NetworkHeader, IconDefinition> = {
+  name_label: faAlignLeft,
+  name_description: faAlignLeft,
+  status: faPowerOff,
+  vlan: faAlignLeft,
+  MTU: faHashtag,
+  default_locking_mode: faCaretDown,
+  more: faEllipsis,
 }
-const getHeaderIcon = (status: NetworkHeader) => headerIcon[status].icon
+const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
 </script>
 
 <style scoped lang="postcss">
