@@ -1,4 +1,4 @@
-import { Task } from './Task.mjs'
+import { Task } from '@vates/task'
 
 export class HealthCheckVmBackup {
   #restoredVm
@@ -14,7 +14,7 @@ export class HealthCheckVmBackup {
   async run() {
     return Task.run(
       {
-        name: 'vmstart',
+        properties: { name: 'vmstart' },
       },
       async () => {
         let restoredVm = this.#restoredVm

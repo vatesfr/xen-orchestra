@@ -1,12 +1,12 @@
 import { createLogger } from '@xen-orchestra/log'
 import { join } from 'node:path'
+import { Task } from '@vates/task'
 import assert from 'node:assert'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { HealthCheckVmBackup } from '../../HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '../../ImportVmBackup.mjs'
-import { Task } from '../../Task.mjs'
 import * as MergeWorker from '../../merge-worker/index.mjs'
 import ms from 'ms'
 
@@ -27,7 +27,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
 
     async _cleanVm(options) {
       try {
-        return await Task.run({ name: 'clean-vm' }, () => {
+        return await Task.run({ properties: { name: 'clean-vm' } }, () => {
           return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             fixMetadata: true,
@@ -86,7 +86,7 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       }
       return Task.run(
         {
-          name: 'health check',
+          properties: { name: 'health check' },
         },
         async () => {
           const xapi = sr.$xapi
