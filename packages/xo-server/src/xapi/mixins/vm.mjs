@@ -8,6 +8,7 @@ import lte from 'lodash/lte.js'
 import forEach from 'lodash/forEach.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -201,7 +202,8 @@ const methods = {
       await Promise.all(_vdisToDestroy.map(vdi => this.VDI_destroy(vdi.$ref)))
 
       // Some VBDs may be destroyed with the VDI_destroy. We need to get a fresh VBDs list
-      const vbds = (await this.getField('VM', vmRef, 'VBDs')).map(vbdRef => this.getObject(vbdRef))
+      const vbdRefs = await this.getField('VM', vmRef, 'VBDs')
+      const vbds = await asyncMap(vbdRefs, vbdRef => this._getOrWaitObject(vbdRef))
 
       if (!hasBootableDisk) {
         hasBootableDisk = vbds.some(vbd => vbd.bootable)
