@@ -4,7 +4,7 @@
     :params="[
       prop('total-items').required().preset(100).num().widget(),
       prop('disabled').bool().widget(),
-      event('change'),
+      event('change').args({ payload: 'PaginationPayload' }),
     ]"
   >
     <UiTablePagination v-bind="properties" />

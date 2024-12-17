@@ -35,13 +35,20 @@ import {
 import { useOffsetPagination } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 
+export type PaginationPayload = {
+  currentPage: number
+  pageSize: number
+  startIndex: number
+  endIndex: number
+}
+
 const { totalItems } = defineProps<{
   totalItems: number
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-  change: [{ currentPage: number; pageSize: number; startIndex: number; endIndex: number }]
+  change: [payload: PaginationPayload]
 }>()
 
 const pageSize = ref(50)
