@@ -554,7 +554,10 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .filter([vm => vm.power_state === 'Running' && (!vm.managementAgentDetected || !vm.pvDriversUpToDate)])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
-  const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
+  const getAlertMessages = createGetObjectsOfType('message').filter([
+    message =>
+      message.name === 'ALARM' || message.name === 'BOND_STATUS_CHANGED' || message.name === 'MULTIPATH_PERIODIC_ALERT',
+  ])
   const getVifsByMac = createGetObjectsOfType('VIF')
     .pick(
       createCollectionWrapper(
