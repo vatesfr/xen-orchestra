@@ -757,6 +757,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
               json: 'true',
               start: serverTimestamp - secondsAgo,
             },
+            ignoreDefaultBackupNetwork: true,
           }
           return xapi.getResource('/rrd_updates', payload)
         })
