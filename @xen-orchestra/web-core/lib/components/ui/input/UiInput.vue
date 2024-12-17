@@ -88,6 +88,7 @@ const id = computed(() => uniqueId('input-'))
 /* IMPLEMENTATION */
 .ui-input {
   position: relative;
+  flex: 1;
 
   .before + .input {
     padding-inline-start: 4.8rem;
