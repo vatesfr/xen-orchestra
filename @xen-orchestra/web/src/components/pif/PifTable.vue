@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isReady" class="pif-table">
+  <div class="pif-table">
     <UiTitle type="h4" class="header">
       <slot>{{ $t('pifs') }}</slot>
       <template #actions>
@@ -29,7 +29,7 @@
       />
     </div>
     <div class="table-container">
-      <VtsTable vertical-border class="table">
+      <VtsTable v-if="isReady" vertical-border class="table">
         <thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -80,6 +80,7 @@
           </tr>
         </tbody>
       </VtsTable>
+      <VtsLoadingHero v-else type="table" />
     </div>
     <UiTopBottomTable
       class="selection"
@@ -96,6 +97,7 @@ import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
