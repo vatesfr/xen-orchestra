@@ -1,4 +1,5 @@
 import defined from '@xen-orchestra/defined'
+import semver from 'semver'
 import { find, forEach, includes, map } from 'lodash'
 
 export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
@@ -41,3 +42,6 @@ export const getDefaultMigrationNetwork = (intraPool, destHost, pools, pifs) => 
     intraPool ? {} : defaultPif
   ).$network
 }
+
+export const isXsHostWithCdnPatches = ({ version, productBrand }) =>
+  productBrand === 'XenServer' && semver.gte(version, '8.4.0')
