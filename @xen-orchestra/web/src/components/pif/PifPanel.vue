@@ -20,7 +20,7 @@
           </template>
           <template #addons>
             <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.id)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -31,7 +31,12 @@
             {{ getNetworkData('name_label') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copyToClipboard(getNetworkData('name_label'))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -42,7 +47,7 @@
             {{ props.pif.device }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.device)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -69,7 +74,7 @@
             {{ getPifData('vlan') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('vlan'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -101,7 +106,7 @@
           </template>
           <template #addons>
             <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('ip'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -112,7 +117,7 @@
             {{ props.pif.mac }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.mac)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -123,7 +128,7 @@
             {{ getPifData('netmask') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('netmask'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -134,7 +139,7 @@
             {{ getPifData('dns') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('dns'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -145,7 +150,7 @@
             {{ getPifData('gateway') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('gateway'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -169,7 +174,7 @@
             {{ props.pif.mtu }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.mtu)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -188,7 +193,7 @@
             {{ $t(`${getNetworkData('nbd')}`) }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getNetworkData('nbd'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -199,7 +204,12 @@
             {{ $t(`${getNetworkData('defaultIsLocked')}`) }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copyToClipboard(getNetworkData('defaultIsLocked'))"
+            />
           </template>
         </VtsCardRowKeyValue>
       </div>
@@ -262,6 +272,11 @@ const getPifData = (type: keyof XoPif) => {
     case 'mode':
       return value === 'None' ? '-' : value
   }
+}
+
+const copyToClipboard = (text: string | number) => {
+  const stringText = String(text)
+  navigator.clipboard.writeText(stringText)
 }
 </script>
 
