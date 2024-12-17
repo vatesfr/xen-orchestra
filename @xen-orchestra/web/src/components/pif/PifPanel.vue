@@ -20,7 +20,7 @@
           </template>
           <template #addons>
             <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.id)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -31,7 +31,12 @@
             {{ getNetworkData('name_label') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copyToClipboard(getNetworkData('name_label'))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -42,7 +47,7 @@
             {{ props.pif.device }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.device)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -69,7 +74,7 @@
             {{ getPifData('vlan') }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(getPifData('vlan'))" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -230,11 +235,16 @@ const props = defineProps<{
 
 const { get } = useNetworkStore().subscribe()
 
+const copyToClipboard = (text: string | number) => {
+  const stringText = String(text)
+  navigator.clipboard.writeText(stringText)
+}
+
 const allIps = computed(() => {
   return [props.pif.ip, ...props.pif.ipv6].filter(ip => ip)
 })
 
-const getNetworkData = (type: keyof XoNetwork) => {
+const getNetworkData = (type: string | boolean | string[]) => {
   const network: XoNetwork = get(props.pif.$network)!
 
   switch (type) {
@@ -253,7 +263,7 @@ const getPifData = (type: keyof XoPif) => {
 
   switch (type) {
     case 'vlan':
-      return value === -1 ? '-' : value
+      return value === -1 ? '-' : (value as XoPif['vlan'])
     case 'netmask':
     case 'dns':
     case 'gateway':
