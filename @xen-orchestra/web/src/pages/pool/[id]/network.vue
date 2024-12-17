@@ -34,7 +34,8 @@ import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { computed, ref } from 'vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { computed, ref, watchEffect } from 'vue'
 
 const { records: networks, isReady, hasError } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
@@ -42,11 +43,13 @@ const selectedNetwork = ref<XoNetwork | null>(null)
 const selectedPifs = ref<XoPif[]>([])
 const selectedNetworkRowId = ref<string | null>(null)
 const selectedHostInternalRowId = ref<string | null>(null)
+const highLightedNetworkId = useRouteQuery('id')
 
 const networksWithPifs = computed(() => networks.value.filter(network => network.PIFs.length > 0))
 const hostInternalNetworks = computed(() => networks.value.filter(network => network.PIFs.length === 0))
 
 const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
+  highLightedNetworkId.value = payload.item.id
   const resetSelections = () => {
     selectedHostInternalRowId.value = null
     selectedNetworkRowId.value = null
@@ -75,6 +78,26 @@ const selectNetwork = (payload: { item: XoNetwork; table: string }) => {
     handleHostInternalSelection(payload.item.id)
   }
 }
+
+watchEffect(() => {
+  if (highLightedNetworkId.value && networks.value.length > 0) {
+    selectedNetwork.value = null
+    selectedNetworkRowId.value = null
+    selectedHostInternalRowId.value = null
+    const selected =
+      networksWithPifs.value.find(network => network.id === highLightedNetworkId.value) ||
+      hostInternalNetworks.value.find(network => network.id === highLightedNetworkId.value)
+
+    if (selected) {
+      selectedNetwork.value = selected
+      if (networksWithPifs.value.includes(selected)) {
+        selectedNetworkRowId.value = selected.id
+      } else {
+        selectedHostInternalRowId.value = selected.id
+      }
+    }
+  }
+})
 </script>
 
 <style scoped lang="postcss">

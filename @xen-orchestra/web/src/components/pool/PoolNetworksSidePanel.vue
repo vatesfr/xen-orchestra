@@ -143,8 +143,8 @@ const getNbd = (network: XoNetwork) => {
   return network.nbd ? t('on') : t('off')
 }
 const redirectToHostNetwork = (pif: XoPif) => {
-  router.push(`/host/${pif.$host}/network`)
-  // TODO: Select the right row in network table
+  router.push({ name: '/host/[id]/network', params: { id: pif.$host }, query: { pif: pif.id } })
+  // TODO: Select the right row in network table, wait for the PR #8198 to implementation
 }
 </script>
 
