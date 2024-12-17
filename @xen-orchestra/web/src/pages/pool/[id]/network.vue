@@ -106,6 +106,7 @@ watchEffect(() => {
 
   .card {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 4rem;
     margin: 0.8rem;

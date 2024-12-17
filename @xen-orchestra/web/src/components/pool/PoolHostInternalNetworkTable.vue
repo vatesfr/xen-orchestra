@@ -88,6 +88,7 @@
       <VtsStateHero v-if="hasError" type="table" image="error">
         <div>{{ $t('error-no-data') }}</div>
       </VtsStateHero>
+      <VtsLoadingHero v-if="!isReady" type="table" />
     </div>
     <UiTopBottomTable
       :selected-items="selected.length"
@@ -100,6 +101,7 @@
 <script setup lang="ts">
 import type { XoNetwork } from '@/types/xo/network.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

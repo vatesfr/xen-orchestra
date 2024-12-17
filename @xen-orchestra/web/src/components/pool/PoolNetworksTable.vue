@@ -26,7 +26,7 @@
       />
     </div>
     <div class="table-container">
-      <VtsTable class="table" vertical-border>
+      <VtsTable v-if="isReady" class="table" vertical-border>
         <thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -96,6 +96,7 @@
       <VtsStateHero v-if="hasError" type="table" image="error">
         <div>{{ $t('error-no-data') }}</div>
       </VtsStateHero>
+      <VtsLoadingHero v-if="!isReady" type="table" />
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="usableIds.length"
@@ -110,6 +111,7 @@ import PoolNetworksPifStatus from '@/components/pool/PoolNetworkPifStatus.vue'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
