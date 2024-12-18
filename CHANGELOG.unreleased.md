@@ -31,12 +31,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups minor
-- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
-- @xen-orchestra/xapi minor
-- xen-api minor
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->
