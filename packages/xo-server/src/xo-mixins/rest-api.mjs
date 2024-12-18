@@ -185,9 +185,11 @@ async function _getDashboardStats(app) {
   }
 
   const pools = Object.values(app.objects.indexes.type.pool ?? {})
+  const poolIds = []
   const hosts = Object.values(app.objects.indexes.type.host ?? {})
   const srs = Object.values(app.objects.indexes.type.SR ?? {})
   const vms = Object.values(app.objects.indexes.type.VM ?? {})
+  const servers = await app.getAllXenServers()
 
   const writableSrs = srs.filter(isSrWritable)
   const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
@@ -197,6 +199,7 @@ async function _getDashboardStats(app) {
 
   pools.forEach(pool => {
     resourcesOverview.nCpus += pool.cpus.cores
+    poolIds.push(pool.id)
   })
 
   hosts.forEach(host => {
@@ -458,6 +461,32 @@ async function _getDashboardStats(app) {
     console.error(error)
   }
 
+  let nConnectedServers = 0
+  let nUnreachableServers = 0
+  let nUnknownServers = 0
+  servers.forEach(server => {
+    if (server.status === 'connected' && poolIds.includes(server.poolId)) {
+      nConnectedServers++
+      return
+    }
+
+    if (
+      server.status === 'disconnected' &&
+      server.error !== undefined &&
+      server.error.connectedServerId === undefined
+    ) {
+      nUnreachableServers++
+      return
+    }
+
+    if (server.status === 'disconnected') {
+      return
+    }
+
+    nUnknownServers++
+  })
+
+  dashboard.poolsStatus = { connected: nConnectedServers, unreachable: nUnreachableServers, unknown: nUnknownServers }
   return dashboard
 }
 
