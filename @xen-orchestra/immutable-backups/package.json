@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
-    "@xen-orchestra/backups": "^0.56.0",
+    "@xen-orchestra/backups": "^0.57.0",
     "@xen-orchestra/log": "^0.7.1",
     "app-conf": "^3.0.0",
     "chokidar": "^3.5.3",
