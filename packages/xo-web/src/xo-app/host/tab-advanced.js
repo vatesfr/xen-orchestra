@@ -37,7 +37,6 @@ import {
   isPciHidden,
   isPciPassthroughAvailable,
   isNetDataInstalledOnHost,
-  getMdadmHealth,
   getPlugin,
   getSmartctlHealth,
   getSmartctlInformation,
@@ -46,6 +45,7 @@ import {
   setHostsMultipathing,
   setRemoteSyslogHost,
   setSchedulerGranularity,
+  subscribeMdadmHealth,
   subscribeSchedulerGranularity,
   toggleMaintenanceMode,
 } from 'xo'
@@ -249,6 +249,7 @@ MultipathableSrs.propTypes = {
 
 @addSubscriptions(props => ({
   schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
+  mdadmHealth: subscribeMdadmHealth(props.host),
 }))
 @connectStore(() => {
   const getControlDomain = createGetObject((_, { host }) => host.controlDomain)
@@ -320,8 +321,6 @@ export default class extends Component {
       )
     }
 
-    const mdadmHealth = await getMdadmHealth(host).catch(console.error)
-
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(host).catch(() => null),
       isSmartctlHealthEnabled,
@@ -329,8 +328,6 @@ export default class extends Component {
       smartctlUnhealthyDevices,
       unhealthyDevicesAlerts,
       isPciPassthroughAvailable: _isPciPassthroughAvailable,
-      mdadmHealthAvailable: mdadmHealth?.raid ? mdadmHealth : null,
-      mdadmState: mdadmHealth.raid?.State,
     })
   }
 
@@ -349,6 +346,20 @@ export default class extends Component {
         }
       })
       return uniqPacks
+    }
+  )
+
+  displayMdadmStatus = createSelector(
+    () => this.props.mdadmHealth,
+    mdadmHealth => {
+      if (!mdadmHealth) return _('installRaidPlugin')
+
+      const raidState = mdadmHealth.raid?.State
+      return raidState
+        ? ['clean', 'active'].includes(raidState)
+          ? _('raidHealthy')
+          : _('raidStateWarning', { state: raidState })
+        : _('noRaidInformationAvailable')
     }
   )
 
@@ -399,8 +410,6 @@ export default class extends Component {
       isSmartctlHealthEnabled,
       unhealthyDevicesAlerts,
       smartctlUnhealthyDevices,
-      mdadmHealthAvailable,
-      mdadmState,
     } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
@@ -695,12 +704,10 @@ export default class extends Component {
                       ))}
                   </td>
                 </tr>
-                {mdadmHealthAvailable && (
-                  <tr>
-                    <th>{_('raidStatus')}</th>
-                    <td>{mdadmState === 'clean' || mdadmState === 'active' ? _('raidHealthy') : mdadmState}</td>
-                  </tr>
-                )}
+                <tr>
+                  <th>{_('raidStatus')}</th>
+                  <td>{this.displayMdadmStatus()}</td>
+                </tr>
               </tbody>
             </table>
             <br />

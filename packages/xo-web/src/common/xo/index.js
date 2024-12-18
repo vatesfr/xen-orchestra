@@ -755,6 +755,17 @@ export const subscribeIpmiSensors = host => {
   return subscribeHostsIpmiSensors[hostId]
 }
 
+const subscribeHostsMdadmHealth = {}
+export const subscribeMdadmHealth = host => {
+  const hostId = resolveId(host)
+
+  if (subscribeHostsMdadmHealth[hostId] === undefined) {
+    subscribeHostsMdadmHealth[hostId] = createSubscription(() => _call('host.getMdadmHealth', { id: hostId }))
+  }
+
+  return subscribeHostsMdadmHealth[hostId]
+}
+
 export const getHostBiosInfo = host => _call('host.getBiosInfo', { id: resolveId(host) })
 
 const subscribeVmSecurebootReadiness = {}
@@ -1402,8 +1413,6 @@ export const getSmartctlHealth = host => _call('host.getSmartctlHealth', { id: r
 
 export const getSmartctlInformation = (host, deviceNames) =>
   _call('host.getSmartctlInformation', { id: resolveId(host), deviceNames })
-
-export const getMdadmHealth = host => _call('host.getMdadmHealth', { id: resolveId(host) })
 
 export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
 

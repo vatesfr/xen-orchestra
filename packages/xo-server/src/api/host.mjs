@@ -30,7 +30,6 @@ const log = createLogger('xo:api:host')
 
 export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate }) {
   const xapi = this.getXapi(host)
-
   if (vmsToForceMigrate) {
     await asyncEach(vmsToForceMigrate, async vmUuid => {
       const record = await xapi.getRecordByUuid('VM', vmUuid)
@@ -629,10 +628,10 @@ getSmartctlInformation.resolve = {
 }
 
 export function getMdadmHealth({ host }) {
-  return this.getXapi(host).getHostMdadmHealth(host._xapiId, { cache: CACHE_MDADM })
+  return this.getXapi(host).host_getMdadmHealth(host._xapiRef)
 }
 
-getMdadmHealth.description = 'get mdadm health status'
+getMdadmHealth.description = 'retrieve the mdadm RAID health information'
 
 getMdadmHealth.params = {
   id: { type: 'string' },

@@ -13,7 +13,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host] In host and advanced view, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
+- [Host/Advanced] In host's advanced tab, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
 
 ### Bug fixes
 
