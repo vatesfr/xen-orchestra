@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST/Dashboard] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->
