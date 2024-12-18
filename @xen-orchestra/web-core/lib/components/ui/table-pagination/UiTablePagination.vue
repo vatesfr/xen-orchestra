@@ -62,7 +62,7 @@ const {
   prev: goToPreviousPage,
   next: goToNextPage,
 } = useOffsetPagination({
-  total: totalItems,
+  total: () => totalItems,
   pageSize,
 })
 const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
