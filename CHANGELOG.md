@@ -2,32 +2,37 @@
 
 ## **next**
 
+### Security
+
+> Security fixes and new features should go in this section
+
+- [Host/Patches] Users with non-admin permissions on hosts can no longer update them (PR [#8176](https://github.com/vatesfr/xen-orchestra/pull/8176))
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
-- [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
-- [Backups/Advanced settings] Add merge backups synchronously (PR [#8177](https://github.com/vatesfr/xen-orchestra/pull/8177))
+- [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
+- [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM] Fix `VDI_NOT_IN_MAP` error during migration (PR [#8179](https://github.com/vatesfr/xen-orchestra/pull/8179))
+- [Backups/CBT] Improve enabling/disabling CBT on slower storages (PR [#8184](https://github.com/vatesfr/xen-orchestra/pull/8184))
 
 ### Released packages
 
-- xen-api 4.6.0
-- @xen-orchestra/xapi 7.8.1
-- @xen-orchestra/backups 0.56.0
-- @xen-orchestra/backups-cli 1.0.27
-- @xen-orchestra/immutable-backups 1.0.15
-- @xen-orchestra/web-core 0.8.0
-- @xen-orchestra/proxy 0.29.7
-- @xen-orchestra/web 0.5.1
-- xo-server 5.165.0
-- xo-web 5.164.0
+- xen-api 4.7.0
+- @xen-orchestra/xapi 7.9.0
+- @xen-orchestra/backups 0.57.0
+- @xen-orchestra/backups-cli 1.0.28
+- @xen-orchestra/immutable-backups 1.0.16
+- @xen-orchestra/web-core 0.9.0
+- @xen-orchestra/proxy 0.29.8
+- @xen-orchestra/web 0.5.2
+- xo-server 5.166.0
+- xo-web 5.165.0
 
 ## **5.101.0** (2024-11-29)
 
