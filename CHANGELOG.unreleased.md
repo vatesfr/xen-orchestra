@@ -13,7 +13,7 @@
 
 - [REST/Dashboard] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
 - [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
-- [Host] In host and advanced view, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
+- [Host/Advanced] In host's advanced tab, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
 
 ### Bug fixes
 

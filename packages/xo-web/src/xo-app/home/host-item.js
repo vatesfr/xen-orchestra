@@ -15,13 +15,13 @@ import {
   addTag,
   editHost,
   fetchHostStats,
-  getMdadmHealth,
   isHostTimeConsistentWithXoaTime,
   isPubKeyTooShort,
   removeTag,
   startHost,
   stopHost,
   subscribeHvSupportedVersions,
+  subscribeMdadmHealth,
 } from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
@@ -41,9 +41,10 @@ import BulkIcons from '../../common/bulk-icons'
 import { LICENSE_WARNING_BODY } from '../host/license-warning'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
-@addSubscriptions({
+@addSubscriptions(props => ({
   hvSupportedVersions: subscribeHvSupportedVersions,
-})
+  mdadmHealth: subscribeMdadmHealth(props.item),
+}))
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
   isPubKeyTooShort: createSelector(
@@ -64,7 +65,6 @@ export default class HostItem extends Component {
   state = {
     isHostTimeConsistentWithXoaTime: true,
     isPubKeyTooShort: false,
-    mdadmHealth: null,
   }
 
   componentWillMount() {
@@ -74,13 +74,6 @@ export default class HostItem extends Component {
         isHostTimeConsistentWithXoaTime: value,
       })
     )
-
-    this.fetchMdadmHealth()
-  }
-
-  async fetchMdadmHealth() {
-    const mdadmHealth = await getMdadmHealth(this.props.item).catch(() => null)
-    this.setState({ mdadmHealth })
   }
 
   get _isRunning() {
@@ -153,7 +146,7 @@ export default class HostItem extends Component {
     this._getAreHostsVersionsEqual,
     () => this.props.state.hostsByPoolId[this.props.item.$pool],
     () => this.state.isPubKeyTooShort,
-    () => this.state.mdadmHealth,
+    () => this.props.mdadmHealth,
     (
       needsRestart,
       host,
@@ -273,7 +266,7 @@ export default class HostItem extends Component {
         })
       }
 
-      if (mdadmHealth?.raid?.State && !['clean', 'active'].includes(mdadmHealth.raid.State)) {
+      if (mdadmHealth?.raid?.State !== undefined && !['clean', 'active'].includes(mdadmHealth.raid.State)) {
         alerts.push({
           level: 'danger',
           render: (
