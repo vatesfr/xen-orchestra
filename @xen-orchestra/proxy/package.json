@@ -61,7 +61,7 @@
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "xdg-basedir": "^5.1.0",
-    "xen-api": "^4.6.0",
+    "xen-api": "^4.7.0",
     "xo-common": "^0.8.0"
   },
   "devDependencies": {
