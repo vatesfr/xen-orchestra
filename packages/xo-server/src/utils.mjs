@@ -350,7 +350,9 @@ export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] ===
 
 // -------------------------------------------------------------------
 
-export const isAlarm = alarm => alarm.type === 'message' && alarm.name === 'ALARM'
+export const isAlarm = alarm =>
+  alarm.type === 'message' &&
+  (alarm.name === 'ALARM' || alarm.name === 'BOND_STATUS_CHANGED' || alarm.name === 'MULTIPATH_PERIODIC_ALERT')
 
 // -------------------------------------------------------------------
 
