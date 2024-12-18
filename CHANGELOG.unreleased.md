@@ -17,6 +17,7 @@
 - [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
 - [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
 - [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
+- [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
 
 ### Bug fixes
 
