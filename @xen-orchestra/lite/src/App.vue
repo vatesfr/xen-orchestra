@@ -2,7 +2,7 @@
   <div v-if="!route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
-  <div v-else>
+  <div v-else class="layout">
     <AppHeader v-if="uiStore.hasUi" />
     <div class="container">
       <AppNavigation v-if="uiStore.hasUi" />
@@ -70,6 +70,12 @@ useUnreachableHosts()
 </script>
 
 <style lang="postcss" scoped>
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
 .container {
   display: flex;
 }
