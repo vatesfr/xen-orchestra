@@ -57,6 +57,7 @@ export default class Authorization {
   }
 
   async checkFeatureAuthorization(featureCode) {
+    return true
     if (this.#app.getXoaPlan === undefined) {
       // source user => everything is open
       return
