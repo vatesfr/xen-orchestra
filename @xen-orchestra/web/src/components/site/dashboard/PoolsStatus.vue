@@ -9,6 +9,7 @@
 </template>
 
 <script lang="ts" setup>
+import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import { SERVER_STATUS } from '@/types/xo/server.type'
 import VtsDonutChartWithLegend, {
@@ -25,9 +26,10 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { records: servers, isReady } = useServerStore().subscribe()
+const { has: hasPool } = usePoolStore().subscribe()
 
 const serversCount = useItemCounter(servers, {
-  connected: ({ status }) => status === SERVER_STATUS.CONNECTED,
+  connected: server => server.status === SERVER_STATUS.CONNECTED && hasPool(server.poolId),
   unreachable: ({ status }) => status === SERVER_STATUS.DISCONNECTED,
 })
 
