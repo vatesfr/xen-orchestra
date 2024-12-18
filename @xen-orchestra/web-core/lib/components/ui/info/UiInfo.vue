@@ -20,8 +20,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
+export type InfoAccent = 'info' | 'success' | 'warning' | 'danger'
+
 type Props = {
-  accent: 'info' | 'success' | 'warning' | 'danger'
+  accent: InfoAccent
 }
 
 const props = defineProps<Props>()
