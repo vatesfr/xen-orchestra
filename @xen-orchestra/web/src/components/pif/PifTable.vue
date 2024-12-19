@@ -21,12 +21,14 @@
           <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
         </template>
       </UiTableActions>
-      <UiTopBottomTable
-        class="selection"
-        :selected-items="selected.length"
-        :total-items="usableRefs.length"
-        @toggle-select-all="toggleSelect"
-      />
+      <div class="selection">
+        <UiTopBottomTable
+          :selected-items="selected.length"
+          :total-items="usableIds.length"
+          @toggle-select-all="toggleSelect"
+        />
+        <UiTablePagination :total-items="usableIds.length" />
+      </div>
     </div>
     <div class="table-container">
       <VtsTable v-if="isReady" vertical-border class="table">
@@ -82,12 +84,14 @@
       </VtsTable>
       <VtsLoadingHero v-else type="table" />
     </div>
-    <UiTopBottomTable
-      class="selection"
-      :selected-items="selected.length"
-      :total-items="usableRefs.length"
-      @toggle-select-all="toggleSelect"
-    />
+    <div class="selection">
+      <UiTopBottomTable
+        :selected-items="selected.length"
+        :total-items="usableIds.length"
+        @toggle-select-all="toggleSelect"
+      />
+      <UiTablePagination :total-items="usableIds.length" />
+    </div>
   </div>
 </template>
 
@@ -107,6 +111,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
@@ -155,11 +160,11 @@ const filteredPifs = computed(() => {
   )
 })
 
-const usableRefs = computed(() => props.pifs.map(item => item.id))
-const { selected, areAllSelected } = useMultiSelect(usableRefs)
+const usableIds = computed(() => props.pifs.map(item => item.id))
+const { selected, areAllSelected } = useMultiSelect(usableIds)
 
 const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? usableRefs.value : []
+  selected.value = selected.value.length === 0 ? usableIds.value : []
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
@@ -222,6 +227,8 @@ const getPifStatus = (pif: XoPif) => {
 
   .selection {
     margin: 0.8rem 0;
+    display: flex;
+    justify-content: space-between;
   }
 
   .table-container {
