@@ -1151,7 +1151,7 @@ const messages = {
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
   raidHealthy: 'All mdadm RAID are healthy ✅',
-  raidStateWarning: 'RAID state needs your attention : {state}',
+  raidStateWarning: 'RAID state needs your attention: {state}',
   raidStatus: 'RAID Status',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   vendorId: 'Vendor ID',
