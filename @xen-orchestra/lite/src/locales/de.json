@@ -57,7 +57,6 @@
 
   "descending": "absteigend",
   "description": "Beschreibung",
-  "dhcp": "DHCP",
   "disabled": "deaktiviert",
   "display": "Display",
   "dns": "DNS",
@@ -118,7 +117,6 @@
   "n-hosts-awaiting-patch": "Der Host {n} benötigt dieses Patch | Die Hosts {n} benötigen dieses Patch",
   "n-missing": "{n} verbleibend",
   "name": "Name",
-  "netmask": "Netzmaske",
   "network-download": "Download",
   "network-throughput": "Netzwerkdurchsatz",
   "network-upload": "Upload",
