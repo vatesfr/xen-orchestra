@@ -139,7 +139,19 @@ export default class XenServers {
 
   async updateXenServer(
     id,
-    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
+    {
+      allowUnauthorized,
+      enabled,
+      error,
+      host,
+      label,
+      password,
+      poolNameDescription,
+      poolNameLabel,
+      readOnly,
+      username,
+      httpProxy,
+    }
   ) {
     const server = await this.getXenServerWithCredentials(id)
     const xapi = this._xapis[id]
@@ -155,6 +167,8 @@ export default class XenServers {
     }
 
     if (label !== undefined) server.label = label || undefined
+    if (poolNameDescription !== undefined) server.poolNameDescription = poolNameDescription || undefined
+    if (poolNameLabel !== undefined) server.poolNameLabel = poolNameLabel || undefined
     if (host) server.host = host
     if (username) server.username = username
     if (password) server.password = password
@@ -339,6 +353,12 @@ export default class XenServers {
       const poolId = xapi.pool.$id
       if (serverIdsByPool[poolId] !== undefined) {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
+      }
+      if (xapi.pool.name_label !== undefined || xapi.pool.name_description !== undefined) {
+        await this.updateXenServer(id, {
+          poolNameLabel: xapi.pool.name_label,
+          poolNameDescription: xapi.pool.name_description,
+        })
       }
 
       serverIdsByPool[poolId] = server.id
