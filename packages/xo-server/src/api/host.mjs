@@ -9,6 +9,8 @@ import { X509Certificate } from 'node:crypto'
 import backupGuard from './_backupGuard.mjs'
 import { asyncEach } from '@vates/async-each'
 
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
+
 const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
 const IPMI_CACHE = new TTLCache({
@@ -20,16 +22,13 @@ const CACHE_2CRSI = new TTLCache({
   ttl: 6e4,
 })
 
-const CACHE_MDADM = new TTLCache({
-  ttl: 6e5,
-})
-
 const log = createLogger('xo:api:host')
 
 // ===================================================================
 
 export async function setMaintenanceMode({ host, maintenance, vmsToForceMigrate }) {
   const xapi = this.getXapi(host)
+
   if (vmsToForceMigrate) {
     await asyncEach(vmsToForceMigrate, async vmUuid => {
       const record = await xapi.getRecordByUuid('VM', vmUuid)
@@ -627,9 +626,10 @@ getSmartctlInformation.resolve = {
   host: ['id', 'host', 'view'],
 }
 
-export function getMdadmHealth({ host }) {
+function _getMdadmHealth({ host }) {
   return this.getXapi(host).host_getMdadmHealth(host._xapiRef)
 }
+export const getMdadmHealth = debounceWithKey(_getMdadmHealth, 6e5, ({ host }) => host.id)
 
 getMdadmHealth.description = 'retrieve the mdadm RAID health information'
 

@@ -352,14 +352,16 @@ export default class extends Component {
   displayMdadmStatus = createSelector(
     () => this.props.mdadmHealth,
     mdadmHealth => {
-      if (!mdadmHealth) return _('installRaidPlugin')
+      if (mdadmHealth != null) {
+        return _('installRaidPlugin')
+      }
 
       const raidState = mdadmHealth.raid?.State
-      return raidState
-        ? ['clean', 'active'].includes(raidState)
-          ? _('raidHealthy')
-          : _('raidStateWarning', { state: raidState })
-        : _('noRaidInformationAvailable')
+      if (raidState === undefined) {
+        return _('noRaidInformationAvailable')
+      }
+
+      return ['clean', 'active'].includes(raidState) ? _('raidHealthy') : _('raidStateWarning', { state: raidState })
     }
   )
 

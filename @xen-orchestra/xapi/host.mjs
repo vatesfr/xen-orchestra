@@ -11,7 +11,6 @@ import {
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
   isRelevantIpmiSensor,
 } from './host/_ipmi.mjs'
-import { debounceWithKey } from '../../packages/xo-server/src/_pDebounceWithKey.mjs'
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -186,5 +185,4 @@ export default Host
 
 decorateClass(Host, {
   smartReboot: defer,
-  getMdadmHealth: [debounceWithKey, 6e5, ref => ref],
 })
