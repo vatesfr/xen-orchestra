@@ -21,6 +21,7 @@
   "core.quick-actions": "Quick actions",
 
   "core.search": "Search",
+  "core.show-by": "Show by",
 
   "core.query-search-bar.label": "Search Engine",
   "core.query-search-bar.placeholder": "Write your query…",
@@ -29,6 +30,7 @@
   "core.select.all": "Select all",
   "core.select.none": "Select none",
   "core.select.unselect": "Unselect all",
+  "core.select.n-object-of": "{from} - {to} of {total} objects",
   "core.select.n-selected-of": "{count} selected of {total} objects",
   "core.sidebar.close": "Close sidebar",
   "core.sidebar.lock": "Lock sidebar open",
