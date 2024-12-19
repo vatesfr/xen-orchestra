@@ -2,10 +2,10 @@
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="goToPreviousPage()" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="goToNextPage()" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="goToLastPage()" />
+      <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
+      <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleLeft" @click="goToPreviousPage()" />
+      <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleRight" @click="goToNextPage()" />
+      <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleDoubleRight" @click="goToLastPage()" />
     </div>
     <span class="typo p3-regular label">
       {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
@@ -42,7 +42,7 @@ export type PaginationPayload = {
   endIndex: number
 }
 
-const { totalItems } = defineProps<{
+const { totalItems, disabled = false } = defineProps<{
   totalItems: number
   disabled?: boolean
 }>()
