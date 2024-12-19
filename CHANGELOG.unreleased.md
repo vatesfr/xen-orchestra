@@ -37,7 +37,6 @@
 
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
-- xen-api minor
 - xo-server minor
 - xo-web minor
 
