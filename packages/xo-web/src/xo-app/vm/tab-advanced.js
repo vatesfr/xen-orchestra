@@ -774,7 +774,10 @@ export default class TabAdvanced extends Component {
 
   _getXenStoreData = createSelector(
     () => this.props.vm,
-    vm => Object.entries(vm.xenStoreData).filter(([key]) => key.startsWith(XENSTORE_PREFIX))
+    vm =>
+      Object.entries(vm.xenStoreData)
+        .filter(([key]) => key.startsWith(XENSTORE_PREFIX))
+        .sort()
   )
 
   render() {
