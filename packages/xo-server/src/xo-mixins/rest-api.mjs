@@ -465,6 +465,8 @@ async function _getDashboardStats(app) {
   let nUnreachableServers = 0
   let nUnknownServers = 0
   servers.forEach(server => {
+    // it may happen that some servers are marked as "connected", but no pool matches "server.pool"
+    // so they are counted as `nUnknownServers`
     if (server.status === 'connected' && poolIds.includes(server.poolId)) {
       nConnectedServers++
       return
