@@ -755,6 +755,17 @@ export const subscribeIpmiSensors = host => {
   return subscribeHostsIpmiSensors[hostId]
 }
 
+const subscribeHostsMdadmHealth = {}
+export const subscribeMdadmHealth = host => {
+  const hostId = resolveId(host)
+
+  if (subscribeHostsMdadmHealth[hostId] === undefined) {
+    subscribeHostsMdadmHealth[hostId] = createSubscription(() => _call('host.getMdadmHealth', { id: hostId }))
+  }
+
+  return subscribeHostsMdadmHealth[hostId]
+}
+
 export const getHostBiosInfo = host => _call('host.getBiosInfo', { id: resolveId(host) })
 
 const subscribeVmSecurebootReadiness = {}

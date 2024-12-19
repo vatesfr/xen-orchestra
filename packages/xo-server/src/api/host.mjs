@@ -9,6 +9,8 @@ import { X509Certificate } from 'node:crypto'
 import backupGuard from './_backupGuard.mjs'
 import { asyncEach } from '@vates/async-each'
 
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
+
 const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
 const IPMI_CACHE = new TTLCache({
@@ -621,6 +623,21 @@ getSmartctlInformation.params = {
 }
 
 getSmartctlInformation.resolve = {
+  host: ['id', 'host', 'view'],
+}
+
+function _getMdadmHealth({ host }) {
+  return this.getXapi(host).host_getMdadmHealth(host._xapiRef)
+}
+export const getMdadmHealth = debounceWithKey(_getMdadmHealth, 6e5, ({ host }) => host.id)
+
+getMdadmHealth.description = 'retrieve the mdadm RAID health information'
+
+getMdadmHealth.params = {
+  id: { type: 'string' },
+}
+
+getMdadmHealth.resolve = {
   host: ['id', 'host', 'view'],
 }
 
