@@ -23,18 +23,16 @@ import { computed } from 'vue'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger'
 
-type Props = {
+const { accent } = defineProps<{
   accent: InfoAccent
   wrap?: boolean
-}
-
-const { accent } = defineProps<Props>()
+}>()
 
 defineSlots<{
   default(): any
 }>()
 
-const iconByAccent: Record<Props['accent'], IconDefinition> = {
+const iconByAccent: Record<InfoAccent, IconDefinition> = {
   info: faInfo,
   success: faCheck,
   warning: faExclamation,
