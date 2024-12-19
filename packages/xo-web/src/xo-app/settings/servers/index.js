@@ -38,7 +38,7 @@ const COLUMNS = [
   {
     itemRenderer: (server, formatMessage) => (
       <Text
-        value={server.label || ''}
+        value={server.label || server.poolNameLabel || ''}
         onChange={label => editServer(server, { label })}
         placeholder={formatMessage(messages.serverPlaceHolderLabel)}
       />
