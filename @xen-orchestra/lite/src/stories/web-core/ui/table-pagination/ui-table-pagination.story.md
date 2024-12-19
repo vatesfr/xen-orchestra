@@ -1,4 +1,4 @@
-```vue-script
+```typescript
 type PaginationPayload = {
   currentPage: number
   pageSize: number
