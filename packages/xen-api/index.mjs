@@ -420,7 +420,7 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  async getResource($cancelToken, pathname, { host, query, task } = {}) {
+  async getResource($cancelToken, pathname, { host, query, task, ignoreDefaultBackupNetwork = false } = {}) {
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
 
     query = { ...query, session_id: this.sessionId }
@@ -440,7 +440,7 @@ export class Xapi extends EventEmitter {
 
     let url = new URL('http://localhost')
     url.protocol = this._url.protocol
-    await this._setHostAddressInUrl(url, host)
+    await this._setHostAddressInUrl(url, host, { ignoreDefaultBackupNetwork })
 
     const response = await this._addSyncStackTrace(
       pRetry(
@@ -1003,9 +1003,9 @@ export class Xapi extends EventEmitter {
     })
   }
 
-  async _setHostAddressInUrl(url, host) {
+  async _setHostAddressInUrl(url, host, { ignoreDefaultBackupNetwork } = {}) {
     const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
-    if (host === undefined && poolBackupNetwork === undefined) {
+    if (ignoreDefaultBackupNetwork || (host === undefined && poolBackupNetwork === undefined)) {
       const xapiUrl = this._url
       url.hostname = xapiUrl.hostname
       url.port = xapiUrl.port

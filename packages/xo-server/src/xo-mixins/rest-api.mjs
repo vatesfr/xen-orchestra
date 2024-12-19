@@ -621,7 +621,7 @@ export default class RestApi {
         async 'audit.txt'(req, res) {
           const host = req.xapiObject
 
-          const response = await host.$xapi.getResource('/audit_log', { host })
+          const response = await host.$xapi.getResource('/audit_log', { host, ignoreDefaultBackupNetwork: true })
 
           res.setHeader('content-type', 'text/plain')
           await pipeline(response.body, compressMaybe(req, res))
@@ -630,7 +630,10 @@ export default class RestApi {
         async 'logs.tgz'(req, res) {
           const host = req.xapiObject
 
-          const response = await host.$xapi.getResource('/host_logs_download', { host })
+          const response = await host.$xapi.getResource('/host_logs_download', {
+            host,
+            ignoreDefaultBackupNetwork: true,
+          })
 
           res.setHeader('content-type', 'application/gzip')
           await pipeline(response.body, res)
