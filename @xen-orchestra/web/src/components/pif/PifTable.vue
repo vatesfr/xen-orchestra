@@ -27,7 +27,15 @@
           :total-items="usableIds.length"
           @toggle-select-all="toggleSelect"
         />
-        <UiTablePagination :total-items="usableIds.length" />
+        {{ pagination }}
+        <UiTablePagination
+          v-model="pagination.currentPage"
+          v-model:per-page="pagination.pageSize"
+          v-model:start-index="pagination.startIndex"
+          v-model:end-index="pagination.endIndex"
+          :total-items="usableIds.length"
+        />
+        <!--        <UiTablePagination :total-items="usableIds.length" @change="handle($event)" /> -->
       </div>
     </div>
     <div class="table-container">
@@ -90,7 +98,14 @@
         :total-items="usableIds.length"
         @toggle-select-all="toggleSelect"
       />
-      <UiTablePagination :total-items="usableIds.length" />
+      {{ pagination.pageSize }}
+      <UiTablePagination
+        v-model="pagination.currentPage"
+        v-model:per-page="pagination.pageSize"
+        v-model:start-index="pagination.startIndex"
+        v-model:end-index="pagination.endIndex"
+        :total-items="usableIds.length"
+      />
     </div>
   </div>
 </template>
@@ -111,7 +126,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import UiTablePagination, { type PaginationPayload } from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
@@ -142,6 +157,12 @@ const emit = defineEmits<{
 }>()
 
 const { get, isReady } = useNetworkStore().subscribe()
+const pagination = ref<PaginationPayload>({
+  currentPage: 0,
+  pageSize: 0,
+  startIndex: 0,
+  endIndex: 0,
+})
 
 const getNetworkName = (pif: XoPif) => {
   const network: XoNetwork = get(pif.$network)!
@@ -154,10 +175,12 @@ const getPifData = (pif: XoPif, type: keyof XoPif) =>
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
-  if (!searchQuery.value) return props.pifs
-  return props.pifs.filter(pif =>
+  let filtered = props.pifs
+  if (!searchQuery.value) return props.pifs.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
+  filtered = props.pifs.filter(pif =>
     Object.values(pif).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
+  return filtered.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
 })
 
 const usableIds = computed(() => props.pifs.map(item => item.id))

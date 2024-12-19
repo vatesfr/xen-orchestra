@@ -1,5 +1,6 @@
 <!-- v2 -->
 <template>
+  {{ pageSize }}
   <div class="ui-table-pagination">
     <div class="buttons-container">
       <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
@@ -33,7 +34,7 @@ import {
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
 import { useOffsetPagination } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 
 export type PaginationPayload = {
   currentPage: number
@@ -49,9 +50,13 @@ const { totalItems, disabled = false } = defineProps<{
 
 const emit = defineEmits<{
   change: [payload: PaginationPayload]
+  'update:modelValue': number
+  'update:per-page': number
+  'update:start-index': number
+  'update:end-index': number
 }>()
 
-const pageSize = ref(50)
+const pageSize = ref(10)
 const pageSizeOptions = [10, 50, 100, 150, 200]
 const {
   currentPage,
@@ -75,10 +80,14 @@ const goToLastPage = () => {
   currentPage.value = pageCount.value
 }
 
-watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
+watchEffect(() => {
+  emit('update:modelValue', currentPage.value)
+  emit('update:per-page', pageSize.value)
+  emit('update:start-index', startIndex.value)
+  emit('update:end-index', endIndex.value)
   emit('change', {
-    currentPage: newPage,
-    pageSize: newPageSize,
+    currentPage: currentPage.value,
+    pageSize: currentPageSize.value,
     startIndex: startIndex.value,
     endIndex: endIndex.value,
   })
