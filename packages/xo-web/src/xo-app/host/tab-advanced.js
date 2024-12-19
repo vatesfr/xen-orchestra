@@ -352,7 +352,7 @@ export default class extends Component {
   displayMdadmStatus = createSelector(
     () => this.props.mdadmHealth,
     mdadmHealth => {
-      if (mdadmHealth != null) {
+      if (mdadmHealth == null) {
         return _('installRaidPlugin')
       }
 
