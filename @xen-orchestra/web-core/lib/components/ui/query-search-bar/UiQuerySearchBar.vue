@@ -7,6 +7,8 @@
     <UiInput
       :id
       v-model="value"
+      type="text"
+      accent="info"
       :aria-label="uiStore.isMobile ? $t('core.query-search-bar.label') : undefined"
       :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
       :placeholder="$t('core.query-search-bar.placeholder')"

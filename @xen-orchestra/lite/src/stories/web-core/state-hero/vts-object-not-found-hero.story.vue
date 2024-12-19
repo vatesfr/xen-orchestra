@@ -1,5 +1,11 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[prop('id').required().str().preset('123-456-789').widget()]">
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[
+      prop('id').required().str().preset('123-456-789').widget(),
+      prop('type').required().enum('page', 'card', 'table', 'panel').preset('card').widget(),
+    ]"
+  >
     <VtsObjectNotFoundHero v-bind="properties" />
   </ComponentStory>
 </template>

@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <svg class="ui-donut-chart" viewBox="0 0 100 100">
-    <circle class="segment" cx="50" cy="50" r="40" />
+    <circle class="segment accent--muted" cx="50" cy="50" r="40" />
     <circle
       v-for="(segment, index) in computedSegments"
       :key="index"
@@ -44,8 +44,8 @@ const computedSegments = computed(() => {
   let nextOffset = circumference / 4
 
   return props.segments.map(segment => {
+    const percent = totalValue.value === 0 ? 0 : (segment.value / totalValue.value) * circumference
     const offset = nextOffset
-    const percent = (segment.value / totalValue.value) * circumference
     nextOffset -= percent
 
     return {

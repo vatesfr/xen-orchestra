@@ -67,7 +67,6 @@
   "documentation": "Documentation",
   "edit-config": "Modifier config",
   "enabled": "Activé",
-  "error-no-data": "Erreur, impossible de collecter les données.",
   "error-occurred": "Une erreur est survenue",
   "export": "Exporter",
   "export-n-vms": "Exporter 1 VM | Exporter {n} VMs",
@@ -97,7 +96,6 @@
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
   "fullscreen-leave": "Quitter plein écran",
-  "gateway": "Passerelle",
   "n-gb-left": "{n} Go libres",
   "n-gb-required": "{n} Go requis",
   "go-back": "Revenir en arrière",
@@ -108,6 +106,65 @@
   "host.inactive": "Inactif | Inactif | Inactifs",
 
   "invalid-field": "Champ invalide",
+
+  "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
+  "job.vm-copy.in-progress": "Copie en cours…",
+  "job.vm-copy.missing-vms": "Aucune VM à copier",
+
+  "job.vm-delete.bad-power-state": "La VM doit être arrêtée",
+  "job.vm-delete.in-progress": "Suppression en cours…",
+  "job.vm-delete.missing-vms": "Aucune VM à supprimer",
+
+  "job.vm-force-reboot.bad-power-state": "La VM doit être allumée ou en pause",
+  "job.vm-force-reboot.in-progress": "Redémarrage forcé en cours…",
+  "job.vm-force-reboot.missing-vms": "Aucune VM à redémarrer de force",
+
+  "job.vm-force-shutdown.bad-power-state": "La VM doit être allumée, suspendue ou en pause",
+  "job.vm-force-shutdown.in-progress": "Arrêt forcé en cours…",
+  "job.vm-force-shutdown.missing-vms": "Aucune VM à arrêter de force",
+
+  "job.vm-export.in-progress": "Exportation en cours…",
+  "job.vm-export.missing-compression": "La compression est requise",
+  "job.vm-export.missing-vms": "Aucune VM à exporter",
+  "job.vm-export.not-allowed": "VM non autorisée à être exportée",
+
+  "job.vm-migrate.bad-power-state": "La VM doit être allumée",
+  "job.vm-migrate.in-progress": "Migration en cours…",
+  "job.vm-migrate.missing-host": "L'hôte de destination est requis",
+  "job.vm-migrate.missing-vms": "Aucune VM à migrer",
+
+  "job.vm-pause.bad-power-state": "La VM doit être allumée",
+  "job.vm-pause.in-progress": "Mise en pause en cours…",
+  "job.vm-pause.missing-vms": "Aucune VM à mettre en pause",
+
+  "job.vm-reboot.bad-power-state": "La VM doit être allumée",
+  "job.vm-reboot.in-progress": "Redémarrage en cours…",
+  "job.vm-reboot.missing-vms": "Aucune VM à redémarrer",
+
+  "job.vm-resume.bad-power-state": "La VM doit être en pause ou suspendue",
+  "job.vm-resume.in-progress": "Reprise en cours…",
+  "job.vm-resume.missing-vms": "Aucune VM à reprendre",
+
+  "job.vm-shutdown.bad-power-state": "La VM doit être allumée",
+  "job.vm-shutdown.in-progress": "Arrêt en cours…",
+  "job.vm-shutdown.missing-vms": "Aucune VM à arrêter",
+
+  "job.vm-snapshot.in-progress": "Instantané en cours…",
+  "job.vm-snapshot.missing-vms": "Aucune VM pour l'instantané",
+
+  "job.vm-start.bad-power-state": "La VM doit être arrêtée",
+  "job.vm-start.in-progress": "Démarrage en cours…",
+  "job.vm-start.missing-vms": "Aucune VM à démarrer",
+
+  "job.vm-start-on.bad-power-state": "La VM doit être arrêtée",
+  "job.vm-start-on.in-progress": "Démarrage en cours…",
+  "job.vm-start-on.missing-host": "L'hôte de destination est requis",
+  "job.vm-start-on.missing-vms": "Aucune VM à démarrer",
+
+  "job.vm-suspend.bad-power-state": "La VM doit être allumée",
+  "job.vm-suspend.in-progress": "Suspension en cours…",
+  "job.vm-suspend.missing-vms": "Aucune VM à suspendre",
+
   "keep-me-logged": "Rester connecté",
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
   "language": "Langue",

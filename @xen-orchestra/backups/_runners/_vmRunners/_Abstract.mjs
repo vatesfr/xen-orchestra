@@ -74,9 +74,12 @@ export const Abstract = class AbstractVmBackupRunner {
 
     // check if current VM has tags
     const tags = this._tags
-    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
 
-    if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
+    // accept both 'xo:no-health-check' and 'xo:no-health-check=reason'
+    const vmAlwaysIgnored = tags.some(t => t.startsWith('xo:no-health-check'))
+    const intersect = !vmAlwaysIgnored && settings.healthCheckVmsWithTags.some(t => tags.includes(t))
+
+    if (vmAlwaysIgnored || (settings.healthCheckVmsWithTags.length !== 0 && !intersect)) {
       // create a task to have an info in the logs and reports
       return Task.run(
         {

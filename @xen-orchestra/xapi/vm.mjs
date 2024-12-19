@@ -389,7 +389,7 @@ class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
-    $defer.onFailure.call(this, 'VM.destroy', ref)
+    $defer.onFailure.call(this, 'call', 'VM.destroy', ref)
 
     bios_strings = cleanBiosStrings(bios_strings)
     if (bios_strings !== undefined) {
@@ -463,7 +463,7 @@ class Vm {
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
-      await this.call('VM.hard_shutdown', vmRef)
+      await this.callAsync('VM.hard_shutdown', vmRef)
     }
 
     await Promise.all([
@@ -480,7 +480,7 @@ class Vm {
 
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
-    await this.call('VM.destroy', vmRef)
+    await this.callAsync('VM.destroy', vmRef)
 
     await Promise.all([
       asyncMap(vm.snapshots, snapshotRef =>
@@ -762,7 +762,7 @@ class Vm {
 
   async disableChangedBlockTracking(vmRef) {
     const vdiRefs = await this.VM_getDisks(vmRef)
-    await Promise.all(vdiRefs.map(vdiRef => this.call('VDI.disable_cbt', vdiRef)))
+    await Promise.all(vdiRefs.map(vdiRef => this.callAsync('VDI.disable_cbt', vdiRef)))
   }
 }
 export default Vm

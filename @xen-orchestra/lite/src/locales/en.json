@@ -67,7 +67,6 @@
   "documentation": "Documentation",
   "edit-config": "Edit config",
   "enabled": "Enabled",
-  "error-no-data": "Error, can't collect data.",
   "error-occurred": "An error has occurred",
   "export": "Export",
   "export-n-vms": "Export 1 VM | Export {n} VMs",
@@ -97,7 +96,6 @@
   "force-reboot": "Force reboot",
   "force-shutdown": "Force shutdown",
   "fullscreen-leave": "Leave fullscreen",
-  "gateway": "Gateway",
   "n-gb-left": "{n} GB left",
   "n-gb-required": "{n} GB required",
   "go-back": "Go back",
@@ -108,6 +106,65 @@
   "host.inactive": "Inactive",
 
   "invalid-field": "Invalid field",
+
+  "job.vm-copy.bad-power-state": "VM must be halted",
+  "job.vm-copy.in-progress": "Copy in progress…",
+  "job.vm-copy.missing-vms": "No VM to copy",
+
+  "job.vm-delete.bad-power-state": "VM must be halted",
+  "job.vm-delete.in-progress": "Delete in progress…",
+  "job.vm-delete.missing-vms": "No VM to delete",
+
+  "job.vm-force-reboot.bad-power-state": "VM must be running or paused",
+  "job.vm-force-reboot.in-progress": "Force reboot in progress…",
+  "job.vm-force-reboot.missing-vms": "No VM to force reboot",
+
+  "job.vm-force-shutdown.bad-power-state": "VM must be running, suspended or paused",
+  "job.vm-force-shutdown.in-progress": "Force shutdown in progress…",
+  "job.vm-force-shutdown.missing-vms": "No VM to force shutdown",
+
+  "job.vm-export.in-progress": "Export in progress…",
+  "job.vm-export.missing-compression": "Compression must be provided",
+  "job.vm-export.missing-vms": "No VM to export",
+  "job.vm-export.not-allowed": "A VM is not allowed to export",
+
+  "job.vm-migrate.bad-power-state": "VM must be running",
+  "job.vm-migrate.in-progress": "Migrate in progress…",
+  "job.vm-migrate.missing-host": "Destination host must be provided",
+  "job.vm-migrate.missing-vms": "No VM to migrate",
+
+  "job.vm-pause.bad-power-state": "VM must be running",
+  "job.vm-pause.in-progress": "Pause in progress…",
+  "job.vm-pause.missing-vms": "No VM to pause",
+
+  "job.vm-reboot.bad-power-state": "VM must be running",
+  "job.vm-reboot.in-progress": "Reboot in progress…",
+  "job.vm-reboot.missing-vms": "No VM to reboot",
+
+  "job.vm-resume.bad-power-state": "VM must be paused or suspended",
+  "job.vm-resume.in-progress": "Resume in progress…",
+  "job.vm-resume.missing-vms": "No VM to resume",
+
+  "job.vm-shutdown.bad-power-state": "VM must be running",
+  "job.vm-shutdown.in-progress": "Shutdown in progress…",
+  "job.vm-shutdown.missing-vms": "No VM to shutdown",
+
+  "job.vm-snapshot.in-progress": "Snapshot in progress…",
+  "job.vm-snapshot.missing-vms": "No VM to snapshot",
+
+  "job.vm-start.bad-power-state": "VM must be halted",
+  "job.vm-start.in-progress": "Start in progress…",
+  "job.vm-start.missing-vms": "No VM to start",
+
+  "job.vm-start-on.bad-power-state": "VM must be halted",
+  "job.vm-start-on.in-progress": "Start in progress…",
+  "job.vm-start-on.missing-host": "Destination host must be provided",
+  "job.vm-start-on.missing-vms": "No VM to start",
+
+  "job.vm-suspend.bad-power-state": "VM must be running",
+  "job.vm-suspend.in-progress": "Suspend in progress…",
+  "job.vm-suspend.missing-vms": "No VM to suspend",
+
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
   "language": "Language",

@@ -33,7 +33,9 @@
 
   "dashboard": "داشبورد",
   "documentation-name": "اسناد {name}",
+  "error-no-data": "خطا، نمی توان داده ها را جمع آوری کرد.",
   "fullscreen": "تمام صفحه",
+  "gateway": "دروازه",
   "learn-more": "بیشتر بدانید",
   "loading-in-progress": "بارگیری در حال انجام است…",
   "log-out": "خروج",

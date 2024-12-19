@@ -566,8 +566,12 @@ export default class Xapi extends XapiBase {
     for (const vbd of vbds) {
       if (vbd.type === 'Disk') {
         const vdi = vbd.$VDI
-        // Ignore VDI snapshots which have a parent
-        if (vdi.$snapshot_of !== undefined) {
+        // We need to explicitly test VDI.is_a_snapshot because there is a problem with XAPI itself (observed on
+        // an XCP-ng 8.1 host, might be related to CBT), where some non-snapshot VDIs have a snapshot_of
+        // property not equal to OpaqueRef:NULL as expected but containing a reference to an existing VDI.
+        //
+        // https://team.vates.fr/vates/pl/9m4u5rsr7tfcdroykwq6i6mcmo
+        if (vdi.is_a_snapshot && vdi.$snapshot_of !== undefined) {
           continue
         }
         vdis[vdi.$ref] = getMigrationSrRef(vdi)
@@ -1062,7 +1066,7 @@ export default class Xapi extends XapiBase {
         const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
         if (vbds.length === 0) {
           log.debug(`will disable CBT on ${vdi.name_label}  `)
-          await this.call('VDI.disable_cbt', vdi.$ref)
+          await this.callAsync('VDI.disable_cbt', vdi.$ref)
         } else {
           if (vbds.length > 1) {
             // no implicit workaround if vdi is attached to multiple VMs

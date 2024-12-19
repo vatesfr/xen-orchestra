@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^2.1.1",
+    "@floating-ui/vue": "^1.1.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-regular-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
@@ -31,7 +32,7 @@
     "@vueuse/core": "^10.7.1",
     "@vueuse/math": "^10.7.1",
     "@vueuse/shared": "^10.7.1",
-    "@xen-orchestra/web-core": "^0.7.0",
+    "@xen-orchestra/web-core": "^0.9.0",
     "complex-matcher": "^0.7.1",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",

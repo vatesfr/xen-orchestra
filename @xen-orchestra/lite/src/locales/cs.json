@@ -67,7 +67,6 @@
   "documentation": "Dokumentace",
   "edit-config": "Upravit nastavení",
   "enabled": "Povoleno",
-  "error-no-data": "Chyba – není možné shromažďovat údaje.",
   "error-occurred": "Došlo k chybě",
   "export": "Export",
   "export-n-vms": "Exportovat 1 virt. stroj | Exportovat {n} virt. strojů",

@@ -22,3 +22,8 @@
 
 - [isElse](../lib/utils/if-else.utils.md)
 - [toVariants](../lib/utils/to-variants.util.md)
+
+# Packages
+
+- [Job System](../lib/packages/job/README.md)
+- [Menu System](../lib/packages/menu/README.md)

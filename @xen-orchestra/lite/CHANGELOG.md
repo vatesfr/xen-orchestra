@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- Fix persistent scrollbar on the right (PR [#8191](https://github.com/vatesfr/xen-orchestra/pull/8191))
+
 ## **0.6.0** (2024-11-29)
 
 - [Pool/Dashboard] `Patches` and `Status` cards are displayed with a greater minimum width (PR [#8108](https://github.com/vatesfr/xen-orchestra/pull/8108))

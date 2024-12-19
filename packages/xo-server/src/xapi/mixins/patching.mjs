@@ -1,6 +1,8 @@
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
+import keyBy from 'lodash/keyBy.js'
 import pickBy from 'lodash/pickBy.js'
+import semver from 'semver'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
 import { asyncEach } from '@vates/async-each'
@@ -23,6 +25,8 @@ import { useUpdateSystem } from '../utils.mjs'
 //    _getXenUpdates           Map of Objects
 // # LIST
 //    _listXcpUpdates          XCP available updates - Array of Objects
+//    _listXsUpdates           XS >= 8.4 available updates - Array of Objects
+//    _fetchXsUpdatesEndpoint  XS >= 8.4 fetch `/updates` endpoint
 //    _listPatches             XS patches (installed or not) - Map of Objects
 //    _listInstalledPatches    XS installed patches on the host - Map of Booleans
 //    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting - Array of Objects
@@ -39,6 +43,7 @@ import { useUpdateSystem } from '../utils.mjs'
 const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
+const _isXs = host => host.software_version.product_brand === 'XenServer'
 
 const LISTING_DEBOUNCE_TIME_MS = 60000
 
@@ -46,8 +51,10 @@ async function _listMissingPatches(hostId) {
   const host = this.getObject(hostId)
   return _isXcp(host)
     ? this._listXcpUpdates(host)
-    : // TODO: list paid patches of free hosts as well so the UI can show them
-      this._listInstallablePatches(host)
+    : _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
+      ? this._listXsUpdates(host)
+      : // TODO: list paid patches of free hosts as well so the UI can show them
+        this._listInstallablePatches(host)
 }
 
 const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE_TIME_MS, hostId => hostId)
@@ -155,6 +162,99 @@ const methods = {
     }
 
     return result
+  },
+
+  /**
+   * fetch XS >= 8.4 updates
+   * @param {Host} host
+   * @returns {Promise<{
+   * hosts: Array<{
+   *  ref: String,
+   *  guidance: {
+   *    mandatory: Array<String>,
+   *    recommended: Array<String>,
+   *    full: Array<String>
+   *  },
+   *  RPMS: Array<String>,
+   *  updates: Array<String>,
+   *  livepatches: Array<{
+   *    component: String,
+   *    base_build_id: String,
+   *    base_release: String,
+   *    to_version: String,
+   *    to_release: String
+   *  }>
+   * }>,
+   * updates: Array<{
+   *  id: String,
+   *  summary: String,
+   *  description: String,
+   *  "special-info": String,
+   *  URL: String,
+   *  type: String,
+   *  issued: String,
+   *  severity: String,
+   *  livepatches: Array,
+   *  guidance: {
+   *    mandatory: Array<String>,
+   *    recommended: Array<String>,
+   *    full: Array<String>
+   *  },
+   *  title: String,
+   * }>,
+   * hash: String
+   * }>}
+   */
+  async _fetchXsUpdatesEndpoint(host) {
+    const { xo } = this
+
+    const serverId = xo.getXenServerIdByObject({ $pool: host.$pool.uuid, id: host.uuid })
+    const server = await xo.getXenServerWithCredentials(serverId)
+
+    const url = new URL(`http://${server.host}/updates`)
+    url.protocol = this._url.protocol
+    const opts = {
+      headers: { Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}` },
+      rejectUnauthorized: !this._allowUnauthorized,
+    }
+
+    const resp = await xo.httpRequest(url, opts)
+    return resp.json()
+  },
+
+  // List updates for XS >= 8.4
+  async _listXsUpdates(host) {
+    const xsUpdates = await this._fetchXsUpdatesEndpoint(host)
+    const updateById = keyBy(xsUpdates.updates, 'id')
+
+    const updatesInfo = xsUpdates.hosts.find(_host => _host.ref === host.$ref)
+    if (updatesInfo === undefined) {
+      throw new Error(`Host ref: ${host.$ref} match no hosts`)
+    }
+
+    const hostUpdates = updatesInfo.updates.map(updateId => {
+      const update = updateById[updateId]
+
+      const guidances = new Set(Object.values(update.guidance).flat())
+
+      // issued date are in invalid format: '20240926T08:30:08Z'
+      // add - to resepct the ISO 8601 format
+      const formattedDate = update.issued.replace(/^(\d{4})(\d{2})(\d{2})T/, '$1-$2-$3T')
+
+      // Sometimes the update description can be an empty string.
+      // So I add the update summary to always have some context
+      const description = `${update.summary}\n${update.description}`
+
+      return {
+        date: formattedDate,
+        description,
+        documentationUrl: update.URL === 'None' ? undefined : update.URL,
+        guidance: Array.from(guidances).join(', '),
+        name: update.id,
+      }
+    })
+
+    return hostUpdates
   },
 
   // list all patches provided by Citrix for this host version regardless
@@ -557,6 +657,8 @@ export default decorateObject(methods, {
       return this
     },
   ],
+
+  _fetchXsUpdatesEndpoint: [debounceWithKey, LISTING_DEBOUNCE_TIME_MS, host => host.$pool.uuid],
 
   _poolWideInstall: deferrable,
 
