@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p class="message">
+    <p v-tooltip="!wrap" class="typo p3-regular" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
   </div>
@@ -10,6 +10,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   faCheck,
   faCircle,
@@ -22,24 +23,23 @@ import { computed } from 'vue'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger'
 
-type Props = {
+const { accent } = defineProps<{
   accent: InfoAccent
-}
-
-const props = defineProps<Props>()
+  wrap?: boolean
+}>()
 
 defineSlots<{
   default(): any
 }>()
 
-const iconByAccent: Record<Props['accent'], IconDefinition> = {
+const iconByAccent: Record<InfoAccent, IconDefinition> = {
   info: faInfo,
   success: faCheck,
   warning: faExclamation,
   danger: faXmark,
 }
 
-const icon = computed(() => iconByAccent[props.accent])
+const icon = computed(() => iconByAccent[accent])
 </script>
 
 <style lang="postcss" scoped>
@@ -50,10 +50,6 @@ const icon = computed(() => iconByAccent[props.accent])
 
   .icon {
     font-size: 1.6rem;
-  }
-
-  .message {
-    font-size: 1.2rem;
   }
 }
 </style>
