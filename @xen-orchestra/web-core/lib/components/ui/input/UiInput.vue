@@ -68,6 +68,7 @@ const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
 .ui-input {
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.4rem;
 

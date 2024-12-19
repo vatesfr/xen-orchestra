@@ -16,11 +16,11 @@
             {{ $t('uuid') }}
           </template>
           <template #value>
-            {{ props.pif.id }}
+            {{ pif.id }}
           </template>
           <template #addons>
             <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.id)" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(pif.id)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -44,10 +44,10 @@
             {{ $t('device') }}
           </template>
           <template #value>
-            {{ props.pif.device }}
+            {{ pif.device }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.device)" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(pif.device)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -55,7 +55,7 @@
             {{ $t('pif-status') }}
           </template>
           <template #value>
-            <PifStatus :pif="props.pif" card />
+            <VtsConnectionStatus :status="getPifStatus(pif)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -63,7 +63,7 @@
             {{ $t('physical-interface-status') }}
           </template>
           <template #value>
-            <PifStatus :pif="props.pif" card />
+            <VtsConnectionStatus :status="getPhysicalInterfaceStatus(pif)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -114,10 +114,10 @@
             {{ $t('mac-address') }}
           </template>
           <template #value>
-            {{ props.pif.mac }}
+            {{ pif.mac }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.mac)" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(pif.mac)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -171,10 +171,10 @@
             {{ $t('mtu') }}
           </template>
           <template #value>
-            {{ props.pif.mtu }}
+            {{ pif.mtu }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(props.pif.mtu)" />
+            <UiButtonIcon :icon="faCopy" size="medium" accent="info" @click="copyToClipboard(pif.mtu)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -182,7 +182,7 @@
             {{ $t('speed') }}
           </template>
           <template #value>
-            {{ $t('mbs', { value: props.pif.speed }) }}
+            {{ $t('mbs', { value: pif.speed }) }}
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -218,11 +218,11 @@
 </template>
 
 <script setup lang="ts">
-import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -234,18 +234,18 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-const props = defineProps<{
+const { pif } = defineProps<{
   pif: XoPif
 }>()
 
 const { get } = useNetworkStore().subscribe()
 
 const allIps = computed(() => {
-  return [props.pif.ip, ...props.pif.ipv6].filter(ip => ip)
+  return [pif.ip, ...pif.ipv6].filter(ip => ip)
 })
 
 const getNetworkData = (type: keyof XoNetwork) => {
-  const network: XoNetwork = get(props.pif.$network)!
+  const network: XoNetwork = get(pif.$network)!
 
   switch (type) {
     case 'name_label':
@@ -259,7 +259,7 @@ const getNetworkData = (type: keyof XoNetwork) => {
 }
 
 const getPifData = (type: keyof XoPif) => {
-  const value = props.pif[type]
+  const value = pif[type]
 
   switch (type) {
     case 'vlan':
@@ -268,10 +268,24 @@ const getPifData = (type: keyof XoPif) => {
     case 'dns':
     case 'gateway':
     case 'ip':
-      return value === '' ? '-' : props.pif.netmask
+      return value === '' ? '-' : pif.netmask
     case 'mode':
       return value === 'None' ? '-' : value
   }
+}
+
+const getPifStatus = (pif: XoPif) => {
+  if (pif.attached && pif.carrier) {
+    return 'connected'
+  }
+  if (pif.attached && !pif.carrier) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
+}
+
+const getPhysicalInterfaceStatus = (pif: XoPif) => {
+  return pif.physical ? 'connected' : 'disconnected-from-physical-device'
 }
 
 const copyToClipboard = (text: string | number) => {

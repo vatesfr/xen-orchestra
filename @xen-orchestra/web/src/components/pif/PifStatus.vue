@@ -1,48 +1,23 @@
 <template>
-  <UiInfo class="pif-status text-ellipsis" :accent="getStatusProps(status).accent">
-    <p v-tooltip class="text-ellipsis" :class="{ card }">{{ getStatusProps(status).text }}</p>
-  </UiInfo>
+  <VtsConnectionStatus :status="status" />
 </template>
 
 <script setup lang="ts">
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faCheck, faExclamation } from '@fortawesome/free-solid-svg-icons'
+import type { XoPif } from '@/types/xo/pif.type'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
-  pif: any
-  card?: boolean
+  pif: XoPif
 }>()
-
-const { t } = useI18n()
-
-type NetworkStatus = 'connected' | 'disconnected' | 'partial'
-type NetworkAccent = 'success' | 'warning' | 'danger'
-
-const states = computed<Record<NetworkStatus, { text: string; icon: IconDefinition; accent: NetworkAccent }>>(() => ({
-  connected: { text: t('connected'), icon: faCheck, accent: 'success' },
-  disconnected: { text: t('disconnected'), icon: faCheck, accent: 'danger' },
-  partial: { text: t('disconnected-from-physical-device'), icon: faExclamation, accent: 'warning' },
-}))
 
 const status = computed(() => {
   if (props.pif.attached && props.pif.carrier) {
     return 'connected'
   }
   if (props.pif.attached && !props.pif.carrier) {
-    return 'partial'
+    return 'partially-connected'
   }
   return 'disconnected'
 })
-
-const getStatusProps = (status: NetworkStatus) => states.value[status as NetworkStatus]
 </script>
-
-<style scoped lang="postcss">
-p:not(.card) {
-  font-size: 1.4rem !important;
-}
-</style>

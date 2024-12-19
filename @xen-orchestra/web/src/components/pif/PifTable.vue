@@ -65,7 +65,7 @@
               </div>
               <div v-if="column.id === 'device'" v-tooltip class="text-ellipsis">{{ row.value.device }}</div>
               <div v-if="column.id === 'status'" v-tooltip>
-                <PifStatus class="status" :pif="row.value" />
+                <VtsConnectionStatus :status="getPifStatus(row.value)" />
               </div>
               <div v-if="column.id === 'vlan'" v-tooltip class="text-ellipsis">
                 {{ getPifData(row.value, 'vlan') }}
@@ -92,10 +92,10 @@
 </template>
 
 <script setup lang="ts">
-import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
@@ -199,6 +199,16 @@ const selectedRowId = ref<XoPif['id']>()
 const selectRow = (rowId: XoPif['id']) => {
   selectedRowId.value = rowId
   emit('rowSelect', rowId)
+}
+
+const getPifStatus = (pif: XoPif) => {
+  if (pif.attached && pif.carrier) {
+    return 'connected'
+  }
+  if (pif.attached && !pif.carrier) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
 }
 </script>
 
