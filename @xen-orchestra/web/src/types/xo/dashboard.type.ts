@@ -58,4 +58,9 @@ export type XoDashboard = {
     memorySize: number
     srSize: number
   }
+  poolsStatus: {
+    connected: number
+    unreachable: number
+    unknown: number
+  }
 }
