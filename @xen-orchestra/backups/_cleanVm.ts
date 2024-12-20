@@ -10,7 +10,8 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
-import handlerPath from '@xen-orchestra/fs/path'
+import * as handlerPath from '@xen-orchestra/fs/path'
+import RemoteHandlerAbstract from '../fs/src/abstract'
 
 const { DISK_TYPES } = Constants
 
@@ -24,16 +25,17 @@ function shouldComputeVhdsSize(handler, vhds) {
   return vhds.every(vhd => vhd instanceof VhdFile)
 }
 
-const computeVhdsSize = (handler, vhdPaths) =>
+function computeVhdsSize(handler, vhdPaths): number | void {
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
       if (shouldComputeVhdsSize(handler, vhds)) {
         const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-        return sum(sizes)
+        return sum(sizes) as number
       }
     }
   )
+}
 
 // chain is [ ancestor, child_1, ..., child_n ]
 async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcurrency }) {
@@ -188,7 +190,7 @@ export async function checkAliases(
 const defaultMergeLimiter = limitConcurrency(1)
 
 export async function cleanVm(
-  vmDir,
+  vmDir: string,
   {
     fixMetadata,
     remove = false,
@@ -198,11 +200,20 @@ export async function cleanVm(
     mergeLimiter = defaultMergeLimiter,
     logInfo = noop,
     logWarn = console.warn,
+  }: {
+    fixMetadata: boolean,
+    remove: boolean,
+    removeTmp: boolean,
+    merge,
+    mergeBlockConcurrency: number,
+    mergeLimiter: Function,
+    logInfo: Function,
+    logWarn: Function,
   }
 ) {
   const limitedMergeVhdChain = mergeLimiter(_mergeVhdChain)
 
-  const handler = this._handler
+  const handler: RemoteHandlerAbstract = this._handler
 
   const vhdsToJSons = new Set()
   const vhdById = new Map()
@@ -493,7 +504,7 @@ export async function cleanVm(
         remove,
         mergeBlockConcurrency,
       })
-      const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
+      const metadataPath: string = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalVhdSize
     })
   }
@@ -522,18 +533,77 @@ export async function cleanVm(
 
   // update size for delta metadata with merged VHD
   // check for the other that the size is the same as the real file size
+  type OpaqueRef = `${'OpaqueRef'}:${string}.vhd`;
   await asyncMap(jsons, async metadataPath => {
-    const metadata = backups.get(metadataPath)
+    const metadata: {
+      isVhdDifferencing: {
+        [key: OpaqueRef]: boolean;
+      };
+      jobId: string;
+      mode: "delta" | "full";
+      scheduleId: string;
+      size: number;
+      timestamp: number;
+      vbds: Object;
+      vdis: {
+        [key: `${'OpaqueRef'}:${string}.vhd`]: {
+          $SR$uuid: string;
+          $snapshot_of$uuid: string;
+          SR: OpaqueRef;
+          VBDs: OpaqueRef[];
+          allow_caching: boolean;
+          allowed_operations: boolean;
+          cbt_enabled: boolean;
+          crash_dumps: string[];
+          current_operations: Object;
+          is_a_snapshot: boolean;
+          is_tools_iso: boolean;
+          location: string;
+          managed: string;
+          metadata_latest: boolean;
+          metadata_of_pool: OpaqueRef;
+          missing: boolean;
+          name_description: string;
+          name_label: string;
+          on_boot: string;
+          other_config: Object;
+          parent: OpaqueRef;
+          physical_utilisation: number;
+          read_only: boolean;
+          sharable: boolean;
+          sm_config: {
+            'vhd-parent': string
+          };
+          snapshot_of: OpaqueRef;
+          snapshot_time: string;
+          snapshots: Object[];
+          storage_lock: boolean;
+          tags: string[];
+          type: string;
+          uuid: string;
+          virtual_size: number;
+          xenstore_data: Object
+        };
+      };
+      vhds: {
+        [key: OpaqueRef]: string
+      }; 
+      vifs: Object;
+      vm: Object;
+      vmSnapshot: Object;
+      vtpms: Object[];
+      xva?: string
+    } = backups.get(metadataPath)
 
-    let fileSystemSize
-    const mergedSize = metadataWithMergedVhd[metadataPath]
+    let fileSystemSize: number | undefined = undefined
+    const mergedSize: number | undefined = metadataWithMergedVhd[metadataPath]
 
     const { mode, size, vhds, xva } = metadata
 
     try {
       if (mode === 'full') {
         // a full backup : check size
-        const linkedXva = resolve('/', vmDir, xva)
+        const linkedXva = resolve('/', vmDir, xva as string)
         try {
           fileSystemSize = await handler.getSize(linkedXva)
           if (fileSystemSize !== size && fileSystemSize !== undefined) {
@@ -569,7 +639,7 @@ export async function cleanVm(
     // systematically update size and differentials after a merge
 
     // @todo : after 2024-04-01 remove the fixmetadata options since the size computation is fixed
-    console.log({/* metadata, */ /* snapshot_time: metadata.vdis, */ vdis: metadata.vdis, isVhdDifferencing: metadata.isVhdDifferencing, parent: metadata.vmSnapshot.parent, mergedSize, fixMetadata, fileSystemSize, size})
+    console.log({/* metadata, */ vdis: metadata.vdis, isVhdDifferencing: metadata.isVhdDifferencing, parent: metadata.vmSnapshot.parent, mergedSize, fixMetadata, fileSystemSize, size })
     if (mergedSize || (fixMetadata && fileSystemSize !== size)) {
       metadata.size = mergedSize ?? fileSystemSize ?? size
 
@@ -577,8 +647,8 @@ export async function cleanVm(
         // all disks are now key disk
         metadata.isVhdDifferencing = {}
 
-        for (const id of Object.keys(metadata.vdis ?? {})) {
-          console.log({id})
+        for (const id of Object.values(metadata.vdis ?? {})) {
+          console.log({ id })
           metadata.isVhdDifferencing[`${id}.vhd`] = false
         }
       }
