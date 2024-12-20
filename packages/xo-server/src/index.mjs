@@ -274,7 +274,8 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
-  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png)$/
+  const UNCHECKED_URL_RE =
+    /(?:^\/rest\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png|svg)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
