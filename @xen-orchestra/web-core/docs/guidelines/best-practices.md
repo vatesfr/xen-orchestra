@@ -4,43 +4,37 @@
 
 - Avoid using a single letter or non-meaningful names for variables:
 
-  ❌ Bad
-
   ```ts
+  // ❌ Bad
   const m = 'foo'
   ```
 
-  ✅ Good
-
   ```ts
+  // ✅ Good
   const message = 'foo'
   ```
 
 - If the variable is an array of items, use plural for the variable naming:
 
-  ❌ Bad
-
   ```ts
+  // ❌ Bad
   const vm: VM[] = []
   ```
 
-  ✅ Good
-
   ```ts
+  // ✅ Good
   const vms: VM[] = []
   ```
 
 - When iterating over arrays, use a meaningful name for each item:
 
-  ❌ Bad
-
   ```ts
+  // ❌ Bad
   vms.map(item => item.id)
   ```
 
-  ✅ Good
-
   ```ts
+  // ✅ Good
   vms.map(vm => vm.id)
   ```
 
@@ -220,12 +214,66 @@ In this example, the first button will call `deleteMe(event)` and thus will alwa
 
 See also: [inline handlers](https://vuejs.org/guide/essentials/event-handling.html#inline-handlers) in Vue.js documentation.
 
+## Component SHOULD NOT use functions in the template to compute states or values
+
+If using functions in the template to compute states or values, it will be called on every render, which can lead to performance issues.
+
+Use `computed` instead, which will cache the result, and only recompute when the dependencies change.
+
+❌ Bad
+
+```vue
+<template>
+  <UiButton :icon="getIcon(object.connected)" />
+</template>
+
+<script setup lang="ts">
+function getIcon(connected) {
+  return connected ? 'check' : 'close'
+}
+</script>
+```
+
+✅ Good
+
+```vue
+<template>
+  <UiButton :icon="objectIcon" />
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const objectIcon = computed(() => (object.connected ? 'check' : 'close'))
+</script>
+```
+
+If you find yourself using this kind of functions in the template, maybe it's a good sign that a refactoring is needed (i.e., extracting the logic in a subcomponent).
+
+There are some exceptions, for example, when using `$t` for translations inside the template.
+
 ## Components SHOULD have a Story
 
 > [!TIP]
 > For now, stories are stored in
 > `@xen-orchestra/lite/src/stories` and can only be written for XO Lite and XO Core components.
 
+## Helpers and utilities SHOULD be used when necessary
+
+Some common utilities are already available in the projects, so be sure to check if there is already a helper or utility that can be used before reinventing the wheel.
+
+You'll find them in these directories:
+
+- Web Core:
+  - `@xen-orchestra/web-core/src/composables`
+  - `@xen-orchestra/web-core/src/utils`
+  - `@xen-orchestra/web-core/src/packages`
+- XO 6:
+  - `@xen-orchestra/web/src/composables`
+  - `@xen-orchestra/web/src/utils`
+- XO Lite:
+  - `@xen-orchestra/lite/src/composables`
+
 ## VueUse SHOULD be used when necessary
 
-Instead of recreating some functionality, [VueUse](https://vueuse.org) provides a lot of utilities for common use cases (e.g., accessing browser APIs, using local storage, etc.).
+If you don't find what you need in our helpers, [VueUse](https://vueuse.org) provides a lot of utilities for common use cases (e.g., accessing browser APIs, using local storage, etc.).

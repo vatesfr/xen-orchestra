@@ -6,15 +6,13 @@ When adding types for variants' props, try to use the component name and the pro
 
 Example of a type representing the values a prop `accent` can have:
 
-❌ Bad
-
 ```ts
+// ❌ Bad
 type BtnColor = 'info' | 'success' | 'warning'
 ```
 
-✅ Good
-
 ```ts
+// ✅ Good
 type ButtonAccent = 'info' | 'success' | 'warning'
 ```
 

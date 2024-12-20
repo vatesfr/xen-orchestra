@@ -109,7 +109,7 @@ Then, we can define the props needed to handle the variants:
 ```ts
 // TS types here
 
-const props = defineProps<{
+const { variant, accent, size, disabled } = defineProps<{
   variant: ButtonVariant
   accent: ButtonAccent
   size: ButtonSize
@@ -124,15 +124,11 @@ Given the props we defined above, and to match the class names convention, we ca
 A way to do it is as follows:
 
 ```ts
-const classNames = computed(() => [
-  toVariants({
-    variant: props.variant,
-    accent: props.accent,
-    size: props.size,
-    disabled: props.disabled,
-  }),
-])
+const classNames = computed(() => toVariants({ variant, accent, size, disabled }))
 ```
+
+> [!TIP]
+> The `toVariants()` helper SHOULD be used in the script section of the component, and not in the template section (see [best practices](./guidelines/best-practices.md#component-should-not-use-functions-in-the-template-to-compute-states-or-values) for more information).
 
 Let's take an example where we want to use the "Button" component with this DS variant:
 
