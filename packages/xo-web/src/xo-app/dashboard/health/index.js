@@ -555,8 +555,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([
-    message =>
-      message.name === 'ALARM' || message.name === 'BOND_STATUS_CHANGED' || message.name === 'MULTIPATH_PERIODIC_ALERT',
+    message => ['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'].includes(message.name),
   ])
   const getVifsByMac = createGetObjectsOfType('VIF')
     .pick(
