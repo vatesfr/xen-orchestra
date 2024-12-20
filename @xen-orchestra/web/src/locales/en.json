@@ -41,6 +41,13 @@
   "s3-backup-repository": "S3 backup repository",
   "storage-repository": "Storage repository",
 
+  "pools-status": "Pools status",
+  "pools-status.connected": "Connected",
+  "pools-status.unreachable": "Unreachable",
+  "pools-status.unreachable.tooltip": "Configured servers that can not be reached",
+  "pools-status.unknown": "Unknown",
+  "pools-status.unknown.tooltip": "Servers currently connecting or in an unknown state",
+
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
 

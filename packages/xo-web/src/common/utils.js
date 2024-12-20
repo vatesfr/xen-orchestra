@@ -225,7 +225,12 @@ function safeHumanFormat(value, opts) {
 
 export const formatLogs = logs =>
   Promise.all(
-    map(logs, ({ body }, id) => {
+    map(logs, ({ body, name }, id) => {
+      if (['BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'].includes(name)) {
+        // for these alarms, body is a string
+        // ex: "body": "The status of the eth0+eth1 bond is: 1/2 up"
+        return { name: body, id }
+      }
       //  value can be: float, Infinity, -Infinity and NaN
       const matches = /^value:\s*(Infinity|NaN|-Infinity|[0-9.]+)\s+config:\s*([^]*)$/.exec(body)
       if (matches === null) {
