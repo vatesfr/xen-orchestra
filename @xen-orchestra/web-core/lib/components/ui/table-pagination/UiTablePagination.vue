@@ -1,6 +1,4 @@
-<!-- v2 -->
 <template>
-  {{ pageSize }}
   <div class="ui-table-pagination">
     <div class="buttons-container">
       <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
@@ -13,7 +11,7 @@
     </span>
     <span class="typo p3-regular label show">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="pageSize" :disabled class="dropdown typo c3-regular" @change="goToFirstPage">
+      <select v-model="localPageSize" :disabled="disabled" class="dropdown typo c3-regular" @change="goToFirstPage">
         <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
           {{ option }}
         </option>
@@ -34,7 +32,7 @@ import {
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
 import { useOffsetPagination } from '@vueuse/core'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 
 export type PaginationPayload = {
   currentPage: number
@@ -43,21 +41,39 @@ export type PaginationPayload = {
   endIndex: number
 }
 
-const { totalItems, disabled = false } = defineProps<{
+const {
+  totalItems,
+  disabled = false,
+  perPage,
+  startIndex,
+  endIndex,
+} = defineProps<{
   totalItems: number
   disabled?: boolean
+  modelValue: number
+  perPage: number
+  startIndex: number
+  endIndex: number
 }>()
 
 const emit = defineEmits<{
-  change: [payload: PaginationPayload]
-  'update:modelValue': number
-  'update:per-page': number
-  'update:start-index': number
-  'update:end-index': number
+  change: (payload: PaginationPayload) => void
+  'update:modelValue': (value: number) => void
+  'update:per-page': (value: number) => void
+  'update:start-index': (value: number) => void
+  'update:end-index': (value: number) => void
 }>()
 
-const pageSize = ref(10)
+const localPageSize = ref(perPage)
 const pageSizeOptions = [10, 50, 100, 150, 200]
+
+watch(
+  () => perPage,
+  newPerPage => {
+    localPageSize.value = newPerPage
+  }
+)
+
 const {
   currentPage,
   currentPageSize,
@@ -68,10 +84,10 @@ const {
   next: goToNextPage,
 } = useOffsetPagination({
   total: () => totalItems,
-  pageSize,
+  pageSize: localPageSize,
 })
-const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
-const endIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
+const localStartIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
+const localEndIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
 
 const goToFirstPage = () => {
   currentPage.value = 1
@@ -82,14 +98,17 @@ const goToLastPage = () => {
 
 watchEffect(() => {
   emit('update:modelValue', currentPage.value)
-  emit('update:per-page', pageSize.value)
-  emit('update:start-index', startIndex.value)
-  emit('update:end-index', endIndex.value)
+  emit('update:per-page', localPageSize.value)
+  emit('update:start-index', localStartIndex.value)
+  emit('update:end-index', localEndIndex.value)
+})
+
+watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
   emit('change', {
-    currentPage: currentPage.value,
-    pageSize: currentPageSize.value,
-    startIndex: startIndex.value,
-    endIndex: endIndex.value,
+    currentPage: newPage,
+    pageSize: newPageSize,
+    startIndex: localStartIndex.value,
+    endIndex: localEndIndex.value,
   })
 })
 </script>

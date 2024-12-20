@@ -27,7 +27,6 @@
           :total-items="usableIds.length"
           @toggle-select-all="toggleSelect"
         />
-        {{ pagination }}
         <UiTablePagination
           v-model="pagination.currentPage"
           v-model:per-page="pagination.pageSize"
@@ -35,7 +34,6 @@
           v-model:end-index="pagination.endIndex"
           :total-items="usableIds.length"
         />
-        <!--        <UiTablePagination :total-items="usableIds.length" @change="handle($event)" /> -->
       </div>
     </div>
     <div class="table-container">
@@ -98,7 +96,6 @@
         :total-items="usableIds.length"
         @toggle-select-all="toggleSelect"
       />
-      {{ pagination.pageSize }}
       <UiTablePagination
         v-model="pagination.currentPage"
         v-model:per-page="pagination.pageSize"
@@ -157,9 +154,10 @@ const emit = defineEmits<{
 }>()
 
 const { get, isReady } = useNetworkStore().subscribe()
+
 const pagination = ref<PaginationPayload>({
-  currentPage: 0,
-  pageSize: 0,
+  currentPage: 1,
+  pageSize: 10,
   startIndex: 0,
   endIndex: 0,
 })
