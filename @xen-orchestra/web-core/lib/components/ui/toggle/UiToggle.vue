@@ -13,16 +13,12 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 
-const props = withDefaults(
-  defineProps<{
-    disabled?: boolean
-    busy?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const { busy, disabled } = defineProps<{
+  disabled?: boolean
+  busy?: boolean
+}>()
 
 const checked = defineModel<boolean>()
 
@@ -30,7 +26,7 @@ defineSlots<{
   default(): any
 }>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 </script>
 
 <style lang="postcss" scoped>
