@@ -36,15 +36,15 @@
 ### Released packages
 
 - xen-api 4.7.0
-- @xen-orchestra/xapi 7.9.0
 - @xen-orchestra/backups 0.57.0
 - @xen-orchestra/backups-cli 1.0.28
 - @xen-orchestra/immutable-backups 1.0.16
-- @xen-orchestra/proxy 0.29.8
 - @xen-orchestra/web-core 0.10.0
 - @xen-orchestra/web 0.6.0
-- xo-server 5.168.0
 - xo-web 5.167.0
+- @xen-orchestra/xapi 7.10.0
+- @xen-orchestra/proxy 0.29.9
+- xo-server 5.168.1
 
 ## **5.101.0** (2024-11-29)
 
