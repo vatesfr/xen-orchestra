@@ -19,6 +19,11 @@
 - [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
 - [REST/Dashboard] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
 - [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
+- [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
+- [Signin] Start transitioning towards XO 6 Design System (PR [#8209](https://github.com/vatesfr/xen-orchestra/pull/8209))
+- [Host/Advanced] In host's advanced tab, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
+- **XO 6**:
+  - [Dashboard] Pools status (PR [#7800](https://github.com/vatesfr/xen-orchestra/pull/7800))
 
 ### Bug fixes
 
@@ -37,9 +42,9 @@
 - @xen-orchestra/immutable-backups 1.0.16
 - @xen-orchestra/proxy 0.29.8
 - @xen-orchestra/web-core 0.10.0
-- @xen-orchestra/web 0.5.3
-- xo-server 5.167.0
-- xo-web 5.166.0
+- @xen-orchestra/web 0.6.0
+- xo-server 5.168.0
+- xo-web 5.167.0
 
 ## **5.101.0** (2024-11-29)
 
