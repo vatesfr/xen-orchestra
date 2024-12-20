@@ -1,6 +1,6 @@
 <!-- v3 -->
 <template>
-  <button type="button" class="ui-dropdown-item" :class="{ selected }" :disabled="isDisabled">
+  <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
     <VtsIcon :icon accent="current" class="left-icon" fixed-width />
     <span class="typo p1-regular label">
       <slot />
@@ -11,24 +11,20 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 
-const props = withDefaults(
-  defineProps<{
-    disabled?: boolean
-    selected?: boolean
-    icon?: IconDefinition
-  }>(),
-  { disabled: undefined }
-)
+const { disabled, selected, icon } = defineProps<{
+  disabled?: boolean
+  selected?: boolean
+  icon?: IconDefinition
+}>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .ui-dropdown-item {
   display: inline-flex;
   align-items: center;
