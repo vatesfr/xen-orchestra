@@ -6,8 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -18,12 +17,12 @@ const props = withDefaults(
     active?: boolean
     tag?: string
   }>(),
-  { tag: 'span', disabled: undefined }
+  { tag: 'span' }
 )
 
 const { isMobile } = storeToRefs(useUiStore())
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 
 const classNames = computed(() => {
   return [

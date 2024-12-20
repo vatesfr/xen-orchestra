@@ -2,7 +2,7 @@
 <template>
   <label :class="variant" class="ui-radio-button typo p1-regular">
     <span class="radio-container">
-      <input v-model="model" :value :disabled="isDisabled" class="input" type="radio" />
+      <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
       <VtsIcon :icon="faCircle" accent="current" class="radio-icon" />
     </span>
     <slot />
@@ -11,31 +11,26 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faCircle } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    accent: 'info' | 'success' | 'warning' | 'danger'
-    value: any
-    disabled?: boolean
-  }>(),
-  {
-    disabled: undefined,
-  }
-)
+const { accent, value, disabled } = defineProps<{
+  accent: 'info' | 'success' | 'warning' | 'danger'
+  value: any
+  disabled?: boolean
+}>()
+
 const model = defineModel<boolean>()
 
 defineSlots<{
   default(): any
 }>()
 
-const variant = computed(() => toVariants({ accent: props.accent }))
+const variant = computed(() => toVariants({ accent }))
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 </script>
 
 <style lang="postcss" scoped>
@@ -60,6 +55,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
 
     &:has(input:focus-visible) {
       outline: none;
+
       &::after {
         position: absolute;
         content: '';
@@ -68,6 +64,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
         border-radius: 0.4rem;
       }
     }
+
     &:has(.input:disabled) {
       cursor: not-allowed;
 
