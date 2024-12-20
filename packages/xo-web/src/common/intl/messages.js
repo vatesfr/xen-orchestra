@@ -1485,10 +1485,12 @@ const messages = {
   logAction: 'Action',
 
   // ----- VM advanced tab -----
+  addXenStoreEntry: 'Add new XenStore entry',
   attachedPcis: 'Attached PCIs',
   attachingDetachingPciNeedVmBoot: 'Attaching/detaching a PCI will be taken into consideration for the next VM boot.',
   attachPcis: 'Attach PCIs',
   createVtpm: 'Create a VTPM',
+  deleteEntryDeleteValue: 'To delete an entry, simply delete its value',
   deleteVtpm: 'Delete the VTPM',
   deleteVtpmWarning:
     'If the VTPM is in use, removing it will result in a dangerous data loss. Are you sure you want to remove the VTPM?',
@@ -1504,6 +1506,7 @@ const messages = {
   propagateCertificates: "Copy the pool's default UEFI certificates to the VM",
   propagateCertificatesSuccessful: 'Certificates propagated successfully',
   poolAutoPoweronDisabled: 'Auto power on is disabled at pool level, click to fix automatically.',
+  rebootRequiredAfterXenStoreChanges: 'A reboot is required after any XenStore changes',
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
@@ -1512,6 +1515,7 @@ const messages = {
     "You must know what you are doing, because it could break your setup (if you didn't install the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)",
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
+  xenStore: 'XenStore',
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',

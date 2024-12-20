@@ -7,16 +7,10 @@
 
 > Security fixes and new features should go in this section
 
-- [Host/Patches] Users with non-admin permissions on hosts can no longer update them (PR [#8176](https://github.com/vatesfr/xen-orchestra/pull/8176))
-
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
-- [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
-- [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
-- [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
 - [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
 
 ### Bug fixes
@@ -39,11 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups minor
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
-- xen-api minor
 - xo-server minor
 - xo-web minor
 

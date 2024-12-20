@@ -1,24 +1,23 @@
-<!-- WIP -->
+<!-- v1 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-label">
-    <VtsIcon accent="current" :icon class="left-icon" />
-    <span :class="{ required }" class="typo c2-semi-bold label"><slot /></span>
-    <!-- @TODO: Replace it by the VtsLink component when available -->
-    <a v-if="href" :href class="link">
-      <span class="typo p3-regular-underline">{{ $t('learn-more') }}</span>
-      <VtsIcon accent="current" :icon="faUpRightFromSquare" class="link-icon" />
-    </a>
+    <VtsIcon accent="current" :icon class="icon" />
+    <label :for="htmlFor" :class="{ required }" class="typo c2-semi-bold label">
+      <slot />
+    </label>
+    <UiLink v-if="href" class="learn-more-link" size="small" :href>{{ $t('learn-more') }}</UiLink>
   </div>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 
-defineProps<{
+const { for: htmlFor } = defineProps<{
   accent: 'neutral' | 'warning' | 'danger'
+  for?: string
   icon?: IconDefinition
   required?: boolean
   href?: string
@@ -30,7 +29,7 @@ defineProps<{
   display: flex;
   align-items: center;
 
-  .left-icon {
+  .icon {
     margin-right: 0.8rem;
   }
 
@@ -42,15 +41,8 @@ defineProps<{
     }
   }
 
-  .link {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+  .learn-more-link {
     margin-left: auto;
-  }
-
-  .link-icon {
-    font-size: 0.8rem;
   }
 
   /* ACCENT VARIANTS */

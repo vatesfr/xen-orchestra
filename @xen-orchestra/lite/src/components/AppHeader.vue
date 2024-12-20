@@ -38,12 +38,12 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
   align-items: center;
   justify-content: space-between;
   height: 5.6rem;
-  padding: 1rem;
+  padding: 0 1.6rem;
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-secondary);
 
   img {
-    width: 4rem;
+    width: 3.7rem;
   }
 
   .text-logo {

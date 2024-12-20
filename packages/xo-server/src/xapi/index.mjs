@@ -1066,7 +1066,7 @@ export default class Xapi extends XapiBase {
         const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
         if (vbds.length === 0) {
           log.debug(`will disable CBT on ${vdi.name_label}  `)
-          await this.call('VDI.disable_cbt', vdi.$ref)
+          await this.callAsync('VDI.disable_cbt', vdi.$ref)
         } else {
           if (vbds.length > 1) {
             // no implicit workaround if vdi is attached to multiple VMs

@@ -21,6 +21,7 @@
   "core.quick-actions": "Actions rapides",
 
   "core.search": "Rechercher",
+  "core.show-by": "Afficher par",
 
   "core.query-search-bar.label": "Moteur de recherche",
   "core.query-search-bar.placeholder": "Écrivez votre requête…",
@@ -29,6 +30,7 @@
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
   "core.select.unselect": "Tout désélectionner",
+  "core.select.n-object-of": "{from} - {to} de {total} objets",
   "core.select.n-selected-of": "{count} objet sélectionné sur {total} | {count} objet sélectionné sur {total} | {count} objets sélectionnés sur {total}",
   "core.sidebar.close": "Fermer la barre latérale",
   "core.sidebar.lock": "Verrouiller la barre latérale",
@@ -43,7 +45,10 @@
   "dark-mode.auto": "Mode sombre automatique",
 
   "access-forum": "Accès au forum",
+  "connected": "Connecté",
   "dashboard": "Tableau de bord",
+  "disconnected": "Déconnecté",
+  "disconnected-from-physical-device": "Déconnecté de l'appareil physique",
   "documentation-name": "Documentation {name}",
   "error-no-data": "Erreur, impossible de collecter les données.",
   "exit-fullscreen": "Quitter le plein écran",
@@ -61,6 +66,7 @@
   "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
   "other": "Autre",
   "page-not-found": "Cette page est introuvable…",
+  "partially-connected": "Partiellement connecté",
   "patches": "Patches",
   "power-on-vm-for-console": "Allumez votre VM pour accéder à sa console",
   "power-on-host-for-console": "Allumez votre hôte pour accéder à sa console",
