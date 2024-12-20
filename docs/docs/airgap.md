@@ -278,97 +278,69 @@ Keep in mind that Xen Orchestra will only detect updates from the local reposito
 
 ---
 
-# Airgap support and deployment
+## Xen Orchestra in Air-Gapped Environments
 
-:::tip
-This page is relevant only to official XO Appliances and does not cover XO built from sources.
-:::
+### Logical Air Gap Deployment
 
-We are considering two types of air-gapped deployments:
+#### Preparation
 
-- Physical air gap (completely offline)
-- Logical air gap with limited connectivity, or physical air gap with a connected pre-production/QA environment available
+1. Set up a QA or pre-production XCP-ng pool, with Internet access.
+2. Deploy and configure Xen Orchestra Appliance (XOA) following the [standard procedure](https://xen-orchestra.com/docs/installation.html).
+3. Ensure XOA is:
+   - Properly registered (see the [registration instructions](https://xen-orchestra.com/docs/installation.html#registration)).
+   - Up-to-date (see the [XOA Update guide](https://xen-orchestra.com/docs/updater.html)).
+   - Verified using [XOA checks](https://xen-orchestra.com/docs/xoa.html#xoa-check).
 
-## Logical Air Gap
+#### Deployment Steps
 
-In this scenario, you will need a QA/pre-production XCP-ng pool with Internet access. This pool will serve as a temporary zone for registering and upgrading the XOA, before physically exporting it to the disconnected environment.
-
-### Deployment
-
-[Follow the standard procedure](https://xen-orchestra.com/docs/installation.html) to deploy the XOA on your pool with Internet access.
-
-Make sure that your appliance is [properly registered](https://xen-orchestra.com/docs/installation.html#registration) and [up-to-date](https://xen-orchestra.com/docs/updater.html).
-
-It's also good to take a quick look at [the XOA check](https://xen-orchestra.com/docs/xoa.html#xoa-check) to detect issues early.
-
-When everything is good, you can shutdown your XOA and export it:
-
-```console
-$ xe vm-shutdown uuid=$uuid
-$ xe vm-export compress=true uuid=$uuid filename=xoa.xva
-Export succeeded
-```
-
-> `$uuid` should be replaced by the UUID of your XOA.
-
-Now you need to move the `xoa.xva` file from your connected pool to your airgapped one.
-
-And the last step is to import it in your airgapped pool and start it:
-
-```console
-$ xe vm-import filename=xoa.xva
-c87a6dc3-9889-acf0-a680-79de3780c08f
-$ xe vm-start uuid=c87a6dc3-9889-acf0-a680-79de3780c08f
-```
-
-You can now delete the XOA on your connected pool, it is no longer necessary.
-
-### Upgrade
-
-To upgrade your XOA, you need to:
-
-1. shutdown the XOA on your airgapped pool
-2. export it to an XVA file
-3. move it to your connected pool and import it
-4. start it, run the [upgrade process](https://xen-orchestra.com/docs/updater.html)
-5. shutdown this XOA
-6. export it to an XVA file
-7. move it to your airgapped pool and import it
-8. start it and check that everything appears correct
-9. delete the XOA on your connected pool and the previous XOA on your airgapped pool
-
-For details on the steps, refer to the [_Deployment_ section](#deployment).
-
-## Physical air gap only
-
-In this scenario, you are deploying directly without any prior Internet access. Vates can provide you with pre-registered XOAs that can be deployed directly in your offline environment, eliminating the need for any initial Internet connection. If you have an air gap subscription, our team will build it on-demand for you and provide a dedicated link for download.
-
-Please [contact us](https://vates.tech/contact) if you need more details.
-
-### Deploy Your Air-Gap XOA
-
-After downloading the dedicated air-gap XOA provided by our support team, follow these steps to deploy it:
-
-1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:
-
+1. Shut down XOA on the QA/pre-production pool:
    ```bash
-   curl https://xoa.io/deploy > deploy.sh
+   xe vm-shutdown uuid=$uuid
    ```
+2. Export XOA as an XVA file:
+   ```bash
+   xe vm-export compress=true uuid=$uuid filename=xoa.xva
+   ```
+3. Transfer the `xoa.xva` file to your air-gapped pool.
+4. Import the XOA into the air-gapped pool:
+   ```bash
+   xe vm-import filename=xoa.xva
+   ```
+5. Start the imported XOA:
+   ```bash
+   xe vm-start uuid=<new-xoa-uuid>
+   ```
+6. Delete the XOA from the QA/pre-production pool if no longer required.
 
-   Alternatively, you can manually copy the content from https://xoa.io/deploy into a file named `deploy.sh`.
+#### Upgrading the Environment
 
-2. **Transfer Files to Your XCP-ng Host**: Copy both the `deploy.sh` script and the XOA appliance file (`XOA.xva`) to your air-gapped XCP-ng host.
+Follow the same steps as the initial deployment, replacing the older version with the updated version.
 
-3. **Make the Script Executable**: On your XCP-ng host, ensure the `deploy.sh` script is executable by running:
+### Physical Air Gap Deployment
 
+1. Get the pre-configured XOA and deployment script from Vates.
+2. Transfer the XOA file (`XOA.xva`) and the deployment script (`deploy.sh`) to your air-gapped XCP-ng host.
+3. Make the script executable:
    ```bash
    chmod +x deploy.sh
    ```
-
-   Then, execute the following command to deploy the XOA appliance:
-
+4. Run the deployment script with the XOA file:
    ```bash
    ./deploy.sh XOA.xva
    ```
+5. Follow the prompts to configure the network settings, including:
+   - IP
+   - DNS
+   - NTP
 
-4. **Follow the Script Instructions**: During the deployment, the script will prompt you for essential network settings such as IP configuration, DNS, and NTP. Follow the on-screen instructions to complete the setup.
+---
+
+## Contact for Support
+
+For further assistance or to obtain a custom air-gap solution, please contact [Vates Support](https://vates.tech/contact).
+
+---
+
+## Conclusion
+
+Deploying XCP-ng and Xen Orchestra in air-gapped environments is a robust solution for organizations prioritizing security and isolation. Whether through logical or physical air gaps, these setups ensure critical infrastructure operates without exposure to external threats. By leveraging Vates’ tailored solutions, users can maintain operational efficiency, streamline offline upgrades, and meet stringent compliance requirements. Reach out to Vates support to discuss your unique deployment needs and enhance the reliability of your air-gapped infrastructure.
