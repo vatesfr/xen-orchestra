@@ -47,7 +47,7 @@ export const parseAlarmBody = (body: string): { level: number; type: XenApiAlarm
 export const messageToAlarm = <RelationType extends RawObjectType>(
   message: XenApiMessage<RelationType> | undefined
 ): XenApiAlarm<RelationType> | undefined => {
-  if (message === undefined || !['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'].includes(message.name)) {
+  if (message === undefined || message.name !== 'ALARM') {
     return
   }
 
