@@ -1019,13 +1019,13 @@ export default class RestApi {
         const { baseUrl } = req
         const objType = object.type.toLowerCase() + 's'
         const href = collections[objType] === undefined ? undefined : `${baseUrl}/${objType}/${object.uuid}`
-        const [, value, name] = body.match(ALARM_BODY_REGEX)
+        const [, value, name] = body.match(ALARM_BODY_REGEX) ?? []
 
         return {
           ...alarm,
           body: {
             value, // Keep the value as a string because NaN, Infinity, -Infinity is not valid JSON
-            name,
+            name: name ?? body, // for 'BOND_STATUS_CHANGED' and 'MULTIPATH_PERIODIC_ALERT', body is a non-xml string. ("body": "The status of the eth0+eth1 bond is: 1/2 up")
           },
           object: {
             type: object.type,
