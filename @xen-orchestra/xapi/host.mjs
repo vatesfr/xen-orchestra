@@ -165,6 +165,21 @@ class Host {
 
     return ipmiSensorsByDataType
   }
+
+  async getMdadmHealth(ref) {
+    try {
+      const result = await this.callAsync('host.call_plugin', ref, 'raid.py', 'check_raid_pool', {})
+      const parsedResult = JSON.parse(result)
+
+      return parsedResult
+    } catch (error) {
+      if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+        return null
+      } else {
+        throw error
+      }
+    }
+  }
 }
 export default Host
 

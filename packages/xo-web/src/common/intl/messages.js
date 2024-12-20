@@ -1130,6 +1130,8 @@ const messages = {
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
   'onlyAvailableXcp8.3OrHigher': 'Only available for XCP-ng 8.3.0 or higher',
+  installRaidPlugin: 'To display RAID info, install raid.py plugin',
+  noRaidInformationAvailable: 'No RAID information available',
   pciDevices: 'PCI Devices',
   pciId: 'PCI ID',
   pcisEnable: 'PCI{nPcis, plural, one {} other {s}} enable',
@@ -1148,6 +1150,9 @@ const messages = {
   supplementalPackInstallSuccessTitle: 'Installation success',
   supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   systemDisksHealth: 'System disks health',
+  raidHealthy: 'All mdadm RAID are healthy ✅',
+  raidStateWarning: 'RAID state needs your attention: {state}',
+  raidStatus: 'RAID Status',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   vendorId: 'Vendor ID',
   // ----- Host net tabs -----

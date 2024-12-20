@@ -21,6 +21,7 @@ import {
   startHost,
   stopHost,
   subscribeHvSupportedVersions,
+  subscribeMdadmHealth,
 } from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
@@ -40,9 +41,10 @@ import BulkIcons from '../../common/bulk-icons'
 import { LICENSE_WARNING_BODY } from '../host/license-warning'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
-@addSubscriptions({
+@addSubscriptions(props => ({
   hvSupportedVersions: subscribeHvSupportedVersions,
-})
+  mdadmHealth: subscribeMdadmHealth(props.item),
+}))
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
   isPubKeyTooShort: createSelector(
@@ -144,6 +146,7 @@ export default class HostItem extends Component {
     this._getAreHostsVersionsEqual,
     () => this.props.state.hostsByPoolId[this.props.item.$pool],
     () => this.state.isPubKeyTooShort,
+    () => this.props.mdadmHealth,
     (
       needsRestart,
       host,
@@ -151,7 +154,8 @@ export default class HostItem extends Component {
       isHostTimeConsistentWithXoaTime,
       areHostsVersionsEqual,
       poolHosts,
-      isPubKeyTooShort
+      isPubKeyTooShort,
+      mdadmHealth
     ) => {
       const alerts = []
 
@@ -258,6 +262,17 @@ export default class HostItem extends Component {
                 ))}
               </ul>
             </div>
+          ),
+        })
+      }
+
+      if (mdadmHealth?.raid?.State !== undefined && !['clean', 'active'].includes(mdadmHealth.raid.State)) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <span>
+              <Icon icon='alarm' className='text-danger' /> {_('raidStateWarning', { state: mdadmHealth.raid.State })}
+            </span>
           ),
         })
       }
