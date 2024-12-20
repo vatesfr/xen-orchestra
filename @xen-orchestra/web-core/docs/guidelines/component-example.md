@@ -21,7 +21,7 @@ Here is a fake `UiComponent.vue` component that uses most of the guidelines docu
 
     <!-- Slot + prop pattern -->
     <slot name="message">
-      <p>{{ message }}</p>
+      {{ message }}
     </slot>
   </div>
 </template>
@@ -53,7 +53,7 @@ const {
 const slots = defineSlots<{
   default(): any // Required slot
   info?(): any // Optional slot
-  message?(): any
+  message?(): any // Optional slot
 }>()
 
 const fontClasses = {
@@ -99,7 +99,7 @@ const classNames = computed(() => [
   /* Child element selector if needed  */
 
   .icon {
-    font-size: 0.8em;
+    font-size: 0.8rem;
   }
 
   /* Variants implementation */
