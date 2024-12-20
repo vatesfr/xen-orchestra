@@ -44,6 +44,7 @@ const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 const _isXs = host => host.software_version.product_brand === 'XenServer'
+const _isXsWithCdnUpdates = host => _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
 
 const LISTING_DEBOUNCE_TIME_MS = 60000
 
@@ -51,7 +52,7 @@ async function _listMissingPatches(hostId) {
   const host = this.getObject(hostId)
   return _isXcp(host)
     ? this._listXcpUpdates(host)
-    : _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
+    : _isXsWithCdnUpdates(host)
       ? this._listXsUpdates(host)
       : // TODO: list paid patches of free hosts as well so the UI can show them
         this._listInstallablePatches(host)
@@ -593,7 +594,11 @@ const methods = {
       throw new Error('rolling pool update not possible since there is a linstor SR in the pool')
     }
 
-    const isXcp = _isXcp(this.pool.$master)
+    const master = this.pool.$master
+    const isXcp = _isXcp(master)
+    const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
+
+    // ensure no mandatory pending guidance on running VMs/Hosts
 
     const hasMissingPatchesByHost = {}
     const hosts = filter(this.objects.all, { $type: 'host' })
@@ -612,6 +617,10 @@ const methods = {
           },
           async () => {
             const missingPatches = await this.listMissingPatches(hostUuid)
+            console.log(Array.isArray(missingPatches))
+            console.log(missingPatches.length)
+            // what if hosts up to date??
+
             hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
           }
         )
@@ -620,18 +629,22 @@ const methods = {
       })
     })
 
+    // OK
+
     return Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
         xsCredentials,
         beforeEvacuateVms: async () => {
           // On XS/CH, start by installing patches on all hosts
           if (!isXcp) {
+            // and no cdnUpdate
             return Task.run({ properties: { name: `Installing XS patches` } }, async () => {
               await this.installPatches({ xsCredentials })
             })
           }
         },
         beforeRebootHost: async host => {
+          // install patches
           if (isXcp) {
             return Task.run(
               { properties: { name: `Installing patches`, hostId: host.uuid, hostName: host.name_label } },
@@ -645,9 +658,15 @@ const methods = {
           return !hasMissingPatchesByHost[host.uuid]
         },
       })
+
+      // for XS 8, ensure no more pending guidance on all hosts
+      // iter over all running VMs, and apply their pending-guidances.
+      //
     })
   },
 }
+
+// possible to set reboot required on VMs/Host manually?
 
 export default decorateObject(methods, {
   _getXenUpdates: [

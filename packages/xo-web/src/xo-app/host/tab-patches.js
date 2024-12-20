@@ -212,7 +212,7 @@ class XenServerPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches || pool.HA_enabled || _isXsHostWithCdnPatches}
+              // disabled={!hasMissingPatches || pool.HA_enabled || _isXsHostWithCdnPatches}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
