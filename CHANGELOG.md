@@ -17,6 +17,8 @@
 - [Backups/Advanced settings] Add merge backups synchronously (PR [#8177](https://github.com/vatesfr/xen-orchestra/pull/8177))
 - [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
 - [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
+- [REST/Dashboard] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
+- [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
 
 ### Bug fixes
 
@@ -24,6 +26,7 @@
 
 - [VM] Fix `VDI_NOT_IN_MAP` error during migration (PR [#8179](https://github.com/vatesfr/xen-orchestra/pull/8179))
 - [Backups/CBT] Improve enabling/disabling CBT on slower storages (PR [#8184](https://github.com/vatesfr/xen-orchestra/pull/8184))
+- [New/Network] Fix `Pool is undefined` when creating a private network (PR [#8188](https://github.com/vatesfr/xen-orchestra/pull/8188))
 
 ### Released packages
 
@@ -32,11 +35,11 @@
 - @xen-orchestra/backups 0.57.0
 - @xen-orchestra/backups-cli 1.0.28
 - @xen-orchestra/immutable-backups 1.0.16
-- @xen-orchestra/web-core 0.9.0
 - @xen-orchestra/proxy 0.29.8
-- @xen-orchestra/web 0.5.2
-- xo-server 5.166.0
-- xo-web 5.165.0
+- @xen-orchestra/web-core 0.10.0
+- @xen-orchestra/web 0.5.3
+- xo-server 5.167.0
+- xo-web 5.166.0
 
 ## **5.101.0** (2024-11-29)
 
