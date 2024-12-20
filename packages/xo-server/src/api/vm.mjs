@@ -115,7 +115,7 @@ export const create = defer(async function ($defer, params) {
         ...vdi,
         device: ++highestDevice,
         size,
-        SR: sr._xapiId,
+        sr: sr._xapiId,
         type: vdi.type,
       }
     })
