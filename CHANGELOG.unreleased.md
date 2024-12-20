@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Signin] Start transitioning towards XO 6 Design System
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +33,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
