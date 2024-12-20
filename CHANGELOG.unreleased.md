@@ -11,12 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
-- [Signin] Start transitioning towards XO 6 Design System (PR [#8209](https://github.com/vatesfr/xen-orchestra/pull/8209))
-- [Host/Advanced] In host's advanced tab, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
-- XO 6:
-  - [Dashboard] Pools status (PR [#7800](https://github.com/vatesfr/xen-orchestra/pull/7800))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,9 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/web minor
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->
