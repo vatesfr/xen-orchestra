@@ -246,16 +246,16 @@ export default class TabPatches extends Component {
         <Container>
           <Row>
             <Col className='text-xs-right'>
-              {ROLLING_POOL_UPDATES_AVAILABLE && (
+              {(ROLLING_POOL_UPDATES_AVAILABLE || true) && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={
-                    hasAXostor ||
-                    isEmpty(missingPatches) ||
-                    hasMultipleVmsRunningOnLocalStorage ||
-                    isSingleHost ||
-                    _isXsHostWithCdnPatches
-                  }
+                  // disabled={
+                  //   hasAXostor ||
+                  //   isEmpty(missingPatches) ||
+                  //   hasMultipleVmsRunningOnLocalStorage ||
+                  //   isSingleHost ||
+                  //   _isXsHostWithCdnPatches
+                  // }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
