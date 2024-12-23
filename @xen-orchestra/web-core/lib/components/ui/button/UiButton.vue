@@ -9,8 +9,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faLock } from '@fortawesome/free-solid-svg-icons'
@@ -20,26 +19,21 @@ type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
 type ButtonAccent = 'info' | 'success' | 'warning' | 'danger'
 type ButtonSize = 'small' | 'medium' | 'large'
 
-const props = withDefaults(
-  defineProps<{
-    variant: ButtonVariant
-    accent: ButtonAccent
-    size: ButtonSize
-    busy?: boolean
-    disabled?: boolean
-    lockIcon?: boolean
-    leftIcon?: IconDefinition
-  }>(),
-  {
-    disabled: undefined,
-  }
-)
+const props = defineProps<{
+  variant: ButtonVariant
+  accent: ButtonAccent
+  size: ButtonSize
+  busy?: boolean
+  disabled?: boolean
+  lockIcon?: boolean
+  leftIcon?: IconDefinition
+}>()
 
 defineSlots<{
   default(): any
 }>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 
 const fontClasses = {
   small: 'typo p3-medium',

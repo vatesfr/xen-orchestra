@@ -27,28 +27,24 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    icon?: IconDefinition
-    onClick?: () => any
-    disabled?: boolean
-    busy?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  icon?: IconDefinition
+  onClick?: () => any
+  disabled?: boolean
+  busy?: boolean
+}>()
 
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
 )
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 
 const submenuIcon = computed(() => (isParentHorizontal.value ? faAngleDown : faAngleRight))
 
