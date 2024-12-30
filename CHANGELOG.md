@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.102.0** (2024-12-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
@@ -48,7 +50,7 @@
 
 ## **5.101.0** (2024-11-29)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -95,8 +97,6 @@
 - xo-web 5.163.0
 
 ## **5.100.2** (2024-11-14)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
