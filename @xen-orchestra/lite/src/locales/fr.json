@@ -186,6 +186,13 @@
   "new-features-are-coming": "De nouvelles fonctionnalités arrivent bientôt !",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+
+  "new-vm": "Nouvelle VM",
+  "new-vm.add": "Ajouter une nouvelle VM",
+  "new-vm.create": "Créer une VM",
+  "new-vm.template": "Modèle",
+  "new-vm.install-settings": "Paramètres d'installation",
+
   "no-alarm-triggered": "Aucune alarme déclenchée",
   "no-result": "Aucun résultat",
   "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",
