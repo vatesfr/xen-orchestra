@@ -4,6 +4,19 @@
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
+### Highlights
+
+- [Backup] Add _Merge backups synchronously_ advanced setting (PR [#8177](https://github.com/vatesfr/xen-orchestra/pull/8177))
+- [Backup] VMs with the tags `xo:no-health-check` or `xo:no-health-check=REASON` will not be included in automatic by Health Check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
+- [REST API] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
+- [REST API] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
+- [Signin] Start transitioning towards XO 6 Design System (PR [#8209](https://github.com/vatesfr/xen-orchestra/pull/8209))
+- [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
+- [Jobs] _Rolling Pool Reboot_ and _Rolling Pool Update_ can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
+- [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
+- [Host/Advanced] Display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
+- [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
+
 ### Security
 
 > Security fixes and new features should go in this section
@@ -14,16 +27,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Patches] Rolling Pool Reboot and Update can now be planned as a Job (PR [#8185](https://github.com/vatesfr/xen-orchestra/pull/8185))
-- [REST/VM] When creating a VM, it is possible to create more VDIs or delete/update template's VDIs (PR [#8167](https://github.com/vatesfr/xen-orchestra/pull/8167))
-- [Backups/Advanced settings] Add merge backups synchronously (PR [#8177](https://github.com/vatesfr/xen-orchestra/pull/8177))
-- [Backup] VMs with this tag `xo:no-health-check` or `xo:no-health-check=REASON` will not be tested by health check (PR [#8189](https://github.com/vatesfr/xen-orchestra/pull/8189))
-- [Pool, Host/Patches] List missing patches for `>= 8.4` XenServer hosts [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/20) (PR [#8183](https://github.com/vatesfr/xen-orchestra/pull/8183))
-- [REST/Dashboard] Add the number of connected/unreachable/unknown pools in the `/dashboard` endpoint (PR [#8203](https://github.com/vatesfr/xen-orchestra/pull/8203))
-- [VM/Advanced] Ability to create/edit/delete XenStore entries (PR [#8174](https://github.com/vatesfr/xen-orchestra/pull/8174))
-- [Dashboard/Health] Add `BOND_STATUS_CHANGED` and `MULTIPATH_PERIODIC_ALERT` in alarms list (PR [#8199](https://github.com/vatesfr/xen-orchestra/pull/8199))
-- [Signin] Start transitioning towards XO 6 Design System (PR [#8209](https://github.com/vatesfr/xen-orchestra/pull/8209))
-- [Host/Advanced] In host's advanced tab, display MDADM health information (PR [#8190](https://github.com/vatesfr/xen-orchestra/pull/8190))
 - **XO 6**:
   - [Dashboard] Pools status (PR [#7800](https://github.com/vatesfr/xen-orchestra/pull/7800))
 
