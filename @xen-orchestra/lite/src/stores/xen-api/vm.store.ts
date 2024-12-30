@@ -25,6 +25,10 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     vmRawContext.records.value.filter(vm => !vm.is_a_snapshot && !vm.is_control_domain && !vm.is_a_template)
   )
 
+  const templates = computed(() =>
+    vmRawContext.records.value.filter(vm => !vm.is_a_snapshot && !vm.is_control_domain && vm.is_a_template)
+  )
+
   const runningVms = computed(() => records.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
   const recordsByHostRef = computed(() => {
@@ -70,6 +74,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   const context = {
     ...vmRawContext,
     records,
+    templates,
     runningVms,
     recordsByHostRef,
     getStats,
