@@ -23,6 +23,11 @@ const router = createRouter({
       name: 'settings',
       component: () => import('@/views/settings/SettingsView.vue'),
     },
+    {
+      path: '/new/vm',
+      name: 'new-vm',
+      component: () => import('@/views/new-vm/NewVmView.vue'),
+    },
     story,
     pool,
     vm,
