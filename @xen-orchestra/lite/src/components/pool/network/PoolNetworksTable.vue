@@ -100,6 +100,7 @@
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+import type { Status } from '@/types/status'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
@@ -127,8 +128,6 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
-
-export type Status = 'connected' | 'disconnected' | 'partially-connected'
 
 const { networks, isReady } = defineProps<{
   networks: {
