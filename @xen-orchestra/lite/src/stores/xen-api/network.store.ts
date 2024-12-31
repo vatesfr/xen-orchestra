@@ -1,8 +1,8 @@
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifStore } from '@/stores/xen-api/pif.store' // Importez le pifStore
+import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'

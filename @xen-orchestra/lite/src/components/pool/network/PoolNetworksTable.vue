@@ -107,7 +107,6 @@
 </template>
 
 <script setup lang="ts">
-import PoolNetworksPifStatus from '@/components/pool/network/PoolNetworksPifStatus.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
@@ -154,7 +153,6 @@ const { networks, isReady } = defineProps<{
 const emit = defineEmits<{
   rowSelectNetwork: [value: any]
 }>()
-
 
 const selectRow = (item: any, table: string) => {
   emit('rowSelectNetwork', { item, table })
