@@ -1,8 +1,7 @@
-import type { Status } from '@/components/pool/network/PoolNetworksPifStatus.vue'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import { usePifStore } from '@/stores/xen-api/pif.store' // Importez le pifStore
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
@@ -28,7 +27,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   const pifContext = deps.pifStore.getContext()
 
   const pifsByNetwork = computed(() => {
-    const PIFsByNetworkMap = new Map<string, XenApiPif[]>()
+    const pifsByNetworkMap = new Map<string, XenApiPif[]>()
 
     const poolMasterRef = poolContext.pool.value?.master
 
@@ -37,13 +36,13 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
       pifContext.records.value
         .filter(pif => pif.host === poolMasterRef)
         .forEach(pif => {
-          if (!PIFsByNetworkMap.has(pif.network)) {
-            PIFsByNetworkMap.set(pif.network, [])
+          if (!pifsByNetworkMap.has(pif.network)) {
+            pifsByNetworkMap.set(pif.network, [])
           }
-          PIFsByNetworkMap.get(pif.network)?.push(pif)
+          pifsByNetworkMap.get(pif.network)?.push(pif)
         })
     }
-    return PIFsByNetworkMap
+    return pifsByNetworkMap
   })
 
   const networksWithVLANs = computed(() =>
@@ -53,8 +52,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
         const relatedPifs = pifsByNetwork.value.get(network.$ref) || []
         const vlan =
           relatedPifs.length > 0 ? (relatedPifs[0].VLAN === -1 ? t('none') : relatedPifs[0].VLAN.toString()) : ''
-        const status = determineStatus(relatedPifs)
-
+        const status = pifContext.determineStatus(relatedPifs)
         return { network, vlan, status }
       })
   )
@@ -71,17 +69,3 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
-
-function determineStatus(PIFs: XenApiPif[]): Status {
-  if (PIFs.length === 0) {
-    return 'disconnected'
-  }
-  const currentlyAttached = PIFs.map(PIF => PIF.currently_attached)
-  if (currentlyAttached.every(Boolean)) {
-    return 'connected'
-  }
-  if (currentlyAttached.some(Boolean)) {
-    return 'partial'
-  }
-  return 'disconnected'
-}

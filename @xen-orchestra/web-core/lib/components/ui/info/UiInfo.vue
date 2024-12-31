@@ -44,6 +44,7 @@ const icon = computed(() => iconByAccent[accent])
 
 <style lang="postcss" scoped>
 .ui-info {
+  align-items: start;
   display: flex;
   gap: 0.8rem;
 
