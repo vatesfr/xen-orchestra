@@ -1,6 +1,6 @@
-import type { Status } from '@/components/pool/network/PoolNetworksTable.vue'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
+import type { Status } from '@/types/status'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 
