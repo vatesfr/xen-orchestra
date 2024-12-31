@@ -77,7 +77,7 @@
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
-                <PoolNetworksPifStatus v-else-if="column.id === 'status'" :status="column.value" />
+                <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
                 <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                   {{ column.value }}
                 </div>
@@ -97,10 +97,10 @@
 </template>
 
 <script setup lang="ts">
-import PoolNetworksPifStatus, { type Status } from '@/components/pool/network/PoolNetworksPifStatus.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -128,10 +128,12 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
 
+export type Status = 'connected' | 'disconnected' | 'partially-connected'
+
 const { networks, isReady } = defineProps<{
   networks: {
     network: XenApiNetwork
-    status?: Status
+    status: Status
     vlan?: string
   }[]
   isReady: boolean
