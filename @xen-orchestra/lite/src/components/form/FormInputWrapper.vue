@@ -59,7 +59,10 @@ const props = withDefaults(
   { disabled: undefined }
 )
 
-const slots = useSlots()
+const slots = useSlots() as {
+  label?(): any
+  default(): any
+}
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)
