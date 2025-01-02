@@ -239,9 +239,16 @@ pool 2.debian.pool.ntp.org iburst
 pool 3.debian.pool.ntp.org iburst
 ```
 
-If you'd like to use your own NTP server or another pool, you can make the changes directly in `/etc/systemd/timesyncd.conf`.
+If you'd like to use another pool, you can make the changes directly in `/etc/systemd/timesyncd.conf`.
 
-You will need to be root to edit this file (or use `sudo`). We recommend adding your custom server to the top of the list, leaving the debian server entries if possible.
+You will need to be root to edit this file (or use `sudo`). We recommend adding your custom server to the top of the list, leaving the Debian server entries if possible.
+
+If you'd like to simply change NTP servers, use the `xoa network ntp` command:
+
+```
+$ xoa network ntp
+? NTP servers (space separated)
+```
 
 For changes to take effect, you will need to restart NTP: `systemctl restart systemd-timesyncd.service `.
 
