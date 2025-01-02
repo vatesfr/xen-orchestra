@@ -46,6 +46,7 @@ const slots = defineSlots<{
     flex-direction: column;
     padding: 0.8rem;
     gap: 0.8rem;
+    min-width: calc(40rem - 0.1rem);
   }
 
   &.error {
