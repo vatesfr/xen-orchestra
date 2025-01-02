@@ -66,7 +66,7 @@
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
                 <div v-else-if="column.id === 'status'" v-tooltip>
-                  <HostPifStatus class="status" :pif-status="column.value" />
+                  <VtsConnectionStatus :status="column.value" />
                 </div>
                 <div v-else-if="column.id === 'network'" class="network">
                   <UiComplexIcon size="medium" class="icon">
@@ -94,11 +94,12 @@
 </template>
 
 <script lang="ts" setup>
-import HostPifStatus from '@/components/host/network/HostPifStatus.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -137,14 +138,28 @@ const { pifs } = defineProps<{
 const { t } = useI18n()
 
 const { getByOpaqueRef } = useNetworkStore().subscribe()
+const { getPifCarrier } = usePifMetricsStore().subscribe()
 
-const getNetworkName = (pif: string) => {
-  const network: XenApiNetwork = getByOpaqueRef(pif as XenApiNetwork['$ref'])!
+const getNetworkName = (networkRef: string) => {
+  const network: XenApiNetwork = getByOpaqueRef(networkRef as XenApiNetwork['$ref'])!
   return network?.name_label ? network.name_label : ''
 }
 
 const getVlanData = (vlan: number) => {
   return vlan !== -1 ? vlan : t('none')
+}
+
+const getPifStatus = (pif: XenApiPif) => {
+  const carrier = getPifCarrier(pif)
+  const currentlyAttached = pif.currently_attached
+
+  if (currentlyAttached && carrier) {
+    return 'connected'
+  }
+  if (currentlyAttached && !carrier) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
 }
 
 const searchQuery = ref('')
@@ -171,7 +186,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredNetworks, {
     define('checkbox', () => '', { label: '', isHideable: false }),
     define('network', record => getNetworkName(record.network), { label: 'Network', isHideable: true }),
     define('device', { label: 'Device', isHideable: true }),
-    define('status', record => record.currently_attached, { label: 'Status', isHideable: true }),
+    define('status', record => getPifStatus(record), { label: 'Status', isHideable: true }),
     define('VLAN', record => getVlanData(record.VLAN), { label: 'Vlan', isHideable: true }),
     define('IP', { label: 'IP', isHideable: true }),
     define('MAC', { label: 'MAC', isHideable: true }),
