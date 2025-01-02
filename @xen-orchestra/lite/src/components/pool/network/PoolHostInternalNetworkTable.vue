@@ -56,7 +56,9 @@
                   <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                   {{ column.label }}
                 </th>
-                <ColumnTitle v-else :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+                <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
+                  <span class="text-ellipsis">{{ column.label }}</span>
+                </ColumnTitle>
               </template>
             </tr>
           </thead>
@@ -129,13 +131,13 @@ const { networks, isReady } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  rowSelectHostInternalNetwork: [value: any]
+  rowSelectNetwork: [value: any]
 }>()
 
 const searchQuery = ref('')
 
 const selectRow = (item: any, table: string) => {
-  emit('rowSelectHostInternalNetwork', { item, table })
+  emit('rowSelectNetwork', { item, table })
 }
 
 const filteredNetworks = computed(() => {
