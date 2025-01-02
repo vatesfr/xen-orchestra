@@ -56,7 +56,7 @@
             {{ $t('pif-status') }}
           </template>
           <template #value>
-            <HostPifStatus :pif-status="pif.currently_attached" card />
+            <VtsConnectionStatus :status="getPifStatus(pif)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -64,7 +64,7 @@
             {{ $t('physical-interface-status') }}
           </template>
           <template #value>
-            <HostPifStatus :pif-status="pif.currently_attached" card />
+            <VtsConnectionStatus :status="getPhysicalInterfaceStatus(pif)" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -203,11 +203,11 @@
 </template>
 
 <script setup lang="ts">
-import HostPifStatus from '@/components/host/network/HostPifStatus.vue'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -235,7 +235,7 @@ const { pif } = defineProps<{
 }>()
 
 const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefMetrics } = usePifMetricsStore().subscribe()
+const { getByOpaqueRef: getOpaqueRefMetrics, getPifCarrier } = usePifMetricsStore().subscribe()
 
 const allIps = computed(() => {
   return [pif.IP, ...pif.IPv6].filter(ip => ip)
@@ -252,6 +252,23 @@ const getNetworkData = (type: keyof XenApiNetwork) => {
     case 'tags':
       return network.tags.length ? network.tags : '-'
   }
+}
+
+const getPifStatus = (pif: XenApiPif) => {
+  const carrier = getPifCarrier(pif)
+  const currentlyAttached = pif.currently_attached
+
+  if (currentlyAttached && carrier) {
+    return 'connected'
+  }
+  if (currentlyAttached && !carrier) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
+}
+
+const getPhysicalInterfaceStatus = (pif: XenApiPif) => {
+  return pif.physical ? 'connected' : 'disconnected-from-physical-device'
 }
 
 const getSpeedData = (speedRef: string) => {
