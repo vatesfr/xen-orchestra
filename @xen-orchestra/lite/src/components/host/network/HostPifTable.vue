@@ -54,9 +54,10 @@
                 </th>
                 <th v-else-if="column.id === 'more'" class="more">
                   <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-                  {{ column.label }}
                 </th>
-                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+                <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)">
+                  <span class="text-ellipsis">{{ column.label }}</span>
+                </ColumnTitle>
               </template>
             </tr>
           </thead>

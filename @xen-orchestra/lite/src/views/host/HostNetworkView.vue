@@ -4,7 +4,7 @@
       <HostPifTable :pifs="pifs" :is-ready @row-select="selectPif" />
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" />
-    <UiPanel v-else class="panel-container">
+    <UiPanel v-else class="panel">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -43,9 +43,9 @@ const selectPif = (id: XenApiPif['uuid']) => {
     margin: 0.8rem;
   }
 
-  .panel-container {
-    min-width: 40rem;
+  .panel {
     border-top: none;
+    border-right: none;
   }
 }
 </style>
