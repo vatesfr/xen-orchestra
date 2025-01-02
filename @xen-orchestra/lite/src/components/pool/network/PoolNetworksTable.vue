@@ -67,7 +67,7 @@
                   {{ column.label }}
                 </th>
                 <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
-                  {{ column.label }}
+                  <span class="text-ellipsis">{{ column.label }}</span>
                 </ColumnTitle>
               </template>
             </tr>
@@ -250,6 +250,10 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
     .checkbox,
     .more {
       width: 4.8rem;
+    }
+
+    ::deep(.col-status) {
+      width: 2rem;
     }
   }
 }

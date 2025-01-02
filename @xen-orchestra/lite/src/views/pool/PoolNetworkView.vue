@@ -11,11 +11,11 @@
         :networks="hostInternalNetworks"
         :is-ready
         :selected-row-id="selectedHostInternalRowId"
-        @row-select-host-internal-network="selectNetwork"
+        @row-select-network="selectNetwork"
       />
     </UiCard>
     <PoolNetworksSidePanel v-if="selectedNetworks" :selected-network="selectedNetworks" :selected-pifs="selectedPIFs" />
-    <UiPanel v-else class="panel-container">
+    <UiPanel v-else class="panel">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -29,6 +29,8 @@ import UiCard from '@/components/ui/UiCard.vue'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { Status } from '@/types/status'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { ref } from 'vue'
@@ -36,17 +38,19 @@ import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const { networksWithVLANs, hostInternalNetworks, isReady, getPIFsInformationByNetwork } = useNetworkStore().subscribe()
+const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
+const { getPIFsInformationByNetwork } = usePifStore().subscribe()
 
 const selectedNetworks = ref<{
   network: XenApiNetwork
-  status?: string
+  status?: Status
   vlan?: string
 }>()
 
 const selectedPIFs = ref<
   {
     PIF: XenApiPif
+    status: Status
     host?: {
       name_label?: string
       hostStatus?: boolean
@@ -103,9 +107,10 @@ const selectNetwork = (payload: { item: any; table: string }) => {
     border-radius: 0.8rem;
   }
 
-  .panel-container {
-    width: 40rem;
+  .panel {
+    height: 100vh;
     border-top: none;
+    border-right: none;
   }
 }
 </style>
