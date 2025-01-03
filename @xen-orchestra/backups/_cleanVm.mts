@@ -11,14 +11,14 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import * as handlerPath from '@xen-orchestra/fs/path'
-import RemoteHandlerAbstract from '@xen-orchestra/fs/abstract'
+import RemoteHandlerAbstract from '@xen-orchestra/fs/'
 
 const { DISK_TYPES } = Constants
 
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(handler, vhds) {
+function shouldComputeVhdsSize(handler: RemoteHandlerAbstract, vhds: object[]) {
   if (handler.isEncrypted) {
     return false
   }
