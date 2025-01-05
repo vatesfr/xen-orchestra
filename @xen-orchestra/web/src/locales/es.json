@@ -1,0 +1,67 @@
+{
+  "account-organization-more": "Cuenta, organización y más…",
+  "available": "Disponible",
+  "back-site-dashboard": "Regresar al panel del sitio",
+  "backup-issues": "Problemas de salvaguarda",
+  "backups": "Salvaguardas",
+  "backup-repository": "Repositorio de salvaguardas (local, NFS, SMB)",
+
+  "backups.jobs": "Tareas salvaguarda",
+  "backups.jobs.at-least-one-skipped": "Al menos una tarea se saltó",
+  "backups.jobs.based-on-last-three": "Basado en las últimas tres tareas",
+  "backups.jobs.disabled": "Desactivado",
+  "backups.jobs.looks-like-issue": "Parece que hay un problema",
+  "backups.jobs.running-good": "Todo bien",
+
+  "backups.vms-protection": "Protección de máquinas virtuales",
+  "backups.vms-protection.no-job": "No listada en ninguna tarea salvaguarda",
+  "backups.vms-protection.protected": "Listada en al menos una tarea y protejida",
+  "backups.vms-protection.tooltip": "Una máquina virtual está «protejida» si está en una tarea de salvaguarda, con un horario activado, y la última ejecución tuvo éxito",
+  "backups.vms-protection.unprotected": "En al menos una tarea pero no está protejida",
+
+  "end-of-life": "Fin de vida (EOL)",
+  "eol": "EOL",
+  "for-backup": "Para salvaguarda",
+  "for-replication": "Para replicación",
+  "host": "Servidor",
+  "host-description": "Descripción servidor",
+
+  "hosts-status": "Estatus servidores",
+  "hosts-status.halted": "Parado",
+  "hosts-status.running": "En marcha",
+  "hosts-status.unknown": "Desconocido",
+  "hosts-status.unknown.tooltip": "Métricas de servidores no son disponibles",
+
+  "in-last-three-jobs": "En las últimas tres tareas",
+  "missing-patches": "Parches faltantes",
+  "n-hosts": "1 servidor| {n} servidores",
+  "no-results": "No hay resultados",
+  "pools": "Pools",
+  "resources-overview": "Mirador recursos",
+  "s3-backup-repository": "Repositorio S3 de salvaguardas",
+  "storage-repository": "Repositorio de almacenamiento",
+
+  "pools-status": "Estatus Pools",
+  "pools-status.connected": "Conectado",
+  "pools-status.unreachable": "Inaccesible",
+  "pools-status.unreachable.tooltip": "Servidores conocidos que no se puede acceder",
+  "pools-status.unknown": "Desconocido",
+  "pools-status.unknown.tooltip": "Servidores en estado desconocido",
+
+  "sidebar.search-tree-view": "Buscar en la vista de árbol",
+  "sidebar.vms-treeview": "Vista de árbol de las máquinas virtuales",
+
+  "total-memory": "Memoria total",
+  "total-storage-repository": "Total reposito de almacenamiento",
+  "up-to-date": "Actualizado",
+  "used": "Usado",
+  "vm": "máquina virtual",
+  "vm-description": "descripción máquina virtual",
+
+  "vms-status": "Estatus máquinas virtuales",
+  "vms-status.inactive": "Inactivas",
+  "vms-status.inactive.tooltip": "Paradas o suspendidas",
+  "vms-status.running": "En marcha",
+  "vms-status.unknown": "Desconocido",
+  "vms-status.unknown.tooltip": "XO ha perdido su conección al pool"
+}
