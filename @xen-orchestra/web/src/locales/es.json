@@ -36,12 +36,12 @@
   "missing-patches": "Parches faltantes",
   "n-hosts": "1 servidor| {n} servidores",
   "no-results": "No hay resultados",
-  "pools": "Pools",
+  "pools": "Conjuntos de servidores",
   "resources-overview": "Mirador recursos",
   "s3-backup-repository": "Repositorio S3 de salvaguardas",
   "storage-repository": "Repositorio de almacenamiento",
 
-  "pools-status": "Estatus Pools",
+  "pools-status": "Estatus conjuntos",
   "pools-status.connected": "Conectado",
   "pools-status.unreachable": "Inaccesible",
   "pools-status.unreachable.tooltip": "Servidores conocidos que no se puede acceder",
@@ -63,5 +63,5 @@
   "vms-status.inactive.tooltip": "Paradas o suspendidas",
   "vms-status.running": "En marcha",
   "vms-status.unknown": "Desconocido",
-  "vms-status.unknown.tooltip": "XO ha perdido su conección al pool"
+  "vms-status.unknown.tooltip": "XO ha perdido su conección al conjunto de servidores"
 }
