@@ -255,20 +255,15 @@ const getNetworkData = (type: keyof XenApiNetwork) => {
 }
 
 const getPifStatus = (pif: XenApiPif) => {
-  const carrier = getPifCarrier(pif)
   const currentlyAttached = pif.currently_attached
 
-  if (currentlyAttached && carrier) {
-    return 'connected'
-  }
-  if (currentlyAttached && !carrier) {
-    return 'partially-connected'
-  }
-  return 'disconnected'
+  return currentlyAttached ? 'connected' : 'disconnected'
 }
 
 const getPhysicalInterfaceStatus = (pif: XenApiPif) => {
-  return pif.physical ? 'connected' : 'disconnected-from-physical-device'
+  const carrier = getPifCarrier(pif)
+
+  return carrier ? 'connected' : 'disconnected-from-physical-device'
 }
 
 const getSpeedData = (speedRef: string) => {
