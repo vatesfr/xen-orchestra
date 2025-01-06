@@ -2,7 +2,8 @@ const { pipeline } = require('node:stream')
 const { readChunk } = require('@vates/read-chunk')
 const crypto = require('crypto')
 
-export const DEFAULT_ENCRYPTION_ALGORITHM = 'aes-256-gcm'
+const CHACHA20 = 'chacha20-poly1305'
+export const DEFAULT_ENCRYPTION_ALGORITHM = CHACHA20
 export const UNENCRYPTED_ALGORITHM = 'none'
 
 export function isLegacyEncryptionAlgorithm(algorithm) {
@@ -33,7 +34,8 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
     throw error
   }
   const { ivLength, mode } = info
-  const authTagLength = ['gcm', 'ccm', 'ocb'].includes(mode) ? 16 : 0
+  const authTagLength = ['gcm', 'ccm', 'ocb'].includes(mode) || algorithm === CHACHA20
+    ? 16 : 0
 
   function encryptStream(input) {
     return pipeline(
