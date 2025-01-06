@@ -124,7 +124,7 @@ const COLUMNS = [
   {
     name: _('labelSize'),
     itemRenderer: ({ tasks: vmTasks, jobId }, { jobs }) => {
-      if (get(() => jobs[jobId].type) !== 'backup' || isEmpty(vmTasks)) {
+      if (!['backup', 'mirrorBackup'].includes(get(() => jobs[jobId].type)) || isEmpty(vmTasks)) {
         return null
       }
 
