@@ -27,7 +27,7 @@ const props = withDefaults(
     disabled: undefined,
   }
 )
-const model = defineModel<boolean>()
+const model = defineModel<any>()
 
 defineSlots<{
   default(): any
@@ -60,6 +60,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
 
     &:has(input:focus-visible) {
       outline: none;
+
       &::after {
         position: absolute;
         content: '';
@@ -68,6 +69,7 @@ const isDisabled = useContext(DisabledContext, () => props.disabled)
         border-radius: 0.4rem;
       }
     }
+
     &:has(.input:disabled) {
       cursor: not-allowed;
 
