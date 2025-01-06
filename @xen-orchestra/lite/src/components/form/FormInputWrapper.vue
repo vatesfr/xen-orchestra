@@ -42,7 +42,7 @@ import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from '@/types/injection-keys'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'
-import { computed, provide, useSlots } from 'vue'
+import { computed, provide } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -58,8 +58,6 @@ const props = withDefaults(
   }>(),
   { disabled: undefined }
 )
-
-const slots = useSlots()
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)
@@ -78,7 +76,7 @@ const color = computed<Color | undefined>(() => {
 
 provide(
   IK_FORM_HAS_LABEL,
-  computed(() => slots.label !== undefined)
+  computed(() => props.label !== undefined)
 )
 
 useContext(ColorContext, color)
