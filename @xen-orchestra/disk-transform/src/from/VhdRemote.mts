@@ -1,15 +1,15 @@
 import { openVhd } from 'vhd-lib'
 import {
-  DiskBlock,
-  DiskBlockData,
+  type DiskBlock,
+  type DiskBlockData,
   DiskBlockGenerator,
-  Disposable,
+  type Disposable,
   PortableDifferencingDisk,
   PortableDiskMetadata,
-  Uuid,
-} from '../PortableDifferencingDisk.mjs'
-import { FileAccessor } from '../file-accessor/FileAccessor.mjs'
-import { dirname, join, relative } from 'path'
+  type Uuid,
+} from '../PortableDifferencingDisk.mts'
+import { type FileAccessor } from '../file-accessor/FileAccessor.mts'
+import { dirname, join } from 'path'
 
 type VhdBlock = {
   id: number
@@ -26,8 +26,9 @@ export type Vhd = {
   readHeaderAndFooter(): Promise<void>
   readBlockAllocationTable(): Promise<void>
   readBlock(index: number): Promise<VhdBlock>
-  blocks(): AsyncIterator<VhdBlock>
-  writeHeaderAndFooter(): Promise<void>
+  blocks(): AsyncGenerator<VhdBlock>
+  writeHeader(): Promise<void>
+  writeFooter(): Promise<void>
   writeBlockAllocationTable(): Promise<void>
   writeEntireBlock(block: VhdBlock): Promise<void>
 }
@@ -49,15 +50,12 @@ class VhdFileGenerator extends DiskBlockGenerator {
   }
   async *[Symbol.asyncIterator](): AsyncIterator<DiskBlock> {
     const blockIterator = this.#vhd.blocks()
-    let res: { value: VhdBlock; done?: boolean }
-    do {
-      res = await blockIterator.next(this)
-      this.consumedBlocks++
+    for await (const { id, data } of blockIterator) {
       yield {
-        index: res.value.id,
-        data: res.value.data,
+        index: id,
+        data: data,
       }
-    } while (!res.done)
+    }
   }
 }
 

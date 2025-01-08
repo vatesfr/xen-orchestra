@@ -1,4 +1,4 @@
-import { PortableDiskMetadata } from '../PortableDifferencingDisk.mjs'
+import { type PortableDiskMetadata } from '../PortableDifferencingDisk.mts'
 
 export async function getXapiMetadata(xapi: any, uuid: string): Promise<PortableDiskMetadata> {
   return Promise.resolve({

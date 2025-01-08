@@ -1,4 +1,4 @@
-import { FileAccessor, FileDescriptor } from './FileAccessor.mjs'
+import { FileAccessor, type FileDescriptor } from './FileAccessor.mts'
 
 // handle file access inside a form
 // to transform disks into an acceptable format from the browser

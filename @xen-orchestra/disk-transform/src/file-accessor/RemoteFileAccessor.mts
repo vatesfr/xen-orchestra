@@ -1,4 +1,4 @@
-import { FileAccessor, FileDescriptor } from './FileAccessor.mjs'
+import { FileAccessor, type FileDescriptor } from './FileAccessor.mts'
 
 export class RemoteFileAccessor extends FileAccessor {
   getSize: () => Promise<Number>
