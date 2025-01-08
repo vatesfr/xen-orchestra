@@ -1,10 +1,12 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
+    <VtsLoadingHero v-if="!isReady" class="loading-state" type="card" />
     <div ref="consoleContainer" class="console" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
 import { promiseTimeout } from '@vueuse/shared'
@@ -19,11 +21,13 @@ const N_TOTAL_TRIES = 8
 const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
 
 const consoleContainer = ref<HTMLDivElement | null>(null)
+const isReady = ref(false)
 
 let vncClient: VncClient | undefined
 let nConnectionAttempts = 0
 
 function handleDisconnectionEvent() {
+  isReady.value = false
   clearVncClient()
 
   nConnectionAttempts++
@@ -43,6 +47,7 @@ function handleDisconnectionEvent() {
 
 function handleConnectionEvent() {
   nConnectionAttempts = 0
+  isReady.value = true
 }
 
 function clearVncClient() {
@@ -53,6 +58,7 @@ function clearVncClient() {
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
   vncClient.disconnect()
+  isReady.value = false
 
   vncClient = undefined
 }
@@ -106,11 +112,16 @@ const uiStore = useUiStore()
     width: 95vw;
   }
 
+  .loading-state {
+    margin-top: 15rem;
+  }
+
   .console {
     height: 100%;
   }
 
   /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
+
   :deep(canvas) {
     margin: 0 auto !important;
   }
