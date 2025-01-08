@@ -1,0 +1,19 @@
+{
+  "name": "@xen-orchestra/disk-transform",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@tsconfig/node-lts": "^20.1.3",
+    "@tsconfig/recommended": "^1.0.7",
+    "@types/node": "^22.3.0",
+    "typescript": "^5.5.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node ."
+  }
+}
