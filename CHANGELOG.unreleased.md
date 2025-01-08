@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugin/backup-reports] Backup reports were not sent on failure with storage issue on remote (PR [#8229](https://github.com/vatesfr/xen-orchestra/pull/8229))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-backup-reports patch
 
 <!--packages-end-->

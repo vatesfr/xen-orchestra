@@ -16,7 +16,7 @@
           <ul>
             <li><span style="font-weight: bold">UUID</span>: {{uuid}}</li>
             <li><span style="font-weight: bold">Type</span>: {{taskLog.data.type}}</li>
-            {{>reportTemporalDataMjml end=taskLog.end start=taskLog.start}}
+            {{>reportTemporalDataMjml end=taskLog.end start=taskLog.start formatDate=../formatDate}}
             {{>reportWarningsMjml task=taskLog}}
             <li><span style="font-weight: bold">Error</span>: {{taskLog.result.message}}</li>
           </ul>
