@@ -250,7 +250,7 @@ $ xoa network ntp
 ? NTP servers (space separated)
 ```
 
-For changes to take effect, you will need to restart NTP: `systemctl restart systemd-timesyncd.service `.
+For changes to take effect, you will need to restart NTP: `systemctl restart systemd-timesyncd.service`.
 
 ## Restart the service
 
