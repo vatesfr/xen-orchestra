@@ -245,7 +245,7 @@ You will need to be root to edit this file (or use `sudo`). We recommend adding 
 
 If you'd like to simply change NTP servers, use the `xoa network ntp` command:
 
-```
+```console
 $ xoa network ntp
 ? NTP servers (space separated)
 ```
