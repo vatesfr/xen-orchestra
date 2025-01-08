@@ -95,6 +95,71 @@ Importing the groups doesn't import their members. The users will still be impor
 You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
 :::
 
+### OpenID Connect
+
+#### Overview
+The OpenID Connect (OIDC) plugin (`auth-oidc`) allows Xen Orchestra to integrate with identity providers that support the OIDC protocol.
+
+In this section, you'll learn:
+- how users can log in with OpenID Connect 
+- how administrators can configure the plugin to suit their needs
+
+#### Prerequisites
+
+- Make sure your identity provider supports OpenID Connect.
+
+#### User Workflow
+
+##### Log In with OpenID Connect
+1. On the Xen Orchestra login page, click **Sign in with OpenID Connect**.
+
+![OpenID Connect plugin settings](./assets/openid-connect-signin-button.png)
+
+2. You’ll be redirected to the login page of your internal portal.
+
+3. Enter your credentials:
+   - **Username or email**: Your account's username or email address.
+   - **Password**: Your account's password.
+
+4. Click **Sign In**.
+
+5. If your credentials are correct, you’ll be directed to the Xen Orchestra home page.
+
+#### Administrator Guide
+
+##### Set Up the OpenID Connect Plugin
+You can set up the `auth-oidc` plugin directly in Xen Orchestra:
+
+1. Go to **Settings** → **Plugins**.
+2. Find the `auth-oidc` plugin in the list.
+3. Click **+** next to the plugin name to expand the configuration options.
+
+![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
+
+##### Required Configuration
+Fill in the following mandatory fields:
+- **Auto-discovery URL**: The OIDC discovery URL provided by your identity provider.
+- **Client identifier (key)**: The client ID from your identity provider.
+- **Client secret**: Your client secret.
+
+##### Advanced Configuration (Optional)
+To access advanced options:
+1. Check **Fill information (optional)** to reveal additional fields.
+2. Complete the following fields as needed:
+   - **Authorization URL**: The URL for authorization requests.
+   - **Callback URL**: The redirect URI for OIDC responses.
+   - **Issuer**: The expected issuer string from the identity provider.
+   - **Token URL**: The URL for retrieving access tokens.
+   - **User info URL**: The URL for user profile information.
+   - **Username field**: Field to use as the Xen Orchestra username (e.g., `displayName`, `username`, or `email`).
+   - **Scopes**: List of OIDC scopes for profile information, separated by a single space. Note: The `openid` scope is included automatically.
+
+##### Save and Activate the Plugin
+1. Once everything is configured, click **Save configuration**.
+2. Toggle the switch next to the `auth-oidc` plugin name to enable it. This will:
+   - Activate the plugin immediately.
+   - Ensure it loads automatically when the Xen Orchestra server restarts.
+
 ### SAML
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.
