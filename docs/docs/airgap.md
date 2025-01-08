@@ -72,7 +72,7 @@ After downloading the dedicated air-gap XOA provided by our support team, follow
 1. **Obtain the Deployment Script**: On a machine with internet access (or any non-air-gap machine), run the following command to download the deployment script:
 
    ```bash
-   curl https://xoa.io/deploy > deploy.sh
+   wget -qO deploy.sh https://xoa.io/deploy
    ```
 
    Alternatively, you can manually copy the content from https://xoa.io/deploy into a file named `deploy.sh`.
