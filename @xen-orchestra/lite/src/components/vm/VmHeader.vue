@@ -1,15 +1,15 @@
 <template>
   <TitleBar :icon="faDisplay">
     {{ name }}
-    <template #actions>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
+    <template v-if="vm !== undefined" #actions>
+      <MenuList border placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButton
-            size="medium"
-            accent="info"
-            variant="primary"
             :class="{ pressed: isOpen }"
             :left-icon="faPowerOff"
+            accent="info"
+            size="medium"
+            variant="primary"
             @click="open"
           >
             {{ $t('change-state') }}
@@ -18,26 +18,25 @@
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </MenuList>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
-        <template #trigger="{ open, isOpen }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: $t('more-actions'),
-            }"
-            :selected="isOpen"
-            :icon="faEllipsisVertical"
-            accent="info"
-            class="more-actions-button"
-            size="large"
-            @click="open"
-          />
-        </template>
-        <VmActionCopyItem :selected-refs="[vm.$ref]" is-single-action />
-        <VmActionExportItem :vm-refs="[vm.$ref]" is-single-action />
-        <VmActionSnapshotItem :vm-refs="[vm.$ref]" />
-        <VmActionMigrateItem :selected-refs="[vm.$ref]" is-single-action />
-      </MenuList>
+
+      <UiButtonIcon
+        v-tooltip="{
+          placement: 'left',
+          content: $t('more-actions'),
+        }"
+        :icon="faEllipsisVertical"
+        accent="info"
+        class="more-actions-button"
+        size="large"
+        v-bind="omit(moreMenu.$trigger, ['as', 'submenu'])"
+      />
+
+      <VtsMenuList border v-bind="moreMenu.$target">
+        <VmActionCopyItem :menu="moreMenu" :selected-refs="[vm.$ref]" is-single-action />
+        <VmActionExportItem :menu="moreMenu" :vm-refs="[vm.$ref]" is-single-action />
+        <VmActionSnapshotItem :menu="moreMenu" :vm-refs="[vm.$ref]" />
+        <VmActionMigrateItem :menu="moreMenu" :selected-refs="[vm.$ref]" is-single-action />
+      </VtsMenuList>
     </template>
   </TitleBar>
 </template>
@@ -53,10 +52,13 @@ import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshot
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsMenuList from '@core/components/menu/VtsMenuList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useMenuToggle } from '@core/packages/menu'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
+import { objectOmit as omit } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -66,4 +68,6 @@ const { currentRoute } = useRouter()
 const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm['uuid']))
 
 const name = computed(() => vm.value?.name_label)
+
+const moreMenu = useMenuToggle({ placement: 'bottom-end' })
 </script>

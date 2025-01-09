@@ -1,64 +1,42 @@
 <template>
-  <MenuList border :disabled placement="bottom-end">
-    <template #trigger="{ isOpen, open }">
-      <UiAccountMenuButton
-        v-tooltip="isOpen ? false : { content: $t('account-organization-more'), placement: 'bottom-end' }"
-        :selected="isOpen"
-        size="medium"
-        @click="open($event)"
-      />
-    </template>
-    <MenuItem :icon="faBook">
-      <a
-        class="link typo p2-medium"
-        href="https://docs.xcp-ng.org?utm_campaign=xo6&utm_term=xcpdoc"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ $t('documentation-name', { name: 'XCP-ng' }) }}
-      </a>
-    </MenuItem>
-    <MenuItem :icon="faHeadset">
-      <a
-        class="link typo p2-medium"
-        href="https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ $t('professional-support') }}
-      </a>
-    </MenuItem>
-    <MenuItem :icon="faArrowRightFromBracket" class="logout" @click="logout()">
+  <AccountMenuTrigger v-bind="omit(menu.$trigger, ['as', 'submenu'])" />
+
+  <VtsMenuList border v-bind="menu.$target">
+    <VtsMenuItem :icon="faBook" v-bind="menu.documentation">
+      {{ $t('documentation-name', { name: 'XCP-ng' }) }}
+    </VtsMenuItem>
+    <VtsMenuItem :icon="faHeadset" v-bind="menu.support">
+      {{ $t('professional-support') }}
+    </VtsMenuItem>
+    <VtsMenuItem :icon="faArrowRightFromBracket" class="logout" v-bind="menu.logout">
       {{ $t('log-out') }}
-    </MenuItem>
-  </MenuList>
+    </VtsMenuItem>
+  </VtsMenuList>
 </template>
 
 <script lang="ts" setup>
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
-import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import AccountMenuTrigger from '@/components/account-menu/AccountMenuTrigger.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import VtsMenuList from '@core/components/menu/VtsMenuList.vue'
+import { link, useMenuToggle } from '@core/packages/menu'
 import { faArrowRightFromBracket, faBook, faHeadset } from '@fortawesome/free-solid-svg-icons'
+import { objectOmit as omit } from '@vueuse/core'
 
 defineProps<{
   disabled?: boolean
 }>()
 
-// TODO: Fetch the XO 5 mount path from API when available
-const logout = () => window.location.assign('/signout')
+const menu = useMenuToggle({
+  placement: 'bottom-end',
+  items: {
+    documentation: link('https://docs.xcp-ng.org?utm_campaign=xo6&utm_term=xcpdoc'),
+    support: link('https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing'),
+    logout: link('/signout', { target: '_self' }), // TODO: Fetch the XO 5 mount path from API when available
+  },
+})
 </script>
 
 <style lang="postcss" scoped>
-.link {
-  text-decoration: none;
-  color: var(--color-neutral-txt-primary);
-  /* Make the link take the height of the MenuItem component */
-  padding-block: 1.15rem;
-  /* Make the link take the available width in the MenuItem component */
-  flex-grow: 1;
-}
-
 .logout {
   color: var(--color-danger-txt-base);
 }

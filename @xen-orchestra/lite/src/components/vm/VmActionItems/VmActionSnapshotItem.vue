@@ -1,7 +1,7 @@
 <template>
-  <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
+  <VtsMenuItem :icon="faCamera" v-bind="menuItem">
     {{ $t('snapshot') }}
-  </MenuItem>
+  </VtsMenuItem>
 </template>
 
 <script lang="ts" setup>
@@ -10,11 +10,13 @@ import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import { type MenuLike, useMenuAction } from '@core/packages/menu'
 import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
+  menu: MenuLike
   vmRefs: XenApiVm['$ref'][]
 }>()
 
@@ -34,4 +36,11 @@ const handleSnapshot = () => {
   )
   return useXenApiStore().getXapi().vm.snapshot(vmRefsToSnapshot)
 }
+
+const menuItem = useMenuAction({
+  parent: props.menu,
+  handler: handleSnapshot,
+  busy: areSomeVmsSnapshoting,
+  disabled: isDisabled,
+})
 </script>

@@ -23,6 +23,10 @@
   </li>
 </template>
 
+<script lang="ts">
+/** @deprecated Use VtsMenuItem or VtsMenuTrigger */
+</script>
+
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'

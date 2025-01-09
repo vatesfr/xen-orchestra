@@ -8,6 +8,10 @@
   </Teleport>
 </template>
 
+<script lang="ts">
+/** @deprecated Use VtsMenuList */
+</script>
+
 <script lang="ts" setup>
 import { useContext } from '@core/composables/context.composable'
 import { DisabledContext } from '@core/context'
