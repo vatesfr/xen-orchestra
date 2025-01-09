@@ -285,19 +285,68 @@ async function _getDashboardStats(app) {
     console.error(error)
   }
 
+  function isReplicaVmInVdb($VBDs) {
+    for (const vbd of $VBDs) {
+      try {
+        const vdbObject = app.getObject(vbd, ['VBD'])
+        const { VM } = vdbObject
+        const vmObject = app.getObject(VM, ['VM', 'VM-snapshot', 'VM-template'])
+        if (isReplicaVm(vmObject)) {
+          return true
+        }
+      } catch (err) {
+        console.error(err.message)
+      }
+    }
+    return false
+  }
+
+  function calculateReplicatedSize(vdi, cache) {
+    if (cache.has(vdi)) {
+      return 0
+    }
+
+    let vdiObject
+    try {
+      vdiObject = app.getObject(vdi, ['VDI', 'VDI-snapshot', 'VDI-unmanaged'])
+      cache.set(vdi, vdiObject)
+    } catch (err) {
+      console.error(err.message)
+      return 0
+    }
+
+    const { parent, usage, $VBDs } = vdiObject
+    const replicaUsage = isReplicaVmInVdb($VBDs) && usage ? usage : 0
+    const parentUsage = parent ? calculateReplicatedSize(parent, cache) : 0
+
+    return replicaUsage + parentUsage
+  }
+
   const storageRepositoriesSize = writableSrs.reduce(
-    (prev, sr) => ({
-      total: prev.total + sr.size,
-      used: prev.used + sr.physical_usage,
-    }),
+    function processSr(acc, sr) {
+      const cache = new Map()
+      const { VDIs } = sr
+
+      const replicated = VDIs.reduce((total, vdi) => {
+        return total + calculateReplicatedSize(vdi, cache)
+      }, 0)
+
+      return {
+        replicated: acc.replicated + replicated,
+        other: acc.other + sr.size - replicated,
+        total: acc.total + sr.size,
+        used: acc.used + sr.physical_usage,
+      }
+    },
     {
+      replicated: 0,
+      other: 0,
       total: 0,
       used: 0,
     }
   )
+
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
-  storageRepositoriesSize.other = 0 // @TODO: compute the space used by everything that is not a replicated VM
-  storageRepositoriesSize.replicated = 0 // @TODO: compute the space used by replicated VMs
   resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
