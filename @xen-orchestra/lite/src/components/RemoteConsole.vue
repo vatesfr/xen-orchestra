@@ -1,9 +1,13 @@
 <template>
-  <div ref="vmConsoleContainer" class="vm-console" />
+  <div class="remote-console">
+    <VtsLoadingHero :disabled="isReady" type="panel" />
+    <div ref="vmConsoleContainer" class="vm-console" />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VncClient from '@novnc/novnc/lib/rfb'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
@@ -18,6 +22,8 @@ const N_TOTAL_TRIES = 8
 const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
 
 const vmConsoleContainer = ref<HTMLDivElement>()
+const isReady = ref(false)
+
 const xenApiStore = useXenApiStore()
 const url = computed(() => {
   if (xenApiStore.currentSessionId == null) {
@@ -54,9 +60,11 @@ function handleDisconnectionEvent() {
 
 function handleConnectionEvent() {
   nConnectionAttempts = 0
+  isReady.value = true
 }
 
 function clearVncClient() {
+  isReady.value = false
   if (vncClient === undefined) {
     return
   }
@@ -109,17 +117,22 @@ defineExpose({
 </script>
 
 <style lang="postcss" scoped>
-.vm-console {
-  flex: 1;
+.remote-console {
+  flex-grow: 1;
   max-width: 100%;
 
-  & > :deep(div) {
-    background-color: transparent !important;
-  }
+  .vm-console {
+    height: 100%;
 
-  /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
-  :deep(canvas) {
-    margin: 0 auto !important;
+    & > :deep(div) {
+      background-color: transparent !important;
+    }
+
+    /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
+
+    :deep(canvas) {
+      margin: 0 auto !important;
+    }
   }
 }
 </style>
