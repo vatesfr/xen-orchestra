@@ -129,7 +129,6 @@ defineExpose({
     }
 
     /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
-
     :deep(canvas) {
       margin: 0 auto !important;
     }
