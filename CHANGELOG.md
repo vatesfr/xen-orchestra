@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.102.1**
+## **5.102.1** (2025-12-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
