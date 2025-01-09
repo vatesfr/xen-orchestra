@@ -1,6 +1,6 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
-    <VtsLoadingHero v-if="!isReady" class="loading-state" type="card" />
+    <VtsLoadingHero :disabled="isReady" type="panel" />
     <div ref="consoleContainer" class="console" />
   </div>
 </template>
@@ -112,16 +112,11 @@ const uiStore = useUiStore()
     width: 95vw;
   }
 
-  .loading-state {
-    margin-top: 15rem;
-  }
-
   .console {
     height: 100%;
   }
 
   /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
-
   :deep(canvas) {
     margin: 0 auto !important;
   }
