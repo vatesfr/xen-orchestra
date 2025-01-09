@@ -9,6 +9,9 @@
 
 ### Enhancements
 
+- **XO 6**:
+  - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
@@ -30,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
