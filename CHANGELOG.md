@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.102.1**
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -11,8 +13,6 @@
 - xo-server-backup-reports 1.4.4
 
 ## **5.102.0** (2024-12-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
