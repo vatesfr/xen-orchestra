@@ -546,7 +546,14 @@ async function storeStats({ data, storedStatsPath }) {
 
 async function computeEvolution({ storedStatsPath, ...newStats }) {
   try {
-    const oldStats = JSON.parse(await pReadFile(storedStatsPath, 'utf8'))
+    const fileContent = await pReadFile(storedStatsPath, 'utf8')
+    let oldStats
+    try {
+      oldStats = JSON.parse(fileContent)
+    } catch {
+      log.warn('Invalid or empty json stats file')
+      return
+    }
     const newStatsVms = newStats.vms
     const oldStatsVms = oldStats.global.vms
     const newStatsHosts = newStats.hosts

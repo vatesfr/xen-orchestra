@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - Fix SR tags not being listed in tag selectors (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
+- [Plugins/usage-report] Prevent the report creation from failing over and over when previous stats file is empty or incorrect (PR [#8240](https://github.com/vatesfr/xen-orchestra/pull/8240))
 
 ### Packages to release
 
@@ -40,6 +41,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-usage-report patch
 - xo-web patch
 
 <!--packages-end-->
