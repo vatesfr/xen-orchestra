@@ -1,9 +1,9 @@
 <template>
   <p v-if="!isHostConsoleRunning" class="typo h5-medium">{{ $t('power-on-host-for-console') }}</p>
   <VtsLayoutConsole v-else>
-    <VtsRemoteConsole :url :is-console-available="isHostConsoleAvailable" />
+    <VtsRemoteConsole ref="console-element" :url :is-console-available="isHostConsoleAvailable" />
     <template #actions>
-      <VtsActionsConsole />
+      <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
       <VtsClipboardConsole />
     </template>
@@ -18,7 +18,7 @@ import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vu
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 const props = defineProps<{
   host: XoHost
@@ -37,4 +37,7 @@ const isHostConsoleRunning = computed(() => props.host.power_state === 'Running'
 const isHostConsoleAvailable = computed(() =>
   props.host.controlDomain !== undefined ? !isHostOperationPending(props.host!, STOP_OPERATIONS) : false
 )
+const consoleElement = useTemplateRef('console-element')
+
+const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 </script>
