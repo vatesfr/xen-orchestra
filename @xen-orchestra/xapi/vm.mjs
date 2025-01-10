@@ -93,6 +93,8 @@ async function safeGetRecord(xapi, type, ref) {
   }
 }
 
+const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
+
 const noop = Function.prototype
 
 class Vm {
@@ -764,6 +766,23 @@ class Vm {
     const vdiRefs = await this.VM_getDisks(vmRef)
     await Promise.all(vdiRefs.map(vdiRef => this.callAsync('VDI.disable_cbt', vdiRef)))
   }
+
+  async reboot($defer, vmRef, { force = false, bypassBlockedOperation = force } = {}) {
+    if (bypassBlockedOperation) {
+      const blockedOperations = await this.getField('VM', vmRef, 'blocked_operations')
+      await Promise.all(
+        RESTART_OPERATIONS.map(async operation => {
+          const reason = blockedOperations[operation]
+          if (reason !== undefined) {
+            await this.call('VM.remove_from_blocked_operations', vmRef, operation)
+            $defer(() => this.call('VM.add_to_blocked_operations', vmRef, operation, reason))
+          }
+        })
+      )
+    }
+
+    await this.callAsync(`VM.${force ? 'hard' : 'clean'}_reboot`, vmRef)
+  }
 }
 export default Vm
 
@@ -773,4 +792,5 @@ decorateClass(Vm, {
   export: defer,
   coalesceLeaf: defer,
   snapshot: defer,
+  reboot: defer,
 })

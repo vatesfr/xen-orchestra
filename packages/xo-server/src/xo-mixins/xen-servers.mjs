@@ -649,9 +649,9 @@ export default class XenServers {
       ::ignoreErrors()
   }
 
-  async rollingPoolUpdate($defer, pool) {
+  async rollingPoolUpdate($defer, pool, { rebootVm } = {}) {
     const app = this._app
-    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+    // await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
     const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
 
     const poolId = pool.id
@@ -696,6 +696,12 @@ export default class XenServers {
       $defer(() => app.loadPlugin('load-balancer'))
     }
 
+    const xapi = this.getXapi(pool)
+    if (await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')) {
+      await xapi.call('pool.set_wlb_enabled', pool._xapiRef, false)
+      $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
+    }
+
     const task = app.tasks.create({
       name: `Rolling pool update`,
       poolId,
@@ -703,7 +709,10 @@ export default class XenServers {
       progress: 0,
     })
     await task.run(async () =>
-      this.getXapi(pool).rollingPoolUpdate(task, { xsCredentials: app.apiContext.user.preferences.xsCredentials })
+      this.getXapi(pool).rollingPoolUpdate(task, {
+        xsCredentials: app.apiContext.user.preferences.xsCredentials,
+        rebootVm,
+      })
     )
   }
 }

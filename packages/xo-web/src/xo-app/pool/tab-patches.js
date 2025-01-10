@@ -250,11 +250,7 @@ export default class TabPatches extends Component {
                 <TabButton
                   btnStyle='primary'
                   disabled={
-                    hasAXostor ||
-                    isEmpty(missingPatches) ||
-                    hasMultipleVmsRunningOnLocalStorage ||
-                    isSingleHost ||
-                    _isXsHostWithCdnPatches
+                    hasAXostor || isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost
                   }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
@@ -269,16 +265,14 @@ export default class TabPatches extends Component {
                           })
                         : isSingleHost
                           ? _('multiHostPoolUpdate')
-                          : _isXsHostWithCdnPatches
-                            ? _('notYetAvailableForXs8')
-                            : undefined
+                          : undefined
                   }
                 />
               )}
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}
-                disabled={isEmpty(missingPatches) || pool.HA_enabled || needsCredentials || _isXsHostWithCdnPatches}
+                disabled={isEmpty(missingPatches) || pool.HA_enabled || needsCredentials}
                 handler={installAllPatchesOnPool}
                 icon='host-patch-update'
                 labelId='installPoolPatches'
@@ -287,9 +281,7 @@ export default class TabPatches extends Component {
                     ? _('highAvailabilityNotDisabledTooltip')
                     : needsCredentials
                       ? _('xsCredentialsMissingShort')
-                      : _isXsHostWithCdnPatches
-                        ? _('notYetAvailableForXs8')
-                        : undefined
+                      : undefined
                 }
               />
             </Col>
