@@ -262,7 +262,7 @@ class Vdi {
         baseParentType = await this.getField('VDI', baseRef, 'type')
       } else {
         // instantiate a full CBT
-        changedBlocks = Buffer.alloc(Math.ceil(size / 8), 255)
+        changedBlocks = Buffer.alloc(Math.ceil(size / 8 / 64 / 1024), 255)
       }
     }
 

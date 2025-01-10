@@ -29,7 +29,9 @@ class VhdStreamGenerator extends DiskBlockGenerator {
     this.#stream = stream
   }
   async #read(length: number): Promise<Buffer> {
-    assert.strictEqual(this.#busy, false, "Can't read/skip multiple block in parallel")
+    if (this.#busy) {
+      throw new Error("Can't read/skip multiple block in parallel")
+    }
     this.#busy = true
     const data = (await readChunkStrict(this.#stream, length)) as Buffer
     this.#streamOffset += length
@@ -37,7 +39,9 @@ class VhdStreamGenerator extends DiskBlockGenerator {
     return data
   }
   async #skip(length: number): Promise<void> {
-    assert.strictEqual(this.#busy, false, "Can't read/skip multiple block in parallel")
+    if (this.#busy) {
+      throw new Error("Can't read/skip multiple block in parallel")
+    }
     this.#busy = true
     await skipStrict(this.#stream, length)
     this.#streamOffset += length
@@ -75,10 +79,10 @@ class VhdStreamGenerator extends DiskBlockGenerator {
 
 type XoVdi = {
   uuid: Uuid
-  $exportContent: () => Promise<Readable>
+  $exportContent: (params: object) => Promise<Readable>
   name_label: string
   name_description: string
-  size: number
+  virtual_size: number
 }
 export class VhdRemote extends PortableDifferencingDisk {
   #vdi: XoVdi
@@ -92,12 +96,12 @@ export class VhdRemote extends PortableDifferencingDisk {
       id: vdi.uuid,
       label: vdi.name_label,
       description: vdi.name_label,
-      virtualSize: vdi.size,
+      virtualSize: vdi.virtual_size,
     }
   }
 
   async getBlockIterator(): Promise<Disposable<DiskBlockGenerator>> {
-    const stream = await this.#vdi.$exportContent()
+    const stream = await this.#vdi.$exportContent({ preferNbd: false, format: 'vhd' })
     const generator = new VhdStreamGenerator(stream)
     return {
       value: generator,

@@ -10,6 +10,8 @@ import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
+import { VhdRemote } from '@xen-orchestra/disk-transform/src/from/XapiVhdExport.mts'
+
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export async function exportIncrementalVm(
@@ -19,7 +21,7 @@ export async function exportIncrementalVm(
 ) {
   // refs of VM's VDIs → base's VDIs.
 
-  const streams = {}
+  const disks = {}
   const vdis = {}
   const vbds = {}
   await cancelableMap(cancelToken, vm.$VBDs, async (cancelToken, vbd) => {
@@ -53,23 +55,12 @@ export async function exportIncrementalVm(
       $SR$uuid: vdi.$SR.uuid,
     }
     try {
-      streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-        baseRef: baseVdi?.$ref,
-        cancelToken,
-        format: 'vhd',
-        nbdConcurrency,
-        preferNbd,
-      })
+      disks[`${vdiRef}.vhd`] = new VhdRemote({ vdi })
     } catch (err) {
       if (err.code === 'VDI_CANT_DO_DELTA') {
         // fall back to a base
         Task.info(`Can't do delta, will try to get a full stream`, { vdi })
-        streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-          cancelToken,
-          format: 'vhd',
-          nbdConcurrency,
-          preferNbd,
-        })
+        disks[`${vdiRef}.vhd`] = new VhdRemote({ vdi })
         // only warn if the fall back succeed
         Task.warning(`Can't do delta with this vdi, transfer will be a full`, {
           vdi,
@@ -87,7 +78,7 @@ export async function exportIncrementalVm(
       ...suspendVdi,
       $SR$uuid: suspendVdi.$SR.uuid,
     }
-    streams[`${vdiRef}.vhd`] = await suspendVdi.$exportContent({
+    disks[`${vdiRef}.vhd`] = await suspendVdi.$exportContent({
       cancelToken,
       format: 'vhd',
     })
@@ -127,10 +118,10 @@ export async function exportIncrementalVm(
       },
       vtpms,
     },
-    'streams',
+    'disks',
     {
       configurable: true,
-      value: streams,
+      value: disks,
       writable: true,
     }
   )

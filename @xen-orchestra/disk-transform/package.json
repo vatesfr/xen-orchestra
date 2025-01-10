@@ -1,7 +1,7 @@
 {
   "name": "@xen-orchestra/disk-transform",
   "version": "0.0.0",
-  "main": "index.js",
+  "main": "src/index.mts",
   "license": "MIT",
   "private": true,
   "type": "module",
