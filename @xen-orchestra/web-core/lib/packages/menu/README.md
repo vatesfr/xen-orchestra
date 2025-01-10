@@ -6,18 +6,18 @@ A menu system for Vue applications supporting props binding for actions, links, 
 
 ```vue
 <template>
-  <MenuList>
-    <li><MenuTrigger v-bind="menu.save">Save</MenuTrigger></li>
-    <li><MenuTrigger v-bind="menu.doc">Documentation</MenuTrigger></li>
-    <li><MenuTrigger v-bind="menu.profile">Profile</MenuTrigger></li>
+  <VtsMenuList>
+    <VtsMenuItem v-bind="menu.save">Save</VtsMenuItem>
+    <VtsMenuItem v-bind="menu.doc">Documentation</VtsMenuItem>
+    <VtsMenuItem v-bind="menu.profile">Profile</VtsMenuItem>
     <li>
-      <MenuTrigger v-bind="menu.more.$trigger">More...</MenuTrigger>
-      <MenuList v-bind="menu.more.$target">
-        <MenuTrigger v-bind="menu.more.settings">Settings</MenuTrigger>
-        <MenuTrigger v-bind="menu.more.logout">Logout</MenuTrigger>
-      </MenuList>
+      <VtsMenuTrigger v-bind="menu.more.$trigger">More...</VtsMenuTrigger>
+      <VtsMenuList v-bind="menu.more.$target">
+        <VtsMenuItem v-bind="menu.more.settings">Settings</VtsMenuItem>
+        <VtsMenuItem v-bind="menu.more.logout">Logout</VtsMenuItem>
+      </VtsMenuList>
     </li>
-  </MenuList>
+  </VtsMenuList>
 </template>
 
 <script lang="ts" setup>
@@ -34,6 +34,8 @@ const menu = useMenu({
 })
 </script>
 ```
+
+> [!NOTE] > `VtsMenuItem` is a `VtsMenuTrigger` wrapped in a `<li>`
 
 ## Core Composables
 
@@ -166,15 +168,15 @@ type Props = {
 
 ```vue
 <template>
-  <MenuTrigger v-bind="menu.save">Save</MenuTrigger>
-  <MenuTrigger v-bind="menu.docs">Documentation</MenuTrigger>
-  <MenuTrigger v-bind="menu.profile">Profile</MenuTrigger>
+  <VtsMenuTrigger v-bind="menu.save">Save</VtsMenuTrigger>
+  <VtsMenuTrigger v-bind="menu.docs">Documentation</VtsMenuTrigger>
+  <VtsMenuTrigger v-bind="menu.profile">Profile</VtsMenuTrigger>
 
   <!-- Toggle/Dropdown menu -->
-  <MenuTrigger v-bind="menu.more.$trigger">More</MenuTrigger>
+  <VtsMenuTrigger v-bind="menu.more.$trigger">More</VtsMenuTrigger>
   <div v-bind="menu.more.$target">
-    <MenuTrigger v-bind="menu.more.settings">Settings</MenuTrigger>
-    <MenuTrigger v-bind="menu.more.logout">Logout</MenuTrigger>
+    <VtsMenuTrigger v-bind="menu.more.settings">Settings</VtsMenuTrigger>
+    <VtsMenuTrigger v-bind="menu.more.logout">Logout</VtsMenuTrigger>
   </div>
 </template>
 ```
