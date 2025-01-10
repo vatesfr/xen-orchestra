@@ -9,6 +9,7 @@
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
+import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
@@ -97,6 +98,18 @@ async function createVncConnection() {
     })
   }
 }
+
+whenever(
+  () => uiStore.hasUi,
+  () => {
+    if (!vncClient) {
+      return
+    }
+    // the state is changed from false to true for xo-lite to trigger the change
+    vncClient.scaleViewport = false
+    vncClient.scaleViewport = true
+  }
+)
 
 watchEffect(() => {
   if (consoleContainer.value === null || !props.isConsoleAvailable) {

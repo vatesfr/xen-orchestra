@@ -7,12 +7,7 @@
       <VtsLayoutConsole>
         <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
         <template #actions>
-          <VtsActionsConsole
-            :open-in-new-tab="openInNewTab"
-            :send-ctrl-alt-del="sendCtrlAltDel"
-            :toggle-full-screen="toggleFullScreen"
-            :is-fullscreen="!uiStore.hasUi"
-          />
+          <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
           <VtsClipboardConsole />
         </template>
@@ -38,11 +33,9 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
-import { logicAnd } from '@vueuse/math'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const STOP_OPERATIONS = [
   VM_OPERATION.SHUTDOWN,
@@ -56,7 +49,6 @@ const STOP_OPERATIONS = [
 
 usePageTitleStore().setTitle(useI18n().t('console'))
 
-const router = useRouter()
 const route = useRoute()
 const uiStore = useUiStore()
 const xenApiStore = useXenApiStore()
@@ -104,22 +96,6 @@ const isConsoleAvailable = computed(() =>
 const consoleElement = useTemplateRef('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-
-const toggleFullScreen = () => {
-  uiStore.hasUi = !uiStore.hasUi
-}
-
-const openInNewTab = () => {
-  const routeData = router.resolve({ query: { ui: '0' } })
-  window.open(routeData.href, '_blank')
-}
-
-const { escape } = useMagicKeys()
-const activeElement = useActiveElement()
-const canClose = computed(
-  () => (activeElement.value == null || activeElement.value.tagName !== 'CANVAS') && !uiStore.hasUi
-)
-whenever(logicAnd(escape, canClose), toggleFullScreen)
 </script>
 
 <style lang="postcss" scoped>
