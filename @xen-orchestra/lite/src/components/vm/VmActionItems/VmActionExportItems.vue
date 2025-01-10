@@ -33,14 +33,19 @@ const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef: getVm } = useVmStore().subscribe()
-const vms = computed(() => props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined))
+const { getByOpaqueRefs } = useVmStore().subscribe()
+
+const vms = computed(() => getByOpaqueRefs(props.vmRefs))
 
 const toggle = useMenuToggle({
   parent: props.menu,
   items: {
-    exportAsJson: action(() => exportVmsAsJsonFile(vms.value, `vms_${new Date().toISOString()}.json`)),
-    exportAsCsv: action(() => exportVmsAsCsvFile(vms.value, `vms_${new Date().toISOString()}.csv`)),
+    exportAsJson: action(() => exportVmsAsJsonFile(vms.value, `vms_${new Date().toISOString()}.json`), {
+      disabled: computed(() => vms.value.length === 0),
+    }),
+    exportAsCsv: action(() => exportVmsAsCsvFile(vms.value, `vms_${new Date().toISOString()}.csv`), {
+      disabled: computed(() => vms.value.length === 0),
+    }),
   },
 })
 </script>

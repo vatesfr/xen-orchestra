@@ -5,9 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
-import { DisabledContext } from '@/context'
 import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
@@ -28,17 +26,7 @@ const { t } = useI18n()
 
 const { getByOpaqueRefs } = useVmStore().subscribe()
 
-const isParentDisabled = useContext(DisabledContext)
-
 const vms = computed(() => getByOpaqueRefs(props.selectedRefs))
-
-const isMigratable = computed(() =>
-  vms.value.some(vm => areSomeVmOperationAllowed(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))
-)
-
-const isMigrating = computed(() =>
-  vms.value.some(vm => isVmOperationPending(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))
-)
 
 const menuItem = useMenuAction({
   parent: props.menu,
@@ -47,14 +35,16 @@ const menuItem = useMenuAction({
       vmRefs: props.selectedRefs,
     }),
   disabled: () => {
-    if (isParentDisabled.value) {
+    if (props.selectedRefs.length === 0) {
       return true
     }
 
-    if (props.selectedRefs.length > 0 && !isMigratable.value) {
+    if (!vms.value.some(vm => areSomeVmOperationAllowed(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))) {
       return props.isSingleAction ? t('this-vm-cant-be-migrated') : t('no-selected-vm-can-be-migrated')
     }
   },
-  busy: isMigrating,
+  busy: computed(() =>
+    vms.value.some(vm => isVmOperationPending(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))
+  ),
 })
 </script>

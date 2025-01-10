@@ -5,9 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
-import { DisabledContext } from '@/context'
 import { areSomeVmOperationAllowed } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
@@ -28,13 +26,7 @@ const { t } = useI18n()
 
 const { getByOpaqueRefs } = useVmStore().subscribe()
 
-const isParentDisabled = useContext(DisabledContext)
-
-const isSomeExportable = computed(() =>
-  getByOpaqueRefs(props.vmRefs).some(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))
-)
-
-const isDisabled = computed(() => isParentDisabled.value || !isSomeExportable.value)
+const vms = computed(() => getByOpaqueRefs(props.vmRefs))
 
 const menuItem = useMenuAction({
   parent: props.menu,
@@ -43,11 +35,15 @@ const menuItem = useMenuAction({
       vmRefs: props.vmRefs,
     }),
   disabled: () => {
-    if (props.vmRefs.length > 0 && !isSomeExportable.value) {
+    if (props.vmRefs.length === 0) {
+      return true
+    }
+
+    if (!vms.value.some(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))) {
       return props.isSingleAction ? t('vm-is-running') : t('no-selected-vm-can-be-exported')
     }
 
-    return isDisabled.value
+    return false
   },
 })
 </script>

@@ -24,40 +24,28 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { getByOpaqueRef } = useVmStore().subscribe()
+const { getByOpaqueRefs } = useVmStore().subscribe()
 
-const selectedVms = computed(() =>
-  props.selectedRefs.map(vmRef => getByOpaqueRef(vmRef)).filter((vm): vm is XenApiVm => vm !== undefined)
+const selectedVms = computed(() => getByOpaqueRefs(props.selectedRefs))
+
+const vmRefsToClone = computed(() =>
+  Object.fromEntries(selectedVms.value.map(vm => [vm.$ref, `${vm.name_label} (COPY)`]))
 )
-
-const areAllSelectedVmsHalted = computed(
-  () =>
-    selectedVms.value.length > 0 &&
-    selectedVms.value.every(selectedVm => selectedVm.power_state === VM_POWER_STATE.HALTED)
-)
-
-const areSomeSelectedVmsCloning = computed(() =>
-  selectedVms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))
-)
-
-const isDisabled = computed(() => {
-  return selectedVms.value.length === 0 || !areAllSelectedVmsHalted.value
-})
 
 const menuItem = useMenuAction({
   parent: props.menu,
-  handler: async () => {
-    const vmRefsToClone = Object.fromEntries(selectedVms.value.map(vm => [vm.$ref, `${vm.name_label} (COPY)`]))
-
-    await useXenApiStore().getXapi().vm.clone(vmRefsToClone)
-  },
+  handler: () => useXenApiStore().getXapi().vm.clone(vmRefsToClone.value),
   disabled: () => {
-    if (!areAllSelectedVmsHalted.value) {
+    if (props.selectedRefs.length === 0) {
+      return true
+    }
+
+    if (!selectedVms.value.every(selectedVm => selectedVm.power_state === VM_POWER_STATE.HALTED)) {
       return props.isSingleAction ? t('vm-is-running') : t('selected-vms-in-execution')
     }
 
-    return isDisabled.value
+    return false
   },
-  busy: areSomeSelectedVmsCloning,
+  busy: computed(() => selectedVms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))),
 })
 </script>

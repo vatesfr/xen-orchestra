@@ -11,8 +11,8 @@
       {{ $t('change-state') }}
     </VtsMenuItem>
     <Teleport to="body">
-      <VtsMenuList v-bind="menu.powerState.$target" border>
-        <VmActionPowerStateItems :vm-refs="selectedRefs" />
+      <VtsMenuList border v-bind="menu.powerState.$target">
+        <VmActionPowerStateItems :menu="menu.powerState" :vm-refs="selectedRefs" />
       </VtsMenuList>
     </Teleport>
     <VmActionMigrateItem :menu :selected-refs="selectedRefs" />
@@ -22,7 +22,7 @@
     </VtsMenuItem>
     <VmActionSnapshotItem :menu :vm-refs="selectedRefs" />
     <VmActionExportItems :menu :vm-refs="selectedRefs" />
-    <VmActionDeleteItem :vm-refs="selectedRefs" />
+    <VmActionDeleteItem :menu :vm-refs="selectedRefs" />
   </VtsMenuList>
 </template>
 

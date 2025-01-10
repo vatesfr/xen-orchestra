@@ -1,11 +1,13 @@
 <template>
-  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" :icon="faPlay" @click="xenApi.vm.start(vmRefs)">
+  <VtsMenuItem :icon="faPlay" v-bind="startItem">
     {{ $t('start') }}
-  </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" :icon="faServer">
-    {{ $t('start-on-host') }}
-    <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" :icon="faServer" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+  </VtsMenuItem>
+  <li>
+    <VtsMenuTrigger :icon="faServer" v-bind="startOnHostItem.$trigger">
+      {{ $t('start-on-host') }}
+    </VtsMenuTrigger>
+    <VtsMenuList border v-bind="startOnHostItem.$target">
+      <VtsMenuItem v-for="host in hosts" :key="host.$ref" :icon="faServer" v-bind="startOnHostItem[host.$ref]">
         <div class="wrapper">
           {{ host.name_label }}
           <div>
@@ -13,55 +15,30 @@
             <PowerStateIcon :state="getHostState(host)" />
           </div>
         </div>
-      </MenuItem>
-    </template>
-  </MenuItem>
-  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" :icon="faPause" @click="xenApi.vm.pause(vmRefs)">
+      </VtsMenuItem>
+    </VtsMenuList>
+  </li>
+  <VtsMenuItem :icon="faPause" v-bind="pauseItem">
     {{ $t('pause') }}
-  </MenuItem>
-  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" :icon="faMoon" @click="xenApi.vm.suspend(vmRefs)">
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faMoon" v-bind="suspendItem">
     {{ $t('suspend') }}
-  </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToResume"
-    :disabled="!areVmsSuspended && !areVmsPaused"
-    :icon="faCirclePlay"
-    @click="xenApi.vm.resume(vmRefsWithPowerState)"
-  >
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faCirclePlay" v-bind="resumeItem">
     {{ $t('resume') }}
-  </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToReboot"
-    :disabled="!areVmsRunning"
-    :icon="faRotateLeft"
-    @click="xenApi.vm.reboot(vmRefs)"
-  >
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faRotateLeft" v-bind="rebootItem">
     {{ $t('reboot') }}
-  </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToForceReboot"
-    :disabled="!areVmsRunning && !areVmsPaused"
-    :icon="faRepeat"
-    @click="xenApi.vm.reboot(vmRefs, true)"
-  >
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faRepeat" v-bind="forceRebootItem">
     {{ $t('force-reboot') }}
-  </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToShutdown"
-    :disabled="!areVmsRunning"
-    :icon="faPowerOff"
-    @click="xenApi.vm.shutdown(vmRefs)"
-  >
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faPowerOff" v-bind="shutdownItem">
     {{ $t('shutdown') }}
-  </MenuItem>
-  <MenuItem
-    :busy="areVmsBusyToForceShutdown"
-    :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
-    :icon="faPlug"
-    @click="xenApi.vm.shutdown(vmRefs, true)"
-  >
+  </VtsMenuItem>
+  <VtsMenuItem :icon="faPlug" v-bind="forceShutdownItem">
     {{ $t('force-shutdown') }}
-  </MenuItem>
+  </VtsMenuItem>
 </template>
 
 <script lang="ts" setup>
@@ -75,7 +52,10 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import VtsMenuList from '@core/components/menu/VtsMenuList.vue'
+import VtsMenuTrigger from '@core/components/menu/VtsMenuTrigger.vue'
+import { action, type MenuLike, useMenuAction, useMenuToggle } from '@core/packages/menu'
 import {
   faCirclePlay,
   faMoon,
@@ -91,17 +71,26 @@ import {
 import { computed } from 'vue'
 
 const props = defineProps<{
+  menu: MenuLike
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef: getVm } = useVmStore().subscribe()
+const { getByOpaqueRefs } = useVmStore().subscribe()
 const { records: hosts } = useHostStore().subscribe()
 const { pool } = usePoolStore().subscribe()
 const { isHostRunning } = useHostMetricsStore().subscribe()
 
-const vms = computed(() => props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined))
+const vms = computed(() => getByOpaqueRefs(props.vmRefs))
 
-const vmRefsWithPowerState = computed(() => vms.value.reduce((acc, vm) => ({ ...acc, [vm.$ref]: vm.power_state }), {}))
+const vmRefsWithPowerState = computed(() =>
+  vms.value.reduce(
+    (acc, vm) => ({
+      ...acc,
+      [vm.$ref]: vm.power_state,
+    }),
+    {}
+  )
+)
 
 const xenApi = useXenApiStore().getXapi()
 
@@ -123,6 +112,78 @@ const areVmsBusyToForceReboot = computed(() => areOperationsPending(VM_OPERATION
 const areVmsBusyToShutdown = computed(() => areOperationsPending(VM_OPERATION.CLEAN_SHUTDOWN))
 const areVmsBusyToForceShutdown = computed(() => areOperationsPending(VM_OPERATION.HARD_SHUTDOWN))
 const getHostState = (host: XenApiHost) => (isHostRunning(host) ? VM_POWER_STATE.RUNNING : VM_POWER_STATE.HALTED)
+
+const hasVm = computed(() => vms.value.length > 0)
+
+const startItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToStart,
+  disabled: computed(() => !hasVm.value || !areVmsHalted.value),
+  handler: () => xenApi.vm.start(props.vmRefs),
+})
+
+const startOnHostItem = useMenuToggle({
+  parent: props.menu,
+  placement: 'right-start',
+  items: Object.fromEntries(
+    hosts.value.map(host => [
+      host.$ref,
+      action(() => xenApi.vm.startOn(props.vmRefs, host.$ref), {
+        busy: areVmsBusyToStartOnHost,
+        disabled: computed(() => !hasVm.value || !areVmsHalted.value),
+      }),
+    ])
+  ),
+})
+
+const pauseItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToPause,
+  disabled: computed(() => !hasVm.value || !areVmsRunning.value),
+  handler: () => xenApi.vm.pause(props.vmRefs),
+})
+
+const suspendItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToSuspend,
+  disabled: computed(() => !hasVm.value || !areVmsRunning.value),
+  handler: () => xenApi.vm.suspend(props.vmRefs),
+})
+
+const resumeItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToResume,
+  disabled: computed(() => !hasVm.value || (!areVmsSuspended.value && !areVmsPaused.value)),
+  handler: () => xenApi.vm.resume(vmRefsWithPowerState.value),
+})
+
+const rebootItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToReboot,
+  disabled: computed(() => !hasVm.value || !areVmsRunning.value),
+  handler: () => xenApi.vm.reboot(props.vmRefs),
+})
+
+const forceRebootItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToForceReboot,
+  disabled: computed(() => !hasVm.value || (!areVmsRunning.value && !areVmsPaused.value)),
+  handler: () => xenApi.vm.reboot(props.vmRefs, true),
+})
+
+const shutdownItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToShutdown,
+  disabled: computed(() => !hasVm.value || !areVmsRunning.value),
+  handler: () => xenApi.vm.shutdown(props.vmRefs),
+})
+
+const forceShutdownItem = useMenuAction({
+  parent: props.menu,
+  busy: areVmsBusyToForceShutdown,
+  disabled: computed(() => !hasVm.value || (!areVmsRunning.value && !areVmsSuspended.value && !areVmsPaused.value)),
+  handler: () => xenApi.vm.shutdown(props.vmRefs, true),
+})
 </script>
 
 <style lang="postcss" scoped>
