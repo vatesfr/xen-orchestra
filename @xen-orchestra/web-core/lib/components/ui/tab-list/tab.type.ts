@@ -5,7 +5,7 @@ export type Tab = {
   activate: () => void
   bindings: {
     onClick: (event: MouseEvent) => void
-    active: boolean
+    selected: boolean
   }
 }
 
