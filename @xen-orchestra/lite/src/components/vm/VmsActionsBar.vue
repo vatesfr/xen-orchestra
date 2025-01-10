@@ -1,29 +1,29 @@
 <template>
-  <MenuList
-    :disabled="selectedRefs.length === 0"
-    :horizontal="!isMobile"
+  <UiButtonIcon v-if="isMobile" :icon="faEllipsis" accent="info" size="medium" v-bind="menu.$trigger" />
+
+  <VtsMenuList
     :border="isMobile"
+    :horizontal="!isMobile"
     class="vms-actions-bar"
-    placement="bottom-end"
+    v-bind="isMobile ? menu.$target : undefined"
   >
-    <template v-if="isMobile" #trigger="{ isOpen, open }">
-      <UiButtonIcon accent="info" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
-    </template>
-    <MenuItem :icon="faPowerOff">
+    <VtsMenuItem :icon="faPowerOff" v-bind="menu.powerState.$trigger">
       {{ $t('change-state') }}
-      <template #submenu>
-        <VmActionPowerStateItems :vm-refs="selectedRefs" />
-      </template>
-    </MenuItem>
-    <VmActionMigrateItem :selected-refs="selectedRefs" />
-    <VmActionCopyItem :selected-refs="selectedRefs" />
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
+    </VtsMenuItem>
+    <Teleport to="body">
+      <VtsMenuList border v-bind="menu.powerState.$target">
+        <VmActionPowerStateItems :menu="menu.powerState" :vm-refs="selectedRefs" />
+      </VtsMenuList>
+    </Teleport>
+    <VmActionMigrateItem :menu :selected-refs="selectedRefs" />
+    <VmActionCopyItem :menu :selected-refs="selectedRefs" />
+    <VtsMenuItem :icon="faEdit" v-bind="menu.editConfig">
       {{ $t('edit-config') }}
-    </MenuItem>
-    <VmActionSnapshotItem :vm-refs="selectedRefs" />
-    <VmActionExportItems :vm-refs="selectedRefs" />
-    <VmActionDeleteItem :vm-refs="selectedRefs" />
-  </MenuList>
+    </VtsMenuItem>
+    <VmActionSnapshotItem :menu :vm-refs="selectedRefs" />
+    <VmActionExportItems :menu :vm-refs="selectedRefs" />
+    <VmActionDeleteItem :menu :vm-refs="selectedRefs" />
+  </VtsMenuList>
 </template>
 
 <script lang="ts" setup>
@@ -34,20 +34,32 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import VtsMenuList from '@core/components/menu/VtsMenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { action, toggle, useMenuToggle } from '@core/packages/menu'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
+import { noop } from '@vueuse/shared'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   disabled?: boolean
   selectedRefs: XenApiVm['$ref'][]
 }>()
 
+const { t } = useI18n()
+
 const { isMobile } = storeToRefs(useUiStore())
+
+const menu = useMenuToggle({
+  placement: 'bottom-end',
+  items: {
+    powerState: toggle({}),
+    editConfig: action(noop, { disabled: t('coming-soon') }),
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

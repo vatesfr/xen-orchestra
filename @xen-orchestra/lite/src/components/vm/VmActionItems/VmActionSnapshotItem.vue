@@ -1,7 +1,7 @@
 <template>
-  <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
+  <VtsMenuItem :icon="faCamera" v-bind="menuItem">
     {{ $t('snapshot') }}
-  </MenuItem>
+  </VtsMenuItem>
 </template>
 
 <script lang="ts" setup>
@@ -10,28 +10,28 @@ import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import { type MenuLike, useMenuAction } from '@core/packages/menu'
 import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
+  menu: MenuLike
   vmRefs: XenApiVm['$ref'][]
 }>()
 
-const { getByOpaqueRef } = useVmStore().subscribe()
+const { getByOpaqueRefs } = useVmStore().subscribe()
 
-const vms = computed(() =>
-  props.vmRefs.map(vmRef => getByOpaqueRef(vmRef)).filter((vm): vm is XenApiVm => vm !== undefined)
+const vms = computed(() => getByOpaqueRefs(props.vmRefs))
+
+const vmRefsToSnapshot = computed(() =>
+  Object.fromEntries(vms.value.map(vm => [vm.$ref, `${vm.name_label}_${new Date().toISOString()}`]))
 )
 
-const areSomeVmsSnapshoting = computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT)))
-
-const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsSnapshoting.value)
-
-const handleSnapshot = () => {
-  const vmRefsToSnapshot = Object.fromEntries(
-    vms.value.map(vm => [vm.$ref, `${vm.name_label}_${new Date().toISOString()}`])
-  )
-  return useXenApiStore().getXapi().vm.snapshot(vmRefsToSnapshot)
-}
+const menuItem = useMenuAction({
+  parent: props.menu,
+  handler: () => useXenApiStore().getXapi().vm.snapshot(vmRefsToSnapshot.value),
+  busy: computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT))),
+  disabled: computed(() => vms.value.length === 0),
+})
 </script>

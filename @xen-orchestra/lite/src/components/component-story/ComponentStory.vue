@@ -7,23 +7,23 @@
         v-if="unreadEventsCount > 0"
         :value="unreadEventsCount"
         accent="success"
-        variant="primary"
         size="small"
+        variant="primary"
       />
     </TabItem>
     <TabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</TabItem>
     <TabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</TabItem>
-    <MenuList placement="bottom" border>
-      <template #trigger="{ open, isOpen }">
-        <TabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
-          <UiIcon :icon="faSliders" />
-          Presets
-        </TabItem>
-      </template>
-      <MenuItem v-for="(preset, label) in presets" :key="label" @click="applyPreset(preset)">
-        {{ label }}
-      </MenuItem>
-    </MenuList>
+    <TabItem class="preset-tab" v-bind="presetMenu.$trigger">
+      <UiIcon :icon="faSliders" />
+      Presets
+    </TabItem>
+    <Teleport to="body">
+      <VtsMenuList border v-bind="presetMenu.$target">
+        <VtsMenuItem v-for="(preset, label) in presets" :key="label" v-bind="presetMenu[label]">
+          {{ label }}
+        </VtsMenuItem>
+      </VtsMenuList>
+    </Teleport>
   </TabList>
 
   <div :class="{ 'full-width': fullWidthComponent }" class="tabs">
@@ -43,8 +43,8 @@
           <template #right>
             <UiButton
               v-if="eventsLog.length > 0"
-              size="medium"
               accent="info"
+              size="medium"
               variant="tertiary"
               @click="eventsLog = []"
             >
@@ -91,12 +91,13 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsMenuItem from '@core/components/menu/VtsMenuItem.vue'
+import VtsMenuList from '@core/components/menu/VtsMenuList.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { action, useMenuToggle } from '@core/packages/menu'
 import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
@@ -266,6 +267,17 @@ const applyPreset = (preset: { props?: Record<string, any>; settings?: Record<st
     })
   }
 }
+
+const presetMenu = useMenuToggle({
+  placement: 'bottom-end',
+  items: computed(() =>
+    Object.fromEntries(
+      Object.entries(props.presets ?? {}).map(([label, preset]) => {
+        return [label, action(() => applyPreset(preset))]
+      })
+    )
+  ),
+})
 </script>
 
 <style lang="postcss" scoped>

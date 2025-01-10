@@ -6,6 +6,10 @@
   </div>
 </template>
 
+<script lang="ts">
+/** @deprecated Use VtsMenuTrigger */
+</script>
+
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
