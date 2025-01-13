@@ -1,0 +1,210 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"XoServer": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"readOnly": {
+						"type": "boolean"
+					},
+					"enabled": {
+						"type": "boolean"
+					},
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"label": {
+						"type": "string"
+					},
+					"host": {
+						"type": "string"
+					},
+					"allowUnauthorized": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"id",
+					"readOnly",
+					"enabled",
+					"username",
+					"password",
+					"label",
+					"host",
+					"allowUnauthorized"
+				],
+				"type": "object"
+			},
+			"XoVm": {
+				"properties": {
+					"uuid": {
+						"type": "string"
+					},
+					"name_label": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"VM"
+						],
+						"nullable": false
+					},
+					"id": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"uuid",
+					"name_label",
+					"type",
+					"id"
+				],
+				"type": "object"
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "@xen-orchestra/rest-api",
+		"version": "0.1.0",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "Vates"
+		}
+	},
+	"paths": {
+		"/servers": {
+			"get": {
+				"operationId": "GetServers",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/XoServer"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/servers/{id}": {
+			"get": {
+				"operationId": "GetServer",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/XoServer"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/events": {
+			"get": {
+				"operationId": "GetServers",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "subscribe to all evenements",
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/vms": {
+			"get": {
+				"operationId": "GetVms",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/XoVm"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "Some description",
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/vms/{id}": {
+			"get": {
+				"operationId": "GetVm",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/XoVm"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/rest/v1"
+		}
+	]
+}
