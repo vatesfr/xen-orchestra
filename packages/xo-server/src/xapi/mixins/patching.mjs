@@ -604,14 +604,12 @@ const methods = {
   },
 
   async xsCdnUpdate(hosts, hash) {
-    if (hash === undefined) {
-      throw new Error(
-        'In order to install updates on XS >= 8.4 hosts, you must provide the hash returned by `pool-sync-updates`'
-      )
-    }
-
     if (hosts === undefined) {
       hosts = Object.values(this.objects.indexes.type.host)
+    }
+
+    if (hash === undefined) {
+      hash = (await this._fetchXsUpdatesEndpoint(hosts[0])).hash
     }
 
     // Hosts need to be updated one at a time starting with the pool master
