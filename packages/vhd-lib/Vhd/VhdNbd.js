@@ -85,8 +85,8 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
 
       this.#header = unpackHeader(createHeader(Math.ceil(size / DEFAULT_BLOCK_SIZE)))
       const geometry = _computeGeometryForSize(size)
-      // changed block can only be used to compute a differencing disk
-      const diskType = DISK_TYPES.DIFFERENCING
+
+      const diskType = parentUuid !== undefined ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
       this.#footer = unpackFooter(createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, diskType))
       this.#footer.uuid = packUuid(uuid)
       if (parentUuid) {
@@ -141,8 +141,8 @@ exports.VhdNbd = class VhdNbd extends VhdAbstract {
     })
   }
 
-  async stream(opts) {
-    const stream = await super.stream(opts)
+  async vhdStream(opts) {
+    const stream = await super.vhdStream(opts)
 
     stream._nbd = true
     return stream

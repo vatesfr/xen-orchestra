@@ -164,7 +164,7 @@ describe('VhdAbstract', async () => {
         data: parentLocatorBase,
       })
       await vhd.writeFooter()
-      const stream = vhd.stream()
+      const stream = vhd.vhdStream()
 
       // size and stream must have the same result
       assert.equal(stream.length, vhd.streamSize())

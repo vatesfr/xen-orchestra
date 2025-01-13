@@ -56,7 +56,7 @@ exports.createNbdVhdStream = async function createVhdStream(
       onProgress?.(currentBlockRead / nb)
     }
   }
-  const stream = await vhd.stream({
+  const stream = await vhd.vhdStream({
     onProgress: handleProgress,
   })
   return stream

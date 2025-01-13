@@ -1,8 +1,9 @@
 import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { writeVhdFileToRemote } from '@xen-orchestra/disk-transform/src/to/VhdRemote.mts'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
@@ -681,22 +682,13 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
+    const dataPath = this.useVhdDirectory() ? `${dirname(path)}/data/${uuidv4()}.vhd` : path
+    await writeVhdFileToRemote(handler, dataPath, disk, { writeBlockConcurrency })
+    await validator(dataPath)
     if (this.useVhdDirectory()) {
-      const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-      const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
-        concurrency: writeBlockConcurrency,
-        compression: this.#getCompressionType(),
-        async validator() {
-          await input.task
-          return validator.apply(this, arguments)
-        },
-      })
       await VhdAbstract.createAlias(handler, path, dataPath)
-      return size
-    } else {
-      return this.outputStream(path, input, { checksum, validator })
     }
   }
 
@@ -734,7 +726,7 @@ export class RemoteAdapter {
     }
     const synthetic = disposableSynthetic.value
     await synthetic.readBlockAllocationTable()
-    const stream = await synthetic.stream()
+    const stream = await synthetic.vhdStream()
 
     stream.on('end', disposeOnce)
     stream.on('close', disposeOnce)
