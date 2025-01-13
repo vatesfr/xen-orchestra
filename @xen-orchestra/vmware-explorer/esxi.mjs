@@ -473,9 +473,12 @@ export default class Esxi extends EventEmitter {
       disk = disk[0]
       // filter ram/cdrom/..
       if (disk === 'true') {
-        // the url returned are in the form of https://*/ follower by a short lived link, default 5mn
         const fullUrl = new URL(url)
-        fullUrl.host = this.#host
+        if (url.indexOf('/*/') > 0) {
+          // the url returned can be  in the form of https://*/ follower by a short lived link, default 5mn
+          // in this case, use the vsphere ip/name
+          fullUrl.host = this.#host
+        }
         const vmdkres = await this.#fetch(fullUrl)
         const stream = vmdkres.body
         streams[targetId] = stream
