@@ -36,28 +36,26 @@
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
-import { ColorContext, DisabledContext } from '@/context'
+import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_FORM_HAS_LABEL, IK_INPUT_ID } from '@/types/injection-keys'
+import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'
 import { computed, provide } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    label?: string
-    id?: string
-    icon?: IconDefinition
-    learnMoreUrl?: string
-    warning?: string
-    error?: string
-    help?: string
-    disabled?: boolean
-    light?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  label?: string
+  id?: string
+  icon?: IconDefinition
+  learnMoreUrl?: string
+  warning?: string
+  error?: string
+  help?: string
+  disabled?: boolean
+  light?: boolean
+}>()
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)
@@ -80,7 +78,7 @@ provide(
 )
 
 useContext(ColorContext, color)
-useContext(DisabledContext, () => props.disabled)
+useDisabled(() => props.disabled)
 </script>
 
 <style lang="postcss" scoped>

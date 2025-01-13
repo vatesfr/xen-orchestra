@@ -13,17 +13,13 @@
 
 <script lang="ts" setup>
 import TabItem from '@core/components/tab/TabItem.vue'
-import { useContext } from '@core/composables/context.composable'
-import { DisabledContext } from '@core/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import type { RouteLocationRaw } from 'vue-router'
 
-const props = withDefaults(
-  defineProps<{
-    to: RouteLocationRaw
-    disabled?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  to: RouteLocationRaw
+  disabled?: boolean
+}>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 </script>

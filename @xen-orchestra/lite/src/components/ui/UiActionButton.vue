@@ -17,21 +17,17 @@
 
 <script lang="ts" setup>
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useContext } from '@/composables/context.composable'
-import { DisabledContext } from '@/context'
+import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
-const props = withDefaults(
-  defineProps<{
-    busy?: boolean
-    disabled?: boolean
-    icon?: IconDefinition
-    active?: boolean
-  }>(),
-  { disabled: undefined }
-)
+const props = defineProps<{
+  busy?: boolean
+  disabled?: boolean
+  icon?: IconDefinition
+  active?: boolean
+}>()
 
-const isDisabled = useContext(DisabledContext, () => props.disabled)
+const isDisabled = useDisabled(() => props.disabled)
 </script>
 
 <style lang="postcss" scoped>
