@@ -651,7 +651,7 @@ export default class XenServers {
 
   async rollingPoolUpdate($defer, pool, { rebootVm } = {}) {
     const app = this._app
-    // await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+    await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
     const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
 
     const poolId = pool.id
