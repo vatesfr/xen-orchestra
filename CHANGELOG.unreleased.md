@@ -15,9 +15,8 @@
   - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
   - [i18n] Add Spanish translation (contribution made by [@DSJ2](https://github.com/DSJ2)) (PR [#8220](https://github.com/vatesfr/xen-orchestra/pull/8220))
   - [Console]: Add Ctrl+Alt+Del functionality to console (PR [#8239](https://github.com/vatesfr/xen-orchestra/pull/8239))
+  - [UI]: Use user language set in XO 5 to set the language in XO 6 (PR [#8232](https://github.com/vatesfr/xen-orchestra/pull/8232))
 - [Backup] New [ChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption for remotes, allow encrypted files larger than 64GB (PR [#8237](https://github.com/vatesfr/xen-orchestra/pull/8237))
-
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
 
