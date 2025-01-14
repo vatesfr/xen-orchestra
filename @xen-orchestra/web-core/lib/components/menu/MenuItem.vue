@@ -11,7 +11,7 @@
     >
       <slot />
     </MenuTrigger>
-    <MenuList v-else :disabled="isDisabled" border>
+    <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
