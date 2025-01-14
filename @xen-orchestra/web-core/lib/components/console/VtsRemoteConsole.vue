@@ -15,7 +15,10 @@ import { onBeforeUnmount, ref, watchEffect } from 'vue'
 
 const props = defineProps<{
   url: URL
+  isConsoleAvailable: boolean
 }>()
+
+const uiStore = useUiStore()
 
 const N_TOTAL_TRIES = 8
 const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
@@ -28,20 +31,21 @@ let nConnectionAttempts = 0
 
 function handleDisconnectionEvent() {
   clearVncClient()
+  if (props.isConsoleAvailable) {
+    nConnectionAttempts++
 
-  nConnectionAttempts++
+    if (nConnectionAttempts > N_TOTAL_TRIES) {
+      console.error('The number of reconnection attempts has been exceeded for:', props.url)
+      return
+    }
 
-  if (nConnectionAttempts > N_TOTAL_TRIES) {
-    console.error('The number of reconnection attempts has been exceeded for:', props.url)
-    return
+    console.error(
+      `Connection lost for the remote console: ${props.url}. New attempt in ${
+        FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]
+      }ms`
+    )
+    createVncConnection()
   }
-
-  console.error(
-    `Connection lost for the remote console: ${props.url}. New attempt in ${
-      FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]
-    }ms`
-  )
-  createVncConnection()
 }
 
 function handleConnectionEvent() {
@@ -83,7 +87,7 @@ async function createVncConnection() {
 }
 
 watchEffect(() => {
-  if (consoleContainer.value === null) {
+  if (consoleContainer.value === null || !props.isConsoleAvailable) {
     return
   }
 
@@ -97,7 +101,9 @@ onBeforeUnmount(() => {
   clearVncClient()
 })
 
-const uiStore = useUiStore()
+defineExpose({
+  sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+})
 </script>
 
 <style lang="postcss" scoped>

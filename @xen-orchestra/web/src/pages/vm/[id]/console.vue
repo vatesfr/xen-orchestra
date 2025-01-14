@@ -1,7 +1,7 @@
 <template>
   <p v-if="!isVmConsoleAvailable" class="typo h5-medium">{{ $t('power-on-vm-for-console') }}</p>
   <VtsLayoutConsole v-else>
-    <VtsRemoteConsole :url />
+    <VtsRemoteConsole :url :is-console-available="isVmConsoleAvailable" />
     <template #actions>
       <VtsActionsConsole />
       <VtsDivider type="stretch" />
