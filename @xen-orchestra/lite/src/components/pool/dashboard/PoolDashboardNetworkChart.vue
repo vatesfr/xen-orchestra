@@ -19,16 +19,16 @@ import { formatSize } from '@/libs/utils'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import type { HostStats } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import type { LinearChartData } from '@/types/chart'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
+import type { LinearChartData } from '@core/types/chart'
 import { map } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
+const LinearChart = defineAsyncComponent(() => import('@core/components/charts/LinearChart.vue'))
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS)
 const { hasError, isFetching } = useHostStore().subscribe()

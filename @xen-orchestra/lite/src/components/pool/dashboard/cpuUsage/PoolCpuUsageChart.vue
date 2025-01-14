@@ -18,14 +18,14 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import type { HostStats } from '@/libs/xapi-stats'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import type { LinearChartData, ValueFormatter } from '@/types/chart'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
+import type { LinearChartData, ValueFormatter } from '@core/types/chart'
 import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const LinearChart = defineAsyncComponent(() => import('@/components/charts/LinearChart.vue'))
+const LinearChart = defineAsyncComponent(() => import('@core/components/charts/LinearChart.vue'))
 
 const { t, n } = useI18n()
 
