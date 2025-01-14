@@ -67,7 +67,7 @@ class Vdi {
     })
 
     const vm = await this.getRecord('VM', vmRef)
-    await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_detected, {
+    const gm = await this.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_detected, {
       timeout: timeLimit - Date.now(),
     }).catch(error => {
       warn('failed to wait guest metrics, consider VM as started', {
@@ -75,6 +75,11 @@ class Vdi {
         vm: { uuid: vm.uuid },
       })
     })
+
+    if (gm?.PV_drivers_detected) {
+      // It may happen that `PV_drivers_detected` returns `true` too quickly, and thus we destroy the cloudConfig VDI before the first boot
+      await new Promise(resolve => setTimeout(resolve, 1000 * 30))
+    }
 
     await this.VBD_unplug(vbdRef)
     await this.VDI_destroy(vdiRef)
