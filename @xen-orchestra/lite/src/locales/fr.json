@@ -72,7 +72,6 @@
   "export-vms": "Exporter les VMs",
   "export-vms-manually-information": "Certaines exportations de VMs n'ont pas pu démarrer automatiquement, peut-être en raison des paramètres du navigateur. Pour les exporter, vous devrez cliquer sur chacune d'entre elles. (Ou copier le lien.)",
   "fetching-fresh-data": "Récupération de données à jour",
-
   "filter.comparison.contains": "Contient",
   "filter.comparison.ends-with": "Termine par",
   "filter.comparison.equals": "Est égal à",
