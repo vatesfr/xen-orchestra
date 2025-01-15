@@ -1,12 +1,18 @@
 {
+  "access-forum": "Accès au forum",
   "alarms": "Alarmes",
+
   "bytes.ki": "Kio",
   "bytes.mi": "Mio",
   "bytes.gi": "Gio",
+
   "coming-soon": "Bientôt disponible !",
+  "connected": "Connecté",
   "console": "Console",
   "console-actions": "Actions de la console",
   "console-clipboard": "Presse-papiers de la console",
+  "copy-info-json": "Copier les informations en JSON",
+
   "core.copied": "Copié",
   "core.copy-id": "Copier l'ID",
   "core.close": "Fermer",
@@ -18,26 +24,29 @@
   "core.quick-actions": "Actions rapides",
   "core.search": "Rechercher",
   "core.show-by": "Afficher par",
+
   "core.query-search-bar.label": "Moteur de recherche",
   "core.query-search-bar.placeholder": "Écrivez votre requête…",
   "core.query-search-bar.use-query-builder": "Utiliser le constructeur de requête",
+
   "core.select.all": "Tout sélectionner",
   "core.select.none": "Tout désélectionner",
   "core.select.unselect": "Tout désélectionner",
   "core.select.n-object-of": "{from} - {to} de {total} objets",
   "core.select.n-selected-of": "{count} objet sélectionné sur {total} | {count} objet sélectionné sur {total} | {count} objets sélectionnés sur {total}",
+
   "core.sidebar.close": "Fermer la barre latérale",
   "core.sidebar.lock": "Verrouiller la barre latérale",
   "core.sidebar.open": "Ouvrir la barre latérale",
   "core.sidebar.unlock": "Déverrouiller la barre latérale",
+
   "core.sort.ascending": "Trier par ordre croissant",
   "core.sort.descending": "Trier par ordre décroissant",
+
   "dark-mode.enable": "Activer le mode sombre",
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.auto": "Mode sombre automatique",
-  "access-forum": "Accès au forum",
-  "connected": "Connecté",
-  "copy-info-json": "Copier les informations en JSON",
+
   "dashboard": "Tableau de bord",
   "default-locking-mode": "Mode de verrouillage par defaut",
   "dns": "DNS",
@@ -46,7 +55,7 @@
   "device": "Appareil",
   "disabled": "Désactivé",
   "disconnected": "Déconnecté",
-  "disconnected-from-physical-device": "Déconnécté de l'appareil physique",
+  "disconnected-from-physical-device": "Déconnecté de l'appareil physique",
   "documentation-name": "Documentation {name}",
   "edit": "Modifier",
   "error-no-data": "Erreur, impossible de collecter les données.",
@@ -98,6 +107,7 @@
   "system": "Système",
   "table-actions": "Actions du tableau",
   "tasks": "Tâches",
+
   "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
   "tasks.no-tasks": "Aucune tâche",
   "tasks.quick-view": "Vue rapide des tâches",
@@ -105,6 +115,7 @@
   "tasks.quick-view.done": "Terminées",
   "tasks.quick-view.failed": "Échouées",
   "tasks.quick-view.in-progress": "En cours",
+
   "total": "Total",
   "total-cpus": "Total CPUs",
   "unlocked": "Déverrouillé",

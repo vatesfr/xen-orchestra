@@ -29,20 +29,27 @@ import { computed } from 'vue'
 const { pif } = defineProps<{
   pif: XoPif
 }>()
+
 const { records: hosts } = useHostStore().subscribe()
+
 const status = computed<ConnectionStatus>(() => {
   if (pif.carrier && pif.attached) {
     return 'connected'
   }
+
   if (pif.carrier || pif.attached) {
     return 'disconnected-from-physical-device'
   }
+
   return 'disconnected'
 })
+
 const host = computed(() => hosts.value.find(host => host.id === pif.$host))
+
 const hostState = computed(() => {
   return host.value?.power_state ? 'running' : 'disabled'
 })
+
 // TODO: Select the right row in network table, wait for the PR #8198 to implementation
 // const redirectToHostNetwork = (pif: XoPif) => {
 //   router.push({ name: '/host/[id]/network', params: { id: pif.$host }, query: { pif: pif.id } })

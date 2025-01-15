@@ -23,6 +23,7 @@ defineProps<{
 <style scoped lang="postcss">
 .networks {
   display: flex;
+
   .card {
     margin: 0.8rem;
   }

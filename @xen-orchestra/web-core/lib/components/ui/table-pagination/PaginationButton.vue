@@ -7,8 +7,8 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 const { disabled, icon } = defineProps<{
-  disabled: boolean
   icon: IconDefinition
+  disabled?: boolean
 }>()
 </script>
 
