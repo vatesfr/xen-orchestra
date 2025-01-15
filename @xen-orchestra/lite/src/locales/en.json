@@ -210,7 +210,7 @@
   "new-vm.pxe": "PXE",
   "new-vm.ram": "Ram",
   "new-vm.new": "New",
-  "new-vm.typology": "Typology",
+  "new-vm.topology": "Topology",
   "new-vm.vcpu": "Vcpu",
   "new-vm.no-config": "No config",
   "new-vm.user-config": "User configuration",
