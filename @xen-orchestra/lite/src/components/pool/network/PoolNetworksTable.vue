@@ -17,7 +17,7 @@
     </UiTitle>
     <div class="content">
       <UiQuerySearchBar class="table-query" @search="value => (searchQuery = value)" />
-      <UiTableActions title="Table actions">
+      <UiTableActions :title="t('table-actions')">
         <UiButton
           v-tooltip="$t('coming-soon')"
           disabled
@@ -128,6 +128,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { networks, isReady } = defineProps<{
   networks: {
@@ -138,6 +139,7 @@ const { networks, isReady } = defineProps<{
   isReady: boolean
 }>()
 
+const { t } = useI18n()
 const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
@@ -163,21 +165,21 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
     define('name_label', record => record.network.name_label, {
-      label: 'Name',
+      label: t('name'),
       isHideable: true,
     }),
     define('name_description', record => record.network.name_description, {
-      label: 'Description',
+      label: t('description'),
       isHideable: true,
     }),
-    define('status', { label: 'PIFS Status', isHideable: true }),
-    define('vlan', { label: 'VLAN', isHideable: true }),
+    define('status', { label: t('pifs-status'), isHideable: true }),
+    define('vlan', { label: t('vlan'), isHideable: true }),
     define('MTU', record => record.network.MTU, {
-      label: 'MTU',
+      label: t('mtu'),
       isHideable: true,
     }),
     define('default_locking_mode', record => record.network.default_locking_mode, {
-      label: 'Default Locking mode',
+      label: t('default-locking-mode'),
       isHideable: true,
     }),
     define('more', () => '', { label: '', isHideable: false }),
@@ -214,7 +216,7 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
       overflow-x: auto;
 
       tr:last-child {
-        border-bottom: 1px solid var(--color-neutral-border);
+        border-bottom: 0.1rem solid var(--color-neutral-border);
       }
     }
 
