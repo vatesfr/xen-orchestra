@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [New/Storage] When creating a new storage, if an error occurred while selecting a storage type, nothing was displayed (PR [#8250](https://github.com/vatesfr/xen-orchestra/pull/8250))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,5 +37,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-web minor
 
 <!--packages-end-->
