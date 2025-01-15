@@ -186,7 +186,7 @@
   "new-vm.add": "Ajouter une nouvelle VM",
   "new-vm.pick-template": "Choisissez un modèle dans votre liste",
   "new-vm.ram": "Ram",
-  "new-vm.typology": "Typologie",
+  "new-vm.topology": "Topologie",
   "new-vm.vcpu": "Vcpu",
   "new-vm.create": "Créer une VM",
   "new-vm.template": "Modèle",
