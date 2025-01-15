@@ -19,8 +19,6 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const getSrWithISO = computed(() => srs.value.filter(sr => sr.type === 'iso'))
 
-  console.log('getSrWithISO', getSrWithISO)
-
   const concatVidsArray = computed(() => getSrWithISO.value.flatMap(sr => sr.VDIs || []))
 
   const vdisGroupedBySrName = computed(() => {
@@ -28,6 +26,7 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
     concatVidsArray.value.forEach(vdiRef => {
       const vdi = vdiContext.getByOpaqueRef(vdiRef)
+
       if (vdi) {
         const srName = srsName(vdi.SR) || 'Unknown SR'
         if (!groupedVdis[srName]) {
