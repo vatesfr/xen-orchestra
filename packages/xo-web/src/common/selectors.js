@@ -412,7 +412,12 @@ export const createGetObjectsOfType = type => {
 
 export const createGetTags = collectionSelectors => {
   if (!collectionSelectors) {
-    collectionSelectors = [createGetObjectsOfType('host'), createGetObjectsOfType('pool'), createGetObjectsOfType('VM')]
+    collectionSelectors = [
+      createGetObjectsOfType('host'),
+      createGetObjectsOfType('pool'),
+      createGetObjectsOfType('VM'),
+      createGetObjectsOfType('SR'),
+    ]
   }
 
   const getTags = create(collectionSelectors, (...collections) => {
