@@ -9,8 +9,7 @@
   "type": "module",
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",
-    "dev": "tsoa spec-and-routes && tsc --watch",
-    "start": "node ."
+    "dev": "tsoa spec-and-routes && tsc --watch"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
