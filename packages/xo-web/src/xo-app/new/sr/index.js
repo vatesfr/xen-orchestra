@@ -3,7 +3,6 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import includes from 'lodash/includes'
 import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
@@ -530,19 +529,22 @@ export default class New extends Component {
   _probe = async (host, type) => {
     const probeMethodFactories = {
       hba: async hostId => ({
-        hbaDevices: await probeSrHba(hostId)::ignoreErrors(),
+        hbaDevices: await probeSrHba(hostId),
       }),
       zfs: async hostId => ({
-        zfsPools: await probeZfs(hostId)::ignoreErrors(),
+        zfsPools: await probeZfs(hostId),
       }),
     }
     if (probeMethodFactories[type] !== undefined && host != null) {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const probeResult = await probeMethodFactories[type](host.id)
-      this.setState(({ loading }) => ({
-        loading: loading - 1,
-        ...probeResult,
-      }))
+      try {
+        const probeResult = await probeMethodFactories[type](host.id)
+        this.setState({ ...probeResult })
+      } catch (err) {
+        error('Device detection failed', err.message || String(err))
+      } finally {
+        this.setState(({ loading }) => ({ loading: loading - 1 }))
+      }
     }
   }
 
