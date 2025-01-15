@@ -1,4 +1,4 @@
-import { ExtendedRequest } from 'index.js'
+import { ExtendedRequest } from '../index.js'
 import { Controller, Get, Path, Request, Route } from 'tsoa'
 import { XoServer } from './server.type.js'
 

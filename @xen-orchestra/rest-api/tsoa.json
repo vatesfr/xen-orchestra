@@ -1,14 +1,14 @@
 {
-  "entryFile": "index.ts",
+  "entryFile": "./src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["**/*.controller.ts"],
+  "controllerPathGlobs": ["./src/**/*.controller.ts"],
   "spec": {
-    "outputDirectory": "./dist",
+    "outputDirectory": "./src/open-api/spec",
     "specVersion": 3,
     "basePath": "/rest/v1"
   },
   "routes": {
-    "routesDir": "./dist",
+    "routesDir": "./src/open-api/routes",
     "esm": true,
     "middleware": "express",
     "basePath": "/rest/v1"

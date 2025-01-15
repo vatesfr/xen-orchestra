@@ -7,9 +7,12 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "tsoa spec-and-routes && tsc",
-    "dev": "tsoa spec-and-routes && tsc --watch"
+    "build": "tsoa spec-and-routes && tsc --resolveJsonModule",
+    "dev": "tsoa spec-and-routes && tsc --watch --resolveJsonModule"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

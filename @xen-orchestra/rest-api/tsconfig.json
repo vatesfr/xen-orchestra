@@ -5,6 +5,7 @@
     "target": "ESNext",
     "module": "NodeNext",
     "outDir": "./dist",
+    "rootDir": "./src",
 
     /* Strict Type-Checking Options */
     "strict": true,
@@ -20,6 +21,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
 
     /* Module Resolution Options */
     "baseUrl": "./",
@@ -27,14 +29,9 @@
 
     /* Experimental Options */
     "experimentalDecorators": true,
-    // emitDecoratorMetadata is not needed by tsoa (unless you are using Custom Middlewares)
 
     /* Advanced Options */
-    "forceConsistentCasingInFileNames": true,
-
     "moduleResolution": "nodenext",
-
-    //
-    "resolveJsonModule": true,
-  }
+  },
+  "include": ["./src/**/*"]
 }

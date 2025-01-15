@@ -1,5 +1,5 @@
 import { Controller, Get, Path, Request, Route } from 'tsoa'
-import { ExtendedRequest } from 'index.js'
+import { ExtendedRequest } from '../index.js'
 
 import { XoVm } from './vm.type.js'
 

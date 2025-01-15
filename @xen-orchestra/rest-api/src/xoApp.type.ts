@@ -1,5 +1,5 @@
-import { XoServer } from 'servers/server.type.js'
-import { XoVm } from 'vms/vm.type.js'
+import { XoServer } from 'src/servers/server.type.js'
+import { XoVm } from 'src/vms/vm.type.js'
 
 export type XoApp = {
   getObjects: <T>(opts?: { filter: (obj: XapiXoObject) => boolean }) => Record<string, T>
