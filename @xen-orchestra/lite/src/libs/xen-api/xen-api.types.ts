@@ -106,6 +106,7 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
   master: XenApiHost['$ref']
   name_label: string
   other_config: Record<string, string>
+  default_SR: XenApiSr['$ref'];
 }
 
 export interface XenApiHost extends XenApiRecord<'host'> {
