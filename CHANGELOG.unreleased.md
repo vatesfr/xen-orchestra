@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Home/SR] On the tags selector, add the possibility to add an existing tag (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,5 +37,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-web minor
 
 <!--packages-end-->
