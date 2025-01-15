@@ -1,9 +1,9 @@
 import swaggerUi from 'swagger-ui-express'
 import { Express, Request } from 'express'
 
+import swaggerOpenApiSpec from './open-api/spec/swagger.json' assert { type: 'json' }
 import { RegisterRoutes } from './open-api/routes/routes.js'
 import { XoApp } from './xoApp.type.js'
-import f from './open-api/spec/swagger.json' assert { type: 'json' }
 
 export interface ExtendedRequest extends Request {
   xoApp: XoApp
@@ -23,7 +23,7 @@ export default class RestApi {
   }
 
   registerOpenApi() {
-    this.#api.use(`${this.#prefix}/api-doc`, swaggerUi.serve, swaggerUi.setup(f))
+    this.#api.use(`${this.#prefix}/api-doc`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
   }
 
   registerRoutes() {

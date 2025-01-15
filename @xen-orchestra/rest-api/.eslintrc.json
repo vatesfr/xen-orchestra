@@ -1,0 +1,23 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "sourceType": "module"
+      },
+      "rules": {
+        "no-extra-semi": "off"
+      }
+    },
+    {
+      "files": ["src/index.ts"],
+      "rules": {
+        "no-restricted-syntax": ["off"]
+      }
+    }
+  ],
+  "ignorePatterns": ["src/open-api/routes/routes.ts"]
+}

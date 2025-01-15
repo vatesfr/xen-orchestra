@@ -1,5 +1,10 @@
-import { XoServer } from 'src/servers/server.type.js'
-import { XoVm } from 'src/vms/vm.type.js'
+import { XoServer } from './servers/server.type.js'
+import { XoVm } from './vms/vm.type.js'
+
+/**
+ * XapiXoObject can be every "xapi-to-xo" object
+ */
+export type XapiXoObject = XoVm /** | XoVmTempalte | XoVdi | ... */
 
 export type XoApp = {
   getObjects: <T>(opts?: { filter: (obj: XapiXoObject) => boolean }) => Record<string, T>
@@ -8,8 +13,3 @@ export type XoApp = {
   getAllXenServers: () => Promise<XoServer[]>
   getXenServer: (id: XoServer['id']) => Promise<XoServer>
 }
-
-/**
- * XapiXoObject can be every "xapi-to-xo" object
- */
-export type XapiXoObject = XoVm /** | XoVmTempalte | XoVdi | ... */
