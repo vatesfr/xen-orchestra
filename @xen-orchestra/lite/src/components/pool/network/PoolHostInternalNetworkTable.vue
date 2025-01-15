@@ -17,7 +17,7 @@
     </UiTitle>
     <div class="content">
       <UiQuerySearchBar class="table-query" @search="value => (searchQuery = value)" />
-      <UiTableActions title="Table actions">
+      <UiTableActions :title="t('table-actions')">
         <UiButton
           v-tooltip="$t('coming-soon')"
           disabled
@@ -110,12 +110,14 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { networks, isReady } = defineProps<{
   networks: XenApiNetwork[]
   isReady: boolean
 }>()
 
+const { t } = useI18n()
 const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
@@ -140,10 +142,10 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', { label: 'Name', isHideable: true }),
-    define('name_description', { label: 'Description', isHideable: true }),
-    define('MTU', { label: 'MTU', isHideable: true }),
-    define('default_locking_mode', { label: 'Default Locking mode', isHideable: true }),
+    define('name_label', { label: t('name'), isHideable: true }),
+    define('name_description', { label: t('description'), isHideable: true }),
+    define('MTU', { label: t('mtu'), isHideable: true }),
+    define('default_locking_mode', { label: t('default-locking-mode'), isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -178,7 +180,7 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
       overflow-x: auto;
 
       tr:last-child {
-        border-bottom: 1px solid var(--color-neutral-border);
+        border-bottom: 0.1rem solid var(--color-neutral-border);
       }
     }
 
