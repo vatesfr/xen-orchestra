@@ -7,8 +7,8 @@ import { XoVm } from './vms/vm.type.js'
 export type XapiXoObject = XoVm /** | XoVmTempalte | XoVdi | ... */
 
 export type XoApp = {
-  getObjects: <T>(opts?: { filter: (obj: XapiXoObject) => boolean }) => Record<string, T>
-  getObject: <T>(id: string, type: XapiXoObject['type']) => T
+  getObjects: <T extends XapiXoObject>(opts?: { filter: (obj: XapiXoObject) => boolean }) => Record<string, T>
+  getObject: <T extends XapiXoObject>(id: T['id'], type: T['type']) => T
 
   getAllXenServers: () => Promise<XoServer[]>
   getXenServer: (id: XoServer['id']) => Promise<XoServer>
