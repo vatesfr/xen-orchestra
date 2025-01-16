@@ -37,8 +37,12 @@ class VhdNegative extends VhdAbstract {
     this.#parent = parent
     this.#child = child
 
-    assert.strictEqual(UUID.stringify(child.header.parentUuid), UUID.stringify(parent.footer.uuid), 'NOT_CHAINED')
-    assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING, 'CHILD_NOT_DIFFERENCING')
+    assert.strictEqual(
+      UUID.stringify(child.header.parentUuid),
+      UUID.stringify(parent.footer.uuid),
+      new Error('NOT_CHAINED')
+    )
+    assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING, new Error('CHILD_NOT_DIFFERENCING'))
     // we don't want to handle alignment and missing block for now
     // last block may contains partly empty data when changing size
     assert.strictEqual(child.footer.currentSize, parent.footer.currentSize, 'GEOMETRY_CHANGED')
