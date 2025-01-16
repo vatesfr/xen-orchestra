@@ -37,6 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- vhd-lib patch
 - xo-web patch
 
 <!--packages-end-->
