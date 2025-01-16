@@ -11,19 +11,19 @@ Vates addresses the needs of these environments with offline-enabled solutions f
 ## Table of Contents
 
 1. [XCP-ng in Air-Gapped Environments](#xcp-ng-in-air-gapped-environments)
-    - [Initial Pool Setup for Guest UEFI Secure Boot](#initial-pool-setup-for-guest-uefi-secure-boot)
-    - [Package Management](#package-management)
-        - [Overview](#overview)
-        - [Initial Pool Setup for Package Management](#initial-pool-setup-for-package-management)
-        - [Set up XCP-ng for XOSTOR (XOSTOR users only!)](#set-up-xcp-ng-for-xostor-xostor-users-only)
-        - [Fetching and Installing Updates](#fetching-and-installing-updates)
+   - [Initial Pool Setup for Guest UEFI Secure Boot](#initial-pool-setup-for-guest-uefi-secure-boot)
+   - [Package Management](#package-management)
+     - [Overview](#overview)
+     - [Initial Pool Setup for Package Management](#initial-pool-setup-for-package-management)
+     - [Set up XCP-ng for XOSTOR (XOSTOR users only!)](#set-up-xcp-ng-for-xostor-xostor-users-only)
+     - [Fetching and Installing Updates](#fetching-and-installing-updates)
 2. [Xen Orchestra in Air-Gapped Environments](#xen-orchestra-in-air-gapped-environments)
-    - [Logical Air Gap Deployment](#logical-air-gap-deployment)
-        - [Preparation](#preparation)
-        - [Deployment Steps](#deployment-steps)
-        - [Upgrading the Environment](#upgrading-the-environment)
-    - [Physical Air Gap Deployment](#physical-air-gap-deployment)
-        - [Deployment Steps](#deployment-steps)
+   - [Logical Air Gap Deployment](#logical-air-gap-deployment)
+     - [Preparation](#preparation)
+     - [Deployment Steps](#deployment-steps)
+     - [Upgrading the Environment](#upgrading-the-environment)
+   - [Physical Air Gap Deployment](#physical-air-gap-deployment)
+     - [Deployment Steps](#deployment-steps)
 3. [Contact for Support](#contact-for-support)
 4. [Conclusion](#conclusion)
 
@@ -39,9 +39,11 @@ To enforce Secure Boot on specific UEFI VMs, you must first configure your pool 
 For detailed information, check out the [Guest UEFI Secure Boot page](https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/) in the XCP-ng documentation.
 
 - If the pool has internet access before being disconnected, run:
+
   ```bash
   secureboot-certs install
   ```
+
   This downloads the required certificates.
 
 - Otherwise, download the certificates, transfer them using a physical storage device, and install them manually following the [UEFI Secure Boot Guide](https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/#install-the-default-uefi-certificates-manually).
@@ -68,42 +70,41 @@ After installation, we need to set up the local RPM repositories to replace the 
 1. **Prepare the update material**
 
 - Download the required archives and script:
-   - The `setup_offline_xcpng_repos` script from [GitHub](https://github.com/xcp-ng/xcp/tree/master/scripts/setup_offline_xcpng_repos).
-   - The appropriate `.tar` archives for your version of XCP-ng from the [Vates offline repository](https://repo.vates.tech/xcp-ng/offline/8/).  
 
-- In the following steps, replace `{VERSION}` with the actual version, following the `X_Y` format. For example, `8_2` for *XCP-ng 8.2*.
+  - The `setup_offline_xcpng_repos` script from [GitHub](https://github.com/xcp-ng/xcp/tree/master/scripts/setup_offline_xcpng_repos).
+  - The appropriate `.tar` archives for your version of XCP-ng from the [Vates offline repository](https://repo.vates.tech/xcp-ng/offline/8/).
 
-    - **Base Repository (`xcp-ng-base`)**
-       * Generic file name: `xcpng-{VERSION}-offline-base-latest.tar`
-       * Example file name for XCP-ng 8.2: `xcpng-8_2-offline-base-latest.tar`
-       * **Note:** This archive is frozen and does not receive updates over time. Once downloaded and set up, no further updates are necessary.
-   
-    - **Updates Repository (`xcp-ng-updates`)**
-       * Generic file name: `xcpng-{VERSION}-offline-updates-latest.tar`
-       * Example file name for XCP-ng 8.2: `xcpng-8_2-offline-updates-latest.tar`
-       * **Note:** This archive is regularly updated with new releases. Download the latest version periodically and refresh the local repository on each XCP-ng host to keep it up to date.
+- In the following steps, replace `{VERSION}` with the actual version, following the `X_Y` format. For example, `8_2` for _XCP-ng 8.2_.
 
-    - **Linstor Repository (`xcp-ng-linstor`)** - For XOSTOR users only!
-       * Generic file name: `xcpng-{VERSION}-offline-linstor-latest.tar`
-       * Example file name for XCP-ng 8.2: `xcpng-8_2-offline-linstor-latest.tar`
-       * **Note:** This is only required if you plan to use XOSTOR. Like the `updates` archive, this one is also updated periodically.
+  - **Base Repository (`xcp-ng-base`)**
+    - Generic file name: `xcpng-{VERSION}-offline-base-latest.tar`
+    - Example file name for XCP-ng 8.2: `xcpng-8_2-offline-base-latest.tar`
+    - **Note:** This archive is frozen and does not receive updates over time. Once downloaded and set up, no further updates are necessary.
+  - **Updates Repository (`xcp-ng-updates`)**
 
-    Transfer the utility script and downloaded archives to a removable or appropriate storage device.
+    - Generic file name: `xcpng-{VERSION}-offline-updates-latest.tar`
+    - Example file name for XCP-ng 8.2: `xcpng-8_2-offline-updates-latest.tar`
+    - **Note:** This archive is regularly updated with new releases. Download the latest version periodically and refresh the local repository on each XCP-ng host to keep it up to date.
 
+  - **Linstor Repository (`xcp-ng-linstor`)** - For XOSTOR users only!
+    - Generic file name: `xcpng-{VERSION}-offline-linstor-latest.tar`
+    - Example file name for XCP-ng 8.2: `xcpng-8_2-offline-linstor-latest.tar`
+    - **Note:** This is only required if you plan to use XOSTOR. Like the `updates` archive, this one is also updated periodically.
 
-    **Note: Alternate Archive Names**
-    
-    In the instructions above, we used archives with names ending in `-latest.tar`. The advantage of this is that the download link remains constant. The drawback is that the version is not visible in the file name.
-    
-    If you prefer filenames that provide more information, you can download the latest versions instead, named following the pattern `xcpng-{VERSION}-offline-{REPONAME}-{YYYYMMDD}.tar`.  
-    
-    For example: `xcpng-8_2-offline-updates-20241015.tar`.
+  Transfer the utility script and downloaded archives to a removable or appropriate storage device.
 
+  **Note: Alternate Archive Names**
+
+  In the instructions above, we used archives with names ending in `-latest.tar`. The advantage of this is that the download link remains constant. The drawback is that the version is not visible in the file name.
+
+  If you prefer filenames that provide more information, you can download the latest versions instead, named following the pattern `xcpng-{VERSION}-offline-{REPONAME}-{YYYYMMDD}.tar`.
+
+  For example: `xcpng-8_2-offline-updates-20241015.tar`.
 
 2. **Transfer files to hosts**
 
 - Make sure that hosts have enough disk space for both the archives and their extracted contents.  
-The XCP-ng system itself uses only a small portion of the 18 GB system partition, so this is usually not a problem. However, the system partition must never be completely filled.
+  The XCP-ng system itself uses only a small portion of the 18 GB system partition, so this is usually not a problem. However, the system partition must never be completely filled.
 
 - Copy the script and archives to the `/root` directory of each server, or connect a physical storage device.
 
@@ -111,57 +112,59 @@ The XCP-ng system itself uses only a small portion of the 18 GB system partition
 
 3. **Set up the offline repositories**
 
-    1. For each host in your pool:
-       1. Navigate to the directory containing the archives
-       2. Run these commands (as root) to install the local repositories:
-       ```bash
-       ./setup_offline_xcpng_repos NAME_OF_BASE_ARCHIVE.tar
-       ./setup_offline_xcpng_repos NAME_OF_UPDATES_ARCHIVE.tar
-       ```
-   
-       The script will copy the contents of the archives to `/var/local/xcp-ng-repos` and configure `yum` to use them as local repositories.
+   1. For each host in your pool:
 
-        **Note:** This will overwrite the repository definitions in `/etc/yum.repos.d/xcp-ng.repo`, so after this step, you will no longer be able to install updates from the online repositories.
+      1. Navigate to the directory containing the archives
+      2. Run these commands (as root) to install the local repositories:
 
-        Example with XCP-ng 8.2:
-        ```
-        [18:25 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-base-latest.tar
-        2024-11-06 18:28:35,926 - INFO - Tar archive is valid and not corrupted.
-        2024-11-06 18:28:36,066 - INFO - Processing repo: base
-        2024-11-06 18:28:36,067 - INFO - Creating directory: /var/local/xcp-ng-repos
-        2024-11-06 18:28:36,077 - INFO - Extracting archive...
-        2024-11-06 18:29:04,127 - INFO - Extracted base to /var/local/xcp-ng-repos
-        2024-11-06 18:29:04,129 - INFO - Deleting existing repository file: /etc/yum.repos.d/xcp-ng.repo
-        2024-11-06 18:29:04,129 - INFO - Creating repository file: /etc/yum.repos.d/xcp-ng.repo
-        2024-11-06 18:29:04,130 - INFO - Appending repository definition for [xcp-ng-base] to /etc/yum.repos.d/xcp-ng.repo
-        2024-11-06 18:29:04,130 - INFO - Deleting yum cache: /var/cache/yum
-        
-        [18:34 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-updates-latest.tar
-        2024-11-06 18:34:41,149 - INFO - Tar archive is valid and not corrupted.
-        2024-11-06 18:34:41,204 - INFO - Processing repo: updates
-        2024-11-06 18:34:41,205 - INFO - Extracting archive...
-        2024-11-06 18:34:48,260 - INFO - Extracted updates to /var/local/xcp-ng-repos
-        2024-11-06 18:34:48,353 - INFO - Appending repository definition for [xcp-ng-updates] to /etc/yum.repos.d/xcp-ng.repo
-        ```
-    
-    2. (Optional): To check the results, run `yum repolist -q`:
-    
-        ```
-        [18:36 hpmc28 ~]# yum repolist -q
-        repo id                        repo name                                         status
-        xcp-ng-base                    XCP-ng Offline Base Repository                     2 038
-        xcp-ng-updates                 XCP-ng Offline Updates Repository                    366
-        ```
+      ```bash
+      ./setup_offline_xcpng_repos NAME_OF_BASE_ARCHIVE.tar
+      ./setup_offline_xcpng_repos NAME_OF_UPDATES_ARCHIVE.tar
+      ```
 
-    3. (Optional): If you copied the archive to the local disk, you can delete it to free up space.
+      The script will copy the contents of the archives to `/var/local/xcp-ng-repos` and configure `yum` to use them as local repositories.
+
+      **Note:** This will overwrite the repository definitions in `/etc/yum.repos.d/xcp-ng.repo`, so after this step, you will no longer be able to install updates from the online repositories.
+
+      Example with XCP-ng 8.2:
+
+      ```
+      [18:25 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-base-latest.tar
+      2024-11-06 18:28:35,926 - INFO - Tar archive is valid and not corrupted.
+      2024-11-06 18:28:36,066 - INFO - Processing repo: base
+      2024-11-06 18:28:36,067 - INFO - Creating directory: /var/local/xcp-ng-repos
+      2024-11-06 18:28:36,077 - INFO - Extracting archive...
+      2024-11-06 18:29:04,127 - INFO - Extracted base to /var/local/xcp-ng-repos
+      2024-11-06 18:29:04,129 - INFO - Deleting existing repository file: /etc/yum.repos.d/xcp-ng.repo
+      2024-11-06 18:29:04,129 - INFO - Creating repository file: /etc/yum.repos.d/xcp-ng.repo
+      2024-11-06 18:29:04,130 - INFO - Appending repository definition for [xcp-ng-base] to /etc/yum.repos.d/xcp-ng.repo
+      2024-11-06 18:29:04,130 - INFO - Deleting yum cache: /var/cache/yum
+
+      [18:34 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-updates-latest.tar
+      2024-11-06 18:34:41,149 - INFO - Tar archive is valid and not corrupted.
+      2024-11-06 18:34:41,204 - INFO - Processing repo: updates
+      2024-11-06 18:34:41,205 - INFO - Extracting archive...
+      2024-11-06 18:34:48,260 - INFO - Extracted updates to /var/local/xcp-ng-repos
+      2024-11-06 18:34:48,353 - INFO - Appending repository definition for [xcp-ng-updates] to /etc/yum.repos.d/xcp-ng.repo
+      ```
+
+   2. (Optional): To check the results, run `yum repolist -q`:
+
+      ```
+      [18:36 hpmc28 ~]# yum repolist -q
+      repo id                        repo name                                         status
+      xcp-ng-base                    XCP-ng Offline Base Repository                     2 038
+      xcp-ng-updates                 XCP-ng Offline Updates Repository                    366
+      ```
+
+   3. (Optional): If you copied the archive to the local disk, you can delete it to free up space.
 
 4. **Apply the updates**
 
    Once all the hosts in the pool have their local repositories updated, you can follow [the regular update guide](https://docs.xcp-ng.org/management/updates/).  
-    You can also use Xen Orchestra to apply updates.  
-    
-    **Note:** Keep in mind that Xen Orchestra will only detect updates from the local repositories, so it won't notify you if new updates are available on the online mirrors.
+    You can also use Xen Orchestra to apply updates.
 
+   **Note:** Keep in mind that Xen Orchestra will only detect updates from the local repositories, so it won't notify you if new updates are available on the online mirrors.
 
 #### Set up XCP-ng for XOSTOR (XOSTOR users only!)
 
@@ -170,7 +173,7 @@ Normally, Xen Orchestra handles XOSTOR installation. However, for air-gapped env
 1. Make sure the `base` and `updates` offline repositories are set up, and that the `updates` repository is up to date or matches the `linstor` archive release date.
 
 2. Make sure the hosts are up to date.  
-If you’ve followed the steps above, your hosts should already be updated.
+   If you’ve followed the steps above, your hosts should already be updated.
 
 3. With the `.tar` archive of the `linstor` repository and the `setup_offline_xcpng_repos` script available in a directory or mount point, navigate to that directory and run the following command as root:
 
@@ -179,6 +182,7 @@ If you’ve followed the steps above, your hosts should already be updated.
 ```
 
 Example with XCP-ng 8.2:
+
 ```
 [18:55 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-linstor-latest.tar
 2024-11-06 18:55:11,997 - INFO - Tar archive is valid and not corrupted.
@@ -196,6 +200,7 @@ yum install xcp-ng-linstor -y
 ```
 
 5. Restart the XAPI toolstack:
+
 ```
 xe-toolstack-restart
 ```
@@ -226,7 +231,6 @@ Also, download the latest version of the `setup_offline_xcpng_repos` script from
 
 Refer to the **Transfer files to hosts** section.
 
-
 #### Refresh the offline repositories with the new archives
 
 Updating a local repository follows the same steps as the initial installation.  
@@ -243,6 +247,7 @@ And, if applicable:
 ```
 
 Example with XCP-ng 8.2 without XOSTOR:
+
 ```
 [18:36 hpmc28 ~]# ./setup_offline_xcpng_repos xcpng-8_2-offline-updates-latest.tar
 2024-11-06 18:41:05,649 - INFO - Tar archive is valid and not corrupted.
@@ -259,6 +264,7 @@ If you copied the archive to the local disk, you can delete it to free up space.
 **Date of the last repository update**
 
 To check the date of the last repository update, run this command:
+
 ```
 [18:41 hpmc28 ~]# ls -l /var/local/xcp-ng-repos/
 total 8
@@ -274,7 +280,6 @@ You can also use Xen Orchestra to apply updates.
 Keep in mind that Xen Orchestra will only detect updates from the local repositories, so it won't notify you if new updates are available on the online mirrors.
 
 **Warning:** If you're using XOSTOR, refer to the [XOSTOR documentation](https://docs.xcp-ng.org/xostor/) for specific update instructions.
-
 
 ---
 
