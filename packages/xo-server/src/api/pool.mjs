@@ -43,10 +43,6 @@ export async function set({
     crashDumpSr !== undefined &&
       pool.$call('set_crash_dump_SR', crashDumpSr === null ? Ref.EMPTY : crashDumpSr._xapiRef),
   ])
-  if (nameLabel !== undefined || nameDescription !== undefined) {
-    const serverId = this.getXenServerIdByObject(pool.uuid, 'pool')
-    await this.updateXenServer(serverId, { poolNameDescription: nameDescription, poolNameLabel: nameLabel })
-  }
 }
 
 set.params = {
