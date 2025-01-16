@@ -45,7 +45,7 @@ class VhdNegative extends VhdAbstract {
     assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING, new Error('CHILD_NOT_DIFFERENCING'))
     // we don't want to handle alignment and missing block for now
     // last block may contains partly empty data when changing size
-    assert.strictEqual(child.footer.currentSize, parent.footer.currentSize, 'GEOMETRY_CHANGED')
+    assert.strictEqual(child.footer.currentSize, parent.footer.currentSize, new Error('GEOMETRY_CHANGED'))
   }
 
   async readBlockAllocationTable() {
