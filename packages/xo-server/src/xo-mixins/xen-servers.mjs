@@ -354,12 +354,6 @@ export default class XenServers {
       if (serverIdsByPool[poolId] !== undefined) {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
-      if (xapi.pool.name_label !== undefined || xapi.pool.name_description !== undefined) {
-        await this.updateXenServer(id, {
-          poolNameLabel: xapi.pool.name_label,
-          poolNameDescription: xapi.pool.name_description,
-        })
-      }
 
       serverIdsByPool[poolId] = server.id
 
