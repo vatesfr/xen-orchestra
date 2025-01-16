@@ -20,7 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - Fix SR tags not being listed in tag selectors (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
-- [Settings/Remotes] Disallow using encryption without using data block storage, which was a source of errors (PR [#8244](https://github.com/vatesfr/xen-orchestra/pull/8244))
+- [Settings/Remotes] Only allow using encryption when using data block storage to prevent errors during backups (PR [#8244](https://github.com/vatesfr/xen-orchestra/pull/8244))
 
 ### Packages to release
 

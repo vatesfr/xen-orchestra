@@ -47,7 +47,7 @@ function validateUrl(url) {
   const hasEncryption = encryptionKey !== undefined
   const hasVhdDirectory = useVhdDirectory === true
   if (hasEncryption && !hasVhdDirectory) {
-    throw invalidParameters('Encryption must not be used without using VHD directory (data blocks)')
+    throw invalidParameters('Encryption must be used with VHD directory (data blocks)')
   }
 }
 
