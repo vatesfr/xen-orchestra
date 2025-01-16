@@ -10,6 +10,7 @@
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+Add VM Description to the backup report.
 
 ### Bug fixes
 
