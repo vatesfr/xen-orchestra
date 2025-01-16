@@ -18,7 +18,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Home/SR] On the tags selector, add the possibility to add an existing tag (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
+- Fix SR tags not being listed in tag selectors (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
 
 ### Packages to release
 
