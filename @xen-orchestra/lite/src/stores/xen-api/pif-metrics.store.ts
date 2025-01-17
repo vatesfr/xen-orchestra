@@ -7,8 +7,11 @@ export const usePifMetricsStore = defineStore('xen-api-pif-metrics', () => {
   const { context: baseContext, ...configRest } = createXapiStoreConfig('pif_metrics')
 
   const getPifCarrier = (pif: XenApiPif) => {
-    const pifMetrics = baseContext.getByOpaqueRef(pif.metrics)
-    return pifMetrics.carrier
+    if (pif.metrics === undefined) {
+      return
+    }
+    const pifMetrics = baseContext.getByOpaqueRef(pif?.metrics)
+    return pifMetrics?.carrier
   }
 
   const context = {

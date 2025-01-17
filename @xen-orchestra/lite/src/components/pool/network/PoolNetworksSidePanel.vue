@@ -1,5 +1,6 @@
 <template>
-  <UiPanel v-if="selectedNetwork">
+  <UiPanel class="pool-network-side-panel">
+    <VtsNoSelectionHero v-if="!network" type="panel" />
     <template #header>
       <UiButton
         v-tooltip="$t('coming-soon')"
@@ -23,76 +24,87 @@
       </UiButton>
       <UiButtonIcon accent="info" size="medium" :icon="faEllipsis" />
     </template>
-    <UiCard v-if="selectedNetwork" class="card-container">
+    <UiCard v-if="network" class="card-container">
       <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
-        {{ selectedNetwork.network.name_label }}
+        {{ network.name_label }}
       </UiCardTitle>
       <div>
+        <!-- UUID -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('uuid') }}</div>
-          <div class="value text-ellipsis">{{ getDisplayValue(selectedNetwork.network.uuid) }}</div>
+          <div class="value text-ellipsis">{{ formatValue(network.uuid) }}</div>
           <UiButtonIcon
-            v-if="selectedNetwork.network.uuid"
+            v-if="network.uuid"
+            v-tooltip="copied && $t('core.copied')"
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.network.uuid)"
+            @click="copy(network.uuid)"
           />
         </div>
+        <!-- DESCRIPTION -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('description') }}</div>
-          <div class="value text-ellipsis">{{ getDisplayValue(selectedNetwork.network.name_description) }}</div>
+          <div class="value text-ellipsis">{{ formatValue(network.name_description) }}</div>
           <UiButtonIcon
-            v-if="selectedNetwork.network.name_description"
+            v-if="network.name_description"
+            v-tooltip="copied && $t('core.copied')"
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.network.name_description)"
+            @click="copy(network.name_description)"
           />
         </div>
+        <!-- VLAN -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('vlan') }}</div>
-          <div class="value">{{ getDisplayValue(selectedNetwork.vlan) }}</div>
+          <div class="value">{{ formatValue(getNetworkVlan(network)) }}</div>
           <UiButtonIcon
-            v-if="selectedNetwork.vlan"
+            v-if="getNetworkVlan(network)"
+            v-tooltip="copied && $t('core.copied')"
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.vlan)"
+            @click="copy(String(getNetworkVlan(network)))"
           />
         </div>
+        <!-- MTU -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('mtu') }}</div>
-          <div class="value">{{ getDisplayValue(selectedNetwork.network.MTU) }}</div>
+          <div class="value">{{ formatValue(network.MTU) }}</div>
           <UiButtonIcon
-            v-if="selectedNetwork.network.MTU"
+            v-if="network.MTU"
+            v-tooltip="copied && $t('core.copied')"
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.network.MTU)"
+            @click="copy(String(network.MTU))"
           />
         </div>
+        <!-- NBD -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ getDisplayValue(selectedNetwork.network.purpose[0]) }}</div>
+          <div class="value">{{ formatValue(network.purpose[0]) }}</div>
           <UiButtonIcon
-            v-if="selectedNetwork.network.purpose[0]"
+            v-if="network.purpose[0]"
+            v-tooltip="copied && $t('core.copied')"
             accent="info"
             size="medium"
             :icon="faCopy"
-            @click="copyToClipboard(selectedNetwork.network.purpose[0])"
+            @click="copy(network.purpose[0])"
           />
         </div>
+        <!-- DEFAULT LOCKING MODE -->
         <div class="typo p3-regular content">
           <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value">{{ getDisplayValue(selectedNetwork.network.default_locking_mode) }}</div>
+          <div class="value">{{ formatValue(network.default_locking_mode) }}</div>
         </div>
       </div>
     </UiCard>
-    <UiCard v-if="selectedNetwork?.network?.PIFs?.length > 0" class="card-container">
+    <UiCard v-if="network && network?.PIFs?.length > 0" class="card-container">
       <div class="typo p1-medium">
         {{ $t('pifs') }}
-        <UiCounter :value="selectedPifsLength" variant="primary" size="small" accent="neutral" />
+        <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
       </div>
       <table class="simple-table">
         <thead>
@@ -110,23 +122,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="selected in selectedPifs" :key="selected.PIF.uuid">
-            <td class="typo p3-regular host">
-              <UiObjectIcon :state="selected?.host?.hostStatus ? 'running' : 'disabled'" type="host" size="small" />
-              <a>
-                {{ selected?.host?.name_label }}
-              </a>
-            </td>
-            <td class="typo p3-regular device">
-              {{ selected.PIF.device }}
-            </td>
-            <td class="typo p3-regular status">
-              <VtsConnectionStatus :status="selected.status" />
-            </td>
-            <td class="text-right">
-              <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
-            </td>
-          </tr>
+          <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
         </tbody>
       </table>
     </UiCard>
@@ -134,46 +130,42 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import type { Status } from '@/types/status'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import PifRow from '@/components/pif/PifRow.vue'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faAngleRight, faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 
-const { selectedPifs, selectedNetwork } = defineProps<{
-  selectedNetwork?: {
-    network: XenApiNetwork
-    status?: Status
-    vlan?: string
+const { records: networks } = useNetworkStore().subscribe()
+const { pifsByNetwork } = usePifStore().subscribe()
+
+const networkId = useRouteQuery('id')
+const network = computed(() => networks.value.find(network => network.uuid === networkId.value))
+
+const pifs = computed(() => (network.value ? pifsByNetwork.value.get(network.value.$ref) || [] : []))
+
+const getNetworkVlan = computed(() => (network: XenApiNetwork): string | undefined => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.$ref))
+  if (networkPIFs.length > 0) {
+    return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : ''
   }
-  selectedPifs?: {
-    PIF: XenApiPif
-    status: Status
-    host?: {
-      name_label?: string
-      hostStatus?: boolean
-    }
-  }[]
-}>()
-
-const selectedPifsLength = computed(() => selectedPifs?.length.toString())
-
-const getDisplayValue = (value?: string | number): string => {
+})
+const pifsCount = computed(() => pifs.value.length.toString())
+const formatValue = computed(() => (value?: string | number): string => {
   return value ? String(value) : '-'
-}
-
-const copyToClipboard = (text: string | number) => {
-  const stringText = String(text)
-  navigator.clipboard.writeText(stringText)
-}
+})
+const { copy, copied } = useClipboard()
 </script>
 
 <style scoped lang="postcss">
@@ -209,21 +201,6 @@ const copyToClipboard = (text: string | number) => {
   .simple-table {
     border-spacing: 0;
     padding: 0.4rem;
-
-    td.host {
-      width: 13rem;
-      max-width: 13rem;
-    }
-
-    td.device {
-      width: 6rem;
-      max-width: 6rem;
-    }
-
-    td.status {
-      width: 14rem;
-      max-width: 14rem;
-    }
 
     tbody tr {
       cursor: pointer;
