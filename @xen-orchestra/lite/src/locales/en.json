@@ -59,6 +59,7 @@
 
   "descending": "descending",
   "description": "Description",
+  "device": "Device",
   "dhcp": "DHCP",
   "disabled": "Disabled",
   "display": "Display",
@@ -107,6 +108,8 @@
   "host.inactive": "Inactive",
 
   "invalid-field": "Invalid field",
+  "ip": "Ip",
+  "ip-configuration-mode": "Ip mode",
 
   "job.vm-copy.bad-power-state": "VM must be halted",
   "job.vm-copy.in-progress": "Copy in progress…",
@@ -174,6 +177,7 @@
   "loading-hosts": "Loading hosts…",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
+  "mac": "Mac",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
@@ -189,6 +193,7 @@
   "news-name": "{name} news",
   "none": "None",
   "no-alarm-triggered": "No alarm triggered",
+  "no-pif-detected": "No pif detected",
   "no-result": "No result",
   "no-selected-vm-can-be-exported": "No selected VM can be exported",
   "no-selected-vm-can-be-migrated": "No selected VM can be migrated",
@@ -250,6 +255,7 @@
   "support": "Support",
   "suspend": "Suspend",
   "switch-theme": "Switch theme",
+  "table-actions": "Table actions",
 
   "task.estimated-end": "Estimated end",
   "task.progress": "Progress",
@@ -271,6 +277,7 @@
   "vm.active": "Active",
   "vm.inactive": "Inactive",
 
+  "vlan": "Vlan",
   "vm-is-running": "The VM is running",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",

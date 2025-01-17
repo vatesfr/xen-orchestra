@@ -1,6 +1,6 @@
 <template>
   <UiCard class="host-network-view">
-    <HostPifTable :pifs="pifs" :is-ready />
+    <HostPifTable :pifs :is-ready :has-error />
   </UiCard>
 </template>
 
@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const { currentHostPifs: pifs, isReady } = usePifStore().subscribe()
+const { currentHostPifs: pifs, isReady, hasError } = usePifStore().subscribe()
 </script>
 
 <style lang="postcss" scoped>
