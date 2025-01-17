@@ -44,7 +44,7 @@
         :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
+      <VtsLoadingHero :disabled="isReady" type="table">
         <VtsTable vertical-border>
           <thead>
             <tr>
@@ -56,12 +56,19 @@
                   <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
                   {{ column.label }}
                 </th>
-                <ColumnTitle v-else :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+                <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
+                  <span class="text-ellipsis">{{ column.label }}</span>
+                </ColumnTitle>
               </template>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ selected: selectedNetworkId === row.id }"
+              @click="selectedNetworkId = row.id"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
@@ -72,7 +79,14 @@
             </tr>
           </tbody>
         </VtsTable>
-      </div>
+      </VtsLoadingHero>
+      <VtsErrorNoDataHero v-if="hasError" type="table" />
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
+        <div>{{ $t('no-network-detected') }}</div>
+      </VtsStateHero>
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="networkUuids.length"
@@ -80,14 +94,15 @@
       />
     </div>
   </div>
-  <UiCardSpinner v-if="!isReady" />
 </template>
 
 <script setup lang="ts">
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -97,6 +112,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -112,13 +128,15 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks, isReady } = defineProps<{
+const { networks, isReady, hasError } = defineProps<{
   networks: XenApiNetwork[]
   isReady: boolean
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
 const searchQuery = ref('')
+const selectedNetworkId = useRouteQuery('id')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
@@ -138,6 +156,10 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
+const getLockingMode = (lockingMode: string) => {
+  return lockingMode === 'disabled' ? t('disabled') : t('unlocked')
+}
+
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
   columns: define => [
@@ -145,7 +167,10 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('name_label', { label: t('name'), isHideable: true }),
     define('name_description', { label: t('description'), isHideable: true }),
     define('MTU', { label: t('mtu'), isHideable: true }),
-    define('default_locking_mode', { label: t('default-locking-mode'), isHideable: true }),
+    define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
+      label: t('default-locking-mode'),
+      isHideable: true,
+    }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -179,22 +204,23 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
     .table {
       overflow-x: auto;
 
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 0.1rem solid var(--color-neutral-border);
       }
     }
 
+    .selected {
+      background-color: var(--color-info-background-selected);
+    }
+
     .checkbox,
     .more {
       width: 4.8rem;
-    }
-  }
-
-  @media (max-width: 1440px) {
-    .table {
-      table {
-        width: 160rem;
-      }
     }
   }
 }
