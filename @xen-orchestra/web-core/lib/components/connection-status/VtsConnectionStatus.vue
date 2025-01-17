@@ -9,7 +9,11 @@ import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'partially-connected' | 'disconnected-from-physical-device'
+export type ConnectionStatus =
+  | 'connected'
+  | 'disconnected'
+  | 'partially-connected'
+  | 'disconnected-from-physical-device'
 type ConnectionStatusesMap = Record<ConnectionStatus, { text: string; accent: InfoAccent }>
 
 const { status } = defineProps<{

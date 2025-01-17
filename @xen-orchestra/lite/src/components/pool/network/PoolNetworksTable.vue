@@ -54,7 +54,7 @@
         :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
-      <div class="table">
+      <VtsLoadingHero :disabled="isReady" type="table">
         <VtsTable vertical-border>
           <thead>
             <tr>
@@ -67,13 +67,18 @@
                   {{ column.label }}
                 </th>
                 <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
-                  {{ column.label }}
+                  <span class="text-ellipsis">{{ column.label }}</span>
                 </ColumnTitle>
               </template>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row of rows" :key="row.id">
+            <tr
+              v-for="row of rows"
+              :key="row.id"
+              :class="{ selected: selectedNetworkId === row.id }"
+              @click="selectedNetworkId = row.id"
+            >
               <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
                 <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
                 <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
@@ -85,7 +90,14 @@
             </tr>
           </tbody>
         </VtsTable>
-      </div>
+      </VtsLoadingHero>
+      <VtsErrorNoDataHero v-if="hasError" type="table" />
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
+        <div>{{ $t('no-network-detected') }}</div>
+      </VtsStateHero>
       <UiTopBottomTable
         :selected-items="selected.length"
         :total-items="networkUuids.length"
@@ -93,16 +105,17 @@
       />
     </div>
   </div>
-  <UiCardSpinner v-if="!isReady" />
 </template>
 
 <script setup lang="ts">
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import type { Status } from '@/types/status'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -113,6 +126,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -130,17 +144,16 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks, isReady } = defineProps<{
-  networks: {
-    network: XenApiNetwork
-    status: Status
-    vlan?: string
-  }[]
+const { networks, isReady, hasError } = defineProps<{
+  networks: XenApiNetwork[]
   isReady: boolean
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
 const searchQuery = ref('')
+const selectedNetworkId = useRouteQuery('id')
+const { records: pifs } = usePifStore().subscribe()
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
@@ -152,7 +165,7 @@ const filteredNetworks = computed(() => {
   )
 })
 
-const networkUuids = computed(() => networks.map(network => network.network.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
@@ -160,25 +173,55 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
+const getNetworkVlan = (network: XenApiNetwork) => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
+  if (networkPIFs.length > 0) {
+    return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
+  }
+}
+
+const pifsStatus = (PIFs: XenApiPif[]): ConnectionStatus => {
+  if (PIFs.length === 0) {
+    return 'disconnected'
+  }
+  const currentlyAttached = PIFs.map(PIF => PIF.currently_attached)
+  if (currentlyAttached.every(Boolean)) {
+    return 'connected'
+  }
+  if (currentlyAttached.some(Boolean)) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
+}
+
+const getNetworkStatus = (network: XenApiNetwork) => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
+  return pifsStatus(networkPIFs)
+}
+
+const getLockingMode = (lockingMode: string) => {
+  return lockingMode === 'disabled' ? t('disabled') : t('unlocked')
+}
+
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
-  rowId: record => record.network.uuid,
+  rowId: record => record.uuid,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', record => record.network.name_label, {
+    define('name_label', record => record.name_label, {
       label: t('name'),
       isHideable: true,
     }),
-    define('name_description', record => record.network.name_description, {
+    define('name_description', record => record.name_description, {
       label: t('description'),
       isHideable: true,
     }),
-    define('status', { label: t('pifs-status'), isHideable: true }),
-    define('vlan', { label: t('vlan'), isHideable: true }),
-    define('MTU', record => record.network.MTU, {
+    define('status', record => getNetworkStatus(record), { label: t('pifs-status'), isHideable: true }),
+    define('vlan', record => getNetworkVlan(record), { label: t('vlan'), isHideable: true }),
+    define('MTU', record => record.MTU, {
       label: t('mtu'),
       isHideable: true,
     }),
-    define('default_locking_mode', record => record.network.default_locking_mode, {
+    define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
       isHideable: true,
     }),
@@ -196,6 +239,7 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   default_locking_mode: faCaretDown,
   more: faEllipsis,
 }
+
 const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
 </script>
 
@@ -215,22 +259,27 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
     .table {
       overflow-x: auto;
 
+      tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--color-info-background-hover);
+      }
+
       tr:last-child {
         border-bottom: 0.1rem solid var(--color-neutral-border);
       }
+    }
+
+    .selected {
+      background-color: var(--color-info-background-selected);
     }
 
     .checkbox,
     .more {
       width: 4.8rem;
     }
-  }
 
-  @media (max-width: 1440px) {
-    .table {
-      table {
-        width: 160rem;
-      }
+    ::deep(.col-status) {
+      width: 2rem;
     }
   }
 }
