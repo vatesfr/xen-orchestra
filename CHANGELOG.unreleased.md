@@ -9,11 +9,16 @@
 
 ### Enhancements
 
+- **XO 6**:
+  - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- Fix SR tags not being listed in tag selectors (PR [#8251](https://github.com/vatesfr/xen-orchestra/pull/8251))
 
 ### Packages to release
 
@@ -30,5 +35,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web-core minor
+- xo-web patch
 
 <!--packages-end-->

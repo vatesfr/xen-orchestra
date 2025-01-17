@@ -12,14 +12,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@/composables/context.composable'
 import { useModal } from '@/composables/modal.composable'
-import { DisabledContext } from '@/context'
 import { areSomeVmOperationAllowed } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -31,13 +30,11 @@ const props = defineProps<{
 
 const { getByOpaqueRefs } = useVmStore().subscribe()
 
-const isParentDisabled = useContext(DisabledContext)
-
 const isSomeExportable = computed(() =>
   getByOpaqueRefs(props.vmRefs).some(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))
 )
 
-const isDisabled = computed(() => isParentDisabled.value || !isSomeExportable.value)
+const isDisabled = useDisabled(() => !isSomeExportable.value)
 
 const openModal = () => {
   useModal(() => import('@/components/modals/VmExportModal.vue'), {

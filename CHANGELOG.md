@@ -1,8 +1,18 @@
 # ChangeLog
 
-## **5.102.0** (2024-12-30)
+## **5.102.1** (2025-01-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Plugin/backup-reports] Backup reports were not sent on failure with storage issue on remote (PR [#8229](https://github.com/vatesfr/xen-orchestra/pull/8229))
+
+### Released packages
+
+- xo-server-backup-reports 1.4.4
+
+## **5.102.0** (2024-12-30)
 
 ### Highlights
 
