@@ -4,11 +4,13 @@
       <PoolNetworksTable />
       <PoolHostInternalNetworksTable />
     </UiCard>
+  <PoolNetworksSidePanel />
   </div>
 </template>
 
 <script lang="ts" setup>
 import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
+import PoolNetworksSidePanel from '@/components/pool/network/PoolNetworksSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import UiCard from '@core/components/ui/card/UiCard.vue'

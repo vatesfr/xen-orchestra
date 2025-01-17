@@ -34,5 +34,5 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
     networksWithoutPifs,
   }
 
-  return createSubscribableStoreContext({ context, ...configRest }, deps)
+  return createSubscribableStoreContext({ context, ...configRest }, {})
 })
