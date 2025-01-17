@@ -1,8 +1,8 @@
 <template>
   <UiCard class="pool-network-view">
     <div class="content">
-      <PoolNetworksTable :networks="networksWithVLANs" :is-ready />
-      <PoolHostInternalNetworkTable :networks="hostInternalNetworks" :is-ready />
+      <PoolNetworksTable :networks="networksWithPifs" :is-ready :has-error />
+      <PoolHostInternalNetworkTable :networks="networksWithoutPifs" :is-ready :has-error />
     </div>
   </UiCard>
 </template>
@@ -17,7 +17,7 @@ import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const { networksWithVLANs, hostInternalNetworks, isReady } = useNetworkStore().subscribe()
+const { networksWithPifs, networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
 </script>
 
 <style lang="postcss" scoped>
