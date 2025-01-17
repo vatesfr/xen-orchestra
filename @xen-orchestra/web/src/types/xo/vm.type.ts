@@ -9,12 +9,23 @@ export enum VM_POWER_STATE {
   SUSPENDED = 'Suspended',
 }
 
+export enum VM_OPERATION {
+  CLEAN_REBOOT = 'clean_reboot',
+  CLEAN_SHUTDOWN = 'clean_shutdown',
+  HARD_REBOOT = 'hard_reboot',
+  HARD_SHUTDOWN = 'hard_shutdown',
+  PAUSE = 'pause',
+  SUSPEND = 'suspend',
+  SHUTDOWN = 'shutdown',
+}
+
 export type XoVm = {
   id: Branded<'vm'>
   type: 'VM'
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
   _xapiRef: string
+  current_operations: VM_OPERATION
   name_label: string
   name_description: string
   power_state: VM_POWER_STATE
