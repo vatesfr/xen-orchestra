@@ -61,6 +61,7 @@
 
   "descending": "descendant",
   "description": "Description",
+  "device": "Appareil",
   "dhcp": "DHCP",
   "dns": "DNS",
   "disabled": "Désactivé",
@@ -110,6 +111,8 @@
 
   "host-internal-networks": "Réseaux internes de l'hôte",
   "invalid-field": "Champ invalide",
+  "ip": "Ip",
+  "ip-configuration-mode": "Mode ip",
 
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
   "job.vm-copy.in-progress": "Copie en cours…",
@@ -179,6 +182,7 @@
   "locking-mode-default": "Mode verrouillé par défaut",
   "login": "Connexion",
   "login-only-on-master": "La connexion n'est possible que sur l'hôte primaire",
+  "mac": "Mac",
   "more-actions": "Plus d'actions",
   "migrate": "Migrer",
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
@@ -197,6 +201,7 @@
   "news-name": "Actualités {name}",
   "none": "Aucun",
   "no-alarm-triggered": "Aucune alarme déclenchée",
+  "no-pif-detected": "Aucun pif détecté",
   "no-network-detected": "Aucun réseau détecté",
   "no-result": "Aucun résultat",
   "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",
@@ -284,6 +289,7 @@
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
 
+  "vlan": "Vlan",
   "vm-is-running": "La VM est en cours d'exécution",
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",
