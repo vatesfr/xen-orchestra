@@ -10,6 +10,7 @@ export enum HOST_POWER_STATE {
 
 export enum HOST_OPERATION {
   SHUTDOWN = 'shutdown',
+  REBOOT = 'reboot',
 }
 
 export type XoHost = {
@@ -17,7 +18,7 @@ export type XoHost = {
   type: 'host'
   $pool: XoPool['id']
   _xapiRef: string
-  current_operations: HOST_OPERATION
+  current_operations: Record<string, HOST_OPERATION>
   address: string
   enabled: boolean
   name_label: string

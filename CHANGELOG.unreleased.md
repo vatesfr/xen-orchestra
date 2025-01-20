@@ -36,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-web patch
 

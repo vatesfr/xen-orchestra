@@ -25,7 +25,7 @@ export type XoVm = {
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
   _xapiRef: string
-  current_operations: VM_OPERATION
+  current_operations: Record<string, VM_OPERATION>
   name_label: string
   name_description: string
   power_state: VM_POWER_STATE

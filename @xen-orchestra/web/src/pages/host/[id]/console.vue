@@ -26,7 +26,7 @@ const props = defineProps<{
 
 const { isHostOperationPending } = useHostStore().subscribe()
 
-const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN]
+const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN, HOST_OPERATION.REBOOT]
 
 const url = computed(
   () => new URL(`/api/consoles/${props.host.controlDomain}`, window.location.origin.replace(/^http/, 'ws'))
