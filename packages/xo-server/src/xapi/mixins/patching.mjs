@@ -619,6 +619,7 @@ const methods = {
       await this.callAsync('host.apply_updates', host.$ref, hash)
     }
 
+    // recall the method to delete the cache entry after applying updates
     await this._fetchXsUpdatesEndpoint(REMOVE_CACHE_ENTRY, hosts[0])
   },
 
