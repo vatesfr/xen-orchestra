@@ -3,8 +3,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { LinearChartData, ValueFormatter } from '@/types/chart'
-import { IK_CHART_VALUE_FORMATTER } from '@/types/injection-keys'
+import type { LinearChartData, ValueFormatter } from '@core/types/chart'
+import { IK_CHART_VALUE_FORMATTER } from '@core/utils/injection-keys.util'
 import { utcFormat } from 'd3-time-format'
 import type { EChartsOption } from 'echarts'
 import { LineChart } from 'echarts/charts'

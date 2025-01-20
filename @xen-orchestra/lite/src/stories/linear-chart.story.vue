@@ -13,10 +13,10 @@
 </template>
 
 <script lang="ts" setup>
-import LinearChart from '@/components/charts/LinearChart.vue'
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
-import type { LinearChartData } from '@/types/chart'
+import type { LinearChartData } from '@core/types/chart'
+import LinearChart from '@core/components/charts/LinearChart.vue'
 // eslint-disable-next-line import/no-named-as-default
 import humanFormat from 'human-format'
 
