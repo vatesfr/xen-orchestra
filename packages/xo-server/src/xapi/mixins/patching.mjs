@@ -626,13 +626,14 @@ const methods = {
     const record = await this.getRecord(object.$type, object.$ref)
     const pendingGuidances = new Set()
 
-    if (record.pending_guidances.length >= PENDING_GUIDANCES_LEVEL.mandatory && record.pending_guidances.length > 0) {
+    if (level >= PENDING_GUIDANCES_LEVEL.mandatory && record.pending_guidances.length > 0) {
       pendingGuidances.add(...record.pending_guidances)
     }
 
     if (level >= PENDING_GUIDANCES_LEVEL.recommended && record.pending_guidances_recommended.length > 0) {
       pendingGuidances.add(...record.pending_guidances_recommended)
     }
+
     if (level >= PENDING_GUIDANCES_LEVEL.full && record.pending_guidances_full.length > 0) {
       pendingGuidances.add(...record.pending_guidances_full)
     }
