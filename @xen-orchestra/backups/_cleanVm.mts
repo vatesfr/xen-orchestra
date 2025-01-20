@@ -7,32 +7,40 @@ import { basename, dirname, resolve } from 'node:path'
 import { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
+
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import * as handlerPath from '@xen-orchestra/fs/path'
+import RemoteHandlerAbstract from '@xen-orchestra/fs/'
+
 const { DISK_TYPES } = Constants
+
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(handler, vhds) {
+function shouldComputeVhdsSize(handler: RemoteHandlerAbstract, vhds: object[]) {
   if (handler.isEncrypted) {
     return false
   }
   return vhds.every(vhd => vhd instanceof VhdFile)
 }
-const computeVhdsSize = (handler, vhdPaths) =>
+
+const computeVhdsSize = (handler: unknown, vhdPaths: string[]): number | void =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
       if (shouldComputeVhdsSize(handler, vhds)) {
         const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-        return sum(sizes)
+        return sum(sizes) as number
       }
     }
   )
+
+
 // chain is [ ancestor, child_1, ..., child_n ]
 async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcurrency }) {
   logInfo(`merging VHD chain`, { chain })
+
   let done, total
   const handle = setInterval(() => {
     if (done !== undefined) {
@@ -58,12 +66,15 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
     clearInterval(handle)
   }
 }
+
 const noop = Function.prototype
+
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir, logWarn) => {
   const vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
+
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
       ignoreMissing: true,
@@ -79,6 +90,7 @@ const listVhds = async (handler, vmDir, logWarn) => {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
+
           await asyncMap(list, async file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
@@ -100,8 +112,10 @@ const listVhds = async (handler, vmDir, logWarn) => {
         }
       )
   )
+
   return { vhds, interruptedVhds, aliases }
 }
+
 export async function checkAliases(
   aliasPaths,
   targetDataRepository,
@@ -122,6 +136,7 @@ export async function checkAliases(
         }
       }
     }
+
     if (!isVhdFile(target)) {
       logWarn('alias references non VHD target', { alias, target })
       if (remove) {
@@ -131,6 +146,7 @@ export async function checkAliases(
       }
       continue
     }
+
     try {
       const { dispose } = await openVhd(handler, target)
       try {
@@ -151,12 +167,15 @@ export async function checkAliases(
       }
       continue
     }
+
     aliasFound.push(resolve('/', target))
   }
+
   const vhds = await handler.list(targetDataRepository, {
     ignoreMissing: true,
     prependDir: true,
   })
+
   await asyncMap(vhds, async path => {
     if (!aliasFound.includes(path)) {
       logWarn('no alias references VHD', { path })
@@ -167,9 +186,11 @@ export async function checkAliases(
     }
   })
 }
+
 const defaultMergeLimiter = limitConcurrency(1)
+
 export async function cleanVm(
-  vmDir,
+  vmDir: string,
   {
     fixMetadata,
     remove = false,
@@ -179,15 +200,28 @@ export async function cleanVm(
     mergeLimiter = defaultMergeLimiter,
     logInfo = noop,
     logWarn = console.warn,
+  }: {
+    fixMetadata: boolean,
+    remove: boolean,
+    removeTmp: boolean,
+    merge: Function,
+    mergeBlockConcurrency: number,
+    mergeLimiter: Function,
+    logInfo: Function,
+    logWarn: Function,
   }
 ) {
   const limitedMergeVhdChain = mergeLimiter(_mergeVhdChain)
-  const handler = this._handler
+
+  const handler: RemoteHandlerAbstract = this._handler
+
   const vhdsToJSons = new Set()
   const vhdById = new Map()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
+
   const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir, logWarn)
+
   // remove broken VHDs
   await asyncMap(vhds, async path => {
     if (removeTmp && basename(path)[0] === '.') {
@@ -237,11 +271,13 @@ export async function cleanVm(
       }
     }
   })
+
   // remove interrupted merge states for missing VHDs
   for (const interruptedVhd of interruptedVhds.keys()) {
     if (!vhds.has(interruptedVhd)) {
       const { statePath } = interruptedVhds.get(interruptedVhd)
       interruptedVhds.delete(interruptedVhd)
+
       logWarn('orphan merge state', {
         mergeStatePath: statePath,
         missingVhdPath: interruptedVhd,
@@ -252,25 +288,32 @@ export async function cleanVm(
       }
     }
   }
+
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
   await asyncMap(Object.keys(aliases), async dir => {
     await checkAliases(aliases[dir], `${dir}/data`, { handler, logInfo, logWarn, remove })
   })
+
   // remove VHDs with missing ancestors
   {
     const deletions = []
+
     // return true if the VHD has been deleted or is missing
     const deleteIfOrphan = vhdPath => {
       const parent = vhdParents[vhdPath]
       if (parent === undefined) {
         return
       }
+
       // no longer needs to be checked
       delete vhdParents[vhdPath]
+
       deleteIfOrphan(parent)
+
       if (!vhds.has(parent)) {
         vhds.delete(vhdPath)
+
         logWarn('parent VHD is missing', { parent, child: vhdPath })
         if (remove) {
           logInfo('deleting orphan VHD', { path: vhdPath })
@@ -278,6 +321,7 @@ export async function cleanVm(
         }
       }
     }
+
     // > A property that is deleted before it has been visited will not be
     // > visited later.
     // >
@@ -285,8 +329,10 @@ export async function cleanVm(
     for (const child in vhdParents) {
       deleteIfOrphan(child)
     }
+
     await Promise.all(deletions)
   }
+
   const jsons = new Set()
   const xvas = new Set()
   const xvaSums = []
@@ -302,17 +348,21 @@ export async function cleanVm(
       xvaSums.push(path)
     }
   })
+
   const cachePath = vmDir + '/cache.json.gz'
+
   let mustRegenerateCache
   {
     const cache = await this._readCache(cachePath)
     const actual = cache === undefined ? 0 : Object.keys(cache).length
     const expected = jsons.size
+
     mustRegenerateCache = actual !== expected
     if (mustRegenerateCache) {
       logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
     }
   }
+
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
@@ -320,9 +370,12 @@ export async function cleanVm(
       logWarn('XVA might be broken', { path })
     }
   })
+
   const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
+
   const backups = new Map()
+
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
   // reference a missing XVA/VHD
   await asyncMap(jsons, async json => {
@@ -334,7 +387,9 @@ export async function cleanVm(
       jsons.delete(json)
       return
     }
+
     let isBackupComplete
+
     const { mode } = metadata
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
@@ -349,8 +404,10 @@ export async function cleanVm(
         const { vhds } = metadata
         return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
+
       const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
       isBackupComplete = missingVhds.length === 0
+
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
       if (isBackupComplete) {
@@ -362,6 +419,7 @@ export async function cleanVm(
         logWarn('some VHDs linked to the backup are missing', { backup: json, missingVhds })
       }
     }
+
     if (isBackupComplete) {
       backups.set(json, metadata)
     } else {
@@ -373,6 +431,7 @@ export async function cleanVm(
       }
     }
   })
+
   // TODO: parallelize by vm/job/vdi
   const unusedVhdsDeletion = []
   const toMerge = []
@@ -380,18 +439,23 @@ export async function cleanVm(
     // VHD chains (as list from oldest to most recent) to merge indexed by most recent
     // ancestor
     const vhdChainsToMerge = { __proto__: null }
+
     const toCheck = new Set(unusedVhds)
+
     const getUsedChildChainOrDelete = vhd => {
       if (vhd in vhdChainsToMerge) {
         const chain = vhdChainsToMerge[vhd]
         delete vhdChainsToMerge[vhd]
         return chain
       }
+
       if (!unusedVhds.has(vhd)) {
         return [vhd]
       }
+
       // no longer needs to be checked
       toCheck.delete(vhd)
+
       const child = vhdChildren[vhd]
       if (child !== undefined) {
         const chain = getUsedChildChainOrDelete(child)
@@ -400,6 +464,7 @@ export async function cleanVm(
           return chain
         }
       }
+
       // no warning because a VHD can be unused for perfectly good reasons,
       // e.g. the corresponding backup (metadata file) has been deleted
       if (remove) {
@@ -407,9 +472,11 @@ export async function cleanVm(
         unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
     }
+
     toCheck.forEach(vhd => {
       vhdChainsToMerge[vhd] = getUsedChildChainOrDelete(vhd)
     })
+
     // merge interrupted VHDs
     for (const parent of interruptedVhds.keys()) {
       // before #6349 the chain wasn't in the mergeState
@@ -420,12 +487,14 @@ export async function cleanVm(
         vhdChainsToMerge[parent] = chain.map(vhdPath => handlerPath.resolveFromFile(statePath, vhdPath))
       }
     }
+
     Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {
         toMerge.push(chain)
       }
     })
   }
+
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
@@ -435,10 +504,11 @@ export async function cleanVm(
         remove,
         mergeBlockConcurrency,
       })
-      const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
+      const metadataPath: string = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalVhdSize
     })
   }
+
   await Promise.all([
     ...unusedVhdsDeletion,
     toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : () => Promise.resolve()),
@@ -460,15 +530,135 @@ export async function cleanVm(
       }
     }),
   ])
+
+  // update size for delta metadata with merged VHD
+  // check for the other that the size is the same as the real file size
+  type OpaqueRef = `OpaqueRef:${string}`;
   await asyncMap(jsons, async metadataPath => {
-    const metadata = backups.get(metadataPath)
-    let fileSystemSize
-    const mergedSize = metadataWithMergedVhd[metadataPath]
+    const metadata: {
+      isVhdDifferencing: {
+        [key: OpaqueRef | string]: boolean;
+      };
+      jobId: string;
+      mode: "delta" | "full";
+      scheduleId: string;
+      size: number;
+      timestamp: number;
+      vbds: {
+        [key: OpaqueRef]: {
+          VDI: OpaqueRef;
+          VM: OpaqueRef;
+          allowed_operations: string[];
+          bootable: boolean;
+          current_operations: Object;
+          currently_attached: boolean;
+          device: "xvda" | string;
+          empty: boolean;
+          metrics: OpaqueRef;
+          mode: "RW" | "RO" | string;
+          other_config: Object;
+          qos_algorithm_params: Object;
+          qos_algorithm_type: string;
+          qos_supported_algorithms: string[];
+          runtime_properties: Object;
+          status_code: number;
+          status_detail: string;
+          storage_lock: boolean;
+          type: "Disk" | string;
+          unpluggable: boolean;
+          userdevice: "0" | string;
+          uuid: string
+        }
+      };
+      vdis: {
+        [key: OpaqueRef]: {
+          $SR$uuid: string;
+          $snapshot_of$uuid: string;
+          SR: OpaqueRef;
+          VBDs: OpaqueRef[];
+          allow_caching: boolean;
+          allowed_operations: boolean;
+          cbt_enabled: boolean;
+          crash_dumps: string[];
+          current_operations: Object;
+          is_a_snapshot: boolean;
+          is_tools_iso: boolean;
+          location: string;
+          managed: string;
+          metadata_latest: boolean;
+          metadata_of_pool: OpaqueRef;
+          missing: boolean;
+          name_description: string;
+          name_label: string;
+          on_boot: string;
+          other_config: Object;
+          parent: OpaqueRef;
+          physical_utilisation: number;
+          read_only: boolean;
+          sharable: boolean;
+          sm_config: {
+            'vhd-parent': string
+          };
+          snapshot_of: OpaqueRef;
+          snapshot_time: string;
+          snapshots: Object[];
+          storage_lock: boolean;
+          tags: string[];
+          type: string;
+          uuid: string;
+          virtual_size: number;
+          xenstore_data: Object
+        };
+      };
+      version: "2.0.0" | string;
+      vhds: {
+        [key: OpaqueRef]: string
+      };
+      vifs: {
+        [key: OpaqueRef]: {
+          $network$VLAN: number;
+          $network$name_label: string;
+          $network$uuid: string;
+          MAC: string;
+          MAC_autogenerated: string;
+          MTU: number;
+          VM: OpaqueRef;
+          allowed_operations: string[];
+          current_operations: Object;
+          currently_attached: boolean;
+          device: "0" | string;
+          ipv6_addresses: string[];
+          ipv6_allowed: string[];
+          ipv6_configuration_mode: "None" | string;
+          ipv6_gateway: string;
+          locking_mode: "network_default" | string;
+          metrics: OpaqueRef;
+          network: OpaqueRef;
+          other_config: Object;
+          qos_algorithm_params: Object;
+          qos_algorithm_type: string;
+          qos_supported_algorithms: string[];
+          runtime_properties: Object;
+          status_code: number;
+          status_detail: string;
+          uuid: string
+        }
+      };
+      vm: Object;
+      vmSnapshot: Object;
+      vtpms: Object[];
+      xva?: string
+    } = backups.get(metadataPath)
+
+    let fileSystemSize: number | undefined
+    const mergedSize: number | undefined = metadataWithMergedVhd[metadataPath]
+
     const { mode, size, vhds, xva } = metadata
+
     try {
       if (mode === 'full') {
         // a full backup : check size
-        const linkedXva = resolve('/', vmDir, xva)
+        const linkedXva = resolve('/', vmDir, xva as string)
         try {
           fileSystemSize = await handler.getSize(linkedXva)
           if (fileSystemSize !== size && fileSystemSize !== undefined) {
@@ -500,22 +690,18 @@ export async function cleanVm(
       logWarn('failed to get backup size', { backup: metadataPath, error })
       return
     }
+
     // systematically update size and differentials after a merge
+
     // @todo : after 2024-04-01 remove the fixmetadata options since the size computation is fixed
-    console.log({
-      /* metadata, */ vdis: metadata.vdis,
-      isVhdDifferencing: metadata.isVhdDifferencing,
-      parent: metadata.vmSnapshot.parent,
-      mergedSize,
-      fixMetadata,
-      fileSystemSize,
-      size,
-    })
+    console.log({/* metadata, */ vdis: metadata.vdis, isVhdDifferencing: metadata.isVhdDifferencing, parent: metadata.vmSnapshot.parent, mergedSize, fixMetadata, fileSystemSize, size })
     if (mergedSize || (fixMetadata && fileSystemSize !== size)) {
       metadata.size = mergedSize ?? fileSystemSize ?? size
+
       if (mergedSize) {
         // all disks are now key disk
         metadata.isVhdDifferencing = {}
+
         for (const vdi of Object.values(metadata.vdis ?? {})) {
           const uuid = vdi.uuid
           console.log({ uuid })
@@ -530,6 +716,7 @@ export async function cleanVm(
       }
     }
   })
+
   if (mustRegenerateCache) {
     const cache = {}
     for (const [path, content] of backups.entries()) {
@@ -541,6 +728,7 @@ export async function cleanVm(
     }
     await this._writeCache(cachePath, cache)
   }
+
   return {
     // boolean whether some VHDs were merged (or should be merged)
     merge: toMerge.length !== 0,

@@ -1,0 +1,11 @@
+export function unpackHeader(bufHeader: Buffer, footer: any): any;
+export function unpackFooter(bufFooter: any): any;
+export function computeBatSize(entries: any): number;
+export function computeSectorsPerBlock(blockSize: any): number;
+export function computeBlockBitmapSize(blockSize: any): number;
+export function computeFullBlockSize(blockSize: any): any;
+export function computeSectorOfBitmap(blockSize: any): number;
+export function sectorsRoundUpNoZero(bytes: any): number;
+export function sectorsToBytes(sectors: any): number;
+export function assertChecksum(name: any, buf: any, struct: any): void;
+export const BUF_BLOCK_UNUSED: Buffer;
