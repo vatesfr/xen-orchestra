@@ -575,7 +575,7 @@ export async function cleanVm(
       if (mergedSize) {
         // all disks are now key disk
         metadata.isVhdDifferencing = {}
-        for (const id of Object.values(metadata.vdis ?? {})) {
+        for (const id of Object.keys(metadata.vdis ?? {})) {
           metadata.isVhdDifferencing[`${id}.vhd`] = false
         }
       }
