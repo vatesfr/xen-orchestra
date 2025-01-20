@@ -16,7 +16,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { useUpdateSystem } from '../utils.mjs'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, notImplemented } from 'xo-common/api-errors.js'
 
 // TOC -------------------------------------------------------------------------
 
@@ -673,7 +673,8 @@ const methods = {
       }
     }
 
-    throw new Error(`Pending guidances not implemented: ${pendingGuidances.join(',')}`)
+    log.error(`Pending guidances not implemented: ${pendingGuidances.join(',')}`)
+    /* throw */ notImplemented()
   },
 
   async rollingPoolUpdate($defer, parentTask, { xsCredentials, force = false, rebootVm = force } = {}) {

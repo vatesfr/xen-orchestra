@@ -93,8 +93,6 @@ async function safeGetRecord(xapi, type, ref) {
   }
 }
 
-const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
-
 const noop = Function.prototype
 
 class Vm {
@@ -771,7 +769,7 @@ class Vm {
     if (bypassBlockedOperation) {
       const blockedOperations = await this.getField('VM', vmRef, 'blocked_operations')
       await Promise.all(
-        RESTART_OPERATIONS.map(async operation => {
+        ['reboot', 'clean_reboot', 'hard_reboot'].map(async operation => {
           const reason = blockedOperations[operation]
           if (reason !== undefined) {
             await this.call('VM.remove_from_blocked_operations', vmRef, operation)
