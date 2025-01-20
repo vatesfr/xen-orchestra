@@ -229,12 +229,39 @@ export default class XenServers {
     const objects = this._app._objects
 
     const serverIdsByPool = this._serverIdsByPool
+
+    const updatePoolServer = async (xapiObject, xapiId) => {
+      const serverId = serverIdsByPool[xapiId]
+      const xenServer = await this.getXenServer(serverId)
+
+      // check if some properties need to be updated
+      const serverPropertiesUpdate = {}
+      if (xapiObject.name_label !== xenServer.poolNameLabel) {
+        serverPropertiesUpdate.poolNameLabel = xapiObject.name_label
+      }
+      if (
+        xapiObject.name_description !== xenServer.poolNameDescription &&
+        !(xapiObject.name_description === '' && xenServer.poolNameDescription === undefined)
+      ) {
+        serverPropertiesUpdate.poolNameDescription = xapiObject.name_description
+      }
+
+      if (!isEmpty(serverPropertiesUpdate)) {
+        return this.updateXenServer(serverIdsByPool[xapiId], serverPropertiesUpdate)
+      }
+    }
+
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
         const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
         delete serverIdsByPool[obsoletePoolId]
         serverIdsByPool[xapiObject.$id] = conId
+      }
+
+      // save pool name and description in server properties
+      if (xapiObject.$type === 'pool') {
+        updatePoolServer(xapiObject, xapiId)::ignoreErrors()
       }
 
       const { $ref } = xapiObject
@@ -579,6 +606,9 @@ export default class XenServers {
     server.status = this._getXenServerStatus(server.id)
     if (server.status === 'connected') {
       server.poolId = xapis[server.id].pool.uuid
+    }
+    if (server.label === undefined) {
+      server.label = server.poolNameLabel
     }
 
     // Do not expose password.

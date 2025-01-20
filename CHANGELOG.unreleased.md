@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
