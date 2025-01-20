@@ -13,7 +13,7 @@ import { checkAliases } from './_cleanVm.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 
-const { beforeEach, afterEach } = test
+const { beforeEach, afterEach, describe } = test
 
 let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID/'
@@ -288,148 +288,148 @@ test('it finish unterminated merge ', async () => {
 
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory
 // the message an resulting files should be identical to the output with vhd files which is tested independantly
-
-for (const useAlias of [true, false]) {
-  for (const vhdMode of ['file', 'directory']) {
-    test(`alias : ${useAlias}, mode: ${vhdMode}`, async () => {
-      // a broken VHD
-      if (useAlias) {
-        await handler.mkdir(basePath + '/data')
-      }
-
-      const brokenVhdDataPath = basePath + (useAlias ? '/data/broken.vhd' : '/broken.vhd')
-
-      if (vhdMode === 'directory') {
-        await handler.mkdir(brokenVhdDataPath)
-      } else {
-        await handler.writeFile(brokenVhdDataPath, 'notreallyavhd')
-      }
-      if (useAlias) {
-        await VhdAbstract.createAlias(handler, 'broken.alias.vhd', brokenVhdDataPath)
-      }
-
-      // a vhd non referenced in metada
-      await generateVhd(`${basePath}/nonreference.vhd`, { useAlias, mode: vhdMode })
-      // an abandonded delta vhd without its parent
-      await generateVhd(`${basePath}/abandonned.vhd`, {
-        useAlias,
-        mode: vhdMode,
-        header: {
-          parentUnicodeName: 'gone.vhd',
-          parentUuid: uniqueIdBuffer(),
-        },
-      })
-
-      // an ancestor of a vhd present in metadata
-      const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, {
-        useAlias,
-        mode: vhdMode,
-        blocks: [1, 3],
-      })
-      const child = await generateVhd(`${basePath}/child.vhd`, {
-        useAlias,
-        mode: vhdMode,
-        header: {
-          parentUnicodeName: 'ancestor.vhd' + (useAlias ? '.alias.vhd' : ''),
-          parentUuid: ancestor.footer.uuid,
-        },
-        blocks: [1, 2],
-      })
-      // a grand child  vhd in metadata
-      await generateVhd(`${basePath}/grandchild.vhd`, {
-        useAlias,
-        mode: vhdMode,
-        header: {
-          parentUnicodeName: 'child.vhd' + (useAlias ? '.alias.vhd' : ''),
-          parentUuid: child.footer.uuid,
-        },
-        blocks: [2, 3],
-      })
-
-      // an older parent that was merging in clean
-      const cleanAncestor = await generateVhd(`${basePath}/cleanAncestor.vhd`, {
-        useAlias,
-        mode: vhdMode,
-      })
-      // a clean  vhd in metadata
-      const clean = await generateVhd(`${basePath}/clean.vhd`, {
-        useAlias,
-        mode: vhdMode,
-        header: {
-          parentUnicodeName: 'cleanAncestor.vhd' + (useAlias ? '.alias.vhd' : ''),
-          parentUuid: cleanAncestor.footer.uuid,
-        },
-      })
-
-      await handler.writeFile(
-        `${basePath}/.cleanAncestor.vhd${useAlias ? '.alias.vhd' : ''}.merge.json`,
-        JSON.stringify({
-          parent: {
-            header: cleanAncestor.header.checksum,
-          },
-          child: {
-            header: clean.header.checksum,
-          },
-        })
-      )
-
-      // the metadata file
-      await handler.writeFile(
-        `${rootPath}/metadata.json`,
-        JSON.stringify({
-          mode: 'delta',
-          vhds: [
-            `${relativePath}/grandchild.vhd` + (useAlias ? '.alias.vhd' : ''), // grand child should not be merged
-            `${relativePath}/child.vhd` + (useAlias ? '.alias.vhd' : ''),
-            `${relativePath}/clean.vhd` + (useAlias ? '.alias.vhd' : ''),
-          ],
-        })
-      )
-      if (!useAlias && vhdMode === 'directory') {
-        try {
-          await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
-        } catch (err) {
-          assert.strictEqual(
-            err.code,
-            'NOT_SUPPORTED',
-            'Merging directory without alias should raise a not supported error'
-          )
-          return
+describe('tests multiple combination ', { concurrency: 1 }, () => {
+  for (const useAlias of [true, false]) {
+    for (const vhdMode of ['file', 'directory']) {
+      test(`alias : ${useAlias}, mode: ${vhdMode}`, async () => {
+        // a broken VHD
+        if (useAlias) {
+          await handler.mkdir(basePath + '/data')
         }
-        assert.strictEqual(true, false, 'Merging directory without alias should raise an error')
-      }
-      await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
 
-      const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-      // size should be the size of children + grand children + clean after the merge
-      assert.deepEqual(metadata.size, vhdMode === 'file' ? 6502400 : 6501888)
+        const brokenVhdDataPath = basePath + (useAlias ? '/data/broken.vhd' : '/broken.vhd')
 
-      // broken vhd, non referenced, abandonned should be deleted ( alias and data)
-      // ancestor and child should be merged
-      // grand child and clean vhd should not have changed
-      const survivors = await handler.list(basePath)
-      // console.log(survivors)
-      if (useAlias) {
-        const dataSurvivors = await handler.list(basePath + '/data')
-        // the goal of the alias : do not move a full folder
-        assert.equal(dataSurvivors.includes('ancestor.vhd'), true)
-        assert.equal(dataSurvivors.includes('grandchild.vhd'), true)
-        assert.equal(dataSurvivors.includes('cleanAncestor.vhd'), true)
-        assert.equal(survivors.includes('clean.vhd.alias.vhd'), true)
-        assert.equal(survivors.includes('child.vhd.alias.vhd'), true)
-        assert.equal(survivors.includes('grandchild.vhd.alias.vhd'), true)
-        assert.equal(survivors.length, 4) // the 3 ok + data
-        assert.equal(dataSurvivors.length, 3)
-      } else {
-        assert.equal(survivors.includes('clean.vhd'), true)
-        assert.equal(survivors.includes('child.vhd'), true)
-        assert.equal(survivors.includes('grandchild.vhd'), true)
-        assert.equal(survivors.length, 3)
-      }
-    })
+        if (vhdMode === 'directory') {
+          await handler.mkdir(brokenVhdDataPath)
+        } else {
+          await handler.writeFile(brokenVhdDataPath, 'notreallyavhd')
+        }
+        if (useAlias) {
+          await VhdAbstract.createAlias(handler, 'broken.alias.vhd', brokenVhdDataPath)
+        }
+
+        // a vhd non referenced in metada
+        await generateVhd(`${basePath}/nonreference.vhd`, { useAlias, mode: vhdMode })
+        // an abandonded delta vhd without its parent
+        await generateVhd(`${basePath}/abandonned.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          header: {
+            parentUnicodeName: 'gone.vhd',
+            parentUuid: uniqueIdBuffer(),
+          },
+        })
+
+        // an ancestor of a vhd present in metadata
+        const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          blocks: [1, 3],
+        })
+        const child = await generateVhd(`${basePath}/child.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          header: {
+            parentUnicodeName: 'ancestor.vhd' + (useAlias ? '.alias.vhd' : ''),
+            parentUuid: ancestor.footer.uuid,
+          },
+          blocks: [1, 2],
+        })
+        // a grand child  vhd in metadata
+        await generateVhd(`${basePath}/grandchild.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          header: {
+            parentUnicodeName: 'child.vhd' + (useAlias ? '.alias.vhd' : ''),
+            parentUuid: child.footer.uuid,
+          },
+          blocks: [2, 3],
+        })
+
+        // an older parent that was merging in clean
+        const cleanAncestor = await generateVhd(`${basePath}/cleanAncestor.vhd`, {
+          useAlias,
+          mode: vhdMode,
+        })
+        // a clean  vhd in metadata
+        const clean = await generateVhd(`${basePath}/clean.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          header: {
+            parentUnicodeName: 'cleanAncestor.vhd' + (useAlias ? '.alias.vhd' : ''),
+            parentUuid: cleanAncestor.footer.uuid,
+          },
+        })
+
+        await handler.writeFile(
+          `${basePath}/.cleanAncestor.vhd${useAlias ? '.alias.vhd' : ''}.merge.json`,
+          JSON.stringify({
+            parent: {
+              header: cleanAncestor.header.checksum,
+            },
+            child: {
+              header: clean.header.checksum,
+            },
+          })
+        )
+
+        // the metadata file
+        await handler.writeFile(
+          `${rootPath}/metadata.json`,
+          JSON.stringify({
+            mode: 'delta',
+            vhds: [
+              `${relativePath}/grandchild.vhd` + (useAlias ? '.alias.vhd' : ''), // grand child should not be merged
+              `${relativePath}/child.vhd` + (useAlias ? '.alias.vhd' : ''),
+              `${relativePath}/clean.vhd` + (useAlias ? '.alias.vhd' : ''),
+            ],
+          })
+        )
+        if (!useAlias && vhdMode === 'directory') {
+          try {
+            await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
+          } catch (err) {
+            assert.strictEqual(
+              err.code,
+              'NOT_SUPPORTED',
+              'Merging directory without alias should raise a not supported error'
+            )
+            return
+          }
+          assert.strictEqual(true, false, 'Merging directory without alias should raise an error')
+        }
+        await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
+
+        const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
+        // size should be the size of children + grand children + clean after the merge
+        assert.deepEqual(metadata.size, vhdMode === 'file' ? 6502400 : 6501888)
+
+        // broken vhd, non referenced, abandonned should be deleted ( alias and data)
+        // ancestor and child should be merged
+        // grand child and clean vhd should not have changed
+        const survivors = await handler.list(basePath)
+        // console.log(survivors)
+        if (useAlias) {
+          const dataSurvivors = await handler.list(basePath + '/data')
+          // the goal of the alias : do not move a full folder
+          assert.equal(dataSurvivors.includes('ancestor.vhd'), true)
+          assert.equal(dataSurvivors.includes('grandchild.vhd'), true)
+          assert.equal(dataSurvivors.includes('cleanAncestor.vhd'), true)
+          assert.equal(survivors.includes('clean.vhd.alias.vhd'), true)
+          assert.equal(survivors.includes('child.vhd.alias.vhd'), true)
+          assert.equal(survivors.includes('grandchild.vhd.alias.vhd'), true)
+          assert.equal(survivors.length, 4) // the 3 ok + data
+          assert.equal(dataSurvivors.length, 3)
+        } else {
+          assert.equal(survivors.includes('clean.vhd'), true)
+          assert.equal(survivors.includes('child.vhd'), true)
+          assert.equal(survivors.includes('grandchild.vhd'), true)
+          assert.equal(survivors.length, 3)
+        }
+      })
+    }
   }
-}
-
+})
 test('it cleans orphan merge states ', async () => {
   await handler.writeFile(`${basePath}/.orphan.vhd.merge.json`, '')
 
