@@ -1,4 +1,5 @@
 {
+  "access-forum": "Access forum",
   "alarms": "Alarms",
 
   "bytes.ki": "KiB",
@@ -6,9 +7,11 @@
   "bytes.gi": "GiB",
 
   "coming-soon": "Coming soon!",
+  "connected": "Connected",
   "console": "Console",
   "console-actions": "Console actions",
   "console-clipboard": "Console clipboard",
+  "copy-info-json": "Copy information into JSON",
 
   "core.copied": "Copied",
   "core.copy-id": "Copy ID",
@@ -19,7 +22,6 @@
   "core.hide": "Hide",
   "core.open": "Open",
   "core.quick-actions": "Quick actions",
-
   "core.search": "Search",
   "core.show-by": "Show by",
 
@@ -32,6 +34,7 @@
   "core.select.unselect": "Unselect all",
   "core.select.n-object-of": "{from} - {to} of {total} objects",
   "core.select.n-selected-of": "{count} selected of {total} objects",
+
   "core.sidebar.close": "Close sidebar",
   "core.sidebar.lock": "Lock sidebar open",
   "core.sidebar.open": "Open sidebar",
@@ -44,9 +47,6 @@
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.auto": "Auto dark mode",
 
-  "access-forum": "Access forum",
-  "connected": "Connected",
-  "copy-info-json": "Copy information into JSON",
   "dashboard": "Dashboard",
   "dns": "DNS",
   "default-locking-mode": "Default locking mode",
@@ -105,9 +105,9 @@
   "stats": "Stats",
   "storage": "Storage",
   "system": "System",
-
   "table-actions": "Table actions",
   "tasks": "Tasks",
+
   "tasks.n-subtasks": "{n} subtask | {n} subtasks",
   "tasks.no-tasks": "No tasks",
   "tasks.quick-view": "Tasks' quick view",

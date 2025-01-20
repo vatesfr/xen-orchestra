@@ -1,4 +1,3 @@
-<!-- v2 -->
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">

@@ -35,53 +35,54 @@
       </div>
     </div>
     <div class="table-container">
-      <VtsLoadingHero :disabled="isReady" type="table">
-        <VtsTable class="table" vertical-border>
-          <thead>
-            <tr>
-              <template v-for="column of visibleColumns" :key="column.id">
-                <th v-if="column.id === 'checkbox'" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-                </th>
-                <ColumnTitle v-else id="networks" :header-class="`col-${column.id}`" :icon="getHeaderIcon(column.id)">
-                  {{ column.label }}
-                </ColumnTitle>
-              </template>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row of rows"
-              :key="row.id"
-              :class="{ selected: selectedNetworkId === row.id }"
-              @click="selectedNetworkId = row.id"
-            >
-              <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                <div>
-                  <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                </div>
-                <div v-if="column.id === 'status'" class="status">
-                  <PifStatus :network="row.value" />
-                </div>
-                <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ column.value }}
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </VtsTable>
-      </VtsLoadingHero>
-      <VtsErrorNoDataHero v-if="hasError" type="table" />
+      <VtsDataTable
+        :is-ready
+        :has-error
+        :no-data-message="networksByPool.length === 0 ? $t('no-network-detected') : undefined"
+      >
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="faEllipsis" />
+                {{ column.label }}
+              </th>
+              <ColumnTitle v-else :id="column.id" :header-class="`col-${column.id}`" :icon="headerIcon[column.id]">
+                {{ column.label }}
+              </ColumnTitle>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ selected: selectedNetworkId === row.id }"
+            @click="selectedNetworkId = row.id"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+              <div v-if="column.id === 'checkbox'">
+                <UiCheckbox v-model="selected" accent="info" :value="row.id" />
+              </div>
+              <div v-else-if="column.id === 'status'" class="status">
+                <PifStatus :network="row.value" />
+              </div>
+              <div v-else-if="column.id === 'more'">
+                <VtsIcon accent="info" :icon="faEllipsis" />
+              </div>
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+        {{ $t('no-result') }}
       </VtsStateHero>
-      <VtsStateHero v-if="networksByPool.length === 0" type="table" image="no-data">
-        <div>{{ $t('no-network-detected') }}</div>
-      </VtsStateHero>
-      <VtsStateHero v-if="hasError" type="table" image="error">
-        <div>{{ $t('error-no-data') }}</div>
-      </VtsStateHero>
-      <VtsLoadingHero v-if="!isReady" type="table" />
       <div class="selection">
         <UiTopBottomTable
           :selected-items="selected.length"
@@ -103,14 +104,15 @@
 <script setup lang="ts">
 import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsDataTable from '@core/components/table/VtsDataTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -123,12 +125,12 @@ import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-
 import {
   faAlignLeft,
   faCaretDown,
   faCopy,
   faEdit,
+  faEllipsis,
   faHashtag,
   faPowerOff,
   faTrash,
@@ -153,6 +155,8 @@ const { networksWithPifs, isReady, hasError } = useNetworkStore().subscribe()
 
 const networksByPool = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
 
+const { records: pifs } = usePifStore().subscribe()
+
 const selectedNetworkId = useRouteQuery('id')
 
 const findPageById = () => {
@@ -160,6 +164,7 @@ const findPageById = () => {
   if (index === -1) {
     return null
   }
+
   pagination.value.currentPage = Math.floor(index / pagination.value.pageSize) + 1
 }
 
@@ -174,21 +179,34 @@ const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   let filtered = networksByPool.value
+
   if (!searchQuery.value) {
     return networksByPool.value.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
   }
+
   filtered = networksByPool.value.filter(network =>
     Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
+
   return filtered.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
 })
+
+const getNetworkVlan = (network: XoNetwork) => {
+  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
+
+  if (networkPIFs.length > 0) {
+    return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
+  }
+}
 
 const getLockingMode = (lockingMode: boolean) => {
   return lockingMode ? t('disabled') : t('unlocked')
 }
 
 const usableIds = computed(() => networksByPool.value.map(network => network.id))
+
 const { selected, areAllSelected } = useMultiSelect(usableIds)
+
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? usableIds.value : []
 }
@@ -197,20 +215,22 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', (record: XoNetwork) => record.name_label, { label: t('name') }),
-    define('name_description', (record: { name_description: string }) => record.name_description, {
+    define('name_label', record => record.name_label, { label: t('name') }),
+    define('name_description', record => record.name_description, {
       label: t('description'),
     }),
     define('status', () => '', { label: t('pifs-status') }),
-    define('vlan', () => '', { label: t('vlan') }),
+    define('vlan', record => getNetworkVlan(record), { label: 'VLAN' }),
     define('MTU', record => record.MTU, { label: 'MTU' }),
-    define('default_locking_mode', (record: XoNetwork) => getLockingMode(record.defaultIsLocked), {
+    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('locking-mode-default'),
     }),
+    define('more', () => '', { label: '', isHideable: false }),
   ],
 })
 
 type networkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
+
 const headerIcon: Record<networkHeader, IconDefinition> = {
   name_label: faAlignLeft,
   name_description: faAlignLeft,
@@ -219,7 +239,6 @@ const headerIcon: Record<networkHeader, IconDefinition> = {
   MTU: faHashtag,
   default_locking_mode: faCaretDown,
 }
-const getHeaderIcon = (status: networkHeader) => headerIcon[status]
 </script>
 
 <style scoped lang="postcss">

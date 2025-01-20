@@ -15,5 +15,6 @@ export const useNetworkStore = defineStore('network', () => {
     networksWithPifs,
     networksWithoutPifs,
   }
+
   return createSubscribableStoreContext({ context, ...configRest }, {})
 })

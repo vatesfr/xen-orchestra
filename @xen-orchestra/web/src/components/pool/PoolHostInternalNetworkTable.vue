@@ -103,7 +103,6 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
@@ -148,8 +147,11 @@ const pagination = ref<PaginationPayload>({
 })
 
 const { t } = useI18n()
+
 const { networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
+
 const networksByPool = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+
 const selectedNetworkId = useRouteQuery('id')
 
 const findPageById = () => {
@@ -169,12 +171,15 @@ const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   let filtered = networksByPool.value
+
   if (!searchQuery.value) {
     return networksByPool.value.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
   }
+
   filtered = networksByPool.value.filter(network =>
     Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
+
   return filtered.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
 })
 
@@ -194,12 +199,12 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', (record: XoNetwork) => record.name_label, { label: t('name') }),
-    define('name_description', (record: XoNetwork) => record.name_description, {
+    define('name_label', record => record.name_label, { label: t('name') }),
+    define('name_description', record => record.name_description, {
       label: t('description'),
     }),
     define('MTU', { label: 'MTU' }),
-    define('default_locking_mode', (record: XoNetwork) => getLockingMode(record.defaultIsLocked), {
+    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('locking-mode-default'),
     }),
     define('more', () => '', { label: '', isHideable: false }),
