@@ -169,6 +169,8 @@ export default class XenServers {
     if (label !== undefined) server.label = label || undefined
     if (poolNameDescription !== undefined) server.poolNameDescription = poolNameDescription || undefined
     if (poolNameLabel !== undefined) server.poolNameLabel = poolNameLabel || undefined
+    // using pool name as default server name
+    if (server.label === undefined) server.label = server.poolNameLabel
     if (host) server.host = host
     if (username) server.username = username
     if (password) server.password = password
@@ -229,12 +231,40 @@ export default class XenServers {
     const objects = this._app._objects
 
     const serverIdsByPool = this._serverIdsByPool
+
+    const updatePoolServer = async function (xapiObject, xapiId) {
+      const serverId = serverIdsByPool[xapiId]
+      const xenServer = await this.getXenServer(serverId)
+
+      const serverPropertiesUpdate = {
+        ...(xapiObject.name_label !== undefined &&
+          xapiObject.name_label !== xenServer.poolNameLabel && { poolNameLabel: xapiObject.name_label }),
+        ...(xapiObject.name_description !== undefined &&
+          xapiObject.name_description !== xenServer.poolNameDescription && {
+            poolNameDescription: xapiObject.name_description,
+          }),
+        ...(xenServer.poolNameLabel === undefined &&
+          xapiObject.name_label !== undefined && { label: xapiObject.name_label }),
+      }
+      if (!isEmpty(serverPropertiesUpdate)) {
+        return this.updateXenServer(serverIdsByPool[xapiId], {
+          poolNameLabel: xapiObject.name_label,
+          poolNameDescription: xapiObject.name_description,
+        })
+      }
+    }.bind(this)
+
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
         const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
         delete serverIdsByPool[obsoletePoolId]
         serverIdsByPool[xapiObject.$id] = conId
+      }
+
+      // save pool name and description in server properties
+      if (xapiObject.$type === 'pool') {
+        updatePoolServer(xapiObject, xapiId)
       }
 
       const { $ref } = xapiObject
