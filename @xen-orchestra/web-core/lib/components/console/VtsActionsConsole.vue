@@ -25,12 +25,10 @@
     {{ $t('open-console-in-new-tab') }}
   </UiButton>
   <UiButton
-    v-tooltip="sendCtrlAltDel === undefined ? $t('coming-soon') : undefined"
     class="button"
     accent="info"
     variant="tertiary"
     size="medium"
-    :disabled="sendCtrlAltDel === undefined"
     :left-icon="faKeyboard"
     @click="sendCtrlAltDel"
   >

@@ -5,7 +5,7 @@
     <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="$t('power-on-host-for-console')" />
     <template v-else-if="host && hostConsole">
       <VtsLayoutConsole>
-        <VtsRemoteConsole v-if="url" ref="consoleElement" :url :is-console-available="isConsoleAvailable" />
+        <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
         <template #actions>
           <VtsActionsConsole
             :open-in-new-tab="openInNewTab"
@@ -39,7 +39,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -102,7 +102,7 @@ const isConsoleAvailable = computed(() =>
   controlDomain.value !== undefined ? !isHostOperationPending(host.value!, STOP_OPERATIONS) : false
 )
 
-const consoleElement = ref()
+const consoleElement = useTemplateRef('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 

@@ -1,7 +1,7 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
     <VtsLoadingHero :disabled="isReady" type="panel" />
-    <div ref="consoleContainer" class="console" />
+    <div ref="console-container" class="console" />
   </div>
 </template>
 
@@ -11,7 +11,7 @@ import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
-import { onBeforeUnmount, ref, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
 
 const props = defineProps<{
   url: URL
@@ -23,7 +23,7 @@ const uiStore = useUiStore()
 const N_TOTAL_TRIES = 8
 const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_TRIES))
 
-const consoleContainer = ref<HTMLDivElement | null>(null)
+const consoleContainer = useTemplateRef<HTMLDivElement | null>('console-container')
 const isReady = ref(false)
 
 let vncClient: VncClient | undefined

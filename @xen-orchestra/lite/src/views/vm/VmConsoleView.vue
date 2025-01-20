@@ -5,7 +5,7 @@
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-vm-for-console')" />
     <template v-else-if="vm && vmConsole">
       <VtsLayoutConsole>
-        <VtsRemoteConsole v-if="url" ref="consoleElement" :url :is-console-available="isConsoleAvailable" />
+        <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
         <template #actions>
           <VtsActionsConsole
             :open-in-new-tab="openInNewTab"
@@ -40,7 +40,7 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -101,7 +101,7 @@ const isConsoleAvailable = computed(() =>
   vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
 )
 
-const consoleElement = ref()
+const consoleElement = useTemplateRef('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 
