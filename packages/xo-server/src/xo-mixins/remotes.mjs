@@ -32,7 +32,7 @@ const INVALID_URL_PARAMS = ['benchmarks', 'id', 'info', 'name', 'proxy', 'enable
 function validateUrl(url) {
   const parsedUrl = parse(url)
 
-  const { path } = parsedUrl
+  const { path, encryptionKey, useVhdDirectory } = parsedUrl
   if (path !== undefined && basename(path) === 'xo-vm-backups') {
     throw invalidParameters('remote url should not end with xo-vm-backups')
   }
@@ -42,6 +42,12 @@ function validateUrl(url) {
       // log with stack trace
       warn(new Error('invalid remote URL param ' + param))
     }
+  }
+
+  const hasEncryption = encryptionKey !== undefined
+  const hasVhdDirectory = useVhdDirectory === true
+  if (hasEncryption && !hasVhdDirectory) {
+    throw invalidParameters('Encryption must be used with VHD directory (data blocks)')
   }
 }
 
