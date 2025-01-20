@@ -1,5 +1,5 @@
 import type { XoPool } from '@/types/xo/pool.type'
-import type { XoVm } from '@/types/xo/vm.type'
+import { type XoVm } from '@/types/xo/vm.type'
 import type { Branded } from '@core/types/utility.type'
 
 export enum HOST_POWER_STATE {
@@ -8,11 +8,17 @@ export enum HOST_POWER_STATE {
   UNKNOWN = 'Unknown',
 }
 
+export enum HOST_OPERATION {
+  SHUTDOWN = 'shutdown',
+  REBOOT = 'reboot',
+}
+
 export type XoHost = {
   id: Branded<'host'>
   type: 'host'
   $pool: XoPool['id']
   _xapiRef: string
+  current_operations: Record<string, HOST_OPERATION>
   address: string
   enabled: boolean
   name_label: string

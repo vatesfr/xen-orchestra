@@ -5,12 +5,7 @@
     <UiStatusPanel v-else-if="!isVmRunning" :image-source="monitor" :title="$t('power-on-vm-for-console')" />
     <template v-else-if="vm && vmConsole">
       <VtsLayoutConsole>
-        <RemoteConsole
-          ref="consoleElement"
-          :is-console-available="isConsoleAvailable"
-          :location="vmConsole.location"
-          class="remote-console"
-        />
+        <VtsRemoteConsole v-if="url" ref="consoleElement" :url :is-console-available="isConsoleAvailable" />
         <template #actions>
           <VtsActionsConsole
             :open-in-new-tab="openInNewTab"
@@ -28,7 +23,6 @@
 
 <script lang="ts" setup>
 import monitor from '@/assets/monitor.svg'
-import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isVmOperationPending } from '@/libs/vm'
@@ -37,9 +31,11 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
+import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
@@ -63,6 +59,7 @@ usePageTitleStore().setTitle(useI18n().t('console'))
 const router = useRouter()
 const route = useRoute()
 const uiStore = useUiStore()
+const xenApiStore = useXenApiStore()
 
 const { isReady: isVmReady, getByUuid: getVmByUuid, hasError: hasVmError } = useVmStore().subscribe()
 
@@ -88,6 +85,16 @@ const vmConsole = computed(() => {
   }
 
   return getConsoleByOpaqueRef(consoleOpaqueRef)
+})
+
+const url = computed(() => {
+  if (xenApiStore.currentSessionId == null) {
+    return
+  }
+  const _url = new URL(vmConsole.value!.location)
+  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  _url.searchParams.set('session_id', xenApiStore.currentSessionId)
+  return _url
 })
 
 const isConsoleAvailable = computed(() =>
@@ -132,11 +139,5 @@ whenever(logicAnd(escape, canClose), toggleFullScreen)
   margin: auto;
   width: 10rem;
   height: 10rem;
-}
-
-.remote-console {
-  flex: 1;
-  max-width: 100%;
-  height: 100%;
 }
 </style>

@@ -5,12 +5,7 @@
     <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="$t('power-on-host-for-console')" />
     <template v-else-if="host && hostConsole">
       <VtsLayoutConsole>
-        <RemoteConsole
-          ref="consoleElement"
-          :is-console-available="isConsoleAvailable"
-          :location="hostConsole.location"
-          class="remote-console"
-        />
+        <VtsRemoteConsole v-if="url" ref="consoleElement" :url :is-console-available="isConsoleAvailable" />
         <template #actions>
           <VtsActionsConsole
             :open-in-new-tab="openInNewTab"
@@ -28,7 +23,6 @@
 
 <script lang="ts" setup>
 import monitor from '@/assets/monitor.svg'
-import RemoteConsole from '@/components/RemoteConsole.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isHostOperationPending } from '@/libs/host'
@@ -38,9 +32,11 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
+import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, ref } from 'vue'
@@ -54,6 +50,7 @@ usePageTitleStore().setTitle(useI18n().t('console'))
 const router = useRouter()
 const route = useRoute()
 const uiStore = useUiStore()
+const xenApiStore = useXenApiStore()
 
 const {
   isReady: isHostReady,
@@ -91,6 +88,16 @@ const isHostRunning = computed(() => {
   return runningHosts.value.some(runningHost => runningHost.uuid === host.value?.uuid)
 })
 
+const url = computed(() => {
+  if (xenApiStore.currentSessionId == null) {
+    return
+  }
+  const _url = new URL(hostConsole.value!.location)
+  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  _url.searchParams.set('session_id', xenApiStore.currentSessionId)
+  return _url
+})
+
 const isConsoleAvailable = computed(() =>
   controlDomain.value !== undefined ? !isHostOperationPending(host.value!, STOP_OPERATIONS) : false
 )
@@ -126,12 +133,6 @@ const openInNewTab = () => {
   margin: auto;
   width: 10rem;
   height: 10rem;
-}
-
-.remote-console {
-  flex: 1;
-  max-width: 100%;
-  height: 100%;
 }
 
 .not-available {
