@@ -9,10 +9,11 @@
 
 ### Enhancements
 
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
 - **XO 6**:
   - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
-
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+  - [i18n] Add Spanish translation (contribution made by [@DSJ2](https://github.com/DSJ2)) (PR [#8220](https://github.com/vatesfr/xen-orchestra/pull/8220))
 
 ### Bug fixes
 
@@ -36,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-web patch
 
