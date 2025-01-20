@@ -118,8 +118,8 @@ In this section, you'll learn:
 2. You’ll be redirected to the login page of your internal portal.
 
 3. Enter your credentials:
-   - **Username or email**: Your account's username or email address.
-   - **Password**: Your account's password.
+   - **Username or email**:
+   - **Password**:
 
 4. Click **Sign In**.
 
