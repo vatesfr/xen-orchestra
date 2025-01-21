@@ -15,7 +15,7 @@
         </UiButton>
       </template>
     </UiTitle>
-    <div class="container">
+    <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
       <UiTableActions :title="t('table-actions')">
         <UiButton
@@ -44,67 +44,61 @@
         :total-items="pifsUuids.length"
         @toggle-select-all="toggleSelect"
       />
-      <VtsLoadingHero :disabled="isReady" type="table">
-        <div class="table">
-          <VtsTable vertical-border>
-            <thead>
-              <tr>
-                <template v-for="column of visibleColumns" :key="column.id">
-                  <th v-if="column.id === 'checkbox'" class="checkbox">
-                    <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-                  </th>
-                  <th v-else-if="column.id === 'more'" class="more">
-                    <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-                    {{ column.label }}
-                  </th>
-                  <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
-                </template>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row of rows" :key="row.id">
-                <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                  <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                  <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
-                  <div v-else-if="column.id === 'status'" v-tooltip>
-                    <VtsConnectionStatus :status="column.value" />
-                  </div>
-                  <div v-else-if="column.id === 'network'" class="network">
-                    <UiComplexIcon size="medium" class="icon">
-                      <VtsIcon :icon="faNetworkWired" accent="current" />
-                      <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                    </UiComplexIcon>
-                    <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
-                    <VtsIcon
-                      v-if="column.value.management"
-                      v-tooltip="t('management')"
-                      accent="warning"
-                      :icon="faCircle"
-                      :overlay-icon="faStar"
-                    />
-                  </div>
-                  <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                    {{ column.value }}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </VtsTable>
-        </div>
-      </VtsLoadingHero>
-      <VtsErrorNoDataHero v-if="hasError" type="table" />
-      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
-      </VtsStateHero>
-      <VtsStateHero v-if="pifs.length === 0" type="table" image="no-data">
-        <div>{{ $t('no-pif-detected') }}</div>
-      </VtsStateHero>
-      <UiTopBottomTable
-        :selected-items="selected.length"
-        :total-items="pifsUuids.length"
-        @toggle-select-all="toggleSelect"
-      />
     </div>
+    <div class="table-container">
+      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+                {{ column.label }}
+              </th>
+              <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr v-for="row of rows" :key="row.id">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+              <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
+              <div v-else-if="column.id === 'status'" v-tooltip>
+                <VtsConnectionStatus :status="column.value" />
+              </div>
+              <div v-else-if="column.id === 'network'" class="network">
+                <UiComplexIcon size="medium" class="icon">
+                  <VtsIcon :icon="faNetworkWired" accent="current" />
+                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+                </UiComplexIcon>
+                <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                <VtsIcon
+                  v-if="column.value.management"
+                  v-tooltip="t('management')"
+                  accent="warning"
+                  :icon="faCircle"
+                  :overlay-icon="faStar"
+                />
+              </div>
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+    </div>
+    <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
+      <div>{{ $t('no-result') }}</div>
+    </VtsStateHero>
+    <UiTopBottomTable
+      :selected-items="selected.length"
+      :total-items="pifsUuids.length"
+      @toggle-select-all="toggleSelect"
+    />
   </div>
 </template>
 
@@ -115,11 +109,9 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsDataTable from '@core/components/table/VtsDataTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -148,7 +140,7 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs, hasError } = defineProps<{
+const { pifs } = defineProps<{
   pifs: XenApiPif[]
   isReady: boolean
   hasError: boolean
@@ -206,14 +198,14 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
         name: getNetworkName(record.network),
         management: record.management,
       }),
-      { label: t('network'), isHideable: true }
+      { label: t('network') }
     ),
-    define('device', { label: t('device'), isHideable: true }),
-    define('status', record => getPifStatus(record), { label: t('status'), isHideable: true }),
-    define('VLAN', record => getVlanData(record.VLAN), { label: t('vlan'), isHideable: true }),
-    define('IP', { label: t('ip-addresses'), isHideable: true }),
-    define('MAC', { label: t('mac-addresses'), isHideable: true }),
-    define('ip_configuration_mode', { label: t('ip-mode'), isHideable: true }),
+    define('device', { label: t('device') }),
+    define('status', record => getPifStatus(record), { label: t('status') }),
+    define('VLAN', record => getVlanData(record.VLAN), { label: t('vlan') }),
+    define('IP', { label: t('ip-addresses') }),
+    define('MAC', { label: t('mac-addresses') }),
+    define('ip_configuration_mode', { label: t('ip-mode') }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
@@ -233,7 +225,7 @@ const getHeaderIcon = (status: PifHeader) => headerIcon[status]
 
 <style scoped lang="postcss">
 .host-pif-table,
-.container {
+.table-actions {
   display: flex;
   flex-direction: column;
 }
@@ -241,32 +233,24 @@ const getHeaderIcon = (status: PifHeader) => headerIcon[status]
 .host-pif-table {
   gap: 2.4rem;
 
-  .container {
+  .table-actions {
     gap: 0.8rem;
+  }
 
-    .table {
-      overflow-x: auto;
-
-      .network {
-        display: flex;
-        align-items: center;
-        gap: 1.8rem;
-      }
-
-      tr:last-child {
-        border-bottom: 1px solid var(--color-neutral-border);
-      }
+  .table-container {
+    .network {
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
     }
 
     .checkbox,
     .more {
       width: 4.8rem;
     }
-  }
 
-  @media (max-width: 1440px) {
-    .table table {
-      width: 160rem;
+    tr:last-child {
+      border-bottom: 1px solid var(--color-neutral-border);
     }
   }
 }
