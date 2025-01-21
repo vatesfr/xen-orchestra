@@ -142,7 +142,7 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks, isReady, hasError } = defineProps<{
+const { networks } = defineProps<{
   networks: XenApiNetwork[]
   isReady: boolean
   hasError: boolean
@@ -203,23 +203,13 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('name_label', record => record.name_label, {
-      label: t('name'),
-      isHideable: true,
-    }),
-    define('name_description', record => record.name_description, {
-      label: t('description'),
-      isHideable: true,
-    }),
-    define('status', record => getNetworkStatus(record), { label: t('pifs-status'), isHideable: true }),
-    define('vlan', record => getNetworkVlan(record), { label: t('vlan'), isHideable: true }),
-    define('MTU', record => record.MTU, {
-      label: t('mtu'),
-      isHideable: true,
-    }),
+    define('name_label', record => record.name_label, { label: t('name') }),
+    define('name_description', record => record.name_description, { label: t('description') }),
+    define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
+    define('vlan', record => getNetworkVlan(record), { label: t('vlan') }),
+    define('MTU', record => record.MTU, { label: t('mtu') }),
     define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
-      isHideable: true,
     }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
