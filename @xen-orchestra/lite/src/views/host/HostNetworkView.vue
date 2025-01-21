@@ -19,6 +19,9 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 
 <style lang="postcss" scoped>
 .host-network-view {
+  display: grid;
+  grid-template-columns: 1fr 40rem;
+
   .container {
     gap: 4rem;
     margin: 0.8rem;
