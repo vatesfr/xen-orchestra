@@ -13,24 +13,21 @@ export const usePifStore = defineStore('xen-api-pif', () => {
   }
   const { context: baseContext, ...configRest } = createXapiStoreConfig('pif')
 
-  const hostContext = deps.hostStore.getContext()
   const poolContext = deps.poolStore.getContext()
+
+  const isPoolMaster = (hostRef: XenApiPif['host']) => poolContext.pool.value?.master === hostRef
 
   const pifsByHostMaster = computed(() => {
     const pifsByHostMasterMap = new Map<string, XenApiPif[]>()
-    const poolMasterRef = poolContext.pool.value?.master
-    const currentHostRef = hostContext.records.value.find(host => host.$ref === poolMasterRef)
 
-    if (currentHostRef) {
-      baseContext.records.value
-        .filter(pif => pif.host === poolMasterRef)
-        .forEach(pif => {
-          if (!pifsByHostMasterMap.has(pif.network)) {
-            pifsByHostMasterMap.set(pif.network, [])
-          }
-          pifsByHostMasterMap.get(pif.network)?.push(pif)
-        })
-    }
+    baseContext.records.value
+      .filter(pif => isPoolMaster(pif.host))
+      .forEach(pif => {
+        if (!pifsByHostMasterMap.has(pif.network)) {
+          pifsByHostMasterMap.set(pif.network, [])
+        }
+        pifsByHostMasterMap.get(pif.network)?.push(pif)
+      })
     return pifsByHostMasterMap
   })
 

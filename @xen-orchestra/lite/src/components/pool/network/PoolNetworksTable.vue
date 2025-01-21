@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="pool-networks-table">
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
@@ -15,7 +15,7 @@
         </UiDropdownButton>
       </template>
     </UiTitle>
-    <div class="content">
+    <div class="table-actions">
       <UiQuerySearchBar class="table-query" @search="value => (searchQuery = value)" />
       <UiTableActions :title="t('table-actions')">
         <UiButton
@@ -54,49 +54,49 @@
         :total-items="networkUuids.length"
         @toggle-select-all="toggleSelect"
       />
-      <VtsLoadingHero :disabled="isReady" type="table">
-        <VtsTable vertical-border>
-          <thead>
-            <tr>
-              <template v-for="column of visibleColumns" :key="column.id">
-                <th v-if="column.id === 'checkbox'" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
-                </th>
-                <th v-else-if="column.id === 'more'" class="more">
-                  <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
-                  {{ column.label }}
-                </th>
-                <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
-                  <span class="text-ellipsis">{{ column.label }}</span>
-                </ColumnTitle>
-              </template>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row of rows"
-              :key="row.id"
-              :class="{ selected: selectedNetworkId === row.id }"
-              @click="selectedNetworkId = row.id"
-            >
-              <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
-                <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-                <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
-                <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-                <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ column.value }}
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </VtsTable>
-      </VtsLoadingHero>
-      <VtsErrorNoDataHero v-if="hasError" type="table" />
+    </div>
+    <div class="table-container">
+      <VtsDataTable
+        :is-ready
+        :has-error
+        :no-data-message="networks.length === 0 ? $t('no-network-detected') : undefined"
+      >
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+                {{ column.label }}
+              </th>
+              <ColumnTitle v-else :icon="getHeaderIcon(column.id)">
+                <span class="text-ellipsis">{{ column.label }}</span>
+              </ColumnTitle>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ selected: selectedNetworkId === row.id }"
+            @click="selectedNetworkId = row.id"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+              <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
+              <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
         <div>{{ $t('no-result') }}</div>
-      </VtsStateHero>
-      <VtsStateHero v-if="networks.length === 0" type="table" image="no-data">
-        <div>{{ $t('no-network-detected') }}</div>
       </VtsStateHero>
       <UiTopBottomTable
         :selected-items="selected.length"
@@ -113,11 +113,9 @@ import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsDataTable from '@core/components/table/VtsDataTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -199,9 +197,7 @@ const getNetworkStatus = (network: XenApiNetwork) => {
   return pifsStatus(networkPIFs)
 }
 
-const getLockingMode = (lockingMode: string) => {
-  return lockingMode === 'disabled' ? t('disabled') : t('unlocked')
-}
+const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
@@ -244,34 +240,21 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
 </script>
 
 <style scoped lang="postcss">
-.container,
-.content {
+.pool-networks-table,
+.table-actions {
   display: flex;
   flex-direction: column;
 }
 
-.container {
+.pool-networks-table {
   gap: 2.4rem;
 
-  .content {
+  .table-actions {
     gap: 0.8rem;
+  }
 
-    .table {
-      overflow-x: auto;
-
-      tbody tr:hover {
-        cursor: pointer;
-        background-color: var(--color-info-background-hover);
-      }
-
-      tr:last-child {
-        border-bottom: 0.1rem solid var(--color-neutral-border);
-      }
-    }
-
-    .selected {
-      background-color: var(--color-info-background-selected);
-    }
+  .table-container {
+    overflow-x: auto;
 
     .checkbox,
     .more {
@@ -281,6 +264,19 @@ const getHeaderIcon = (status: NetworkHeader) => headerIcon[status]
     ::deep(.col-status) {
       width: 2rem;
     }
+  }
+
+  tbody tr:hover {
+    cursor: pointer;
+    background-color: var(--color-info-background-hover);
+  }
+
+  tr:last-child {
+    border-bottom: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .selected {
+    background-color: var(--color-info-background-selected);
   }
 }
 </style>
