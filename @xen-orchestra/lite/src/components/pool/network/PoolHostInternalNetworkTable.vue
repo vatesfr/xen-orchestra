@@ -156,9 +156,7 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
-const getLockingMode = (lockingMode: string) => {
-  return lockingMode === 'disabled' ? t('disabled') : t('unlocked')
-}
+const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
