@@ -74,7 +74,14 @@
                       <VtsIcon :icon="faNetworkWired" accent="current" />
                       <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                     </UiComplexIcon>
-                    <a v-tooltip href="" class="text-ellipsis name">{{ column.value }}</a>
+                    <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                    <VtsIcon
+                      v-if="column.value.management"
+                      v-tooltip="t('management')"
+                      accent="warning"
+                      :icon="faCircle"
+                      :overlay-icon="faStar"
+                    />
                   </div>
                   <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                     {{ column.value }}
@@ -135,6 +142,7 @@ import {
   faNetworkWired,
   faPlus,
   faPowerOff,
+  faStar,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
@@ -146,33 +154,10 @@ const { pifs, hasError } = defineProps<{
   hasError: boolean
 }>()
 
-const { t } = useI18n()
-
 const { getByOpaqueRef } = useNetworkStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
-const getNetworkName = (networkRef: string) => {
-  const network: XenApiNetwork = getByOpaqueRef(networkRef as XenApiNetwork['$ref'])!
-  return network?.name_label ? network.name_label : ''
-}
-
-const getVlanData = (vlan: number) => {
-  return vlan !== -1 ? vlan : t('none')
-}
-
-const getPifStatus = (pif: XenApiPif) => {
-  const carrier = getPifCarrier(pif)
-  const currentlyAttached = pif.currently_attached
-
-  if (currentlyAttached && carrier) {
-    return 'connected'
-  }
-  if (currentlyAttached && !carrier) {
-    return 'partially-connected'
-  }
-  return 'disconnected'
-}
-
+const { t } = useI18n()
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
@@ -191,17 +176,44 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? pifsUuids.value : []
 }
 
+const getNetworkName = (networkRef: string) => {
+  const network: XenApiNetwork = getByOpaqueRef(networkRef as XenApiNetwork['$ref'])!
+  return network?.name_label ? network.name_label : ''
+}
+
+const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
+
+const getPifStatus = (pif: XenApiPif) => {
+  const carrier = getPifCarrier(pif)
+  const currentlyAttached = pif.currently_attached
+
+  if (currentlyAttached && carrier) {
+    return 'connected'
+  }
+  if (currentlyAttached && !carrier) {
+    return 'partially-connected'
+  }
+  return 'disconnected'
+}
+
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.uuid,
   columns: define => [
     define('checkbox', () => '', { label: '', isHideable: false }),
-    define('network', record => getNetworkName(record.network), { label: t('network'), isHideable: true }),
+    define(
+      'network',
+      record => ({
+        name: getNetworkName(record.network),
+        management: record.management,
+      }),
+      { label: t('network'), isHideable: true }
+    ),
     define('device', { label: t('device'), isHideable: true }),
     define('status', record => getPifStatus(record), { label: t('status'), isHideable: true }),
     define('VLAN', record => getVlanData(record.VLAN), { label: t('vlan'), isHideable: true }),
-    define('IP', { label: t('ip'), isHideable: true }),
-    define('MAC', { label: t('mac'), isHideable: true }),
-    define('ip_configuration_mode', { label: t('ip-configuration-mode'), isHideable: true }),
+    define('IP', { label: t('ip-addresses'), isHideable: true }),
+    define('MAC', { label: t('mac-addresses'), isHideable: true }),
+    define('ip_configuration_mode', { label: t('ip-mode'), isHideable: true }),
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })

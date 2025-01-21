@@ -108,8 +108,8 @@
   "host.inactive": "Inactive",
 
   "invalid-field": "Invalid field",
-  "ip": "Ip",
-  "ip-configuration-mode": "Ip mode",
+  "ip-addresses": "IP addresses",
+  "ip-mode": "IP mode",
 
   "job.vm-copy.bad-power-state": "VM must be halted",
   "job.vm-copy.in-progress": "Copy in progress…",
@@ -177,7 +177,9 @@
   "loading-hosts": "Loading hosts…",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
-  "mac": "Mac",
+  "mac-address": "MAC address",
+  "mac-addresses": "MAC addresses",
+  "management": "Management",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",

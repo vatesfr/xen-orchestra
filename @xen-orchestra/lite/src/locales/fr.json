@@ -108,8 +108,8 @@
   "host.inactive": "Inactif | Inactif | Inactifs",
 
   "invalid-field": "Champ invalide",
-  "ip": "Ip",
-  "ip-configuration-mode": "Mode ip",
+  "ip-addresses": "Adresses IP",
+  "ip-mode": "Mode IP",
 
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
   "job.vm-copy.in-progress": "Copie en cours…",
@@ -177,7 +177,9 @@
   "loading-hosts": "Chargement des hôtes…",
   "login": "Connexion",
   "login-only-on-master": "La connexion n'est possible que sur l'hôte primaire",
-  "mac": "Mac",
+  "mac-address": "Adresse MAC",
+  "mac-addresses": "Adresses MAC",
+  "management": "Gestion",
   "more-actions": "Plus d'actions",
   "migrate": "Migrer",
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
