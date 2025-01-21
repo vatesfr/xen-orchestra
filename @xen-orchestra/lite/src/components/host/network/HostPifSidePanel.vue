@@ -1,5 +1,6 @@
 <template>
   <UiPanel class="pif-panel">
+    <VtsNoSelectionHero v-if="!pif" type="panel" />
     <template #header>
       <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit">
         {{ $t('edit') }}
@@ -8,9 +9,11 @@
         {{ $t('delete') }}
       </UiButton>
     </template>
-    <UiCard class="card">
+    <!-- PIF -->
+    <UiCard v-if="pif" class="card">
       <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
       <div class="content">
+        <!-- UUID -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('uuid') }}
@@ -19,27 +22,39 @@
             {{ pif.uuid }}
           </template>
           <template #addons>
-            <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
+            <VtsIcon
+              v-if="pif.management"
+              v-tooltip="t('management')"
+              accent="warning"
+              :icon="faCircle"
+              :overlay-icon="faStar"
+            />
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- NETWORK -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('network') }}
           </template>
           <template #value>
             <div class="network">
+              <!-- TODO Remove the span when the link works and the icon is fixed -->
+              <!--
               <UiComplexIcon size="medium">
-                <VtsIcon :icon="faNetworkWired" accent="current" />
-                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-              </UiComplexIcon>
-              <a href=""> {{ getNetworkData('name_label') }}</a>
+                              <VtsIcon :icon="faNetworkWired" accent="current" />
+                              <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+                            </UiComplexIcon>
+                            <a href="">{{ networkNameLabel }}</a>
+-->
+              <span v-tooltip class="text-ellipsis name">{{ networkNameLabel }}</span>
             </div>
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- DEVICE -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('device') }}
@@ -51,41 +66,45 @@
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- PIF STATUS -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('pif-status') }}
           </template>
           <template #value>
-            <VtsConnectionStatus :status="getPifStatus(pif)" />
+            <VtsConnectionStatus :status="pifStatus" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- PHYSICAL INTERFACE STATUS -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('physical-interface-status') }}
           </template>
           <template #value>
-            <VtsConnectionStatus :status="getPhysicalInterfaceStatus(pif)" />
+            <VtsConnectionStatus :status="physicalInterfaceStatus" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- VLAN -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('vlan') }}
           </template>
           <template #value>
-            {{ getPifData('VLAN') }}
+            {{ getVlan }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- TAGS -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('tags') }}
           </template>
           <template #value>
-            <div v-if="!Array.isArray(getNetworkData('tags'))">{{ getNetworkData('tags') }}</div>
+            <div v-if="networkTags">{{ networkTags }}</div>
             <div v-else class="tags">
-              <UiTag v-for="tag in getNetworkData('tags')" :key="tag" accent="info" variant="secondary">
+              <UiTag v-for="tag in networkTags" :key="tag" accent="info" variant="secondary">
                 {{ tag }}
               </UiTag>
             </div>
@@ -93,23 +112,24 @@
         </VtsCardRowKeyValue>
       </div>
     </UiCard>
-    <UiCard class="card">
+    <!-- NETWORK INFORMATION -->
+    <UiCard v-if="pif" class="card">
       <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
-
       <div class="content">
+        <!-- IP ADDRESSES -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('ip-addresses') }}
           </template>
-          <template #value>
-            <p v-for="ip in allIps" :key="ip" v-tooltip class="ip-address text-ellipsis">{{ getPifData('IP') }}</p>
-            <p v-if="!allIps.length">{{ getPifData('IP') }}</p>
+          <template v-if="allIps.length > 0" #value>
+            <span v-for="ip in allIps" :key="ip" v-tooltip class="ip-address text-ellipsis">{{ ip }}</span>
           </template>
           <template #addons>
             <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- MAC ADDRESSES -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('mac-address') }}
@@ -121,52 +141,58 @@
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- NETMASK -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('netmask') }}
           </template>
           <template #value>
-            {{ getPifData('netmask') }}
+            {{ getNetmask }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- DNS -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('dns') }}
           </template>
           <template #value>
-            {{ getPifData('DNS') }}
+            {{ getDNS }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- GATEWAY -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('gateway') }}
           </template>
           <template #value>
-            {{ getPifData('gateway') }}
+            {{ getGateway }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- IP CONFIGURATION MODE -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('ip-mode') }}
           </template>
           <template #value>
-            {{ getPifData('ip_configuration_mode') }}
+            {{ getIpConfigurationMode }}
           </template>
         </VtsCardRowKeyValue>
       </div>
     </UiCard>
-    <UiCard class="card">
+    <!-- PROPERTIES -->
+    <UiCard v-if="pif" class="card">
       <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
       <div class="content">
+        <!-- MTU -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('mtu') }}
@@ -178,20 +204,22 @@
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- SPEED -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('speed') }}
           </template>
           <template #value>
-            {{ byteFormatter(getSpeedData(pif.metrics)) }}
+            {{ byteFormatter(getSpeed) }}
           </template>
         </VtsCardRowKeyValue>
+        <!-- NETWORK BLOCK DEVICE -->
         <VtsCardRowKeyValue>
           <template #key>
             {{ $t('network-block-device') }}
           </template>
           <template #value>
-            {{ $t(`${getNetworkData('purpose')}`) }}
+            {{ networkPurpose }}
           </template>
           <template #addons>
             <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
@@ -203,91 +231,85 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import {
-  faCheck,
-  faCircle,
-  faCopy,
-  faEdit,
-  faEllipsis,
-  faNetworkWired,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
-const { pif } = defineProps<{
-  pif: XenApiPif
-}>()
-
+const { records } = usePifStore().subscribe()
+const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefMetrics, getPifCarrier } = usePifMetricsStore().subscribe()
 
-const allIps = computed(() => {
-  return [pif.IP, ...pif.IPv6].filter(ip => ip)
+const { t } = useI18n()
+const pifId = useRouteQuery('id')
+const route = useRoute()
+
+const hostId = route.params.uuid as XenApiHost['uuid']
+
+const pifs = computed(() => {
+  return records.value.filter(pif => {
+    const host = getHostOpaqueRef(pif.host)
+
+    return host?.uuid === hostId
+  })
 })
 
-const getNetworkData = (type: keyof XenApiNetwork) => {
-  const network: XenApiNetwork = getOpaqueRefNetwork(pif.network)!
+const pif = computed(() => pifs.value.find(pif => pif.uuid === pifId.value))
 
-  switch (type) {
-    case 'name_label':
-      return network.name_label || '-'
-    case 'purpose':
-      return network.purpose[0] ? 'on' : 'off'
-    case 'tags':
-      return network.tags.length ? network.tags : '-'
-  }
-}
+const network = computed(() => (pif.value ? getOpaqueRefNetwork(pif.value.network) : undefined))
 
-const getPifStatus = (pif: XenApiPif) => {
-  const currentlyAttached = pif.currently_attached
+const allIps = computed(() => {
+  if (!pif.value) return ['-']
+  const ips = [pif.value.IP, ...pif.value.IPv6].filter(ip => ip)
+  return ips.length > 0 ? ips : ['-']
+})
 
-  return currentlyAttached ? 'connected' : 'disconnected'
-}
+const networkNameLabel = computed(() => network.value?.name_label || '-')
 
-const getPhysicalInterfaceStatus = (pif: XenApiPif) => {
-  const carrier = getPifCarrier(pif)
+const networkPurpose = computed(() => (network.value?.purpose?.[0] ? t('on') : t('off')))
 
-  return carrier ? 'connected' : 'disconnected-from-physical-device'
-}
+const networkTags = computed(() => (network.value?.tags?.length ? network.value.tags : '-'))
 
-const getSpeedData = (speedRef: string) => {
-  const metrics = getOpaqueRefMetrics(speedRef)
-  return metrics?.speed ? metrics.speed : 0
-}
+const pifStatus = computed(() => (pif.value?.currently_attached ? 'connected' : 'disconnected'))
 
-const getPifData = (type: keyof XenApiPif) => {
-  const value = pif[type]
+const physicalInterfaceStatus = computed(() => {
+  return pif.value && getPifCarrier(pif.value) ? 'connected' : 'disconnected-from-physical-device'
+})
 
-  switch (type) {
-    case 'VLAN':
-      return value === -1 ? '-' : value
-    case 'netmask':
-    case 'DNS':
-    case 'gateway':
-    case 'IP':
-      return value === '' ? '-' : pif.netmask
-    case 'ip_configuration_mode':
-      return value === 'None' ? '-' : value
-  }
-}
+const getSpeed = computed(() => (pif.value ? getOpaqueRefMetrics(pif.value.metrics)?.speed || 0 : 0))
 
-const byteFormatter = (value: number) => {
+const getVlan = computed(() => (pif.value?.VLAN === -1 ? '-' : pif.value?.VLAN))
+
+const getNetmask = computed(() => (pif.value?.netmask === '' ? '-' : pif.value?.netmask))
+
+const getDNS = computed(() => (pif.value?.DNS === '' ? '-' : pif.value?.DNS))
+
+const getGateway = computed(() => (pif.value?.gateway === '' ? '-' : pif.value?.gateway))
+
+const getIpConfigurationMode = computed(() =>
+  pif.value?.ip_configuration_mode === t('none') ? '-' : pif.value?.ip_configuration_mode
+)
+
+const byteFormatter = computed(() => (value: number) => {
   const speedInBytes = value * 1000000
 
   return humanFormat(speedInBytes, {
@@ -295,7 +317,7 @@ const byteFormatter = (value: number) => {
     unit: 'b/s',
     maxDecimals: 2,
   })
-}
+})
 </script>
 
 <style scoped lang="postcss">
