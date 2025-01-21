@@ -475,7 +475,7 @@ export default class Esxi extends EventEmitter {
       if (disk === 'true') {
         const fullUrl = new URL(url)
         if (url.indexOf('/*/') > 0) {
-          // the url returned can be  in the form of https://*/ follower by a short lived link, default 5mn
+          // the url returned can be in the form of https://*/ followed by a short-lived link, default 5mn
           // in this case, use the vsphere ip/name
           fullUrl.host = this.#host
         }
