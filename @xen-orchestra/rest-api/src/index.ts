@@ -8,8 +8,6 @@ import { XoApp, XoObject } from './xoApp.type.js'
 class RestApi {
   static instance: RestApi | null = null
 
-  #api!: Express
-  #prefix = '/rest/v1'
   #sseClients: Map<symbol, Response> = new Map()
 
   getObjects!: XoApp['getObjects']
@@ -17,14 +15,12 @@ class RestApi {
   getServers!: XoApp['getAllXenServers']
   getServer!: XoApp['getXenServer']
 
-  constructor(xoApp: XoApp, express: Express) {
+  constructor(xoApp: XoApp) {
     if (RestApi.instance !== null) {
       return RestApi.instance
     }
 
     this.#registerListener(xoApp._objects)
-
-    this.#api = express
 
     // wrap these method with permission
     this.getObject = (id, type) => xoApp.getObject(id, type)
@@ -49,14 +45,6 @@ class RestApi {
     this.#sseClients.delete(id)
   }
 
-  registerOpenApi() {
-    this.#api.use(`${this.#prefix}/api-doc`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
-  }
-
-  registerRoutes() {
-    RegisterRoutes(this.#api)
-  }
-
   sendData(data: Record<string, XoObject | undefined>, operation: 'update' | 'add' | 'remove') {
     this.#sseClients.forEach(client => {
       client.write(`data: ${JSON.stringify({ operation, data })}\n\n`)
@@ -71,5 +59,5 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   express.use('/rest/v1/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
   RegisterRoutes(express)
 
-  restApi = new RestApi(xoApp, express)
+  restApi = new RestApi(xoApp)
 }
