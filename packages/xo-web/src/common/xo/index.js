@@ -1456,19 +1456,20 @@ export const installAllPatchesOnPool = ({ pool }) => {
 }
 
 import RollingPoolUpdateModal from './rolling-pool-updates-modal' // eslint-disable-line import/first
-export const rollingPoolUpdate = poolId =>
-  confirm({
+export const rollingPoolUpdate = async poolId => {
+  await confirm({
     body: <RollingPoolUpdateModal pool={poolId} />,
     title: _('rollingPoolUpdate'),
     icon: 'pool-rolling-update',
-  }).then(() =>
-    _call('pool.rollingUpdate', { pool: poolId })::tap(
-      () => subscribeHostMissingPatches.forceRefresh(),
-      err => {
-        if (!forbiddenOperation.is(err)) {
-          throw err
-        }
-        confirm({
+  })
+
+  const rpu = async ({ bypassBackupCheck = false, rebootVm = false } = {}) => {
+    try {
+      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm })
+      subscribeHostMissingPatches.forceRefresh()
+    } catch (err) {
+      if (forbiddenOperation.is(err)) {
+        await confirm({
           body: (
             <p className='text-warning'>
               <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
@@ -1476,17 +1477,26 @@ export const rollingPoolUpdate = poolId =>
           ),
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
-        }).then(
-          () =>
-            _call('pool.rollingUpdate', { bypassBackupCheck: true, pool: poolId })::tap(() =>
-              subscribeHostMissingPatches.forceRefresh()
-            ),
-          noop
-        )
-      },
-      noop
-    )
-  )
+        })
+        await rpu({ bypassBackupCheck: true, rebootVm })
+      }
+      if (incorrectState.is(err, { property: 'guidance' })) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('rpuRequireVmsReboot')}
+            </p>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        })
+        await rpu({ bypassBackupCheck, rebootVm: true })
+      }
+    }
+  }
+
+  await rpu()
+}
 
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
