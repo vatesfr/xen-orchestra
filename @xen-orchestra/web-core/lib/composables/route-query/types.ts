@@ -28,8 +28,9 @@ export type BooleanActions = { toggle: (value?: boolean) => void }
 
 export type Actions = SetActions<any> & MapActions<any, any> & ArrayActions<any> & BooleanActions
 
-export type GuessActions<TData> =
-  TData extends Set<infer TValue>
+export type GuessActions<TData> = TData extends string | number
+  ? EmptyObject
+  : TData extends Set<infer TValue>
     ? SetActions<TValue>
     : TData extends (infer TValue)[]
       ? ArrayActions<TValue>
