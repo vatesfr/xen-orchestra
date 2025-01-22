@@ -28,77 +28,89 @@
       <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
         {{ network.name_label }}
       </UiCardTitle>
-      <div>
+      <div class="content">
         <!-- UUID -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('uuid') }}</div>
-          <div class="value text-ellipsis">{{ formatValue(network.uuid) }}</div>
-          <UiButtonIcon
-            v-if="network.uuid"
-            v-tooltip="copied && $t('core.copied')"
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copy(network.uuid)"
-          />
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>
+            {{ $t('uuid') }}
+          </template>
+          <template #value>{{ formatValue(network.uuid) }}</template>
+          <template #addons>
+            <UiButtonIcon
+              v-if="network.uuid"
+              v-tooltip="copied && $t('core.copied')"
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copy(network.uuid)"
+            />
+          </template>
+        </VtsCardRowKeyValue>
         <!-- DESCRIPTION -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('description') }}</div>
-          <div class="value text-ellipsis">{{ formatValue(network.name_description) }}</div>
-          <UiButtonIcon
-            v-if="network.name_description"
-            v-tooltip="copied && $t('core.copied')"
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copy(network.name_description)"
-          />
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('description') }}</template>
+          <template #value>{{ formatValue(network.name_description) }}</template>
+          <template #addons>
+            <UiButtonIcon
+              v-if="network.name_description"
+              v-tooltip="copied && $t('core.copied')"
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copy(network.name_description)"
+            />
+          </template>
+        </VtsCardRowKeyValue>
         <!-- VLAN -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('vlan') }}</div>
-          <div class="value">{{ formatValue(getNetworkVlan(network)) }}</div>
-          <UiButtonIcon
-            v-if="getNetworkVlan(network)"
-            v-tooltip="copied && $t('core.copied')"
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copy(String(getNetworkVlan(network)))"
-          />
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('vlan') }}</template>
+          <template #value>{{ formatValue(getNetworkVlan(network)) }}</template>
+          <template #addons>
+            <UiButtonIcon
+              v-if="getNetworkVlan(network)"
+              v-tooltip="copied && $t('core.copied')"
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copy(String(getNetworkVlan(network)))"
+            />
+          </template>
+        </VtsCardRowKeyValue>
         <!-- MTU -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('mtu') }}</div>
-          <div class="value">{{ formatValue(network.MTU) }}</div>
-          <UiButtonIcon
-            v-if="network.MTU"
-            v-tooltip="copied && $t('core.copied')"
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copy(String(network.MTU))"
-          />
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('mtu') }}</template>
+          <template #value>{{ formatValue(network.MTU) }}</template>
+          <template #addons>
+            <UiButtonIcon
+              v-if="network.MTU"
+              v-tooltip="copied && $t('core.copied')"
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copy(String(network.MTU))"
+            />
+          </template>
+        </VtsCardRowKeyValue>
         <!-- NBD -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('network-block-device') }}</div>
-          <div class="value">{{ formatValue(network.purpose[0]) }}</div>
-          <UiButtonIcon
-            v-if="network.purpose[0]"
-            v-tooltip="copied && $t('core.copied')"
-            accent="info"
-            size="medium"
-            :icon="faCopy"
-            @click="copy(network.purpose[0])"
-          />
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('network-block-device') }}</template>
+          <template #value>{{ formatValue(network.purpose[0]) }}</template>
+          <template #addons>
+            <UiButtonIcon
+              v-if="network.purpose[0]"
+              v-tooltip="copied && $t('core.copied')"
+              accent="info"
+              size="medium"
+              :icon="faCopy"
+              @click="copy(network.purpose[0])"
+            />
+          </template>
+        </VtsCardRowKeyValue>
         <!-- DEFAULT LOCKING MODE -->
-        <div class="typo p3-regular content">
-          <div class="title">{{ $t('locking-mode-default') }}</div>
-          <div class="value">{{ formatValue(network.default_locking_mode) }}</div>
-        </div>
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('locking-mode-default') }}</template>
+          <template #value>{{ formatValue(network.default_locking_mode) }}</template>
+        </VtsCardRowKeyValue>
       </div>
     </UiCard>
     <UiCard v-if="network && network?.PIFs?.length > 0" class="card-container">
@@ -134,6 +146,7 @@ import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -176,26 +189,12 @@ const { copy, copied } = useClipboard()
 
   .content {
     display: flex;
-    align-items: center;
-    gap: 0.8rem;
-
-    .title {
-      color: var(--color-neutral-txt-secondary);
-      min-width: 14rem;
-    }
-
-    .value {
-      color: var(--color-neutral-txt-primary);
-      width: 20rem;
-    }
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .text-left {
     text-align: left;
-  }
-
-  .text-right {
-    text-align: right;
   }
 
   .simple-table {

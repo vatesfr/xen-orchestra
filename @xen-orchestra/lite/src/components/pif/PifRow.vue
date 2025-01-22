@@ -2,7 +2,7 @@
   <tr>
     <td v-if="hostInfo" class="typo p3-regular text-ellipsis host">
       <UiObjectIcon :state="hostState" type="host" size="small" />
-      <a v-tooltip class="text-ellipsis">
+      <a v-tooltip href="" class="text-ellipsis">
         {{ hostInfo.name_label }}
       </a>
     </td>

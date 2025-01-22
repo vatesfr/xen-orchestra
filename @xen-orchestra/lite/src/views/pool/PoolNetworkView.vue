@@ -4,7 +4,7 @@
       <PoolNetworksTable />
       <PoolHostInternalNetworksTable />
     </UiCard>
-  <PoolNetworksSidePanel />
+    <PoolNetworksSidePanel />
   </div>
 </template>
 
