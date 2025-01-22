@@ -18,6 +18,7 @@
 - [Backup] New [ChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption for remotes, allow encrypted files larger than 64GB (PR [#8237](https://github.com/vatesfr/xen-orchestra/pull/8237))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+Add VM Description to the backup report.
 
 ### Bug fixes
 
