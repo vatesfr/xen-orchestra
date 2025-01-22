@@ -30,7 +30,8 @@
     "experimentalDecorators": true,
 
     /* Advanced Options */
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true
   },
   "include": ["./src/**/*"]
 }

@@ -11,8 +11,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsoa spec-and-routes && tsc --resolveJsonModule",
-    "dev": "tsoa spec-and-routes && tsc --watch --resolveJsonModule"
+    "build": "tsoa spec-and-routes && tsc",
+    "dev": "tsoa spec-and-routes && tsc --watch"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
