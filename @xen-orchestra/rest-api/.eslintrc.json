@@ -9,13 +9,8 @@
         "sourceType": "module"
       },
       "rules": {
-        "no-extra-semi": "off"
-      }
-    },
-    {
-      "files": ["src/index.ts"],
-      "rules": {
-        "no-restricted-syntax": ["off"]
+        "no-extra-semi": "off",
+        "no-use-before-define": "off"
       }
     }
   ],

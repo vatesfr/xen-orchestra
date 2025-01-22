@@ -1,4 +1,4 @@
-import RestApi from '@xen-orchestra/rest-api'
+import setupRestApi from '@xen-orchestra/rest-api'
 
 export default class ClassRestApiPoc {
   constructor(app, { express }) {
@@ -6,9 +6,6 @@ export default class ClassRestApiPoc {
       return
     }
 
-    const restApi = new RestApi(app, express)
-
-    restApi.registerOpenApi()
-    restApi.registerRoutes()
+    setupRestApi(express, app)
   }
 }

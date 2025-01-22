@@ -1,5 +1,5 @@
-import { Controller, Get, Path, Request, Route } from 'tsoa'
-import { ExtendedRequest } from '../index.js'
+import { Controller, Get, Path, Route } from 'tsoa'
+import { getRestApi } from '../index.js'
 
 import { XoVm } from './vm.type.js'
 
@@ -11,8 +11,9 @@ export class VmsController extends Controller {
    * Some description
    */
   @Get()
-  public getVms(@Request() req: ExtendedRequest): XoVm[] {
-    const vms = req.xoApp.getObjects<XoVm>({
+  public getVms(): XoVm[] {
+    const restApi = getRestApi()
+    const vms = restApi.getObjects<XoVm>({
       filter: obj => obj.type === 'VM',
     })
 
@@ -20,7 +21,8 @@ export class VmsController extends Controller {
   }
 
   @Get('{id}')
-  public getVm(@Request() req: ExtendedRequest, @Path() id: string): XoVm {
-    return req.xoApp.getObject(id, this.#type)
+  public getVm(@Path() id: string): XoVm {
+    const restApi = getRestApi()
+    return restApi.getObject(id, this.#type)
   }
 }

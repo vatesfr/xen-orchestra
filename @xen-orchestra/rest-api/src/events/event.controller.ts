@@ -1,4 +1,5 @@
-import { ExtendedRequest } from '../index.js'
+import { Request as ExRequest } from 'express'
+import { getRestApi } from '../index.js'
 import { Controller, Get, Request, Route } from 'tsoa'
 
 @Route('events')
@@ -7,8 +8,9 @@ export class EventsController extends Controller {
    *  subscribe to all evenements
    */
   @Get()
-  public async getServers(@Request() req: ExtendedRequest): Promise<void> {
-    const xoApp = req.xoApp
+  public async getServers(@Request() req: ExRequest): Promise<void> {
+    const restApi = getRestApi()
+
     const res = req.res!
 
     res.setHeader('Access-Control-Allow-Origin', '*') // TODO: remove this. Only used for test
@@ -20,10 +22,10 @@ export class EventsController extends Controller {
     res.write(`data:${JSON.stringify({ data: null, operation: 'initial' })}\n\n`)
 
     const symbol = Symbol('client-id')
-    xoApp.addSseClient(symbol, res)
+    restApi.addSseClient(symbol, res)
 
     res.on('close', () => {
-      xoApp.removeSseClient(symbol)
+      restApi.removeSseClient(symbol)
       res.end()
     })
   }
