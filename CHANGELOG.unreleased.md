@@ -48,7 +48,7 @@
 - @xen-orchestra/fs minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
 - xo-server-audit patch
 - xo-server-usage-report patch
 - xo-web patch
