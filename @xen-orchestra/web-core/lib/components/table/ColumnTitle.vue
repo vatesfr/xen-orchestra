@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <MenuList :disabled placement="bottom-start" border>
+  <MenuList :disabled placement="bottom-start">
     <template #trigger="{ open, isOpen }">
       <th
         :class="{ interactive, disabled, focus: isOpen }"

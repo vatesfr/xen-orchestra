@@ -13,7 +13,7 @@
     </TabItem>
     <TabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</TabItem>
     <TabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</TabItem>
-    <MenuList placement="bottom" border>
+    <MenuList placement="bottom">
       <template #trigger="{ open, isOpen }">
         <TabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
           <UiIcon :icon="faSliders" />
