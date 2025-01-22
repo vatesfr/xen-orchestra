@@ -3,10 +3,15 @@ import { XoVm } from './vms/vm.type.js'
 import { Response } from 'express'
 import { XoServer } from './servers/server.type.js'
 
+type XoPool = {
+  id: string
+  type: 'pool'
+}
+
 /**
  * XapiXoObject can be every "xapi-to-xo" object
  */
-export type XapiXoObject = XoVm /** | XoVmTempalte | XoVdi | ... */
+export type XapiXoObject = XoVm | XoPool /** | XoVmTempalte | XoVdi | ... */
 
 type ObjectsEvents = {
   add: (objects: Record<XapiXoObject['id'], XapiXoObject>) => void

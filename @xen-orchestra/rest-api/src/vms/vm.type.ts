@@ -4,4 +4,5 @@ export type XoVm = {
 
   name_label: string
   uuid: string
+  power_state: 'Running' | 'Paused' | 'Halted' | 'Suspended'
 }

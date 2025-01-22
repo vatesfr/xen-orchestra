@@ -10,7 +10,8 @@
       },
       "rules": {
         "no-extra-semi": "off",
-        "no-use-before-define": "off"
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-explicit-any": "off"
       }
     }
   ],
