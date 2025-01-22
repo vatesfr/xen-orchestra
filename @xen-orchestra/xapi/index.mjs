@@ -152,7 +152,7 @@ export class Xapi extends Base {
     syncHookSecret,
     syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
-    vdiDelayBeforeRemovingCloudConfigDrive = 1000 * 60 * 5,
+    vdiDelayBeforeRemovingCloudConfigDrive = '5 min',
     ...opts
   }) {
     super(opts)
