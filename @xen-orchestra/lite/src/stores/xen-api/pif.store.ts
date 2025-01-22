@@ -1,4 +1,4 @@
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -16,21 +16,23 @@ export const usePifStore = defineStore('xen-api-pif', () => {
   const poolContext = deps.poolStore.getContext()
 
   const pifsByHostMaster = computed(() => {
-    const pifsByHostMasterMap = new Map<string, XenApiPif[]>()
+    const pifsByHostMasterMap = new Map<XenApiNetwork['$ref'], XenApiPif[]>()
 
     baseContext.records.value
       .filter(pif => poolContext.isPoolMaster(pif.host))
       .forEach(pif => {
-        if (!pifsByHostMasterMap.has(pif.network)) {
-          pifsByHostMasterMap.set(pif.network, [])
+        const networkId = pif.network
+        if (!pifsByHostMasterMap.has(networkId)) {
+          pifsByHostMasterMap.set(networkId, [])
         }
-        pifsByHostMasterMap.get(pif.network)?.push(pif)
+        pifsByHostMasterMap.get(networkId)?.push(pif)
       })
+
     return pifsByHostMasterMap
   })
 
   const pifsByNetwork = computed(() => {
-    const pifsByNetworkMap = new Map<string, XenApiPif[]>()
+    const pifsByNetworkMap = new Map<XenApiNetwork['$ref'], XenApiPif[]>()
 
     baseContext.records.value.forEach(pif => {
       const networkId = pif.network
@@ -39,6 +41,7 @@ export const usePifStore = defineStore('xen-api-pif', () => {
       }
       pifsByNetworkMap.get(networkId)?.push(pif)
     })
+
     return pifsByNetworkMap
   })
 

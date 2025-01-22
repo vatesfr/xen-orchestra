@@ -8,6 +8,7 @@
   "admin-login": "Admin login",
   "admin-password": "Admin password",
   "admin-password-confirm": "Confirm admin password",
+
   "alarm-type.cpu_usage": "CPU usage exceeds {n}%",
   "alarm-type.disk_usage": "Disk usage exceeds {n}%",
   "alarm-type.fs_usage": "FS usage exceeds {n}%",
@@ -18,6 +19,7 @@
   "alarm-type.physical_utilisation": "Physical utilisation exceeds {n}%",
   "alarm-type.sr_io_throughput_total_per_host": "SR IO throughput total per host exceeds {n}%",
   "alarm-type.unknown": "Unknown alarm type",
+
   "all-good": "All good!",
   "allow-self-signed-ssl": "You may need to allow self-signed SSL certificates in your browser",
   "appearance": "Appearance",
@@ -49,12 +51,14 @@
   "deploy-xoa": "Deploy XOA",
   "deploy-xoa-available-on-desktop": "XOA deployment is available on your desktop interface",
   "deploy-xoa-custom-ntp-servers": "Custom NTP servers (separated by spaces)",
+
   "deploy-xoa-status.configuring": "Configuring XOA…",
   "deploy-xoa-status.importing": "Importing XOA…",
   "deploy-xoa-status.not-responding": "XOA is not responding",
   "deploy-xoa-status.ready": "XOA is ready!",
   "deploy-xoa-status.starting": "Starting XOA…",
   "deploy-xoa-status.waiting": "Waiting for XOA to respond…",
+
   "descending": "descending",
   "description": "Description",
   "dhcp": "DHCP",
@@ -75,6 +79,7 @@
   "export-vms": "Export VMs",
   "export-vms-manually-information": "Some VM exports were not able to start automatically, probably due to your browser settings. To export them, you should click on each one. (Alternatively, copy the link as well.)",
   "fetching-fresh-data": "Fetching fresh data",
+
   "filter.comparison.contains": "Contains",
   "filter.comparison.ends-with": "Ends with",
   "filter.comparison.equals": "Equals",
@@ -89,6 +94,7 @@
   "filter.comparison.not-match-regex": "Doesn't match regex",
   "filter.comparison.not-start-with": "Doesn't start with",
   "filter.comparison.starts-with": "Starts with",
+
   "following-hosts-unreachable": "The following hosts are unreachable",
   "force-reboot": "Force reboot",
   "force-shutdown": "Force shutdown",
@@ -98,8 +104,10 @@
   "go-back": "Go back",
   "gzip": "gzip",
   "here": "Here",
+
   "host.active": "Active",
   "host.inactive": "Inactive",
+
   "host-internal-networks": "Host internal networks",
   "invalid-field": "Invalid field",
 
@@ -211,6 +219,7 @@
   "ram-usage": "RAM usage",
   "reboot": "Reboot",
   "reformat": "Reformat",
+
   "relative-time.day": "1 day | {n} days",
   "relative-time.future": "In {str}",
   "relative-time.hour": "1 hour | {n} hours",
@@ -220,14 +229,17 @@
   "relative-time.past": "{str} ago",
   "relative-time.second": "1 second | {n} seconds",
   "relative-time.year": "1 year | {n} years",
+
   "resume": "Resume",
   "save": "Save",
   "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
   "selected-vms-in-execution": "Some selected VMs are running",
   "send-us-feedback": "Send us feedback",
+
   "select.network": "Select a network",
   "select.storage": "Select a storage",
+
   "settings": "Settings",
   "shutdown": "Shutdown",
   "snapshot": "Snapshot",
@@ -247,9 +259,11 @@
   "suspend": "Suspend",
   "switch-theme": "Switch theme",
   "table-actions": "Table actions",
+
   "task.estimated-end": "Estimated end",
   "task.progress": "Progress",
   "task.started": "Started",
+
   "theme-auto": "Auto",
   "theme-dark": "Dark",
   "theme-light": "Light",
@@ -264,8 +278,10 @@
   "vcpus-used": "vCPUs used",
   "version": "Version",
   "vlan": "VLAN",
+
   "vm.active": "Active",
   "vm.inactive": "Inactive",
+
   "vm-is-running": "The VM is running",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",

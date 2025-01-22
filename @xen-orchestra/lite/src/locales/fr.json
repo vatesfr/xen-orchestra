@@ -8,6 +8,7 @@
   "admin-login": "Nom d'utilisateur administrateur",
   "admin-password": "Mot de passe administrateur",
   "admin-password-confirm": "Confirmer le mot de passe administrateur",
+
   "alarm-type.cpu_usage": "L'utilisation du CPU dépasse {n}%",
   "alarm-type.disk_usage": "L'utilisation du disque dépasse {n}%",
   "alarm-type.fs_usage": "L'utilisation de FS dépasse {n}%",
@@ -18,6 +19,7 @@
   "alarm-type.physical_utilisation": "L'utilisation physique dépasse {n}%",
   "alarm-type.sr_io_throughput_total_per_host": "Le débit total de l'IO SR par hôte dépasse {n}%",
   "alarm-type.unknown": "Type d'alarme inconnu",
+
   "all-good": "Tout va bien !",
   "allow-self-signed-ssl": "Vous devrez peut-être autoriser les certificats SSL auto-signés depuis votre navigateur",
   "appearance": "Apparence",
@@ -49,12 +51,14 @@
   "deploy-xoa": "Déployer XOA",
   "deploy-xoa-available-on-desktop": "Le déploiement de la XOA est disponible sur ordinateur",
   "deploy-xoa-custom-ntp-servers": "Serveurs NTP (séparés par des espaces)",
+
   "deploy-xoa-status.configuring": "Configuration de la XOA…",
   "deploy-xoa-status.importing": "Importation de la XOA…",
   "deploy-xoa-status.not-responding": "La XOA ne répond pas",
   "deploy-xoa-status.ready": "La XOA est prête !",
   "deploy-xoa-status.starting": "Démarrage de la XOA…",
   "deploy-xoa-status.waiting": "En attente de réponse de la XOA…",
+
   "descending": "descendant",
   "description": "Description",
   "dhcp": "DHCP",
@@ -75,6 +79,7 @@
   "export-vms": "Exporter les VMs",
   "export-vms-manually-information": "Certaines exportations de VMs n'ont pas pu démarrer automatiquement, peut-être en raison des paramètres du navigateur. Pour les exporter, vous devrez cliquer sur chacune d'entre elles. (Ou copier le lien.)",
   "fetching-fresh-data": "Récupération de données à jour",
+
   "filter.comparison.contains": "Contient",
   "filter.comparison.ends-with": "Termine par",
   "filter.comparison.equals": "Est égal à",
@@ -89,6 +94,7 @@
   "filter.comparison.not-match-regex": "Ne correspond pas à la regex",
   "filter.comparison.not-start-with": "Ne commence pas par",
   "filter.comparison.starts-with": "Commence par",
+
   "following-hosts-unreachable": "Les hôtes suivants sont inaccessibles",
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
@@ -98,8 +104,10 @@
   "go-back": "Revenir en arrière",
   "gzip": "gzip",
   "here": "Ici",
+
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
+
   "host-internal-networks": "Réseaux internes de l'hôte",
   "invalid-field": "Champ invalide",
 
@@ -211,6 +219,7 @@
   "ram-usage": "Utilisation de la RAM",
   "reboot": "Redémarrer",
   "reformat": "Reformater",
+
   "relative-time.day": "1 jour | {n} jours",
   "relative-time.future": "Dans {str}",
   "relative-time.hour": "1 heure | {n} heures",
@@ -220,14 +229,17 @@
   "relative-time.past": "Il y a {str}",
   "relative-time.second": "1 seconde | {n} secondes",
   "relative-time.year": "1 an | {n} ans",
+
   "resume": "Reprendre",
   "save": "Enregistrer",
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
   "send-us-feedback": "Envoyez-nous vos commentaires",
+
   "select.network": "Sélectionner un réseau",
   "select.storage": "Sélectionner un SR",
+
   "settings": "Paramètres",
   "shutdown": "Arrêter",
   "snapshot": "Instantané",
@@ -247,9 +259,11 @@
   "suspend": "Suspendre",
   "switch-theme": "Changer de thème",
   "table-actions": "Actions du tableau",
+
   "task.estimated-end": "Fin estimée",
   "task.progress": "Progression",
   "task.started": "Démarré",
+
   "theme-auto": "Auto",
   "theme-dark": "Sombre",
   "theme-light": "Clair",
@@ -264,8 +278,10 @@
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vlan": "VLAN",
+
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
+
   "vm-is-running": "La VM est en cours d'exécution",
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",
