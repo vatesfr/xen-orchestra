@@ -250,12 +250,6 @@ export default class XenApi {
     type VmRefsWithNameLabel = Record<XenApiVm['$ref'], string>
 
     return {
-      setVCPUsMax: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, count]))),
-      setMemory: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, count]))),
-      setNameDescription: (vmRefs: VmRefs, nameDescription: string) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, nameDescription]))),
       delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
       start: (vmRefs: VmRefs) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start', [vmRef, false, false]))),
