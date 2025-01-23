@@ -57,7 +57,9 @@
                 <UiButtonIcon size="small" accent="info" :icon="faEllipsis" />
                 {{ column.label }}
               </th>
-              <ColumnTitle v-else id="networks" :icon="headerIcon[column.id]"> {{ column.label }}</ColumnTitle>
+              <ColumnTitle v-else id="networks" :icon="headerIcon[column.id]">
+                <span class="text-ellipsis">{{ column.label }}</span>
+              </ColumnTitle>
             </template>
           </tr>
         </template>
