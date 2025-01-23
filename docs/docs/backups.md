@@ -40,13 +40,13 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 4. Click the **Save configuration** Button to finish the encryption setup.
 
 ### Current Encryption Algorithm: `AES-256-GCM`
-Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
+Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
 
 In addition, this algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
 ### Upcoming Change: `ChaCha20-Poly1305`
 
-To improve flexibility and performance, Xen Orchestra will transition to the `ChaCha20-Poly1305` encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
+To improve flexibility and performance, Xen Orchestra will transition to the [`ChaCha20-Poly1305`](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
 
 Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
 
