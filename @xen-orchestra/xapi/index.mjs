@@ -1,5 +1,6 @@
 import assert from 'assert'
 import pRetry from 'promise-toolbox/retry'
+import { parseDuration } from '@vates/parse-duration'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { Xapi as Base } from 'xen-api'
 import { createLogger } from '@xen-orchestra/log'
@@ -151,6 +152,7 @@ export class Xapi extends Base {
     syncHookSecret,
     syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
+    vdiDelayBeforeRemovingCloudConfigDrive = '5 min',
     ...opts
   }) {
     super(opts)
@@ -169,6 +171,7 @@ export class Xapi extends Base {
       onRetry: disconnectBeforeRetry,
       when: { code: 'VDI_IN_USE' },
     }
+    this._vdiDelayBeforeRemovingCloudConfigDrive = parseDuration(vdiDelayBeforeRemovingCloudConfigDrive)
 
     const genericWatchers = (this._genericWatchers = new Set())
     const objectWatchers = (this._objectWatchers = { __proto__: null })

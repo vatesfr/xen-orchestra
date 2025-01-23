@@ -28,6 +28,7 @@
 - [Backups/Logs] Display mirror backup transfer size (PR [#8224](https://github.com/vatesfr/xen-orchestra/pull/8224))
 - [Settings/Remotes] Only allow using encryption when using data block storage to prevent errors during backups (PR [#8244](https://github.com/vatesfr/xen-orchestra/pull/8244))
 - Fix _Rolling Pool Update_ and _Install Patches_ for XenServer >= 8.4 [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/27?_=1736774010376) (PR [#8241](https://github.com/vatesfr/xen-orchestra/pull/8241))
+- [New/VM] Fix premature destruction of the cloudConfig VDI when using the option _destroyCloudConfigVdiAfterBoot_ [#8219](https://github.com/vatesfr/xen-orchestra/issues/8219) (PR [#8247](https://github.com/vatesfr/xen-orchestra/pull/8247))
 
 ### Packages to release
 
