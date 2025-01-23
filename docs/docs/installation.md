@@ -67,7 +67,7 @@ Don't worry! XOA will still work after the trial: you'll be forced to downgrade 
 
 You can get all the info you want on XOA in its [dedicated section](xoa.md).
 
-![](https://xen-orchestra.com/assets/xoa1.png)
+![](../static/img/logo.png)
 
 ## From the sources
 
