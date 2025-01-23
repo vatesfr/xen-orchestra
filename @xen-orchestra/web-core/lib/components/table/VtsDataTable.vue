@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-data-table">
+  <div class="table-container">
     <VtsLoadingHero :disabled="isReady" type="table">
       <VtsTable vertical-border>
         <thead>
@@ -28,8 +28,36 @@ defineProps<{
   hasError?: boolean
   noDataMessage?: string
 }>()
+
 defineSlots<{
   thead(): any
   tbody(): any
 }>()
 </script>
+
+<style lang="postcss" scoped>
+.table-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  :deep {
+    tbody tr:hover {
+      cursor: pointer;
+      background-color: var(--color-info-background-hover);
+    }
+
+    tbody tr:active {
+      background-color: var(--color-info-background-active);
+    }
+
+    tbody tr.selected {
+      background-color: var(--color-info-background-selected);
+    }
+
+    tr:last-child {
+      border-bottom: 0.1rem solid var(--color-neutral-border);
+    }
+  }
+}
+</style>
