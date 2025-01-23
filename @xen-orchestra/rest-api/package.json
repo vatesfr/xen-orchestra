@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "@types/joi": "^17.2.3",
     "@types/node": "^22.10.6",
     "@types/swagger-ui-express": "^4.1.7",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
@@ -28,7 +27,6 @@
     "express": "^4.21.2",
     "inversify": "^6.2.1",
     "inversify-binding-decorators": "^4.0.0",
-    "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0"
   }

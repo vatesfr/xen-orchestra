@@ -8,8 +8,6 @@ import { EventEmitter } from 'events'
 import DashboardService from './dashboard/dashboard.service.js'
 import { iocContainer } from './ioc.js'
 
-import 'reflect-metadata'
-
 class RestApi {
   #sseClients: Map<symbol, Response> = new Map()
 
