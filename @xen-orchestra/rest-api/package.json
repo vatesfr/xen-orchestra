@@ -26,6 +26,9 @@
   },
   "dependencies": {
     "express": "^4.21.2",
+    "inversify": "^6.2.1",
+    "inversify-binding-decorators": "^4.0.0",
+    "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0"
   }

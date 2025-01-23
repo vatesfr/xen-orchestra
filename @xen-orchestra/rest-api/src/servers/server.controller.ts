@@ -4,15 +4,18 @@ import { XoServer } from './server.type.js'
 
 @Route('servers')
 export class ServersController extends Controller {
+  #restApi
+  constructor() {
+    super()
+    this.#restApi = getRestApi()
+  }
   @Get()
   public getServers(): Promise<XoServer[]> {
-    const restApi = getRestApi()
-    return restApi.getServers()
+    return this.#restApi.getServers()
   }
 
   @Get('{id}')
   public getServer(@Path() id: XoServer['id']): Promise<XoServer> {
-    const restApi = getRestApi()
-    return restApi.getServer(id)
+    return this.#restApi.getServer(id)
   }
 }

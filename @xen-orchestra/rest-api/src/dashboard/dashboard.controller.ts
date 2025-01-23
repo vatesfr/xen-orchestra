@@ -1,5 +1,6 @@
 import { Controller, Get, Route } from 'tsoa'
-import * as dashboardService from './dashboard.service.js'
+import DashboardService from './dashboard.service.js'
+import { inject } from 'inversify'
 
 export type Dashboard = {
   vmsStatus: {
@@ -16,12 +17,13 @@ export type Dashboard = {
 
 @Route('dashboard')
 export class DashboardController extends Controller {
+  #dashboardService
+  constructor(@inject(DashboardService) dashboardService: DashboardService) {
+    super()
+    this.#dashboardService = dashboardService
+  }
   @Get()
   public async getDashboard(): Promise<Dashboard> {
-    const [poolsStatus] = await Promise.all([dashboardService.getPoolsStatus()])
-    const vmsStatus = dashboardService.getVmsStatus()
-
-    const dashboard = { poolsStatus, vmsStatus }
-    return dashboard
+    return this.#dashboardService.getDashboard()
   }
 }

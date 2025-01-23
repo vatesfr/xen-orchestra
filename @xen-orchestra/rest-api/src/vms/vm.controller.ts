@@ -5,15 +5,19 @@ import { XoVm } from './vm.type.js'
 
 @Route('vms')
 export class VmsController extends Controller {
-  readonly #type = 'VM'
+  #restApi
+  constructor() {
+    super()
+    this.#restApi = getRestApi()
+  }
 
   /**
    * Some description
    */
   @Get()
   public getVms(): XoVm[] {
-    const restApi = getRestApi()
-    const vms = restApi.getObjects<XoVm>({
+    // not working
+    const vms = this.#restApi.getObjects<XoVm>({
       filter: obj => obj.type === 'VM',
     })
 
@@ -22,7 +26,6 @@ export class VmsController extends Controller {
 
   @Get('{id}')
   public getVm(@Path() id: string): XoVm {
-    const restApi = getRestApi()
-    return restApi.getObject(id, this.#type)
+    return this.#restApi.getObject(id, 'VM')
   }
 }

@@ -11,6 +11,7 @@
     "routesDir": "./src/open-api/routes",
     "esm": true,
     "middleware": "express",
-    "basePath": "/rest/v1"
+    "basePath": "/rest/v1",
+    "iocModule": "./src/ioc"
   }
 }
