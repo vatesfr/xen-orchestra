@@ -28,10 +28,19 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 ## Backup Encryption
 
-Xen Orchestra ensures robust data security for backups stored in Amazon S3 by leveraging advanced encryption algorithms. Here’s a closer look at how encryption works and the technology behind it:
+Xen Orchestra ensures robust data security for backups stored remotely, by leveraging advanced encryption algorithms. Here's a closer look at how encryption works and the technology behind it:
+
+### Configuring encryption
+
+Encryption is opt-in and requires configuring an encryption key on the remote.
+
+1. Go to tge Settings → Remote menu.
+2. Go to the section called **New file system remote**, or edit an existing remote.
+3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
+4. Click the **Save configuration** Button to finish the encryption setup.
 
 ### Current Encryption Algorithm: `AES-256-GCM`
-Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn’t an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
+Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
 
 In addition, this algorithm is fully compliant with [ANSSI guidelines](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
