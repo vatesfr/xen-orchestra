@@ -34,7 +34,7 @@ Xen Orchestra ensures robust data security for backups stored remotely, by lever
 
 Encryption is opt-in and requires configuring an encryption key on the remote.
 
-1. Go to tge Settings → Remote menu.
+1. Go to the Settings → Remote menu.
 2. Go to the section called **New file system remote**, or edit an existing remote.
 3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
 4. Click the **Save configuration** Button to finish the encryption setup.
@@ -45,7 +45,8 @@ Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a h
 In addition, this algorithm is fully compliant with [ANSSI guidelines](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
 ### Upcoming Change: `ChaCha20-Poly1305`
-To improve flexibility and performance, Xen Orchestra will transition to the `ChaCha20-Poly1305` encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines. 
+
+To improve flexibility and performance, Xen Orchestra will transition to the `ChaCha20-Poly1305` encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
 
 Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
 
