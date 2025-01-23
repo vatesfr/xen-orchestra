@@ -79,7 +79,7 @@ We don't provide pro support for this installation method. We cannot guarantee a
 Please consider using XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
 :::
 
-This installation has been validated against a fresh Debian 11 (Bullseye) x64 install. It should be nearly the same on other dpkg systems. For RPM based OS's, it should be close, as most of our dependencies come from NPM and not the OS itself.
+This installation has been validated against a fresh Debian 12 (Bookworm) x64 install. It should be nearly the same on other dpkg systems. For RPM based OS's, it should be close, as most of our dependencies come from NPM and not the OS itself.
 
 As you may have seen in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
