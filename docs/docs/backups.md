@@ -31,12 +31,14 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 Xen Orchestra ensures robust data security for backups stored in Amazon S3 by leveraging advanced encryption algorithms. Here’s a closer look at how encryption works and the technology behind it:
 
 ### Current Encryption Algorithm: `AES-256-GCM`
-Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn’t an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
+
+Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn’t an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform.
 
 In addition, this algorithm is fully compliant with [ANSSI guidelines](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
 ### Upcoming Change: `ChaCha20-Poly1305`
-To improve flexibility and performance, Xen Orchestra will transition to the `ChaCha20-Poly1305` encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines. 
+
+To improve flexibility and performance, Xen Orchestra will transition to the `ChaCha20-Poly1305` encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
 
 Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
 
@@ -46,18 +48,18 @@ Backup repositories that were encrypted with `AES-256-GCM` will remain accessibl
 
 `AES-256-GCM` is a symmetric-key cryptographic block cipher, which is a method for encrypting data that ensures both confidentiality and integrity.
 
-This method uses a 256-bit secret key and a unique initialization vector (IV) to encrypt data with the AES algorithm, transforming it into unreadable blocks. 
-The "GCM" part (Galois/Counter Mode) adds a verification tag to detect any tampering with the encrypted data. To decrypt, the same key and IV are required, and the tag ensures the data hasn’t been altered. 
+This method uses a 256-bit secret key and a unique initialization vector (IV) to encrypt data with the AES algorithm, transforming it into unreadable blocks.
+The "GCM" part (Galois/Counter Mode) adds a verification tag to detect any tampering with the encrypted data. To decrypt, the same key and IV are required, and the tag ensures the data hasn’t been altered.
 
 It’s a fast and secure system, commonly used in applications like secure web browsing and messaging.
 
 #### ChaCha20-Poly1305
 
-`ChaCha20-Poly1305` is a stream cypher, which is a method for encrypting messages. 
+`ChaCha20-Poly1305` is a stream cypher, which is a method for encrypting messages.
 
-Stream cyphers generate a random-looking sequence of bits, called a keystream, that matches the length of the message. This keystream is created using a secret key and an additional starting value called an initialization vector (IV). 
+Stream cyphers generate a random-looking sequence of bits, called a keystream, that matches the length of the message. This keystream is created using a secret key and an additional starting value called an initialization vector (IV).
 
-To encrypt the message, the cipher combines each bit of the message with the corresponding bit of the keystream using a simple XOR operation (a basic "bit-flipping" process). 
+To encrypt the message, the cipher combines each bit of the message with the corresponding bit of the keystream using a simple XOR operation (a basic "bit-flipping" process).
 
 The result is the encrypted message, or ciphertext. Modern stream ciphers are designed to ensure the keystream appears completely random, even if someone tries to manipulate the initialization vector.
 
