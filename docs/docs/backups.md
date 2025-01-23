@@ -40,27 +40,6 @@ To improve flexibility and performance, Xen Orchestra will transition to the `Ch
 
 Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
 
-### How It Works
-
-#### AES-256-GCM
-
-`AES-256-GCM` is a symmetric-key cryptographic block cipher, which is a method for encrypting data that ensures both confidentiality and integrity.
-
-This method uses a 256-bit secret key and a unique initialization vector (IV) to encrypt data with the AES algorithm, transforming it into unreadable blocks. 
-The "GCM" part (Galois/Counter Mode) adds a verification tag to detect any tampering with the encrypted data. To decrypt, the same key and IV are required, and the tag ensures the data hasn’t been altered. 
-
-It’s a fast and secure system, commonly used in applications like secure web browsing and messaging.
-
-#### ChaCha20-Poly1305
-
-`ChaCha20-Poly1305` is a stream cypher, which is a method for encrypting messages. 
-
-Stream cyphers generate a random-looking sequence of bits, called a keystream, that matches the length of the message. This keystream is created using a secret key and an additional starting value called an initialization vector (IV). 
-
-To encrypt the message, the cipher combines each bit of the message with the corresponding bit of the keystream using a simple XOR operation (a basic "bit-flipping" process). 
-
-The result is the encrypted message, or ciphertext. Modern stream ciphers are designed to ensure the keystream appears completely random, even if someone tries to manipulate the initialization vector.
-
 ## Exclude disks
 
 During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
