@@ -15,37 +15,37 @@
         </UiButton>
       </template>
     </UiTitle>
-    <div class="table-actions">
-      <UiQuerySearchBar class="table-query" @search="(value: string) => (searchQuery = value)" />
-      <UiTableActions :title="t('table-actions')">
-        <UiButton
-          v-tooltip="$t('coming-soon')"
-          disabled
-          :left-icon="faEdit"
-          variant="tertiary"
-          accent="info"
-          size="medium"
-        >
-          {{ $t('edit') }}
-        </UiButton>
-        <UiButton
-          v-tooltip="$t('coming-soon')"
-          disabled
-          :left-icon="faTrash"
-          variant="tertiary"
-          accent="danger"
-          size="medium"
-        >
-          {{ $t('delete') }}
-        </UiButton>
-      </UiTableActions>
-      <UiTopBottomTable
-        :selected-items="selected.length"
-        :total-items="pifsUuids.length"
-        @toggle-select-all="toggleSelect"
-      />
-    </div>
-    <div class="table-container">
+    <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+        <UiTableActions :title="t('table-actions')">
+          <UiButton
+            v-tooltip="$t('coming-soon')"
+            disabled
+            :left-icon="faEdit"
+            variant="tertiary"
+            accent="info"
+            size="medium"
+          >
+            {{ $t('edit') }}
+          </UiButton>
+          <UiButton
+            v-tooltip="$t('coming-soon')"
+            disabled
+            :left-icon="faTrash"
+            variant="tertiary"
+            accent="danger"
+            size="medium"
+          >
+            {{ $t('delete') }}
+          </UiButton>
+        </UiTableActions>
+        <UiTopBottomTable
+          :selected-items="selected.length"
+          :total-items="pifsUuids.length"
+          @toggle-select-all="toggleSelect"
+        />
+      </div>
       <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
@@ -53,19 +53,34 @@
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
               </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon size="small" accent="info" :icon="getHeaderIcon(column.id)" />
+              <th v-else-if="column.id === 'more'" v-tooltip="$t('coming-soon')" class="more">
+                <UiButtonIcon size="small" accent="info" :icon="faEllipsis" />
                 {{ column.label }}
               </th>
-              <ColumnTitle v-else id="networks" :icon="getHeaderIcon(column.id)"> {{ column.label }}</ColumnTitle>
+              <ColumnTitle v-else id="networks" :icon="headerIcon[column.id]"> {{ column.label }}</ColumnTitle>
             </template>
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of rows" :key="row.id">
-            <td v-for="column of row.visibleColumns" :key="column.id" class="typo p2-regular">
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ selected: selectedPifId === row.id }"
+            @click="selectedPifId = row.id"
+          >
+            <td
+              v-for="column of row.visibleColumns"
+              :key="column.id"
+              class="typo p2-regular"
+              :class="{ checkbox: column.id === 'checkbox' }"
+            >
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-              <VtsIcon v-else-if="column.id === 'more'" accent="info" :icon="faEllipsis" />
+              <VtsIcon
+                v-else-if="column.id === 'more'"
+                v-tooltip="$t('coming-soon')"
+                accent="info"
+                :icon="faEllipsis"
+              />
               <div v-else-if="column.id === 'status'" v-tooltip>
                 <VtsConnectionStatus :status="column.value" />
               </div>
@@ -90,15 +105,15 @@
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <UiTopBottomTable
+        :selected-items="selected.length"
+        :total-items="pifsUuids.length"
+        @toggle-select-all="toggleSelect"
+      />
     </div>
-    <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
-      <div>{{ $t('no-result') }}</div>
-    </VtsStateHero>
-    <UiTopBottomTable
-      :selected-items="selected.length"
-      :total-items="pifsUuids.length"
-      @toggle-select-all="toggleSelect"
-    />
   </div>
 </template>
 
@@ -107,6 +122,7 @@ import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -120,6 +136,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -140,27 +157,25 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs } = defineProps<{
-  pifs: XenApiPif[]
-  isReady: boolean
-  hasError: boolean
-}>()
-
+const { currentHostPifs: pifs, isReady, hasError } = usePifStore().subscribe()
 const { getByOpaqueRef } = useNetworkStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
+const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return pifs
+    return pifs.value
   }
-  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+  return pifs.value.filter(pif =>
+    Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  )
 })
 
-const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
+const pifsUuids = computed(() => pifs.value.map(pif => pif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(pifsUuids)
 
@@ -209,7 +224,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('more', () => '', { label: '', isHideable: false }),
   ],
 })
-type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode' | 'more'
+type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
 const headerIcon: Record<PifHeader, IconDefinition> = {
   network: faAlignLeft,
   device: faAlignLeft,
@@ -218,14 +233,13 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
   IP: faAt,
   MAC: faAt,
   ip_configuration_mode: faCaretDown,
-  more: faEllipsis,
 }
-const getHeaderIcon = (status: PifHeader) => headerIcon[status]
 </script>
 
 <style scoped lang="postcss">
 .host-pif-table,
-.table-actions {
+.table-actions,
+.container {
   display: flex;
   flex-direction: column;
 }
@@ -233,25 +247,25 @@ const getHeaderIcon = (status: PifHeader) => headerIcon[status]
 .host-pif-table {
   gap: 2.4rem;
 
+  .container,
   .table-actions {
     gap: 0.8rem;
   }
 
-  .table-container {
-    .network {
-      display: flex;
-      align-items: center;
-      gap: 1.8rem;
-    }
+  .network {
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+  }
 
-    .checkbox,
-    .more {
-      width: 4.8rem;
-    }
+  .checkbox,
+  .more {
+    width: 4.8rem;
+  }
 
-    tr:last-child {
-      border-bottom: 1px solid var(--color-neutral-border);
-    }
+  .checkbox {
+    text-align: center;
+    line-height: 1;
   }
 }
 </style>
