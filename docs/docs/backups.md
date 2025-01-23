@@ -42,7 +42,7 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 ### Current Encryption Algorithm: `AES-256-GCM`
 Currently, backups use the `AES-256-GCM` encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
 
-In addition, this algorithm is fully compliant with [ANSSI guidelines](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
+In addition, this algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
 ### Upcoming Change: `ChaCha20-Poly1305`
 
