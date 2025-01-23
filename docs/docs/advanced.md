@@ -38,6 +38,18 @@ Firewall:
 
 ![](https://xen-orchestra.com/blog/content/images/2019/11/firewallstats.png)
 
+## Hardware Monitoring
+
+### Disk Health Monitoring
+
+Xen Orchestra makes it easy to monitor disk health using a XAPI plugin for XCP-ng that leverages `smartctl`. You can check the status of your disks directly in the interface.
+
+- **Healthy Disks:** If all disks are in good condition, Xen Orchestra shows: **All disks are healthy ✅**.
+- **Unhealthy Disks:** If any issues are detected, a warning icon appears, indicating how many disks are affected:
+
+![](../static/img/disk-health-warning.png)
+
+
 ## Cloud-init and Cloudbase-init
 
 ### Cloud-init (Linux)
