@@ -12,6 +12,6 @@
     "esm": true,
     "middleware": "express",
     "basePath": "/rest/v1",
-    "iocModule": "./src/ioc"
+    "iocModule": "./src/ioc/ioc.ts"
   }
 }

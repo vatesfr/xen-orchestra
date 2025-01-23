@@ -1,14 +1,16 @@
 import { Request as ExRequest } from 'express'
 import { getRestApi } from '../index.js'
 import { Controller, Get, Request, Route } from 'tsoa'
+import { provideSingleton } from '../ioc/helper.js'
 
 @Route('events')
+@provideSingleton(EventsController)
 export class EventsController extends Controller {
   /**
    *  subscribe to all evenements
    */
   @Get()
-  public async getServers(@Request() req: ExRequest): Promise<void> {
+  public async getEvent(@Request() req: ExRequest): Promise<void> {
     const restApi = getRestApi()
 
     const res = req.res!

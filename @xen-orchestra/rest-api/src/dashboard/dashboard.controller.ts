@@ -1,6 +1,7 @@
 import { Controller, Get, Route } from 'tsoa'
 import DashboardService from './dashboard.service.js'
 import { inject } from 'inversify'
+import { provideSingleton } from '../ioc/helper.js'
 
 export type Dashboard = {
   vmsStatus: {
@@ -16,6 +17,7 @@ export type Dashboard = {
 }
 
 @Route('dashboard')
+@provideSingleton(DashboardController)
 export class DashboardController extends Controller {
   #dashboardService
   constructor(@inject(DashboardService) dashboardService: DashboardService) {

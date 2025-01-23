@@ -1,8 +1,10 @@
 import { getRestApi } from '../index.js'
 import { Controller, Get, Path, Route } from 'tsoa'
 import { XoServer } from './server.type.js'
+import { provideSingleton } from '../ioc/helper.js'
 
 @Route('servers')
+@provideSingleton(ServersController)
 export class ServersController extends Controller {
   #restApi
   constructor() {

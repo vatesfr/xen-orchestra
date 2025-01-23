@@ -6,7 +6,7 @@ import { RegisterRoutes } from './open-api/routes/routes.js'
 import { XapiXoObject, XoApp } from './xoApp.type.js'
 import { EventEmitter } from 'events'
 import DashboardService from './dashboard/dashboard.service.js'
-import { iocContainer } from './ioc.js'
+import { iocContainer } from './ioc/ioc.js'
 
 class RestApi {
   #sseClients: Map<symbol, Response> = new Map()

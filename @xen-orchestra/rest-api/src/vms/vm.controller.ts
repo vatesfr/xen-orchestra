@@ -2,8 +2,10 @@ import { Controller, Get, Path, Route } from 'tsoa'
 import { getRestApi } from '../index.js'
 
 import { XoVm } from './vm.type.js'
+import { provideSingleton } from '../ioc/helper.js'
 
 @Route('vms')
+@provideSingleton(VmsController)
 export class VmsController extends Controller {
   #restApi
   constructor() {

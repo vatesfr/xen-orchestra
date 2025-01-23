@@ -1,6 +1,7 @@
 import { getRestApi } from '../index.js'
 import { XoVm } from '../vms/vm.type.js'
 import { Dashboard } from './dashboard.controller.js'
+import { provideSingleton } from '../ioc/helper.js'
 
 // cache used to compare changes and trigger dashboard events
 type CacheDashboard = {
@@ -9,6 +10,7 @@ type CacheDashboard = {
 }
 const cache = new Map<keyof CacheDashboard, CacheDashboard[keyof CacheDashboard]>()
 
+@provideSingleton(DashboardService)
 export default class DashboardService {
   #restApi
   #fnById = {
