@@ -17,6 +17,7 @@
   - [Console]: Add Ctrl+Alt+Del functionality to console (PR [#8239](https://github.com/vatesfr/xen-orchestra/pull/8239))
   - [UI]: Use user language set in XO 5 to set the language in XO 6 (PR [#8232](https://github.com/vatesfr/xen-orchestra/pull/8232))
   - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
+  - [Console]: Add fullscreen functionality for console (PR [#8238](https://github.com/vatesfr/xen-orchestra/pull/8238))
 - [Backup] New [ChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption for remotes, allow encrypted files larger than 64GB (PR [#8237](https://github.com/vatesfr/xen-orchestra/pull/8237))
 
 ### Bug fixes
