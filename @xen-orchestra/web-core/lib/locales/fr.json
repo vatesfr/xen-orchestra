@@ -18,10 +18,11 @@
   "core.group": "Grouper",
   "core.hide": "Masquer",
   "core.open": "Ouvrir",
+  "core.pagination.all": "Tous",
+  "core.pagination.show-by": "Afficher par",
   "core.quick-actions": "Actions rapides",
 
   "core.search": "Rechercher",
-  "core.show-by": "Afficher par",
 
   "core.query-search-bar.label": "Moteur de recherche",
   "core.query-search-bar.placeholder": "Écrivez votre requête…",
