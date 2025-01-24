@@ -7,7 +7,7 @@ import { XapiXoObject, XoApp } from './xoApp.type.js'
 import { EventEmitter } from 'events'
 import DashboardService from './dashboard/dashboard.service.js'
 import { iocContainer } from './ioc/ioc.js'
-import { XoServer } from './servers/server.type.js'
+import { errorHandler } from './middleware/error.middleware.js'
 
 class RestApi {
   #sseClients: Map<symbol, Response> = new Map()
@@ -17,8 +17,8 @@ class RestApi {
   authenticateUser
   getObject
   getObjects
-  getServers
-  getServer
+  getServers: XoApp['getAllXenServers']
+  getServer: XoApp['getXenServer']
   getObjectsByType
 
   constructor(xoApp: XoApp) {
@@ -31,7 +31,7 @@ class RestApi {
     this.getObject = xoApp.getObject.bind(xoApp)
     this.getObjects = xoApp.getObjects.bind(xoApp)
     this.getServers = () => xoApp.getAllXenServers()
-    this.getServer = (id: XoServer['id']) => xoApp.getXenServer(id)
+    this.getServer = id => xoApp.getXenServer(id)
 
     // helpers
     this.getObjectsByType = <T extends keyof typeof xoApp.objects.indexes.type>(type: T) =>
@@ -119,6 +119,8 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   })
   express.use('/rest/v1/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
   RegisterRoutes(express)
+
+  express.use(errorHandler)
 
   // in order to create the instance of the service (and start to listen for dashboard changes)
   iocContainer.get(DashboardService)

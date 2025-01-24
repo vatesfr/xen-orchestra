@@ -9,6 +9,8 @@ export class ServersController extends XoController<XoServer> {
   constructor() {
     super('server')
   }
+
+  @Security('token', ['admin'])
   @Get()
   public getServers(): Promise<string[]> {
     return this.getObjectIds()

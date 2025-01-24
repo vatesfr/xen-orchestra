@@ -28,6 +28,7 @@
     "inversify": "^6.2.1",
     "inversify-binding-decorators": "^4.0.0",
     "swagger-ui-express": "^5.0.1",
-    "tsoa": "^6.6.0"
+    "tsoa": "^6.6.0",
+    "xo-common": "^0.8.0"
   }
 }

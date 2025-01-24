@@ -6,6 +6,7 @@
     "module": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
+    "allowJs": true,
 
     /* Strict Type-Checking Options */
     "strict": true,
