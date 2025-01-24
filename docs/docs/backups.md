@@ -30,6 +30,10 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 Xen Orchestra ensures robust data security for backups stored remotely, by leveraging advanced encryption algorithms. Here's a closer look at how encryption works and the technology behind it:
 
+### Authentication
+
+The encryption algorithms are authenticated, meaning additional metadata is appended to the end of each saved file. During restoration, this metadata ensures that the restored data matches the original encrypted data, allowing the system to detect issues like bit rot or tampering by an attacker without the encryption key. However, it's important to note that this is not a recoverable error—if the verification fails, the file will be unusable.
+
 ### Configuring encryption
 
 Encryption is opt-in and requires configuring an encryption key on the remote.
@@ -51,9 +55,6 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote (S3-compatible or file-based). 
 Full backups create one file per backup with all the data, that can go over 64 GB, even when using XCP-ng zstd encryption.
 
-#### Authentication
-
-The algorithm is authenticated, meaning additional metadata is appended to the end of each saved file. During restoration, this metadata ensures that the restored data matches the original encrypted data, allowing the system to detect issues like bit rot or tampering by an attacker without the encryption key. However, it's important to note that this is not a recoverable error—if the verification fails, the file will be unusable.
 
 #### Compliance
 
