@@ -232,27 +232,32 @@ export default class XenServers {
 
     const serverIdsByPool = this._serverIdsByPool
 
-    const updatePoolServer = async function (xapiObject, xapiId) {
+    const updatePoolServer = async (xapiObject, xapiId) => {
       const serverId = serverIdsByPool[xapiId]
       const xenServer = await this.getXenServer(serverId)
 
-      const serverPropertiesUpdate = {
-        ...(xapiObject.name_label !== undefined &&
-          xapiObject.name_label !== xenServer.poolNameLabel && { poolNameLabel: xapiObject.name_label }),
-        ...(xapiObject.name_description !== undefined &&
-          xapiObject.name_description !== xenServer.poolNameDescription && {
-            poolNameDescription: xapiObject.name_description,
-          }),
-        ...(xenServer.poolNameLabel === undefined &&
-          xapiObject.name_label !== undefined && { label: xapiObject.name_label }),
+      // check if some properties need to be updated
+      const serverPropertiesUpdate = {}
+      if (xapiObject.name_label !== xenServer.poolNameLabel) {
+        serverPropertiesUpdate.poolNameLabel = xapiObject.name_label
       }
+      if (
+        xapiObject.name_description !== xenServer.poolNameDescription &&
+        !(xapiObject.name_description === '' && xenServer.poolNameDescription === undefined)
+      ) {
+        serverPropertiesUpdate.poolNameDescription = xapiObject.name_description
+      }
+      if (xenServer.poolNameLabel === undefined) {
+        serverPropertiesUpdate.label = xapiObject.name_label
+      }
+
       if (!isEmpty(serverPropertiesUpdate)) {
         return this.updateXenServer(serverIdsByPool[xapiId], {
           poolNameLabel: xapiObject.name_label,
           poolNameDescription: xapiObject.name_description,
         })
       }
-    }.bind(this)
+    }
 
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
@@ -264,7 +269,7 @@ export default class XenServers {
 
       // save pool name and description in server properties
       if (xapiObject.$type === 'pool') {
-        updatePoolServer(xapiObject, xapiId)
+        updatePoolServer(xapiObject, xapiId)::ignoreErrors()
       }
 
       const { $ref } = xapiObject

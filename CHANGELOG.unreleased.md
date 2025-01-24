@@ -44,7 +44,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
 - xo-server-usage-report patch
 - xo-web patch
 
