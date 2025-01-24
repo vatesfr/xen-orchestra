@@ -138,6 +138,17 @@ const ghApiUploadReleaseAsset = async (releaseId, assetName, file) => {
   return JSON.parse(await res.text())
 }
 
+const getChangelogForVersion = async (version, changelogPath = './CHANGELOG.md') => {
+  const changelog = await fs.readFile(changelogPath, 'utf8')
+  const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const escapedVersion = escapeRegex(version)
+
+  const versionRegex = new RegExp(`## \\*\\*${escapedVersion}\\*\\*.*?(?=\\n## \\*\\*|$)`, 's')
+
+  const match = changelog.match(versionRegex)
+  return match ? match[0].trim() : undefined
+}
+
 // Validate args and assign defaults -------------------------------------------
 
 const headSha = (await $`git rev-parse HEAD`).stdout.trim()
@@ -331,22 +342,21 @@ if (ghRelease) {
 
   let release = (await ghApiCall('/releases')).find(release => release.tag_name === tag)
 
-  if (release !== undefined) {
-    if (
-      await no(
-        `Release with tag ${tag} already exists on GitHub (${chalk.blue(
-          release.html_url
-        )}). Skip and proceed with upload?`
-      )
-    ) {
+  if (release !== undefined && (await no('release already exists, continue?'))) {
+    stop()
+  }
+  if (release === undefined) {
+    const releaseNotes = await getChangelogForVersion(version)
+
+    if (releaseNotes === undefined && (await no('changelog not found, continue?'))) {
       stop()
     }
-  } else {
     release = await ghApiCall('/releases', 'POST', {
       tag_name: tag,
       target_commitish: headSha,
       name: tag,
       draft: true,
+      body: releaseNotes,
     })
 
     console.log(`Created GitHub release ${tag}: ${chalk.blue(release.html_url)}`)
