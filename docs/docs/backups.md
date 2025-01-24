@@ -390,7 +390,7 @@ Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention str
 The start of the week is computed with the timezone set in the schedule.
 - **What GFS isn't:**\
 GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
-- GFS backups are defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created.
+- GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created.
 :::
 
 #### Enabling GFS Retention
