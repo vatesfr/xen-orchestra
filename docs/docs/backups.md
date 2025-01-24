@@ -48,7 +48,8 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 
 #### What is AES-256-GCM?
 
-Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
+Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote ( S3 compatible or file based). 
+Full backups creates one file per backup with all the data , that can go over 64GB, even when using xcp-ng zstd encryption
 
 #### Authentication
 
