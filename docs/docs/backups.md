@@ -34,15 +34,29 @@ Xen Orchestra ensures robust data security for backups stored remotely, by lever
 
 Encryption is opt-in and requires configuring an encryption key on the remote.
 
+:::warning
+- Encryption is only compatible with block-based remotes.
+- Encryption cannot be changed (such as enabling, disabling or changing the encryption key) if a remote contains any backup.
+:::
+
 1. Go to the Settings → Remote menu.
 2. Go to the section called **New file system remote**, or edit an existing remote.
 3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
 4. Click the **Save configuration** Button to finish the encryption setup.
 
-### Current Encryption Algorithm: `AES-256-GCM`
+### Current Encryption Algorithm: AES-256-GCM
+
+#### What is AES-256-GCM?
+
 Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with Amazon S3, as the data is split into smaller blocks, making it fully compatible with the platform. 
 
-In addition, this algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
+#### Authentication
+
+The algorithm is authenticated, meaning additional metadata is appended to the end of each saved file. During restoration, this metadata ensures that the restored data matches the original encrypted data, allowing the system to detect issues like bit rot or tampering by an attacker without the encryption key. However, it's important to note that this is not a recoverable error—if the verification fails, the file will be unusable.
+
+#### Compliance
+
+The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
 ### Upcoming Change: `ChaCha20-Poly1305`
 
