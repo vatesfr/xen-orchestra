@@ -1,0 +1,34 @@
+{
+  "author": "Vates",
+  "name": "@xen-orchestra/rest-api",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsoa spec-and-routes && tsc",
+    "dev": "tsoa spec-and-routes && tsc --watch"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.6",
+    "@types/swagger-ui-express": "^4.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "typescript": "~5.6.3"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "inversify": "^6.2.1",
+    "inversify-binding-decorators": "^4.0.0",
+    "swagger-ui-express": "^5.0.1",
+    "tsoa": "^6.6.0",
+    "xo-common": "^0.8.0"
+  }
+}

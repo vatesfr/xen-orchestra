@@ -117,7 +117,11 @@ async function createExpressApp(config) {
 
   app.use(helmet(config.http.helmet))
 
-  app.use(compression())
+  app.use(
+    compression({
+      filter: req => req.url !== '/rest/v1/events', // compression not compatible with EventSource?? it supposed to work with eventsource@3
+    })
+  )
 
   let { sessionSecret } = config.http
   if (sessionSecret === undefined) {
