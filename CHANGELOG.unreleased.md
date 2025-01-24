@@ -11,6 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Settings/Servers] Display last known pool name as server default label (PR [#8206](https://github.com/vatesfr/xen-orchestra/pull/8206))
 - **XO 6**:
   - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
   - [i18n] Add Spanish translation (contribution made by [@DSJ2](https://github.com/DSJ2)) (PR [#8220](https://github.com/vatesfr/xen-orchestra/pull/8220))
