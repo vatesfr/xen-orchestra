@@ -8,7 +8,7 @@
     </td>
     <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
     <td class="typo p3-regular status">
-      <VtsConnectionStatus :status />
+      <VtsConnectionStatus v-if="pifCarrier !== undefined" :status />
     </td>
     <td>
       <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
@@ -36,12 +36,12 @@ const { getByOpaqueRef: getOpaqueRefHost } = useHostStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefMetricsHost } = useHostMetricsStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
-const pifCarrier = getPifCarrier(pif)
+const pifCarrier = computed(() => getPifCarrier(pif))
 const pifCurrentlyAttached = pif.currently_attached
 
 const status = computed((): ConnectionStatus => {
-  if (pifCarrier && pifCurrentlyAttached) return 'connected'
-  if (!pifCarrier && pifCurrentlyAttached) return 'disconnected-from-physical-device'
+  if (pifCarrier.value && pifCurrentlyAttached) return 'connected'
+  if (!pifCarrier.value && pifCurrentlyAttached) return 'disconnected-from-physical-device'
   return 'disconnected'
 })
 

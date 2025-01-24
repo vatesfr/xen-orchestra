@@ -59,6 +59,7 @@ type ObjectTypeToRecordMapping = {
   message: XenApiMessage<any>
   network: XenApiNetwork
   pif: XenApiPif
+  pif_metrics: XenApiPifMetrics
   pool: XenApiPool
   pif: XenApiPif
   sr: XenApiSr
