@@ -61,6 +61,7 @@ type ObjectTypeToRecordMapping = {
   pif: XenApiPif
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
+  pif: XenApiPif
   sr: XenApiSr
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics

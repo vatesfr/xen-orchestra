@@ -40,6 +40,7 @@ defineSlots<{
   gap: 0.8rem;
 
   :deep(tbody) tr {
+
     &:hover {
       cursor: pointer;
       background-color: var(--color-brand-background-hover);
