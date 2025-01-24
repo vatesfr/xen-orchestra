@@ -40,16 +40,20 @@ defineSlots<{
   gap: 0.8rem;
 
   :deep(tbody) tr {
+
     &:hover {
       cursor: pointer;
       background-color: var(--color-info-background-hover);
     }
+
     &:active {
       background-color: var(--color-info-background-active);
     }
+
     &.selected {
       background-color: var(--color-info-background-selected);
     }
+
     &:last-child {
       border-bottom: 0.1rem solid var(--color-neutral-border);
     }
