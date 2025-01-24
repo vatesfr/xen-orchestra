@@ -64,15 +64,15 @@
         <!-- VLAN -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('vlan') }}</template>
-          <template #value>{{ formatValue(getNetworkVlan) }}</template>
+          <template #value>{{ formatValue(networkVlan) }}</template>
           <template #addons>
             <UiButtonIcon
-              v-if="getNetworkVlan"
+              v-if="networkVlan"
               v-tooltip="copied && $t('core.copied')"
               accent="info"
               size="medium"
               :icon="faCopy"
-              @click="copy(String(getNetworkVlan))"
+              @click="copy(String(networkVlan))"
             />
           </template>
         </VtsCardRowKeyValue>
@@ -116,7 +116,7 @@
     <UiCard v-if="network && network?.PIFs?.length > 0" class="card-container">
       <div class="typo p1-medium">
         {{ $t('pifs') }}
-        <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
+        <UiCounter v-if="pifsCount" :value="pifsCount" variant="primary" size="small" accent="neutral" />
       </div>
       <table class="simple-table">
         <thead>
@@ -155,6 +155,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { toArray } from '@core/utils/to-array.utils'
 import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
@@ -165,20 +166,20 @@ const { pifsByNetwork } = usePifStore().subscribe()
 const networkId = useRouteQuery('id')
 const network = computed(() => networks.value.find(network => network.uuid === networkId.value))
 
-const pifs = computed(() => (network.value ? pifsByNetwork.value.get(network.value.$ref) || [] : []))
+const pifs = computed(() => (network.value ? toArray(pifsByNetwork.value.get(network.value.$ref)) : []))
 
-const getNetworkVlan = computed(() => {
+const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
     return ''
   }
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : ''
 })
 
-const pifsCount = computed(() => pifs.value.length.toString())
+const pifsCount = computed(() => pifs.value.length)
 
-const formatValue = computed(() => (value?: string | number): string => {
+const formatValue = (value?: string | number): string => {
   return value ? String(value) : '-'
-})
+}
 
 const { copy, copied } = useClipboard()
 </script>

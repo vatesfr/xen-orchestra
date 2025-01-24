@@ -8,7 +8,7 @@
     </td>
     <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
     <td class="typo p3-regular status">
-      <VtsConnectionStatus v-if="pifCarrier !== undefined" :status />
+      <VtsConnectionStatus v-if="status !== undefined" :status />
     </td>
     <td>
       <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
@@ -37,35 +37,47 @@ const { getByOpaqueRef: getOpaqueRefMetricsHost } = useHostMetricsStore().subscr
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const pifCarrier = computed(() => getPifCarrier(pif))
-const pifCurrentlyAttached = pif.currently_attached
 
-const status = computed((): ConnectionStatus => {
-  if (pifCarrier.value && pifCurrentlyAttached) return 'connected'
-  if (!pifCarrier.value && pifCurrentlyAttached) return 'disconnected-from-physical-device'
+const pifCurrentlyAttached = computed(() => pif.currently_attached)
+
+const status = computed<ConnectionStatus | undefined>(() => {
+  if (pifCarrier.value === undefined) {
+    return undefined
+  }
+
+  if (pifCarrier.value && pifCurrentlyAttached.value) {
+    return 'connected'
+  }
+
+  if (!pifCarrier.value && pifCurrentlyAttached.value) {
+    return 'disconnected-from-physical-device'
+  }
+
   return 'disconnected'
 })
 
-const hostInfo = getOpaqueRefHost(pif.host)
-const hostStatus = hostInfo ? getOpaqueRefMetricsHost(hostInfo.metrics)?.live : ''
+const hostInfo = computed(() => getOpaqueRefHost(pif.host))
 
-const hostState = computed(() => {
-  return hostStatus ? 'running' : 'disabled'
-})
+const hostStatus = computed(() => (hostInfo.value ? getOpaqueRefMetricsHost(hostInfo.value.metrics)?.live : undefined))
+
+const hostState = computed(() => (hostStatus.value ? 'running' : 'halted'))
 </script>
 
 <style lang="postcss" scoped>
-td.host {
-  width: 13rem;
-  max-width: 13rem;
-}
+td {
+  &.host {
+    width: 13rem;
+    max-width: 13rem;
+  }
 
-td.device {
-  width: 6rem;
-  max-width: 6rem;
-}
+  &.device {
+    width: 6rem;
+    max-width: 6rem;
+  }
 
-td.status {
-  width: 14rem;
-  max-width: 14rem;
+  &.status {
+    width: 14rem;
+    max-width: 14rem;
+  }
 }
 </style>

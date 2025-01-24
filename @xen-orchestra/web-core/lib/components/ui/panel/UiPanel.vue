@@ -23,8 +23,7 @@ const slots = defineSlots<{
 
 <style scoped lang="postcss">
 .ui-panel {
-  height: 100%;
-  min-width: 40rem;
+  max-height: calc(200vh - 24rem);
   display: flex;
   flex-direction: column;
   border: 0.1rem solid var(--color-neutral-border);
@@ -45,7 +44,6 @@ const slots = defineSlots<{
     flex-direction: column;
     padding: 0.8rem;
     gap: 0.8rem;
-    min-width: calc(40rem - 0.1rem);
   }
 
   &.error {
