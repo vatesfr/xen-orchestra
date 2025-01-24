@@ -1,4 +1,4 @@
-import { Controller, Get, Request, Route } from 'tsoa'
+import { Controller, Get, Request, Route, Security } from 'tsoa'
 import DashboardService from './dashboard.service.js'
 import { inject } from 'inversify'
 import { provideSingleton } from '../ioc/helper.js'
@@ -25,6 +25,8 @@ export class DashboardController extends Controller {
     super()
     this.#dashboardService = dashboardService
   }
+
+  @Security('token', ['admin'])
   @Get()
   public async getDashboard(@Request() req: ExReq): Promise<Dashboard> {
     const resp = req.res!

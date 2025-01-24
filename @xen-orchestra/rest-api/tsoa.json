@@ -5,13 +5,25 @@
   "spec": {
     "outputDirectory": "./src/open-api/spec",
     "specVersion": 3,
-    "basePath": "/rest/v1"
+    "basePath": "/rest/v1",
+    "securityDefinitions": {
+      "basic_auth": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "token": {
+        "type": "apiKey",
+        "name": "authenticationToken",
+        "in": "cookie"
+      }
+    }
   },
   "routes": {
     "routesDir": "./src/open-api/routes",
     "esm": true,
     "middleware": "express",
     "basePath": "/rest/v1",
-    "iocModule": "./src/ioc/ioc.ts"
+    "iocModule": "./src/ioc/ioc.ts",
+    "authenticationModule": "./src/middleware/authentication.ts"
   }
 }

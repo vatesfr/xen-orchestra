@@ -14,6 +14,7 @@ class RestApi {
 
   ee = new EventEmitter()
 
+  authenticateUser
   getObject
   getObjects
   getServers
@@ -25,13 +26,18 @@ class RestApi {
       throw new Error('RestApi is a singleton')
     }
 
-    this.getObject = (id: XapiXoObject['id'], type: XapiXoObject['type']) => xoApp.getObject(id, type)
-    this.getObjects = (opts: XoApp['getObjects']['arguments']) => xoApp.getObjects(opts)
+    // existing xo methods
+    this.authenticateUser = xoApp.authenticateUser.bind(xoApp)
+    this.getObject = xoApp.getObject.bind(xoApp)
+    this.getObjects = xoApp.getObjects.bind(xoApp)
     this.getServers = () => xoApp.getAllXenServers()
     this.getServer = (id: XoServer['id']) => xoApp.getXenServer(id)
+
+    // helpers
     this.getObjectsByType = <T extends keyof typeof xoApp.objects.indexes.type>(type: T) =>
       xoApp.objects.indexes.type[type]
 
+    //
     this.#registerListener(xoApp.objects)
   }
 
@@ -50,7 +56,7 @@ class RestApi {
   }
 
   #registerListener(obj: XoApp['objects']) {
-    // XAPI events
+    // XO events
     obj.on('remove', data => {
       this.#handleXapiEvent(data, 'remove')
     })

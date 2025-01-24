@@ -9,10 +9,10 @@ interface XoPool extends XapiXoObject {
   type: 'pool'
 }
 
-// interface XoUser extends NonXapiObject {
-//   id: string
-//   permission: string
-// }
+interface XoUser extends NonXapiObject {
+  id: string
+  permission: string
+}
 // -----
 
 /**
@@ -44,6 +44,10 @@ interface Objects<T extends XapiXoObject> extends EventEmitter {
 }
 
 export interface XoApp extends EventEmitter {
+  authenticateUser: (
+    params: { token?: string; username?: string; password?: string },
+    optional?: { ip?: string }
+  ) => Promise<{ bypassOtp: boolean; user: XoUser }>
   objects: Objects<XoVm | XoPool> /** Nedd to add all XapiXoType here */
 
   getObjects: (opts?: { filter?: (obj: XapiXoObject) => boolean }) => Record<XapiXoObject['id'], XapiXoObject>
