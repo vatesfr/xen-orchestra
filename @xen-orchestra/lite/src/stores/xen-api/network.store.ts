@@ -17,7 +17,7 @@ export const useNetworkStore = defineStore('xen-api-network', () => {
   const pifContext = deps.pifStore.getContext()
 
   const networksWithPifs = computed(() => {
-    const networkRefs = Array.from(pifContext.pifsByHostMaster.value.keys())
+    const networkRefs = Array.from(pifContext.hostMasterPifsByNetwork.value.keys())
 
     return baseContext.records.value.filter(network => {
       return networkRefs.includes(network.$ref) && network.PIFs.length > 0

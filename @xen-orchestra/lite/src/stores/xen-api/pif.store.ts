@@ -1,6 +1,5 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
@@ -8,27 +7,26 @@ import { computed } from 'vue'
 
 export const usePifStore = defineStore('xen-api-pif', () => {
   const deps = {
-    hostStore: useHostStore(),
     poolStore: usePoolStore(),
   }
   const { context: baseContext, ...configRest } = createXapiStoreConfig('pif')
 
   const poolContext = deps.poolStore.getContext()
 
-  const pifsByHostMaster = computed(() => {
-    const pifsByHostMasterMap = new Map<XenApiNetwork['$ref'], XenApiPif[]>()
+  const hostMasterPifsByNetwork = computed(() => {
+    const hostMasterPifsByNetworkMap = new Map<XenApiNetwork['$ref'], XenApiPif[]>()
 
     baseContext.records.value
-      .filter(pif => poolContext.isPoolMaster(pif.host))
+      .filter(pif => poolContext.isMasterHost(pif.host))
       .forEach(pif => {
         const networkId = pif.network
-        if (!pifsByHostMasterMap.has(networkId)) {
-          pifsByHostMasterMap.set(networkId, [])
+        if (!hostMasterPifsByNetworkMap.has(networkId)) {
+          hostMasterPifsByNetworkMap.set(networkId, [])
         }
-        pifsByHostMasterMap.get(networkId)?.push(pif)
+        hostMasterPifsByNetworkMap.get(networkId)?.push(pif)
       })
 
-    return pifsByHostMasterMap
+    return hostMasterPifsByNetworkMap
   })
 
   const pifsByNetwork = computed(() => {
@@ -45,7 +43,7 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     return pifsByNetworkMap
   })
 
-  const context = { ...baseContext, pifsByNetwork, pifsByHostMaster }
+  const context = { ...baseContext, pifsByNetwork, hostMasterPifsByNetwork }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
