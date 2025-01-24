@@ -1,28 +1,14 @@
-export type XoServer =
-  | {
-      allowUnauthorized: boolean
-      host: string
-      label: string
-      password: string
-      username: string
-      enabled: boolean
-      readOnly: boolean
-      id: string
-      status: 'connected'
-      poolId: string /* XoPool['id'] */
-    }
-  | {
-      allowUnauthorized: boolean
-      host: string
-      label: string
-      password: string
-      username: string
-      enabled: boolean
-      readOnly: boolean
-      id: string
-      status: 'disconnected'
-      error?: {
-        [key: string]: unknown
-        connectedServerId?: string
-      }
-    }
+import { NonXapiObject } from '../xoApp.type.js'
+
+export interface XoServer extends NonXapiObject {
+  allowUnauthorized: boolean
+  host: string
+  label: string
+  password: string
+  username: string
+  enabled: boolean
+  readOnly: boolean
+  status: 'connected' | 'disconnected'
+  error?: any
+  poolId: string /* XoPool['id'] */
+}

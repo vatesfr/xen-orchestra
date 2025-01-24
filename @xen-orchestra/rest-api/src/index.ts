@@ -7,29 +7,32 @@ import { XapiXoObject, XoApp } from './xoApp.type.js'
 import { EventEmitter } from 'events'
 import DashboardService from './dashboard/dashboard.service.js'
 import { iocContainer } from './ioc/ioc.js'
+import { XoServer } from './servers/server.type.js'
 
 class RestApi {
   #sseClients: Map<symbol, Response> = new Map()
 
   ee = new EventEmitter()
 
-  getObjects: XoApp['getObjects']
-  getObject: XoApp['getObject']
-  getServers: XoApp['getAllXenServers']
-  getServer: XoApp['getXenServer']
+  getObject
+  getObjects
+  getServers
+  getServer
+  getObjectsByType
 
   constructor(xoApp: XoApp) {
     if (restApi !== undefined) {
       throw new Error('RestApi is a singleton')
     }
 
-    // wrap these method with permission
-    this.getObject = (id, type) => xoApp.getObject(id, type)
-    this.getObjects = opts => xoApp.getObjects(opts)
+    this.getObject = (id: XapiXoObject['id'], type: XapiXoObject['type']) => xoApp.getObject(id, type)
+    this.getObjects = (opts: XoApp['getObjects']['arguments']) => xoApp.getObjects(opts)
     this.getServers = () => xoApp.getAllXenServers()
-    this.getServer = id => xoApp.getXenServer(id)
+    this.getServer = (id: XoServer['id']) => xoApp.getXenServer(id)
+    this.getObjectsByType = <T extends keyof typeof xoApp.objects.indexes.type>(type: T) =>
+      xoApp.objects.indexes.type[type]
 
-    this.#registerListener(xoApp._objects)
+    this.#registerListener(xoApp.objects)
   }
 
   addSseClient(id: symbol, client: Response) {
@@ -46,7 +49,7 @@ class RestApi {
     })
   }
 
-  #registerListener(obj: XoApp['_objects']) {
+  #registerListener(obj: XoApp['objects']) {
     // XAPI events
     obj.on('remove', data => {
       this.#handleXapiEvent(data, 'remove')
@@ -104,6 +107,10 @@ export const getRestApi = () => restApi
 export default function setupRestApi(express: Express, xoApp: XoApp) {
   restApi = new RestApi(xoApp)
 
+  express.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*') // TODO: remove this. Only used for test
+    next()
+  })
   express.use('/rest/v1/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
   RegisterRoutes(express)
 

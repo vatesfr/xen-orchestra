@@ -1,5 +1,6 @@
-export type XoVm = {
-  id: string
+import { XapiXoObject } from '../xoApp.type.js'
+
+export interface XoVm extends XapiXoObject {
   type: 'VM'
 
   name_label: string

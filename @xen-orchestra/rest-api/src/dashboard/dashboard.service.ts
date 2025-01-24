@@ -1,5 +1,4 @@
 import { getRestApi } from '../index.js'
-import { XoVm } from '../vms/vm.type.js'
 import { Dashboard } from './dashboard.controller.js'
 import { provideSingleton } from '../ioc/helper.js'
 
@@ -32,7 +31,7 @@ export default class DashboardService {
   }
 
   #getVmsStatus(): Dashboard['vmsStatus'] {
-    const vms = Object.values(this.#restApi.getObjects<XoVm>({ filter: obj => obj.type === 'VM' }))
+    const vms = Object.values(this.#restApi.getObjectsByType('VM') ?? {})
     let running = 0
     let inactive = 0
     let unknown = 0
@@ -55,7 +54,7 @@ export default class DashboardService {
 
   async #getPoolsStatus(): Promise<Dashboard['poolsStatus']> {
     const servers = await this.#restApi.getServers()
-    const poolIds = Object.keys(this.#restApi.getObjects({ filter: obj => obj.type === 'pool' }))
+    const poolIds = Object.keys(this.#restApi.getObjectsByType('pool') ?? {})
 
     let nConnectedServers = 0
     let nUnreachableServers = 0

@@ -1,7 +1,8 @@
-import { Controller, Get, Route } from 'tsoa'
+import { Controller, Get, Request, Route } from 'tsoa'
 import DashboardService from './dashboard.service.js'
 import { inject } from 'inversify'
 import { provideSingleton } from '../ioc/helper.js'
+import { Request as ExReq } from 'express'
 
 export type Dashboard = {
   vmsStatus: {
@@ -25,7 +26,10 @@ export class DashboardController extends Controller {
     this.#dashboardService = dashboardService
   }
   @Get()
-  public async getDashboard(): Promise<Dashboard> {
+  public async getDashboard(@Request() req: ExReq): Promise<Dashboard> {
+    const resp = req.res!
+    resp.setHeader('Access-Control-Allow-Origin', '*') // TODO: remove this. Only used for test
+
     return this.#dashboardService.getDashboard()
   }
 }
