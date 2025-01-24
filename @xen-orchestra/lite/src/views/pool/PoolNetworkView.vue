@@ -19,8 +19,6 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  display: flex;
-
   .container {
     display: flex;
     flex-direction: column;

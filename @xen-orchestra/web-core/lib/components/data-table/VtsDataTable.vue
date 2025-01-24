@@ -41,21 +41,18 @@ defineSlots<{
   flex-direction: column;
   gap: 0.8rem;
 
-  :deep {
-    tbody tr:hover {
+  :deep(tbody) tr {
+    &:hover {
       cursor: pointer;
       background-color: var(--color-info-background-hover);
     }
-
-    tbody tr:active {
+    &:active {
       background-color: var(--color-info-background-active);
     }
-
-    tbody tr.selected {
+    &.selected {
       background-color: var(--color-info-background-selected);
     }
-
-    tr:last-child {
+    &:last-child {
       border-bottom: 0.1rem solid var(--color-neutral-border);
     }
   }

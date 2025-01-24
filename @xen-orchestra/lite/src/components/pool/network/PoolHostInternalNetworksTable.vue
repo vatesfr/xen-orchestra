@@ -57,13 +57,15 @@
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
               </th>
-              <th v-else-if="column.id === 'more'" v-tooltip="$t('coming-soon')" class="more">
-                <UiButtonIcon size="small" accent="info" :icon="faEllipsis" />
-                {{ column.label }}
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
               </th>
-              <ColumnTitle v-else :icon="headerIcon[column.id]">
-                <span class="text-ellipsis">{{ column.label }}</span>
-              </ColumnTitle>
+              <th v-else>
+                <div v-tooltip class="text-ellipsis">
+                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
             </template>
           </tr>
         </template>
@@ -81,11 +83,13 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
-              <VtsIcon
+              <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
-                accent="info"
                 :icon="faEllipsis"
+                accent="info"
+                disabled
+                size="small"
               />
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -109,10 +113,9 @@
 <script setup lang="ts">
 import useMultiSelect from '@/composables/multi-select.composable'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsDataTable from '@core/components/table/VtsDataTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -133,6 +136,7 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -165,14 +169,14 @@ const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t(
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
   columns: define => [
-    define('checkbox', () => '', { label: '', isHideable: false }),
+    define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
     define('name_description', { label: t('description') }),
     define('MTU', { label: t('mtu') }),
     define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
     }),
-    define('more', () => '', { label: '', isHideable: false }),
+    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
