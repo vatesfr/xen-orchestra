@@ -14,13 +14,20 @@ interface XoUser extends NonXapiObject {
   permission: string
 }
 // -----
-
+export type XapiObject = {
+  $ref: string
+  $id: string
+  $type: 'VM' | 'pool'
+  $xapi: any
+  $call: <T>(method: string, ...args: any) => Promise<T>
+  $callAsync: <T>(method: string, ...args: any) => Promise<T>
+}
 /**
  * XapiXoObject can be every "xapi-to-xo" object
  */
 export type XapiXoObject = {
   id: string
-  type: 'VM' | 'pool'
+  type: XapiObject['$type']
 }
 
 /**
@@ -52,6 +59,9 @@ export interface XoApp extends EventEmitter {
 
   getObjects: (opts?: { filter?: (obj: XapiXoObject) => boolean }) => Record<XapiXoObject['id'], XapiXoObject>
   getObject: <T extends XapiXoObject>(id: T['id'], type: T['type']) => T
+
+  // how to return the right type for getXapiObject?
+  getXapiObject: <T extends XapiObject>(objOrId: XapiXoObject['id'] | XapiXoObject, type: XapiXoObject['type']) => T
 
   getAllXenServers: () => Promise<XoServer[]>
   getXenServer: (id: XoServer['id']) => Promise<XoServer>

@@ -19,6 +19,7 @@ class RestApi {
   getObjects
   getServers: XoApp['getAllXenServers']
   getServer: XoApp['getXenServer']
+  getXapiObject: XoApp['getXapiObject']
   getObjectsByType
 
   constructor(xoApp: XoApp) {
@@ -31,6 +32,7 @@ class RestApi {
     this.getObject = xoApp.getObject.bind(xoApp)
     this.getObjects = xoApp.getObjects.bind(xoApp)
     this.getServers = () => xoApp.getAllXenServers()
+    this.getXapiObject = (idOrObj, type) => xoApp.getXapiObject(idOrObj, type)
     this.getServer = id => xoApp.getXenServer(id)
 
     // helpers
