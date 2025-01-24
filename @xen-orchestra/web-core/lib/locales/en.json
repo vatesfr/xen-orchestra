@@ -79,6 +79,8 @@
   "core.group": "Group",
   "core.hide": "Hide",
   "core.open": "Open",
+  "core.pagination.all": "All",
+  "core.pagination.show-by": "Show by",
   "core.query-search-bar.label": "Search Engine",
   "core.query-search-bar.placeholder": "Write your query…",
   "core.query-search-bar.use-query-builder": "Use query builder",
