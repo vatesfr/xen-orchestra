@@ -64,15 +64,15 @@
         <!-- VLAN -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('vlan') }}</template>
-          <template #value>{{ formatValue(getNetworkVlan(network)) }}</template>
+          <template #value>{{ formatValue(getNetworkVlan) }}</template>
           <template #addons>
             <UiButtonIcon
-              v-if="getNetworkVlan(network)"
+              v-if="getNetworkVlan"
               v-tooltip="copied && $t('core.copied')"
               accent="info"
               size="medium"
               :icon="faCopy"
-              @click="copy(String(getNetworkVlan(network)))"
+              @click="copy(String(getNetworkVlan))"
             />
           </template>
         </VtsCardRowKeyValue>
@@ -143,7 +143,6 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -168,16 +167,19 @@ const network = computed(() => networks.value.find(network => network.uuid === n
 
 const pifs = computed(() => (network.value ? pifsByNetwork.value.get(network.value.$ref) || [] : []))
 
-const getNetworkVlan = computed(() => (network: XenApiNetwork): string | undefined => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.$ref))
-  if (networkPIFs.length > 0) {
-    return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : ''
+const getNetworkVlan = computed(() => {
+  if (pifs.value.length === 0) {
+    return ''
   }
+  return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : ''
 })
+
 const pifsCount = computed(() => pifs.value.length.toString())
+
 const formatValue = computed(() => (value?: string | number): string => {
   return value ? String(value) : '-'
 })
+
 const { copy, copied } = useClipboard()
 </script>
 
