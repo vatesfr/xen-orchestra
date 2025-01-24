@@ -193,6 +193,7 @@ vdiExportConcurrency = 12
 vmEvacuationConcurrency = 3
 vmExportConcurrency = 2
 vmSnapshotConcurrency = 2
+vdiDelayBeforeRemovingCloudConfigDrive = '5 min'
 
 poolMarkingInterval = '6 hours'
 poolMarkingMaxAge = '48 hours'

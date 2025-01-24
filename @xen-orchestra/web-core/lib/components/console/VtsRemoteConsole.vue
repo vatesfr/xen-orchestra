@@ -9,6 +9,7 @@
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
+import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
@@ -84,7 +85,31 @@ async function createVncConnection() {
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
+  const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
+  if (canvas !== null) {
+    // Todo: See with Clémence to specify the desired focus behavior
+    canvas.setAttribute('tabindex', '0')
+    canvas.addEventListener('focus', () => {
+      canvas.classList.add('focused')
+    })
+
+    canvas.addEventListener('blur', () => {
+      canvas.classList.remove('focused')
+    })
+  }
 }
+
+whenever(
+  () => uiStore.hasUi,
+  () => {
+    if (!vncClient) {
+      return
+    }
+    // the state is changed from false to true for xo-lite to trigger the change
+    vncClient.scaleViewport = false
+    vncClient.scaleViewport = true
+  }
+)
 
 watchEffect(() => {
   if (consoleContainer.value === null || !props.isConsoleAvailable) {
@@ -124,6 +149,12 @@ defineExpose({
   /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
   :deep(canvas) {
     margin: 0 auto !important;
+    cursor: default !important;
+    border: 6px solid transparent;
+
+    &.focused {
+      border: var(--color-success-txt-base) 6px solid;
+    }
   }
 }
 </style>

@@ -19,6 +19,7 @@
     "@novnc/novnc": "^1.4.0",
     "@types/d3-time-format": "^4.0.3",
     "@vueuse/core": "^10.7.1",
+    "@vueuse/math": "^10.7.1",
     "@vueuse/shared": "^10.7.1",
     "d3-time-format": "^4.1.0",
     "echarts": "^5.4.3",

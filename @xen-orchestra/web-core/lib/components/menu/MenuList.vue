@@ -2,7 +2,13 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
   <Teleport :disabled="!shouldTeleport" to="body">
-    <ul v-if="!hasTrigger || isOpen" ref="menu" :class="{ horizontal, border }" class="menu-list" v-bind="$attrs">
+    <ul
+      v-if="!hasTrigger || isOpen"
+      ref="menu"
+      :class="{ horizontal, border: !noBorder }"
+      class="menu-list"
+      v-bind="$attrs"
+    >
       <slot />
     </ul>
   </Teleport>
@@ -21,7 +27,7 @@ defineOptions({
 
 const props = defineProps<{
   horizontal?: boolean
-  border?: boolean
+  noBorder?: boolean
   disabled?: boolean
   placement?: Options['placement']
 }>()

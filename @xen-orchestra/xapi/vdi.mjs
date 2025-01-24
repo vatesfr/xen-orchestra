@@ -76,6 +76,9 @@ class Vdi {
       })
     })
 
+    // See https://github.com/vatesfr/xen-orchestra/issues/8219
+    await new Promise(resolve => setTimeout(resolve, this._vdiDelayBeforeRemovingCloudConfigDrive))
+
     await this.VBD_unplug(vbdRef)
     await this.VDI_destroy(vdiRef)
   }
