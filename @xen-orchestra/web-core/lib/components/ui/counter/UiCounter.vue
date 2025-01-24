@@ -14,7 +14,7 @@ type CounterVariant = 'primary' | 'secondary'
 type CounterSize = 'small' | 'medium'
 
 const props = defineProps<{
-  value: number | string | undefined
+  value: number | string
   accent: CounterAccent
   variant: CounterVariant
   size: CounterSize
