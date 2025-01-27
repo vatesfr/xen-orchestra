@@ -412,6 +412,50 @@ It is often a good idea to configure retention of older backups with decreasing 
 
 Again, all of these can be assigned to the same backup job. Note that if you do a weekly and a monthly backup, at some point, these will fall on the same day. Xen Orchestra is designed to fail gracefully (with an error message) if a backup job for a VM is already running. For this reason, you will want to set the time on the monthly job to run before the weekly job so that if one fails, it will be the weekly rather than the monthly one; if the weekly one fails, the monthly will be there for that spot in the retention plan; if the monthly one fails, the weekly one will only be retained for 4 weeks, and then there will be a gap in the monthly retention.
 
+### Long-term Backup Retention with GFS Strategy
+
+Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention strategy, providing an efficient way to manage long-term backups. Backups are organized into daily, weekly, and monthly intervals, optimizing storage while keeping important recovery points over time.
+
+#### FAQ
+
+- **What happens if I change my GFS retention policy?**\
+  Excess backups will be deleted during the next job execution to match the updated retention settings.
+
+- **Is GFS retention applied globally or per repository?**\
+  GFS retention is applied on a per-repository basis, allowing you to manage retention independently for different storage locations.
+
+- **How does Xen Orchestra decide which backups to retain?**\
+  The oldest backup within each retention period (daily, weekly, or monthly) is preserved. For example, the first backup of the week is saved as the weekly backup.
+
+:::warning
+- **Definition of a week:**\
+The start of the week is computed with the timezone set in the schedule.
+- **What GFS isn't:**\
+GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
+- GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created.
+:::
+
+#### Enabling GFS Retention
+
+To enable GFS retention:
+
+1. Go to the **Backup** menu.
+2. Create a new backup job or open an existing one.
+3. Click the **Delta Backup** button.\
+The section called **Long-term retention of backups** appears.
+4. In that section, you can define the following:
+- **Daily backups**: The number of daily backups to keep.
+- **Weekly backups** (Son): The number of weekly backups to keep.
+- **Monthly backups** (Father): The number of monthly backups to keep.
+- **Yearly backups** (Grandfather): The number of monthly backups to keep.
+5. Click the **Save** button.
+
+During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.
+
+### Implementation in Xen Orchestra
+
+To enable GFS retention, configure the settings in the backup job's "Retention" section. During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.
+
 ## Backup Health Check
 
 Backup health check ensures the backups are ready to be restored.
