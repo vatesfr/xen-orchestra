@@ -48,7 +48,9 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
 4. Click the **Save configuration** Button to finish the encryption setup.
 
-### Current Encryption Algorithm: AES-256-GCM
+### `AES-256-GCM`
+
+> This algorithm was the default before February 2025 and has now been replaced by [`ChaCha20-Poly1305`](#chacha20-poly1305).
 
 #### What is AES-256-GCM?
 
