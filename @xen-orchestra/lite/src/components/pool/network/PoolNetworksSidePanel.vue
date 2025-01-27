@@ -121,7 +121,7 @@
       <table class="simple-table">
         <thead>
           <tr>
-            <th class="text-left typo p3-regular host">
+            <th class="text-left typo p3-regular">
               {{ $t('host') }}
             </th>
             <th class="text-left typo p3-regular">
