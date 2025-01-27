@@ -50,18 +50,7 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable
-          :selected-items="selected.length"
-          :total-items="networkIds.length"
-          @toggle-select-all="toggleSelect"
-        />
-        <UiTablePagination
-          v-model:curr-page="pagination.currentPage"
-          v-model:per-page="pagination.pageSize"
-          v-model:start-index="pagination.startIndex"
-          v-model:end-index="pagination.endIndex"
-          :total-items="networkIds.length"
-        />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
       </div>
       <VtsDataTable
         :is-ready
@@ -71,8 +60,8 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+              <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
+                <UiCheckbox :v-model="areAllSelected" accent="info" disabled @update:model-value="toggleSelect" />
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
@@ -100,7 +89,9 @@
               class="typo p2-regular"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+                <UiCheckbox v-model="selected" accent="info" :value="row.id" disabled />
+              </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
@@ -120,20 +111,7 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
         {{ $t('no-result') }}
       </VtsStateHero>
-      <div class="selection">
-        <UiTopBottomTable
-          :selected-items="selected.length"
-          :total-items="networkIds.length"
-          @toggle-select-all="toggleSelect"
-        />
-        <UiTablePagination
-          v-model:curr-page="pagination.currentPage"
-          v-model:per-page="pagination.pageSize"
-          v-model:start-index="pagination.startIndex"
-          v-model:end-index="pagination.endIndex"
-          :total-items="networkIds.length"
-        />
-      </div>
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>
   </div>
 </template>
@@ -152,7 +130,6 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTablePagination, { type PaginationPayload } from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
@@ -172,15 +149,8 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const pagination = ref<PaginationPayload>({
-  currentPage: 1,
-  pageSize: 10,
-  startIndex: 0,
-  endIndex: 0,
-})
 
 const { t } = useI18n()
 
@@ -188,30 +158,16 @@ const { networksWithPifs: networks, isReady, hasError } = useNetworkStore().subs
 const { records: pifs } = usePifStore().subscribe()
 
 const selectedNetworkId = useRouteQuery('id')
-const findPageById = () => {
-  const index = networks.value.findIndex(network => network.id === selectedNetworkId.value)
-  if (index === -1) {
-    return null
-  }
-  pagination.value.currentPage = Math.floor(index / pagination.value.pageSize) + 1
-}
-
-watch(
-  () => networks,
-  () => {
-    findPageById()
-  }
-)
 
 const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return networks.value.slice(pagination.value.startIndex - 1, pagination.value.endIndex)
+    return networks.value
   }
   return networks.value.filter(network =>
-    Object.values(network).some(value => String(value).toLowerCase().includes(searchQuery.value.toLowerCase()))
+    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
