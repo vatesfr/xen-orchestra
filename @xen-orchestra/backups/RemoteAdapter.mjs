@@ -703,7 +703,7 @@ export class RemoteAdapter {
   async outputStream(
     path,
     input,
-    { checksum = !this._handler.isEncrypted(), maxStreamLength, streamLength, validator = noop } = {}
+    { checksum = !this._handler.isEncrypted, maxStreamLength, streamLength, validator = noop } = {}
   ) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
