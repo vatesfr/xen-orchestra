@@ -294,9 +294,7 @@ async function _getDashboardStats(app) {
         if (isReplicaVm(vmObject)) {
           return true
         }
-      } catch (err) {
-        console.error(err.message)
-      }
+      } catch (err) {}
     }
     return false
   }
@@ -311,7 +309,6 @@ async function _getDashboardStats(app) {
       vdiObject = app.getObject(vdi, ['VDI', 'VDI-snapshot', 'VDI-unmanaged'])
       cache.set(vdi, vdiObject)
     } catch (err) {
-      console.error(err.message)
       return 0
     }
 
@@ -333,20 +330,19 @@ async function _getDashboardStats(app) {
 
       return {
         replicated: acc.replicated + replicated,
-        other: acc.other + sr.size - replicated,
         total: acc.total + sr.size,
         used: acc.used + sr.physical_usage,
       }
     },
     {
       replicated: 0,
-      other: 0,
       total: 0,
       used: 0,
     }
   )
 
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
+  storageRepositoriesSize.other = storageRepositoriesSize.total - storageRepositoriesSize.replicated
   resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
