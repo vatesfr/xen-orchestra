@@ -27,7 +27,7 @@ const LTR_DEFINITIONS = {
         copy.date(date.date() - firstDayOfWeek)
         // warning, the year in term of week may different from YYYY
         // since the computation of the first week of a year is timezone dependant
-        return copy.format('gggg-WW')
+        return copy.format('gggg-ww')
       }
     },
     ancestor: 'daily',
