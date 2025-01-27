@@ -342,7 +342,14 @@ if (ghRelease) {
 
   let release = (await ghApiCall('/releases')).find(release => release.tag_name === tag)
 
-  if (release !== undefined && (await no('release already exists, continue?'))) {
+  if (
+    release !== undefined &&
+    (await no(
+      `Release with tag ${tag} already exists on GitHub (${chalk.blue(
+        release.html_url
+      )}). Skip and proceed with upload?`
+    ))
+  ) {
     stop()
   }
   if (release === undefined) {
