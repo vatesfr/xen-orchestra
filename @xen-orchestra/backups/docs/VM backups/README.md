@@ -29,7 +29,7 @@
      │        └─ <YYYYMMDD>T<HHmmss>.vhd
      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
      ├─ <YYYYMMDD>T<HHmmss>.xva
-     └─ <YYYYMMDD>T<HHmmss>.xva.checksum
+     └─ <YYYYMMDD>T<HHmmss>.xva.checksum // only on backup before 01/02/2025 or non encrypted
 ```
 
 ### with vhd directories
