@@ -48,6 +48,12 @@ Encryption is opt-in and requires configuring an encryption key on the remote.
 3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
 4. Click the **Save configuration** Button to finish the encryption setup.
 
+### `ChaCha20-Poly1305`
+
+To improve flexibility and performance, Xen Orchestra will transition to the [`ChaCha20-Poly1305`](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
+
+Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
+
 ### `AES-256-GCM`
 
 > This algorithm was the default before February 2025 and has now been replaced by [`ChaCha20-Poly1305`](#chacha20-poly1305).
@@ -61,12 +67,6 @@ Full backups create one file per backup with all the data, that can go over 64 G
 #### Compliance
 
 The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
-
-### `ChaCha20-Poly1305`
-
-To improve flexibility and performance, Xen Orchestra will transition to the [`ChaCha20-Poly1305`](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
-
-Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
 
 ## Exclude disks
 
