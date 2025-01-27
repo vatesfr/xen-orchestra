@@ -70,6 +70,7 @@ const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  flex: 1;
 
   .input {
     border-radius: 0.4rem;

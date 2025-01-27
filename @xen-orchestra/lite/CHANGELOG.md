@@ -6,6 +6,7 @@
 - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
 - [i18n] Add Spanish translation (contribution made by [@DSJ2](https://github.com/DSJ2)) (PR [#8220](https://github.com/vatesfr/xen-orchestra/pull/8220))
 - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
+- [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 
 ## **0.6.0** (2024-11-29)
 
