@@ -26,6 +26,48 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 ![](./assets/log-runId.png)
 
+## Backup Encryption
+
+Xen Orchestra ensures robust data security for backups stored remotely, by leveraging advanced encryption algorithms. Here's a closer look at how encryption works and the technology behind it:
+
+### Authentication
+
+The encryption algorithms are authenticated, meaning additional metadata is appended to the end of each saved file. During restoration, this metadata ensures that the restored data matches the original encrypted data, allowing the system to detect issues like bit rot or tampering by an attacker without the encryption key. However, it's important to note that this is not a recoverable error—if the verification fails, the file will be unusable.
+
+### Configuring encryption
+
+Encryption is opt-in and requires configuring an encryption key on the remote.
+
+:::warning
+- Encryption is only compatible with block-based remotes.
+- Encryption cannot be changed (such as enabling, disabling or changing the encryption key) if a remote contains any backup.
+:::
+
+1. Go to the Settings → Remote menu.
+2. Go to the section called **New file system remote**, or edit an existing remote.
+3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
+4. Click the **Save configuration** Button to finish the encryption setup.
+
+### `ChaCha20-Poly1305`
+
+To improve flexibility and performance, Xen Orchestra will transition to the [`ChaCha20-Poly1305`](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
+
+Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
+
+### `AES-256-GCM`
+
+> This algorithm was the default before February 2025 and has now been replaced by [`ChaCha20-Poly1305`](#chacha20-poly1305).
+
+#### What is AES-256-GCM?
+
+Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote (S3-compatible or file-based). 
+
+Full backups create one file per backup with all the data, that can go over 64 GB, even when using XCP-ng zstd encryption.
+
+#### Compliance
+
+The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
+
 ## Exclude disks
 
 During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
