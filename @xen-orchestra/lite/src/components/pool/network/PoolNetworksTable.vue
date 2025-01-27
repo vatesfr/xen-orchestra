@@ -50,11 +50,7 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable
-          :selected-items="selected.length"
-          :total-items="networkUuids.length"
-          @toggle-select-all="toggleSelect"
-        />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
       </div>
       <VtsDataTable
         :is-ready
@@ -65,7 +61,9 @@
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+                <div v-tooltip="$t('coming-soon')">
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+                </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
@@ -92,7 +90,9 @@
               class="typo p2-regular"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <UiCheckbox v-if="column.id === 'checkbox'" v-model="selected" accent="info" :value="row.id" />
+              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+                <UiCheckbox v-model="selected" disabled accent="info" :value="row.id" />
+              </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
@@ -112,11 +112,7 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
         <div>{{ $t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable
-        :selected-items="selected.length"
-        :total-items="networkUuids.length"
-        @toggle-select-all="toggleSelect"
-      />
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>
   </div>
 </template>

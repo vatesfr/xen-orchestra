@@ -10,10 +10,8 @@
         </tbody>
       </VtsTable>
     </VtsLoadingHero>
-    <VtsErrorNoDataHero v-if="hasError" type="table" />
-    <VtsStateHero v-if="noDataMessage" type="table" image="no-data">
-      {{ noDataMessage }}
-    </VtsStateHero>
+    <VtsErrorNoDataHero v-if="isReady && hasError" type="table" />
+    <VtsStateHero v-if="isReady && noDataMessage" type="table" image="no-data" />
   </div>
 </template>
 
