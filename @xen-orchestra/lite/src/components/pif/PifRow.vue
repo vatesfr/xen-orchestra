@@ -1,9 +1,9 @@
 <template>
   <tr>
-    <td v-if="hostInfo" class="typo p3-regular text-ellipsis host">
-      <UiObjectIcon :state="hostState" type="host" size="small" />
+    <td v-if="host" class="typo p3-regular text-ellipsis host">
+      <UiObjectIcon :state="hostPowerState" type="host" size="small" />
       <a v-tooltip href="" class="text-ellipsis">
-        {{ hostInfo.name_label }}
+        {{ host.name_label }}
       </a>
     </td>
     <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
@@ -38,46 +38,46 @@ const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const pifCarrier = computed(() => getPifCarrier(pif))
 
-const pifCurrentlyAttached = computed(() => pif.currently_attached)
-
 const status = computed<ConnectionStatus | undefined>(() => {
   if (pifCarrier.value === undefined) {
     return undefined
   }
 
-  if (pifCarrier.value && pifCurrentlyAttached.value) {
+  const isPifCurrentlyAttached = pif.currently_attached
+
+  if (pifCarrier.value && isPifCurrentlyAttached) {
     return 'connected'
   }
 
-  if (!pifCarrier.value && pifCurrentlyAttached.value) {
+  if (!pifCarrier.value && isPifCurrentlyAttached) {
     return 'disconnected-from-physical-device'
   }
 
   return 'disconnected'
 })
 
-const hostInfo = computed(() => getOpaqueRefHost(pif.host))
+const host = computed(() => getOpaqueRefHost(pif.host))
 
-const hostStatus = computed(() => (hostInfo.value ? getOpaqueRefMetricsHost(hostInfo.value.metrics)?.live : undefined))
+const hostStatus = computed(() => (host.value ? getOpaqueRefMetricsHost(host.value.metrics)?.live : undefined))
 
-const hostState = computed(() => (hostStatus.value ? 'running' : 'halted'))
+const hostPowerState = computed(() => (hostStatus.value ? 'running' : 'halted'))
 </script>
 
 <style lang="postcss" scoped>
 td {
   &.host {
-    width: 13rem;
-    max-width: 13rem;
+    width: 14rem;
+    max-width: 14rem;
   }
 
   &.device {
-    width: 6rem;
-    max-width: 6rem;
+    width: 8rem;
+    max-width: 8rem;
   }
 
   &.status {
-    width: 14rem;
-    max-width: 14rem;
+    width: 12rem;
+    max-width: 12rem;
   }
 }
 </style>
