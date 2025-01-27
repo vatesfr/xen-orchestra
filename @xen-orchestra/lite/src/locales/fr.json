@@ -286,12 +286,11 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
-  "vlan": "VLAN",
+  "vlan": "Vlan",
 
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
 
-  "vlan": "Vlan",
   "vm-is-running": "La VM est en cours d'exécution",
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",

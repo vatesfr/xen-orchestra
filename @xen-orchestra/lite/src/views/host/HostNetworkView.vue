@@ -17,11 +17,8 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 
 <style lang="postcss" scoped>
 .host-network-view {
-  display: flex;
-  border-radius: 0.8rem;
-
   .container {
-    border: solid 0.1rem var(--color-neutral-border);
+    gap: 4rem;
     margin: 0.8rem;
   }
 }

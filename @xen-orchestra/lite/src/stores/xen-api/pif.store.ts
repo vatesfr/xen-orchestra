@@ -1,7 +1,7 @@
-import type { XenApiNetwork, XenApiPif, XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
@@ -58,7 +58,11 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     })
   })
 
-  const context = { ...baseContext, pifsByNetwork, hostMasterPifsByNetwork,    currentHostPifs,
+  const context = {
+    ...baseContext,
+    pifsByNetwork,
+    hostMasterPifsByNetwork,
+    currentHostPifs,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
