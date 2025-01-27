@@ -18,7 +18,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [New/Storage] When creating a new storage, if an error occurred while selecting a storage type, nothing was displayed (PR [#8250](https://github.com/vatesfr/xen-orchestra/pull/8250))
+- [New/Storage] Correctly display error if storage detection failed for HBA or ZFS (PR [#8250](https://github.com/vatesfr/xen-orchestra/pull/8250))
 
 ### Packages to release
 

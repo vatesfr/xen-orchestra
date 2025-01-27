@@ -539,7 +539,7 @@ export default class New extends Component {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
       try {
         const probeResult = await probeMethodFactories[type](host.id)
-        this.setState({ ...probeResult })
+        this.setState(probeResult)
       } catch (err) {
         error('Device detection failed', err.message || String(err))
       } finally {
