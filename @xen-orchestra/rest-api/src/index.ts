@@ -1,5 +1,5 @@
 import swaggerUi from 'swagger-ui-express'
-import { Express, Response } from 'express'
+import { Express, Response, urlencoded } from 'express'
 
 import swaggerOpenApiSpec from './open-api/spec/swagger.json' assert { type: 'json' }
 import { RegisterRoutes } from './open-api/routes/routes.js'

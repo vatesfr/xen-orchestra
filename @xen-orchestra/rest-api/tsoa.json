@@ -16,6 +16,26 @@
         "name": "authenticationToken",
         "in": "cookie"
       }
+    },
+    "specMerging": "recursive",
+    "spec": {
+      "paths": {
+        "/srs/{id}/actions/import_vdi": {
+          "post": {
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "routes": {
