@@ -32,6 +32,7 @@
 - [New/VM] Fix premature destruction of the cloudConfig VDI when using the option _destroyCloudConfigVdiAfterBoot_ [#8219](https://github.com/vatesfr/xen-orchestra/issues/8219) (PR [#8247](https://github.com/vatesfr/xen-orchestra/pull/8247))
 - [V2V] Improve compatiblity whith VSphere handling multiple vSAN storages (PR [#8243](https://github.com/vatesfr/xen-orchestra/pull/8243))
 - [Backup/LTR] Fix computation for the last week of the year (PR [#8269](https://github.com/vatesfr/xen-orchestra/pull/8269))
+- [New/Storage] Correctly display error if storage detection failed for HBA or ZFS (PR [#8250](https://github.com/vatesfr/xen-orchestra/pull/8250))
 
 ### Packages to release
 
