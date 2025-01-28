@@ -355,7 +355,11 @@ if (ghRelease) {
   if (release === undefined) {
     const releaseNotes = await getChangelogForVersion(version)
 
-    if (releaseNotes === undefined && (await no('changelog not found, continue?'))) {
+    // if (releaseNotes === undefined && (await no(`changelog with tag ${tag} not found, continue?`))) {
+    if (
+      releaseNotes === undefined &&
+      (await no(`changelog with tag ${tag} not found (${chalk.red(release.html_url)}). Skip and proceed with upload?`))
+    ) {
       stop()
     }
     release = await ghApiCall('/releases', 'POST', {
