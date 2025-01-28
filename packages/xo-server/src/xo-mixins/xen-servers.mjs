@@ -236,7 +236,10 @@ export default class XenServers {
 
       // check if some properties need to be updated
       const serverPropertiesUpdate = {}
-      if (xapiObject.name_label !== xenServer.poolNameLabel) {
+      if (
+        xapiObject.name_label !== xenServer.poolNameLabel &&
+        !(xapiObject.name_label === '' && xenServer.poolNameLabel === undefined)
+      ) {
         serverPropertiesUpdate.poolNameLabel = xapiObject.name_label
       }
       if (
