@@ -81,6 +81,9 @@ const methods = {
 
     const cache = { __proto__: null }
     forEach(vdis, vdi => {
+      if (vdi === undefined) {
+        return
+      }
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi
         const { unhealthyLength, missingParent } = this._getVdiChainsInfo(uuid, children, cache, resultContainer)
