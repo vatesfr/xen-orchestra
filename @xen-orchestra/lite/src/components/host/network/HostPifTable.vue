@@ -40,7 +40,7 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
       <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
         <template #thead>
@@ -48,7 +48,7 @@
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <div v-tooltip="$t('coming-soon')">
-                  <UiCheckbox :v-model="areAllSelected" disabled accent="info" @update:model-value="toggleSelect" />
+                  <UiCheckbox disabled accent="info" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
@@ -77,7 +77,7 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="info" :value="row.id" />
+                <UiCheckbox disabled accent="info" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
@@ -118,13 +118,12 @@
       <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
         <div>{{ $t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
@@ -170,24 +169,19 @@ const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
   if (!searchTerm) {
     return pifs.value
   }
+
   return pifs.value.filter(pif =>
     Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const pifsUuids = computed(() => pifs.value.map(pif => pif.uuid))
-
-const { selected, areAllSelected } = useMultiSelect(pifsUuids)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? pifsUuids.value : []
-}
-
 const getNetworkName = (networkRef: string) => {
   const network: XenApiNetwork = getByOpaqueRef(networkRef as XenApiNetwork['$ref'])!
+
   return network?.name_label ? network.name_label : ''
 }
 
@@ -200,9 +194,11 @@ const getPifStatus = (pif: XenApiPif) => {
   if (currentlyAttached && carrier) {
     return 'connected'
   }
+
   if (currentlyAttached && !carrier) {
     return 'partially-connected'
   }
+
   return 'disconnected'
 }
 
