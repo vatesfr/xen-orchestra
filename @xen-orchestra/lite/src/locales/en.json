@@ -61,6 +61,7 @@
 
   "descending": "descending",
   "description": "Description",
+  "device": "Device",
   "dhcp": "DHCP",
   "disabled": "Disabled",
   "display": "Display",
@@ -110,6 +111,8 @@
 
   "host-internal-networks": "Host internal networks",
   "invalid-field": "Invalid field",
+  "ip-addresses": "IP addresses",
+  "ip-mode": "IP mode",
 
   "job.vm-copy.bad-power-state": "VM must be halted",
   "job.vm-copy.in-progress": "Copy in progress…",
@@ -179,6 +182,9 @@
   "locking-mode-default": "Default locking mode",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
+  "mac-address": "MAC address",
+  "mac-addresses": "MAC addresses",
+  "management": "Management",
   "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
@@ -197,6 +203,7 @@
   "news-name": "{name} news",
   "none": "None",
   "no-alarm-triggered": "No alarm triggered",
+  "no-pif-detected": "No pif detected",
   "no-network-detected": "No network detected",
   "no-result": "No result",
   "no-selected-vm-can-be-exported": "No selected VM can be exported",
@@ -210,6 +217,7 @@
   "password": "Password",
   "password-invalid": "Password invalid",
   "pause": "Pause",
+  "pifs": "PIFs",
   "please-confirm": "Please confirm",
   "pifs-status": "PIFs status",
   "pool-cpu-usage": "Pool CPU Usage",
@@ -232,6 +240,7 @@
 
   "resume": "Resume",
   "save": "Save",
+  "scan-pifs": "Scan PIFs",
   "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
   "selected-vms-in-execution": "Some selected VMs are running",
@@ -277,7 +286,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
-  "vlan": "VLAN",
+  "vlan": "Vlan",
 
   "vm.active": "Active",
   "vm.inactive": "Inactive",

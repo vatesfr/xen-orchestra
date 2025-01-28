@@ -43,7 +43,11 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     return pifsByNetworkMap
   })
 
-  const context = { ...baseContext, pifsByNetwork, hostMasterPifsByNetwork }
+  const context = {
+    ...baseContext,
+    pifsByNetwork,
+    hostMasterPifsByNetwork,
+  }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })

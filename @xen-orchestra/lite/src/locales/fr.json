@@ -61,6 +61,7 @@
 
   "descending": "descendant",
   "description": "Description",
+  "device": "Appareil",
   "dhcp": "DHCP",
   "dns": "DNS",
   "disabled": "Désactivé",
@@ -110,6 +111,8 @@
 
   "host-internal-networks": "Réseaux internes de l'hôte",
   "invalid-field": "Champ invalide",
+  "ip-addresses": "Adresses IP",
+  "ip-mode": "Mode IP",
 
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
   "job.vm-copy.in-progress": "Copie en cours…",
@@ -179,6 +182,9 @@
   "locking-mode-default": "Mode verrouillé par défaut",
   "login": "Connexion",
   "login-only-on-master": "La connexion n'est possible que sur l'hôte primaire",
+  "mac-address": "Adresse MAC",
+  "mac-addresses": "Adresses MAC",
+  "management": "Gestion",
   "more-actions": "Plus d'actions",
   "migrate": "Migrer",
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
@@ -197,6 +203,7 @@
   "news-name": "Actualités {name}",
   "none": "Aucun",
   "no-alarm-triggered": "Aucune alarme déclenchée",
+  "no-pif-detected": "Aucun pif détecté",
   "no-network-detected": "Aucun réseau détecté",
   "no-result": "Aucun résultat",
   "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",
@@ -210,6 +217,7 @@
   "password": "Mot de passe",
   "password-invalid": "Mot de passe incorrect",
   "pause": "Pause",
+  "pifs": "PIFs",
   "please-confirm": "Veuillez confirmer",
   "pifs-status": "Statut des PIFs",
   "pool-cpu-usage": "Utilisation CPU du Pool",
@@ -232,6 +240,7 @@
 
   "resume": "Reprendre",
   "save": "Enregistrer",
+  "scan-pifs": "Scanner les PIFs",
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
@@ -277,7 +286,7 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
-  "vlan": "VLAN",
+  "vlan": "Vlan",
 
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
