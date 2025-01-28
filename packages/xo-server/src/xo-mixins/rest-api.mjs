@@ -941,6 +941,29 @@ export default class RestApi {
         },
       },
     }
+    collections.groups.actions = {
+      update: withParams(
+        async ({ id, name, userIds }, req) => {
+          const group = await app.getGroup(id)
+          if (group.provider !== undefined) {
+            throw new Error('Cannot edit synchronized group')
+          }
+
+          if (name !== undefined) {
+            await app.updateGroup(id, { name })
+          }
+
+          if (Array.isArray(userIds)) {
+            await app.setGroupUsers(id, userIds)
+          }
+        },
+        {
+          id: { type: 'string' },
+          name: { type: 'string', optional: true },
+          userIds: { type: 'array', items: { type: 'string' }, optional: true },
+        }
+      ),
+    }
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
@@ -1507,6 +1530,15 @@ export default class RestApi {
       '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
+        res.sendStatus(200)
+      })
+    )
+
+    api.patch(
+      '/groups/update/:id',
+      json(),
+      wrap(async (req, res) => {
+        await collections.groups.actions.update(req.body, req)
         res.sendStatus(200)
       })
     )
