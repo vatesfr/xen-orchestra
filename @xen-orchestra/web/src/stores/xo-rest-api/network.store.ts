@@ -17,10 +17,10 @@ export const useNetworkStore = defineStore('network', () => {
   const pifContext = deps.pifStore.getContext()
 
   const networksWithPifs = computed(() => {
-    const networkRefs = Array.from(pifContext.hostMasterPifsByNetwork.value.keys())
+    const networkIds = Array.from(pifContext.hostMasterPifsByNetwork.value.keys())
 
     return baseContext.records.value.filter(network => {
-      return networkRefs.includes(network.id) && network.PIFs.length > 0
+      return networkIds.includes(network.id) && network.PIFs.length > 0
     })
   })
 

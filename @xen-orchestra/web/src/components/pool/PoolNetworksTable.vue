@@ -50,7 +50,7 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
       <VtsDataTable
         :is-ready
@@ -61,7 +61,7 @@
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="info" disabled @update:model-value="toggleSelect" />
+                <UiCheckbox :v-model="areAllSelected" accent="info" disabled />
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
@@ -111,7 +111,7 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
         {{ $t('no-result') }}
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>
   </div>
 </template>
@@ -120,6 +120,7 @@
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -152,10 +153,17 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { pool } = defineProps<{
+  pool: XoPool
+}>()
+
 const { t } = useI18n()
 
-const { networksWithPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { networksWithPifs, isReady, hasError } = useNetworkStore().subscribe()
+
 const { records: pifs } = usePifStore().subscribe()
+
+const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -163,9 +171,11 @@ const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
   if (!searchTerm) {
     return networks.value
   }
+
   return networks.value.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
@@ -175,25 +185,26 @@ const networkIds = computed(() => networks.value.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
 
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? networkIds.value : []
-}
-
 const getNetworkVlan = (network: XoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
+
   if (networkPIFs.length > 0) {
     return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
   }
 }
+
 const getNetworkStatus = (network: XoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.id))
+
   if (networkPIFs.length === 0) {
     return 'disconnected'
   }
+
   const currentlyAttached = networkPIFs.map(pif => pif.attached)
   if (currentlyAttached.every(Boolean)) {
     return 'connected'
   }
+
   if (currentlyAttached.some(Boolean)) {
     return 'partially-connected'
   }
@@ -244,10 +255,12 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .table-actions {
     gap: 0.8rem;
   }
+
   .checkbox,
   .more {
     width: 4.8rem;
   }
+
   .checkbox {
     text-align: center;
     line-height: 1;

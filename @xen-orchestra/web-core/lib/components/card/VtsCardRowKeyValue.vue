@@ -30,7 +30,6 @@ const slots = defineSlots<{
 
   .key {
     min-width: 12rem;
-    max-width: 12rem;
     overflow-wrap: break-word;
     color: var(--color-neutral-txt-secondary);
   }

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ $t('host-internal-networks') }}
       <template #actions>
-        <UiDropdownButton
+        <UiButton
           v-tooltip="$t('coming-soon')"
           disabled
           :left-icon="faPlus"
@@ -12,7 +12,7 @@
           size="medium"
         >
           {{ $t('new') }}
-        </UiDropdownButton>
+        </UiButton>
       </template>
     </UiTitle>
     <div class="container">
@@ -40,7 +40,7 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
       <div class="table-container">
         <VtsDataTable
@@ -52,7 +52,7 @@
             <tr>
               <template v-for="column of visibleColumns" :key="column.id">
                 <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" disabled @update:model-value="toggleSelect" />
+                  <UiCheckbox :v-model="areAllSelected" accent="info" disabled />
                 </th>
                 <th v-else-if="column.id === 'more'" class="more">
                   <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
@@ -101,7 +101,7 @@
         <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
           {{ $t('no-result') }}
         </VtsStateHero>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
     </div>
   </div>
@@ -109,13 +109,13 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import type { XoPool } from '@/types/xo/pool.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -138,18 +138,27 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networksWithoutPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { pool } = defineProps<{
+  pool: XoPool
+}>()
 
 const { t } = useI18n()
+
+const { networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
+
+const networks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+
 const searchQuery = ref('')
 
 const selectedNetworkId = useRouteQuery('id')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
   if (!searchTerm) {
     return networks.value
   }
+
   return networks.value.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
@@ -158,10 +167,6 @@ const filteredNetworks = computed(() => {
 const networkIds = computed(() => networks.value.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? networkIds.value : []
-}
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
@@ -203,10 +208,12 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .table-actions {
     gap: 0.8rem;
   }
+
   .checkbox,
   .more {
     width: 4.8rem;
   }
+
   .checkbox {
     text-align: center;
     line-height: 1;
