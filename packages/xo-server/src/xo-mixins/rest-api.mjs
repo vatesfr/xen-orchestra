@@ -940,6 +940,16 @@ export default class RestApi {
         },
       },
     }
+    collections.groups.actions = {
+      delete: withParams(
+        async ({ name }, req) => {
+          return (await app.deleteGroup({ name })).id
+        },
+        {
+          name: { type: 'string' },
+        }
+      ),
+    }
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
@@ -1511,6 +1521,15 @@ export default class RestApi {
       '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
+        res.sendStatus(200)
+      })
+    )
+
+    api.delete(
+      '/groups/delete/:id',
+      wrap(async (req, res) => {
+        const { id } = req.params
+        await app.deleteGroup(id)
         res.sendStatus(200)
       })
     )
