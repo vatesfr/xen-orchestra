@@ -942,11 +942,11 @@ export default class RestApi {
     }
     collections.groups.actions = {
       delete: withParams(
-        async ({ name }, req) => {
-          return (await app.deleteGroup({ name })).id
+        async ({ id }, req) => {
+          return (await app.deleteGroup(id)).id
         },
         {
-          name: { type: 'string' },
+          id: { type: 'string' },
         }
       ),
     }
