@@ -81,7 +81,7 @@ const methods = {
 
     const cache = { __proto__: null }
     forEach(vdis, vdi => {
-      if (vdi !== undefined) {
+      if (vdi === undefined) {
         return
       }
       if (vdi.managed && !vdi.is_a_snapshot) {
