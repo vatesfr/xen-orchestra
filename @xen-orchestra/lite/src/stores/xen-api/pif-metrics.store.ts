@@ -6,10 +6,7 @@ import { defineStore } from 'pinia'
 export const usePifMetricsStore = defineStore('xen-api-pif-metrics', () => {
   const { context: baseContext, ...configRest } = createXapiStoreConfig('pif_metrics')
 
-  const getPifCarrier = (pif: XenApiPif) => {
-    const pifMetrics = baseContext.getByOpaqueRef(pif.metrics)
-    return pifMetrics?.carrier
-  }
+  const getPifCarrier = (pif: XenApiPif) => baseContext.getByOpaqueRef(pif.metrics)?.carrier
 
   const context = {
     ...baseContext,

@@ -18,7 +18,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
+        <UiTableActions :title="$t('table-actions')">
           <UiButton
             v-tooltip="$t('coming-soon')"
             disabled
@@ -48,7 +48,7 @@
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <div v-tooltip="$t('coming-soon')">
-                  <UiCheckbox disabled accent="info" />
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="info" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
@@ -77,7 +77,7 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                <UiCheckbox disabled accent="info" :value="row.id" />
+                <UiCheckbox v-model="selected" disabled accent="info" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
@@ -99,10 +99,10 @@
                   </UiComplexIcon>
                   <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
                  -->
-                <span class="text-ellipsis name">{{ column.value.name }}</span>
+                <span v-tooltip class="text-ellipsis name">{{ column.value.name }}</span>
                 <VtsIcon
                   v-if="column.value.management"
-                  v-tooltip="t('management')"
+                  v-tooltip="$t('management')"
                   accent="warning"
                   :icon="faCircle"
                   :overlay-icon="faStar"
@@ -124,7 +124,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import useMultiSelect from '@/composables/multi-select.composable'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -158,15 +160,30 @@ import {
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
-const { currentHostPifs: pifs, isReady, hasError } = usePifStore().subscribe()
-const { getByOpaqueRef } = useNetworkStore().subscribe()
+const { records, isReady, hasError } = usePifStore().subscribe()
+const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
+const { getByOpaqueRef: getNetworkOpaqueRef } = useNetworkStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
 const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
 
+const route = useRoute()
+
+const hostId = route.params.uuid as XenApiHost['uuid']
+
+const pifs = computed(() => {
+  return records.value.filter(pif => {
+    const host = getHostOpaqueRef(pif.host)
+
+    return host?.uuid === hostId
+  })
+})
+
+// TODO change to match with network name
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
@@ -179,8 +196,12 @@ const filteredPifs = computed(() => {
   )
 })
 
-const getNetworkName = (networkRef: string) => {
-  const network: XenApiNetwork = getByOpaqueRef(networkRef as XenApiNetwork['$ref'])!
+const pifsUuids = computed(() => pifs.value.map(pif => pif.uuid))
+
+const { selected, areAllSelected } = useMultiSelect(pifsUuids)
+
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
+  const network = getNetworkOpaqueRef(networkRef)
 
   return network?.name_label ? network.name_label : ''
 }
@@ -189,13 +210,13 @@ const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
 const getPifStatus = (pif: XenApiPif) => {
   const carrier = getPifCarrier(pif)
-  const currentlyAttached = pif.currently_attached
+  const isCurrentlyAttached = pif.currently_attached
 
-  if (currentlyAttached && carrier) {
+  if (isCurrentlyAttached && carrier) {
     return 'connected'
   }
 
-  if (currentlyAttached && !carrier) {
+  if (isCurrentlyAttached && !carrier) {
     return 'partially-connected'
   }
 
