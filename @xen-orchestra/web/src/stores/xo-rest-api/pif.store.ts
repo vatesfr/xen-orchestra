@@ -1,4 +1,5 @@
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
@@ -44,10 +45,24 @@ export const usePifStore = defineStore('pif', () => {
 
     return pifsByNetworkMap
   })
+  const pifsByHost = computed<Map<string, XoPif[]>>(() => {
+    const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
+
+    baseContext.records.value.forEach(pif => {
+      const hostId = pif.$host
+      if (!pifsByHostMap.has(hostId)) {
+        pifsByHostMap.set(hostId, [])
+      }
+
+      pifsByHostMap.get(hostId)!.push(pif)
+    })
+    return pifsByHostMap
+  })
   const context = {
     ...baseContext,
     pifsByNetwork,
     hostMasterPifsByNetwork,
+    pifsByHost,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })

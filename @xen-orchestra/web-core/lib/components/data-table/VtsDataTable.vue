@@ -38,7 +38,6 @@ defineSlots<{
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  min-width: 100rem;
 
   :deep(tbody) tr {
     &:hover {

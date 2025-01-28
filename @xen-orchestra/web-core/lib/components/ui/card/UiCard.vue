@@ -18,7 +18,7 @@ defineSlots<{
 .ui-card {
   display: flex;
   gap: 2.4rem;
-  padding: 1.6rem;
+  padding: 2.4rem;
   flex-direction: column;
   background-color: var(--color-neutral-background-primary);
   border: 0.1rem solid var(--color-neutral-border);

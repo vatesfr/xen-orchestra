@@ -44,14 +44,14 @@
           </template>
         </UiTableActions>
 
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
       <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-network-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="info" disabled @update:model-value="toggleSelect" />
+                <UiCheckbox :v-model="areAllSelected" accent="info" disabled />
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
@@ -103,7 +103,7 @@
           </tr>
         </template>
       </VtsDataTable>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>
   </div>
 </template>
@@ -112,6 +112,7 @@
 import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import type { XoHost } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -146,9 +147,15 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { host } = defineProps<{
+  host: XoHost
+}>()
+
 const { get, isReady, hasError } = useNetworkStore().subscribe()
-const { currentHostPifs: pifs } = usePifStore().subscribe()
+const { records } = usePifStore().subscribe()
 const { t } = useI18n()
+
+const pifs = computed(() => records.value.filter(pif => pif.$host === host.id))
 
 const selectedPifId = useRouteQuery('id')
 
@@ -175,13 +182,16 @@ const getIpMode = (pif: XoPif) => {
       return t('unknown')
   }
 }
+
 const searchQuery = ref('')
 
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
   if (!searchTerm) {
     return pifs.value
   }
+
   return pifs.value.filter(pif =>
     Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
@@ -189,10 +199,6 @@ const filteredPifs = computed(() => {
 
 const pifsIds = computed(() => pifs.value.map(pif => pif.id))
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? pifsIds.value : []
-}
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
@@ -237,10 +243,12 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
   .table-actions {
     gap: 0.8rem;
   }
+
   .checkbox,
   .more {
     width: 4.8rem;
   }
+
   .checkbox {
     text-align: center;
     line-height: 1;
