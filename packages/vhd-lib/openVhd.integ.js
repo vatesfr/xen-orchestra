@@ -16,7 +16,7 @@ const { VhdAbstract } = require('./Vhd/VhdAbstract')
 
 let tempDir
 
-describe('OpenVhd', async () => {
+describe('OpenVhd', { concurrency: 1 }, async () => {
   beforeEach(async () => {
     tempDir = await pFromCallback(cb => tmp.dir(cb))
   })

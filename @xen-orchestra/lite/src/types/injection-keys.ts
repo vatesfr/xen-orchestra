@@ -1,11 +1,8 @@
 import type { FetchedStats, Stat } from '@/composables/fetch-stats.composable'
 import type { HostStats, VmStats } from '@/libs/xapi-stats'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import type { ValueFormatter } from '@/types/chart'
 import type { ModalController } from '@/types/index'
 import type { ComputedRef, InjectionKey } from 'vue'
-
-export const IK_CHART_VALUE_FORMATTER = Symbol('IK_CHART_VALUE_FORMATTER') as InjectionKey<ComputedRef<ValueFormatter>>
 
 export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'select' | 'textarea'>
 

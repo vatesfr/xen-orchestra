@@ -1,4 +1,7 @@
+import type { ValueFormatter } from '@core/types/chart'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
+
+export const IK_CHART_VALUE_FORMATTER = Symbol('IK_CHART_VALUE_FORMATTER') as InjectionKey<ComputedRef<ValueFormatter>>
 
 export const IK_TREE_ITEM_HAS_CHILDREN = Symbol('IK_TREE_ITEM_HAS_CHILDREN') as InjectionKey<Ref<boolean>>
 

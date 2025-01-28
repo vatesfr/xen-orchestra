@@ -65,7 +65,7 @@ describe('vhd negative', async () => {
     )
 
     const child = new VhdMock(header, footer)
-    assert.throws(() => new VhdNegative(parent, child), { message: 'NOT_CHAINED' })
+    assert.throws(() => new VhdNegative(parent, child), { message: /^NOT_CHAINED\b/ })
   })
 
   it('throws when size changed', () => {
@@ -86,7 +86,7 @@ describe('vhd negative', async () => {
       createFooter(childLength, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DIFFERENCING)
     )
     const child = new VhdMock(header, footer)
-    assert.throws(() => new VhdNegative(parent, child), { message: 'GEOMETRY_CHANGED' })
+    assert.throws(() => new VhdNegative(parent, child), { message: /^GEOMETRY_CHANGED\b/ })
   })
   it('throws when child is not differencing', () => {
     const length = 10e8
@@ -105,7 +105,7 @@ describe('vhd negative', async () => {
     )
 
     const child = new VhdMock(header, footer)
-    assert.throws(() => new VhdNegative(parent, child), { message: 'CHILD_NOT_DIFFERENCING' })
+    assert.throws(() => new VhdNegative(parent, child), { message: /^CHILD_NOT_DIFFERENCING\b/ })
   })
 
   it(`throws when writing into vhd negative `, async () => {

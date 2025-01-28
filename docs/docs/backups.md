@@ -26,6 +26,48 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 ![](./assets/log-runId.png)
 
+## Backup Encryption
+
+Xen Orchestra ensures robust data security for backups stored remotely, by leveraging advanced encryption algorithms. Here's a closer look at how encryption works and the technology behind it:
+
+### Authentication
+
+The encryption algorithms are authenticated, meaning additional metadata is appended to the end of each saved file. During restoration, this metadata ensures that the restored data matches the original encrypted data, allowing the system to detect issues like bit rot or tampering by an attacker without the encryption key. However, it's important to note that this is not a recoverable error—if the verification fails, the file will be unusable.
+
+### Configuring encryption
+
+Encryption is opt-in and requires configuring an encryption key on the remote.
+
+:::warning
+- Encryption is only compatible with block-based remotes.
+- Encryption cannot be changed (such as enabling, disabling or changing the encryption key) if a remote contains any backup.
+:::
+
+1. Go to the Settings → Remote menu.
+2. Go to the section called **New file system remote**, or edit an existing remote.
+3. In the subsection called **Encrypt all new data sent to this remote** you will find a text area. Enter your encryption key there.
+4. Click the **Save configuration** Button to finish the encryption setup.
+
+### `ChaCha20-Poly1305`
+
+To improve flexibility and performance, Xen Orchestra will transition to the [`ChaCha20-Poly1305`](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption algorithm by February 2025. This update addresses the file size limitations of `AES-256-GCM` while maintaining a high level of security and compliance with ANSSI guidelines.
+
+Backup repositories that were encrypted with `AES-256-GCM` will remain accessible, to ensure a smooth transition.
+
+### `AES-256-GCM`
+
+> This algorithm was the default before February 2025 and has now been replaced by [`ChaCha20-Poly1305`](#chacha20-poly1305).
+
+#### What is AES-256-GCM?
+
+Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote (S3-compatible or file-based). 
+
+Full backups create one file per backup with all the data, that can go over 64 GB, even when using XCP-ng zstd encryption.
+
+#### Compliance
+
+The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
+
 ## Exclude disks
 
 During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
@@ -369,6 +411,50 @@ It is often a good idea to configure retention of older backups with decreasing 
 - a monthly backup (retaining 12)
 
 Again, all of these can be assigned to the same backup job. Note that if you do a weekly and a monthly backup, at some point, these will fall on the same day. Xen Orchestra is designed to fail gracefully (with an error message) if a backup job for a VM is already running. For this reason, you will want to set the time on the monthly job to run before the weekly job so that if one fails, it will be the weekly rather than the monthly one; if the weekly one fails, the monthly will be there for that spot in the retention plan; if the monthly one fails, the weekly one will only be retained for 4 weeks, and then there will be a gap in the monthly retention.
+
+### Long-term Backup Retention with GFS Strategy
+
+Xen Orchestra supports the **Grandfather-Father-Son (GFS)** backup retention strategy, providing an efficient way to manage long-term backups. Backups are organized into daily, weekly, and monthly intervals, optimizing storage while keeping important recovery points over time.
+
+#### FAQ
+
+- **What happens if I change my GFS retention policy?**\
+  Excess backups will be deleted during the next job execution to match the updated retention settings.
+
+- **Is GFS retention applied globally or per repository?**\
+  GFS retention is applied on a per-repository basis, allowing you to manage retention independently for different storage locations.
+
+- **How does Xen Orchestra decide which backups to retain?**\
+  The oldest backup within each retention period (daily, weekly, or monthly) is preserved. For example, the first backup of the week is saved as the weekly backup.
+
+:::warning
+- **Definition of a week:**\
+The start of the week is computed with the timezone set in the schedule.
+- **What GFS isn't:**\
+GFS in Xen Orchestra stands for Grandfather-Father-Son. It's a backup strategy, and is not related to the file system called GFS2 (or Global File System 2), supported by XenServer.
+- GFS retention is defined per schedule. For example, if a backup has two schedules, two independent GFS backups will be created.
+:::
+
+#### Enabling GFS Retention
+
+To enable GFS retention:
+
+1. Go to the **Backup** menu.
+2. Create a new backup job or open an existing one.
+3. Click the **Delta Backup** button.\
+The section called **Long-term retention of backups** appears.
+4. In that section, you can define the following:
+- **Daily backups**: The number of daily backups to keep.
+- **Weekly backups** (Son): The number of weekly backups to keep.
+- **Monthly backups** (Father): The number of monthly backups to keep.
+- **Yearly backups** (Grandfather): The number of monthly backups to keep.
+5. Click the **Save** button.
+
+During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.
+
+### Implementation in Xen Orchestra
+
+To enable GFS retention, configure the settings in the backup job's "Retention" section. During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.
 
 ## Backup Health Check
 

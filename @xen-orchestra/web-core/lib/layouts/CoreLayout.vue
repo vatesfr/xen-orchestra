@@ -1,6 +1,6 @@
 <template>
   <div class="core-layout">
-    <header class="header">
+    <header v-if="uiStore.hasUi" class="header">
       <slot name="app-logo" />
       <UiButtonIcon
         v-tooltip="{
@@ -16,18 +16,23 @@
       <slot name="app-header" />
     </header>
     <div class="container">
-      <VtsBackdrop v-if="sidebarStore.isExpanded && !sidebarStore.isLocked" @click="sidebarStore.toggleExpand(false)" />
-      <VtsLayoutSidebar class="sidebar">
-        <template #header>
-          <slot name="sidebar-header" />
-        </template>
-        <template #default>
-          <slot name="sidebar-content" />
-        </template>
-        <template #footer>
-          <slot name="sidebar-footer" />
-        </template>
-      </VtsLayoutSidebar>
+      <template v-if="uiStore.hasUi">
+        <VtsBackdrop
+          v-if="sidebarStore.isExpanded && !sidebarStore.isLocked"
+          @click="sidebarStore.toggleExpand(false)"
+        />
+        <VtsLayoutSidebar class="sidebar">
+          <template #header>
+            <slot name="sidebar-header" />
+          </template>
+          <template #default>
+            <slot name="sidebar-content" />
+          </template>
+          <template #footer>
+            <slot name="sidebar-footer" />
+          </template>
+        </VtsLayoutSidebar>
+      </template>
       <main class="main-container">
         <slot name="content" />
       </main>
@@ -41,8 +46,10 @@ import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { faAngleDoubleLeft, faBars } from '@fortawesome/free-solid-svg-icons'
 
+const uiStore = useUiStore()
 const sidebarStore = useSidebarStore()
 </script>
 

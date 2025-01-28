@@ -1,9 +1,7 @@
 <template>
   <UiCardTitle>{{ $t('console-actions') }}</UiCardTitle>
   <UiButton
-    v-tooltip="toggleFullScreen === undefined ? $t('coming-soon') : undefined"
     class="button"
-    :disabled="toggleFullScreen === undefined"
     accent="info"
     variant="tertiary"
     size="medium"
@@ -13,9 +11,7 @@
     {{ $t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
   </UiButton>
   <UiButton
-    v-tooltip="openInNewTab === undefined ? $t('coming-soon') : undefined"
     class="button"
-    :disabled="openInNewTab === undefined"
     accent="info"
     variant="tertiary"
     size="medium"
@@ -25,12 +21,10 @@
     {{ $t('open-console-in-new-tab') }}
   </UiButton>
   <UiButton
-    v-tooltip="sendCtrlAltDel === undefined ? $t('coming-soon') : undefined"
     class="button"
     accent="info"
     variant="tertiary"
     size="medium"
-    :disabled="sendCtrlAltDel === undefined"
     :left-icon="faKeyboard"
     @click="sendCtrlAltDel"
   >
@@ -41,21 +35,41 @@
 <script lang="ts" setup>
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
   faDownLeftAndUpRightToCenter,
   faKeyboard,
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons'
+import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
+import { logicAnd } from '@vueuse/math'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-// temporary undefined for xo6
 defineProps<{
-  openInNewTab?: () => void
-  toggleFullScreen?: () => void
-  sendCtrlAltDel?: () => void
-  isFullscreen?: boolean
+  sendCtrlAltDel: () => void
 }>()
+
+const router = useRouter()
+const uiStore = useUiStore()
+
+const isFullscreen = computed(() => !uiStore.hasUi)
+
+const openInNewTab = () => {
+  const routeData = router.resolve({ query: { ui: '0' } })
+  window.open(routeData.href, '_blank')
+}
+
+const toggleFullScreen = () => {
+  uiStore.hasUi = !uiStore.hasUi
+}
+const { escape } = useMagicKeys()
+const activeElement = useActiveElement()
+const canClose = computed(
+  () => (activeElement.value == null || activeElement.value.tagName !== 'CANVAS') && !uiStore.hasUi
+)
+whenever(logicAnd(escape, canClose), toggleFullScreen)
 </script>
 
 <style lang="postcss" scoped>

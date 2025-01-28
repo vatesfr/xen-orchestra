@@ -185,8 +185,8 @@ listMissingPatches.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatches({ pool, patches, hosts }) {
-  const opts = { patches, xsCredentials: this.apiContext.user.preferences.xsCredentials }
+export async function installPatches({ pool, patches, hosts, xsHash }) {
+  const opts = { patches, xsCredentials: this.apiContext.user.preferences.xsCredentials, xsHash }
   let xapi
   if (pool !== undefined) {
     pool = this.getXapiObject(pool, 'pool')
@@ -225,6 +225,7 @@ installPatches.params = {
   pool: { type: 'string', optional: true },
   patches: { type: 'array', optional: true },
   hosts: { type: 'array', optional: true },
+  xsHash: { type: 'string', optional: true },
 }
 
 installPatches.resolve = {
@@ -235,7 +236,7 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = async function ({ bypassBackupCheck = false, pool }) {
+export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, rebootVm }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
     log.warn('pool.rollingUpdate update with argument "bypassBackupCheck" set to true', { poolId })
@@ -243,7 +244,7 @@ export const rollingUpdate = async function ({ bypassBackupCheck = false, pool }
     await backupGuard.call(this, poolId)
   }
 
-  await this.rollingPoolUpdate(pool)
+  await this.rollingPoolUpdate(pool, { rebootVm })
 }
 
 rollingUpdate.params = {
@@ -252,6 +253,10 @@ rollingUpdate.params = {
     type: 'boolean',
   },
   pool: { type: 'string' },
+  rebootVm: {
+    optional: true,
+    type: 'boolean',
+  },
 }
 
 rollingUpdate.resolve = {

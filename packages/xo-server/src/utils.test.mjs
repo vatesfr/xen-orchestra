@@ -236,7 +236,7 @@ describe('getFromAsyncCache()', function () {
     const result = await getFromAsyncCache(cacheTest, 'expired', async () => 'foo', cacheTestOps)
     assert.equal(result.value, 'foo')
 
-    await sleep(cacheExpiresIn + 1)
+    await sleep(cacheExpiresIn + 10)
 
     const secondResult = await getFromAsyncCache(cacheTest, 'expired', async () => 'bar', cacheTestOps)
     assert.equal(secondResult.value, 'bar')

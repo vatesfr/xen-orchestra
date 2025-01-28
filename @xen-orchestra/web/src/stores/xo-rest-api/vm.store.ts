@@ -1,10 +1,11 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVm } from '@/types/xo/vm.type'
-import { VM_POWER_STATE } from '@/types/xo/vm.type'
+import { VM_OPERATION, VM_POWER_STATE } from '@/types/xo/vm.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { castArray } from 'lodash-es'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -19,11 +20,18 @@ export const useVmStore = defineStore('vm', () => {
 
   const hostLessVmsByPool = computed(() => createVmsMap(baseContext.records.value, true))
 
+  const isVmOperatingPending = (vm: XoVm, operations: VM_OPERATION[] | VM_OPERATION) => {
+    const currentOperations = Object.values(vm.current_operations)
+
+    return castArray(operations).some(operation => currentOperations.includes(operation))
+  }
+
   const context = {
     ...baseContext,
     runningVms,
     vmsByHost,
     hostLessVmsByPool,
+    isVmOperatingPending,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, {})

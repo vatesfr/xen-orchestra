@@ -2,7 +2,7 @@
   <TitleBar :icon="faDisplay">
     {{ name }}
     <template #actions>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
+      <MenuList v-if="vm !== undefined" placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButton
             size="medium"
@@ -18,7 +18,7 @@
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </MenuList>
-      <MenuList v-if="vm !== undefined" placement="bottom-end" border>
+      <MenuList v-if="vm !== undefined" placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButtonIcon
             v-tooltip="{

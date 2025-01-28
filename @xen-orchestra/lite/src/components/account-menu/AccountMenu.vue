@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-end" border>
+  <MenuList placement="bottom-end">
     <template #trigger="{ open, isOpen }">
       <UiAccountMenuButton
         v-tooltip="isOpen ? false : { content: $t('settings'), placement: 'left' }"
