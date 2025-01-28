@@ -355,10 +355,11 @@ if (ghRelease) {
   if (release === undefined) {
     const releaseNotes = await getChangelogForVersion(version)
 
-    // if (releaseNotes === undefined && (await no(`changelog with tag ${tag} not found, continue?`))) {
     if (
       releaseNotes === undefined &&
-      (await no(`changelog with tag ${tag} not found (${chalk.red(release.html_url)}). Skip and proceed with upload?`))
+      (await no(
+        `Could not find changelog for version ${version}.(${chalk.yellow(release.html_url)}).  Create release without changelog?`
+      ))
     ) {
       stop()
     }
