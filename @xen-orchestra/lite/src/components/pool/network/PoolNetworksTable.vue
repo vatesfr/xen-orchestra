@@ -121,6 +121,7 @@
 import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -155,6 +156,7 @@ import { useI18n } from 'vue-i18n'
 
 const { networksWithPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
 const { records: pifs } = usePifStore().subscribe()
+const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
 const searchQuery = ref('')
@@ -193,12 +195,12 @@ const getNetworkStatus = (network: XenApiNetwork) => {
     return 'disconnected'
   }
 
-  const currentlyAttached = networkPIFs.map(pif => pif.currently_attached)
-  if (currentlyAttached.every(Boolean)) {
+  const isConnected = networkPIFs.map(pif => pif.currently_attached && getPifCarrier(pif))
+  if (isConnected.every(Boolean)) {
     return 'connected'
   }
 
-  if (currentlyAttached.some(Boolean)) {
+  if (isConnected.some(Boolean)) {
     return 'partially-connected'
   }
 

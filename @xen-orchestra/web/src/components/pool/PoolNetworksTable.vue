@@ -199,12 +199,12 @@ const getNetworkStatus = (network: XoNetwork) => {
     return 'disconnected'
   }
 
-  const currentlyAttached = networkPIFs.map(pif => pif.attached)
-  if (currentlyAttached.every(Boolean)) {
+  const isConnected = networkPIFs.map(pif => pif.attached && pif.carrier)
+  if (isConnected.every(Boolean)) {
     return 'connected'
   }
 
-  if (currentlyAttached.some(Boolean)) {
+  if (isConnected.some(Boolean)) {
     return 'partially-connected'
   }
   return 'disconnected'
@@ -250,6 +250,7 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
 
 .pool-networks-table {
   gap: 2.4rem;
+
   .container,
   .table-actions {
     gap: 0.8rem;
