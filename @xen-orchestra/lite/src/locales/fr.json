@@ -92,8 +92,6 @@
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
   "fullscreen-leave": "Quitter plein écran",
-  "n-gb-left": "{n} Go libres",
-  "n-gb-required": "{n} Go requis",
   "go-back": "Revenir en arrière",
   "gzip": "gzip",
   "here": "Ici",
@@ -111,6 +109,11 @@
   "job.vm-delete.in-progress": "Suppression en cours…",
   "job.vm-delete.missing-vms": "Aucune VM à supprimer",
 
+  "job.vm-export.in-progress": "Exportation en cours…",
+  "job.vm-export.missing-compression": "La compression est requise",
+  "job.vm-export.missing-vms": "Aucune VM à exporter",
+  "job.vm-export.not-allowed": "VM non autorisée à être exportée",
+
   "job.vm-force-reboot.bad-power-state": "La VM doit être allumée ou en pause",
   "job.vm-force-reboot.in-progress": "Redémarrage forcé en cours…",
   "job.vm-force-reboot.missing-vms": "Aucune VM à redémarrer de force",
@@ -118,11 +121,6 @@
   "job.vm-force-shutdown.bad-power-state": "La VM doit être allumée, suspendue ou en pause",
   "job.vm-force-shutdown.in-progress": "Arrêt forcé en cours…",
   "job.vm-force-shutdown.missing-vms": "Aucune VM à arrêter de force",
-
-  "job.vm-export.in-progress": "Exportation en cours…",
-  "job.vm-export.missing-compression": "La compression est requise",
-  "job.vm-export.missing-vms": "Aucune VM à exporter",
-  "job.vm-export.not-allowed": "VM non autorisée à être exportée",
 
   "job.vm-migrate.bad-power-state": "La VM doit être allumée",
   "job.vm-migrate.in-progress": "Migration en cours…",
@@ -148,14 +146,14 @@
   "job.vm-snapshot.in-progress": "Instantané en cours…",
   "job.vm-snapshot.missing-vms": "Aucune VM pour l'instantané",
 
-  "job.vm-start.bad-power-state": "La VM doit être arrêtée",
-  "job.vm-start.in-progress": "Démarrage en cours…",
-  "job.vm-start.missing-vms": "Aucune VM à démarrer",
-
   "job.vm-start-on.bad-power-state": "La VM doit être arrêtée",
   "job.vm-start-on.in-progress": "Démarrage en cours…",
   "job.vm-start-on.missing-host": "L'hôte de destination est requis",
   "job.vm-start-on.missing-vms": "Aucune VM à démarrer",
+
+  "job.vm-start.bad-power-state": "La VM doit être arrêtée",
+  "job.vm-start.in-progress": "Démarrage en cours…",
+  "job.vm-start.missing-vms": "Aucune VM à démarrer",
 
   "job.vm-suspend.bad-power-state": "La VM doit être allumée",
   "job.vm-suspend.in-progress": "Suspension en cours…",
@@ -169,9 +167,11 @@
   "loading-hosts": "Chargement des hôtes…",
   "login": "Connexion",
   "login-only-on-master": "La connexion n'est possible que sur l'hôte primaire",
-  "more-actions": "Plus d'actions",
   "migrate": "Migrer",
   "migrate-n-vms": "Migrer 1 VM | Migrer {n} VMs",
+  "more-actions": "Plus d'actions",
+  "n-gb-left": "{n} Go libres",
+  "n-gb-required": "{n} Go requis",
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
   "n-missing": "{n} manquant | {n} manquants",
   "netmask": "Masque réseau",
@@ -216,12 +216,12 @@
   "save": "Enregistrer",
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
-  "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
-  "send-us-feedback": "Envoyez-nous vos commentaires",
 
   "select.network": "Sélectionner un réseau",
   "select.storage": "Sélectionner un SR",
 
+  "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
+  "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
   "shutdown": "Arrêter",
   "snapshot": "Instantané",
@@ -257,11 +257,11 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
+  "vm-is-running": "La VM est en cours d'exécution",
 
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
 
-  "vm-is-running": "La VM est en cours d'exécution",
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",
   "xoa-deploy": "Déploiement de la XOA",

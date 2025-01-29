@@ -92,8 +92,6 @@
   "force-reboot": "Force reboot",
   "force-shutdown": "Force shutdown",
   "fullscreen-leave": "Leave fullscreen",
-  "n-gb-left": "{n} GB left",
-  "n-gb-required": "{n} GB required",
   "go-back": "Go back",
   "gzip": "gzip",
   "here": "Here",
@@ -111,6 +109,11 @@
   "job.vm-delete.in-progress": "Delete in progress…",
   "job.vm-delete.missing-vms": "No VM to delete",
 
+  "job.vm-export.in-progress": "Export in progress…",
+  "job.vm-export.missing-compression": "Compression must be provided",
+  "job.vm-export.missing-vms": "No VM to export",
+  "job.vm-export.not-allowed": "A VM is not allowed to export",
+
   "job.vm-force-reboot.bad-power-state": "VM must be running or paused",
   "job.vm-force-reboot.in-progress": "Force reboot in progress…",
   "job.vm-force-reboot.missing-vms": "No VM to force reboot",
@@ -118,11 +121,6 @@
   "job.vm-force-shutdown.bad-power-state": "VM must be running, suspended or paused",
   "job.vm-force-shutdown.in-progress": "Force shutdown in progress…",
   "job.vm-force-shutdown.missing-vms": "No VM to force shutdown",
-
-  "job.vm-export.in-progress": "Export in progress…",
-  "job.vm-export.missing-compression": "Compression must be provided",
-  "job.vm-export.missing-vms": "No VM to export",
-  "job.vm-export.not-allowed": "A VM is not allowed to export",
 
   "job.vm-migrate.bad-power-state": "VM must be running",
   "job.vm-migrate.in-progress": "Migrate in progress…",
@@ -148,14 +146,14 @@
   "job.vm-snapshot.in-progress": "Snapshot in progress…",
   "job.vm-snapshot.missing-vms": "No VM to snapshot",
 
-  "job.vm-start.bad-power-state": "VM must be halted",
-  "job.vm-start.in-progress": "Start in progress…",
-  "job.vm-start.missing-vms": "No VM to start",
-
   "job.vm-start-on.bad-power-state": "VM must be halted",
   "job.vm-start-on.in-progress": "Start in progress…",
   "job.vm-start-on.missing-host": "Destination host must be provided",
   "job.vm-start-on.missing-vms": "No VM to start",
+
+  "job.vm-start.bad-power-state": "VM must be halted",
+  "job.vm-start.in-progress": "Start in progress…",
+  "job.vm-start.missing-vms": "No VM to start",
 
   "job.vm-suspend.bad-power-state": "VM must be running",
   "job.vm-suspend.in-progress": "Suspend in progress…",
@@ -169,9 +167,11 @@
   "loading-hosts": "Loading hosts…",
   "login": "Login",
   "login-only-on-master": "Login is only possible on the master host",
-  "more-actions": "More actions",
   "migrate": "Migrate",
   "migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
+  "more-actions": "More actions",
+  "n-gb-left": "{n} GB left",
+  "n-gb-required": "{n} GB required",
   "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",
   "n-missing": "{n} missing",
   "netmask": "Netmask",
@@ -216,12 +216,12 @@
   "save": "Save",
   "select-compression": "Select a compression",
   "select-destination-host": "Select a destination host",
-  "selected-vms-in-execution": "Some selected VMs are running",
-  "send-us-feedback": "Send us feedback",
 
   "select.network": "Select a network",
   "select.storage": "Select a storage",
 
+  "selected-vms-in-execution": "Some selected VMs are running",
+  "send-us-feedback": "Send us feedback",
   "settings": "Settings",
   "shutdown": "Shutdown",
   "snapshot": "Snapshot",
@@ -257,11 +257,11 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
+  "vm-is-running": "The VM is running",
 
   "vm.active": "Active",
   "vm.inactive": "Inactive",
 
-  "vm-is-running": "The VM is running",
   "xo-lite-under-construction": "XOLite is under construction",
   "xoa-admin-account": "XOA admin account",
   "xoa-deploy": "XOA deployment",
