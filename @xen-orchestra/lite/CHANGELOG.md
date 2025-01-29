@@ -8,7 +8,7 @@
 - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
 - [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 - [Host/Network]: Display pifs list in host view (PR [#8180](https://github.com/vatesfr/xen-orchestra/pull/8180))
-- [Pool/Network]: Fix issue with network status (PR[#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
+- [Pool/Network]: Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ## **0.6.0** (2024-11-29)
 
