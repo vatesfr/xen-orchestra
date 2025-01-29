@@ -9,6 +9,7 @@
 - [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 - [Host/Network]: Display pifs list in host view (PR [#8180](https://github.com/vatesfr/xen-orchestra/pull/8180))
 - [Host/Network]: Fix issue with wording in host pif table (PR [8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
+- [Pool/Network]: Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ## **0.6.0** (2024-11-29)
 
