@@ -86,7 +86,7 @@
   "new": "Nouveau",
   "no-data": "Aucune donnée",
   "no-network-detected": "Aucun réseau détecté",
-  "no-pif-detected": "No pif detected",
+  "no-pif-detected": "Aucun PIF détecté",
   "no-result": "Aucun résultat",
   "none": "Aucun",
   "object-not-found": "L'objet {id} est introuvable…",
@@ -110,7 +110,9 @@
   "send": "Envoyer",
   "send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
   "speed": "Vitesse",
+  "static": "Statique",
   "stats": "Stats",
+  "status": "Statut",
   "storage": "Stockage",
   "system": "Système",
   "table-actions": "Actions du tableau",
@@ -126,6 +128,7 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Inconnu",
   "unlocked": "Débloqué",
   "vlan": "VLAN",
   "vms": "VMs"
