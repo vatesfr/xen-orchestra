@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6**:
-  - [Pool/Networks]: Display networks and host internal networks lists in pool view (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8182))
+  - [Pool/Networks]: Display networks and host internal networks lists in pool view (PR [#8182](https://github.com/vatesfr/xen-orchestra/pull/8182))
 
 ### Bug fixes
 
