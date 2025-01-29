@@ -132,7 +132,14 @@ export default class RemoteHandlerAbstract {
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  async createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
+  /**
+ * @param {string | string[]} file - The file to create a read stream for.
+ * @param {object} [options] - Options for the read stream.
+ * @param {boolean} [options.checksum] - Whether to validate the checksum.
+ * @param {boolean} [options.ignoreMissingChecksum] - Whether to ignore missing checksum.
+ * @returns {Promise<any>} - A promise resolving to the read stream.
+ */
+async createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
     if (options.end !== undefined || options.start !== undefined) {
       assert.strictEqual(this.isEncrypted, false, `Can't read part of a file when encryption is active ${file}`)
     }

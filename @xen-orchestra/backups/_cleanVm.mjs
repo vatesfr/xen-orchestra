@@ -11,19 +11,32 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import handlerPath from '@xen-orchestra/fs/path'
+import RemoteHandlerAbstract from '@xen-orchestra/fs/abstract.js'
 
 const { DISK_TYPES } = Constants
 
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
+/**
+ * @param {RemoteHandlerAbstract} handler - The handler to check encryption status.
+ * @param {object[]} vhds - Array of VHD objects.
+ * @returns {boolean} Whether the VHDs size should be computed.
+ */
 function shouldComputeVhdsSize(handler, vhds) {
   if (handler.isEncrypted) {
-    return false
+    return false;
   }
-  return vhds.every(vhd => vhd instanceof VhdFile)
+  return vhds.every(vhd => vhd instanceof VhdFile);
 }
 
+/**
+ * Compute the size of VHDs if applicable.
+ *
+ * @param {RemoteHandlerAbstract} handler - The handler for the VHDs.
+ * @param {string[]} vhdPaths - The paths to the VHD files.
+ * @returns {number | void} - The computed size or undefined if not applicable.
+ */
 const computeVhdsSize = (handler, vhdPaths) =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
@@ -35,11 +48,28 @@ const computeVhdsSize = (handler, vhdPaths) =>
     }
   )
 
-// chain is [ ancestor, child_1, ..., child_n ]
+/**
+ * Merges a chain of VHD files.
+ * 
+ * @async
+ * @function
+ * @param {RemoteHandlerAbstract} handler - The VHD handler, used to manage the VHD files.
+ * @param {string[]} chain - An array of VHD file paths, representing the chain to merge.
+ *   The array must be ordered as [ancestor, child_1, ..., child_n].
+ * @param {Object} options - Options for the merge operation.
+ * @param {Function} options.logInfo - A logging function to provide information logs.
+ *   It takes a message string and an optional object for additional context.
+ * @param {boolean} options.remove - Whether to remove unused blocks during the merge.
+ * @param {number} options.mergeBlockConcurrency - The maximum number of blocks to merge concurrently.
+ * 
+ * @returns {Promise<void>} Resolves when the VHD chain merge operation is complete.
+ */
 async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcurrency }) {
-  logInfo(`merging VHD chain`, { chain })
+  logInfo(`merging VHD chain`, { chain });
 
-  let done, total
+  let done, total;
+
+  // Log progress every 10 seconds.
   const handle = setInterval(() => {
     if (done !== undefined) {
       logInfo('merge in progress', {
@@ -47,21 +77,24 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
         parent: chain[0],
         progress: Math.round((100 * done) / total),
         total,
-      })
+      });
     }
-  }, 10e3)
+  }, 10e3);
+
   try {
+    // Delegate the actual merge operation to `mergeVhdChain`.
     return await mergeVhdChain(handler, chain, {
       logInfo,
       mergeBlockConcurrency,
       onProgress({ done: d, total: t }) {
-        done = d
-        total = t
+        done = d;
+        total = t;
       },
       removeUnused: remove,
-    })
+    });
   } finally {
-    clearInterval(handle)
+    // Clean up the interval timer.
+    clearInterval(handle);
   }
 }
 
@@ -486,6 +519,11 @@ export async function cleanVm(
   }
 
   const metadataWithMergedVhd = {}
+  /**
+   * Perform the merge operation on VHD chains.
+   *
+   * @returns {Promise<void>} - A promise that resolves when the merge is complete.
+   */
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
       const { finalVhdSize } = await limitedMergeVhdChain(handler, chain, {
@@ -494,6 +532,8 @@ export async function cleanVm(
         remove,
         mergeBlockConcurrency,
       })
+
+      /** @type {string} */
       const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalVhdSize
     })
@@ -524,13 +564,19 @@ export async function cleanVm(
   // update size for delta metadata with merged VHD
   // check for the other that the size is the same as the real file size
   await asyncMap(jsons, async metadataPath => {
+    /** @type {Metadata} */
     const metadata = backups.get(metadataPath)
 
+    /**
+     * @type {number}
+    */
     let fileSystemSize
+    /**
+     * @type {number}
+    */
     const mergedSize = metadataWithMergedVhd[metadataPath]
 
     const { mode, size, vhds, xva } = metadata
-
     try {
       if (mode === 'full') {
         // a full backup : check size
