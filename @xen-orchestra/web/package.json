@@ -25,6 +25,7 @@
     "@vue/tsconfig": "^0.5.1",
     "@vueuse/core": "^10.7.1",
     "@vueuse/math": "^10.7.1",
+    "@vueuse/shared": "^10.7.1",
     "@vueuse/integrations": "^10.7.1",
     "@xen-orchestra/web-core": "^0.11.0",
     "human-format": "^1.2.1",
