@@ -19,12 +19,15 @@ const status = computed<ConnectionStatus>(() => {
   if (networkPifs.value.length === 0) {
     return 'disconnected'
   }
+
   if (networkPifs.value.every(pif => pif.attached)) {
     return 'connected'
   }
+
   if (networkPifs.value.some(pif => pif.attached)) {
     return 'partially-connected'
   }
+
   return 'disconnected'
 })
 </script>
