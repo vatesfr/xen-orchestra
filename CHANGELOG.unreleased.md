@@ -13,7 +13,7 @@
 
 - **XO 6**:
   - [Pool/Networks]: Display networks and host internal networks lists in pool view (PR [#8182](https://github.com/vatesfr/xen-orchestra/pull/8182))
-  - [Host/Networks]: Display Pifs lists in host view (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8198))
+  - [Host/Networks]: Display Pifs lists in host view (PR [#8198](https://github.com/vatesfr/xen-orchestra/pull/8198))
 
 ### Bug fixes
 
