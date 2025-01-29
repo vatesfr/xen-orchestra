@@ -78,7 +78,7 @@
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
                 <UiCheckbox v-model="selected" accent="info" :value="row.id" disabled />
               </div>
-              <div v-else-if="column.id === 'status'" class="status">
+              <div v-else-if="column.id === 'status'" v-tooltip>
                 <VtsConnectionStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">
@@ -209,7 +209,7 @@ const getPifStatus = (pif: XoPif) => {
     return 'disconnected'
   }
 
-  if (pif.attached && !pif.carrier) {
+  if (!pif.carrier) {
     return 'disconnected-from-physical-device'
   }
 
