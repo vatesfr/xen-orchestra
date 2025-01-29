@@ -4,6 +4,6 @@
 // The `definePage` macro is removed during the build, leaving an empty script tag that causes the build to fail.
 definePage({
   name: '/pool/:id',
-  redirect: (to: any) => `/pool/${to.params.id}/hosts`,
+  redirect: (to: any) => `/pool/${to.params.id}/networks`,
 })
 </script>
