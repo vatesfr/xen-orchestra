@@ -14,10 +14,10 @@ export type XoPif = {
   ip: string
   ipv6: string[]
   mac: string
+  management: boolean
   mode: string
   mtu: string
   netmask: string
-  physical: boolean
   speed: number
   vlan: number
 }

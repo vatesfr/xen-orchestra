@@ -45,7 +45,8 @@ export const usePifStore = defineStore('pif', () => {
 
     return pifsByNetworkMap
   })
-  const pifsByHost = computed<Map<string, XoPif[]>>(() => {
+
+  const pifsByHost = computed(() => {
     const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
 
     baseContext.records.value.forEach(pif => {
@@ -56,6 +57,7 @@ export const usePifStore = defineStore('pif', () => {
 
       pifsByHostMap.get(hostId)!.push(pif)
     })
+
     return pifsByHostMap
   })
   const context = {

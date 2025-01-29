@@ -1,7 +1,7 @@
 <template>
   <div class="host-pifs-table">
-    <UiTitle type="h4" class="header">
-      <slot>{{ $t('pifs') }}</slot>
+    <UiTitle>
+      {{ $t('pifs') }}
       <template #actions>
         <UiButton
           v-tooltip="$t('coming-soon')"
@@ -18,7 +18,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions>
+        <UiTableActions :title="$t('table-actions')">
           <UiButton
             v-tooltip="$t('coming-soon')"
             disabled
@@ -39,14 +39,11 @@
           >
             {{ $t('delete') }}
           </UiButton>
-          <template #title>
-            <UiActionsTitle> {{ $t('table-actions') }}</UiActionsTitle>
-          </template>
         </UiTableActions>
 
         <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-network-detected') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -82,7 +79,25 @@
                 <UiCheckbox v-model="selected" accent="info" :value="row.id" disabled />
               </div>
               <div v-else-if="column.id === 'status'" class="status">
-                <PifStatus :network="getNetwork(row.value)" />
+                <VtsConnectionStatus :status="column.value" />
+              </div>
+              <div v-else-if="column.id === 'network'" class="network">
+                <!-- TODO Remove the span when the link works and the icon is fixed -->
+                <!--
+                  <UiComplexIcon size="medium" class="icon">
+                    <VtsIcon :icon="faNetworkWired" accent="current" />
+                    <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+                  </UiComplexIcon>
+                  <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                 -->
+                <span v-tooltip class="text-ellipsis name">{{ column.value.name }}</span>
+                <VtsIcon
+                  v-if="column.value.management"
+                  v-tooltip="$t('management')"
+                  accent="warning"
+                  :icon="faCircle"
+                  :overlay-icon="faStar"
+                />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
@@ -93,10 +108,6 @@
                 size="small"
               />
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                <UiComplexIcon v-if="column.id === 'network'" size="medium" class="icon">
-                  <VtsIcon :icon="faNetworkWired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
                 {{ column.value }}
               </div>
             </td>
@@ -109,18 +120,16 @@
 </template>
 
 <script setup lang="ts">
-import PifStatus from '@/components/pif/PifStatus.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -135,13 +144,12 @@ import {
   faArrowsRotate,
   faAt,
   faCaretDown,
+  faCircle,
   faEdit,
   faEllipsis,
   faPowerOff,
+  faStar,
   faTrash,
-  faNetworkWired,
-  faCircle,
-  faCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
@@ -151,20 +159,16 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { get, isReady, hasError } = useNetworkStore().subscribe()
-const { records } = usePifStore().subscribe()
+const { get } = useNetworkStore().subscribe()
+const { records, isReady, hasError } = usePifStore().subscribe()
 const { t } = useI18n()
 
 const pifs = computed(() => records.value.filter(pif => pif.$host === host.id))
 
 const selectedPifId = useRouteQuery('id')
 
-const getNetwork = (pif: XoPif) => {
-  return get(pif.$network)!
-}
-
 const getNetworkName = (pif: XoPif) => {
-  const network = getNetwork(pif)
+  const network = get(pif.$network)!
   return network.name_label ? network.name_label : ''
 }
 
@@ -200,13 +204,32 @@ const filteredPifs = computed(() => {
 const pifsIds = computed(() => pifs.value.map(pif => pif.id))
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
+const getPifStatus = (pif: XoPif) => {
+  if (pif.attached && pif.carrier) {
+    return 'connected'
+  }
+
+  if (pif.attached && !pif.carrier) {
+    return 'partially-connected'
+  }
+
+  return 'disconnected'
+}
+
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('network', record => getNetworkName(record), { label: t('network') }),
+    define(
+      'network',
+      record => ({
+        name: getNetworkName(record),
+        management: record.management,
+      }),
+      { label: t('network') }
+    ),
     define('device', record => record.device, { label: t('device') }),
-    define('status', noop, { label: t('status') }),
+    define('status', record => getPifStatus(record), { label: t('status') }),
     define('vlan', record => getPifVlan(record), { label: t('vlan') }),
     define('ip', record => record.ip, { label: t('ip-addresses') }),
     define('mac', record => record.mac, { label: t('mac-addresses') }),
@@ -239,9 +262,16 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
 
 .host-pifs-table {
   gap: 2.4rem;
+
   .container,
   .table-actions {
     gap: 0.8rem;
+  }
+
+  .network {
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
   }
 
   .checkbox,
