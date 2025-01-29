@@ -1022,6 +1022,16 @@ export default class RestApi {
         },
       },
     }
+    collections.users.actions = {
+      delete: withParams(
+        async ({ id }, req) => {
+          return (await app.deleteUser(id)).id
+        },
+        {
+          id: { type: 'string' },
+        }
+      ),
+    }
     collections.dashboard = {}
     collections.messages = {
       getObject(id) {
@@ -1511,6 +1521,15 @@ export default class RestApi {
       '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
+        res.sendStatus(200)
+      })
+    )
+
+    api.delete(
+      '/users/delete/:id',
+      wrap(async (req, res) => {
+        const { id } = req.params
+        await app.deleteUser(id)
         res.sendStatus(200)
       })
     )
