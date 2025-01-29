@@ -110,6 +110,7 @@
   "send": "Envoyer",
   "send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
   "speed": "Vitesse",
+  "static": "Statique",
   "stats": "Stats",
   "storage": "Stockage",
   "system": "Système",
@@ -126,6 +127,7 @@
 
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Inconnu",
   "unlocked": "Débloqué",
   "vlan": "VLAN",
   "vms": "VMs"
