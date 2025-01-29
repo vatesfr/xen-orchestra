@@ -60,6 +60,7 @@ export const usePifStore = defineStore('pif', () => {
 
     return pifsByHostMap
   })
+
   const context = {
     ...baseContext,
     pifsByNetwork,
