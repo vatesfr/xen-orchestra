@@ -16,6 +16,8 @@
 
 ### Bug fixes
 
+- [Pool/Network]: Fix issue with network status (PR[#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 ### Packages to release
