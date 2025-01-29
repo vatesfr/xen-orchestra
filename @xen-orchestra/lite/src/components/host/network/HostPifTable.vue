@@ -212,15 +212,15 @@ const getPifStatus = (pif: XenApiPif) => {
   const carrier = getPifCarrier(pif)
   const isCurrentlyAttached = pif.currently_attached
 
-  if (isCurrentlyAttached && carrier) {
-    return 'connected'
+  if (!isCurrentlyAttached) {
+    return 'disconnected'
   }
 
-  if (isCurrentlyAttached && !carrier) {
-    return 'partially-connected'
+  if (!carrier) {
+    return 'disconnected-from-physical-device'
   }
 
-  return 'disconnected'
+  return 'connected'
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
