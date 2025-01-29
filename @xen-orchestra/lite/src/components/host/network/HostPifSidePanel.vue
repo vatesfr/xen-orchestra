@@ -42,12 +42,12 @@
               <!-- TODO Remove the span when the link works and the icon is fixed -->
               <!--
               <UiComplexIcon size="medium">
-                              <VtsIcon :icon="faNetworkWired" accent="current" />
-                              <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                            </UiComplexIcon>
-                            <a href="">{{ networkNameLabel }}</a>
--->
-              <span v-tooltip class="text-ellipsis name">{{ networkNameLabel }}</span>
+                <VtsIcon :icon="faNetworkWired" accent="current" />
+                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+              </UiComplexIcon>
+              <a href="">{{ networkNameLabel }}</a>
+              -->
+              <span v-tooltip class="text-ellipsis">{{ networkNameLabel }}</span>
             </div>
           </template>
           <template #addons>
@@ -122,7 +122,7 @@
             {{ $t('ip-addresses') }}
           </template>
           <template v-if="allIps.length > 0" #value>
-            <span v-for="ip in allIps" :key="ip" v-tooltip class="ip-address text-ellipsis">{{ ip }}</span>
+            <span v-for="ip in allIps" :key="ip" v-tooltip class="text-ellipsis">{{ ip }}</span>
           </template>
           <template #addons>
             <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
@@ -292,7 +292,7 @@ const networkTags = computed(() => (network.value?.tags?.length ? network.value.
 const pifStatus = computed(() => (pif.value?.currently_attached ? 'connected' : 'disconnected'))
 
 const physicalInterfaceStatus = computed(() => {
-  return pif.value && getPifCarrier(pif.value) ? 'connected' : 'disconnected-from-physical-device'
+  return pif.value && getPifCarrier(pif.value) ? 'connected' : 'physically-disconnected'
 })
 
 const getSpeed = computed(() => (pif.value ? getOpaqueRefMetrics(pif.value.metrics)?.speed || 0 : 0))
