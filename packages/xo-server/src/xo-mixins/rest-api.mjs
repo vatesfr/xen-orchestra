@@ -1022,6 +1022,32 @@ export default class RestApi {
         },
       },
     }
+    async function createUser({ email, password, permission = 'User' }) {
+      if (!email || !password) {
+        throw new Error('Missing required fields: email, password')
+      }
+
+      const user = await app.createUser({ email, password, permission })
+
+      if (!user?.id) {
+        throw new Error('User creation failed')
+      }
+
+      return user
+    }
+    collections.users.actions = {
+      create: withParams(
+        async params => {
+          const user = await createUser(params)
+          return user.id
+        },
+        {
+          email: { type: 'string' },
+          password: { type: 'string' },
+          permission: { type: 'string', optional: true },
+        }
+      ),
+    }
     collections.dashboard = {}
     collections.messages = {
       getObject(id) {
@@ -1512,6 +1538,15 @@ export default class RestApi {
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
         res.sendStatus(200)
+      })
+    )
+
+    api.post(
+      '/users/create',
+      json(),
+      wrap(async (req, res) => {
+        const user = await createUser(req.body)
+        res.status(201).json({ id: user.id })
       })
     )
   }
