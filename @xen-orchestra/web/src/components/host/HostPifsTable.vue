@@ -205,15 +205,15 @@ const pifsIds = computed(() => pifs.value.map(pif => pif.id))
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getPifStatus = (pif: XoPif) => {
-  if (pif.attached && pif.carrier) {
-    return 'connected'
+  if (!pif.attached) {
+    return 'disconnected'
   }
 
   if (pif.attached && !pif.carrier) {
-    return 'partially-connected'
+    return 'disconnected-from-physical-device'
   }
 
-  return 'disconnected'
+  return 'connected'
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
