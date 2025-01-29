@@ -1,5 +1,5 @@
 import swaggerUi from 'swagger-ui-express'
-import { Express, Response, urlencoded } from 'express'
+import { Express, NextFunction, Request, Response } from 'express'
 
 import swaggerOpenApiSpec from './open-api/spec/swagger.json' assert { type: 'json' }
 import { RegisterRoutes } from './open-api/routes/routes.js'
@@ -8,9 +8,15 @@ import { EventEmitter } from 'events'
 import DashboardService from './dashboard/dashboard.service.js'
 import { iocContainer } from './ioc/ioc.js'
 import { errorHandler } from './middleware/error.middleware.js'
+import fs from 'node:fs/promises'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 class RestApi {
   #sseClients: Map<symbol, Response> = new Map()
+  #express
 
   ee = new EventEmitter()
 
@@ -22,10 +28,13 @@ class RestApi {
   getXapiObject: XoApp['getXapiObject']
   getObjectsByType
 
-  constructor(xoApp: XoApp) {
+  constructor(xoApp: XoApp, express: Express) {
+    console.log('INITIALIZE')
     if (restApi !== undefined) {
       throw new Error('RestApi is a singleton')
     }
+
+    this.#express = express
 
     // existing xo methods
     this.authenticateUser = xoApp.authenticateUser.bind(xoApp)
@@ -54,6 +63,25 @@ class RestApi {
   sendData(objId: string, objType: string | undefined, obj: any | undefined, operation: 'update' | 'add' | 'remove') {
     this.#sseClients.forEach(client => {
       client.write(`data: ${JSON.stringify({ id: objId, type: objType, data: obj, operation })}\n\n`)
+    })
+  }
+
+  async registerRoute(
+    endpoint: string,
+    cb: (req: Request, res: Response, next: NextFunction) => any,
+    openapiSpec: Object,
+    httpMethod: 'get' | 'post' | 'put' | 'patch' | 'delete' = 'get'
+  ) {
+    if (endpoint[0] !== '/') {
+      endpoint = '/' + endpoint
+    }
+    this.#express[httpMethod](`/rest/v1${endpoint}`, cb)
+    const currentConfig = JSON.parse(
+      await fs.readFile(`${__dirname}/open-api/spec/swagger-tmp.json`, { encoding: 'utf-8' })
+    )
+    currentConfig.paths[endpoint] = openapiSpec
+    await fs.writeFile(`${__dirname}/open-api/spec/swagger-tmp.json`, JSON.stringify(currentConfig), {
+      encoding: 'utf-8',
     })
   }
 
@@ -110,16 +138,27 @@ class RestApi {
 }
 
 let restApi: RestApi
-export const getRestApi = () => restApi
+export const getRestApi = () => {
+  if (restApi === undefined) {
+    throw new Error('The REST API is not instantiated')
+  }
+  return restApi
+}
 
-export default function setupRestApi(express: Express, xoApp: XoApp) {
-  restApi = new RestApi(xoApp)
+export default async function setupRestApi(express: Express, xoApp: XoApp) {
+  restApi = new RestApi(xoApp, express)
+
+  await fs.copyFile(`${__dirname}/open-api/spec/swagger.json`, `${__dirname}/open-api/spec/swagger-tmp.json`)
 
   express.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*') // TODO: remove this. Only used for test
     next()
   })
-  express.use('/rest/v1/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
+
+  express.use('/rest/v1/api-doc', swaggerUi.serve, async (req, res, next) => {
+    const spec = JSON.parse(await fs.readFile(`${__dirname}/open-api/spec/swagger-tmp.json`, { encoding: 'utf-8' }))
+    swaggerUi.setup(spec)(req, res, next)
+  })
   RegisterRoutes(express)
 
   express.use(errorHandler)

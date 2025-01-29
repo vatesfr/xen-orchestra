@@ -31,7 +31,7 @@ export default class DashboardService {
   }
 
   #getVmsStatus(): Dashboard['vmsStatus'] {
-    const vms = Object.values(this.#restApi.getObjectsByType('VM') ?? {})
+    const vms = Object.values(this.#restApi.getObjectsByType('VM') ?? {}) as any
     let running = 0
     let inactive = 0
     let unknown = 0
