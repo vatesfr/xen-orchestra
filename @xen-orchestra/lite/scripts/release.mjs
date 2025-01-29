@@ -357,9 +357,7 @@ if (ghRelease) {
 
     if (
       releaseNotes === undefined &&
-      (await no(
-        `Could not find changelog for version ${version}.(${chalk.yellow(release.html_url)}).  Create release without changelog?`
-      ))
+      (await no(`Could not find changelog for version ${version}. Create release without changelog?`))
     ) {
       stop()
     }
