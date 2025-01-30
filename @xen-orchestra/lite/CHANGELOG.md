@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.7.0** (2025-01-30)
 
 - Fix persistent scrollbar on the right (PR [#8191](https://github.com/vatesfr/xen-orchestra/pull/8191))
 - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
