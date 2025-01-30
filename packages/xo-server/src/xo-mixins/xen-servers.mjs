@@ -162,11 +162,16 @@ export default class XenServers {
       'poolNameLabel',
       'username',
     ]) {
-      // if value is falseish pass undefined to the model to delete this property
-      const value = properties[key] || undefined
-      if (value !== server[key]) {
-        server[key] = value
-        hasChanged = true
+      let value = properties[key]
+      if (value !== undefined) {
+        // if value is falseish pass undefined to the model to delete this property
+        if (value === null || value === '') {
+          value = undefined
+        }
+        if (value !== server[key]) {
+          server[key] = value
+          hasChanged = true
+        }
       }
     }
 
