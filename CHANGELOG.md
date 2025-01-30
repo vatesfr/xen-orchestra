@@ -11,6 +11,8 @@
   - [UI] Use user language set in XO 5 to set the language in XO 6 (PR [#8232](https://github.com/vatesfr/xen-orchestra/pull/8232))
   - [Console] Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
   - [Console] Add fullscreen functionality for console (PR [#8238](https://github.com/vatesfr/xen-orchestra/pull/8238))
+  - [Pool/Networks]: Display networks and host internal networks lists in pool view (PR [#8182](https://github.com/vatesfr/xen-orchestra/pull/8182))
+  - [Host/Networks]: Display Pifs lists in host view (PR [#8198](https://github.com/vatesfr/xen-orchestra/pull/8198))
 - [Backup] New [ChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305) encryption for remotes, allow encrypted files larger than 64GB (PR [#8237](https://github.com/vatesfr/xen-orchestra/pull/8237))
 - [Backup] Don't checksum encrypted full backup because encryption already handles it (PR [#8270](https://github.com/vatesfr/xen-orchestra/pull/8270))
 
@@ -26,22 +28,25 @@
 - [Backup/LTR] Fix computation for the last week of the year (PR [#8269](https://github.com/vatesfr/xen-orchestra/pull/8269))
 - [New/Storage] Correctly display error if storage detection failed for HBA or ZFS (PR [#8250](https://github.com/vatesfr/xen-orchestra/pull/8250))
 - Fix error `sr.getAllUnhealthyVdiChainsLength(...) [36ms] =!> TypeError: Cannot read properties of undefined (reading 'managed')` (PR [#8273](https://github.com/vatesfr/xen-orchestra/pull/8273))
+- [Backups] Fix error `Cannot read properties of undefined (reading 'endsWith')` (PR [#8275](https://github.com/vatesfr/xen-orchestra/pull/8275))
+- **XO 6**:
+  - [Pool/Network] Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ### Released packages
 
 - @xen-orchestra/fs 4.4.0
 - @xen-orchestra/xapi 7.11.0
-- @xen-orchestra/backups 0.58.0
 - @xen-orchestra/backups-cli 1.0.29
 - @xen-orchestra/immutable-backups 1.0.17
-- @xen-orchestra/web-core 0.11.0
-- @xen-orchestra/proxy 0.29.10
 - @xen-orchestra/vmware-explorer 0.9.0
-- @xen-orchestra/web 0.7.0
-- xo-server 5.169.0
 - xo-server-audit 0.12.2
 - xo-server-usage-report 0.10.7
-- xo-web 5.168.0
+- @xen-orchestra/backups 0.58.1
+- @xen-orchestra/web-core 0.12.0
+- @xen-orchestra/proxy 0.29.11
+- @xen-orchestra/web 0.8.0
+- xo-server 5.169.1
+- xo-web 5.168.1
 
 ## **5.102.1** (2025-01-09)
 
