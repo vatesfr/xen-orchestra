@@ -164,7 +164,7 @@ export default class XenServers {
     ]) {
       // if value is falseish pass undefined to the model to delete this property
       const value = properties[key] || undefined
-      if (value !== undefined && value !== server[key]) {
+      if (value !== server[key]) {
         server[key] = value
         hasChanged = true
       }
