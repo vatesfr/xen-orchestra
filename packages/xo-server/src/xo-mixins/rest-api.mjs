@@ -940,16 +940,6 @@ export default class RestApi {
         },
       },
     }
-    collections.groups.actions = {
-      create: withParams(
-        async ({ name }, req) => {
-          return (await app.createGroup({ name })).id
-        },
-        {
-          name: { type: 'string' },
-        }
-      ),
-    }
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
@@ -1526,12 +1516,12 @@ export default class RestApi {
     )
 
     api.post(
-      '/groups/create',
+      '/:collection(groups)',
       json(),
       wrap(async (req, res) => {
         const { name } = req.body
         const id = await app.createGroup({ name })
-        res.json({ id })
+        res.end({ id })
       })
     )
   }
