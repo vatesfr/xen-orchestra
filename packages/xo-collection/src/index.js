@@ -4,11 +4,12 @@ import clearObject from './clear-object'
 import isEmpty from './is-empty'
 import NotImplemented from './not-implemented'
 import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
-
+import { EventEmitter } from 'node:events'
 // ===================================================================
 
-export class Index {
+export class Index extends EventEmitter {
   constructor(computeHash) {
+    super()
     if (computeHash) {
       this.computeHash = iteratee(computeHash)
     }
@@ -85,6 +86,7 @@ export class Index {
           (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
+        this.emit('add', hash, value)
       }
     }
   }
@@ -108,6 +110,7 @@ export class Index {
           (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
+        this.emit('update', hash, value)
       } else {
         delete keysToHash[key]
       }
@@ -120,6 +123,7 @@ export class Index {
     for (const key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
+        this.emit('remove', prev, itemsByHash[prev][key])
         delete itemsByHash[prev][key]
         delete keysToHash[key]
       }

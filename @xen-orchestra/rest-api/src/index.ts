@@ -48,8 +48,8 @@ class RestApi {
     this.getObjectsByType = <T extends keyof typeof xoApp.objects.indexes.type>(type: T) =>
       xoApp.objects.indexes.type[type]
 
-    //
-    this.#registerListener(xoApp.objects)
+    // @ts-ignore
+    this.#registerListener(xoApp.objects.allIndexes.type)
   }
 
   addSseClient(id: symbol, client: Response) {
@@ -85,55 +85,21 @@ class RestApi {
     })
   }
 
-  #registerListener(obj: XoApp['objects']) {
+  #registerListener(obj: EventEmitter) {
     // XO events
-    obj.on('remove', data => {
-      this.#handleXapiEvent(data, 'remove')
-    })
-    obj.on('add', data => this.#handleXapiEvent(data, 'add'))
-    obj.on('update', data => this.#handleXapiEvent(data, 'update'))
+    obj.on('remove', (type, data) => this.#handleXapiEvent(type, data, 'remove'))
+    obj.on('add', (type, data) => this.#handleXapiEvent(type, data, 'add'))
+    obj.on('update', (type, data) => this.#handleXapiEvent(type, data, 'update'))
   }
 
-  async #handleXapiEvent(data: Record<string, XapiXoObject | undefined>, operation: 'update' | 'add' | 'remove') {
-    const ids = Object.keys(data)
-    let vmChanges = false
-    let poolChanges = false
-    let hostChanges = false
-
-    if (operation === 'remove') {
-      // on remove operations, we have no way to know the obj type.
-      vmChanges = true
-      poolChanges = true
-      hostChanges = true
-    }
-
-    ids.forEach(id => {
-      const obj = data[id]
+  async #handleXapiEvent(type: string, data: XapiXoObject, operation: 'update' | 'add' | 'remove') {
+    if ((data as any).type === 'message') {
       // just to avoid client to be spammed by message for the moment
-      if ((obj as any)?.type === 'message') {
-        return
-      }
-
-      if (obj?.type === 'VM') {
-        vmChanges = true
-      }
-      if (obj?.type === 'pool') {
-        poolChanges = true
-      }
-
-      this.sendData(id, obj?.type, obj, operation)
-    })
-
-    if (vmChanges) {
-      this.ee.emit('vm')
+      return
     }
-    if (poolChanges) {
-      this.ee.emit('pool')
-    }
-    if (hostChanges) {
-      this.ee.emit('host')
-    }
-    // if we are able to got the object type when remove operation is emit, simply do: `this.ee.emit(obj.type)`
+
+    this.ee.emit(type.toLowerCase(), data, operation)
+    this.sendData(data.id, data.type, data, operation)
   }
 }
 
