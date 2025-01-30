@@ -22,7 +22,7 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 <style lang="postcss" scoped>
 .pool-network-view {
   display: grid;
-  grid-template-columns: 1fr 40rem;
+  grid-template-columns: minmax(0, 1fr) 40rem;
 
   .container {
     gap: 4rem;
