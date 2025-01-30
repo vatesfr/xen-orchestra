@@ -940,16 +940,6 @@ export default class RestApi {
         },
       },
     }
-    collections.groups.actions = {
-      delete: withParams(
-        async ({ id }, req) => {
-          return (await app.deleteGroup(id)).id
-        },
-        {
-          id: { type: 'string' },
-        }
-      ),
-    }
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
@@ -1526,11 +1516,11 @@ export default class RestApi {
     )
 
     api.delete(
-      '/groups/delete/:id',
+      '/:collection(groups)/:id',
       wrap(async (req, res) => {
         const { id } = req.params
         await app.deleteGroup(id)
-        res.sendStatus(200)
+        res.sendStatus(204)
       })
     )
   }
