@@ -14,7 +14,7 @@
 - [New/VM] Fix premature destruction of the cloudConfig VDI when using the option _destroyCloudConfigVdiAfterBoot_ [#8219](https://github.com/vatesfr/xen-orchestra/issues/8219) (PR [#8247](https://github.com/vatesfr/xen-orchestra/pull/8247))
 - [V2V] Improve compatiblity whith VSphere handling multiple vSAN storages (PR [#8243](https://github.com/vatesfr/xen-orchestra/pull/8243))
 - **XO 6**:
-  - [UI] Use user language set in XO 5 to set the language in XO 6 (PR [#8232](https://github.com/vatesfr/xen-orchestra/pull/8232))
+  - [UI] Use user language set in XO 5 to set the language in XO 6 (PR [#8242](https://github.com/vatesfr/xen-orchestra/pull/8242))
   - [Console] Add fullscreen functionality for console (PR [#8238](https://github.com/vatesfr/xen-orchestra/pull/8238))
   - [Pool/Networks]: Display networks and host internal networks lists in pool view (PR [#8182](https://github.com/vatesfr/xen-orchestra/pull/8182))
   - [Host/Networks]: Display Pifs lists in host view (PR [#8198](https://github.com/vatesfr/xen-orchestra/pull/8198))
