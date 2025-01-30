@@ -177,6 +177,7 @@ export default class XenServers {
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
+      hasChanged = true
     }
 
     if (hasChanged) {
