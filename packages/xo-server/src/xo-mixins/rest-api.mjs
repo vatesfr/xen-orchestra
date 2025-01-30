@@ -1022,16 +1022,6 @@ export default class RestApi {
         },
       },
     }
-    collections.users.actions = {
-      delete: withParams(
-        async ({ id }, req) => {
-          return (await app.deleteUser(id)).id
-        },
-        {
-          id: { type: 'string' },
-        }
-      ),
-    }
     collections.dashboard = {}
     collections.messages = {
       getObject(id) {
@@ -1526,11 +1516,11 @@ export default class RestApi {
     )
 
     api.delete(
-      '/users/delete/:id',
+      '/:collection(users)/:id',
       wrap(async (req, res) => {
         const { id } = req.params
         await app.deleteUser(id)
-        res.sendStatus(200)
+        res.sendStatus(204)
       })
     )
   }
