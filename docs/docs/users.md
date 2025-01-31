@@ -137,10 +137,7 @@ You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 ![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
 
 ##### Required Configuration
-Fill in these mandatory fields:
-- **Auto-discovery URL**
-- **Client identifier (key)**
-- **Client secret**
+Fill in the mandatory fields.
 
 ##### Advanced Configuration (Optional)
 To access advanced options:
