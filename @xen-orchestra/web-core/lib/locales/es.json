@@ -111,5 +111,8 @@
   "tasks.quick-view.in-progress": "En progreso",
   "total": "Total",
   "total-cpus": "Total CPUs",
+  "unknown": "Desconocido",
+  "unlocked": "Desbloqueado",
+  "vlan": "VLAN",
   "vms": "VMs"
 }
