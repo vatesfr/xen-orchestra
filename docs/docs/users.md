@@ -114,8 +114,15 @@ Save the configuration and then activate the plugin (button on top).
 ##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
 
 Use the screenshots below as a reference as how to setup SAML with Google Workspace.
+1. Sign-in to your Google Workspace Admin Dashboard [https://admin.google.com](https://admin.google.com).
+2. Go-to: Apps/Web and mobile apps
+3. *Add app*. Choose *Add Custom SAML app*.
+4. Give it a name and optionally a description.
+5. Use the screenshots below to see what fields pair with what.
 
 > Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+
+> If you get a certificate error. Try and add a newline at the bottom of the Certificate field in Xen-Orchestra.
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
 
