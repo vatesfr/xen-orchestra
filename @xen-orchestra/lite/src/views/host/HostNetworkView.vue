@@ -23,6 +23,7 @@ usePageTitleStore().setTitle(useI18n().t('network'))
   grid-template-columns: minmax(0, 1fr) 40rem;
 
   .container {
+    height: fit-content;
     gap: 4rem;
     margin: 0.8rem;
   }
