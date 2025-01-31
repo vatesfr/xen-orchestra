@@ -2,10 +2,24 @@
   <UiPanel class="pif-panel">
     <VtsNoSelectionHero v-if="!pif" type="panel" />
     <template #header>
-      <UiButton size="medium" variant="tertiary" accent="info" :left-icon="faEdit">
+      <UiButton
+        v-tooltip="$t('coming-soon')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="info"
+        :left-icon="faEdit"
+      >
         {{ $t('edit') }}
       </UiButton>
-      <UiButton size="medium" variant="tertiary" accent="danger" :left-icon="faTrash">
+      <UiButton
+        v-tooltip="$t('coming-soon')"
+        disabled
+        size="medium"
+        variant="tertiary"
+        accent="danger"
+        :left-icon="faTrash"
+      >
         {{ $t('delete') }}
       </UiButton>
     </template>
@@ -29,7 +43,13 @@
               :icon="faCircle"
               :overlay-icon="faStar"
             />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(pif.uuid)"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- NETWORK -->
@@ -51,7 +71,14 @@
             </div>
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="networkNameLabel"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(networkNameLabel)"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- DEVICE -->
@@ -63,7 +90,14 @@
             {{ pif.device }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="pif.device"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(pif.device)"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- PIF STATUS -->
@@ -93,7 +127,14 @@
             {{ getVlan }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="getVlan !== '-'"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(String(getVlan))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- TAGS -->
@@ -122,11 +163,20 @@
             {{ $t('ip-addresses') }}
           </template>
           <template v-if="allIps.length > 0" #value>
-            <span v-for="ip in allIps" :key="ip" v-tooltip class="text-ellipsis">{{ ip }}</span>
-          </template>
-          <template #addons>
-            <UiButtonIcon v-if="allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <div v-for="(ip, index) in allIps" :key="ip" class="ip-row">
+              <span class="text-ellipsis">{{ ip }}</span>
+              <div class="ip-actions">
+                <UiButtonIcon
+                  v-if="ip !== '-'"
+                  v-tooltip="copied && $t('core.copied')"
+                  :icon="faCopy"
+                  size="medium"
+                  accent="info"
+                  @click="copy(ip)"
+                />
+                <UiButtonIcon v-if="index === 0 && allIps.length > 1" :icon="faEllipsis" size="medium" accent="info" />
+              </div>
+            </div>
           </template>
         </VtsCardRowKeyValue>
         <!-- MAC ADDRESSES -->
@@ -138,7 +188,14 @@
             {{ pif.MAC }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="pif.MAC"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(pif.MAC)"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- NETMASK -->
@@ -150,7 +207,14 @@
             {{ getNetmask }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="getNetmask !== '-'"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(String(getNetmask))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- DNS -->
@@ -162,7 +226,14 @@
             {{ getDNS }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="getDNS !== '-'"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(String(getDNS))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- GATEWAY -->
@@ -174,7 +245,14 @@
             {{ getGateway }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="getGateway !== '-'"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(String(getGateway))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- IP CONFIGURATION MODE -->
@@ -201,7 +279,14 @@
             {{ pif.MTU }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="pif.MTU"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(String(pif.MTU))"
+            />
           </template>
         </VtsCardRowKeyValue>
         <!-- SPEED -->
@@ -222,7 +307,14 @@
             {{ networkPurpose }}
           </template>
           <template #addons>
-            <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+            <UiButtonIcon
+              v-if="networkPurpose"
+              v-tooltip="copied && $t('core.copied')"
+              :icon="faCopy"
+              size="medium"
+              accent="info"
+              @click="copy(networkPurpose)"
+            />
           </template>
         </VtsCardRowKeyValue>
       </div>
@@ -249,6 +341,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useClipboard } from '@vueuse/core'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -318,6 +411,8 @@ const byteFormatter = computed(() => (value: number) => {
     maxDecimals: 2,
   })
 })
+
+const { copy, copied } = useClipboard()
 </script>
 
 <style scoped lang="postcss">
@@ -338,6 +433,20 @@ const byteFormatter = computed(() => (value: number) => {
   .network {
     display: flex;
     gap: 0.8rem;
+  }
+
+  .ip-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.4rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .ip-actions {
+    margin-left: auto;
   }
 
   .tags {
