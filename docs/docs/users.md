@@ -145,14 +145,7 @@ Fill in these mandatory fields:
 ##### Advanced Configuration (Optional)
 To access advanced options:
 1. Check **Fill information (optional)** to reveal additional fields.
-2. Complete these fields as needed:
-   - **Authorization URL**
-   - **Callback URL**
-   - **Issuer**
-   - **Token URL**
-   - **User info URL**
-   - **Username field**
-   - **Scopes**
+2. Complete the fields as needed.
 
 ##### Save and Activate the Plugin
 1. Once everything is configured, click **Save configuration**.
