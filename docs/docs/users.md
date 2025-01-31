@@ -137,22 +137,22 @@ You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 ![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
 
 ##### Required Configuration
-Fill in the following mandatory fields:
-- **Auto-discovery URL**: The OIDC discovery URL provided by your identity provider.
-- **Client identifier (key)**: The client ID from your identity provider.
-- **Client secret**: Your client secret.
+Fill in these mandatory fields:
+- **Auto-discovery URL**
+- **Client identifier (key)**
+- **Client secret**
 
 ##### Advanced Configuration (Optional)
 To access advanced options:
 1. Check **Fill information (optional)** to reveal additional fields.
-2. Complete the following fields as needed:
-   - **Authorization URL**: The URL for authorization requests.
-   - **Callback URL**: The redirect URI for OIDC responses.
-   - **Issuer**: The expected issuer string from the identity provider.
-   - **Token URL**: The URL for retrieving access tokens.
-   - **User info URL**: The URL for user profile information.
-   - **Username field**: Field to use as the Xen Orchestra username (e.g., `displayName`, `username`, or `email`).
-   - **Scopes**: List of OIDC scopes for profile information, separated by a single space. Note: The `openid` scope is included automatically.
+2. Complete these fields as needed:
+   - **Authorization URL**
+   - **Callback URL**
+   - **Issuer**
+   - **Token URL**
+   - **User info URL**
+   - **Username field**
+   - **Scopes**
 
 ##### Save and Activate the Plugin
 1. Once everything is configured, click **Save configuration**.
