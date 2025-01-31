@@ -1,12 +1,12 @@
 <template>
-  <tr>
+  <tr @click="redirect()">
     <td v-if="host" class="typo p3-regular text-ellipsis host">
       <UiObjectIcon :state="hostPowerState" type="host" size="small" />
-      <a v-tooltip href="" class="text-ellipsis">
+      <span v-tooltip class="typo p3-regular text-ellipsis host-name">
         {{ host.name_label }}
-      </a>
+      </span>
     </td>
-    <td class="typo p3-regular device text-ellipsis">{{ pif.device }}</td>
+    <td class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
     <td class="typo p3-regular status">
       <VtsConnectionStatus v-if="status !== undefined" :status />
     </td>
@@ -27,6 +27,7 @@ import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const { pif } = defineProps<{
   pif: XenApiPif
@@ -35,6 +36,8 @@ const { pif } = defineProps<{
 const { getByOpaqueRef: getOpaqueRefHost } = useHostStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefMetricsHost } = useHostMetricsStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
+
+const router = useRouter()
 
 const pifCarrier = computed(() => getPifCarrier(pif))
 
@@ -61,6 +64,18 @@ const host = computed(() => getOpaqueRefHost(pif.host))
 const hostStatus = computed(() => (host.value ? getOpaqueRefMetricsHost(host.value.metrics)?.live : undefined))
 
 const hostPowerState = computed(() => (hostStatus.value ? 'running' : 'halted'))
+
+const redirect = () => {
+  if (host.value === undefined) {
+    return
+  }
+
+  router.push({
+    name: 'host.network',
+    params: { uuid: host.value.uuid },
+    query: { id: pif.uuid },
+  })
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -68,6 +83,11 @@ td {
   &.host {
     width: 14rem;
     max-width: 14rem;
+
+    .host-name {
+      margin-left: 0.4rem;
+      color: var(--color-info-txt-base);
+    }
   }
 
   &.device {
