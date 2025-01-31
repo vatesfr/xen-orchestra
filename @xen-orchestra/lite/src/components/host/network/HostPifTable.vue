@@ -229,6 +229,12 @@ const getPifStatus = (pif: XenApiPif) => {
   return 'connected'
 }
 
+const getIpConfigurationMode = (ipMode: string) => {
+  if (ipMode === 'Static') return t('static')
+  if (ipMode === 'DHCP') return t('dhcp')
+  return t('none')
+}
+
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.uuid,
   columns: define => [
@@ -253,11 +259,15 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
       { label: t('ip-addresses') }
     ),
     define('MAC', { label: t('mac-addresses') }),
-    define('ip_configuration_mode', { label: t('ip-mode') }),
+    define('ip_configuration_mode', record => getIpConfigurationMode(record.ip_configuration_mode), {
+      label: t('ip-mode'),
+    }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
+
 type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
+
 const headerIcon: Record<PifHeader, IconDefinition> = {
   network: faAlignLeft,
   device: faAlignLeft,
