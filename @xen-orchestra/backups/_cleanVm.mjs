@@ -11,7 +11,6 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import handlerPath from '@xen-orchestra/fs/path'
-import RemoteHandlerAbstract from '@xen-orchestra/fs/abstract.js'
 
 const { DISK_TYPES } = Constants
 

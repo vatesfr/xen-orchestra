@@ -124,3 +124,74 @@
 * @property {Object[]} vtpms
 * @property {string} [xva]
 */
+
+/**
+ * @typedef {Object} RemoteHandlerAbstract
+ * @property {any} _remote - The connection to the remote system.
+ * @property {any} _timeout - Timeout for operations.
+ * @property {any} closeFile - Method to close a file.
+ * @property {any} copy - Method to copy a file.
+ * @property {() => Promise<any>} getInfo - Retrieves general information about the remote system.
+ * @property {(file: any) => Promise<any>} getSizeOnDisk - Gets the disk size of a file.
+ * @property {any} list - Method to list files.
+ * @property {any} mkdir - Method to create a directory.
+ * @property {any} openFile - Method to open a file.
+ * @property {(file: any, data: any, options?: {dirMode?: any, flags?: string}) => Promise<void>} outputFile - Writes data to a file.
+ * @property {(file: any, buffer: any, position: any) => Promise<void>} read - Reads data from a file.
+ * @property {any} readFile - Reads the entire content of a file.
+ * @property {any} rename - Renames a file.
+ * @property {(dir: any) => Promise<void>} rmdir - Removes a directory.
+ * @property {(file: any, len: any) => Promise<void>} truncate - Truncates a file to a specified length.
+ * @property {any} unlink - Deletes a file.
+ * @property {(file: any, buffer: any, position: any) => Promise<void>} write - Writes data to a file.
+ * @property {any} writeFile - Writes the entire content of a file.
+ * @property {() => Promise<void>} _forget - Forgets information related to the handler.
+ * @property {() => Promise<void>} _sync - Synchronizes data with the remote storage.
+ * @property {void} type - The type of the handler.
+ * @property {(prefix: any) => PrefixWrapper | RemoteHandlerAbstract} addPrefix - Adds a prefix to all paths.
+ * @property {(file: any, options?: {checksum?: boolean, ignoreMissingChecksum?: boolean}) => Promise<any>} createReadStream - Creates a readable stream.
+ * @property {(path: string, input: ReadableStream, options?: {checksum?: boolean, dirMode?: number, validator?: (this: RemoteHandlerAbstract, path: string) => Promise<undefined>}) => Promise<void>} outputStream - Writes a stream to a file using a temporary file.
+ * @property {() => Promise<void>} forget - Forgets cached data.
+ * @property {(file: any) => Promise<any>} getSize - Gets the size of a file.
+ * @property {(dir: any, options?: {filter?: any, ignoreMissing?: boolean, prependDir?: boolean}) => Promise<any>} __list - Internal method to list files.
+ * @property {(path: any) => Promise<{dispose: () => Promise<void>}>} lock - Locks a path.
+ * @property {(dir: any, options?: {mode?: any}) => Promise<void>} mktree - Creates a directory tree.
+ * @property {(file: any, options?: {flags?: string}) => Promise<any>} __readFile - Reads a file (internal).
+ * @property {(oldPath: any, newPath: any, options?: {checksum?: boolean}) => Promise<any>} __rename - Renames a file (internal).
+ * @property {(oldPath: any, newPath: any, options?: {checksum?: boolean}) => Promise<any>} __copy - Copies a file (internal).
+ * @property {(dir: any) => Promise<void>} rmtree - Removes a directory tree.
+ * @property {() => Promise<void>} sync - Synchronizes with the remote system.
+ * @property {() => Promise<{success: boolean, writeRate?: number, readRate?: number, step?: string, file?: any, error?: any}>} test - Tests the handler's performance.
+ * @property {(file: any, options?: {checksum?: boolean}) => Promise<void>} __unlink - Deletes a file (internal).
+ * @property {(file: any, data: any, options?: {flags?: string}) => Promise<void>} __writeFile - Writes data to a file (internal).
+ * @property {(fd: any) => Promise<void>} __closeFile - Closes a file descriptor (internal).
+ * @property {(dir: any, options?: {mode?: any}) => Promise<void>} __mkdir - Creates a directory (internal).
+ * @property {(path: any, flags: any) => Promise<{fd: any, path: any}>} __openFile - Opens a file (internal).
+ * @property {() => any} useVhdDirectory - Enables use of VHD directory.
+ * @property {(fd: any) => Promise<void>} _closeFile - Closes a file descriptor (internal).
+ * @property {(file: any, options?: {dirMode?: any}) => any} _createOutputStream - Creates an output stream (internal).
+ * @property {(file: any, options: any) => Promise<void>} _createReadStream - Creates a readable stream (internal).
+ * @property {(file: any, options: any) => Promise<void>} _createWriteStream - Creates a writable stream (internal).
+ * @property {() => Promise<{}>} _getInfo - Retrieves system information (internal).
+ * @property {(path: any) => Promise<() => Promise<void>>} _lock - Locks a path (internal).
+ * @property {(file: any) => Promise<void>} _getSize - Gets the size of a file (internal).
+ * @property {(dir: any) => Promise<void>} _list - Lists files in a directory (internal).
+ * @property {(dir: any) => Promise<void>} _mkdir - Creates a directory (internal).
+ * @property {(dir: any, options?: {mode?: any}) => any} _mktree - Creates a directory tree (internal).
+ * @property {(path: any, flags: any) => Promise<void>} _openFile - Opens a file (internal).
+ * @property {(file: any, data: any, options: {dirMode: any, flags: any}) => any} _outputFile - Writes data to a file (internal).
+ * @property {(path: any, input: any, options: {dirMode: any, validator: any}) => Promise<void>} _outputStream - Writes a stream to a file (internal).
+ * @property {(file: any, buffer: any, position: any) => void} _read - Reads data from a file (internal).
+ * @property {(file: any, options: any) => Promise<void>} _readFile - Reads an entire file (internal).
+ * @property {(oldPath: any, newPath: any) => Promise<void>} _rename - Renames a file (internal).
+ * @property {(oldPath: any, newPath: any) => Promise<void>} _copy - Copies a file (internal).
+ * @property {(dir: any) => Promise<void>} _rmdir - Removes a directory (internal).
+ * @property {(dir: any) => any} _rmtree - Removes a directory tree (internal).
+ * @property {(file: any) => Promise<void>} _unlink - Deletes a file (internal).
+ * @property {(file: any, buffer: any, position: any) => Promise<void>} _write - Writes data to a file (internal).
+ * @property {(fd: any, buffer: any, position: any) => Promise<void>} _writeFd - Writes data to a file descriptor (internal).
+ * @property {(file: any, data: any, options: any) => Promise<void>} _writeFile - Writes an entire file (internal).
+ * @property {boolean} isEncrypted - Indicates if the handler is encrypted.
+ * @property {any} encryptionAlgorithm - The encryption algorithm used.
+ */
+```
