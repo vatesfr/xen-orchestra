@@ -92,7 +92,7 @@ Here is those 2 types:
 
 ### Disperse type
 
-Data are **chunked and dispersed** on multiple nodes. There is a kind of "parity" data allowing to lost one or mode nodes ("like" RAID5 or RAID6).
+Data are **chunked and dispersed** on multiple nodes. This is a kind of "parity" model that allows for the loss of one or more nodes ("like" RAID5 or RAID6).
 
 Pros:
 
