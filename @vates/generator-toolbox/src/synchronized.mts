@@ -38,7 +38,9 @@ export class Synchronized<T> {
       let forksWaitingResolve = () => {}
       let forksWaitingReject = (reason?: Error) => {}
       const next = this.#source.next().catch(async error => {
-        forksWaitingReject(error)
+        const e = new Error('Error in the source generator')
+        e.cause = error
+        forksWaitingReject(e)
         // source has failed, kill everything, and stop the forks
         for (const uid of [...this.#forks.keys()]) {
           await this.remove(uid, error)
@@ -58,23 +60,36 @@ export class Synchronized<T> {
   }
 
   async remove(uid: string, error?: Error) {
-    let wasStillHere = this.#forks.has(uid)
+    const fork = this.#forks.get(uid)
+    if (fork === undefined) {
+      return
+    }
     this.#forks.delete(uid)
     this.#waitingForks.delete(uid)
-    if (wasStillHere) {
+    try {
       if (error === undefined) {
         await this.#forks.get(uid)?.return(undefined)
       } else {
         await this.#forks.get(uid)?.throw(error)
       }
+    } catch (cleaningError) {
+      console.error('Error while cleaning the forked', {
+        cleaningError,
+        sourceError: error,
+      })
     }
+
     if (this.#forks.size === 0) {
       if (error === undefined) {
         await this.#source.return(undefined)
       } else {
         await this.#source.throw(error)
       }
-      // @todo should we also fails the nextValueForksReady promise ?
+      // Reject any pending forks waiting for the next value
+      if (this.#nextValueForksReady) {
+        this.#nextValueForksReady.forksWaitingReject(new Error('Source generator terminated.'))
+        this.#nextValueForksReady = undefined
+      }
     } else {
       // this fork was maybe blocking the others
       if (this.#nextValueForksReady) {
@@ -84,7 +99,7 @@ export class Synchronized<T> {
   }
 }
 
-class Forked<T> implements AsyncGenerator {
+class Forked<T> implements AsyncGenerator<T> {
   #parent: Synchronized<T>
   #uid: string
   #done = false
@@ -92,23 +107,23 @@ class Forked<T> implements AsyncGenerator {
     this.#parent = parent
     this.#uid = uid
   }
-  next(...[value]: [] | [any]): Promise<IteratorResult<unknown, any>> {
+  next(...[value]: [] | [any]): Promise<IteratorResult<T, any>> {
     if (this.#done === true) {
       return Promise.resolve({ done: true, value: undefined })
     }
     return this.#parent.next(this.#uid)
   }
-  async return(value: any): Promise<IteratorResult<unknown, any>> {
+  async return(value: any): Promise<IteratorResult<T, any>> {
     this.#done = true
     await this.#parent.remove(this.#uid)
     return { done: true, value: undefined }
   }
-  async throw(e: Error): Promise<IteratorResult<unknown, any>> {
+  async throw(e: Error): Promise<IteratorResult<T, any>> {
     this.#done = true
     await this.#parent.remove(this.#uid, e)
     return { done: true, value: undefined }
   }
-  async *[Symbol.asyncIterator](): AsyncGenerator<unknown, any, any> {
+  async *[Symbol.asyncIterator](): AsyncGenerator<T, any, any> {
     while (true) {
       let res = await this.next()
       if (this.#done || res.done) {
