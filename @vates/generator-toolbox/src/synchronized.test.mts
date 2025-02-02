@@ -129,4 +129,13 @@ suite('error', () => {
     await assert.rejects(Promise.all([firstConsume, secondConsume]))
     assert.strictEqual(progress.yielded, 2)
   })
+
+  test('It should not allow a new fork after the start', async () => {
+    const progress = { yielded: 0 }
+    const generator = makeRangeGenerator(5, progress)
+    const forker = new Synchronized(generator)
+    const first = forker.fork('first')
+    await first.next()
+    assert.throws(() => forker.fork('second'))
+  })
 })
