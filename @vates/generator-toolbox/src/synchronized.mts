@@ -1,7 +1,10 @@
+import assert from 'node:assert'
+
 export class Synchronized<T> {
   #source: AsyncGenerator<T>
   #forks = new Map<string, Forked<T>>()
   #waitingForks = new Set<string>()
+  #started = false
 
   #nextValueForksReady?: {
     promise: Promise<IteratorResult<T>>
@@ -14,6 +17,7 @@ export class Synchronized<T> {
   }
 
   fork(uid: string): AsyncGenerator {
+    assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
     const fork = new Forked<T>(this, uid)
     this.#forks.set(uid, fork)
     return fork
@@ -34,6 +38,7 @@ export class Synchronized<T> {
   }
 
   async next(uid: string): Promise<IteratorResult<T, any>> {
+    this.#started = true
     if (this.#nextValueForksReady === undefined) {
       let forksWaitingResolve = () => {}
       let forksWaitingReject = (reason?: Error) => {}
