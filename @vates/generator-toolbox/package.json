@@ -1,0 +1,33 @@
+{
+  "name": "@vates/generator-toolbox",
+  "version": "0.0.0",
+  "main": "src/index.mts",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@tsconfig/node-lts": "^20.1.3",
+    "@tsconfig/recommended": "^1.0.7",
+    "@types/node": "^22.3.0",
+    "typescript": "^5.5.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node ."
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/generator-toolbox",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/generator-toolbox",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=8.10"
+  }
+}
