@@ -43,8 +43,9 @@ export class Synchronized<T> {
       let forksWaitingResolve = () => {}
       let forksWaitingReject = (reason?: Error) => {}
       const next = this.#source.next().catch(async error => {
-        const e = new Error('Error in the source generator')
-        e.cause = error
+        const e = new Error(`Error in the source generator ${error.message}`)
+        // @todo : why  can't I set the cause ?
+        //         e.cause = error
         forksWaitingReject(e)
         // source has failed, kill everything, and stop the forks
         for (const uid of [...this.#forks.keys()]) {
