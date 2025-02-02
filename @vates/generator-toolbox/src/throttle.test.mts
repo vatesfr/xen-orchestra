@@ -25,6 +25,17 @@ suite('it throttle one', () => {
     let end = Date.now()
     assert.strictEqual(Math.round((end - start) / 1000), 2)
   })
+  test('variable speed test', async () => {
+    const generator = makeGenerator(1024 * 1024, 20)
+    // 10MB/s
+    const throttler = new GeneratorThrottler(() => 10 * 1024 * 1024)
+    const throttled = throttler.createThrottledGenerator(generator)
+
+    let start = Date.now()
+    await consumes(throttled)
+    let end = Date.now()
+    assert.strictEqual(Math.round((end - start) / 1000), 2)
+  })
   test('multiple generator test', async () => {
     const generator = makeGenerator(1024 * 1024, 10)
     // 10MB/s
