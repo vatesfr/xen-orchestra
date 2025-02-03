@@ -163,10 +163,9 @@ import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
-
 const { records: networks } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
+const { t } = useI18n()
 
 const networkId = useRouteQuery('id')
 const network = computed(() => networks.value.find(network => network.id === networkId.value))

@@ -1,5 +1,5 @@
 <template>
-  <tr @click="redirect">
+  <tr @click="redirect()">
     <td v-if="host" class="typo p3-regular text-ellipsis host">
       <UiObjectIcon :state="hostPowerState" type="host" size="small" />
       <span v-tooltip class="typo p3-regular text-ellipsis host-name">
@@ -34,7 +34,11 @@ const { records: hosts } = useHostStore().subscribe()
 
 const router = useRouter()
 
-const status = computed<ConnectionStatus>(() => {
+const status = computed<ConnectionStatus | undefined>(() => {
+  if (pif.carrier === undefined) {
+    return undefined
+  }
+
   if (pif.carrier && pif.attached) {
     return 'connected'
   }
