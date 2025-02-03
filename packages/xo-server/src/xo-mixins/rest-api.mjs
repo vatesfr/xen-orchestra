@@ -342,7 +342,7 @@ async function _getDashboardStats(app) {
   )
 
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
-  storageRepositoriesSize.other = storageRepositoriesSize.total - storageRepositoriesSize.replicated
+  storageRepositoriesSize.other = storageRepositoriesSize.used - storageRepositoriesSize.replicated
   resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
