@@ -3,6 +3,7 @@ import assert from 'node:assert'
 export class Synchronized<T> {
   #source: AsyncGenerator<T>
   #forks = new Map<string, Forked<T>>()
+  #removedForks = new Set<string>()
   #waitingForks = new Set<string>()
   #started = false
 
@@ -38,6 +39,13 @@ export class Synchronized<T> {
   }
 
   async next(uid: string): Promise<IteratorResult<T, any>> {
+    if (this.#removedForks.has(uid)) {
+      return { done: true, value: undefined }
+    }
+    if (!this.#forks.has(uid)) {
+      throw new Error(`trying to advance fork ${uid} that is not a fork of this one`)
+    }
+
     this.#started = true
     if (this.#nextValueForksReady === undefined) {
       let forksWaitingResolve = () => {}
@@ -65,18 +73,23 @@ export class Synchronized<T> {
     return this.#resolveWhenAllForksReady()
   }
 
-  async remove(uid: string, error?: Error) {
+  async remove(uid: string, error?: Error): Promise<IteratorResult<T, any>> {
     const fork = this.#forks.get(uid)
     if (fork === undefined) {
-      return
+      if (this.#removedForks.has(uid)) {
+        // already removed
+        return { done: true, value: undefined }
+      }
+      throw new Error(`trying to remove fork wih uid ${uid} that is not a fork of this one`)
     }
     this.#forks.delete(uid)
     this.#waitingForks.delete(uid)
+    this.#removedForks.add(uid)
     try {
       if (error === undefined) {
-        await this.#forks.get(uid)?.return(undefined)
+        await fork.return(undefined)
       } else {
-        await this.#forks.get(uid)?.throw(error)
+        await fork.throw(error)
       }
     } catch (cleaningError) {
       console.error('Error while cleaning the forked', {
@@ -102,37 +115,30 @@ export class Synchronized<T> {
         await this.#resolveWhenAllForksReady()
       }
     }
+    return { done: true, value: undefined }
   }
 }
 
 class Forked<T> implements AsyncGenerator<T> {
   #parent: Synchronized<T>
   #uid: string
-  #done = false
   constructor(parent: Synchronized<T>, uid: string) {
     this.#parent = parent
     this.#uid = uid
   }
   next(...[value]: [] | [any]): Promise<IteratorResult<T, any>> {
-    if (this.#done === true) {
-      return Promise.resolve({ done: true, value: undefined })
-    }
     return this.#parent.next(this.#uid)
   }
   async return(value: any): Promise<IteratorResult<T, any>> {
-    this.#done = true
-    await this.#parent.remove(this.#uid)
-    return { done: true, value: undefined }
+    return this.#parent.remove(this.#uid)
   }
   async throw(e: Error): Promise<IteratorResult<T, any>> {
-    this.#done = true
-    await this.#parent.remove(this.#uid, e)
-    return { done: true, value: undefined }
+    return this.#parent.remove(this.#uid, e)
   }
   async *[Symbol.asyncIterator](): AsyncGenerator<T, any, any> {
     while (true) {
       let res = await this.next()
-      if (this.#done || res.done) {
+      if (res.done) {
         break
       }
       yield res.value

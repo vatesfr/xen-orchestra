@@ -3,48 +3,6 @@ type WithLength = {
   length: number
 }
 
-class ThrottleAware<T> implements AsyncGenerator {
-  #source: AsyncGenerator
-  #throttler: GeneratorThrottler
-  #timeouts = new Set<ReturnType<typeof setTimeout>>()
-  constructor(source: AsyncGenerator, throttler: GeneratorThrottler) {
-    this.#source = source
-    this.#throttler = throttler
-  }
-  // passthrough to the source generator
-  next(): Promise<IteratorResult<unknown, any>> {
-    return this.#source.next()
-  }
-
-  // wait for a slot from throttler before yielding the data
-  async *[Symbol.asyncIterator](): AsyncGenerator {
-    while (true) {
-      const res = await this.next()
-      if (res.done) {
-        break
-      }
-      const value = res.value as WithLength
-      const { interval, promise } = this.#throttler.getNextSlot(value.length)
-      if (interval !== undefined) {
-        this.#timeouts.add(interval)
-        await promise
-      }
-      yield res.value
-    }
-  }
-  // cleanup waiting and passthrough to the source iterator
-  throw(err: Error) {
-    this.#timeouts.forEach(timeout => clearTimeout(timeout))
-    return this.#source.throw(err)
-  }
-  // cleanup waiting and passthrough to the source iterator
-
-  return(value: any) {
-    this.#timeouts.forEach(timeout => clearTimeout(timeout))
-    return this.#source.return(value)
-  }
-}
-
 /**
  *
  * This class will throttle the production of a group of generators
@@ -53,13 +11,12 @@ class ThrottleAware<T> implements AsyncGenerator {
  * works better with more small blocks
  * The source generator must yield object with a length property
  * Changing the speed will only be takin into account fot the next packets asked
- *
  */
 export class GeneratorThrottler {
   #previousSlot = 0
   #bytesPerSecond: number | (() => number)
   get speed(): number {
-    let speed
+    let speed: number
     if (typeof this.#bytesPerSecond === 'function') {
       speed = this.#bytesPerSecond()
     } else {
@@ -72,7 +29,7 @@ export class GeneratorThrottler {
     this.#bytesPerSecond = speed
   }
 
-  getNextSlot(length: number): { interval?: ReturnType<typeof setTimeout>; promise: Promise<void> } {
+  getNextSlot(length: number): { timeout?: ReturnType<typeof setTimeout>; promise?: Promise<void> } {
     assert.notStrictEqual(length, undefined, `throttled stream need to expose a length property }`)
     assert.ok(length > 0, `throttled stream must expose a positive length property , ${length} given }`)
 
@@ -81,19 +38,34 @@ export class GeneratorThrottler {
     if (nextSlot < Date.now()) {
       // we're above the limmit, go now
       this.#previousSlot = Date.now()
-      return { promise: Promise.resolve() }
+      return {}
     }
     this.#previousSlot = nextSlot
     // wait till the next slot
     // it won't be extremely precise since the event loop is not
-    let interval: ReturnType<typeof setTimeout> | undefined = undefined
+    let timeout: ReturnType<typeof setTimeout> | undefined = undefined
     const promise = new Promise(function (resolve) {
-      interval = setTimeout(resolve, nextSlot - Date.now())
+      timeout = setTimeout(resolve, nextSlot - Date.now())
     }) as Promise<void>
-    return { promise, interval }
+    return { promise, timeout }
   }
 
-  createThrottledGenerator(source: AsyncGenerator): AsyncGenerator {
-    return new ThrottleAware(source, this)
+  async *createThrottledGenerator(source: AsyncGenerator): AsyncGenerator {
+    let timeout: ReturnType<typeof setTimeout>
+    try {
+      for await (const value of source) {
+        const res = this.getNextSlot((value as WithLength).length)
+
+        timeout = res.timeout
+        // wait for the time slot before yielding the data
+        if (res.promise !== undefined) {
+          await res.promise
+        }
+        yield value
+      }
+    } finally {
+      // in case of error : cleanup the timeout
+      clearTimeout(timeout)
+    }
   }
 }
