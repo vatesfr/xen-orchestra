@@ -12,4 +12,4 @@ But there's even more! You can:
 - use [advanced features](advanced.md) like Cloud Init or web hooks
 - [load balance](load_balancing.md) your VMs
 - extend your network with [our SDN controller](sdn_controller.md)
-- create an [hyperconverged storage](xosan.md)
+- create hyperconverged storage with [XOSTOR](https://docs.xcp-ng.org/xostor/)

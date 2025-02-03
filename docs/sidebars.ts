@@ -67,8 +67,6 @@ export default {
         'load_balancing',
         'sdn_controller',
         'restapi',
-        'xosan',
-        'xosanv2',
       ],
     },
     {
