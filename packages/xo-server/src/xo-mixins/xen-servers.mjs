@@ -137,52 +137,57 @@ export default class XenServers {
     }
   }
 
-  async updateXenServer(
-    id,
-    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
-  ) {
+  async updateXenServer(id, properties) {
     const server = await this.getXenServerWithCredentials(id)
     const xapi = this._xapis[id]
-    const requireDisconnected =
-      allowUnauthorized !== undefined ||
-      host !== undefined ||
-      password !== undefined ||
-      username !== undefined ||
-      httpProxy !== undefined
 
+    const requireDisconnected = ['allowUnauthorized', 'host', 'httpProxy', 'password', 'username'].some(
+      key => properties[key] !== undefined
+    )
     if (requireDisconnected && xapi !== undefined && xapi.status !== 'disconnected') {
       throw new Error('this entry require disconnecting the server to update it')
     }
 
-    if (label !== undefined) server.label = label || undefined
-    if (host) server.host = host
-    if (username) server.username = username
-    if (password) server.password = password
+    let hasChanged = false
 
-    if (error !== undefined) {
-      server.error = error
+    for (const key of [
+      'allowUnauthorized',
+      'enabled',
+      'error',
+      'host',
+      'httpProxy',
+      'label',
+      'password',
+      'poolNameDescription',
+      'poolNameLabel',
+      'username',
+    ]) {
+      let value = properties[key]
+      if (value !== undefined) {
+        // if value is falseish pass undefined to the model to delete this property
+        if (value === null || value === '') {
+          value = undefined
+        }
+        if (value !== server[key]) {
+          server[key] = value
+          hasChanged = true
+        }
+      }
     }
 
-    if (enabled !== undefined) {
-      server.enabled = enabled
-    }
-
-    if (readOnly !== undefined) {
+    // special handling for readOnly
+    const { readOnly } = properties
+    if (readOnly !== undefined && readOnly !== server.readOnly) {
       server.readOnly = readOnly
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
+      hasChanged = true
     }
 
-    if (allowUnauthorized !== undefined) {
-      server.allowUnauthorized = allowUnauthorized
+    if (hasChanged) {
+      await this._servers.update(server)
     }
-
-    if (httpProxy !== undefined) {
-      // if value is null, pass undefined to the model , so it will delete this optional property from the Server object
-      server.httpProxy = httpProxy === null ? undefined : httpProxy
-    }
-    await this._servers.update(server)
   }
 
   async getXenServerWithCredentials(id) {
@@ -215,12 +220,24 @@ export default class XenServers {
     const objects = this._app._objects
 
     const serverIdsByPool = this._serverIdsByPool
+    const self = this
+
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
       if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
         const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
         delete serverIdsByPool[obsoletePoolId]
         serverIdsByPool[xapiObject.$id] = conId
+      }
+
+      // save pool name and description in server properties
+      if (xapiObject.$type === 'pool') {
+        self
+          .updateXenServer(serverIdsByPool[xapiId], {
+            poolNameDescription: xapiObject.name_description,
+            poolNameLabel: xapiObject.name_label,
+          })
+          ::ignoreErrors()
       }
 
       const { $ref } = xapiObject
@@ -565,6 +582,9 @@ export default class XenServers {
     server.status = this._getXenServerStatus(server.id)
     if (server.status === 'connected') {
       server.poolId = xapis[server.id].pool.uuid
+    }
+    if (server.label === undefined) {
+      server.label = server.poolNameLabel
     }
 
     // Do not expose password.
