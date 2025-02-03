@@ -13,7 +13,7 @@
 
 - [Settings/Servers] Display last known pool name as server default label (PR [#8206](https://github.com/vatesfr/xen-orchestra/pull/8206))
 - **XO6**:
-  - [Dashboard] Display size used by XO replications
+  - [Dashboard] Display size used by XO replications (PR [#8300](https://github.com/vatesfr/xen-orchestra/pull/8300))
 
 ### Bug fixes
 
