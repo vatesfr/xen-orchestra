@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/lite",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
