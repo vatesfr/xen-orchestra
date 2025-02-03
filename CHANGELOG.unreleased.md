@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Settings/Servers] Display last known pool name as server default label (PR [#8206](https://github.com/vatesfr/xen-orchestra/pull/8206))
+- **XO6**:
+  - [Dashboard] Display size used by XO replications
 
 ### Bug fixes
 
@@ -35,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - xo-server minor
 
 <!--packages-end-->
