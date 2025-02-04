@@ -5,7 +5,7 @@
       <template #description>{{ $t('for-backup') }}</template>
     </UiCardTitle>
     <VtsLoadingHero type="card" :disabled="isReady">
-      <VtsStackedBarWithLegend :max-value="backupRepositories.total?.value" :segments />
+      <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
         <UiCardNumbers
           :value="backupRepositories.used?.value"
@@ -59,6 +59,11 @@ const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(()
     unit: backupRepositories.value.other?.prefix,
   },
 ])
+
+const maxValue = computed(() => ({
+  value: backupRepositories.value.total?.value,
+  unit: backupRepositories.value.total?.prefix,
+}))
 </script>
 
 <style scoped lang="postcss">

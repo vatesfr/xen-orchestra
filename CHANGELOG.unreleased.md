@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/New] Fix _Int64 expected, got 'N'_ when trying to create a VM without passing VDI sizes in `existingDisks` (PR [#8291](https://github.com/vatesfr/xen-orchestra/pull/8291))
+- [XO6/Dashboard] Fixes the display of percentages in the _Storage repository_ and _Backup repository_ cards (PR [#8306](https://github.com/vatesfr/xen-orchestra/pull/8306))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 
 <!--packages-end-->

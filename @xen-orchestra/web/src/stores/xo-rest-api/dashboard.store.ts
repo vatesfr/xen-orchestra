@@ -1,6 +1,6 @@
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
-import { formatSizeRaw } from '@/utils/size.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import { formatSizeRaw } from '@core/utils/size.util'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
