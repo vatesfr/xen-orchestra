@@ -2,8 +2,8 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('segments').preset(segments).required(),
-      prop('max-value').preset(50).type('number').widget().help('Maximum value for the stacked bar'),
+      prop('segments').preset(segments).obj().required().widget(),
+      prop('max-value').preset({ value: 50, unit: 'GB' }).obj().widget().help('Maximum value for the stacked bar'),
     ]"
   >
     <VtsStackedBarWithLegend v-bind="properties" />
