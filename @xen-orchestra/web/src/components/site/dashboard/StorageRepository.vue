@@ -47,10 +47,16 @@ const { storageRepositories, isReady } = useDashboardStore().subscribe()
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {
-    label: t('backups'),
-    value: storageRepositories.value.used?.value ?? 0,
+    label: t('xo-replications'),
+    value: storageRepositories.value.replicated?.value ?? 0,
     accent: 'info',
-    unit: storageRepositories.value.used?.prefix,
+    unit: storageRepositories.value.replicated?.prefix,
+  },
+  {
+    label: t('other'),
+    value: storageRepositories.value.other?.value ?? 0,
+    accent: 'warning',
+    unit: storageRepositories.value.other?.prefix,
   },
 ])
 </script>

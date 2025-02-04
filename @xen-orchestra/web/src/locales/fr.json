@@ -54,5 +54,7 @@
   "vms-status.inactive.tooltip": "Éteintes ou suspendues",
   "vms-status.running": "Démarrées",
   "vms-status.unknown": "Inconnu",
-  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool"
+  "vms-status.unknown.tooltip": "Dont XO a perdu la connexion avec le pool",
+  "xo-backups": "Sauvegardes XO",
+  "xo-replications": "Réplications XO"
 }
