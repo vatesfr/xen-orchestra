@@ -1,4 +1,5 @@
 {
+  "access-forum": "Gå till forum",
   "alarms": "Larm",
   "bytes.gi": "GiB",
   "bytes.ki": "KiB",
@@ -75,7 +76,7 @@
   "no-data": "Ingen data",
   "no-network-detected": "Inga nätverk hittade",
   "no-pif-detected": "Ingen pif hittad",
-  "no-result": "Inga resultat",
+  "no-result": "Inget resultat",
   "none": "Inga",
   "object-not-found": "Objektet {id} kan inte hittas…",
   "off": "Av",
@@ -99,6 +100,7 @@
   "send-ctrl-alt-del": "Skicka Ctrl+Alt+Del",
   "speed": "Hastighet",
   "static": "Statisk",
+  "stats": "Statistik",
   "status": "Status",
   "storage": "Lagring",
   "system": "System",
