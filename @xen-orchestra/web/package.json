@@ -28,7 +28,6 @@
     "@vueuse/shared": "^10.7.1",
     "@vueuse/integrations": "^10.7.1",
     "@xen-orchestra/web-core": "^0.12.0",
-    "human-format": "^1.2.1",
     "lodash-es": "^4.17.21",
     "npm-run-all2": "^6.1.1",
     "pinia": "^2.2.6",

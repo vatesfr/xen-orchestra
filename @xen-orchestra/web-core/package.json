@@ -23,6 +23,7 @@
     "@vueuse/shared": "^10.7.1",
     "d3-time-format": "^4.1.0",
     "echarts": "^5.4.3",
+    "human-format": "^1.2.1",
     "iterable-backoff": "^0.1.0",
     "lodash-es": "^4.17.21",
     "placement.js": "^1.0.0-beta.5",
