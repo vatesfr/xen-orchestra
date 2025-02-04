@@ -24,7 +24,7 @@ export class Synchronized<T> {
     return fork
   }
 
-  async #resolveWhenAllForksReady(): Promise<IteratorResult<T, any>> {
+  async #resolveWhenAllForksReady(): Promise<IteratorResult<T>> {
     if (!this.#nextValueForksReady) {
       throw new Error('Can t wait forks if there are noone waiting')
     }
@@ -38,7 +38,7 @@ export class Synchronized<T> {
     return promise
   }
 
-  async next(uid: string): Promise<IteratorResult<T, any>> {
+  async next(uid: string): Promise<IteratorResult<T>> {
     if (this.#removedForks.has(uid)) {
       return { done: true, value: undefined }
     }
@@ -49,7 +49,7 @@ export class Synchronized<T> {
     this.#started = true
     if (this.#nextValueForksReady === undefined) {
       let forksWaitingResolve = () => {}
-      let forksWaitingReject = (reason?: Error) => {}
+      let forksWaitingReject: (reason?: Error) => void
       const next = this.#source.next().catch(async error => {
         const e = new Error(`Error in the source generator ${error.message}`)
         // @todo : why  can't I set the cause ?
@@ -73,7 +73,7 @@ export class Synchronized<T> {
     return this.#resolveWhenAllForksReady()
   }
 
-  async remove(uid: string, error?: Error): Promise<IteratorResult<T, any>> {
+  async remove(uid: string, error?: Error): Promise<IteratorResult<T>> {
     const fork = this.#forks.get(uid)
     if (fork === undefined) {
       if (this.#removedForks.has(uid)) {
@@ -87,7 +87,7 @@ export class Synchronized<T> {
     this.#removedForks.add(uid)
     try {
       if (error === undefined) {
-        await fork.return(undefined)
+        await fork.return()
       } else {
         await fork.throw(error)
       }
@@ -126,18 +126,18 @@ class Forked<T> implements AsyncGenerator<T> {
     this.#parent = parent
     this.#uid = uid
   }
-  next(...[value]: [] | [any]): Promise<IteratorResult<T, any>> {
+  next(): Promise<IteratorResult<T>> {
     return this.#parent.next(this.#uid)
   }
-  async return(value: any): Promise<IteratorResult<T, any>> {
+  async return(): Promise<IteratorResult<T>> {
     return this.#parent.remove(this.#uid)
   }
-  async throw(e: Error): Promise<IteratorResult<T, any>> {
+  async throw(e: Error): Promise<IteratorResult<T>> {
     return this.#parent.remove(this.#uid, e)
   }
-  async *[Symbol.asyncIterator](): AsyncGenerator<T, any, any> {
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
     while (true) {
-      let res = await this.next()
+      const res = await this.next()
       if (res.done) {
         break
       }

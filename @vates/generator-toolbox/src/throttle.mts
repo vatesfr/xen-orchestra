@@ -34,7 +34,7 @@ export class GeneratorThrottler {
     assert.ok(length > 0, `throttled stream must expose a positive length property , ${length} given }`)
 
     const previous = this.#previousSlot
-    let nextSlot = Math.round(previous + (length * 1000) / this.speed)
+    const nextSlot = Math.round(previous + (length * 1000) / this.speed)
     if (nextSlot < Date.now()) {
       // we're above the limmit, go now
       this.#previousSlot = Date.now()

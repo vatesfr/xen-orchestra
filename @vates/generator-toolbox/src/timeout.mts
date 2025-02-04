@@ -7,8 +7,8 @@ export class Timeout<T> implements AsyncGenerator {
     this.#source = source
     this.#timeout = timeout
   }
-  async next(): Promise<IteratorResult<T, any>> {
-    let timeout
+  async next(): Promise<IteratorResult<T>> {
+    let timeout: ReturnType<typeof setTimeout>
     const promiseTimeout = new Promise((_, reject) => {
       timeout = setTimeout(() => {
         reject(new Error('Timeout reached '))
@@ -22,15 +22,15 @@ export class Timeout<T> implements AsyncGenerator {
       }, reject)
     })
     // promiseTimeout will never resolve
-    return Promise.race([promiseNext, promiseTimeout]) as Promise<IteratorResult<T, any>>
+    return Promise.race([promiseNext, promiseTimeout]) as Promise<IteratorResult<T>>
   }
-  return(value: any): Promise<IteratorResult<T, any>> {
-    return this.#source.return(value)
+  return(): Promise<IteratorResult<T>> {
+    return this.#source.return(undefined)
   }
-  throw(e: any): Promise<IteratorResult<T, any>> {
+  throw(e: Error): Promise<IteratorResult<T>> {
     return this.#source.throw(e)
   }
-  async *[Symbol.asyncIterator](): AsyncGenerator<T, any, any> {
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
     while (true) {
       const res = await this.next()
       if (res.done) {
