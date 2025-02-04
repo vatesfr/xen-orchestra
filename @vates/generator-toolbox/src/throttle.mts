@@ -22,7 +22,7 @@ export class GeneratorThrottler {
     } else {
       speed = this.#bytesPerSecond
     }
-    assert.ok(speed > 0, `speed must be greate than zero, ${speed} computed`)
+    assert.ok(speed > 0, `speed must be greater than zero, ${speed} computed`)
     return speed
   }
   constructor(speed: number | (() => number)) {
@@ -64,7 +64,7 @@ export class GeneratorThrottler {
         yield value
       }
     } finally {
-      // in case of error : cleanup the timeout
+      // in case of error or early stop : cleanup the timeout
       clearTimeout(timeout)
     }
   }

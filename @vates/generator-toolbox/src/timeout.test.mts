@@ -3,6 +3,15 @@ import assert from 'node:assert'
 import { Timeout } from './timeout.mts'
 
 describe('Timeout class', () => {
+  it('should reject a timeout with a negative or zero value ', async () => {
+    // Create a mock async generator that never resolves
+    const mockGenerator = (async function* () {
+      await new Promise(() => {}) // Never resolves
+    })()
+
+    assert.throws(() => new Timeout(mockGenerator, 0))
+    assert.throws(() => new Timeout(mockGenerator, -10))
+  })
   it('should resolve with the value from the source generator if it completes before the timeout', async () => {
     // Create a mock async generator that resolves immediately
     const mockGenerator = (async function* () {
