@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.7.1** (2025-02-04)
 
 - [Host/Console] Fix console sometimes not correctly displayed (PR [#8305](https://github.com/vatesfr/xen-orchestra/pull/8305))
 
