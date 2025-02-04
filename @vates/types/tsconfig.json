@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "strict": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
