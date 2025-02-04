@@ -8,7 +8,7 @@
         @click="ev => (interactive ? open(ev) : noop())"
       >
         <div class="content">
-          <span class="label text-ellipsis">
+          <span class="label">
             <VtsIcon :icon accent="current" />
             <slot />
           </span>
