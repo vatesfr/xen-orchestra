@@ -66,4 +66,19 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 .patches {
   grid-area: patches;
 }
+
+@media (--mobile) {
+  .site-dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'pools-status'
+      'hosts-status'
+      'vms-status'
+      'resources-overview'
+      'backups'
+      'backup-issues'
+      'repositories'
+      'patches';
+  }
+}
 </style>
