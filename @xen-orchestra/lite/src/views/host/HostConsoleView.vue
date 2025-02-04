@@ -56,7 +56,7 @@ const { records: controlDomains } = useControlDomainStore().subscribe()
 
 const {
   isReady: isConsoleReady,
-  getByOpaqueRef: getConsoleByOpaqueRef,
+  getByOpaqueRefs: getConsolesByOpaqueRefs,
   hasError: hasConsoleError,
 } = useConsoleStore().subscribe()
 
@@ -71,10 +71,11 @@ const controlDomain = computed(() => {
     : undefined
 })
 
-const hostConsole = computed(() => {
-  const consoleOpaqueRef = controlDomain.value?.consoles[0]
-  return consoleOpaqueRef ? getConsoleByOpaqueRef(consoleOpaqueRef) : undefined
-})
+const hostConsole = computed(() =>
+  getConsolesByOpaqueRefs(controlDomain.value?.consoles ?? []).find(
+    console => console.location !== undefined && console.protocol === 'rfb'
+  )
+)
 
 const isReady = computed(() => isHostReady.value && isConsoleReady.value && controlDomain.value)
 
@@ -83,12 +84,14 @@ const isHostRunning = computed(() => {
 })
 
 const url = computed(() => {
-  if (xenApiStore.currentSessionId == null) {
+  if (xenApiStore.currentSessionId == null || hostConsole.value === undefined) {
     return
   }
+
   const _url = new URL(hostConsole.value!.location)
   _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   _url.searchParams.set('session_id', xenApiStore.currentSessionId)
+
   return _url
 })
 
