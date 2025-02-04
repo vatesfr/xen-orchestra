@@ -1,0 +1,31 @@
+{
+  "name": "types",
+  "private": false,
+  "version": "0.0.0",
+  "description": "",
+  "exports": {
+    "./xo": "./dist/xo.d.mts",
+    "./xen-api": "./dist/xen-api.d.mts"
+  },
+  "type": "module",
+  "dependencies": {
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/types",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/types",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

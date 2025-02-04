@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @vates/types major
+
 <!--packages-end-->
