@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test'
+import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { Timeout } from './timeout.mts'
 
@@ -56,11 +56,7 @@ describe('Timeout class', () => {
   it('should handle the throw method correctly', async () => {
     // Create a mock async generator with a throw method
     const mockGenerator = (async function* () {
-      try {
-        yield 1
-      } catch (error) {
-        throw new Error('Caught error')
-      }
+      yield 1
     })()
 
     const timeout = new Timeout(mockGenerator, 100) // 100ms timeout
