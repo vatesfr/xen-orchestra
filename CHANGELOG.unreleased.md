@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Ability to delete a group (PR [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server minor
 
 <!--packages-end-->
