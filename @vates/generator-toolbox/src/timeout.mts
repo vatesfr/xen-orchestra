@@ -1,7 +1,9 @@
+import assert from 'node:assert'
 export class Timeout<T> implements AsyncGenerator {
   #source: AsyncGenerator<T>
   #timeout: number
-  constructor(source, timeout: number) {
+  constructor(source: AsyncGenerator<T>, timeout: number) {
+    assert.ok(timeout > 0, `Timeout value must be positive, ${timeout} received`)
     this.#source = source
     this.#timeout = timeout
   }
