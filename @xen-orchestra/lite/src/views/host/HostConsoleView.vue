@@ -56,7 +56,7 @@ const { records: controlDomains } = useControlDomainStore().subscribe()
 
 const {
   isReady: isConsoleReady,
-  getByOpaqueRef: getConsoleByOpaqueRef,
+  getByOpaqueRefs: getConsolesByOpaqueRefs,
   hasError: hasConsoleError,
 } = useConsoleStore().subscribe()
 
@@ -71,11 +71,11 @@ const controlDomain = computed(() => {
     : undefined
 })
 
-const hostConsole = computed(() => {
-  const hostConsoles = controlDomain.value?.consoles.map(consoleRef => getConsoleByOpaqueRef(consoleRef))
-
-  return hostConsoles?.find(console => console?.location !== undefined && console?.protocol === 'rfb')
-})
+const hostConsole = computed(() =>
+  getConsolesByOpaqueRefs(controlDomain.value?.consoles ?? []).find(
+    console => console.location !== undefined && console.protocol === 'rfb'
+  )
+)
 
 const isReady = computed(() => isHostReady.value && isConsoleReady.value && controlDomain.value)
 
