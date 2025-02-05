@@ -9,10 +9,11 @@
     "./common": "./dist/common.d.mts"
   },
   "type": "module",
-  "dependencies": {
-    "typescript": "^5.7.3"
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.23.0"
   },
-  "devDependencies": {},
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "yarn run build",
