@@ -33,33 +33,59 @@ By default, a _user_ won't have any permissions. At the opposite, an _admin_ wil
 
 XO currently supports connections to LDAP directories, like _Open LDAP_ or _Active Directory_.
 
-To configure your LDAP, you need to go into the _Plugins_ section in the "Settings" view. Then configure it:
+1. **Access the Plugin**:
+   1. Navigate to the **Settings → Plugins** screen.
+   2. Locate the **auth-ldap plugin** by scrolling or using the search bar.
 
-![LDAP plugin settings](./assets/ldapconfig.png)
+2. **Configure LDAP Settings**:
+   1. Click **+** button for the LDAP plugin.\
+   A list of settings appears: ![LDAP plugin settings](./assets/ldapconfig.png)
+   2. Fill in the required fields based on your LDAP server details.
 
-Don't forget to save the configuration, and also check if the plugin is activated (green button on top).
+3. **Save and Activate**:
+    1. Click **Save configuration**. 
+    2. To check if the plugin is activated, activate the toggle switch next to the **auth-ldap** plugin name.\
+    The switch should now appear green.
 
-#### Filters
+#### Common LDAP Filters
 
-LDAP Filters allow you to properly match your user. It's not an easy task to always find the right filter, and it entirely depends on your LDAP configuration. Still, here is a list of common filters:
+LDAP Filters allow you to properly match your user. Finding the right filter is no easy task, and it entirely depends on your LDAP configuration.
 
-- `'(uid={{name}})'` is usually the default filter for _Open LDAP_
-- `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for _Active Directory_. Please check with your AD Admin to find the right one.
+Still, here is a list of common filters:
 
-After finishing the configuration, you can try to log in with your LDAP username and password. Finally, right after your initial successful log in, your account will be visible in the user list of Xen Orchestra.
+- `'(uid={{name}})'` is usually the default filter for _Open LDAP_.
+- `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for _Active Directory_.\
+ Please check with your AD Admin to find the right one.
 
-#### Groups
+Once configured, users can authenticate using their LDAP credentials. Upon a successful initial login, the user's account will appear in the XO user list.
 
-The LDAP plugin allows you to synchronize user groups. To configure the synchronization, check the checkbox next to **Synchronize groups** and fill out the configuration:
+#### Group Synchronization
+
+The LDAP plugin allows for the synchronization of user groups. 
+
+1. **Access group synchronization settings**
+
+    To configure the synchronization:
+    1. Go to the  **Synchronize groups** section.
+    2. Check the box called **Fill information (optional)**.\
+    A list of text fields appear.
+    3. Fill out the fields according to the picture below:
 
 ![LDAP plugin group settings](./assets/ldapgroupconfig.png)
 
-- **Base and filter**: similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
-- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create/update XO groups if necessary.
-- **Display name attribute**: the attribute that will be used as the group's name in XO.
-- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given an LDAP directory that looks like this:
+2. **Basic group settings**:
+   - **Base** and **Filter**: Similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
+   - **ID attribute**: The attribute used by the plugin to uniquely identify each group. The ID attribute must be unique across groups and not change over time.\
+   On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create or update XO groups if necessary.
+   - **Display name attribute**: Set the attribute used as the group's name in Xen Orchestra.
 
-User:
+3. **Members mapping**: 
+
+This part of the configuration is used to determine which LDAP users belong to which LDAP groups. 
+
+For example, here's an LDAP directory:
+
+**User:**
 
 ```
 objectClass: Person
@@ -68,7 +94,7 @@ uid: 347
 ...
 ```
 
-Group:
+**Group:**
 
 ```
 objectClass: Group
@@ -80,20 +106,47 @@ member: 348
 ...
 ```
 
-The plugin needs to know that Bruce Wayne belongs to the heroes group. To do so, you need to set 2 entries in the configuration:
+The plugin needs to know that Bruce Wayne is part of the **heroes** group. To do so, you need to set 2 entries in the configuration:
 
-- **Group attribute**, which is the name of the _group_ attribute that is used to list users within a group. In this example, it would be `member`.
-- **User attribute**, which is the name of the _user_ attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
+- **Group attribute**: the name of the _group_ attribute that is used to list users within a group. In this example, it would be `member`.
+- **User attribute**: the name of the _user_ attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
 
-Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. If you need to import all the groups at once, you can do so from Settings > Groups > Synchronize LDAP Groups. This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
+Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. 
+
+**Importing all groups manually**
+
+If you need to import all the groups at once, you can do so from **Settings → Groups → Synchronize LDAP Groups**.\
+This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
 
 :::tip
-Importing the groups doesn't import their members. The users will still be imported one by one when they log in for the first time.
+Importing the groups won't import their members. Users will still be imported one by one when they log in for the first time.
 :::
 
 :::tip
-You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
+To find the LDAP users, enter this filter in the users table: `authProviders:ldap?`.
 :::
+
+#### Troubleshooting
+
+If users can authenticate but group memberships are not reflected:
+
+1. Verify Your **Group Filter**
+
+Check if your LDAP group filter is too restrictive. By default, the filter should match all relevant groups.
+
+Example of a broad filter:
+```text
+(objectclass=posixGroup)
+```
+If you are using a more specific filter, ensure that it correctly matches your intended groups. For instance, if you only sync a specific group, it may look like this:
+```text
+(&(objectclass=posixGroup)(cn=group1))
+```
+This filter will **only** synchronize `group1`. To sync all groups, remove the `(cn=group1)` condition.
+
+2. Verify that the **Group Attribute** and **User Attribute** in the plugin configuration match the corresponding attributes in your LDAP directory.
+3. Ensure that the **ID Attribute** for both users and groups is unique and correctly specified.
+4. Check XO logs for any synchronization errors and adjust configurations accordingly.
 
 ### OpenID Connect
 
