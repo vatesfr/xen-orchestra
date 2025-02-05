@@ -1,3 +1,5 @@
+// Types based on xapi-object-to-xo
+
 import { Branded, DOMAIN_TYPE, VM_OPERATIONS, VM_POWER_STATE } from './common.mjs'
 
 type BaseXoVm = {
@@ -122,17 +124,17 @@ export type XoVif = {
   type: 'VIF'
 }
 
-export interface XoVm extends BaseXoVm {
+export type XoVm = BaseXoVm & {
   id: Branded<'VM'>
   type: 'VM'
 }
 
-export interface XoVmController extends BaseXoVm {
+export type XoVmController = BaseXoVm & {
   id: Branded<'VM-controller'>
   type: 'VM-controller'
 }
 
-export interface XoVmSnapshot extends BaseXoVm {
+export type XoVmSnapshot = BaseXoVm & {
   $snapshot_of: XoVm['id']
 
   id: Branded<'VM-snapshot'>
@@ -141,7 +143,7 @@ export interface XoVmSnapshot extends BaseXoVm {
   type: 'VM-snapshot'
 }
 
-export interface XoVmTemplate extends BaseXoVm {
+export type XoVmTemplate = BaseXoVm & {
   id: Branded<'VM-template'>
   isDefaultTemplate: boolean
   template_info: {
