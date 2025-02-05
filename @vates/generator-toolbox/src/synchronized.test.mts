@@ -2,10 +2,9 @@ import assert from 'node:assert'
 import { suite, test } from 'node:test'
 import { Synchronized } from './synchronized.mts'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function* makeRangeGenerator(end = Infinity, progress = { yielded: 0 }, onYielded = (val: unknown) => {}) {
-  let iterationCount = 0
   for (let i = 0; i < end; i++) {
-    iterationCount++
     await new Promise(resolve => setTimeout(resolve, 10))
     yield i
     onYielded(i)
@@ -16,8 +15,8 @@ async function* makeRangeGenerator(end = Infinity, progress = { yielded: 0 }, on
 
 async function consume(
   iterable: AsyncGenerator,
-  label: string,
   delay = 2500,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConsumed = (val: unknown, iterable: AsyncGenerator) => Promise.resolve(false)
 ) {
   for await (const val of iterable) {
@@ -29,14 +28,14 @@ async function consume(
   }
 }
 
-suite('success', t => {
+suite('success', () => {
   test('if works with multiple consumer', async () => {
     const progress = { yielded: 0 }
     const generator = makeRangeGenerator(3, progress)
     const forker = new Synchronized(generator)
     const first = forker.fork('first')
     const second = forker.fork('second')
-    await Promise.all([consume(first, 'first', 50), consume(second, 'second', 500)])
+    await Promise.all([consume(first, 50), consume(second, 500)])
     assert.strictEqual(progress.yielded, 2)
   })
 
@@ -48,8 +47,8 @@ suite('success', t => {
     const second = forker.fork('second')
     await new Promise(resolve => setTimeout(resolve, 500))
     await Promise.all([
-      consume(first, 'first', 1),
-      consume(second, 'second', 1, async (val: unknown) => {
+      consume(first, 1),
+      consume(second, 1, async (val: unknown) => {
         return Promise.resolve(val === 2)
       }),
     ])
@@ -63,10 +62,10 @@ suite('success', t => {
     const second = forker.fork('second')
     await new Promise(resolve => setTimeout(resolve, 500))
     await Promise.all([
-      consume(first, 'first', 1, async (val: unknown) => {
+      consume(first, 1, async (val: unknown) => {
         return Promise.resolve(val === 5)
       }),
-      consume(second, 'second', 1, async (val: unknown) => {
+      consume(second, 1, async (val: unknown) => {
         return Promise.resolve(val === 2)
       }),
     ])
@@ -85,7 +84,7 @@ suite('error', () => {
     const forker = new Synchronized(generator)
     const first = forker.fork('first')
     const second = forker.fork('second')
-    await assert.rejects(Promise.all([consume(first, 'first', 1), consume(second, 'second', 1)]))
+    await assert.rejects(Promise.all([consume(first, 1), consume(second, 1)]))
 
     assert.strictEqual(progress.yielded, 1)
   })
@@ -96,13 +95,16 @@ suite('error', () => {
     const first = forker.fork('first')
     const second = forker.fork('second')
 
-    const firstConsume = consume(first, 'first', 1)
-    const secondConsume = consume(second, 'second', 1, async (val: unknown, iterable) => {
-      if (val === 1) {
-        await iterable.throw(new Error('error on second'))
-      }
-      return false
-    }).catch(err => {})
+    const firstConsume = consume(first, 1)
+
+    const secondConsume = assert.rejects(() =>
+      consume(second, 1, async (val: unknown, iterable) => {
+        if (val === 1) {
+          await iterable.throw(new Error('error on second'))
+        }
+        return false
+      })
+    )
     await Promise.allSettled([firstConsume, secondConsume])
     assert.strictEqual(progress.yielded, 9)
   })
@@ -113,13 +115,13 @@ suite('error', () => {
     const first = forker.fork('first')
     const second = forker.fork('second')
 
-    const firstConsume = consume(first, 'first', 1, async (val: unknown, iterable) => {
+    const firstConsume = consume(first, 1, async (val: unknown, iterable) => {
       if (val === 3) {
         await iterable.throw(new Error('error on first'))
       }
       return false
     })
-    const secondConsume = consume(second, 'second', 1, async (val: unknown, iterable) => {
+    const secondConsume = consume(second, 1, async (val: unknown, iterable) => {
       if (val === 1) {
         await iterable.throw(new Error('error on second'))
       }
