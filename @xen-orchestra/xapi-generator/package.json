@@ -1,0 +1,30 @@
+{
+  "name": "@xen-orchestra/xapi-generator",
+  "version": "0.1.0",
+  "description": "Generate typed xen-api lib from JSON file",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "license": "ISC",
+  "private": true,
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts"
+  },
+  "devDependencies": {
+    "eslint-import-resolver-typescript": "^3.6.0",
+    "eslint-plugin-import": "^2.28.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/parser": "^6.5.0",
+    "commander": "^11.0.0",
+    "eslint": "^8.48.0",
+    "yargs": "^17.7.2"
+  }
+}
