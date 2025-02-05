@@ -5,7 +5,8 @@
   "description": "",
   "exports": {
     "./xo": "./dist/xo.d.mts",
-    "./xen-api": "./dist/xen-api.d.mts"
+    "./xen-api": "./dist/xen-api.d.mts",
+    "./common": "./dist/common.d.mts"
   },
   "type": "module",
   "dependencies": {
@@ -13,7 +14,9 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish --access public"
   },
   "keywords": [],
   "license": "MIT",
