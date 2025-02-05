@@ -1514,6 +1514,16 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        const id = await app.createGroup({ name })
+        res.end({ id })
+      })
+    )
   }
 
   registerRestApi(spec, base = '/') {
