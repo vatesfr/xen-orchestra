@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "node --test dist/*.test.mjs"
+    "test": "node --test **/*.test.mjs"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/generator-toolbox",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
