@@ -9,4 +9,5 @@ export type XoPool = {
   name_description: string
   name_label: string
   _xapiRef: string
+  default_SR: string
 }

@@ -1,5 +1,6 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoVbd } from '@/types/xo/vbd.type'
 import type { Branded } from '@core/types/utility.type'
 
 export enum VM_POWER_STATE {
@@ -24,6 +25,7 @@ export type XoVm = {
   type: 'VM'
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
+  $VBDs: XoVbd['id']
   _xapiRef: string
   current_operations: Record<string, VM_OPERATION>
   name_label: string
