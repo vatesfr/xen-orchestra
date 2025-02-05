@@ -30,6 +30,6 @@
     "url": "https://vates.fr"
   },
   "engines": {
-    "node": ">=8.10"
+    "node": ">=22.3.0"
   }
 }

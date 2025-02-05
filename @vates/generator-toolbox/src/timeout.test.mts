@@ -6,7 +6,7 @@ describe('Timeout class', () => {
   it('should reject a timeout with a negative or zero value ', async () => {
     // Create a mock async generator that never resolves
     const mockGenerator = (async function* () {
-      await new Promise(() => {}) // Never resolves
+      yield 1
     })()
 
     assert.throws(() => new Timeout(mockGenerator, 0))
@@ -27,6 +27,7 @@ describe('Timeout class', () => {
 
   it('should reject with a timeout error if the source generator takes too long', async () => {
     // Create a mock async generator that never resolves
+    // eslint-disable-next-line require-yield
     const mockGenerator = (async function* () {
       await new Promise(() => {}) // Never resolves
     })()
