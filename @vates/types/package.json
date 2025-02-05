@@ -14,6 +14,9 @@
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.23.0"
   },
+  "files": [
+    "./dist/**/*"
+  ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "yarn run build",
