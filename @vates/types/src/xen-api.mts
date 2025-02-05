@@ -67,22 +67,22 @@ import type {
 export interface XenApiSession {
   $ref: Branded<'session'>
   $type: 'session'
-  auth_user_name: string
-  auth_user_sid: string
-  client_certificate: boolean
-  is_local_superuser: boolean
-  last_active: string
-  originator: string
-  other_config: Record<string, string>
-  parent: XenApiSession['$ref']
-  pool: boolean
-  rbac_permissions: string[]
-  subject: XenApiSubject['$ref']
-  tasks: XenApiTask['$ref'][]
-  this_host: XenApiHost['$ref']
-  this_user: XenApiUser['$ref']
+  auth_user_name?: string
+  auth_user_sid?: string
+  client_certificate?: boolean
+  is_local_superuser?: boolean
+  last_active?: string
+  originator?: string
+  other_config?: Record<string, string>
+  parent?: XenApiSession['$ref']
+  pool?: boolean
+  rbac_permissions?: string[]
+  subject?: XenApiSubject['$ref']
+  tasks?: XenApiTask['$ref'][]
+  this_host?: XenApiHost['$ref']
+  this_user?: XenApiUser['$ref']
   uuid: string
-  validation_time: string
+  validation_time?: string
 }
 
 export interface XenApiAuth {
@@ -93,19 +93,19 @@ export interface XenApiAuth {
 export interface XenApiSubject {
   $ref: Branded<'subject'>
   $type: 'subject'
-  other_config: Record<string, string>
-  roles: XenApiRole['$ref'][]
-  subject_identifier: string
+  other_config?: Record<string, string>
+  roles?: XenApiRole['$ref'][]
+  subject_identifier?: string
   uuid: string
 }
 
 export interface XenApiRole {
   $ref: Branded<'role'>
   $type: 'role'
-  is_internal: boolean
-  name_description: string
-  name_label: string
-  subroles: XenApiRole['$ref'][]
+  is_internal?: boolean
+  name_description?: string
+  name_label?: string
+  subroles?: XenApiRole['$ref'][]
   uuid: string
 }
 
@@ -113,313 +113,345 @@ export interface XenApiTask {
   $ref: Branded<'task'>
   $type: 'task'
   allowed_operations: TASK_ALLOWED_OPERATIONS[]
-  backtrace: string
-  created: string
+  backtrace?: string
+  created?: string
   current_operations: Record<string, TASK_ALLOWED_OPERATIONS>
   error_info: string[]
-  finished: string
+  finished?: string
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  progress: number
-  resident_on: XenApiHost['$ref']
-  result: string
-  status: TASK_STATUS_TYPE
-  subtask_of: XenApiTask['$ref']
-  subtasks: XenApiTask['$ref'][]
-  type: string
+  other_config?: Record<string, string>
+  progress?: number
+  resident_on?: XenApiHost['$ref']
+  result?: string
+  status?: TASK_STATUS_TYPE
+  subtask_of?: XenApiTask['$ref']
+  subtasks?: XenApiTask['$ref'][]
+  type?: string
   uuid: string
 }
 
 export interface XenApiEvent {
   $ref: Branded<'event'>
   $type: 'event'
-  class: string
-  id: number
-  obj_uuid: string
-  operation: EVENT_OPERATION
-  ref: string
-  snapshot: object
-  timestamp: string
+  class?: string
+  id?: number
+  /** @deprecated */
+  obj_uuid?: string
+  operation?: EVENT_OPERATION
+  ref?: string
+  snapshot?: object
+  /** @deprecated */
+  timestamp?: string
 }
 
 export interface XenApiPool {
   $ref: Branded<'pool'>
   $type: 'pool'
   allowed_operations: POOL_ALLOWED_OPERATIONS[]
-  blobs: Record<string, XenApiBlob['$ref']>
-  client_certificate_auth_enabled: boolean
-  client_certificate_auth_name: string
+  blobs?: Record<string, XenApiBlob['$ref']>
+  client_certificate_auth_enabled?: boolean
+  client_certificate_auth_name?: string
   coordinator_bias: boolean
-  cpu_info: Record<string, string>
-  crash_dump_SR: XenApiSr['$ref']
+  cpu_info?: Record<string, string>
+  crash_dump_SR?: XenApiSr['$ref']
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
-  custom_uefi_certificates: string
-  default_SR: XenApiSr['$ref']
-  ext_auth_max_threads: number
-  guest_agent_config: Record<string, string>
-  gui_config: Record<string, string>
-  ha_allow_overcommit: boolean
-  ha_cluster_stack: string
-  ha_configuration: Record<string, string>
-  ha_enabled: boolean
-  ha_host_failures_to_tolerate: number
-  ha_overcommitted: boolean
-  ha_plan_exists_for: number
-  ha_statefiles: string[]
-  health_check_config: Record<string, string>
-  igmp_snooping_enabled: boolean
-  is_psr_pending: boolean
-  last_update_sync: string
-  live_patching_disabled: boolean
-  local_auth_max_threads: number
-  master: XenApiHost['$ref']
-  metadata_VDIs: XenApiVdi['$ref'][]
-  migration_compression: boolean
-  name_description: string
-  name_label: string
-  other_config: Record<string, string>
-  policy_no_vendor_device: boolean
-  redo_log_enabled: boolean
-  redo_log_vdi: XenApiVdi['$ref']
-  repositories: XenApiRepository['$ref'][]
-  repository_proxy_password: XenApiSecret['$ref']
-  repository_proxy_url: string
-  repository_proxy_username: string
-  restrictions: Record<string, string>
-  suspend_image_SR: XenApiSr['$ref']
-  tags: string[]
-  telemetry_frequency: TELEMETRY_FREQUENCY
-  telemetry_next_collection: string
-  telemetry_uuid: XenApiSecret['$ref']
-  tls_verification_enabled: boolean
-  uefi_certificates: string
-  update_sync_day: number
-  update_sync_enabled: boolean
-  update_sync_frequency: UPDATE_SYNC_FREQUENCY
+  custom_uefi_certificates?: string
+  default_SR?: XenApiSr['$ref']
+  ext_auth_max_threads?: number
+  guest_agent_config?: Record<string, string>
+  gui_config?: Record<string, string>
+  ha_allow_overcommit?: boolean
+  ha_cluster_stack?: string
+  ha_configuration?: Record<string, string>
+  ha_enabled?: boolean
+  ha_host_failures_to_tolerate?: number
+  ha_overcommitted?: boolean
+  ha_plan_exists_for?: number
+  ha_statefiles?: string[]
+  health_check_config?: Record<string, string>
+  igmp_snooping_enabled?: boolean
+  is_psr_pending?: boolean
+  last_update_sync?: string
+  live_patching_disabled?: boolean
+  local_auth_max_threads?: number
+  master?: XenApiHost['$ref']
+  metadata_VDIs?: XenApiVdi['$ref'][]
+  migration_compression?: boolean
+  name_description?: string
+  name_label?: string
+  other_config?: Record<string, string>
+  policy_no_vendor_device?: boolean
+  redo_log_enabled?: boolean
+  redo_log_vdi?: XenApiVdi['$ref']
+  repositories?: XenApiRepository['$ref'][]
+  repository_proxy_password?: XenApiSecret['$ref']
+  repository_proxy_url?: string
+  repository_proxy_username?: string
+  restrictions?: Record<string, string>
+  suspend_image_SR?: XenApiSr['$ref']
+  tags?: string[]
+  telemetry_frequency?: TELEMETRY_FREQUENCY
+  telemetry_next_collection?: string
+  telemetry_uuid?: XenApiSecret['$ref']
+  tls_verification_enabled?: boolean
+  uefi_certificates?: string
+  update_sync_day?: number
+  update_sync_enabled?: boolean
+  update_sync_frequency?: UPDATE_SYNC_FREQUENCY
   uuid: string
-  vswitch_controller: string
-  wlb_enabled: boolean
-  wlb_url: string
-  wlb_username: string
-  wlb_verify_cert: boolean
+  /** @deprecated */
+  vswitch_controller?: string
+  wlb_enabled?: boolean
+  wlb_url?: string
+  wlb_username?: string
+  /** @deprecated */
+  wlb_verify_cert?: boolean
 }
 
 export interface XenApiPoolPatch {
   $ref: Branded<'pool_patch'>
   $type: 'pool_patch'
-  after_apply_guidance: AFTER_APPLY_GUIDANCE[]
-  host_patches: XenApiHostPatch['$ref'][]
+  after_apply_guidance?: AFTER_APPLY_GUIDANCE[]
+  host_patches?: XenApiHostPatch['$ref'][]
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  pool_applied: boolean
-  pool_update: XenApiPoolUpdate['$ref']
-  size: number
+  other_config?: Record<string, string>
+  pool_applied?: boolean
+  pool_update?: XenApiPoolUpdate['$ref']
+  size?: number
   uuid: string
-  version: string
+  version?: string
 }
 
 export interface XenApiPoolUpdate {
   $ref: Branded<'pool_update'>
   $type: 'pool_update'
-  after_apply_guidance: UPDATE_AFTER_APPLY_GUIDANCE[]
-  enforce_homogeneity: boolean
-  hosts: XenApiHost['$ref'][]
-  installation_size: number
-  key: string
+  after_apply_guidance?: UPDATE_AFTER_APPLY_GUIDANCE[]
+  enforce_homogeneity?: boolean
+  hosts?: XenApiHost['$ref'][]
+  installation_size?: number
+  key?: string
   name_description: string
   name_label: string
-  other_config: Record<string, string>
+  other_config?: Record<string, string>
   uuid: string
-  vdi: XenApiVdi['$ref']
-  version: string
+  vdi?: XenApiVdi['$ref']
+  version?: string
 }
 
 export interface XenApiVm {
   $ref: Branded<'VM'>
   $type: 'VM'
-  HVM_boot_params: Record<string, string>
-  HVM_boot_policy: string
-  HVM_shadow_multiplier: number
-  NVRAM: Record<string, string>
-  PCI_bus: string
-  PV_args: string
-  PV_bootloader: string
-  PV_bootloader_args: string
-  PV_kernel: string
-  PV_legacy_args: string
-  PV_ramdisk: string
-  VBDs: XenApiVbd['$ref'][]
-  VCPUs_at_startup: number
-  VCPUs_max: number
-  VCPUs_params: Record<string, string>
-  VGPUs: XenApiVgpu['$ref'][]
-  VIFs: XenApiVif['$ref'][]
-  VTPMs: XenApiVtpm['$ref'][]
-  VUSBs: XenApiVusb['$ref'][]
-  actions_after_crash: ON_CRASH_BEHAVIOUR
-  actions_after_reboot: ON_NORMAL_EXIT
-  actions_after_shutdown: ON_NORMAL_EXIT
-  actions_after_softreboot: ON_SOFTREBOOT_BEHAVIOR
-  affinity: XenApiHost['$ref']
+  actions_after_crash?: ON_CRASH_BEHAVIOUR
+  actions_after_reboot?: ON_NORMAL_EXIT
+  actions_after_shutdown?: ON_NORMAL_EXIT
+  actions_after_softreboot?: ON_SOFTREBOOT_BEHAVIOR
+  affinity?: XenApiHost['$ref']
   allowed_operations: VM_OPERATIONS[]
-  appliance: XenApiVmAppliance['$ref']
-  attached_PCIs: XenApiPci['$ref'][]
-  bios_strings: Record<string, string>
-  blobs: Record<string, XenApiBlob['$ref']>
-  blocked_operations: Record<VM_OPERATIONS, string>
-  children: XenApiVm['$ref'][]
+  appliance?: XenApiVmAppliance['$ref']
+  attached_PCIs?: XenApiPci['$ref'][]
+  bios_strings?: Record<string, string>
+  blobs?: Record<string, XenApiBlob['$ref']>
+  blocked_operations?: Record<VM_OPERATIONS, string>
+  children?: XenApiVm['$ref'][]
   consoles: XenApiConsole['$ref'][]
   crash_dumps: XenApiCrashdump['$ref'][]
   current_operations: Record<string, VM_OPERATIONS>
-  domain_type: DOMAIN_TYPE
-  domarch: string
-  domid: number
-  generation_id: string
-  guest_metrics: XenApiVmGuestMetrics['$ref']
-  ha_always_run: boolean
-  ha_restart_priority: string
-  hardware_platform_version: number
-  has_vendor_device: boolean
-  is_a_snapshot: boolean
-  is_a_template: boolean
-  is_control_domain: boolean
-  is_default_template: boolean
-  is_snapshot_from_vmpp: boolean
-  is_vmss_snapshot: boolean
+  domain_type?: DOMAIN_TYPE
+  domarch?: string
+  domid?: number
+  generation_id?: string
+  guest_metrics?: XenApiVmGuestMetrics['$ref']
+  /** @deprecated */
+  ha_always_run?: boolean
+  ha_restart_priority?: string
+  hardware_platform_version?: number
+  has_vendor_device?: boolean
+  HVM_boot_params?: Record<string, string>
+  /** @deprecated */
+  HVM_boot_policy?: string
+  HVM_shadow_multiplier?: number
+  is_a_snapshot?: boolean
+  is_a_template?: boolean
+  is_control_domain?: boolean
+  is_default_template?: boolean
+  /** @deprecated */
+  is_snapshot_from_vmpp?: boolean
+  is_vmss_snapshot?: boolean
   last_boot_CPU_flags: Record<string, string>
-  last_booted_record: string
-  memory_dynamic_max: number
-  memory_dynamic_min: number
+  last_booted_record?: string
+  memory_dynamic_max?: number
+  memory_dynamic_min?: number
   memory_overhead: number
-  memory_static_max: number
-  memory_static_min: number
-  memory_target: number
-  metrics: XenApiVmMetrics['$ref']
+  memory_static_max?: number
+  memory_static_min?: number
+  /** @deprecated */
+  memory_target?: number
+  metrics?: XenApiVmMetrics['$ref']
   name_description: string
   name_label: string
-  order: number
-  other_config: Record<string, string>
-  parent: XenApiVm['$ref']
-  pending_guidances: UPDATE_GUIDANCES[]
-  pending_guidances_full: UPDATE_GUIDANCES[]
-  pending_guidances_recommended: UPDATE_GUIDANCES[]
-  platform: Record<string, string>
+  NVRAM?: Record<string, string>
+  order?: number
+  other_config?: Record<string, string>
+  parent?: XenApiVm['$ref']
+  /** @deprecated */
+  PCI_bus?: string
+  pending_guidances_full?: UPDATE_GUIDANCES[]
+  pending_guidances_recommended?: UPDATE_GUIDANCES[]
+  pending_guidances?: UPDATE_GUIDANCES[]
+  platform?: Record<string, string>
   power_state: VM_POWER_STATE
-  protection_policy: XenApiVmpp['$ref']
-  recommendations: string
-  reference_label: string
-  requires_reboot: boolean
-  resident_on: XenApiHost['$ref']
-  scheduled_to_be_resident_on: XenApiHost['$ref']
-  shutdown_delay: number
-  snapshot_info: Record<string, string>
-  snapshot_metadata: string
-  snapshot_of: XenApiVm['$ref']
-  snapshot_schedule: XenApiVmss['$ref']
-  snapshot_time: string
-  snapshots: XenApiVm['$ref'][]
-  start_delay: number
-  suspend_SR: XenApiSr['$ref']
-  suspend_VDI: XenApiVdi['$ref']
-  tags: string[]
-  transportable_snapshot_id: string
-  user_version: number
+  /** @deprecated */
+  protection_policy?: XenApiVmpp['$ref']
+  PV_args?: string
+  PV_bootloader_args?: string
+  PV_bootloader?: string
+  PV_kernel?: string
+  PV_legacy_args?: string
+  PV_ramdisk?: string
+  recommendations?: string
+  reference_label?: string
+  requires_reboot?: boolean
+  resident_on?: XenApiHost['$ref']
+  scheduled_to_be_resident_on?: XenApiHost['$ref']
+  shutdown_delay?: number
+  snapshot_info?: Record<string, string>
+  snapshot_metadata?: string
+  snapshot_of?: XenApiVm['$ref']
+  snapshot_schedule?: XenApiVmss['$ref']
+  snapshot_time?: string
+  snapshots?: XenApiVm['$ref'][]
+  start_delay?: number
+  suspend_SR?: XenApiSr['$ref']
+  suspend_VDI?: XenApiVdi['$ref']
+  tags?: string[]
+  transportable_snapshot_id?: string
+  user_version?: number
   uuid: string
-  version: number
-  xenstore_data: Record<string, string>
+  VBDs: XenApiVbd['$ref'][]
+  VCPUs_at_startup?: number
+  VCPUs_max?: number
+  VCPUs_params?: Record<string, string>
+  version?: number
+  VGPUs?: XenApiVgpu['$ref'][]
+  VIFs: XenApiVif['$ref'][]
+  VTPMs: XenApiVtpm['$ref'][]
+  VUSBs: XenApiVusb['$ref'][]
+  xenstore_data?: Record<string, string>
 }
 
 export interface XenApiVmMetrics {
   $ref: Branded<'VM_metrics'>
   $type: 'VM_metrics'
-  VCPUs_CPU: Record<number, number>
-  VCPUs_flags: Record<number, string[]>
-  VCPUs_number: number
-  VCPUs_params: Record<string, string>
-  VCPUs_utilisation: Record<number, number>
-  current_domain_type: DOMAIN_TYPE
-  hvm: boolean
-  install_time: string
-  last_updated: string
-  memory_actual: number
-  nested_virt: boolean
-  nomigrate: boolean
-  other_config: Record<string, string>
-  start_time: string
+  current_domain_type?: DOMAIN_TYPE
+  hvm?: boolean
+  install_time?: string
+  last_updated?: string
+  memory_actual?: number
+  nested_virt?: boolean
+  nomigrate?: boolean
+  other_config?: Record<string, string>
+  start_time?: string
   state: string[]
   uuid: string
+  VCPUs_CPU?: Record<number, number>
+  VCPUs_flags?: Record<number, string[]>
+  VCPUs_number?: number
+  VCPUs_params?: Record<string, string>
+  /** @deprecated */
+  VCPUs_utilisation?: Record<number, number>
 }
 
 export interface XenApiVmGuestMetrics {
   $ref: Branded<'VM_guest_metrics'>
   $type: 'VM_guest_metrics'
-  PV_drivers_detected: boolean
-  PV_drivers_up_to_date: boolean
-  PV_drivers_version: Record<string, string>
-  can_use_hotplug_vbd: TRISTATE_TYPE
-  can_use_hotplug_vif: TRISTATE_TYPE
-  disks: Record<string, string>
-  last_updated: string
-  live: boolean
-  memory: Record<string, string>
-  networks: Record<string, string>
-  os_version: Record<string, string>
-  other: Record<string, string>
-  other_config: Record<string, string>
+  can_use_hotplug_vbd?: TRISTATE_TYPE
+  can_use_hotplug_vif?: TRISTATE_TYPE
+  /** @deprecated */
+  disks?: Record<string, string>
+  last_updated?: string
+  live?: boolean
+  /** @deprecated */
+  memory?: Record<string, string>
+  networks?: Record<string, string>
+  os_version?: Record<string, string>
+  other_config?: Record<string, string>
+  other?: Record<string, string>
+  PV_drivers_detected?: boolean
+  /** @deprecated */
+  PV_drivers_up_to_date?: boolean
+  PV_drivers_version?: Record<string, string>
   uuid: string
 }
 
 export interface XenApiVmpp {
   $ref: Branded<'VMPP'>
   $type: 'VMPP'
-  VMs: XenApiVm['$ref'][]
-  alarm_config: Record<string, string>
-  archive_frequency: VMPP_ARCHIVE_FREQUENCY
-  archive_last_run_time: string
-  archive_schedule: Record<string, string>
-  archive_target_config: Record<string, string>
-  archive_target_type: VMPP_ARCHIVE_TARGET_TYPE
-  backup_frequency: VMPP_BACKUP_FREQUENCY
-  backup_last_run_time: string
-  backup_retention_value: number
-  backup_schedule: Record<string, string>
-  backup_type: VMPP_BACKUP_TYPE
-  is_alarm_enabled: boolean
-  is_archive_running: boolean
-  is_backup_running: boolean
-  is_policy_enabled: boolean
+  /** @deprecated */
+  alarm_config?: Record<string, string>
+  /** @deprecated */
+  archive_frequency?: VMPP_ARCHIVE_FREQUENCY
+  /** @deprecated */
+  archive_last_run_time?: string
+  /** @deprecated */
+  archive_schedule?: Record<string, string>
+  /** @deprecated */
+  archive_target_config?: Record<string, string>
+  /** @deprecated */
+  archive_target_type?: VMPP_ARCHIVE_TARGET_TYPE
+  /** @deprecated */
+  backup_frequency?: VMPP_BACKUP_FREQUENCY
+  /** @deprecated */
+  backup_last_run_time?: string
+  /** @deprecated */
+  backup_retention_value?: number
+  /** @deprecated */
+  backup_schedule?: Record<string, string>
+  /** @deprecated */
+  backup_type?: VMPP_BACKUP_TYPE
+  /** @deprecated */
+  is_alarm_enabled?: boolean
+  /** @deprecated */
+  is_archive_running?: boolean
+  /** @deprecated */
+  is_backup_running?: boolean
+  /** @deprecated */
+  is_policy_enabled?: boolean
   name_description: string
   name_label: string
-  recent_alerts: string[]
+  /** @deprecated */
+  recent_alerts?: string[]
+  /** @deprecated */
   uuid: string
+  /** @deprecated */
+  VMs?: XenApiVm['$ref'][]
 }
 
 export interface XenApiVmss {
   $ref: Branded<'VMSS'>
   $type: 'VMSS'
-  VMs: XenApiVm['$ref'][]
   enabled: boolean
-  frequency: VMSS_FREQUENCY
+  frequency?: VMSS_FREQUENCY
   last_run_time: string
   name_description: string
   name_label: string
   retained_snapshots: number
   schedule: Record<string, string>
-  type: VMSS_TYPE
+  type?: VMSS_TYPE
   uuid: string
+  VMs: XenApiVm['$ref'][]
 }
 
 export interface XenApiVmAppliance {
   $ref: Branded<'VM_appliance'>
   $type: 'VM_appliance'
-  VMs: XenApiVm['$ref'][]
   allowed_operations: VM_APPLIANCE_OPERATION[]
   current_operations: Record<string, VM_APPLIANCE_OPERATION>
   name_description: string
   name_label: string
   uuid: string
+  VMs: XenApiVm['$ref'][]
 }
 
 export interface XenApiDrTask {
@@ -432,341 +464,351 @@ export interface XenApiDrTask {
 export interface XenApiHost {
   $ref: Branded<'host'>
   $type: 'host'
-  API_version_major: number
-  API_version_minor: number
-  API_version_vendor: string
-  API_version_vendor_implementation: Record<string, string>
-  PBDs: XenApiPbd['$ref'][]
-  PCIs: XenApiPci['$ref'][]
-  PGPUs: XenApiPgpu['$ref'][]
-  PIFs: XenApiPif['$ref'][]
-  PUSBs: XenApiPusb['$ref'][]
-  address: string
+  address?: string
   allowed_operations: HOST_ALLOWED_OPERATIONS[]
-  bios_strings: Record<string, string>
-  blobs: Record<string, XenApiBlob['$ref']>
+  API_version_major?: number
+  API_version_minor?: number
+  API_version_vendor_implementation?: Record<string, string>
+  API_version_vendor?: string
+  bios_strings?: Record<string, string>
+  blobs?: Record<string, XenApiBlob['$ref']>
   capabilities: string[]
-  certificates: XenApiCertificate['$ref'][]
-  chipset_info: Record<string, string>
-  control_domain: XenApiVm['$ref']
-  cpu_configuration: Record<string, string>
-  cpu_info: Record<string, string>
-  crash_dump_sr: XenApiSr['$ref']
+  certificates?: XenApiCertificate['$ref'][]
+  chipset_info?: Record<string, string>
+  control_domain?: XenApiVm['$ref']
+  cpu_configuration?: Record<string, string>
+  cpu_info?: Record<string, string>
+  crash_dump_sr?: XenApiSr['$ref']
   crashdumps: XenApiHostCrashdump['$ref'][]
   current_operations: Record<string, HOST_ALLOWED_OPERATIONS>
-  display: HOST_DISPLAY
-  edition: string
-  editions: string[]
-  enabled: boolean
-  external_auth_configuration: Record<string, string>
-  external_auth_service_name: string
-  external_auth_type: string
-  features: XenApiFeature['$ref'][]
-  guest_VCPUs_params: Record<string, string>
-  ha_network_peers: string[]
-  ha_statefiles: string[]
+  display?: HOST_DISPLAY
+  edition?: string
+  editions?: string[]
+  enabled?: boolean
+  external_auth_configuration?: Record<string, string>
+  external_auth_service_name?: string
+  external_auth_type?: string
+  features?: XenApiFeature['$ref'][]
+  guest_VCPUs_params?: Record<string, string>
+  ha_network_peers?: string[]
+  ha_statefiles?: string[]
   host_CPUs: XenApiHostCpu['$ref'][]
-  hostname: string
-  https_only: boolean
-  iscsi_iqn: string
-  last_software_update: string
-  last_update_hash: string
-  latest_synced_updates_applied: LATEST_SYNCED_UPDATES_APPLIED_STATE
-  license_params: Record<string, string>
-  license_server: Record<string, string>
-  local_cache_sr: XenApiSr['$ref']
-  logging: Record<string, string>
+  hostname?: string
+  https_only?: boolean
+  iscsi_iqn?: string
+  last_software_update?: string
+  last_update_hash?: string
+  latest_synced_updates_applied?: LATEST_SYNCED_UPDATES_APPLIED_STATE
+  license_params?: Record<string, string>
+  license_server?: Record<string, string>
+  local_cache_sr?: XenApiSr['$ref']
+  logging?: Record<string, string>
   memory_overhead: number
-  metrics: XenApiHostMetrics['$ref']
-  multipathing: boolean
+  metrics?: XenApiHostMetrics['$ref']
+  multipathing?: boolean
   name_description: string
   name_label: string
-  numa_affinity_policy: HOST_NUMA_AFFINITY_POLICY
-  other_config: Record<string, string>
-  patches: XenApiHostPatch['$ref'][]
-  pending_guidances: UPDATE_GUIDANCES[]
-  pending_guidances_full: UPDATE_GUIDANCES[]
-  pending_guidances_recommended: UPDATE_GUIDANCES[]
-  power_on_config: Record<string, string>
-  power_on_mode: string
+  numa_affinity_policy?: HOST_NUMA_AFFINITY_POLICY
+  other_config?: Record<string, string>
+  /** @deprecated */
+  patches?: XenApiHostPatch['$ref'][]
+  PBDs: XenApiPbd['$ref'][]
+  PCIs?: XenApiPci['$ref'][]
+  pending_guidances_full?: UPDATE_GUIDANCES[]
+  pending_guidances_recommended?: UPDATE_GUIDANCES[]
+  pending_guidances?: UPDATE_GUIDANCES[]
+  PGPUs?: XenApiPgpu['$ref'][]
+  PIFs: XenApiPif['$ref'][]
+  power_on_config?: Record<string, string>
+  power_on_mode?: string
+  PUSBs?: XenApiPusb['$ref'][]
   resident_VMs: XenApiVm['$ref'][]
-  sched_policy: string
-  software_version: Record<string, string>
-  ssl_legacy: boolean
+  sched_policy?: string
+  software_version?: Record<string, string>
+  /** @deprecated */
+  ssl_legacy?: boolean
   supported_bootloaders: string[]
-  suspend_image_sr: XenApiSr['$ref']
-  tags: string[]
-  tls_verification_enabled: boolean
-  uefi_certificates: string
-  updates: XenApiPoolUpdate['$ref'][]
-  updates_requiring_reboot: XenApiPoolUpdate['$ref'][]
+  suspend_image_sr?: XenApiSr['$ref']
+  tags?: string[]
+  tls_verification_enabled?: boolean
+  /** @deprecated */
+  uefi_certificates?: string
+  updates_requiring_reboot?: XenApiPoolUpdate['$ref'][]
+  updates?: XenApiPoolUpdate['$ref'][]
   uuid: string
-  virtual_hardware_platform_versions: number[]
+  virtual_hardware_platform_versions?: number[]
 }
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>
   $type: 'host_crashdump'
-  host: XenApiHost['$ref']
-  other_config: Record<string, string>
-  size: number
-  timestamp: string
+  host?: XenApiHost['$ref']
+  other_config?: Record<string, string>
+  size?: number
+  timestamp?: string
   uuid: string
 }
 
 export interface XenApiHostPatch {
   $ref: Branded<'host_patch'>
   $type: 'host_patch'
-  applied: boolean
-  host: XenApiHost['$ref']
+  applied?: boolean
+  host?: XenApiHost['$ref']
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  pool_patch: XenApiPoolPatch['$ref']
-  size: number
-  timestamp_applied: string
+  other_config?: Record<string, string>
+  pool_patch?: XenApiPoolPatch['$ref']
+  size?: number
+  timestamp_applied?: string
   uuid: string
-  version: string
+  version?: string
 }
 
 export interface XenApiHostMetrics {
   $ref: Branded<'host_metrics'>
   $type: 'host_metrics'
-  last_updated: string
-  live: boolean
-  memory_free: number
-  memory_total: number
-  other_config: Record<string, string>
+  last_updated?: string
+  live?: boolean
+  /** @deprecated */
+  memory_free?: number
+  memory_total?: number
+  other_config?: Record<string, string>
   uuid: string
 }
 
 export interface XenApiHostCpu {
   $ref: Branded<'host_cpu'>
   $type: 'host_cpu'
-  family: number
-  features: string
-  flags: string
-  host: XenApiHost['$ref']
-  model: number
-  modelname: string
-  number: number
-  other_config: Record<string, string>
-  speed: number
-  stepping: string
-  utilisation: number
+  family?: number
+  features?: string
+  flags?: string
+  host?: XenApiHost['$ref']
+  model?: number
+  modelname?: string
+  number?: number
+  other_config?: Record<string, string>
+  speed?: number
+  stepping?: string
+  utilisation?: number
   uuid: string
-  vendor: string
+  vendor?: string
 }
 
 export interface XenApiNetwork {
   $ref: Branded<'network'>
   $type: 'network'
-  MTU: number
-  PIFs: XenApiPif['$ref'][]
-  VIFs: XenApiVif['$ref'][]
   allowed_operations: NETWORK_OPERATIONS[]
-  assigned_ips: Record<XenApiVif['$ref'], string>
-  blobs: Record<string, XenApiBlob['$ref']>
+  assigned_ips?: Record<XenApiVif['$ref'], string>
+  blobs?: Record<string, XenApiBlob['$ref']>
   bridge: string
   current_operations: Record<string, NETWORK_OPERATIONS>
-  default_locking_mode: NETWORK_DEFAULT_LOCKING_MODE
-  managed: boolean
+  default_locking_mode?: NETWORK_DEFAULT_LOCKING_MODE
+  managed?: boolean
+  MTU?: number
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  purpose: NETWORK_PURPOSE[]
-  tags: string[]
+  other_config?: Record<string, string>
+  PIFs: XenApiPif['$ref'][]
+  purpose?: NETWORK_PURPOSE[]
+  tags?: string[]
   uuid: string
+  VIFs: XenApiVif['$ref'][]
 }
 
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   $type: 'VIF'
-  MAC: string
-  MAC_autogenerated: boolean
-  MTU: number
-  VM: XenApiVm['$ref']
   allowed_operations: VIF_OPERATIONS[]
   current_operations: Record<string, VIF_OPERATIONS>
   currently_attached: boolean
-  device: string
-  ipv4_addresses: string[]
-  ipv4_allowed: string[]
-  ipv4_configuration_mode: VIF_IPV4_CONFIGURATION_MODE
-  ipv4_gateway: string
-  ipv6_addresses: string[]
-  ipv6_allowed: string[]
-  ipv6_configuration_mode: VIF_IPV6_CONFIGURATION_MODE
-  ipv6_gateway: string
-  locking_mode: VIF_LOCKING_MODE
-  metrics: XenApiVifMetrics['$ref']
-  network: XenApiNetwork['$ref']
-  other_config: Record<string, string>
-  qos_algorithm_params: Record<string, string>
-  qos_algorithm_type: string
+  device?: string
+  ipv4_addresses?: string[]
+  ipv4_allowed?: string[]
+  ipv4_configuration_mode?: VIF_IPV4_CONFIGURATION_MODE
+  ipv4_gateway?: string
+  ipv6_addresses?: string[]
+  ipv6_allowed?: string[]
+  ipv6_configuration_mode?: VIF_IPV6_CONFIGURATION_MODE
+  ipv6_gateway?: string
+  locking_mode?: VIF_LOCKING_MODE
+  MAC_autogenerated?: boolean
+  MAC?: string
+  /** @deprecated */
+  metrics?: XenApiVifMetrics['$ref']
+  MTU?: number
+  network?: XenApiNetwork['$ref']
+  other_config?: Record<string, string>
+  qos_algorithm_params?: Record<string, string>
+  qos_algorithm_type?: string
   qos_supported_algorithms: string[]
-  runtime_properties: Record<string, string>
-  status_code: number
-  status_detail: string
+  runtime_properties?: Record<string, string>
+  status_code?: number
+  status_detail?: string
   uuid: string
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiVifMetrics {
   $ref: Branded<'VIF_metrics'>
   $type: 'VIF_metrics'
-  io_read_kbs: number
-  io_write_kbs: number
-  last_updated: string
-  other_config: Record<string, string>
+  /** @deprecated */
+  io_read_kbs?: number
+  /** @deprecated */
+  io_write_kbs?: number
+  last_updated?: string
+  other_config?: Record<string, string>
   uuid: string
 }
 
 export interface XenApiPif {
   $ref: Branded<'PIF'>
   $type: 'PIF'
-  DNS: string
-  IP: string
-  IPv6: string[]
-  MAC: string
-  MTU: number
-  PCI: XenApiPci['$ref']
-  VLAN: number
-  VLAN_master_of: XenApiVlan['$ref']
-  VLAN_slave_of: XenApiVlan['$ref'][]
-  bond_master_of: XenApiBond['$ref'][]
-  bond_slave_of: XenApiBond['$ref']
-  capabilities: string[]
-  currently_attached: boolean
-  device: string
-  disallow_unplug: boolean
-  gateway: string
-  host: XenApiHost['$ref']
-  igmp_snooping_status: PIF_IGMP_STATUS
-  ip_configuration_mode: IP_CONFIGURATION_MODE
-  ipv6_configuration_mode: IPV6_CONFIGURATION_MODE
-  ipv6_gateway: string
-  managed: boolean
-  management: boolean
-  metrics: XenApiPifMetrics['$ref']
-  netmask: string
-  network: XenApiNetwork['$ref']
-  other_config: Record<string, string>
-  physical: boolean
-  primary_address_type: PRIMARY_ADDRESS_TYPE
-  properties: Record<string, string>
-  sriov_logical_PIF_of: XenApiNetworkSriov['$ref'][]
-  sriov_physical_PIF_of: XenApiNetworkSriov['$ref'][]
-  tunnel_access_PIF_of: XenApiTunnel['$ref'][]
-  tunnel_transport_PIF_of: XenApiTunnel['$ref'][]
+  bond_master_of?: XenApiBond['$ref'][]
+  bond_slave_of?: XenApiBond['$ref']
+  capabilities?: string[]
+  currently_attached?: boolean
+  device?: string
+  disallow_unplug?: boolean
+  DNS?: string
+  gateway?: string
+  host?: XenApiHost['$ref']
+  igmp_snooping_status?: PIF_IGMP_STATUS
+  ip_configuration_mode?: IP_CONFIGURATION_MODE
+  IP?: string
+  ipv6_configuration_mode?: IPV6_CONFIGURATION_MODE
+  ipv6_gateway?: string
+  IPv6?: string[]
+  MAC?: string
+  managed?: boolean
+  management?: boolean
+  metrics?: XenApiPifMetrics['$ref']
+  MTU?: number
+  netmask?: string
+  network?: XenApiNetwork['$ref']
+  other_config?: Record<string, string>
+  PCI?: XenApiPci['$ref']
+  physical?: boolean
+  primary_address_type?: PRIMARY_ADDRESS_TYPE
+  properties?: Record<string, string>
+  sriov_logical_PIF_of?: XenApiNetworkSriov['$ref'][]
+  sriov_physical_PIF_of?: XenApiNetworkSriov['$ref'][]
+  tunnel_access_PIF_of?: XenApiTunnel['$ref'][]
+  tunnel_transport_PIF_of?: XenApiTunnel['$ref'][]
   uuid: string
+  VLAN_master_of?: XenApiVlan['$ref']
+  VLAN_slave_of?: XenApiVlan['$ref'][]
+  VLAN?: number
 }
 
 export interface XenApiPifMetrics {
   $ref: Branded<'PIF_metrics'>
   $type: 'PIF_metrics'
-  carrier: boolean
-  device_id: string
-  device_name: string
-  duplex: boolean
-  io_read_kbs: number
-  io_write_kbs: number
-  last_updated: string
-  other_config: Record<string, string>
-  pci_bus_path: string
-  speed: number
+  carrier?: boolean
+  device_id?: string
+  device_name?: string
+  duplex?: boolean
+  /** @deprecated */
+  io_read_kbs?: number
+  /** @deprecated */
+  io_write_kbs?: number
+  last_updated?: string
+  other_config?: Record<string, string>
+  pci_bus_path?: string
+  speed?: number
   uuid: string
-  vendor_id: string
-  vendor_name: string
+  vendor_id?: string
+  vendor_name?: string
 }
 
 export interface XenApiBond {
   $ref: Branded<'Bond'>
   $type: 'Bond'
-  auto_update_mac: boolean
-  links_up: number
-  master: XenApiPif['$ref']
-  mode: BOND_MODE
-  other_config: Record<string, string>
-  primary_slave: XenApiPif['$ref']
-  properties: Record<string, string>
-  slaves: XenApiPif['$ref'][]
+  auto_update_mac?: boolean
+  links_up?: number
+  master?: XenApiPif['$ref']
+  mode?: BOND_MODE
+  other_config?: Record<string, string>
+  primary_slave?: XenApiPif['$ref']
+  properties?: Record<string, string>
+  slaves?: XenApiPif['$ref'][]
   uuid: string
 }
 
 export interface XenApiVlan {
   $ref: Branded<'VLAN'>
   $type: 'VLAN'
-  other_config: Record<string, string>
-  tag: number
-  tagged_PIF: XenApiPif['$ref']
-  untagged_PIF: XenApiPif['$ref']
+  other_config?: Record<string, string>
+  tag?: number
+  tagged_PIF?: XenApiPif['$ref']
+  untagged_PIF?: XenApiPif['$ref']
   uuid: string
 }
 
 export interface XenApiSm {
   $ref: Branded<'SM'>
   $type: 'SM'
-  capabilities: string[]
-  configuration: Record<string, string>
-  copyright: string
-  driver_filename: string
-  features: Record<string, number>
+  /** @deprecated */
+  capabilities?: string[]
+  configuration?: Record<string, string>
+  copyright?: string
+  driver_filename?: string
+  features?: Record<string, number>
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  required_api_version: string
-  required_cluster_stack: string[]
-  type: string
+  other_config?: Record<string, string>
+  required_api_version?: string
+  required_cluster_stack?: string[]
+  type?: string
   uuid: string
-  vendor: string
-  version: string
+  vendor?: string
+  version?: string
 }
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
   $type: 'SR'
-  PBDs: XenApiPbd['$ref'][]
-  VDIs: XenApiVdi['$ref'][]
   allowed_operations: STORAGE_OPERATIONS[]
-  blobs: Record<string, XenApiBlob['$ref']>
-  clustered: boolean
-  content_type: string
+  blobs?: Record<string, XenApiBlob['$ref']>
+  clustered?: boolean
+  content_type?: string
   current_operations: Record<string, STORAGE_OPERATIONS>
-  introduced_by: XenApiDrTask['$ref']
-  is_tools_sr: boolean
-  local_cache_enabled: boolean
+  introduced_by?: XenApiDrTask['$ref']
+  is_tools_sr?: boolean
+  local_cache_enabled?: boolean
   name_description: string
   name_label: string
-  other_config: Record<string, string>
-  physical_size: number
-  physical_utilisation: number
-  shared: boolean
-  sm_config: Record<string, string>
-  tags: string[]
-  type: string
+  other_config?: Record<string, string>
+  PBDs: XenApiPbd['$ref'][]
+  physical_size?: number
+  physical_utilisation?: number
+  shared?: boolean
+  sm_config?: Record<string, string>
+  tags?: string[]
+  type?: string
   uuid: string
-  virtual_allocation: number
+  VDIs: XenApiVdi['$ref'][]
+  virtual_allocation?: number
 }
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>
   $type: 'sr_stat'
-  clustered: boolean
-  free_space: number
-  health: SR_HEALTH
-  name_description: string
-  name_label: string
-  total_space: number
+  clustered?: boolean
+  free_space?: number
+  health?: SR_HEALTH
+  name_description?: string
+  name_label?: string
+  total_space?: number
   uuid: unknown
 }
 
 export interface XenApiProbeResult {
   $ref: Branded<'probe_result'>
   $type: 'probe_result'
-  complete: boolean
-  configuration: Record<string, string>
-  extra_info: Record<string, string>
-  sr: unknown
+  complete?: boolean
+  configuration?: Record<string, string>
+  extra_info?: Record<string, string>
+  sr?: unknown
 }
 
 export interface XenApiLvhd {
@@ -778,163 +820,169 @@ export interface XenApiLvhd {
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
   $type: 'VDI'
-  SR: XenApiSr['$ref']
-  VBDs: XenApiVbd['$ref'][]
-  allow_caching: boolean
+  allow_caching?: boolean
   allowed_operations: VDI_OPERATIONS[]
-  cbt_enabled: boolean
+  cbt_enabled?: boolean
   crash_dumps: XenApiCrashdump['$ref'][]
   current_operations: Record<string, VDI_OPERATIONS>
-  is_a_snapshot: boolean
-  is_tools_iso: boolean
-  location: string
-  managed: boolean
-  metadata_latest: boolean
-  metadata_of_pool: XenApiPool['$ref']
-  missing: boolean
+  is_a_snapshot?: boolean
+  is_tools_iso?: boolean
+  location?: string
+  managed?: boolean
+  metadata_latest?: boolean
+  metadata_of_pool?: XenApiPool['$ref']
+  missing?: boolean
   name_description: string
   name_label: string
-  on_boot: ON_BOOT
-  other_config: Record<string, string>
-  parent: XenApiVdi['$ref']
-  physical_utilisation: number
-  read_only: boolean
-  sharable: boolean
-  sm_config: Record<string, string>
-  snapshot_of: XenApiVdi['$ref']
-  snapshot_time: string
-  snapshots: XenApiVdi['$ref'][]
-  storage_lock: boolean
-  tags: string[]
-  type: VDI_TYPE
+  on_boot?: ON_BOOT
+  other_config?: Record<string, string>
+  /** @deprecated */
+  parent?: XenApiVdi['$ref']
+  physical_utilisation?: number
+  read_only?: boolean
+  sharable?: boolean
+  sm_config?: Record<string, string>
+  snapshot_of?: XenApiVdi['$ref']
+  snapshot_time?: string
+  snapshots?: XenApiVdi['$ref'][]
+  SR?: XenApiSr['$ref']
+  storage_lock?: boolean
+  tags?: string[]
+  type?: VDI_TYPE
   uuid: string
-  virtual_size: number
-  xenstore_data: Record<string, string>
+  VBDs: XenApiVbd['$ref'][]
+  virtual_size?: number
+  xenstore_data?: Record<string, string>
 }
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
   $type: 'VBD'
-  VDI: XenApiVdi['$ref']
-  VM: XenApiVm['$ref']
   allowed_operations: VBD_OPERATIONS[]
-  bootable: boolean
+  bootable?: boolean
   current_operations: Record<string, VBD_OPERATIONS>
   currently_attached: boolean
   device: string
-  empty: boolean
-  metrics: XenApiVbdMetrics['$ref']
-  mode: VBD_MODE
-  other_config: Record<string, string>
-  qos_algorithm_params: Record<string, string>
-  qos_algorithm_type: string
+  empty?: boolean
+  /** @deprecated */
+  metrics?: XenApiVbdMetrics['$ref']
+  mode?: VBD_MODE
+  other_config?: Record<string, string>
+  qos_algorithm_params?: Record<string, string>
+  qos_algorithm_type?: string
   qos_supported_algorithms: string[]
-  runtime_properties: Record<string, string>
-  status_code: number
-  status_detail: string
-  storage_lock: boolean
-  type: VBD_TYPE
-  unpluggable: boolean
-  userdevice: string
+  runtime_properties?: Record<string, string>
+  status_code?: number
+  status_detail?: string
+  storage_lock?: boolean
+  type?: VBD_TYPE
+  unpluggable?: boolean
+  userdevice?: string
   uuid: string
+  VDI?: XenApiVdi['$ref']
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiVbdMetrics {
   $ref: Branded<'VBD_metrics'>
   $type: 'VBD_metrics'
-  io_read_kbs: number
-  io_write_kbs: number
-  last_updated: string
-  other_config: Record<string, string>
+  /** @deprecated */
+  io_read_kbs?: number
+  /** @deprecated */
+  io_write_kbs?: number
+  /** @deprecated */
+  last_updated?: string
+  /** @deprecated */
+  other_config?: Record<string, string>
   uuid: string
 }
 
 export interface XenApiPbd {
   $ref: Branded<'PBD'>
   $type: 'PBD'
-  SR: XenApiSr['$ref']
-  currently_attached: boolean
-  device_config: Record<string, string>
-  host: XenApiHost['$ref']
-  other_config: Record<string, string>
+  currently_attached?: boolean
+  device_config?: Record<string, string>
+  host?: XenApiHost['$ref']
+  other_config?: Record<string, string>
+  SR?: XenApiSr['$ref']
   uuid: string
 }
 
 export interface XenApiCrashdump {
   $ref: Branded<'crashdump'>
   $type: 'crashdump'
-  VDI: XenApiVdi['$ref']
-  VM: XenApiVm['$ref']
-  other_config: Record<string, string>
+  other_config?: Record<string, string>
   uuid: string
+  VDI?: XenApiVdi['$ref']
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiVtpm {
   $ref: Branded<'VTPM'>
   $type: 'VTPM'
-  VM: XenApiVm['$ref']
   allowed_operations: VTPM_OPERATIONS[]
-  backend: XenApiVm['$ref']
+  backend?: XenApiVm['$ref']
   current_operations: Record<string, VTPM_OPERATIONS>
-  is_protected: boolean
-  is_unique: boolean
-  persistence_backend: PERSISTENCE_BACKEND
+  is_protected?: boolean
+  is_unique?: boolean
+  persistence_backend?: PERSISTENCE_BACKEND
   uuid: string
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiConsole {
   $ref: Branded<'console'>
   $type: 'console'
-  VM: XenApiVm['$ref']
-  location: string
-  other_config: Record<string, string>
-  protocol: CONSOLE_PROTOCOL
+  location?: string
+  other_config?: Record<string, string>
+  protocol?: CONSOLE_PROTOCOL
   uuid: string
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiUser {
   $ref: Branded<'user'>
   $type: 'user'
-  fullname: string
-  other_config: Record<string, string>
-  short_name: string
+  fullname?: string
+  other_config?: Record<string, string>
+  short_name?: string
   uuid: string
 }
 
 export interface XenApiDataSource {
   $ref: Branded<'data_source'>
   $type: 'data_source'
-  enabled: boolean
-  max: number
-  min: number
+  enabled?: boolean
+  max?: number
+  min?: number
   name_description: string
   name_label: string
-  standard: boolean
-  units: string
-  value: number
+  standard?: boolean
+  units?: string
+  value?: number
 }
 
 export interface XenApiBlob {
   $ref: Branded<'blob'>
   $type: 'blob'
-  last_updated: string
-  mime_type: string
+  last_updated?: string
+  mime_type?: string
   name_description: string
   name_label: string
-  public: boolean
-  size: number
+  public?: boolean
+  size?: number
   uuid: string
 }
 
 export interface XenApiMessage {
   $ref: Branded<'message'>
   $type: 'message'
-  body: string
-  cls: CLS
-  name: string
-  obj_uuid: string
-  priority: number
-  timestamp: string
+  body?: string
+  cls?: CLS
+  name?: string
+  obj_uuid?: string
+  priority?: number
+  timestamp?: string
   uuid: string
 }
 
@@ -943,302 +991,303 @@ export interface XenApiSecret {
   $type: 'secret'
   other_config: Record<string, string>
   uuid: string
-  value: string
+  value?: string
 }
 
 export interface XenApiTunnel {
   $ref: Branded<'tunnel'>
   $type: 'tunnel'
-  access_PIF: XenApiPif['$ref']
-  other_config: Record<string, string>
-  protocol: TUNNEL_PROTOCOL
-  status: Record<string, string>
-  transport_PIF: XenApiPif['$ref']
+  access_PIF?: XenApiPif['$ref']
+  other_config?: Record<string, string>
+  protocol?: TUNNEL_PROTOCOL
+  status?: Record<string, string>
+  transport_PIF?: XenApiPif['$ref']
   uuid: string
 }
 
 export interface XenApiNetworkSriov {
   $ref: Branded<'network_sriov'>
   $type: 'network_sriov'
-  configuration_mode: SRIOV_CONFIGURATION_MODE
-  logical_PIF: XenApiPif['$ref']
-  physical_PIF: XenApiPif['$ref']
-  requires_reboot: boolean
+  configuration_mode?: SRIOV_CONFIGURATION_MODE
+  logical_PIF?: XenApiPif['$ref']
+  physical_PIF?: XenApiPif['$ref']
+  requires_reboot?: boolean
   uuid: string
 }
 
 export interface XenApiPci {
   $ref: Branded<'PCI'>
   $type: 'PCI'
-  class_name: string
-  dependencies: XenApiPci['$ref'][]
-  device_name: string
-  driver_name: string
-  host: XenApiHost['$ref']
-  other_config: Record<string, string>
-  pci_id: string
-  subsystem_device_name: string
-  subsystem_vendor_name: string
+  class_name?: string
+  dependencies?: XenApiPci['$ref'][]
+  device_name?: string
+  driver_name?: string
+  host?: XenApiHost['$ref']
+  other_config?: Record<string, string>
+  pci_id?: string
+  subsystem_device_name?: string
+  subsystem_vendor_name?: string
   uuid: string
-  vendor_name: string
+  vendor_name?: string
 }
 
 export interface XenApiPgpu {
   $ref: Branded<'PGPU'>
   $type: 'PGPU'
-  GPU_group: XenApiGpuGroup['$ref']
-  PCI: XenApiPci['$ref']
-  compatibility_metadata: Record<string, string>
-  dom0_access: PGPU_DOM0_ACCESS
-  enabled_VGPU_types: XenApiVgpuType['$ref'][]
-  host: XenApiHost['$ref']
-  is_system_display_device: boolean
-  other_config: Record<string, string>
-  resident_VGPUs: XenApiVgpu['$ref'][]
-  supported_VGPU_max_capacities: Record<XenApiVgpuType['$ref'], number>
-  supported_VGPU_types: XenApiVgpuType['$ref'][]
+  compatibility_metadata?: Record<string, string>
+  dom0_access?: PGPU_DOM0_ACCESS
+  enabled_VGPU_types?: XenApiVgpuType['$ref'][]
+  GPU_group?: XenApiGpuGroup['$ref']
+  host?: XenApiHost['$ref']
+  is_system_display_device?: boolean
+  other_config?: Record<string, string>
+  PCI?: XenApiPci['$ref']
+  resident_VGPUs?: XenApiVgpu['$ref'][]
+  supported_VGPU_max_capacities?: Record<XenApiVgpuType['$ref'], number>
+  supported_VGPU_types?: XenApiVgpuType['$ref'][]
   uuid: string
 }
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>
   $type: 'GPU_group'
-  GPU_types: string[]
-  PGPUs: XenApiPgpu['$ref'][]
-  VGPUs: XenApiVgpu['$ref'][]
-  allocation_algorithm: ALLOCATION_ALGORITHM
-  enabled_VGPU_types: XenApiVgpuType['$ref'][]
-  name_description: string
-  name_label: string
-  other_config: Record<string, string>
-  supported_VGPU_types: XenApiVgpuType['$ref'][]
+  allocation_algorithm?: ALLOCATION_ALGORITHM
+  enabled_VGPU_types?: XenApiVgpuType['$ref'][]
+  GPU_types?: string[]
+  name_description?: string
+  name_label?: string
+  other_config?: Record<string, string>
+  PGPUs?: XenApiPgpu['$ref'][]
+  supported_VGPU_types?: XenApiVgpuType['$ref'][]
   uuid: string
+  VGPUs?: XenApiVgpu['$ref'][]
 }
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
   $type: 'VGPU'
-  GPU_group: XenApiGpuGroup['$ref']
-  PCI: XenApiPci['$ref']
-  VM: XenApiVm['$ref']
-  compatibility_metadata: Record<string, string>
-  currently_attached: boolean
-  device: string
-  extra_args: string
-  other_config: Record<string, string>
-  resident_on: XenApiPgpu['$ref']
-  scheduled_to_be_resident_on: XenApiPgpu['$ref']
-  type: XenApiVgpuType['$ref']
+  compatibility_metadata?: Record<string, string>
+  currently_attached?: boolean
+  device?: string
+  extra_args?: string
+  GPU_group?: XenApiGpuGroup['$ref']
+  other_config?: Record<string, string>
+  PCI?: XenApiPci['$ref']
+  resident_on?: XenApiPgpu['$ref']
+  scheduled_to_be_resident_on?: XenApiPgpu['$ref']
+  type?: XenApiVgpuType['$ref']
   uuid: string
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiVgpuType {
   $ref: Branded<'VGPU_type'>
   $type: 'VGPU_type'
-  VGPUs: XenApiVgpu['$ref'][]
-  compatible_types_in_vm: XenApiVgpuType['$ref'][]
-  enabled_on_GPU_groups: XenApiGpuGroup['$ref'][]
-  enabled_on_PGPUs: XenApiPgpu['$ref'][]
-  experimental: boolean
-  framebuffer_size: number
-  identifier: string
-  implementation: VGPU_TYPE_IMPLEMENTATION
-  max_heads: number
-  max_resolution_x: number
-  max_resolution_y: number
-  model_name: string
-  supported_on_GPU_groups: XenApiGpuGroup['$ref'][]
-  supported_on_PGPUs: XenApiPgpu['$ref'][]
+  compatible_types_in_vm?: XenApiVgpuType['$ref'][]
+  enabled_on_GPU_groups?: XenApiGpuGroup['$ref'][]
+  enabled_on_PGPUs?: XenApiPgpu['$ref'][]
+  experimental?: boolean
+  framebuffer_size?: number
+  identifier?: string
+  implementation?: VGPU_TYPE_IMPLEMENTATION
+  max_heads?: number
+  max_resolution_x?: number
+  max_resolution_y?: number
+  model_name?: string
+  supported_on_GPU_groups?: XenApiGpuGroup['$ref'][]
+  supported_on_PGPUs?: XenApiPgpu['$ref'][]
   uuid: string
-  vendor_name: string
+  vendor_name?: string
+  VGPUs?: XenApiVgpu['$ref'][]
 }
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
   $type: 'PVS_site'
-  PVS_uuid: string
-  cache_storage: XenApiPvsCacheStorage['$ref'][]
-  name_description: string
-  name_label: string
-  proxies: XenApiPvsProxy['$ref'][]
-  servers: XenApiPvsServer['$ref'][]
+  cache_storage?: XenApiPvsCacheStorage['$ref'][]
+  name_description?: string
+  name_label?: string
+  proxies?: XenApiPvsProxy['$ref'][]
+  PVS_uuid?: string
+  servers?: XenApiPvsServer['$ref'][]
   uuid: string
 }
 
 export interface XenApiPvsServer {
   $ref: Branded<'PVS_server'>
   $type: 'PVS_server'
-  addresses: string[]
-  first_port: number
-  last_port: number
-  site: XenApiPvsSite['$ref']
+  addresses?: string[]
+  first_port?: number
+  last_port?: number
+  site?: XenApiPvsSite['$ref']
   uuid: string
 }
 
 export interface XenApiPvsProxy {
   $ref: Branded<'PVS_proxy'>
   $type: 'PVS_proxy'
-  VIF: XenApiVif['$ref']
-  currently_attached: boolean
-  site: XenApiPvsSite['$ref']
-  status: PVS_PROXY_STATUS
+  currently_attached?: boolean
+  site?: XenApiPvsSite['$ref']
+  status?: PVS_PROXY_STATUS
   uuid: string
+  VIF?: XenApiVif['$ref']
 }
 
 export interface XenApiPvsCacheStorage {
   $ref: Branded<'PVS_cache_storage'>
   $type: 'PVS_cache_storage'
-  SR: XenApiSr['$ref']
-  VDI: XenApiVdi['$ref']
-  host: XenApiHost['$ref']
-  site: XenApiPvsSite['$ref']
-  size: number
+  host?: XenApiHost['$ref']
+  site?: XenApiPvsSite['$ref']
+  size?: number
+  SR?: XenApiSr['$ref']
   uuid: string
+  VDI?: XenApiVdi['$ref']
 }
 
 export interface XenApiFeature {
   $ref: Branded<'Feature'>
   $type: 'Feature'
-  enabled: boolean
-  experimental: boolean
-  host: XenApiHost['$ref']
+  enabled?: boolean
+  experimental?: boolean
+  host?: XenApiHost['$ref']
   name_description: string
   name_label: string
   uuid: string
-  version: string
+  version?: string
 }
 
 export interface XenApiSdnController {
   $ref: Branded<'SDN_controller'>
   $type: 'SDN_controller'
-  address: string
-  port: number
-  protocol: SDN_CONTROLLER_PROTOCOL
+  address?: string
+  port?: number
+  protocol?: SDN_CONTROLLER_PROTOCOL
   uuid: string
 }
 
 export interface XenApiVdiNbdServerInfo {
   $ref: Branded<'vdi_nbd_server_info'>
   $type: 'vdi_nbd_server_info'
-  address: string
-  cert: string
-  exportname: string
-  port: number
-  subject: string
+  address?: string
+  cert?: string
+  exportname?: string
+  port?: number
+  subject?: string
 }
 
 export interface XenApiPusb {
   $ref: Branded<'PUSB'>
   $type: 'PUSB'
-  USB_group: XenApiUsbGroup['$ref']
-  description: string
-  host: XenApiHost['$ref']
-  other_config: Record<string, string>
-  passthrough_enabled: boolean
-  path: string
-  product_desc: string
-  product_id: string
-  serial: string
-  speed: number
+  description?: string
+  host?: XenApiHost['$ref']
+  other_config?: Record<string, string>
+  passthrough_enabled?: boolean
+  path?: string
+  product_desc?: string
+  product_id?: string
+  serial?: string
+  speed?: number
+  USB_group?: XenApiUsbGroup['$ref']
   uuid: string
-  vendor_desc: string
-  vendor_id: string
-  version: string
+  vendor_desc?: string
+  vendor_id?: string
+  version?: string
 }
 
 export interface XenApiUsbGroup {
   $ref: Branded<'USB_group'>
   $type: 'USB_group'
-  PUSBs: XenApiPusb['$ref'][]
-  VUSBs: XenApiVusb['$ref'][]
-  name_description: string
-  name_label: string
-  other_config: Record<string, string>
+  name_description?: string
+  name_label?: string
+  other_config?: Record<string, string>
+  PUSBs?: XenApiPusb['$ref'][]
   uuid: string
+  VUSBs?: XenApiVusb['$ref'][]
 }
 
 export interface XenApiVusb {
   $ref: Branded<'VUSB'>
   $type: 'VUSB'
-  USB_group: XenApiUsbGroup['$ref']
-  VM: XenApiVm['$ref']
   allowed_operations: VUSB_OPERATIONS[]
   current_operations: Record<string, VUSB_OPERATIONS>
   currently_attached: boolean
-  other_config: Record<string, string>
+  other_config?: Record<string, string>
+  USB_group?: XenApiUsbGroup['$ref']
   uuid: string
+  VM?: XenApiVm['$ref']
 }
 
 export interface XenApiCluster {
   $ref: Branded<'Cluster'>
   $type: 'Cluster'
   allowed_operations: CLUSTER_OPERATION[]
-  cluster_config: Record<string, string>
-  cluster_hosts: XenApiClusterHost['$ref'][]
-  cluster_stack: string
-  cluster_token: string
+  cluster_config?: Record<string, string>
+  cluster_hosts?: XenApiClusterHost['$ref'][]
+  cluster_stack?: string
+  cluster_token?: string
   current_operations: Record<string, CLUSTER_OPERATION>
-  is_quorate: boolean
-  live_hosts: number
-  other_config: Record<string, string>
-  pending_forget: string[]
-  pool_auto_join: boolean
-  quorum: number
-  token_timeout: number
-  token_timeout_coefficient: number
+  is_quorate?: boolean
+  live_hosts?: number
+  other_config?: Record<string, string>
+  pending_forget?: string[]
+  pool_auto_join?: boolean
+  quorum?: number
+  token_timeout_coefficient?: number
+  token_timeout?: number
   uuid: string
 }
 
 export interface XenApiClusterHost {
   $ref: Branded<'Cluster_host'>
   $type: 'Cluster_host'
-  PIF: XenApiPif['$ref']
   allowed_operations: CLUSTER_HOST_OPERATION[]
-  cluster: XenApiCluster['$ref']
+  cluster?: XenApiCluster['$ref']
   current_operations: Record<string, CLUSTER_HOST_OPERATION>
-  enabled: boolean
-  host: XenApiHost['$ref']
-  joined: boolean
-  last_update_live: string
-  live: boolean
-  other_config: Record<string, string>
+  enabled?: boolean
+  host?: XenApiHost['$ref']
+  joined?: boolean
+  last_update_live?: string
+  live?: boolean
+  other_config?: Record<string, string>
+  PIF?: XenApiPif['$ref']
   uuid: string
 }
 
 export interface XenApiCertificate {
   $ref: Branded<'Certificate'>
   $type: 'Certificate'
-  fingerprint: string
-  host: XenApiHost['$ref']
-  name: string
-  not_after: string
-  not_before: string
-  type: CERTIFICATE_TYPE
+  fingerprint?: string
+  host?: XenApiHost['$ref']
+  name?: string
+  not_after?: string
+  not_before?: string
+  type?: CERTIFICATE_TYPE
   uuid: string
 }
 
 export interface XenApiRepository {
   $ref: Branded<'Repository'>
   $type: 'Repository'
-  binary_url: string
-  gpgkey_path: string
-  hash: string
+  binary_url?: string
+  gpgkey_path?: string
+  hash?: string
   name_description: string
   name_label: string
-  source_url: string
-  up_to_date: boolean
-  update: boolean
+  source_url?: string
+  /** @deprecated */
+  up_to_date?: boolean
+  update?: boolean
   uuid: string
 }
 
 export interface XenApiObserver {
   $ref: Branded<'Observer'>
   $type: 'Observer'
-  attributes: Record<string, string>
-  components: string[]
-  enabled: boolean
-  endpoints: string[]
-  hosts: XenApiHost['$ref'][]
+  attributes?: Record<string, string>
+  components?: string[]
+  enabled?: boolean
+  endpoints?: string[]
+  hosts?: XenApiHost['$ref'][]
   name_description: string
   name_label: string
   uuid: string

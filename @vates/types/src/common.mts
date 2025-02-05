@@ -16,6 +16,7 @@ export const TASK_STATUS_TYPE = {
   PENDING: 'pending',
   SUCCESS: 'success',
 } as const
+
 export type TASK_STATUS_TYPE = (typeof TASK_STATUS_TYPE)[keyof typeof TASK_STATUS_TYPE]
 
 export const EVENT_OPERATION = {
@@ -23,6 +24,7 @@ export const EVENT_OPERATION = {
   DEL: 'del',
   MOD: 'mod',
 } as const
+
 export type EVENT_OPERATION = (typeof EVENT_OPERATION)[keyof typeof EVENT_OPERATION]
 
 export const POOL_ALLOWED_OPERATIONS = {
@@ -41,6 +43,7 @@ export const POOL_ALLOWED_OPERATIONS = {
   SYNC_UPDATES: 'sync_updates',
   TLS_VERIFICATION_ENABLE: 'tls_verification_enable',
 } as const
+
 export type POOL_ALLOWED_OPERATIONS = (typeof POOL_ALLOWED_OPERATIONS)[keyof typeof POOL_ALLOWED_OPERATIONS]
 
 export const TELEMETRY_FREQUENCY = {
@@ -48,12 +51,14 @@ export const TELEMETRY_FREQUENCY = {
   MONTHLY: 'monthly',
   WEEKLY: 'weekly',
 } as const
+
 export type TELEMETRY_FREQUENCY = (typeof TELEMETRY_FREQUENCY)[keyof typeof TELEMETRY_FREQUENCY]
 
 export const UPDATE_SYNC_FREQUENCY = {
   DAILY: 'daily',
   WEEKLY: 'weekly',
 } as const
+
 export type UPDATE_SYNC_FREQUENCY = (typeof UPDATE_SYNC_FREQUENCY)[keyof typeof UPDATE_SYNC_FREQUENCY]
 
 export const AFTER_APPLY_GUIDANCE = {
@@ -62,6 +67,7 @@ export const AFTER_APPLY_GUIDANCE = {
   RESTART_PV: 'restartPV',
   RESTART_XAPI: 'restartXAPI',
 } as const
+
 export type AFTER_APPLY_GUIDANCE = (typeof AFTER_APPLY_GUIDANCE)[keyof typeof AFTER_APPLY_GUIDANCE]
 
 export const UPDATE_AFTER_APPLY_GUIDANCE = {
@@ -70,6 +76,7 @@ export const UPDATE_AFTER_APPLY_GUIDANCE = {
   RESTART_PV: 'restartPV',
   RESTART_XAPI: 'restartXAPI',
 } as const
+
 export type UPDATE_AFTER_APPLY_GUIDANCE = (typeof UPDATE_AFTER_APPLY_GUIDANCE)[keyof typeof UPDATE_AFTER_APPLY_GUIDANCE]
 
 export const LIVEPATCH_STATUS = {
@@ -77,6 +84,7 @@ export const LIVEPATCH_STATUS = {
   OK_LIVEPATCH_COMPLETE: 'ok_livepatch_complete',
   OK_LIVEPATCH_INCOMPLETE: 'ok_livepatch_incomplete',
 } as const
+
 export type LIVEPATCH_STATUS = (typeof LIVEPATCH_STATUS)[keyof typeof LIVEPATCH_STATUS]
 
 export const VM_POWER_STATE = {
@@ -85,6 +93,7 @@ export const VM_POWER_STATE = {
   RUNNING: 'Running',
   SUSPENDED: 'Suspended',
 } as const
+
 export type VM_POWER_STATE = (typeof VM_POWER_STATE)[keyof typeof VM_POWER_STATE]
 
 export const UPDATE_GUIDANCES = {
@@ -96,6 +105,7 @@ export const UPDATE_GUIDANCES = {
   RESTART_TOOLSTACK: 'restart_toolstack',
   RESTART_VM: 'restart_vm',
 } as const
+
 export type UPDATE_GUIDANCES = (typeof UPDATE_GUIDANCES)[keyof typeof UPDATE_GUIDANCES]
 
 export const ON_SOFTREBOOT_BEHAVIOR = {
@@ -104,12 +114,14 @@ export const ON_SOFTREBOOT_BEHAVIOR = {
   RESTART: 'restart',
   SOFT_REBOOT: 'soft_reboot',
 } as const
+
 export type ON_SOFTREBOOT_BEHAVIOR = (typeof ON_SOFTREBOOT_BEHAVIOR)[keyof typeof ON_SOFTREBOOT_BEHAVIOR]
 
 export const ON_NORMAL_EXIT = {
   DESTROY: 'destroy',
   RESTART: 'restart',
 } as const
+
 export type ON_NORMAL_EXIT = (typeof ON_NORMAL_EXIT)[keyof typeof ON_NORMAL_EXIT]
 
 export const VM_OPERATIONS = {
@@ -163,6 +175,7 @@ export const VM_OPERATIONS = {
   UNPAUSE: 'unpause',
   UPDATE_ALLOWED_OPERATIONS: 'update_allowed_operations',
 } as const
+
 export type VM_OPERATIONS = (typeof VM_OPERATIONS)[keyof typeof VM_OPERATIONS]
 
 export const ON_CRASH_BEHAVIOUR = {
@@ -173,6 +186,7 @@ export const ON_CRASH_BEHAVIOUR = {
   RENAME_RESTART: 'rename_restart',
   RESTART: 'restart',
 } as const
+
 export type ON_CRASH_BEHAVIOUR = (typeof ON_CRASH_BEHAVIOUR)[keyof typeof ON_CRASH_BEHAVIOUR]
 
 export const DOMAIN_TYPE = {
@@ -182,6 +196,7 @@ export const DOMAIN_TYPE = {
   PV_IN_PVH: 'pv_in_pvh',
   UNSPECIFIED: 'unspecified',
 } as const
+
 export type DOMAIN_TYPE = (typeof DOMAIN_TYPE)[keyof typeof DOMAIN_TYPE]
 
 export const TRISTATE_TYPE = {
@@ -189,12 +204,14 @@ export const TRISTATE_TYPE = {
   UNSPECIFIED: 'unspecified',
   YES: 'yes',
 } as const
+
 export type TRISTATE_TYPE = (typeof TRISTATE_TYPE)[keyof typeof TRISTATE_TYPE]
 
 export const VMPP_BACKUP_TYPE = {
   CHECKPOINT: 'checkpoint',
   SNAPSHOT: 'snapshot',
 } as const
+
 export type VMPP_BACKUP_TYPE = (typeof VMPP_BACKUP_TYPE)[keyof typeof VMPP_BACKUP_TYPE]
 
 export const VMPP_BACKUP_FREQUENCY = {
@@ -202,6 +219,7 @@ export const VMPP_BACKUP_FREQUENCY = {
   HOURLY: 'hourly',
   WEEKLY: 'weekly',
 } as const
+
 export type VMPP_BACKUP_FREQUENCY = (typeof VMPP_BACKUP_FREQUENCY)[keyof typeof VMPP_BACKUP_FREQUENCY]
 
 export const VMPP_ARCHIVE_FREQUENCY = {
@@ -210,6 +228,7 @@ export const VMPP_ARCHIVE_FREQUENCY = {
   NEVER: 'never',
   WEEKLY: 'weekly',
 } as const
+
 export type VMPP_ARCHIVE_FREQUENCY = (typeof VMPP_ARCHIVE_FREQUENCY)[keyof typeof VMPP_ARCHIVE_FREQUENCY]
 
 export const VMPP_ARCHIVE_TARGET_TYPE = {
@@ -217,6 +236,7 @@ export const VMPP_ARCHIVE_TARGET_TYPE = {
   NFS: 'nfs',
   NONE: 'none',
 } as const
+
 export type VMPP_ARCHIVE_TARGET_TYPE = (typeof VMPP_ARCHIVE_TARGET_TYPE)[keyof typeof VMPP_ARCHIVE_TARGET_TYPE]
 
 export const VMSS_FREQUENCY = {
@@ -224,6 +244,7 @@ export const VMSS_FREQUENCY = {
   HOURLY: 'hourly',
   WEEKLY: 'weekly',
 } as const
+
 export type VMSS_FREQUENCY = (typeof VMSS_FREQUENCY)[keyof typeof VMSS_FREQUENCY]
 
 export const VMSS_TYPE = {
@@ -231,6 +252,7 @@ export const VMSS_TYPE = {
   SNAPSHOT: 'snapshot',
   SNAPSHOT_WITH_QUIESCE: 'snapshot_with_quiesce',
 } as const
+
 export type VMSS_TYPE = (typeof VMSS_TYPE)[keyof typeof VMSS_TYPE]
 
 export const VM_APPLIANCE_OPERATION = {
@@ -239,6 +261,7 @@ export const VM_APPLIANCE_OPERATION = {
   SHUTDOWN: 'shutdown',
   START: 'start',
 } as const
+
 export type VM_APPLIANCE_OPERATION = (typeof VM_APPLIANCE_OPERATION)[keyof typeof VM_APPLIANCE_OPERATION]
 
 export const HOST_ALLOWED_OPERATIONS = {
@@ -253,6 +276,7 @@ export const HOST_ALLOWED_OPERATIONS = {
   VM_RESUME: 'vm_resume',
   VM_START: 'vm_start',
 } as const
+
 export type HOST_ALLOWED_OPERATIONS = (typeof HOST_ALLOWED_OPERATIONS)[keyof typeof HOST_ALLOWED_OPERATIONS]
 
 export const LATEST_SYNCED_UPDATES_APPLIED_STATE = {
@@ -260,6 +284,7 @@ export const LATEST_SYNCED_UPDATES_APPLIED_STATE = {
   UNKNOWN: 'unknown',
   YES: 'yes',
 } as const
+
 export type LATEST_SYNCED_UPDATES_APPLIED_STATE =
   (typeof LATEST_SYNCED_UPDATES_APPLIED_STATE)[keyof typeof LATEST_SYNCED_UPDATES_APPLIED_STATE]
 
@@ -269,6 +294,7 @@ export const HOST_DISPLAY = {
   ENABLED: 'enabled',
   ENABLE_ON_REBOOT: 'enable_on_reboot',
 } as const
+
 export type HOST_DISPLAY = (typeof HOST_DISPLAY)[keyof typeof HOST_DISPLAY]
 
 export const HOST_SCHED_GRAN = {
@@ -276,6 +302,7 @@ export const HOST_SCHED_GRAN = {
   CPU: 'cpu',
   SOCKET: 'socket',
 } as const
+
 export type HOST_SCHED_GRAN = (typeof HOST_SCHED_GRAN)[keyof typeof HOST_SCHED_GRAN]
 
 export const HOST_NUMA_AFFINITY_POLICY = {
@@ -283,17 +310,20 @@ export const HOST_NUMA_AFFINITY_POLICY = {
   BEST_EFFORT: 'best_effort',
   DEFAULT_POLICY: 'default_policy',
 } as const
+
 export type HOST_NUMA_AFFINITY_POLICY = (typeof HOST_NUMA_AFFINITY_POLICY)[keyof typeof HOST_NUMA_AFFINITY_POLICY]
 
 export const NETWORK_OPERATIONS = {
   ATTACHING: 'attaching',
 } as const
+
 export type NETWORK_OPERATIONS = (typeof NETWORK_OPERATIONS)[keyof typeof NETWORK_OPERATIONS]
 
 export const NETWORK_DEFAULT_LOCKING_MODE = {
   DISABLED: 'disabled',
   UNLOCKED: 'unlocked',
 } as const
+
 export type NETWORK_DEFAULT_LOCKING_MODE =
   (typeof NETWORK_DEFAULT_LOCKING_MODE)[keyof typeof NETWORK_DEFAULT_LOCKING_MODE]
 
@@ -301,6 +331,7 @@ export const NETWORK_PURPOSE = {
   INSECURE_NBD: 'insecure_nbd',
   NBD: 'nbd',
 } as const
+
 export type NETWORK_PURPOSE = (typeof NETWORK_PURPOSE)[keyof typeof NETWORK_PURPOSE]
 
 export const VIF_OPERATIONS = {
@@ -308,6 +339,7 @@ export const VIF_OPERATIONS = {
   PLUG: 'plug',
   UNPLUG: 'unplug',
 } as const
+
 export type VIF_OPERATIONS = (typeof VIF_OPERATIONS)[keyof typeof VIF_OPERATIONS]
 
 export const VIF_LOCKING_MODE = {
@@ -316,18 +348,21 @@ export const VIF_LOCKING_MODE = {
   NETWORK_DEFAULT: 'network_default',
   UNLOCKED: 'unlocked',
 } as const
+
 export type VIF_LOCKING_MODE = (typeof VIF_LOCKING_MODE)[keyof typeof VIF_LOCKING_MODE]
 
 export const VIF_IPV4_CONFIGURATION_MODE = {
   NONE: 'None',
   STATIC: 'Static',
 } as const
+
 export type VIF_IPV4_CONFIGURATION_MODE = (typeof VIF_IPV4_CONFIGURATION_MODE)[keyof typeof VIF_IPV4_CONFIGURATION_MODE]
 
 export const VIF_IPV6_CONFIGURATION_MODE = {
   NONE: 'None',
   STATIC: 'Static',
 } as const
+
 export type VIF_IPV6_CONFIGURATION_MODE = (typeof VIF_IPV6_CONFIGURATION_MODE)[keyof typeof VIF_IPV6_CONFIGURATION_MODE]
 
 export const PIF_IGMP_STATUS = {
@@ -335,6 +370,7 @@ export const PIF_IGMP_STATUS = {
   ENABLED: 'enabled',
   UNKNOWN: 'unknown',
 } as const
+
 export type PIF_IGMP_STATUS = (typeof PIF_IGMP_STATUS)[keyof typeof PIF_IGMP_STATUS]
 
 export const IP_CONFIGURATION_MODE = {
@@ -342,6 +378,7 @@ export const IP_CONFIGURATION_MODE = {
   NONE: 'None',
   STATIC: 'Static',
 } as const
+
 export type IP_CONFIGURATION_MODE = (typeof IP_CONFIGURATION_MODE)[keyof typeof IP_CONFIGURATION_MODE]
 
 export const IPV6_CONFIGURATION_MODE = {
@@ -350,12 +387,14 @@ export const IPV6_CONFIGURATION_MODE = {
   NONE: 'None',
   STATIC: 'Static',
 } as const
+
 export type IPV6_CONFIGURATION_MODE = (typeof IPV6_CONFIGURATION_MODE)[keyof typeof IPV6_CONFIGURATION_MODE]
 
 export const PRIMARY_ADDRESS_TYPE = {
   IPV4: 'IPv4',
   IPV6: 'IPv6',
 } as const
+
 export type PRIMARY_ADDRESS_TYPE = (typeof PRIMARY_ADDRESS_TYPE)[keyof typeof PRIMARY_ADDRESS_TYPE]
 
 export const BOND_MODE = {
@@ -363,6 +402,7 @@ export const BOND_MODE = {
   BALANCE_SLB: 'balance-slb',
   LACP: 'lacp',
 } as const
+
 export type BOND_MODE = (typeof BOND_MODE)[keyof typeof BOND_MODE]
 
 export const STORAGE_OPERATIONS = {
@@ -387,12 +427,14 @@ export const STORAGE_OPERATIONS = {
   VDI_SET_ON_BOOT: 'vdi_set_on_boot',
   VDI_SNAPSHOT: 'vdi_snapshot',
 } as const
+
 export type STORAGE_OPERATIONS = (typeof STORAGE_OPERATIONS)[keyof typeof STORAGE_OPERATIONS]
 
 export const SR_HEALTH = {
   HEALTHY: 'healthy',
   RECOVERING: 'recovering',
 } as const
+
 export type SR_HEALTH = (typeof SR_HEALTH)[keyof typeof SR_HEALTH]
 
 export const VDI_OPERATIONS = {
@@ -414,6 +456,7 @@ export const VDI_OPERATIONS = {
   SNAPSHOT: 'snapshot',
   UPDATE: 'update',
 } as const
+
 export type VDI_OPERATIONS = (typeof VDI_OPERATIONS)[keyof typeof VDI_OPERATIONS]
 
 export const VDI_TYPE = {
@@ -429,12 +472,14 @@ export const VDI_TYPE = {
   SYSTEM: 'system',
   USER: 'user',
 } as const
+
 export type VDI_TYPE = (typeof VDI_TYPE)[keyof typeof VDI_TYPE]
 
 export const ON_BOOT = {
   PERSIST: 'persist',
   RESET: 'reset',
 } as const
+
 export type ON_BOOT = (typeof ON_BOOT)[keyof typeof ON_BOOT]
 
 export const VBD_OPERATIONS = {
@@ -447,6 +492,7 @@ export const VBD_OPERATIONS = {
   UNPLUG: 'unplug',
   UNPLUG_FORCE: 'unplug_force',
 } as const
+
 export type VBD_OPERATIONS = (typeof VBD_OPERATIONS)[keyof typeof VBD_OPERATIONS]
 
 export const VBD_TYPE = {
@@ -454,22 +500,26 @@ export const VBD_TYPE = {
   DISK: 'Disk',
   FLOPPY: 'Floppy',
 } as const
+
 export type VBD_TYPE = (typeof VBD_TYPE)[keyof typeof VBD_TYPE]
 
 export const VBD_MODE = {
   RO: 'RO',
   RW: 'RW',
 } as const
+
 export type VBD_MODE = (typeof VBD_MODE)[keyof typeof VBD_MODE]
 
 export const VTPM_OPERATIONS = {
   DESTROY: 'destroy',
 } as const
+
 export type VTPM_OPERATIONS = (typeof VTPM_OPERATIONS)[keyof typeof VTPM_OPERATIONS]
 
 export const PERSISTENCE_BACKEND = {
   XAPI: 'xapi',
 } as const
+
 export type PERSISTENCE_BACKEND = (typeof PERSISTENCE_BACKEND)[keyof typeof PERSISTENCE_BACKEND]
 
 export const CONSOLE_PROTOCOL = {
@@ -477,6 +527,7 @@ export const CONSOLE_PROTOCOL = {
   RFB: 'rfb',
   VT100: 'vt100',
 } as const
+
 export type CONSOLE_PROTOCOL = (typeof CONSOLE_PROTOCOL)[keyof typeof CONSOLE_PROTOCOL]
 
 export const CLS = {
@@ -490,12 +541,14 @@ export const CLS = {
   VMPP: 'VMPP',
   VMSS: 'VMSS',
 } as const
+
 export type CLS = (typeof CLS)[keyof typeof CLS]
 
 export const TUNNEL_PROTOCOL = {
   GRE: 'gre',
   VXLAN: 'vxlan',
 } as const
+
 export type TUNNEL_PROTOCOL = (typeof TUNNEL_PROTOCOL)[keyof typeof TUNNEL_PROTOCOL]
 
 export const SRIOV_CONFIGURATION_MODE = {
@@ -504,6 +557,7 @@ export const SRIOV_CONFIGURATION_MODE = {
   SYSFS: 'sysfs',
   UNKNOWN: 'unknown',
 } as const
+
 export type SRIOV_CONFIGURATION_MODE = (typeof SRIOV_CONFIGURATION_MODE)[keyof typeof SRIOV_CONFIGURATION_MODE]
 
 export const PGPU_DOM0_ACCESS = {
@@ -512,12 +566,14 @@ export const PGPU_DOM0_ACCESS = {
   ENABLED: 'enabled',
   ENABLE_ON_REBOOT: 'enable_on_reboot',
 } as const
+
 export type PGPU_DOM0_ACCESS = (typeof PGPU_DOM0_ACCESS)[keyof typeof PGPU_DOM0_ACCESS]
 
 export const ALLOCATION_ALGORITHM = {
   BREADTH_FIRST: 'breadth_first',
   DEPTH_FIRST: 'depth_first',
 } as const
+
 export type ALLOCATION_ALGORITHM = (typeof ALLOCATION_ALGORITHM)[keyof typeof ALLOCATION_ALGORITHM]
 
 export const VGPU_TYPE_IMPLEMENTATION = {
@@ -527,6 +583,7 @@ export const VGPU_TYPE_IMPLEMENTATION = {
   NVIDIA_SRIOV: 'nvidia_sriov',
   PASSTHROUGH: 'passthrough',
 } as const
+
 export type VGPU_TYPE_IMPLEMENTATION = (typeof VGPU_TYPE_IMPLEMENTATION)[keyof typeof VGPU_TYPE_IMPLEMENTATION]
 
 export const PVS_PROXY_STATUS = {
@@ -536,12 +593,14 @@ export const PVS_PROXY_STATUS = {
   INITIALISED: 'initialised',
   STOPPED: 'stopped',
 } as const
+
 export type PVS_PROXY_STATUS = (typeof PVS_PROXY_STATUS)[keyof typeof PVS_PROXY_STATUS]
 
 export const SDN_CONTROLLER_PROTOCOL = {
   PSSL: 'pssl',
   SSL: 'ssl',
 } as const
+
 export type SDN_CONTROLLER_PROTOCOL = (typeof SDN_CONTROLLER_PROTOCOL)[keyof typeof SDN_CONTROLLER_PROTOCOL]
 
 export const VUSB_OPERATIONS = {
@@ -549,6 +608,7 @@ export const VUSB_OPERATIONS = {
   PLUG: 'plug',
   UNPLUG: 'unplug',
 } as const
+
 export type VUSB_OPERATIONS = (typeof VUSB_OPERATIONS)[keyof typeof VUSB_OPERATIONS]
 
 export const CLUSTER_OPERATION = {
@@ -558,6 +618,7 @@ export const CLUSTER_OPERATION = {
   ENABLE: 'enable',
   REMOVE: 'remove',
 } as const
+
 export type CLUSTER_OPERATION = (typeof CLUSTER_OPERATION)[keyof typeof CLUSTER_OPERATION]
 
 export const CLUSTER_HOST_OPERATION = {
@@ -565,6 +626,7 @@ export const CLUSTER_HOST_OPERATION = {
   DISABLE: 'disable',
   ENABLE: 'enable',
 } as const
+
 export type CLUSTER_HOST_OPERATION = (typeof CLUSTER_HOST_OPERATION)[keyof typeof CLUSTER_HOST_OPERATION]
 
 export const CERTIFICATE_TYPE = {
@@ -572,4 +634,5 @@ export const CERTIFICATE_TYPE = {
   HOST: 'host',
   HOST_INTERNAL: 'host_internal',
 } as const
+
 export type CERTIFICATE_TYPE = (typeof CERTIFICATE_TYPE)[keyof typeof CERTIFICATE_TYPE]
