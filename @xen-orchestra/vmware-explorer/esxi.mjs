@@ -59,7 +59,7 @@ export default class Esxi extends EventEmitter {
     await Promise.all(
       Object.values(res).map(async ({ datastore, name }) => {
         await Promise.all(
-          datastore.ManagedObjectReference.map(async ({ $value }) => {
+          datastore.ManagedObjectReference?.map(async ({ $value }) => {
             // get the datastore name
             const res = await this.fetchProperty('Datastore', $value, 'name')
             this.#dcPaths[res._] = name
