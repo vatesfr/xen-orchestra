@@ -158,6 +158,28 @@ class Vdi {
     return Buffer.from(encoded, 'base64')
   }
 
+  /**
+   * will disable CBT on the VDI, all its ancestor and will purge
+   * snapshots of type cbt_metadata of this chain
+   *
+   * @param {OpaqueRef} vdiRef
+   */
+  async disableCbtOnChain(vdiRef) {
+    const smConfig = await this.getField('VDI', vdiRef, 'sm-config')
+    if (smConfig['vhd-parent']) {
+      await this.VDI_disableCbtOnChain(smConfig['vhd-parent'])
+    }
+    const snapshotRefs = await this.getField('VDI', vdiRef, 'snapshots')
+    for (const snapshotRef of snapshotRefs) {
+      const type = await this.getField('VDI', snapshotRef, 'type')
+      if (type === 'cbt_metadata') {
+        await this.VDI_destroy(snapshotRef)
+      }
+      await this.callAsync('VDI.disable_cbt', snapshotRef)
+    }
+    await this.callAsync('VDI.disable_cbt', vdiRef)
+  }
+
   async disconnectFromControlDomain(vdiRef) {
     let vbdRefs
     try {
@@ -206,11 +228,12 @@ class Vdi {
       vdi: ref,
     }
 
-    const [cbt_enabled, size, uuid, vdiName] = await Promise.all([
+    const [cbt_enabled, size, snapshotOf, uuid, vdiName] = await Promise.all([
       this.getField('VDI', ref, 'cbt_enabled').catch(() => {
         /* on XS < 7.3 cbt is not supported */
       }),
       this.getField('VDI', ref, 'virtual_size'),
+      this.getField('VDI', ref, 'snapshot_of'),
       this.getField('VDI', ref, 'uuid'),
       this.getField('VDI', ref, 'name_label'),
     ])
@@ -275,8 +298,10 @@ class Vdi {
     // a CBT export can only work if we have a NBD client and changed blocks
     if (changedBlocks === undefined || nbdClient === undefined) {
       if (baseParentType === 'cbt_metadata') {
+        await this.VDI_disableCbtOnChain(snapshotOf)
         const e = new Error(`can't create a stream from a metadata VDI, fall back to a base `)
         e.code = 'VDI_CANT_DO_DELTA'
+        // CBt is not usable: reset it
         throw e
       }
 
