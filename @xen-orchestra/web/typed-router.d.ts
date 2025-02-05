@@ -35,5 +35,6 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/vms': RouteRecordInfo<'/pool/[id]/vms', '/pool/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]': RouteRecordInfo<'/vm/[id]', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/console': RouteRecordInfo<'/vm/[id]/console', '/vm/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/vm/NewVm': RouteRecordInfo<'/vm/NewVm', '/vm/NewVm', Record<never, never>, Record<never, never>>,
   }
 }
