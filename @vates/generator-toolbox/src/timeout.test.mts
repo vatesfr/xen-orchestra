@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { Timeout } from './timeout.mts'
+import { Timeout } from './timeout.mjs'
 
 describe('Timeout class', () => {
   it('should reject a timeout with a negative or zero value ', async () => {

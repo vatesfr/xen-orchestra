@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 import { suite, test } from 'node:test'
-import { Synchronized } from './synchronized.mts'
+import { Synchronized } from './synchronized.mjs'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function* makeRangeGenerator(end = Infinity, progress = { yielded: 0 }, onYielded = (val: unknown) => {}) {
