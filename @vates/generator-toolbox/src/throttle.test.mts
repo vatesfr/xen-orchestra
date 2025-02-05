@@ -1,4 +1,4 @@
-import { GeneratorThrottler } from './throttle.mts'
+import { GeneratorThrottler } from './throttle.mjs'
 import { suite, test } from 'node:test'
 import assert from 'node:assert'
 

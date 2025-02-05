@@ -9,10 +9,10 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "declaration": true, // Generates `.d.ts` files for type safety
-    "outDir": "dist", // Outputs compiled code to the `dist` directory
-    "verbatimModuleSyntax": true, // allow for type import, mandatory for node 23.6+
-    "allowImportingTsExtensions": true, // allow using import *.mts
-    "emitDeclarationOnly": true // don't build js, mandatory for allowimporinttsextension
+    "outDir": "dist" // Outputs compiled code to the `dist` directory
+    //"verbatimModuleSyntax": true, // allow for type import, mandatory for node 23.6+
+    //"allowImportingTsExtensions": true, // allow using import *.mts
+    //"emitDeclarationOnly": true // don't build js, mandatory for allowimporinttsextension
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -1,7 +1,7 @@
 {
   "name": "@vates/generator-toolbox",
   "version": "0.0.0",
-  "main": "src/index.mts",
+  "main": "dist/index.mjs",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "node --test"
+    "test": "node --test dist/*.test.mjs"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/generator-toolbox",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
