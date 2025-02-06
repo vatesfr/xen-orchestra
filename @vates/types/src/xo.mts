@@ -51,7 +51,7 @@ type BaseXoVm = {
     static: [number, number]
     usage?: number
   }
-  mainIpAddress: string
+  mainIpAddress?: string
   managementAgentDetected?: boolean
   name_description: string
   name_label: string
