@@ -11,6 +11,7 @@ import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 import { XapiVhdStreamSource } from '../../@xen-orchestra/disk-transform/dist/producer/XapiVhdStreamSource.mjs'
+import { VhdStream } from '../disk-transform/dist/consumer/VhdStream.mjs'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -221,21 +222,21 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     }
   })
 
-  const { streams } = incrementalVm
+  const { disks } = incrementalVm
 
   await Promise.all([
     // Import VDI contents.
     cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
-      for (let stream of ensureArray(streams[`${id}.vhd`])) {
-        if (stream === null) {
+      for (const disk of ensureArray(disks[`${id}.vhd`])) {
+        if (disk === null) {
           // we restore a backup and reuse completly a local snapshot
           continue
         }
-        if (typeof stream === 'function') {
-          stream = await stream()
-        }
+        
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
-        await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+        const streamBuilder = new VhdStream(disk)
+
+        await vdi.$importContent(streamBuilder.toStream(), { cancelToken, format: 'vhd' })
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),

@@ -25,7 +25,7 @@ export class VhdStream extends BaseVhd {
       yield footer
       console.log(Math.round(Date.now() - start) / 1000)
     }
-    const stream = Readable.from(generator(), { objectMode: false, highWaterMark: 10 * 1024 * 1024 }) as VhdStream
+    const stream = Readable.from(generator(), { objectMode: false, highWaterMark:10*102*1024 }) as VhdStream
     stream.length = fileSize
     return stream
   }

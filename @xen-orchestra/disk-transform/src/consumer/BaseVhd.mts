@@ -17,7 +17,7 @@ export abstract class BaseVhd {
     const source = this.#source
     const size = source.virtualSize
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
-    const header = createHeader(nbTotalBlocks, DEFAULT_BLOCK_SIZE)
+    const header = createHeader(nbTotalBlocks)
     return header
   }
 
@@ -34,11 +34,12 @@ export abstract class BaseVhd {
     const source = this.#source
     const size = source.virtualSize
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
+    // align bat size to a sector
     const batSize = Math.ceil((nbTotalBlocks * 4) / SECTOR_SIZE) * SECTOR_SIZE
     let bat = Buffer.alloc(batSize, 255) // initialized full of 1, which is BLOCK_UNUSED
     let offset = FOOTER_SIZE + HEADER_SIZE + batSize
     let offsetSector = offset / SECTOR_SIZE
-    const FULL_BLOCK_SIZE = 512 + 2 * 1024 * 1024
+    const FULL_BLOCK_SIZE = SECTOR_SIZE + DEFAULT_BLOCK_SIZE
     const blockSizeInSectors = FULL_BLOCK_SIZE / SECTOR_SIZE
     let fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
     // compute BAT , blocks starts after parent locator entries
@@ -51,7 +52,7 @@ export abstract class BaseVhd {
   }
 
   async *vhdblockGenerator(): AsyncGenerator<Buffer> {
-    for await (const { index, data } of this.#source.diskBlocks()) {
+    for await (const { data } of this.#source.diskBlocks()) {
       yield Buffer.concat([FULL_BLOCK_BITMAP, data])
     }
   }

@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { openVhd, VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import {  VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
@@ -31,8 +31,9 @@ import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { VhdStream } from '../../@xen-orchestra/disk-transform/dist/consumer/VhdStream.mjs'
 import { VhdDirectoryRemote } from '../../@xen-orchestra/disk-transform/dist/consumer/VhdDirectory.mjs'
+import { VhdStream } from '../../@xen-orchestra/disk-transform/dist/consumer/VhdStream.mjs'
+import { openRemoteDisk,openRemoteChain } from '../../@xen-orchestra/disk-transform/dist/factory/Remote.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -723,30 +724,9 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdStream(handler, path, { useChain }) {
-    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
-    // I don't want the vhds to be disposed on return
-    // but only when the stream is done ( or failed )
-
-    let disposed = false
-    const disposeOnce = async () => {
-      if (!disposed) {
-        disposed = true
-        try {
-          await disposableSynthetic.dispose()
-        } catch (error) {
-          warn('openVhd: failed to dispose VHDs', { error })
-        }
-      }
-    }
-    const synthetic = disposableSynthetic.value
-    await synthetic.readBlockAllocationTable()
-    const stream = await synthetic.vhdStream()
-
-    stream.on('end', disposeOnce)
-    stream.on('close', disposeOnce)
-    stream.on('error', disposeOnce)
-    return stream
+  async _createVhdDisk(handler, path, { useChain }) {
+    const disk = useChain ? await openRemoteDisk(handler, path) : await openRemoteChain(handler, path)  
+    return disk
   }
 
   async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
@@ -755,13 +735,13 @@ export class RemoteAdapter {
     const dir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
-    const streams = {}
+    const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain })
+      disks[`${ref}.vhd`] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
     })
 
     return {
-      streams,
+      disks,
       vbds,
       vdis,
       version: '1.0.0',

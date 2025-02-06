@@ -9,7 +9,7 @@ export class DiskChain extends RandomAccessDisk {
     return this.#disks[0].blockSize
   }
 
-  constructor(disks: Array<RandomAccessDisk>) {
+  constructor({disks}:{disks:Array<RandomAccessDisk>}) {
     super()
     this.#disks = disks
   }
