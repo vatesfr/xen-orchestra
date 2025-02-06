@@ -26,7 +26,7 @@
     "postversion": "npm publish --access public"
   },
   "keywords": [],
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/types",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
