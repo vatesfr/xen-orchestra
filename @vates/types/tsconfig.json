@@ -5,6 +5,7 @@
     "strict": true,
     "module": "ESNext",
     "target": "ESNext",
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
