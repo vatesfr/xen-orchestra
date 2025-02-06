@@ -1,0 +1,16 @@
+{
+  "entryFile": "./src/index.mts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["./src/**/*.controller.mts"],
+  "spec": {
+    "outputDirectory": "./src/open-api/spec",
+    "specVersion": 3,
+    "basePath": "/rest/v0"
+  },
+  "routes": {
+    "routesDir": "./src/open-api/routes",
+    "esm": true,
+    "middleware": "express",
+    "basePath": "/rest/v0"
+  }
+}
