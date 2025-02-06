@@ -1,4 +1,4 @@
-import { PortableDisk, type DiskBlock } from '../PortableDisk.mts'
+import { PortableDisk, type DiskBlock } from '../PortableDisk.mjs'
 import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'

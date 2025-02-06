@@ -244,24 +244,29 @@ class Vdi {
       baseParentUuid, // the uuid of the parent of the base for a delta export
       baseParentType // the vdiType of the parent, to heck if its a metadata backup or not
 
-    if (baseRef !== undefined && preferNbd && cbt_enabled) {
-      // use CBT if possible
-      // call to list changed blocks must be done before the vdi is mounted for NBD export
-      try {
-        changedBlocks = await this.VDI_listChangedBlock(ref, baseRef)
+    if (preferNbd && cbt_enabled) {
+      if (baseRef !== undefined) {
+        // use CBT if possible
+        // call to list changed blocks must be done before the vdi is mounted for NBD export
+        try {
+          changedBlocks = await this.VDI_listChangedBlock(ref, baseRef)
 
-        info('found changed blocks', { changedBlocks })
-      } catch (error) {
-        // do not fail if CBT is not enabled/working
-        info(`can't get changed block`, { error, ref, baseRef })
-        changedBlocks = undefined
+          info('found changed blocks', { changedBlocks })
+        } catch (error) {
+          // do not fail if CBT is not enabled/working
+          info(`can't get changed block`, { error, ref, baseRef })
+          changedBlocks = undefined
+        }
+
+        // this may be undefined and is a nice to have
+        // but backups and xapi don't trust nor use this value
+        // will only be used with CBT
+        baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config['vhd-parent'])
+        baseParentType = await this.getField('VDI', baseRef, 'type')
+      } else {
+        // instantiate a full CBT
+        changedBlocks = Buffer.alloc(Math.ceil(size / 8 / 64 / 1024), 255)
       }
-
-      // this may be undefined and is a nice to have
-      // but backups and xapi don't trust nor use this value
-      // will only be used with CBT
-      baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config['vhd-parent'])
-      baseParentType = await this.getField('VDI', baseRef, 'type')
     }
 
     // really connect to NBD server

@@ -1,4 +1,4 @@
-import { PortableDisk, RandomAccessDisk, type DiskBlock } from './PortableDisk.mts'
+import { PortableDisk, RandomAccessDisk, type DiskBlock } from './PortableDisk.mjs'
 
 export class DiskChain extends RandomAccessDisk {
   #disks: Array<RandomAccessDisk> = []
