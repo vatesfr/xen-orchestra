@@ -1,7 +1,5 @@
 'use strict'
 
-const { dirname } = require('node:path')
-
 const {
   BLOCK_UNUSED,
   FOOTER_SIZE,
@@ -19,6 +17,7 @@ const assert = require('assert')
 const getFirstAndLastBlocks = require('../_getFirstAndLastBlocks')
 
 const { debug } = createLogger('vhd-lib:VhdFile')
+
 // ===================================================================
 //
 // Spec:
@@ -105,7 +104,6 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   }
 
   static async create(handler, path, { flags } = {}) {
-    await handler.mktree(dirname(path))
     const fd = await handler.openFile(path, flags ?? 'wx')
     const vhd = new VhdFile(handler, fd)
     return {

@@ -1,7 +1,5 @@
 'use strict'
 
-const {DISK_TYPES}  = require('../_constants.js')
-
 const {
   computeBatSize,
   computeFullBlockSize,
@@ -204,13 +202,7 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   static async unlink(handler, path) {
-    let resolved = path
-    try {
-      resolved = await resolveVhdAlias(handler, path)
-    } catch (err) {
-      // can be EISDIR for a broken VHD
-      console.error(err)
-    }
+    const resolved = await resolveVhdAlias(handler, path)
     try {
       await handler.unlink(resolved)
     } catch (err) {
@@ -226,12 +218,7 @@ exports.VhdAbstract = class VhdAbstract {
       await handler.unlink(path)
     }
   }
-  /**
-   * 
-   * @param {any} handler 
-   * @param {string} aliasPath 
-   * @param {string} targetPath 
-   */
+
   static async createAlias(handler, aliasPath, targetPath) {
     if (!isVhdAlias(aliasPath)) {
       throw new Error(`Alias must be named *.alias.vhd,  ${aliasPath} given`)
@@ -274,7 +261,7 @@ exports.VhdAbstract = class VhdAbstract {
   }
   // progress is called with currentBlock, numberOfBlocs
   // it's an approximation, ignoring the footer/header/bat size
-  vhdStream({ onProgress } = {}) {
+  stream({ onProgress } = {}) {
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)
@@ -433,13 +420,5 @@ exports.VhdAbstract = class VhdAbstract {
     }
     assert.strictEqual(copied, length, 'invalid length')
     return copied
-  }
-
-  /**
-   * 
-   * @returns boolean
-   */
-  idDifferencing(){
-    return this.footer.diskType === DISK_TYPES.DIFFERENCING
   }
 }
