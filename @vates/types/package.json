@@ -6,7 +6,10 @@
   "exports": {
     "./xo": "./dist/xo.d.mts",
     "./xen-api": "./dist/xen-api.d.mts",
-    "./common": "./dist/common.d.mts"
+    "./common": {
+      "default": "./dist/common.mjs",
+      "types": "./dist/common.d.mts"
+    }
   },
   "type": "module",
   "devDependencies": {
