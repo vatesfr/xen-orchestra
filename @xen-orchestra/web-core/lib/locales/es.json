@@ -28,7 +28,7 @@
   "core.select.n-selected-of": "{count} objectos selectionados de un total de {total}",
   "core.select.none": "Selectionar ninguno",
   "core.select.unselect": "Deseleccionar todos",
-  "core.show-by": "Mostrar por...",
+  "core.show-by": "Mostrar por",
   "core.sidebar.close": "Cerrar la barra lateral",
   "core.sidebar.lock": "Bloquear abierta la barra lateral",
   "core.sidebar.open": "Abrir la barra lateral",
@@ -67,7 +67,7 @@
   "management": "Administración",
   "master": "Servidor principal",
   "mtu": "MTU",
-  "n-vms": "1 VM | {n} VMs",
+  "n-vms": "1 MV | {n} MVs",
   "name": "Nombre",
   "network": "Red",
   "network-block-device": "Dispositivo de bloques de red",
@@ -83,7 +83,7 @@
   "on": "Encendido",
   "open-console-in-new-tab": "Abrir la cónsola en una nueva pestaña",
   "other": "Otro",
-  "page-not-found": "No se encuentra esta página",
+  "page-not-found": "No se encuentra esta página…",
   "partially-connected": "Parcialmente connectado",
   "patches": "Parches",
   "pifs": "PIFs",
@@ -114,9 +114,9 @@
   "tasks.quick-view.failed": "Falladas",
   "tasks.quick-view.in-progress": "En progreso",
   "total": "Total",
-  "total-cpus": "Total CPUs",
+  "total-cpus": "CPUs Totales",
   "unknown": "Desconocido",
   "unlocked": "Desbloqueado",
   "vlan": "VLAN",
-  "vms": "VMs"
+  "vms": "MVs"
 }
