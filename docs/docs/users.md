@@ -114,20 +114,11 @@ In this section, you'll learn:
 
 ##### Log In with OpenID Connect
 
-1. On the Xen Orchestra login page, click **Sign in with OpenID Connect**.
+On the Xen Orchestra login page, click **Sign in with OpenID Connect**
 
-![OpenID Connect plugin settings](./assets/openid-connect-signin-button.png)
+![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
 
-2. You’ll be redirected to the login page of your internal portal.
-
-3. Enter your credentials:
-
-   - **Username or email**:
-   - **Password**:
-
-4. Click **Sign In**.
-
-5. If your credentials are correct, you’ll be directed to the Xen Orchestra home page.
+You’ll be redirected to the login page of your internal portal. Once authentificated on it, you will be redirected to the Xen Orchestra home page.
 
 #### Administrator Guide
 
