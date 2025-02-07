@@ -1,7 +1,9 @@
 
 {{#if vm}}
 ### {{{vm.name_label}}}
-
+{{#if vm.name_description}}
+{{{vm.name_description}}}
+{{/if}}
 - **UUID**: {{{vm.uuid}}}
 {{else}}
 ### VM not found
