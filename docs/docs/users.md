@@ -114,6 +114,7 @@ Save the configuration and then activate the plugin (button on top).
 ##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
 
 Use the screenshots below as a reference as how to setup SAML with Google Workspace.
+
 1. Sign in to your [Google Workspace Admin Dashboard](https://admin.google.com).
 2. Go to **Apps/Web and mobile apps**
 3. Click **Add app** and select **Add custom SAML app**.
