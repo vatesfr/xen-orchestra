@@ -54,5 +54,7 @@
   "vms-status.inactive.tooltip": "Zastaveno nebo uspáno",
   "vms-status.running": "Spuštěné",
   "vms-status.unknown": "Neznámé",
-  "vms-status.unknown.tooltip": "Pro které XO ztratilo spojení s fondem"
+  "vms-status.unknown.tooltip": "Pro které XO ztratilo spojení s fondem",
+  "xo-backups": "XO zálohy",
+  "xo-replications": "XO replikace"
 }
