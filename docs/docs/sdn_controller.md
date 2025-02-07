@@ -74,6 +74,8 @@ Encryption is not available prior to XCP-ng 8.0.
 
 ## OpenFlow rules
 
+> Warning: only works for VIFs attached to the physical host's management network (no bond nor VLAN).
+
 Please see the [devblog about OpenFlow rules](https://xen-orchestra.com/blog/vms-vif-network-traffic-control/).
 
 This feature requires the OpenFlow port to be opened
