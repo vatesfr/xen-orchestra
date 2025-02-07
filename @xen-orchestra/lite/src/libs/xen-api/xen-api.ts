@@ -249,23 +249,111 @@ export default class XenApi {
     type VmRefsWithNameLabel = Record<XenApiVm['$ref'], string>
 
     return {
-      setVCPUsMax: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, count]))),
+      setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
+
+      setAutoPowerOn: (vmRefs: XenApiVm['$ref'], value: boolean) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef =>
+            this.call('VM.set_other_config', [
+              vmRef,
+              {
+                auto_poweron: value ? 'true' : null,
+              },
+            ])
+          )
+        ),
+
+      setVirtualizationMode: (vmRefs: XenApiVm['$ref'], virtualizationMode: 'pv' | 'hvm') => {
+        if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
+          return Promise.reject(new Error(`The virtualization mode must be 'pv' or 'hvm'`))
+        }
+        return Promise.all(
+          castArray(vmRefs).map(vmRef =>
+            this.call(virtualizationMode === 'hvm' ? 'VM.set_HVM_boot_policy' : 'VM.set_domain_type', [
+              vmRef,
+              virtualizationMode === 'hvm' ? 'Boot order' : '',
+            ])
+          )
+        )
+      },
+
+      setMemoryMin: (vmRefs: XenApiVm['$ref'], memoryDynamicMin: number) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_min', [vmRef, String(memoryDynamicMin)]))
+        ),
+
+      setMemoryDynamicRange: (vmRefs: VmRefs, dynamicMin: number, dynamicMax: number) => {
+        return Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_range', [vmRef, dynamicMin, dynamicMax]))
+        )
+      },
+
+      setMemoryStaticMax: (vmRefs: VmRefs, staticMax: number) => {
+        return Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_static_max', [vmRef, String(staticMax)]))
+        )
+      },
+
+      setMemoryDynamicMin: (vmRefs: VmRefs, dynamicMin: number) => {
+        return Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_min', [vmRef, String(dynamicMin)]))
+        )
+      },
+
+      setMemoryDynamicMax: (vmRefs: VmRefs, max: number) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef =>
+            this.call('VM.set_memory_limits', [vmRef, 'memory_static_min', String(max), String(max), String(max)])
+          )
+        ),
+
+      setVCPUs: (vmRefs: VmRefs, count: number) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_number_live', [vmRef, String(count)]))),
+
+      setCpuCap: (vmRefs: VmRefs, cap: number | null) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'cap', cap?.toString() ?? '']))
+        ),
+
+      setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'mask', mask?.join(',') ?? '']))
+        ),
+
+      setCpusStaticMax: (vmRefs: VmRefs, max: number) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, String(max)]))),
+
+      setCpuWeight: (vmRefs: VmRefs, weight: number | null) =>
+        Promise.all(
+          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'weight', weight?.toString() ?? '']))
+        ),
       setMemory: (vmRefs: VmRefs, count: number) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_memory', [vmRef, count]))),
+
+      setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
+
       setNameDescription: (vmRefs: VmRefs, nameDescription: string) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_description', [vmRef, nameDescription]))),
+
       setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_label', [vmRef, nameLabel]))),
+
       delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
+
       start: (vmRefs: VmRefs) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start', [vmRef, false, false]))),
+
       startOn: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start_on', [vmRef, hostRef, false, false]))),
+
       pause: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.pause', [vmRef]))),
+
       suspend: (vmRefs: VmRefs) => {
         return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.suspend', [vmRef])))
       },
+
       resume: (vmRefsWithPowerState: VmRefsWithPowerState) => {
         const vmRefs = Object.keys(vmRefsWithPowerState) as XenApiVm['$ref'][]
 
@@ -279,32 +367,39 @@ export default class XenApi {
           })
         )
       },
+
       reboot: (vmRefs: VmRefs, force = false) => {
         return Promise.all(castArray(vmRefs).map(vmRef => this.call(`VM.${force ? 'hard' : 'clean'}_reboot`, [vmRef])))
       },
+
       shutdown: (vmRefs: VmRefs, force = false) => {
         return Promise.all(
           castArray(vmRefs).map(vmRef => this.call(`VM.${force ? 'hard' : 'clean'}_shutdown`, [vmRef]))
         )
       },
+
       clone: (vmRefsToClone: VmRefsWithNameLabel) => {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
 
         return Promise.all(vmRefs.map(vmRef => this.call('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
       },
+
       provision: (vmRefs: VmRefs) => {
         return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.provision', [vmRef])))
       },
+
       migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) => {
         return Promise.all(
           castArray(vmRefs).map(vmRef => this.call('VM.pool_migrate', [vmRef, destinationHostRef, { force: 'false' }]))
         )
       },
+
       snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {
         const vmRefs = Object.keys(vmRefsToSnapshot) as XenApiVm['$ref'][]
 
         return Promise.all(vmRefs.map(vmRef => this.call('VM.snapshot', [vmRef, vmRefsToSnapshot[vmRef]])))
       },
+
       export: (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE) => {
         const blockedUrls: URL[] = []
 
