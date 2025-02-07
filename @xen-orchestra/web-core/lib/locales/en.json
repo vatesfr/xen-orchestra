@@ -1,5 +1,6 @@
 {
   "access-forum": "Access forum",
+  "add": "Add",
   "alarms": "Alarms",
 
   "bytes.gi": "GiB",
@@ -109,6 +110,7 @@
   "new-vm.networks": "Networks",
   "new-vm.new": "New",
   "new-vm.no-config": "No config",
+  "new-vm.paste-public-key": "Paste public key",
   "new-vm.pick-template": "Pick a template from your list",
   "new-vm.pxe": "PXE",
   "new-vm.ram": "Ram",
@@ -127,6 +129,7 @@
   "new-vm.vifs": "VIFs",
   "new-vm.vm-description": "VM description",
   "new-vm.vm-name": "VM name",
+  "new-vm.write-configurations": "Write configurations",
   "no-data": "No data",
   "no-network-detected": "No network detected",
   "no-pif-detected": "No pif detected",
@@ -174,5 +177,6 @@
   "unknown": "Unknown",
   "unlocked": "Unlocked",
   "vlan": "VLAN",
-  "vms": "VMs"
+  "vms": "VMs",
+  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket"
 }

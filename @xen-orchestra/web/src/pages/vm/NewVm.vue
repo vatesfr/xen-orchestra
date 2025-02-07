@@ -1,9 +1,16 @@
 <template>
   <div>
-    <!--    <TitleBar :icon="faPlus"> -->
-    <div class="header-title">{{ $t('new-vm.add') }}</div>
-    <!--    </TitleBar> -->
-    <UiCard>
+    <UiHeadBar :icon="faPlus">
+      {{ $t('new-vm.add') }}
+      <template #actions>
+        <select id="select" v-model="newVmState.pool">
+          <option v-for="pool in pools" :key="pool.id" :value="pool">
+            {{ pool.name_label }}
+          </option>
+        </select>
+      </template>
+    </UiHeadBar>
+    <UiCard v-if="newVmState.pool" class="container">
       <!--      TEMPLATE SECTION -->
       <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
       <div>
@@ -11,7 +18,7 @@
         <!--        // Todo: Replace by the new select component -->
         <select id="select" v-model="newVmState.new_vm_template" @change="onTemplateChange">
           <option v-for="template in vmsTemplates" :key="template.id" :value="template">
-            {{ template.name_label }} {{ poolName }}
+            {{ template.name_label }} {{ newVmState.pool!.name_label }}
           </option>
         </select>
       </div>
@@ -42,7 +49,7 @@
               </UiChip>
             </div>
             <div class="install-ssh-key">
-              <UiInput v-model="newVmState.ssh_key" placeholder="Paste public key" accent="info" />
+              <UiInput v-model="newVmState.ssh_key" :placeholder="t('new-vm.paste-public-key')" accent="info" />
               <UiButton accent="info" size="medium" variant="primary" @click="addSshKey">
                 {{ $t('add') }}
               </UiButton>
@@ -50,7 +57,7 @@
           </div>
           <div v-if="newVmState.install === 'custom_config'" class="install-custom-config">
             <div>
-              <UiTextarea placeholder="Write configurations" accent="info" model-value="" href="''">
+              <UiTextarea :placeholder="t('new-vm.write-configurations')" accent="info" model-value="" href="''">
                 {{ $t('new-vm.user-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -61,7 +68,7 @@
               </span>
             </div>
             <div>
-              <UiTextarea placeholder="Write configurations" accent="info" model-value="" href="''">
+              <UiTextarea :placeholder="t('new-vm.write-configurations')" accent="info" model-value="" href="''">
                 {{ $t('new-vm.network-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -109,25 +116,39 @@
       <div class="system-container">
         <div class="col-left">
           <UiInput v-model="newVmState.vm_name" accent="info" href="''">{{ $t('new-vm.vm-name') }}</UiInput>
-          <UiInput v-model="newVmState.tags" :label-icon="faTags" accent="info" href="''">
+          <UiInput v-if="newVmState" v-model="newVmState.tags" :label-icon="faTags" accent="info" href="''">
             {{ $t('new-vm.tags') }}
           </UiInput>
-          <UiInput v-model="newVmState.boot_firmware" accent="info" href="''">{{ $t('new-vm.boot-firmware') }}</UiInput>
+          <label for="select">{{ $t('new-vm.boot-firmware') }}</label
+          ><select id="select" v-model="newVmState.boot_firmware">
+            <option v-for="firmware in firmwares" :key="firmware" :value="firmware">
+              {{ firmware }}
+            </option>
+          </select>
           <UiCheckbox v-model="newVmState.bios" accent="info">{{ $t('new-vm.copy-host') }}</UiCheckbox>
         </div>
         <div class="col-right">
           <UiTextarea v-model="newVmState.vm_description" class="description" accent="info" href="''">
             {{ $t('new-vm.vm-description') }}
           </UiTextarea>
-          <UiInput v-model="newVmState.affinity_host" accent="info" href="''">{{ $t('new-vm.affinity-host') }}</UiInput>
+          <label for="select">{{ $t('new-vm.affinity-host') }}</label>
+          <select id="select" v-model="newVmState.affinity_host">
+            <option v-for="host in getHosts" :key="host.id" :value="host">
+              {{ host.name_label }}
+            </option>
+          </select>
         </div>
       </div>
       <!--      MEMORY SECTION -->
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
-        <UiInput v-model="newVmState.vcpu" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
+        <UiInput v-model="newVmState.vCpu" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
         <UiInput v-model="newVmState.ram" accent="info" href="''">{{ $t('new-vm.ram') }}</UiInput>
-        <UiInput v-model="newVmState.topology" accent="info" href="''">{{ $t('new-vm.topology') }}</UiInput>
+        <select id="topology" v-model="newVmState.vCpu" :disabled="!newVmState.new_vm_template">
+          <option v-for="option in coresPerSocketOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
       </div>
       <!--      NETWORK SECTION -->
       <UiTitle>{{ $t('new-vm.vifs') }}</UiTitle>
@@ -206,13 +227,13 @@
                   </select>
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
+                  <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
+                  <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="info" />
                 </td>
                 <td>
                   <UiButtonIcon
@@ -236,13 +257,13 @@
                   </select>
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
+                  <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
+                  <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="info" />
                 </td>
                 <td>
                   <UiButtonIcon
@@ -278,14 +299,13 @@
       <!--      SUMMARY SECTION -->
       <UiTitle>{{ $t('new-vm.summary') }}</UiTitle>
       <div class="summary-container">
-        <!--        <UiResources> -->
-        <!--          <UiResource :icon="faDisplay" count="1" label="VMs" /> -->
-        <!--          <UiResource :icon="faMicrochip" :count="newVmState.vcpu" label="vCPUs" /> -->
-        <!--          <UiResource :icon="faMemory" :count="newVmState.ram" label="RAM" /> -->
-        <!--          <UiResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" /> -->
-        <!--          <UiResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" /> -->
-        <!--        </UiResources> -->
-        <!--        </UiResources> -->
+        <VtsResources>
+          <VtsResource :icon="faDisplay" count="1" label="VMs" />
+          <VtsResource :icon="faMicrochip" :count="newVmState.vCpu" label="vCPUs" />
+          <VtsResource :icon="faMemory" :count="newVmState.ram" label="RAM" />
+          <VtsResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" />
+          <VtsResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" />
+        </VtsResources>
       </div>
       <div class="footer">
         <!--      <RouterLink :to="{ name: 'home' }"> -->
@@ -298,6 +318,7 @@
 </template>
 
 <script setup lang="ts">
+import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
@@ -306,14 +327,12 @@ import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
+import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { XoVm } from '@/types/xo/vm.type'
-
-// import FormSelect from '@/components/form/FormSelect.vue'
-// import TitleBar from '@/components/TitleBar.vue'
-// import UiResource from '@/components/ui/resources/UiResource.vue'
-// import UiResources from '@/components/ui/resources/UiResources.vue'
 import type { Branded } from '@core/types/utility.type'
+import VtsResource from '@core/components/resources/VtsResource.vue'
+import VtsResources from '@core/components/resources/VtsResources.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -322,6 +341,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTextarea from '@core/components/ui/input/UiTextarea.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -329,11 +349,11 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { type Disk, type NetworkInterface } from '@core/types/new-vm.type'
 import {
-  // faDatabase,
-  // faDisplay,
-  // faMemory,
-  // faMicrochip,
-  // faNetworkWired,
+  faDatabase,
+  faDisplay,
+  faMemory,
+  faMicrochip,
+  faNetworkWired,
   faPlus,
   faSmile,
   faTags,
@@ -344,15 +364,15 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-// const { records: srs, vdisGroupedBySrName, getByOpaqueRef: getOpaqueRefSr } = useSrStore().subscribe()
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
-const { pool } = usePoolStore().subscribe()
+const { records: pools } = usePoolStore().subscribe()
 const { records: vmsTemplates } = useVmTemplateStore().subscribe()
-const { records: srs, get: getSrs, vdisGroupedBySrName } = useSrStore().subscribe()
+const { records: srs, get: getSr, vdisGroupedBySrName } = useSrStore().subscribe()
 const { get: getVbds } = useVbdStore().subscribe()
 const { get: getVdis } = useVdiStore().subscribe()
 const { get: getVifs } = useVifStore().subscribe()
+const { hostsByPool } = useHostStore().subscribe()
 
 const newVmState = reactive({
   vm_name: '',
@@ -360,8 +380,8 @@ const newVmState = reactive({
   selectedNetwork: '',
   toggle: false,
   install: '',
-  tags: '',
-  affinity_host: '',
+  tags: [],
+  affinity_host: [],
   boot_firmware: '',
   new_vm_template: null as XoVmTemplate | null,
   boot_vm: false,
@@ -369,7 +389,7 @@ const newVmState = reactive({
   fast_clone: false,
   ssh_key: '',
   selectedVdi: '',
-  vcpu: 0,
+  vCpu: 0,
   ram: 0,
   topology: '',
   bios: false,
@@ -379,6 +399,12 @@ const newVmState = reactive({
   VDIs: [] as Disk[],
   networkInterfaces: [] as NetworkInterface[],
   defaultNetwork: null,
+  pool: null as XoPool | null,
+})
+
+const getHosts = computed(() => {
+  if (!newVmState.pool) return
+  return hostsByPool.value.get(newVmState.pool.id)
 })
 
 const byteFormatter = (value: number) => {
@@ -392,7 +418,7 @@ const generateRandomString = (length: number): string => {
 }
 
 const addStorageEntry = () => {
-  const poolDefaultSr = getSrs(pool.value?.default_SR as Branded<'sr'>)
+  const poolDefaultSr = getSr(newVmState.pool?.default_SR as Branded<'sr'>)
   newVmState.existingDisks.push({
     name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
@@ -417,40 +443,35 @@ const isDiskTemplate = (template: XoVm) => {
 }
 
 const getDefaultSr = (template: XoVm) => {
-  if (pool.value !== undefined) {
-    return pool.value.default_SR
+  if (newVmState.pool !== null) {
+    // console.log('newVmState.pool.default_SR', newVmState.pool.default_SR)
+    return newVmState.pool.default_SR
   }
 
   if (template === undefined) {
     return
   }
 
-  const defaultSr = pool.value?.default_SR || ''
+  const defaultSr = newVmState.pool?.default_SR || ''
 
   return srs.value.filter(sr => sr.id === defaultSr.id && sr.content_type !== 'iso' && sr.physical_usage > 0)
 }
 
-const getVDis = (template: XoVm) => {
-  const VdisArray = [] as Disk[]
+const getVDis = (template: XoVmTemplate) => {
+  const VdisArray: Disk[] = []
 
-  const parser = new DOMParser()
-  const xmlString = template.template_info.disks
-  const xmlDoc = parser.parseFromString(xmlString, 'application/xml')
+  template.template_info.disks.forEach((disk, index) => {
+    if (disk.size === undefined) {
+      return
+    }
 
-  const diskElement = xmlDoc.querySelector('disk')
-  const size = diskElement?.getAttribute('size')
-
-  if (size === undefined) {
-    return
-  }
-
-  VdisArray.push({
-    name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
-    name_description: 'Created by XO',
-    size: byteFormatter(size),
-    SR: getSrs(getDefaultSr(template))?.name_label,
+    VdisArray.push({
+      name_label: `${newVmState.vm_name || 'disk'}_${index}_${generateRandomString(4)}`,
+      name_description: 'Created by XO',
+      size: byteFormatter(disk.size),
+      SR: getSr(getDefaultSr(template))?.name_label || '',
+    })
   })
-
   return VdisArray
 }
 
@@ -470,7 +491,7 @@ const getExistingDisks = (template: XoVmTemplate) => {
         name_label: vdi.name_label,
         name_description: vdi.name_description,
         size: byteFormatter(vdi.size),
-        SR: vdi.$SR ? getSrs(vdi.$SR)?.name_label : getDefaultSr(template),
+        SR: vdi.$SR ? getSr(vdi.$SR).name_label : getDefaultSr(template),
       })
     }
   })
@@ -484,14 +505,15 @@ const getAutomaticNetwork = computed(() => {
   })
 })
 
-const getDefaultNetwork = (template: XoVm) => {
+const getDefaultNetwork = (template: XoVmTemplate) => {
   if (template === undefined) {
     return []
   }
 
-  const automaticNetworks = getAutomaticNetwork
+  const automaticNetworks = getAutomaticNetwork.value
+  // console.log('networks.value', networks.value)
 
-  if (automaticNetworks.value.length !== 0) {
+  if (automaticNetworks.length !== 0) {
     return automaticNetworks
   }
 
@@ -499,17 +521,16 @@ const getDefaultNetwork = (template: XoVm) => {
     const pif = pifsByNetwork.value.get(network.id)
     return pif && pif.management
   })
-
-  return network !== undefined ? [network.id] : []
+  return network ? [network] : []
 }
 
 const getExistingInterface = (template: XoVmTemplate) => {
   const existingInterfaces = [] as NetworkInterface[]
-  const defaultNetworkIds = getDefaultNetwork(template)
+  const defaultNetwork = getDefaultNetwork(template)
 
   if (template.VIFs.length === 0) {
     existingInterfaces.push({
-      interface: defaultNetworkIds.value[0].name_label,
+      interface: defaultNetwork[0].name_label,
       macAddress: '',
     })
   }
@@ -532,7 +553,7 @@ const addNetworkInterface = () => {
   if (newVmState.new_vm_template) {
     const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)
     newVmState.networkInterfaces.push({
-      interface: defaultNetwork ? defaultNetwork.value[0].name_label : '',
+      interface: defaultNetwork.length > 0 ? defaultNetwork[0].name_label : '',
       macAddress: '',
     })
   }
@@ -543,15 +564,15 @@ const onTemplateChange = () => {
     newVmState.isDiskTemplateSelected = isDiskTemplate(newVmState.new_vm_template)
 
     newVmState.vm_name = newVmState.new_vm_template.name_label
-    newVmState.vm_description =
-      newVmState.new_vm_template.other_config.default_template === 'true'
-        ? ''
-        : newVmState.new_vm_template.name_description
-    newVmState.boot_firmware = newVmState.new_vm_template.HVM_boot_params.firmware
-    newVmState.vcpu = newVmState.new_vm_template.VCPUs_at_startup
-    newVmState.ram = byteFormatter(newVmState.new_vm_template.memory_dynamic_max)
+    newVmState.vm_description = newVmState.new_vm_template.isDefaultTemplate
+      ? ''
+      : newVmState.new_vm_template.name_description
+    newVmState.tags = newVmState.new_vm_template.tags
 
-    newVmState.VDIs = getVDis(newVmState.new_vm_template)
+    newVmState.vCpu = newVmState.new_vm_template.CPUs.number
+    newVmState.ram = byteFormatter(newVmState.new_vm_template.memory.dynamic[1])
+
+    newVmState.VDIs = getVDis(newVmState.new_vm_template)!
     // console.log('VDIs Disks:', newVmState.VDIs)
 
     newVmState.existingDisks = getExistingDisks(newVmState.new_vm_template)
@@ -560,10 +581,31 @@ const onTemplateChange = () => {
     newVmState.networkInterfaces = getExistingInterface(newVmState.new_vm_template)
     // console.log('Network Interfaces:', newVmState.networkInterfaces)
   }
+
+  // console.log(vmsTemplates.value)
 }
 
-const poolName = computed(() => {
-  return pool.value?.name_label
+const firmwares = computed(() => {
+  return ['bios', 'uefi']
+})
+
+const coresPerSocketOptions = computed(() => {
+  if (!newVmState.new_vm_template) return
+  const options = []
+  const maxCpu = newVmState.new_vm_template.CPUs.max
+  const cpuNumber = newVmState.vCpu
+  for (let coresPerSocket = maxCpu; coresPerSocket >= 1; coresPerSocket--) {
+    if (cpuNumber % coresPerSocket === 0) {
+      options.push({
+        label: t('vmSocketsWithCoresPerSocket', {
+          nSockets: cpuNumber / coresPerSocket,
+          nCores: coresPerSocket,
+        }),
+        value: coresPerSocket,
+      })
+    }
+  }
+  return options
 })
 
 const data = {
@@ -577,7 +619,7 @@ const data = {
   VIFs: newVmState.networkInterfaces,
   resourceSet: null,
   coresPerSocket: undefined,
-  CPUs: newVmState.vcpu,
+  CPUs: newVmState.vCpu,
   cpusMax: 0,
   cpuWeight: null,
   cpuCap: null,
@@ -611,11 +653,14 @@ const createVM = () => {
 
 watchEffect(() => {
   // console.log('selected network', newVmState.selectedNetwork)
-  // console.log('templates', templates)
 })
 </script>
 
 <style scoped lang="postcss">
+.container {
+  margin: 1rem;
+}
+
 .system-container {
   display: flex;
   gap: 10.8rem;
@@ -672,5 +717,6 @@ thead tr th {
   display: flex;
   justify-content: center;
   gap: 1.6rem;
+  margin-top: 4.2rem;
 }
 </style>

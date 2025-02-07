@@ -51,7 +51,7 @@ const { accent, id = useId() } = defineProps<{
   type?: InputType
 }>()
 
-const modelValue = defineModel<string | number>({ required: true })
+const modelValue = defineModel<string | number | []>({ required: true })
 
 const slots = defineSlots<{
   default?(): any
