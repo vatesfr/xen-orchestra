@@ -51,7 +51,7 @@
           </div>
           <div v-if="newVmState.install === 'custom_config'" class="install-custom-config">
             <div>
-              <UiTextarea placeholder="Write configurations" accent="info" model-value="" href="''">
+              <UiTextarea v-model="newVmState.cloudConfig" placeholder="Write configurations" accent="info" href="''">
                 {{ $t('new-vm.user-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -62,7 +62,7 @@
               </span>
             </div>
             <div>
-              <UiTextarea placeholder="Write configurations" accent="info" model-value="" href="''">
+              <UiTextarea v-model="newVmState.networkConfig" placeholder="Write configurations" accent="info" href="''">
                 {{ $t('new-vm.network-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -308,6 +308,7 @@ import { useVbdStore } from '@/stores/xen-api/vbd.store'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useXenApiStore } from '@/stores/xen-api.store'
 import { type Disk, type NetworkInterface } from '@/types/new-vm'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -359,6 +360,8 @@ const newVmState = reactive({
   fast_clone: false,
   ssh_key: '',
   selectedVdi: '',
+  networkConfig: '',
+  cloudConfig: '',
   vcpu: 0,
   ram: 0,
   topology: '',
@@ -382,12 +385,14 @@ const generateRandomString = (length: number): string => {
 }
 
 const addStorageEntry = () => {
-  newVmState.existingDisks.push({
-    name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
-    name_description: 'Created by XO',
-    size: '',
-    SR: getOpaqueRefSr(pool?.value?.default_SR)?.name_label || '',
-  })
+  if (newVmState.new_vm_template) {
+    newVmState.existingDisks.push({
+      name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
+      name_description: 'Created by XO',
+      size: '',
+      SR: getOpaqueRefSr(pool?.value?.default_SR)?.name_label || '',
+    })
+  }
 }
 
 const addSshKey = () => {
@@ -436,7 +441,7 @@ const getVDis = (template: XenApiVm) => {
   VdisArray.push({
     name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
-    size: byteFormatter(size),
+    size: byteFormatter(Number(size)),
     SR: getOpaqueRefSr(getDefaultSr(template))?.name_label,
   })
 
@@ -521,7 +526,7 @@ const addNetworkInterface = () => {
     const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)
 
     newVmState.networkInterfaces.push({
-      interface: defaultNetwork ? defaultNetwork.value[0].name_label : '',
+      interface: defaultNetwork ? defaultNetwork?.value[0].name_label : '',
       macAddress: '',
     })
   }
@@ -554,7 +559,7 @@ const poolName = computed(() => {
   return pool.value?.name_label
 })
 
-const data = {
+const data2 = {
   affinityHost: null,
   clone: false,
   existingDisks: newVmState.existingDisks,
@@ -591,13 +596,81 @@ const data = {
   hvmBootFirmware: undefined,
 }
 
-const createVM = () => {
-  console.log('createVMdata', data)
-  console.log('createVM', newVmState)
+const data = computed(() => ({
+  affinityHost: newVmState.affinity_host,
+  clone: newVmState.fast_clone,
+  existingDisks: newVmState.existingDisks,
+  installation: newVmState.install,
+  name_label: newVmState.vm_name,
+  template: newVmState.new_vm_template?.$ref,
+  VDIs: newVmState.VDIs,
+  VIFs: newVmState.networkInterfaces.map(net => ({
+    network: net.interface,
+    mac: net.macAddress,
+  })),
+  CPUs: newVmState.vcpu,
+  name_description: newVmState.vm_description,
+  memory: newVmState.ram,
+  autoPoweron: newVmState.auto_power,
+  bootAfterCreate: newVmState.boot_vm,
+  copyHostBiosStrings: newVmState.bios,
+  hvmBootFirmware: newVmState.boot_firmware,
+  tags: newVmState.tags.split(',').map(tag => tag.trim()),
+  cloudConfig: '',
+}))
+
+const xapi = useXenApiStore().getXapi()
+const createVM = async () => {
+  const templateRef = data.value.template
+  const newVmName = data.value.name_label
+
+  if (!templateRef) {
+    console.error('Erreur : templateRef is undefined or invalid.')
+    return
+  }
+
+  const vmRef = await xapi.vm.clone({ [templateRef]: newVmName })
+  console.log('Clone réussi, référence VM:', vmRef)
+
+  await xapi.vm.provision(vmRef)
+  console.log('Provisioning réussi')
+
+  await Promise.all([
+    xapi.vm.setNameLabel(templateRef, data.value.name_label),
+    xapi.vm.setNameDescription(templateRef, data.value.name_description),
+  ])
+
+  // xapi.vm
+  //   .clone({ [templateRef]: newVmName })
+  //   .then(cloneResult => {
+  //     const vmRef = cloneResult[0]
+  //     xapi.vm
+  //       .provision([vmRef])
+  //       .then(result => {
+  //         console.log('Provision réussi', result)
+  //       })
+  //       .catch(error => {
+  //         console.error('Erreur lors de la provision', error)
+  //       })
+  //     // Promise.all([
+  //     //   xapi.vm.setNameLabel(templateRef, data.value.name_label),
+  //     //   xapi.vm.setNameDescription(templateRef, data.value.name_description),
+  //     // ])
+  //     //   .then(result => {
+  //     //     console.log('Set réussi :', result)
+  //     //   })
+  //     //   .catch(error => {
+  //     //     console.error('Erreur lors du Set :', error)
+  //     //   })
+  //     console.log('Clone réussi :', cloneResult[0])
+  //   })
+  //   .catch(error => {
+  //     console.error('Erreur lors du clonage :', error)
+  //   })
 }
 
 watchEffect(() => {
-  console.log('selected network', newVmState.selectedNetwork)
+  console.log('selected network', newVmState)
   console.log('templates', templates)
 })
 </script>
