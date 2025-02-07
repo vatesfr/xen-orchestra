@@ -276,13 +276,13 @@
       <!--      SUMMARY SECTION -->
       <UiTitle>{{ $t('new-vm.summary') }}</UiTitle>
       <div class="summary-container">
-        <UiResources>
-          <UiResource :icon="faDisplay" count="1" label="VMs" />
-          <UiResource :icon="faMicrochip" :count="newVmState.vcpu" label="vCPUs" />
-          <UiResource :icon="faMemory" :count="newVmState.ram" label="RAM" />
-          <UiResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" />
-          <UiResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" />
-        </UiResources>
+        <VtsResources>
+          <VtsResource :icon="faDisplay" count="1" label="VMs" />
+          <VtsResource :icon="faMicrochip" :count="newVmState.vcpu" label="vCPUs" />
+          <VtsResource :icon="faMemory" :count="newVmState.ram" label="RAM" />
+          <VtsResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" />
+          <VtsResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" />
+        </VtsResources>
       </div>
       <div class="footer">
         <RouterLink :to="{ name: 'home' }">
@@ -297,8 +297,6 @@
 <script setup lang="ts">
 import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiResource from '@/components/ui/resources/UiResource.vue'
-import UiResources from '@/components/ui/resources/UiResources.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -310,6 +308,8 @@ import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { type Disk, type NetworkInterface } from '@/types/new-vm'
+import VtsResource from '@core/components/resources/VtsResource.vue'
+import VtsResources from '@core/components/resources/VtsResources.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -629,16 +629,19 @@ const createVM = async () => {
     return
   }
 
+  console.log('VDIS: =>', data.value.VDIs)
+  console.log('VIFS: =>', data.value.VIFs)
+
   const vmRef = await xapi.vm.clone({ [templateRef]: newVmName })
   console.log('Clone réussi, référence VM:', vmRef)
 
+  await Promise.all([
+    xapi.vm.setNameLabel(vmRef, data.value.name_label),
+    xapi.vm.setNameDescription(vmRef, data.value.name_description),
+  ])
+
   await xapi.vm.provision(vmRef)
   console.log('Provisioning réussi')
-
-  await Promise.all([
-    xapi.vm.setNameLabel(templateRef, data.value.name_label),
-    xapi.vm.setNameDescription(templateRef, data.value.name_description),
-  ])
 
   // xapi.vm
   //   .clone({ [templateRef]: newVmName })
