@@ -497,5 +497,6 @@
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "you-are-currently-on": "You are currently on: {0}",
-  "zstd": "zstd"
+  "zstd": "zstd",
+  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket",
 }
