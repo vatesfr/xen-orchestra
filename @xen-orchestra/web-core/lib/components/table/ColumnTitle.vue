@@ -25,7 +25,7 @@
     >
       <VtsIcon :icon="interaction.icon" accent="current" />
       {{ interaction.label }}
-      <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo p3-regular-italic">
+      <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo-body-regular-small">
         {{ $t('core.current').toLowerCase() }}
       </i>
     </MenuItem>
