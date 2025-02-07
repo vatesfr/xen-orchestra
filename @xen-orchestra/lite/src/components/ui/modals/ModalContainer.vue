@@ -1,5 +1,5 @@
 <template>
-  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container typo p1-regular">
+  <div :class="[backgroundClass, { nested: isNested }]" class="modal-container typo-body-regular">
     <header v-if="slots.header" class="modal-header">
       <slot name="header" />
     </header>

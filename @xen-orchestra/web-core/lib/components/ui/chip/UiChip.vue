@@ -1,6 +1,6 @@
 <!-- v4 -->
 <template>
-  <span :class="classNames" class="ui-chip typo p3-regular" @click="emit('edit')">
+  <span :class="classNames" class="ui-chip typo-body-regular-small" @click="emit('edit')">
     <ChipIcon :disabled :icon />
     <span class="content text-ellipsis">
       <slot />

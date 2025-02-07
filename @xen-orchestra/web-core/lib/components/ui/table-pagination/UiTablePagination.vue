@@ -7,13 +7,13 @@
       <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleRight" @click="goToNextPage()" />
       <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleDoubleRight" @click="goToLastPage()" />
     </div>
-    <span class="typo p3-regular label">
+    <span class="typo-body-regular-small label">
       {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
     </span>
-    <span class="typo p3-regular label show">{{ $t('core.show-by') }}</span>
+    <span class="typo-body-regular-small label show">{{ $t('core.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="pageSize" :disabled class="dropdown typo c3-regular" @change="goToFirstPage">
-        <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo p2-medium">
+      <select v-model="pageSize" :disabled class="dropdown typo-body-regular-small" @change="goToFirstPage">
+        <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo-body-bold-small">
           {{ option }}
         </option>
       </select>

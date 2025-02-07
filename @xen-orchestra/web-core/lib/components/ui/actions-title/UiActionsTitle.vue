@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <span class="ui-actions-title typo p2-regular">
+  <span class="ui-actions-title typo-body-regular-small">
     <slot />
   </span>
 </template>

@@ -1,5 +1,8 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder, error: color === 'error' }" class="ui-table typo p2-regular">
+  <table
+    :class="{ 'vertical-border': verticalBorder, error: color === 'error' }"
+    class="ui-table typo-body-regular-small"
+  >
     <slot />
   </table>
 </template>

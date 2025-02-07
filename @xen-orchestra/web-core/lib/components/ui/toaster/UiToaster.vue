@@ -4,10 +4,10 @@
     <div class="content">
       <VtsIcon class="information-icon" :accent :icon="faCircle" :overlay-icon="icon" />
       <div>
-        <div class="typo h5-semi-bold">
+        <div class="typo-h5">
           <slot />
         </div>
-        <div v-if="slots.description" class="typo p2-regular">
+        <div v-if="slots.description" class="typo-body-regular-small">
           <slot name="description" />
         </div>
       </div>

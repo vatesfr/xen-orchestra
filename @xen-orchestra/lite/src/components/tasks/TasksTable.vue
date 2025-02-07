@@ -12,7 +12,7 @@
     <tbody>
       <tr v-if="hasError">
         <td colspan="5">
-          <span class="text-error typo h6-semi-bold">{{ $t('error-no-data') }}</span>
+          <span class="text-error typo-h6">{{ $t('error-no-data') }}</span>
         </td>
       </tr>
       <tr v-else-if="isFetching">
