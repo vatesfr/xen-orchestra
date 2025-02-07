@@ -1,9 +1,9 @@
 <!-- v1 -->
 <template>
   <div class="ui-card-numbers" :class="sizeClass">
-    <span class="label" :class="labelFontClass">{{ label }}</span>
+    <span class="label typo-caption-small">{{ label }}</span>
     <div class="values" :class="sizeClass">
-      <span v-if="percentValue" class="value typo c2-semi-bold">
+      <span v-if="percentValue" class="value typo-caption-small">
         {{ percentValue }}
       </span>
 
@@ -31,11 +31,9 @@ const { n } = useI18n()
 
 const sizeClass = computed(() => toVariants({ size: props.size }))
 
-const labelFontClass = computed(() => (props.size === 'medium' ? 'typo c3-semi-bold' : 'typo c2-semi-bold'))
+const valueFontClass = computed(() => (props.size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
 
-const valueFontClass = computed(() => (props.size === 'medium' ? 'typo h3-semi-bold' : 'typo c2-semi-bold'))
-
-const unitFontClass = computed(() => (props.size === 'medium' ? 'typo p2-medium' : 'typo c2-semi-bold'))
+const unitFontClass = computed(() => (props.size === 'medium' ? 'typo-body-bold-small' : 'typo-caption-small'))
 
 const percentValue = computed(() => {
   if (props.size !== 'small' || props.max === undefined || props.max === 0) {

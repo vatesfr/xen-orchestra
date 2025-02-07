@@ -4,7 +4,7 @@
     <div class="data">
       <slot />
       <template v-if="id !== undefined">
-        <span v-tooltip class="id typo p4-regular-italic text-ellipsis">
+        <span v-tooltip class="id typo-body-regular-small text-ellipsis">
           {{ id }}
         </span>
         <UiButton

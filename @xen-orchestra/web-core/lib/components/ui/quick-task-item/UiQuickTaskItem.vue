@@ -5,7 +5,7 @@
       <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
     </div>
     <div class="content">
-      <div class="typo p1-medium">
+      <div class="typo-body-bold">
         {{ task.name }}
       </div>
       <div class="informations">
@@ -13,10 +13,10 @@
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <VtsIcon :icon="faCircleNotch" accent="current" />
-            <span class="typo p4-medium">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+            <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
-        <div v-if="task.start" class="line-2 typo p4-regular">
+        <div v-if="task.start" class="line-2 typo-body-regular-small">
           {{ $d(task.start, 'datetime_short') }}
           <template v-if="task.end">
             <VtsIcon :icon="faArrowRight" accent="current" />

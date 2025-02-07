@@ -1,7 +1,7 @@
 <!-- v3 -->
 <!-- TODO: implement tertiary variant to bump to v4 -->
 <template>
-  <span :class="toVariants({ accent, variant })" class="ui-tag typo p3-regular">
+  <span :class="toVariants({ accent, variant })" class="ui-tag typo-body-regular-small">
     <slot name="icon">
       <VtsIcon :icon accent="current" fixed-width />
     </slot>

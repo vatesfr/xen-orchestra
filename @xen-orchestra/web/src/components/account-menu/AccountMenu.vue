@@ -10,7 +10,7 @@
     </template>
     <MenuItem :icon="faBook">
       <a
-        class="link typo p2-medium"
+        class="link typo-body-bold-small"
         href="https://docs.xcp-ng.org?utm_campaign=xo6&utm_term=xcpdoc"
         rel="noopener noreferrer"
         target="_blank"
@@ -20,7 +20,7 @@
     </MenuItem>
     <MenuItem :icon="faHeadset">
       <a
-        class="link typo p2-medium"
+        class="link typo-body-bold-small"
         href="https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing"
         rel="noopener noreferrer"
         target="_blank"

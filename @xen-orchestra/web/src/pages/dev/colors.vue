@@ -1,10 +1,10 @@
 <template>
   <div class="groups">
     <div v-for="(colorLines, colorGroup) of colors" :key="colorGroup">
-      <h2 class="typo c2-semi-bold group-name">{{ colorGroup }}</h2>
+      <h2 class="typo-caption group-name">{{ colorGroup }}</h2>
       <div class="lines">
         <div v-for="(colorLine, index) of colorLines" :key="index" class="line">
-          <div v-for="color of colorLine" :key="color" class="color">
+          <div v-for="color of colorLine" :key="color" class="color typo-body-regular">
             <div
               v-tooltip="getTooltip(colorGroup, color)"
               :style="`background-color: var(--color-${colorGroup}-${color})`"

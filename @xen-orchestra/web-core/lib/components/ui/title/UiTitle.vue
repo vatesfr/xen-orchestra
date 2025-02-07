@@ -1,7 +1,7 @@
 <!-- v2 -->
 <template>
   <div class="ui-title">
-    <div class="typo h4-medium label">
+    <div class="typo-h4 label">
       <slot />
     </div>
     <div v-if="slots.actions" class="actions">

@@ -1,7 +1,7 @@
 <template>
   <div :class="{ collapsible }" class="form-section">
     <fieldset class="fieldset">
-      <legend class="legend typo h4-medium" @click="toggleCollapse">
+      <legend class="legend typo-h4" @click="toggleCollapse">
         {{ label }}
         <UiIcon :icon class="collapse-icon" />
       </legend>

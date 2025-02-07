@@ -1,5 +1,5 @@
 <template>
-  <span class="ui-filter typo p1-regular">
+  <span class="ui-filter typo-body-regular">
     <span class="label" @click="emit('edit')">
       <slot />
     </span>

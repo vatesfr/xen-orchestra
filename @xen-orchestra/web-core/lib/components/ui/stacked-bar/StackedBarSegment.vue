@@ -4,7 +4,7 @@
     v-tooltip="{ selector: '.text-ellipsis' }"
     :class="`accent--${accent}`"
     :style="{ width: percentage + '%' }"
-    class="stacked-bar-segment typo c4-semi-bold"
+    class="stacked-bar-segment typo-caption-small"
   >
     <div ref="ellipsisElement" :class="{ hidden }" class="text-ellipsis">
       {{ $n(percentage / 100, 'percent') }}

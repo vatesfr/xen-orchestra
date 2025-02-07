@@ -1,6 +1,6 @@
 <!-- v3 -->
 <template>
-  <div class="ui-legend-title typo c3-semi-bold">
+  <div class="ui-legend-title typo-caption-small">
     <slot />
     <VtsIcon v-tooltip="iconTooltip ?? false" :icon accent="info" />
   </div>
