@@ -37,5 +37,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server-backup-reports minor
 
 <!--packages-end-->
