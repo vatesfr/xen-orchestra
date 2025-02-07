@@ -6,7 +6,9 @@
 {{else}}
 ### VM not found
 
-- **Description**: {{{vm.name_description}}}
+{{#if vm.name_description}}
+{{{vm.name_description}}}
+{{/if}}
 - **UUID**: {{{taskLog.data.id}}}
 {{/if}}
 {{>reportTemporalDataMd end=taskLog.end start=taskLog.start}}
