@@ -57,26 +57,16 @@ export class PrivateNetwork {
     const encapsulation = otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
     const password = otherConfig['xo:sdn-controller:encrypted'] === 'true' ? createPassword() : undefined
-    const pifDevice = otherConfig['xo:sdn-controller:pif-device']
-    const pifVlan = +otherConfig['xo:sdn-controller:vlan']
-    const hostPif = hostClient.host.$PIFs.find(
-      pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
-    )
-    const centerDevice = centerNetwork.other_config['xo:sdn-controller:pif-device']
-    const centerVlan = +centerNetwork.other_config['xo:sdn-controller:vlan']
-    const centerPif = centerClient.host.$PIFs.find(
-      pif => pif?.device === centerDevice && pif.VLAN === centerVlan && pif.ip_configuration_mode !== 'None'
-    )
+
+    const hostPif = this._getHostTransportPif(host)
+    const centerPif = this._getHostTransportPif(this.center)
+
     assert(hostPif !== undefined, 'No PIF found', {
       privateNetwork: this.uuid,
-      pifDevice,
-      pifVlan,
       host: host.name_label,
     })
     assert(centerPif !== undefined, 'No PIF found in center', {
       privateNetwork: this.uuid,
-      pifDevice,
-      pifVlan,
       host: this.center.name_label,
     })
 
@@ -216,5 +206,17 @@ export class PrivateNetwork {
         return host
       }
     }
+  }
+
+  /**
+   *
+   * @param {Host} host
+   * @returns {Pif | undefined}
+   */
+  _getHostTransportPif(host) {
+    const network = this.networks[host.$pool.uuid]
+    const privatePif = host.$PIFs.find(pif => pif.$network.uuid === network.uuid)
+    const tunnels = privatePif?.$tunnel_access_PIF_of
+    return tunnels?.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
   }
 }
