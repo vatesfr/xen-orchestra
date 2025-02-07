@@ -26,7 +26,7 @@
   "core.select.all": "Vybrat vše",
   "core.select.n-object-of": "{from} - {to} z {total} objektů",
   "core.select.n-selected-of": "{count} vybráno z {total} objektů",
-  "core.select.none": "Zrušit výběr všeho",
+  "core.select.none": "Nevybrat nic",
   "core.select.unselect": "Zrušit výběr všeho",
   "core.show-by": "Zobrazit podle",
   "core.sidebar.close": "Zavřít postranní panel",
