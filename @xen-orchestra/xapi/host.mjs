@@ -70,8 +70,7 @@ class Host {
         !vm.is_control_domain &&
         vm.power_state !== 'Halted' &&
         vm.power_state !== 'Suspended' &&
-        vm.blocked_operations.suspend !== undefined &&
-        vmsNotSuspendableRefs.has(vm.$ref)
+        (vm.blocked_operations.suspend !== undefined || vmsNotSuspendableRefs.has(vm.$ref))
     )
 
     if (!bypassBlockedSuspend && vmsWithSuspendBlocked.length > 0) {
