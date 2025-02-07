@@ -2,7 +2,7 @@
 <template>
   <div class="ui-stacked-bar">
     <StackedBarSegment
-      v-for="(segment, index) in segments"
+      v-for="(segment, index) in parsedSegments"
       :key="index"
       :accent="segment.accent"
       :percentage="max === 0 ? 0 : (segment.value / max) * 100"
@@ -12,23 +12,36 @@
 
 <script lang="ts" setup>
 import StackedBarSegment, { type StackedBarSegmentProps } from '@core/components/ui/stacked-bar/StackedBarSegment.vue'
+import { formatSizeParse } from '@core/utils/size.util'
 import { computed } from 'vue'
 
 type Segment = {
   value: number
   accent: StackedBarSegmentProps['accent']
+  unit?: string
 }
 
 export type StackedBarProps = {
   segments: Segment[]
-  maxValue?: number
+  maxValue?: {
+    value?: number
+    unit?: string
+  }
 }
 
 const props = defineProps<StackedBarProps>()
 
-const totalValue = computed(() => props.segments.reduce((acc, segment) => acc + segment.value, 0))
+const totalValue = computed(() =>
+  props.segments.reduce((acc, segment) => acc + (formatSizeParse(segment.value, segment.unit) ?? 0), 0)
+)
 
-const max = computed(() => Math.max(props.maxValue ?? 0, totalValue.value))
+const max = computed(() =>
+  Math.max(formatSizeParse(props.maxValue?.value, props.maxValue?.unit) ?? 0, totalValue.value)
+)
+
+const parsedSegments = computed(() =>
+  props.segments.map(segment => ({ ...segment, value: formatSizeParse(segment.value, segment.unit) ?? 0 }))
+)
 </script>
 
 <style lang="postcss" scoped>

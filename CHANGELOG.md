@@ -1,8 +1,27 @@
 # ChangeLog
 
-## **5.103.0** (2025-01-30)
+## **5.103.1** (2025-02-04)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Settings/Servers] Display last known pool name as server default label (PR [#8206](https://github.com/vatesfr/xen-orchestra/pull/8206))
+- **XO6**:
+  - [Dashboard] Display size used by XO replications (PR [#8300](https://github.com/vatesfr/xen-orchestra/pull/8300))
+
+### Bug fixes
+
+- [VM/New] Fix _Int64 expected, got 'N'_ when trying to create a VM without passing VDI sizes in `existingDisks` (PR [#8291](https://github.com/vatesfr/xen-orchestra/pull/8291))
+- [XO6/Dashboard] Fixes the display of percentages in the _Storage repository_ and _Backup repository_ cards (PR [#8306](https://github.com/vatesfr/xen-orchestra/pull/8306))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.13.0
+- @xen-orchestra/web 0.9.0
+- xo-server 5.170.0
+
+## **5.103.0** (2025-01-30)
 
 ### Highlights
 

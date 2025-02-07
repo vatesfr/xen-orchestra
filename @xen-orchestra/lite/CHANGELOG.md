@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **0.7.1** (2025-02-04)
+
+- [Host/Console] Fix console sometimes not correctly displayed (PR [#8305](https://github.com/vatesfr/xen-orchestra/pull/8305))
+
 ## **0.7.0** (2025-01-30)
 
 - Fix persistent scrollbar on the right (PR [#8191](https://github.com/vatesfr/xen-orchestra/pull/8191))

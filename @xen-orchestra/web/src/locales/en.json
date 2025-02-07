@@ -54,5 +54,7 @@
   "vms-status.inactive.tooltip": "Halted or suspended",
   "vms-status.running": "Running",
   "vms-status.unknown": "Unknown",
-  "vms-status.unknown.tooltip": "For which XO has lost connection to the pool"
+  "vms-status.unknown.tooltip": "For which XO has lost connection to the pool",
+  "xo-backups": "XO backups",
+  "xo-replications": "XO replications"
 }
