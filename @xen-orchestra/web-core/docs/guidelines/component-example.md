@@ -57,9 +57,9 @@ const slots = defineSlots<{
 }>()
 
 const fontClasses = {
-  small: 'typo p3-medium', // Typography classes, "typo" is required
-  medium: 'typo h6-medium',
-  large: 'typo h3-semi-bold',
+  small: 'typo-body-bold-small',
+  medium: 'typo-h6',
+  large: 'typo-h3',
 }
 
 const classNames = computed(() => [

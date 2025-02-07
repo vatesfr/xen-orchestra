@@ -22,8 +22,8 @@ const props = defineProps<
 >()
 
 const typoClasses = {
-  small: 'typo p3-regular-underline',
-  medium: 'typo p1-regular-underline',
+  small: 'typo-action-link-small',
+  medium: 'typo-action-link',
 }
 
 const { component, attributes, isDisabled } = useLinkComponent('span', () => props)

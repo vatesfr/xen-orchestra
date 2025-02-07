@@ -36,9 +36,9 @@ defineSlots<{
 const isDisabled = useDisabled(() => disabled)
 
 const fontClasses = {
-  small: 'typo p3-medium',
-  medium: 'typo h6-medium',
-  large: 'typo h3-semi-bold',
+  small: 'typo-action-button-small',
+  medium: 'typo-action-button',
+  large: 'typo-h3',
 }
 
 const classNames = computed(() => [

@@ -10,7 +10,7 @@
         {{ $t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 }) }}
       </div>
     </td>
-    <td class="level typo h7-semi-bold">
+    <td class="level typo-body-bold-small">
       <!-- Using `Math.min` because `alarm.level` can be `Infinity` -->
       {{ $n(Math.min(alarm.level, 1), 'percent') }}
     </td>
