@@ -1,7 +1,9 @@
 {{#if vm}}
 <h3>{{vm.name_label}}</h3>
+{{#if vm.name_description}}
+{{vm.name_description}}
+{{/if}}
 <ul>
-  <li><span style="font-weight: bold">Description</span>: {{vm.name_description}}</li>
   <li><span style="font-weight: bold">UUID</span>: {{vm.uuid}}</li>
 {{else}}
 <h3>VM not found</h3>
