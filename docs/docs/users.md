@@ -123,7 +123,7 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 
 > Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
 
-> If you get a certificate error. Try and add a newline at the bottom of the Certificate field in Xen-Orchestra.
+> If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
 
