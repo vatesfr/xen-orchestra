@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Swagger interface available on `/rest/v0` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 
