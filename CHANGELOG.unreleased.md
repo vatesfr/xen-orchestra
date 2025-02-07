@@ -32,5 +32,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server-auth-oidc patch
 
 <!--packages-end-->
