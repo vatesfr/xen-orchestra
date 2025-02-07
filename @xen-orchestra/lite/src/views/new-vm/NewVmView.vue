@@ -629,16 +629,19 @@ const createVM = async () => {
     return
   }
 
+  console.log('VDIS: =>', data.value.VDIs)
+  console.log('VIFS: =>', data.value.VIFs)
+
   const vmRef = await xapi.vm.clone({ [templateRef]: newVmName })
   console.log('Clone réussi, référence VM:', vmRef)
 
+  await Promise.all([
+    xapi.vm.setNameLabel(vmRef, data.value.name_label),
+    xapi.vm.setNameDescription(vmRef, data.value.name_description),
+  ])
+
   await xapi.vm.provision(vmRef)
   console.log('Provisioning réussi')
-
-  await Promise.all([
-    xapi.vm.setNameLabel(templateRef, data.value.name_label),
-    xapi.vm.setNameDescription(templateRef, data.value.name_description),
-  ])
 
   // xapi.vm
   //   .clone({ [templateRef]: newVmName })
