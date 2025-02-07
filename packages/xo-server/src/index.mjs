@@ -52,6 +52,7 @@ import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 import { ProxyAgent } from 'proxy-agent'
+import { getRestApi } from '@xen-orchestra/rest-api'
 
 // ===================================================================
 
@@ -117,7 +118,11 @@ async function createExpressApp(config) {
 
   app.use(helmet(config.http.helmet))
 
-  app.use(compression())
+  app.use(
+    compression({
+      filter: req => req.url !== '/rest/v1/events', // compression not compatible with EventSource?? it supposed to work with eventsource@3
+    })
+  )
 
   let { sessionSecret } = config.http
   if (sessionSecret === undefined) {
@@ -920,6 +925,51 @@ export default async function main(args) {
 
   if (!safeMode) {
     await registerPlugins(xo)
+    // test to register a route on the fly
+    await getRestApi().registerRoute(
+      'netbox/sync',
+      (req, res) => {
+        res.send('route registered')
+      },
+      {
+        get: {
+          operationId: 'getSyncNetbox',
+          responses: {
+            200: {
+              description: 'Ok',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/Dashboard',
+                  },
+                },
+              },
+            },
+          },
+          security: [],
+          parameters: [],
+        },
+      }
+    )
+
+    await getRestApi().registerRoute(
+      '/foo/bar',
+      (req, res) => {
+        res.send('fo bar')
+      },
+      {
+        get: {
+          operationId: 'getFoobar',
+          responses: {
+            200: {
+              description: 'Ok',
+            },
+          },
+          security: [],
+          parameters: [],
+        },
+      }
+    )
     xo.emit('plugins:registered')
   }
 
