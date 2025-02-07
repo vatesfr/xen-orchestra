@@ -36,5 +36,6 @@
 - @vates/types major
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
+- xo-server-backup-reports minor
 
 <!--packages-end-->
