@@ -13,7 +13,8 @@
   - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
-Add VM Description to the backup report.
+
+- [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
 
 ### Bug fixes
 
