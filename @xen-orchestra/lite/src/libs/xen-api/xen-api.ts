@@ -249,6 +249,14 @@ export default class XenApi {
     type VmRefsWithNameLabel = Record<XenApiVm['$ref'], string>
 
     return {
+      setVCPUsMax: (vmRefs: VmRefs, count: number) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, count]))),
+      setMemory: (vmRefs: VmRefs, count: number) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_memory', [vmRef, count]))),
+      setNameDescription: (vmRefs: VmRefs, nameDescription: string) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_description', [vmRef, nameDescription]))),
+      setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_label', [vmRef, nameLabel]))),
       delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
       start: (vmRefs: VmRefs) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start', [vmRef, false, false]))),
@@ -283,6 +291,9 @@ export default class XenApi {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
 
         return Promise.all(vmRefs.map(vmRef => this.call('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
+      },
+      provision: (vmRefs: VmRefs) => {
+        return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.provision', [vmRef])))
       },
       migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) => {
         return Promise.all(
