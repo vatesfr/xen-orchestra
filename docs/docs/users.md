@@ -98,10 +98,12 @@ You can find the LDAP users by entering this filter in the users table: `authPro
 ### OpenID Connect
 
 #### Overview
+
 The OpenID Connect (OIDC) plugin (`auth-oidc`) allows Xen Orchestra to integrate with identity providers that support the OIDC protocol.
 
 In this section, you'll learn:
-- how users can log in with OpenID Connect 
+
+- how users can log in with OpenID Connect
 - how administrators can configure the plugin to suit their needs
 
 #### Prerequisites
@@ -111,6 +113,7 @@ In this section, you'll learn:
 #### User Workflow
 
 ##### Log In with OpenID Connect
+
 1. On the Xen Orchestra login page, click **Sign in with OpenID Connect**.
 
 ![OpenID Connect plugin settings](./assets/openid-connect-signin-button.png)
@@ -118,6 +121,7 @@ In this section, you'll learn:
 2. You’ll be redirected to the login page of your internal portal.
 
 3. Enter your credentials:
+
    - **Username or email**:
    - **Password**:
 
@@ -128,6 +132,7 @@ In this section, you'll learn:
 #### Administrator Guide
 
 ##### Set Up the OpenID Connect Plugin
+
 You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 
 1. Go to **Settings** → **Plugins**.
@@ -137,14 +142,18 @@ You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 ![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
 
 ##### Required Configuration
+
 Fill in the mandatory fields. You can also specify the auto-discovery URL, if needed.
 
 ##### Advanced Configuration (Optional)
+
 To access advanced options:
+
 1. Check **Fill information (optional)** to reveal additional fields.
 2. Complete the fields as needed.
 
 ##### Save and Activate the Plugin
+
 1. Once everything is configured, click **Save configuration**.
 2. Toggle the switch next to the `auth-oidc` plugin name to enable it. This will:
    - Activate the plugin immediately.
