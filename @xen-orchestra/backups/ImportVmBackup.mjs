@@ -205,7 +205,8 @@ export class ImportVmBackup {
     )
     let backup
     if (useDifferentialRestore) {
-      backup = await this._reuseNearestSnapshot(ignoredVdis)
+      throw new Error('differentiela resotre is not supported')
+      // backup = await this._reuseNearestSnapshot(ignoredVdis)
     } else {
       backup = await this._adapter.readIncrementalVmBackup(this._metadata, ignoredVdis)
     }
@@ -241,7 +242,7 @@ export class ImportVmBackup {
       assert.strictEqual(metadata.mode, 'delta')
 
       backup = await this.#decorateIncrementalVmMetadata()
-      Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
+      // @todo put back the stream size 
     }
 
     return Task.run(
