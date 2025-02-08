@@ -202,7 +202,15 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   static async unlink(handler, path) {
-    const resolved = await resolveVhdAlias(handler, path)
+    let resolved = path
+    try {
+      resolved = await resolveVhdAlias(handler, path)
+    } catch (err) {
+      // broken vhd directory must be unlinkable
+      if (err.code !== 'EISDIR') {
+        throw err
+      }
+    }
     try {
       await handler.unlink(resolved)
     } catch (err) {
