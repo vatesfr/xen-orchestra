@@ -203,8 +203,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     let metadataContent = await this._isAlreadyTransferred(timestamp)
     if (metadataContent !== undefined) {
       // skip backup while being vigilant to not stuck the forked stream
-      Task.info('This backup has already been transfered')
-      Object.values(deltaExport.streams).forEach(stream => stream.destroy())
+      /** @todo destroy fork  */
       return { size: 0 }
     }
 
@@ -223,33 +222,29 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       vmSnapshot,
       vtpms: deltaExport.vtpms,
     }
-
-    const { size } = await Task.run({ name: 'transfer' }, async () => {
-      let transferSize = 0
+    let size = 0
+    await Task.run({ name: 'transfer' }, async () => {
       await asyncEach(
         Object.keys(deltaExport.vdis),
         async id => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
-          // don't write it as transferSize += await async function
-          // since i += await asyncFun lead to race condition
-          // as explained : https://eslint.org/docs/latest/rules/require-atomic-updates
-          const transferSizeOneDisk = await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+          await adapter.writeVhd(path, deltaExport.disks[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
-          transferSize += transferSizeOneDisk
+          size = size + deltaExport.disks[`${id}.vhd`].generatedDiskBlocks * 2 * 1024 * 1024
         },
         {
           concurrency: settings.diskPerVmConcurrency,
         }
       )
 
-      return { size: transferSize }
+      return { size }
     })
-    metadataContent.size = size
+    metadataContent.size = 0 // @todo return the size written byt this writer
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?

@@ -44,7 +44,7 @@ exports.BUF_BLOCK_UNUSED = BUF_BLOCK_UNUSED
  * @param {Object} footer
  * @returns {Object} the parsed header
  */
-exports.unpackHeader = (bufHeader, footer) => {
+exports.unpackHeader = (bufHeader, footer = undefined) => {
   assertChecksum('header', bufHeader, fuHeader)
 
   const header = fuHeader.unpack(bufHeader)
