@@ -1,4 +1,4 @@
-import { XoApp } from './rest-api.type.mjs'
+import type { XoApp } from './rest-api.type.mjs'
 
 export class RestApi {
   authenticateUser: XoApp['authenticateUser']
