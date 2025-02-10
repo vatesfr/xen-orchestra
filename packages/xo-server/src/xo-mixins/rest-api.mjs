@@ -1607,7 +1607,7 @@ export default class RestApi {
       })
     )
 
-    setupRestApi(express)
+    setupRestApi(express, app)
   }
 
   registerRestApi(spec, base = '/') {

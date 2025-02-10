@@ -8,6 +8,7 @@
     "moduleResolution": "bundler",
     "target": "ES2023",
     "skipLibCheck": true,
+    "noImplicitAny": false,
 
     /* Experimental options */
     "experimentalDecorators": true // used by the TSOA framework
