@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+[SDN-controller] Fix _No PIF found_ error when creating a private network [#8027](https://github.com/vatesfr/xen-orchestra/issues/8027) (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/8319))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -42,5 +44,6 @@
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
