@@ -11,7 +11,7 @@
         />
       </template>
       <template #addons>
-        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
+        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
         <UiCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
@@ -42,7 +42,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{
