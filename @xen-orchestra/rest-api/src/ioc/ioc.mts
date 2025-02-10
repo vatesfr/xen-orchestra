@@ -3,7 +3,7 @@ import { Container, decorate, injectable } from 'inversify'
 import { Controller } from 'tsoa'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { XoApp } from '../rest-api/rest-api.type.mjs'
+import type { XoApp } from '../rest-api/rest-api.type.mjs'
 
 const iocContainer = new Container()
 
