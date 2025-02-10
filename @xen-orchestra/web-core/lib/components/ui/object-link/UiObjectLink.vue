@@ -3,7 +3,7 @@
   <RouterLink v-if="route && !disabled" :to="route" class="ui-object-link is-link typo p3-regular-underline">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon accent="current" />
+        <VtsIcon :icon accent="current" />
       </slot>
     </span>
     <span v-tooltip class="content text-ellipsis">
@@ -13,7 +13,7 @@
   <span v-else :class="{ disabled }" class="ui-object-link typo p3-regular-underline">
     <span class="icon">
       <slot name="icon">
-        <UiIcon :icon accent="current" />
+        <VtsIcon :icon accent="current" />
       </slot>
     </span>
     <slot />
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { type RouteLocationRaw } from 'vue-router'

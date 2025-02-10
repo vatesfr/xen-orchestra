@@ -10,7 +10,7 @@
       v-bind="attrs"
     />
     <span class="fake-checkbox">
-      <VtsIcon :icon accent="info" class="icon" />
+      <VtsIcon :icon accent="current" class="icon" />
     </span>
     <span v-if="slots.default" class="typo p1-regular">
       <slot />
