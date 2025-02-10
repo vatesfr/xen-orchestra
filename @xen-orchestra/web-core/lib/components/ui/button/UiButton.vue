@@ -1,4 +1,4 @@
-<!-- v4 -->
+<!-- v6 -->
 <template>
   <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
     <VtsIcon :busy :icon="leftIcon" accent="current" class="icon" fixed-width />
@@ -16,8 +16,8 @@ import { faLock } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
-type ButtonAccent = 'info' | 'success' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium' | 'large'
+type ButtonAccent = 'brand' | 'warning' | 'danger'
+type ButtonSize = 'small' | 'medium'
 
 const props = defineProps<{
   variant: ButtonVariant
@@ -90,16 +90,16 @@ const classNames = computed(() => [
 
   /* ACCENT + VARIANT */
 
-  &.accent--info {
+  &.accent--brand {
     &.variant--primary {
-      background-color: var(--color-info-item-base);
-      border-color: var(--color-info-item-base);
-      color: var(--color-info-txt-item);
+      background-color: var(--color-brand-item-base);
+      border-color: var(--color-brand-item-base);
+      color: var(--color-brand-txt-item);
 
       &:hover {
-        background-color: var(--color-info-item-hover);
-        border-color: var(--color-info-item-hover);
-        color: var(--color-info-txt-item);
+        background-color: var(--color-brand-item-hover);
+        border-color: var(--color-brand-item-hover);
+        color: var(--color-brand-txt-item);
       }
 
       &:focus-visible::before {
@@ -107,33 +107,33 @@ const classNames = computed(() => [
       }
 
       &:active {
-        background-color: var(--color-info-item-active);
-        border-color: var(--color-info-item-active);
-        color: var(--color-info-txt-item);
+        background-color: var(--color-brand-item-active);
+        border-color: var(--color-brand-item-active);
+        color: var(--color-brand-txt-item);
       }
 
       &:is(:disabled, .disabled) {
-        background-color: var(--color-info-item-disabled);
-        border-color: var(--color-info-item-disabled);
+        background-color: var(--color-brand-item-disabled);
+        border-color: var(--color-brand-item-disabled);
         color: var(--color-neutral-txt-secondary);
       }
 
       &.busy {
-        background-color: var(--color-info-item-base);
-        border-color: var(--color-info-item-base);
-        color: var(--color-info-txt-item);
+        background-color: var(--color-brand-item-base);
+        border-color: var(--color-brand-item-base);
+        color: var(--color-brand-txt-item);
       }
     }
 
     &.variant--secondary {
       background-color: var(--color-neutral-background-primary);
-      border-color: var(--color-info-item-base);
-      color: var(--color-info-txt-base);
+      border-color: var(--color-brand-item-base);
+      color: var(--color-brand-txt-base);
 
       &:hover {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-info-item-hover);
-        color: var(--color-info-txt-hover);
+        border-color: var(--color-brand-item-hover);
+        color: var(--color-brand-txt-hover);
       }
 
       &:focus-visible::before {
@@ -142,8 +142,8 @@ const classNames = computed(() => [
 
       &:active {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-info-item-active);
-        color: var(--color-info-txt-active);
+        border-color: var(--color-brand-item-active);
+        color: var(--color-brand-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -154,20 +154,20 @@ const classNames = computed(() => [
 
       &.busy {
         background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-info-item-base);
-        color: var(--color-info-txt-base);
+        border-color: var(--color-brand-item-base);
+        color: var(--color-brand-txt-base);
       }
     }
 
     &.variant--tertiary {
       background-color: transparent;
       border-color: transparent;
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
 
       &:hover {
-        background-color: var(--color-info-background-hover);
-        border-color: var(--color-info-background-hover);
-        color: var(--color-info-txt-hover);
+        background-color: var(--color-brand-background-hover);
+        border-color: var(--color-brand-background-hover);
+        color: var(--color-brand-txt-hover);
       }
 
       &:focus-visible::before {
@@ -175,9 +175,9 @@ const classNames = computed(() => [
       }
 
       &:active {
-        background-color: var(--color-info-background-active);
-        border-color: var(--color-info-background-active);
-        color: var(--color-info-txt-active);
+        background-color: var(--color-brand-background-active);
+        border-color: var(--color-brand-background-active);
+        color: var(--color-brand-txt-active);
       }
 
       &:is(:disabled, .disabled) {
@@ -187,113 +187,9 @@ const classNames = computed(() => [
       }
 
       &.busy {
-        background-color: var(--color-info-background-selected);
-        border-color: var(--color-info-background-selected);
-        color: var(--color-info-txt-base);
-      }
-    }
-  }
-
-  &.accent--success {
-    &.variant--primary {
-      background-color: var(--color-success-item-base);
-      border-color: var(--color-success-item-base);
-      color: var(--color-success-txt-item);
-
-      &:hover {
-        background-color: var(--color-success-item-hover);
-        border-color: var(--color-success-item-hover);
-        color: var(--color-success-txt-item);
-      }
-
-      &:focus-visible::before {
-        border-color: var(--color-success-txt-base);
-      }
-
-      &:active {
-        background-color: var(--color-success-item-active);
-        border-color: var(--color-success-item-active);
-        color: var(--color-success-txt-item);
-      }
-
-      &:is(:disabled, .disabled) {
-        background-color: var(--color-success-item-disabled);
-        border-color: var(--color-success-item-disabled);
-        color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-success-item-base);
-        border-color: var(--color-success-item-base);
-        color: var(--color-success-txt-item);
-      }
-    }
-
-    &.variant--secondary {
-      background-color: var(--color-neutral-background-primary);
-      border-color: var(--color-success-txt-base);
-      color: var(--color-success-txt-base);
-
-      &:hover {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-success-txt-hover);
-        color: var(--color-success-txt-hover);
-      }
-
-      &:focus-visible::before {
-        border-color: var(--color-success-txt-base);
-      }
-
-      &:active {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-success-txt-active);
-        color: var(--color-success-txt-active);
-      }
-
-      &:is(:disabled, .disabled) {
-        background-color: var(--color-neutral-background-disabled);
-        border-color: var(--color-neutral-txt-secondary);
-        color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-success-txt-base);
-        color: var(--color-success-txt-base);
-      }
-    }
-
-    &.variant--tertiary {
-      background-color: transparent;
-      border-color: transparent;
-      color: var(--color-success-txt-base);
-
-      &:hover {
-        background-color: var(--color-success-background-hover);
-        border-color: var(--color-success-background-hover);
-        color: var(--color-success-txt-hover);
-      }
-
-      &:focus-visible::before {
-        border-color: var(--color-success-txt-base);
-      }
-
-      &:active {
-        background-color: var(--color-success-background-active);
-        border-color: var(--color-success-background-active);
-        color: var(--color-success-txt-active);
-      }
-
-      &:is(:disabled, .disabled) {
-        background-color: transparent;
-        border-color: transparent;
-        color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-success-background-selected);
-        border-color: var(--color-success-background-selected);
-        color: var(--color-success-txt-base);
+        background-color: var(--color-brand-background-selected);
+        border-color: var(--color-brand-background-selected);
+        color: var(--color-brand-txt-base);
       }
     }
   }
@@ -509,18 +405,13 @@ const classNames = computed(() => [
   /* SIZE */
 
   &.size--small {
-    padding: 0.4rem 0.8rem;
+    padding: 0.8rem;
     border-radius: 0.2rem;
   }
 
   &.size--medium {
-    padding: 0.8rem 1.6rem;
+    padding: 1.2rem 1.6rem;
     border-radius: 0.4rem;
-  }
-
-  &.size--large {
-    padding: 1.6rem 2.4rem;
-    border-radius: 0.8rem;
   }
 }
 </style>

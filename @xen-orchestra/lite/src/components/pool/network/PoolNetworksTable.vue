@@ -24,7 +24,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}
@@ -34,7 +34,7 @@
             disabled
             :left-icon="faCopy"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('copy-info-json') }}

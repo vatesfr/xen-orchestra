@@ -27,7 +27,7 @@
           <FormCheckbox v-model="rememberMe" />
           {{ $t('keep-me-logged') }}
         </label>
-        <UiButton size="medium" accent="info" variant="primary" type="submit" :busy="isConnecting">
+        <UiButton size="medium" accent="brand" variant="primary" type="submit" :busy="isConnecting">
           {{ $t('login') }}
         </UiButton>
       </template>

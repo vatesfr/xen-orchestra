@@ -8,7 +8,7 @@
           disabled
           size="medium"
           variant="secondary"
-          accent="info"
+          accent="brand"
           :left-icon="faArrowsRotate"
         >
           {{ $t('scan-pifs') }}
@@ -24,7 +24,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}

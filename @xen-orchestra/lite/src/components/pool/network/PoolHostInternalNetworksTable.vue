@@ -8,7 +8,7 @@
           disabled
           :left-icon="faPlus"
           variant="secondary"
-          accent="info"
+          accent="brand"
           size="medium"
         >
           {{ $t('new') }}
@@ -24,7 +24,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}

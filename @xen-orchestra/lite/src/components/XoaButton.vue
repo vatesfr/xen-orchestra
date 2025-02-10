@@ -2,7 +2,7 @@
   <UiButton
     v-if="xoaFound"
     size="medium"
-    accent="info"
+    accent="brand"
     variant="primary"
     :left-icon="faArrowUpRightFromSquare"
     class="xoa-button"
@@ -13,7 +13,7 @@
   <UiButton
     v-else
     size="medium"
-    accent="info"
+    accent="brand"
     variant="primary"
     :left-icon="faDownload"
     class="xoa-button"

@@ -9,11 +9,13 @@
     ]"
   >
     <table>
-      <tr>
-        <VtsCellObject v-bind="properties">
-          {{ settings.slot }}
-        </VtsCellObject>
-      </tr>
+      <tbody>
+        <tr>
+          <VtsCellObject v-bind="properties">
+            {{ settings.slot }}
+          </VtsCellObject>
+        </tr>
+      </tbody>
     </table>
   </ComponentStory>
 </template>
