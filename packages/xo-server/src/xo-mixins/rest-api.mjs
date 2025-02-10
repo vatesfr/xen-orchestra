@@ -1519,8 +1519,17 @@ export default class RestApi {
       '/:collection(groups)/:id',
       wrap(async (req, res) => {
         const { id } = req.params
-        await app.deleteGroup(id)
-        res.sendStatus(204)
+        try {
+          await app.deleteGroup(id)
+          res.sendStatus(204)
+        } catch (error) {
+          json({ error: error.message })
+          if (noSuchObject.is(error)) {
+            res.status(404)
+          } else {
+            res.status(500)
+          }
+        }
       })
     )
   }
