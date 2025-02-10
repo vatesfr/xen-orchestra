@@ -41,7 +41,6 @@ export abstract class PortableDisk {
   abstract getBlockIndexes(): Array<number>
   abstract hasBlock(index: number): boolean
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
-
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
     const generator = await this.buildDiskBlockGenerator()
     try {

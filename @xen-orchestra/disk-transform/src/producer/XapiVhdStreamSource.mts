@@ -35,7 +35,7 @@ export class XapiVhdStreamSource extends PortableDisk {
 
   #isDifferencing: boolean
 
-  constructor({ vdiRef, baseRef, xapi }) {
+  constructor({ vdiRef, baseRef, xapi }:{vdiRef: string, baseRef?:string, xapi:any}) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef
@@ -96,11 +96,9 @@ export class XapiVhdStreamSource extends PortableDisk {
     blocks.sort((b1, b2) => b1.offset - b2.offset)
     this.#blocks = blocks
     this.#initDone = true
-    console.log('init done')
   }
 
   async close() {
-    assert.strictEqual(this.#initDone, true, 'init must be done to call close')
     this.#vhdStream?.destroy()
   }
 

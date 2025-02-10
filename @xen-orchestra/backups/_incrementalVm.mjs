@@ -10,7 +10,7 @@ import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
-import { XapiVhdStreamSource } from '../../@xen-orchestra/disk-transform/dist/producer/XapiVhdStreamSource.mjs'
+import { XapiDiskSource } from '../../@xen-orchestra/disk-transform/dist/producer/Xapi.mjs'
 import { VhdStream } from '../disk-transform/dist/consumer/VhdStream.mjs'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
@@ -55,7 +55,10 @@ export async function exportIncrementalVm(
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
-    disks[`${vdiRef}.vhd`] = new XapiVhdStreamSource({ vdiRef, xapi: vm.$xapi, baseRef: baseVdi?.$ref })
+    disks[`${vdiRef}.vhd`] = new XapiDiskSource({ 
+      vdiRef, xapi: vm.$xapi, baseRef: baseVdi?.$ref,
+        nbdConcurrency,
+        preferNbd, })
     await disks[`${vdiRef}.vhd`].init()
   })
 
@@ -66,8 +69,11 @@ export async function exportIncrementalVm(
       ...suspendVdi,
       $SR$uuid: suspendVdi.$SR.uuid,
     }
-    // @todo implement suspend disk handling
-    throw new Error('suspend disk is not implemented yet')
+    disks[`${vdiRef}.vhd`] = new XapiDiskSource({ 
+      vdiRef:suspendVdi.$ref, xapi: vm.$xapi,
+        nbdConcurrency,
+        preferNbd, })
+    await disks[`${vdiRef}.vhd`].init()
  
   }
 

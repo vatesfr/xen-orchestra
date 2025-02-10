@@ -38,7 +38,9 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     })
 
     const isVhdDifferencing = {}
-
+    Object.entries(deltaExport.disks).forEach(([key, disk])=>{
+      isVhdDifferencing[key] = disk.isDifferencing()
+    })
     // @todo : reimplement fork, throttle, validation,isVhdDifferencingDisk , nbd use
     const timestamp = Date.now()
 

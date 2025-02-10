@@ -13,7 +13,7 @@ export class XapiVhdCbtSource extends PortableDisk {
   #parentId: string
   #xapi: any
   #cbt: Buffer
-  constructor({ vdiRef, baseRef, xapi, nbdConcurrency }) {
+  constructor({ vdiRef, baseRef, xapi, nbdConcurrency }:{vdiRef:string, baseRef:string, xapi:any, nbdConcurrency:number}) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef

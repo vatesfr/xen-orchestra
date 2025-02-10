@@ -29,6 +29,6 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
 
   async close() {
     await super.close()
-    await this.#nbdClient.disconnect()
+    await this.#nbdClient?.disconnect()
   }
 }
