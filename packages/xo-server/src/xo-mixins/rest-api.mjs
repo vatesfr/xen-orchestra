@@ -1519,9 +1519,12 @@ export default class RestApi {
       '/:collection(users)',
       json(),
       wrap(async (req, res) => {
-        const { email, password, permission } = req.body
-        const id = await app.createUser({ email, password, permission })
-        res.sendStatus(204)
+        const { name, password, permission } = req.body
+        if (!name || !password) {
+          return res.status(400).json({ message: 'Name and password are required.' })
+        }
+        const user = await app.createUser({ name, password, permission })
+        res.status(201).end(user.id)
       })
     )
   }
