@@ -56,7 +56,7 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -87,7 +87,7 @@
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
                 :icon="faEllipsis"
-                accent="info"
+                accent="brand"
                 disabled
                 size="small"
               />

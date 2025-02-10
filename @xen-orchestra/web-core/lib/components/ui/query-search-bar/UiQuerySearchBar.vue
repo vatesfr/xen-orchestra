@@ -28,8 +28,8 @@
       </UiButton>
     </template>
     <template v-else>
-      <UiButtonIcon accent="info" size="medium" type="submit" :icon="faMagnifyingGlass" />
-      <UiButtonIcon accent="info" size="medium" disabled :icon="faFilter" />
+      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" />
+      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" />
     </template>
   </form>
 </template>

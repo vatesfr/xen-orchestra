@@ -27,7 +27,7 @@
             }"
             :selected="isOpen"
             :icon="faEllipsisVertical"
-            accent="info"
+            accent="brand"
             class="more-actions-button"
             size="large"
             @click="open"

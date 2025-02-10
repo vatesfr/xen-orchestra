@@ -18,7 +18,7 @@
         v-if="hasToggle"
         v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
         class="toggle"
-        accent="info"
+        accent="brand"
         :icon="isExpanded ? faAngleDown : faAngleRight"
         size="small"
         :target-scale="{ x: 1.5, y: 2 }"
