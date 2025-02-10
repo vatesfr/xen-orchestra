@@ -31,6 +31,7 @@
 
 <!--packages-start-->
 
+- @vates/types major
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 
