@@ -17,5 +17,5 @@ export default function setupRestApi(express: Express) {
   express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
   express.use('/rest/v0/docs', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
 
-  express.use(notFoundErrorMiddleware)
+  express.use('/rest/v0', notFoundErrorMiddleware)
 }
