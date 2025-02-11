@@ -29,15 +29,15 @@ const isDisabled = useDisabled()
   }
 
   &:hover {
-    background-color: var(--color-info-background-hover);
+    background-color: var(--color-brand-background-hover);
   }
 
   &:active {
-    background-color: var(--color-info-background-active);
+    background-color: var(--color-brand-background-active);
   }
 
   &.selected {
-    background-color: var(--color-info-background-selected);
+    background-color: var(--color-brand-background-selected);
   }
 
   &:focus-visible {
