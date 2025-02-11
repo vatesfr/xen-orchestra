@@ -185,7 +185,6 @@ async function generateCertificatesAndKey(dataDir) {
 
 async function createTunnel(host, network, hostPif) {
   const otherConfig = network.other_config
-
   if (hostPif === undefined) {
     log.error("Can't create tunnel: no available PIF", {
       network: network.name_label,
@@ -933,7 +932,6 @@ class SDNController extends EventEmitter {
       this.privateNetworks,
       privateNetwork => privateNetwork.networks[host.$pool.uuid] !== undefined
     )
-
     for (const privateNetwork of privateNetworks) {
       const network = privateNetwork.networks[host.$pool.uuid]
       const tunnel = getHostTunnelForNetwork(host, network.$ref)
