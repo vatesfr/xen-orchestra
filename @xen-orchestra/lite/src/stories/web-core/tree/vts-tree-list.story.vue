@@ -10,7 +10,7 @@
                 Host - {{ i }}
                 <template #addons>
                   <VtsIcon v-if="i === 2" :icon="faStar" accent="warning" />
-                  <VtsCounter accent="info" value="3" variant="secondary" size="small" />
+                  <UiCounter accent="brand" value="3" variant="secondary" size="small" />
                 </template>
               </UiTreeItemLabel>
               <template #sublist>
@@ -44,7 +44,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import VtsCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { faCity, faEllipsis, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
