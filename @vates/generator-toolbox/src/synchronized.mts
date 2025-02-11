@@ -138,14 +138,8 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
   async throw(e: Error): Promise<IteratorResult<T>> {
     return this.#parent.remove(this.#uid, e)
   }
-  async *[Symbol.asyncIterator](): AsyncGenerator<T, TReturn, TNext> {
-    while (true) {
-      const res = await this.next()
-      if (res.done) {
-        break
-      }
-      yield res.value
-    }
-    return undefined as TReturn
+
+  [Symbol.asyncIterator](): AsyncGenerator<T> {
+    return this
   }
 }
