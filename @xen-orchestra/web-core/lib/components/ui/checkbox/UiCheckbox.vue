@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v5 -->
 <template>
   <label :class="classNames" class="ui-checkbox" v-bind="wrapperAttrs">
     <input
@@ -16,7 +16,7 @@
       <slot />
     </span>
   </label>
-  <UiInfo v-if="slots.info" :accent>
+  <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
     <slot name="info" />
   </UiInfo>
 </template>
@@ -29,7 +29,7 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
-type CheckboxAccent = 'info' | 'success' | 'warning' | 'danger'
+type CheckboxAccent = 'brand' | 'warning' | 'danger'
 
 defineOptions({ inheritAttrs: false })
 
@@ -127,32 +127,32 @@ const attrs = useAttrs()
     }
   }
 
-  &.accent--info {
-    .input {
+  &.accent--brand {
+    .input:not(:disabled) {
       & + .fake-checkbox {
-        border-color: var(--color-info-item-base);
+        border-color: var(--color-brand-item-base);
       }
 
       &.indeterminate + .fake-checkbox {
-        background-color: var(--color-info-item-base);
+        background-color: var(--color-brand-item-base);
 
         &:hover {
           border-color: transparent;
-          background-color: var(--color-info-item-hover);
+          background-color: var(--color-brand-item-hover);
         }
 
         &:active {
-          background-color: var(--color-info-item-active);
+          background-color: var(--color-brand-item-active);
         }
       }
 
       &.indeterminate:hover + .fake-checkbox {
         border-color: transparent;
-        background-color: var(--color-info-item-hover);
+        background-color: var(--color-brand-item-hover);
       }
 
       &:hover + .fake-checkbox {
-        border-color: var(--color-info-item-hover);
+        border-color: var(--color-brand-item-hover);
       }
 
       &:focus-visible + .fake-checkbox::before {
@@ -160,111 +160,26 @@ const attrs = useAttrs()
       }
 
       &:active + .fake-checkbox {
-        border-color: var(--color-info-item-active);
+        border-color: var(--color-brand-item-active);
       }
 
       &:checked + .fake-checkbox {
         border-color: transparent;
-        background-color: var(--color-info-item-base);
+        background-color: var(--color-brand-item-base);
       }
 
       &:checked:hover + .fake-checkbox {
-        background-color: var(--color-info-item-hover);
+        background-color: var(--color-brand-item-hover);
       }
 
       &:checked:active + .fake-checkbox {
-        background-color: var(--color-info-item-active);
-      }
-
-      &:disabled {
-        & + .fake-checkbox {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-checkbox,
-        &.indeterminate + .fake-checkbox {
-          border-color: transparent;
-          background-color: var(--color-info-item-disabled);
-        }
-      }
-    }
-  }
-
-  &.accent--success {
-    .input {
-      & + .fake-checkbox {
-        border-color: var(--color-success-item-base);
-      }
-
-      &.indeterminate + .fake-checkbox {
-        background-color: var(--color-success-item-base);
-
-        &:hover {
-          border-color: transparent;
-          background-color: var(--color-success-item-hover);
-        }
-
-        &:active {
-          background-color: var(--color-success-item-active);
-        }
-      }
-
-      &.indeterminate:hover + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-success-item-hover);
-      }
-
-      &:hover + .fake-checkbox {
-        border-color: var(--color-success-item-hover);
-      }
-
-      &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-success-txt-base);
-      }
-
-      &:active + .fake-checkbox {
-        border-color: var(--color-success-item-active);
-      }
-
-      &:checked + .fake-checkbox {
-        border-color: transparent;
-        background-color: var(--color-success-item-base);
-      }
-
-      &:checked:hover + .fake-checkbox {
-        background-color: var(--color-success-item-hover);
-      }
-
-      &:checked:active + .fake-checkbox {
-        background-color: var(--color-success-item-active);
-      }
-
-      &:disabled {
-        & + .fake-checkbox {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-checkbox,
-        &.indeterminate + .fake-checkbox {
-          border-color: transparent;
-          background-color: var(--color-success-item-disabled);
-        }
+        background-color: var(--color-brand-item-active);
       }
     }
   }
 
   &.accent--warning {
-    .input {
+    .input:not(:disabled) {
       & + .fake-checkbox {
         border-color: var(--color-warning-item-base);
       }
@@ -311,28 +226,11 @@ const attrs = useAttrs()
       &:checked:active + .fake-checkbox {
         background-color: var(--color-warning-item-active);
       }
-
-      &:disabled {
-        & + .fake-checkbox {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
-
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-checkbox,
-        &.indeterminate + .fake-checkbox {
-          border-color: transparent;
-          background-color: var(--color-warning-item-disabled);
-        }
-      }
     }
   }
 
   &.accent--danger {
-    .input {
+    .input:not(:disabled) {
       & + .fake-checkbox {
         border-color: var(--color-danger-item-base);
 
@@ -383,23 +281,23 @@ const attrs = useAttrs()
       &:checked:active + .fake-checkbox {
         background-color: var(--color-danger-item-active);
       }
+    }
+  }
 
-      &:disabled {
-        & + .fake-checkbox {
-          cursor: not-allowed;
-          border-color: var(--color-neutral-txt-secondary);
+  .input:disabled {
+    & + .fake-checkbox {
+      cursor: not-allowed;
+      border-color: var(--color-neutral-txt-secondary);
 
-          > .icon {
-            color: var(--color-neutral-txt-secondary);
-          }
-        }
-
-        &:checked + .fake-checkbox,
-        &.indeterminate + .fake-checkbox {
-          border-color: transparent;
-          background-color: var(--color-danger-item-disabled);
-        }
+      > .icon {
+        color: var(--color-neutral-background-disabled);
       }
+    }
+
+    &:checked + .fake-checkbox,
+    &.indeterminate + .fake-checkbox {
+      border-color: transparent;
+      background-color: var(--color-neutral-txt-secondary);
     }
   }
 }

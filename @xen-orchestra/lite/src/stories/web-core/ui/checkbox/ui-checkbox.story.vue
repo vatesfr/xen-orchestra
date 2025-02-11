@@ -2,12 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent')
-        .type('CheckboxAccent')
-        .required()
-        .enum('info', 'success', 'warning', 'danger')
-        .preset('info')
-        .widget(),
+      prop('accent').type('CheckboxAccent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
       prop('disabled').bool().widget(),
       slot(),
       slot('info'),
