@@ -13,6 +13,8 @@
 
 - [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
 
+- [REST API] Ability to add a user to a group (PR [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,6 +37,7 @@
 
 - @vates/types major
 - @xen-orchestra/web-core minor
+- xo-server minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
 
