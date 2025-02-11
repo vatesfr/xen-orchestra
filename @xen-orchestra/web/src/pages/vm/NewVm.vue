@@ -1,39 +1,39 @@
 <template>
-  <div>
-    <UiHeadBar :icon="faPlus">
-      {{ $t('new-vm.add') }}
-      <template #actions>
-        <select id="select" v-model="newVmState.pool">
-          <option v-for="pool in pools" :key="pool.id" :value="pool">
-            {{ pool.name_label }}
-          </option>
-        </select>
-      </template>
-    </UiHeadBar>
-    <UiCard v-if="newVmState.pool" class="container">
-      <!--      TEMPLATE SECTION -->
-      <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
-      <div>
-        <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
-        <!--        // Todo: Replace by the new select component -->
-        <select id="select" v-model="newVmState.new_vm_template" @change="onTemplateChange">
-          <option v-for="template in vmsTemplates" :key="template.id" :value="template">
-            {{ template.name_label }} {{ newVmState.pool!.name_label }}
-          </option>
-        </select>
-      </div>
+  <UiHeadBar :icon="faPlus">
+    {{ $t('new-vm.add') }}
+    <template #actions>
+      <select id="select" v-model="newVmState.pool">
+        <option v-for="pool in pools" :key="pool.id" :value="pool">
+          {{ pool.name_label }}
+        </option>
+      </select>
+    </template>
+  </UiHeadBar>
+  <UiCard v-if="newVmState.pool" class="container">
+    <!--      TEMPLATE SECTION -->
+    <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
+    <div>
+      <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
+      <!--        // Todo: Replace by the new select component -->
+      <select id="select" v-model="newVmState.new_vm_template" @change="onTemplateChange">
+        <option v-for="template in vmsTemplates" :key="template.id" :value="template">
+          {{ template.name_label }} {{ newVmState.pool!.name_label }}
+        </option>
+      </select>
+    </div>
+    <div v-if="newVmState.new_vm_template">
       <!--      INSTALL SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
       <div>
         <div v-if="newVmState.isDiskTemplateSelected">
           <div class="install-radio-container">
-            <UiRadioButton v-model="newVmState.install" accent="info" value="no-config">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="no-config">
               {{ $t('new-vm.no-config') }}
             </UiRadioButton>
-            <UiRadioButton v-model="newVmState.install" accent="info" value="ssh-key">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="ssh-key">
               {{ $t('new-vm.ssh-key') }}
             </UiRadioButton>
-            <UiRadioButton v-model="newVmState.install" accent="info" value="custom_config">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="custom_config">
               {{ $t('new-vm.custom-config') }}
             </UiRadioButton>
           </div>
@@ -50,7 +50,7 @@
             </div>
             <div class="install-ssh-key">
               <UiInput v-model="newVmState.ssh_key" :placeholder="t('new-vm.paste-public-key')" accent="info" />
-              <UiButton accent="info" size="medium" variant="primary" @click="addSshKey">
+              <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
                 {{ $t('add') }}
               </UiButton>
             </div>
@@ -73,7 +73,7 @@
             <UiRadioButton
               v-model="newVmState.install"
               :disabled="!newVmState.new_vm_template"
-              accent="info"
+              accent="brand"
               value="iso_dvd"
             >
               {{ $t('new-vm.iso-dvd') }}
@@ -81,7 +81,7 @@
             <UiRadioButton
               v-model="newVmState.install"
               :disabled="!newVmState.new_vm_template"
-              accent="info"
+              accent="brand"
               value="pxe"
             >
               {{ $t('new-vm.pxe') }}
@@ -101,7 +101,7 @@
       </div>
       <!--      SYSTEM SECTION -->
       <UiTitle>{{ $t('new-vm.system') }}</UiTitle>
-      <UiToggle v-model="newVmState.toggle">{{ $t('new-vm.multi-creation') }}</UiToggle>
+      <UiToggle v-model="newVmState.toggle" class="multi-creation-toggle">{{ $t('new-vm.multi-creation') }}</UiToggle>
       <div class="system-container">
         <div class="col-left">
           <UiInput v-model="newVmState.vm_name" accent="info" href="''">{{ $t('new-vm.vm-name') }}</UiInput>
@@ -114,11 +114,11 @@
           </select>
           <label for="select">{{ $t('new-vm.boot-firmware') }}</label
           ><select id="select" v-model="newVmState.boot_firmware">
-            <option v-for="firmware in firmwares" :key="firmware" :value="firmware">
+            <option v-for="firmware in getBootFirmwares" :key="firmware" :value="firmware">
               {{ firmware }}
             </option>
           </select>
-          <UiCheckbox v-model="newVmState.bios" accent="info">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+          <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
         </div>
         <div class="col-right">
           <UiTextarea v-model="newVmState.vm_description" class="description" accent="info" href="''">
@@ -171,7 +171,7 @@
                 <UiButtonIcon
                   :icon="faTrash"
                   size="medium"
-                  accent="info"
+                  accent="brand"
                   variant="secondary"
                   @click="newVmState.networkInterfaces.splice(index, 1)"
                 />
@@ -182,7 +182,7 @@
                 <UiButton
                   :left-icon="faPlus"
                   variant="tertiary"
-                  accent="info"
+                  accent="brand"
                   size="medium"
                   @click="addNetworkInterface"
                 >
@@ -214,7 +214,7 @@
                 <td>
                   <!--        // Todo: Replace by the new select component -->
                   <select v-model="disk.SR">
-                    <option v-for="sr in srs" :key="sr.id" :value="sr.name_label">
+                    <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.name_label">
                       {{ sr.name_label }}
                     </option>
                   </select>
@@ -232,7 +232,7 @@
                   <UiButtonIcon
                     :icon="faTrash"
                     size="medium"
-                    accent="info"
+                    accent="brand"
                     variant="secondary"
                     @click="newVmState.existingDisks.splice(index, 1)"
                   />
@@ -262,7 +262,7 @@
                   <UiButtonIcon
                     :icon="faTrash"
                     size="medium"
-                    accent="info"
+                    accent="brand"
                     variant="secondary"
                     @click="newVmState.VDIs.splice(index, 1)"
                   />
@@ -271,7 +271,7 @@
             </template>
             <tr>
               <td colspan="5">
-                <UiButton :left-icon="faPlus" variant="tertiary" accent="info" size="medium" @click="addStorageEntry">
+                <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addStorageEntry">
                   {{ $t('new-vm.new') }}
                 </UiButton>
               </td>
@@ -282,10 +282,10 @@
       <!--      SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.settings') }}</UiTitle>
       <div class="settings-container">
-        <UiCheckboxGroup accent="info">
-          <UiCheckbox v-model="newVmState.boot_vm" accent="info">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-          <UiCheckbox v-model="newVmState.auto_power" accent="info">{{ $t('new-vm.auto-power') }}</UiCheckbox>
-          <UiCheckbox v-model="newVmState.fast_clone" accent="info">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+        <UiCheckboxGroup accent="brand">
+          <UiCheckbox v-model="newVmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
+          <UiCheckbox v-model="newVmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+          <UiCheckbox v-model="newVmState.fast_clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
         </UiCheckboxGroup>
       </div>
       <!--      SUMMARY SECTION -->
@@ -295,18 +295,24 @@
           <VtsResource :icon="faDisplay" count="1" label="VMs" />
           <VtsResource :icon="faMicrochip" :count="newVmState.vCpu" label="vCPUs" />
           <VtsResource :icon="faMemory" :count="newVmState.ram" label="RAM" />
-          <VtsResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" />
+          <VtsResource :icon="faDatabase" :count="totalDisks" label="SR" />
           <VtsResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" />
         </VtsResources>
       </div>
-      <div class="footer">
-        <!--      <RouterLink :to="{ name: 'home' }"> -->
-        <UiButton variant="secondary" accent="info" size="medium" @click="redirectToHome">{{ $t('cancel') }}</UiButton>
-        <!--      </RouterLink> -->
-        <UiButton variant="primary" accent="info" size="medium" @click="createVM">{{ $t('new-vm.create') }}</UiButton>
-      </div>
-    </UiCard>
-  </div>
+    </div>
+    <div class="footer">
+      <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToHome">{{ $t('cancel') }}</UiButton>
+      <UiButton
+        :disabled="!newVmState.new_vm_template"
+        variant="primary"
+        accent="brand"
+        size="medium"
+        @click="createVM"
+      >
+        {{ $t('new-vm.create') }}
+      </UiButton>
+    </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
@@ -412,11 +418,12 @@ const generateRandomString = (length: number): string => {
 
 const addStorageEntry = () => {
   const poolDefaultSr = getSr(newVmState.pool?.default_SR as Branded<'sr'>)
-  newVmState.existingDisks.push({
+  newVmState.VDIs.push({
     name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: t('new-vm.created-by-xo'),
-    size: 0,
     SR: poolDefaultSr ? poolDefaultSr.name_label : '',
+    type: 'system',
+    size: 0,
   })
 }
 
@@ -435,34 +442,41 @@ const isDiskTemplate = (template: XoVmTemplate) => {
   return template && template.$VBDs.length !== 0 && template.name_label !== 'Other install media'
 }
 
-const getDefaultSr = (template: XoVmTemplate) => {
-  if (!newVmState?.pool?.default_SR) {
-    return
-  }
+const getBootFirmwares = computed(() => {
+  return [
+    ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
+  ]
+})
 
-  if (!template) {
-    return
-  }
+const getCopyHostBiosStrings = computed({
+  get: () => newVmState.boot_firmware !== 'uefi',
+  set: value => {
+    newVmState.boot_firmware = value ? 'bios' : 'uefi'
+  },
+})
 
-  const defaultSr = newVmState.pool.default_SR
-  return srs.value.find(sr => sr.id === defaultSr && sr.content_type !== 'iso' && sr.physical_usage > 0)
-}
+const getDefaultSr = computed(() => {
+  const defaultSr = newVmState.pool?.default_SR
+  return newVmState.pool ? getSr(defaultSr as Branded<'sr'>)?.name_label : ''
+})
+
+const getFilteredSrs = computed(() => {
+  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0)
+})
 
 const getVDis = (template: XoVmTemplate) => {
   const VdisArray: Disk[] = []
 
   template.template_info?.disks?.forEach((disk, index) => {
     if (!disk.size) {
-      return
+      return []
     }
-
-    const defaultSr = getDefaultSr(template)
 
     VdisArray.push({
       name_label: `${newVmState?.vm_name || 'disk'}_${index}_${generateRandomString(4)}`,
       name_description: t('new-vm.created-by-xo'),
       size: byteFormatter(disk.size),
-      SR: defaultSr ? getSr(defaultSr.id)?.name_label || '' : '',
+      SR: getDefaultSr.value ? getDefaultSr.value : '',
     })
   })
 
@@ -519,11 +533,11 @@ const getDefaultNetwork = (template: XoVmTemplate) => {
 
 const getExistingInterface = (template: XoVmTemplate) => {
   const existingInterfaces = [] as NetworkInterface[]
-  const defaultNetwork = getDefaultNetwork(template)
+  const defaultNetwork = getDefaultNetwork(template)[0]
 
-  if (template.VIFs.length === 0) {
+  if (template.VIFs.length === 0 && defaultNetwork) {
     existingInterfaces.push({
-      interface: defaultNetwork.length > 0 ? defaultNetwork[0].name_label : '',
+      interface: defaultNetwork.name_label,
       macAddress: '',
     })
   }
@@ -544,9 +558,9 @@ const getExistingInterface = (template: XoVmTemplate) => {
 const addNetworkInterface = () => {
   newVmState.new_vm_template = vmsTemplates.value[0]
   if (newVmState.new_vm_template) {
-    const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)
+    const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)[0]
     newVmState.networkInterfaces.push({
-      interface: defaultNetwork.length > 0 ? defaultNetwork[0].name_label : '',
+      interface: defaultNetwork ? defaultNetwork.name_label : '',
       macAddress: '',
     })
   }
@@ -574,12 +588,10 @@ const onTemplateChange = () => {
     newVmState.networkInterfaces = getExistingInterface(newVmState.new_vm_template)
     // console.log('Network Interfaces:', newVmState.networkInterfaces)
   }
-
-  // console.log(vmsTemplates.value)
 }
 
-const firmwares = computed(() => {
-  return ['bios', 'uefi']
+const totalDisks = computed(() => {
+  return newVmState.existingDisks?.length + newVmState.VDIs?.length
 })
 
 const coresPerSocketOptions = computed(() => {
@@ -648,6 +660,7 @@ watchEffect(() => {
 
 .system-container,
 .install-custom-config {
+  margin-block: 2.5rem;
   display: flex;
   gap: 10.8rem;
 
@@ -669,7 +682,8 @@ watchEffect(() => {
   margin: 1rem 0;
 }
 
-.install-ssh-key-container {
+.install-ssh-key-container,
+.multi-creation-toggle {
   margin-block-start: 3rem;
 }
 
@@ -686,8 +700,13 @@ watchEffect(() => {
 }
 
 .memory-container {
+  margin-block: 2.5rem;
   display: flex;
   gap: 10.8rem;
+}
+
+.settings-container {
+  margin-block: 2.5rem;
 }
 
 thead tr th {
