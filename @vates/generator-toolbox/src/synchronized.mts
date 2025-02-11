@@ -129,9 +129,6 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
     this.#parent = parent
     this.#uid = uid
   }
-  async [Symbol.asyncDispose](): Promise<void> {
-    await this.#parent.remove(this.#uid)
-  }
   next(): Promise<IteratorResult<T>> {
     return this.#parent.next(this.#uid)
   }

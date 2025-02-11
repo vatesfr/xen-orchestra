@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-
+    "target": "ES2024",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "strict": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "target": "ESNext",
-    "skipLibCheck": true
+    "declaration": true, // Generates `.d.ts` files for type safety
+    "outDir": "dist" // Outputs compiled code to the `dist` directory
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./node_modules", "./dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
