@@ -200,7 +200,7 @@
               <tr v-for="(disk, index) in newVmState.existingDisks" :key="index">
                 <td>
                   <FormSelect v-model="disk.SR">
-                    <option v-for="sr in srs" :key="sr.uuid" :value="sr.name_label">
+                    <option v-for="sr in getFilteredSrs" :key="sr.uuid" :value="sr.name_label">
                       {{ sr.name_label }}
                     </option>
                   </FormSelect>
@@ -229,7 +229,7 @@
               <tr v-for="(disk, index) in newVmState.VDIs" :key="index">
                 <td>
                   <FormSelect v-model="disk.SR">
-                    <option v-for="sr in srs" :key="sr.uuid" :value="sr.name_label">
+                    <option v-for="sr in getFilteredSrs" :key="sr.uuid" :value="sr.name_label">
                       {{ sr.name_label }}
                     </option>
                   </FormSelect>
@@ -389,8 +389,8 @@ const addStorageEntry = () => {
     newVmState.existingDisks.push({
       name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
       name_description: 'Created by XO',
-      size: '',
-      SR: getOpaqueRefSr(pool?.value?.default_SR)?.name_label || '',
+      size: 0,
+      SR: pool.value ? getOpaqueRefSr(pool.value.default_SR)?.name_label || '' : '',
     })
   }
 }
@@ -410,19 +410,13 @@ const isDiskTemplate = (template: XenApiVm) => {
   return template && template.VBDs.length !== 0 && template.name_label !== 'Other install media'
 }
 
-const getDefaultSr = (template: XenApiVm) => {
-  if (pool.value !== undefined) {
-    return pool.value.default_SR
-  }
+const getDefaultSr = computed(() => {
+  return pool && pool.value ? getOpaqueRefSr(pool.value?.default_SR)?.name_label : ''
+})
 
-  if (template === undefined) {
-    return
-  }
-
-  const defaultSr = pool.value?.default_SR || ''
-
-  return srs.value.filter(sr => sr.uuid === defaultSr.uuid && sr.content_type !== 'iso' && sr.physical_size > 0)
-}
+const getFilteredSrs = computed(() => {
+  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
+})
 
 const getVDis = (template: XenApiVm) => {
   const VdisArray = [] as Disk[]
@@ -442,7 +436,7 @@ const getVDis = (template: XenApiVm) => {
     name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     size: byteFormatter(Number(size)),
-    SR: getOpaqueRefSr(getDefaultSr(template))?.name_label,
+    SR: getDefaultSr.value,
   })
 
   return VdisArray
@@ -464,7 +458,7 @@ const getExistingDisks = (template: XenApiVm) => {
         name_label: vdi.name_label,
         name_description: vdi.name_description,
         size: byteFormatter(vdi.virtual_size),
-        SR: vdi.SR ? getOpaqueRefSr(vdi.SR)?.name_label : getDefaultSr(template),
+        SR: vdi.SR ? getOpaqueRefSr(vdi.SR)?.name_label : getDefaultSr.value,
       })
     }
   })
@@ -633,7 +627,7 @@ const createVM = async () => {
   console.log('VIFS: =>', data.value.VIFs)
 
   const vmRef = await xapi.vm.clone({ [templateRef]: newVmName })
-  console.log('Clone réussi, référence VM:', vmRef)
+  console.log('Clone réussi, référence VM :', vmRef)
 
   await Promise.all([
     xapi.vm.setNameLabel(vmRef, data.value.name_label),

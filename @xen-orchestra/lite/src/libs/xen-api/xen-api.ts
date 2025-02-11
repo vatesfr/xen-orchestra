@@ -378,10 +378,10 @@ export default class XenApi {
         )
       },
 
-      clone: (vmRefsToClone: VmRefsWithNameLabel) => {
+      clone: (vmRefsToClone: VmRefsWithNameLabel): Promise<XenApiVm['$ref'][]> => {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
 
-        return Promise.all(vmRefs.map(vmRef => this.call('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
+        return Promise.all(vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
       },
 
       provision: (vmRefs: VmRefs) => {
