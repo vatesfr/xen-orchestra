@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "dist/index.mjs",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^9.19.0",
