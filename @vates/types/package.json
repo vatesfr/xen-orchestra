@@ -2,7 +2,6 @@
   "name": "@vates/types",
   "private": false,
   "version": "0.0.0",
-  "description": "",
   "exports": {
     "./xo": "./dist/xo.d.mts",
     "./xen-api": "./dist/xen-api.d.mts",
@@ -17,15 +16,11 @@
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.23.0"
   },
-  "files": [
-    "./dist/**/*"
-  ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "yarn run build",
     "postversion": "npm publish --access public"
   },
-  "keywords": [],
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/types",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -37,5 +32,8 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=8.10"
   }
 }
