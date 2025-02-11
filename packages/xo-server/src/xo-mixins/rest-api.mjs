@@ -1523,11 +1523,7 @@ export default class RestApi {
           await app.deleteGroup(req.params.id)
           res.sendStatus(204)
         } catch (error) {
-          if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
-            return res.status(500).json({ message: 'Internal server error' })
-          }
-
-          throw error
+          return res.status(404).json({ message: error.message })
         }
       }, true)
     )
