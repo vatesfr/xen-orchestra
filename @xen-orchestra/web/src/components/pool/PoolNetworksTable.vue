@@ -3,14 +3,7 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiDropdownButton
-          v-tooltip="$t('coming-soon')"
-          disabled
-          :left-icon="faPlus"
-          variant="secondary"
-          accent="info"
-          size="medium"
-        >
+        <UiDropdownButton v-tooltip="$t('coming-soon')" disabled>
           {{ $t('new') }}
         </UiDropdownButton>
       </template>
@@ -144,7 +137,6 @@ import {
   faEdit,
   faEllipsis,
   faHashtag,
-  faPlus,
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'

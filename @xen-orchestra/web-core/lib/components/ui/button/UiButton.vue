@@ -19,7 +19,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
 type ButtonAccent = 'brand' | 'warning' | 'danger'
 type ButtonSize = 'small' | 'medium'
 
-const props = defineProps<{
+const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
   variant: ButtonVariant
   accent: ButtonAccent
   size: ButtonSize
@@ -33,7 +33,7 @@ defineSlots<{
   default(): any
 }>()
 
-const isDisabled = useDisabled(() => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 
 const fontClasses = {
   small: 'typo p3-medium',
@@ -42,13 +42,13 @@ const fontClasses = {
 }
 
 const classNames = computed(() => [
-  fontClasses[props.size],
+  fontClasses[size],
   toVariants({
-    accent: props.accent,
-    variant: props.variant,
-    size: props.size,
-    busy: props.busy,
-    lock: props.lockIcon,
+    accent,
+    variant,
+    size,
+    busy,
+    lock: lockIcon,
     disabled: isDisabled.value,
   }),
 ])

@@ -28,7 +28,7 @@
     :presets="{
       'Save Button': {
         props: {
-          accent: 'success',
+          accent: 'brand',
           leftIcon: faFloppyDisk,
           rightIcon: undefined,
         },

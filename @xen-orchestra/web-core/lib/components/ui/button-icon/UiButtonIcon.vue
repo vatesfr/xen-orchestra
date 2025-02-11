@@ -16,34 +16,37 @@ import { computed } from 'vue'
 type ButtonIconAccent = 'brand' | 'warning' | 'danger'
 type ButtonSize = 'small' | 'medium' | 'large'
 
-const props = withDefaults(
-  defineProps<{
-    icon: IconDefinition
-    size: ButtonSize
-    accent: ButtonIconAccent
-    disabled?: boolean
-    selected?: boolean
-    dot?: boolean
-    targetScale?: number | { x: number; y: number }
-  }>(),
-  { targetScale: 1 }
-)
+const {
+  accent,
+  size,
+  disabled,
+  selected,
+  targetScale = 1,
+} = defineProps<{
+  icon: IconDefinition
+  size: ButtonSize
+  accent: ButtonIconAccent
+  disabled?: boolean
+  selected?: boolean
+  dot?: boolean
+  targetScale?: number | { x: number; y: number }
+}>()
 
 const cssTargetScale = computed(() => {
-  if (typeof props.targetScale === 'number') {
-    return `scale(${props.targetScale})`
+  if (typeof targetScale === 'number') {
+    return `scale(${targetScale})`
   }
 
-  return `scale(${props.targetScale.x}, ${props.targetScale.y})`
+  return `scale(${targetScale.x}, ${targetScale.y})`
 })
 
 const classNames = computed(() => {
   return [
     toVariants({
-      accent: props.accent,
-      size: props.size,
-      muted: props.disabled,
-      selected: props.selected,
+      accent,
+      size,
+      muted: disabled,
+      selected,
     }),
   ]
 })
