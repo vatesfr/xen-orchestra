@@ -400,7 +400,7 @@ export default class Esxi extends EventEmitter {
     const taskId = res.returnval.$value
     let state = 'running'
     let info
-    for (let i = 0; i < 60 && state === 'running'; i++) {
+    for (let i = 0; i < 60; i++) {
       // https://developer.vmware.com/apis/1720/
       info = await this.fetchProperty('Task', taskId, 'info')
       state = info.state[0]
