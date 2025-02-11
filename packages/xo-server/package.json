@@ -82,7 +82,7 @@
     "fs-extra": "^11.1.0",
     "get-stream": "^7.0.1",
     "golike-defer": "^0.5.1",
-    "hashy": "^0.11.1",
+    "hashy": "^0.12.0",
     "helmet": "^3.9.0",
     "highland": "^2.11.1",
     "http-proxy": "^1.16.2",
