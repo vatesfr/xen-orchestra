@@ -1521,7 +1521,7 @@ export default class RestApi {
         const { id } = req.params
         await app.deleteUser(id)
         res.sendStatus(204)
-      })
+      }, true)
     )
   }
 
