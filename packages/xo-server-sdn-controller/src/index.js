@@ -183,9 +183,8 @@ async function generateCertificatesAndKey(dataDir) {
 
 // -----------------------------------------------------------------------------
 
-async function createTunnel(host, network, pif) {
+async function createTunnel(host, network, hostPif) {
   const otherConfig = network.other_config
-  const hostPif = pif
 
   if (hostPif === undefined) {
     log.error("Can't create tunnel: no available PIF", {
