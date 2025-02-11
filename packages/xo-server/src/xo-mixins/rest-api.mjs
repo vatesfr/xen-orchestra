@@ -1520,7 +1520,7 @@ export default class RestApi {
       json(),
       wrap(async (req, res) => {
         const { name, password, permission } = req.body
-        if (!name || !password) {
+        if (name != null || password != null) {
           return res.status(400).json({ message: 'Name and password are required.' })
         }
         const user = await app.createUser({ name, password, permission })
