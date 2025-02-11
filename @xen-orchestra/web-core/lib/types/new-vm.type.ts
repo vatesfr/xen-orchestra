@@ -3,6 +3,7 @@ export interface Disk {
   name_description: string
   size: number
   SR: string
+  type?: string
 }
 
 export interface NetworkInterface {
