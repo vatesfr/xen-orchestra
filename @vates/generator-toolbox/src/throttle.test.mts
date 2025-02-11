@@ -46,4 +46,18 @@ suite('it throttle one', () => {
     const end = Date.now()
     assert.strictEqual(Math.round((end - start) / 1000), 2)
   })
+  test(`it doesn't accept negative value`, async () => {
+    // 10MB/s
+    let throttler = new Throttle(-10 * 1024 * 1024)
+    let generator = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 10))
+    await assert.rejects(() => consumes(generator))
+
+    let index = 5
+    throttler = new Throttle(() => {
+      index--
+      return index > 0 ? 10 * 1024 * 1024 : -10 * 1024 * 1024
+    })
+    generator = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 10))
+    await assert.rejects(() => consumes(generator))
+  })
 })
