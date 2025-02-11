@@ -1517,20 +1517,19 @@ export default class RestApi {
 
     api.delete(
       '/:collection(groups)/:id',
+      json(),
       wrap(async (req, res) => {
-        const { id } = req.params
         try {
-          await app.deleteGroup(id)
+          await app.deleteGroup(req.params.id)
           res.sendStatus(204)
         } catch (error) {
-          json({ error: error.message })
-          if (noSuchObject.is(error)) {
-            res.status(404)
-          } else {
-            res.status(500)
+          if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
+            return res.status(500).json({ message: 'Internal server error' })
           }
+
+          throw error
         }
-      })
+      }, true)
     )
   }
 
