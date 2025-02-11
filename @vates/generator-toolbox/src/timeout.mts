@@ -7,8 +7,8 @@ export class Timeout<T> implements AsyncGenerator {
     this.#source = source
     this.#timeout = timeout
   }
-  [Symbol.asyncDispose](): PromiseLike<void> {
-    throw new Error('Method not implemented.')
+  async [Symbol.asyncDispose](): Promise<void> {
+    clearTimeout(this.#timeout)
   }
   async next(): Promise<IteratorResult<T>> {
     let timeout: ReturnType<typeof setTimeout>
