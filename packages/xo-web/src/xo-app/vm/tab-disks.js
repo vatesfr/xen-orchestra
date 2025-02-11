@@ -131,6 +131,13 @@ const COLUMNS_VM_PV = [
     sortCriteria: 'vdi.name_description',
   },
   {
+    itemRenderer: ({ vdi }) => (
+      <Text value={vdi.disk_format.join(', ')} onChange={value => editVdi(vdi, { disk_format: value })} />
+    ),
+    name: _('vdiDiskFormat'),
+    sortCriteria: 'vdi.disk_format',
+  },
+  {
     itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
     sortCriteria: 'vdi.size',

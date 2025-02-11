@@ -17,6 +17,7 @@
 - [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
 - [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
 - [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
+- [VDI] show format used in the disks lists (PR [8341](https://github.com/vatesfr/xen-orchestra/pull/8341))
 
 ### Bug fixes
 
@@ -54,5 +55,6 @@
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
 - xo-server-sdn-controller minor
+- xo-web minor
 
 <!--packages-end-->

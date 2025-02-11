@@ -1356,6 +1356,7 @@ const messages = {
   vdiTags: 'Tags',
   vdiTasks: 'VDI tasks',
   vdiSize: 'Size',
+  vdiDiskFormat: 'Format',
   vdiSr: 'SR',
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',

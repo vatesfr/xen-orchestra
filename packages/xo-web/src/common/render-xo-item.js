@@ -13,7 +13,7 @@ import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize, NumericDate, ShortDate } from './utils'
-import { createGetObject, createSelector } from './selectors'
+import { createGetObject, createSelector, createGetObjectsOfType } from './selectors'
 import {
   isSrWritable,
   subscribeBackupNgJobs,
@@ -222,16 +222,31 @@ export const Sr = decorate([
         (sr, showContainer) => showContainer && get(() => sr.$container)
       )
     )
+
+    const getVdis = createGetObjectsOfType('VDI');
+    console.log({getVdis})
+    const getSrVdis = createSelector(
+      getSr,
+      getVdis,
+      (sr, vdis) => {
+        const vdiArray = vdis ? Object.values(vdis) : []
+        return sr && sr.VDIs ? vdiArray.filter(vdi => sr.VDIs.includes(vdi.id)) : []
+      }
+    );
+
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       sr: getSr(state, props, props.self),
       container: getContainer(state, props),
+      vdis: getSrVdis(state, props)
     })
   }),
-  ({ id, sr, container, link, newTab, spaceLeft, self, name }) => {
+  ({ id, sr, container, link, newTab, spaceLeft, self, name, vdis }) => {
     if (sr === undefined) {
       return unknowItem(id, 'SR', name)
     }
+
+    console.log({sr, vdis})
 
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
@@ -240,10 +255,17 @@ export const Sr = decorate([
           <span className={!link && 'text-muted'}>
             {` (${formatSize(sr.size - sr.physical_usage)} free`}
             {sr.allocationStrategy !== undefined && ` - ${sr.allocationStrategy}`})
+            {sr.disk_format !== undefined && ` - ${sr.disk_format}`})
           </span>
         )}
         {!self && container !== undefined && <span className={!link && 'text-muted'}> - {container.name_label}</span>}
-      </LinkWrapper>
+        {sr.disk_format && <span className={!link && 'text-muted'}> - Format: {sr.disk_format}</span>}
+        {vdis.length > 0 && (
+          <span className={!link && 'text-muted'}>
+            {' - '}VDIs: {[...new Set(vdis.flatMap(vdi => vdi.disk_format).filter(Boolean))].join(', ')}
+          </span>
+        )}
+        </LinkWrapper>
     )
   },
 ])
@@ -285,6 +307,8 @@ export const Vdi = decorate([
     if (vdi === undefined) {
       return unknowItem(id, 'VDI')
     }
+
+    console.log({vdi})
 
     return (
       <span>
