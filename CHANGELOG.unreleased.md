@@ -15,7 +15,7 @@
 - **XO6**:
   - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
 - [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
-- [REST API] Ability to update a group's name and its users (PR [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278))
+- [REST API] Allow updating a group's name (PR [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278))
 
 ### Bug fixes
 
