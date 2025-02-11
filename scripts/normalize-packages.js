@@ -63,7 +63,7 @@ require('exec-promise')(() =>
       pkg.version = '0.0.0'
     }
     pkg.engines = {
-      node: '>=8.10',
+      node: '>=18',
       ...pkg.engines,
     }
 
