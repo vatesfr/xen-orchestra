@@ -941,29 +941,6 @@ export default class RestApi {
         },
       },
     }
-    collections.groups.actions = {
-      update: withParams(
-        async ({ id, name, userIds }, req) => {
-          const group = await app.getGroup(id)
-          if (group.provider !== undefined) {
-            throw new Error('Cannot edit synchronized group')
-          }
-
-          if (name !== undefined) {
-            await app.updateGroup(id, { name })
-          }
-
-          if (Array.isArray(userIds)) {
-            await app.setGroupUsers(id, userIds)
-          }
-        },
-        {
-          id: { type: 'string' },
-          name: { type: 'string', optional: true },
-          userIds: { type: 'array', items: { type: 'string' }, optional: true },
-        }
-      ),
-    }
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
@@ -1379,6 +1356,24 @@ export default class RestApi {
 
       res.json(result)
     })
+    // Generic route captures all PATCH requests, preventing group/update from being executed so patch/groups must be placed before patch/object
+    api.patch(
+      '/:collection(groups)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const { id } = req.params
+        const { name } = req.body
+
+        await app.getGroup(id)
+
+        if (name === undefined || name === null) {
+          return res.status(400).json({ message: 'Name is required' })
+        }
+
+        await app.updateGroup(id, { name })
+        res.sendStatus(200)
+      }, true)
+    )
     api
       .patch(
         '/:collection/:object',
