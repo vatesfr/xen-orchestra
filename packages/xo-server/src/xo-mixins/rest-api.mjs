@@ -1514,6 +1514,23 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+
+    api.post(
+      '/:collection(groups)/:groupid/users/:userid',
+      json(),
+      wrap(async (req, res) => {
+        const { groupid, userid } = req.params
+        const group = await app.getGroup(groupid)
+        await app.getUser(userid)
+
+        if (group.users.includes(userid)) {
+          return res.status(409).json({ message: 'User is already in this group' })
+        }
+        await app.addUserToGroup(userid, groupid)
+
+        res.sendStatus(200)
+      }, true)
+    )
   }
 
   registerRestApi(spec, base = '/') {
