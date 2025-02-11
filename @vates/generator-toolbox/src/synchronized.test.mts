@@ -23,7 +23,6 @@ async function consume(
     await new Promise(resolve => setTimeout(resolve, delay))
     if (await onConsumed(val, iterable)) {
       iterable.return(undefined)
-      break
     }
   }
 }

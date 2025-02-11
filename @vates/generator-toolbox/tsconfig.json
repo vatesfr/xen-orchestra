@@ -1,19 +1,14 @@
 {
   "compilerOptions": {
-    "allowJs": true, // Permet d'importer des fichiers .js
-    "checkJs": false, // Empêche TypeScript de signaler des erreurs dans les fichiers .js
-    "esModuleInterop": true, // Facilite les imports de modules CommonJS/ESM
-    // "resolveJsonModule": true,      // Permet d'importer des fichiers JSON
-    "skipLibCheck": true, // Ignore les erreurs de type dans les dépendances externes
-    "target": "es2017",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "declaration": true, // Generates `.d.ts` files for type safety
-    "outDir": "dist" // Outputs compiled code to the `dist` directory
-    //"verbatimModuleSyntax": true, // allow for type import, mandatory for node 23.6+
-    //"allowImportingTsExtensions": true, // allow using import *.mts
-    //"emitDeclarationOnly": true // don't build js, mandatory for allowimporinttsextension
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules", "./dist"]
 }

@@ -1,7 +1,4 @@
 import assert from 'node:assert'
-type WithLength = {
-  length: number
-}
 
 /**
  *
@@ -50,12 +47,11 @@ export class GeneratorThrottler {
     return { promise, timeout }
   }
 
-  async *createThrottledGenerator(source: AsyncGenerator): AsyncGenerator {
-    let timeout: ReturnType<typeof setTimeout>
+  async *createThrottledGenerator(source: AsyncGenerator<{ length: number }>): AsyncGenerator {
+    let timeout: ReturnType<typeof setTimeout> | undefined
     try {
       for await (const value of source) {
-        const res = this.getNextSlot((value as WithLength).length)
-
+        const res = this.getNextSlot(value.length)
         timeout = res.timeout
         // wait for the time slot before yielding the data
         if (res.promise !== undefined) {

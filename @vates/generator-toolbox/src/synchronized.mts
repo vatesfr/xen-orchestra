@@ -1,8 +1,8 @@
 import assert from 'node:assert'
 
-export class Synchronized<T> {
-  #source: AsyncGenerator<T>
-  #forks = new Map<string, Forked<T>>()
+export class Synchronized<T, TReturn, TNext> {
+  #source: AsyncGenerator<T, TReturn, TNext>
+  #forks = new Map<string, Forked<T, TReturn, TNext>>()
   #removedForks = new Set<string>()
   #waitingForks = new Set<string>()
   #started = false
@@ -13,13 +13,13 @@ export class Synchronized<T> {
     forksWaitingResolve: () => void
   }
 
-  constructor(source: AsyncGenerator<T>) {
+  constructor(source: AsyncGenerator<T, TReturn, TNext>) {
     this.#source = source
   }
 
   fork(uid: string): AsyncGenerator {
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
-    const fork = new Forked<T>(this, uid)
+    const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
     return fork
   }
@@ -46,14 +46,16 @@ export class Synchronized<T> {
       throw new Error(`trying to advance fork ${uid} that is not a fork of this one`)
     }
 
+    if (this.#waitingForks.has(uid)) {
+      throw new Error(`Fork ${uid} is already waiting`)
+    }
+
     this.#started = true
     if (this.#nextValueForksReady === undefined) {
       let forksWaitingResolve = () => {}
-      let forksWaitingReject: (reason?: Error) => void
+      let forksWaitingReject: (reason?: Error) => void = () => {}
       const next = this.#source.next().catch(async error => {
-        const e = new Error(`Error in the source generator ${error.message}`)
-        // @todo : why  can't I set the cause ?
-        //         e.cause = error
+        const e = new Error(`Error in the source generator ${error.message}`, { cause: error })
         forksWaitingReject(e)
         // source has failed, kill everything, and stop the forks
         for (const uid of [...this.#forks.keys()]) {
@@ -67,6 +69,7 @@ export class Synchronized<T> {
           forksWaitingReject = _reject
         }),
       ]).then(([_]) => _ as IteratorResult<T>)
+
       this.#nextValueForksReady = { promise, forksWaitingResolve, forksWaitingReject }
     }
     this.#waitingForks.add(uid)
@@ -100,13 +103,13 @@ export class Synchronized<T> {
 
     if (this.#forks.size === 0) {
       if (error === undefined) {
-        await this.#source.return(undefined)
+        await this.#source.return(undefined as TReturn)
       } else {
         await this.#source.throw(error)
       }
       // Reject any pending forks waiting for the next value
       if (this.#nextValueForksReady) {
-        this.#nextValueForksReady.forksWaitingReject(new Error('Source generator terminated.'))
+        this.#nextValueForksReady.forksWaitingReject(new Error('Source generator terminated.', { cause: error }))
         this.#nextValueForksReady = undefined
       }
     } else {
@@ -119,12 +122,15 @@ export class Synchronized<T> {
   }
 }
 
-class Forked<T> implements AsyncGenerator<T> {
-  #parent: Synchronized<T>
+class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
+  #parent: Synchronized<T, TReturn, TNext>
   #uid: string
-  constructor(parent: Synchronized<T>, uid: string) {
+  constructor(parent: Synchronized<T, TReturn, TNext>, uid: string) {
     this.#parent = parent
     this.#uid = uid
+  }
+  [Symbol.asyncDispose](): PromiseLike<void> {
+    throw new Error('Method not implemented.')
   }
   next(): Promise<IteratorResult<T>> {
     return this.#parent.next(this.#uid)
@@ -135,7 +141,7 @@ class Forked<T> implements AsyncGenerator<T> {
   async throw(e: Error): Promise<IteratorResult<T>> {
     return this.#parent.remove(this.#uid, e)
   }
-  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
+  async *[Symbol.asyncIterator](): AsyncGenerator<T, TReturn, TNext> {
     while (true) {
       const res = await this.next()
       if (res.done) {
@@ -143,5 +149,6 @@ class Forked<T> implements AsyncGenerator<T> {
       }
       yield res.value
     }
+    return undefined as TReturn
   }
 }

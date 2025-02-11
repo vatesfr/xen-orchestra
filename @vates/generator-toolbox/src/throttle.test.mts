@@ -8,7 +8,7 @@ async function* makeGenerator(chunkSize = 1024 * 1024, nbChunks = 100) {
   }
 }
 
-async function consumes(generator) {
+async function consumes(generator: AsyncGenerator) {
   // eslint-disable-next-line no-empty,@typescript-eslint/no-unused-vars
   for await (const data of generator) {
   }
