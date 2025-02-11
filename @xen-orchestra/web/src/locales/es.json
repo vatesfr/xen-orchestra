@@ -54,5 +54,7 @@
   "vms-status.inactive.tooltip": "Paradas o suspendidas",
   "vms-status.running": "En marcha",
   "vms-status.unknown": "Desconocido",
-  "vms-status.unknown.tooltip": "XO ha perdido su conección al conjunto de servidores"
+  "vms-status.unknown.tooltip": "XO ha perdido su conección al conjunto de servidores",
+  "xo-backups": "Backups de XO",
+  "xo-replications": "Replicaciones de XO"
 }
