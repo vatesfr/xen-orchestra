@@ -8,8 +8,9 @@
     "postversion": "npm publish --access public"
   },
   "repository": {
+    "directory": "@vates/fatfs",
     "type": "git",
-    "url": "https://github.com/vatesfr/xen-orchestra"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "keywords": [
     "filesystem",
@@ -20,13 +21,14 @@
   ],
   "author": "Vates SAS",
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/vatesfr/xen-orchestra/issues"
-  },
-  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fatfs",
   "dependencies": {
     "fifolock": "^1.0.0",
     "struct-fu": "^1.2.1",
     "xok": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=8.10"
   }
 }

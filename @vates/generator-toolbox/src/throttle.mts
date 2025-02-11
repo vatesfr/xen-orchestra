@@ -9,7 +9,7 @@ import assert from 'node:assert'
  * The source generator must yield object with a length property
  * Changing the speed will only be takin into account fot the next packets asked
  */
-export class GeneratorThrottler {
+export class Throttle {
   #previousSlot = 0
   #bytesPerSecond: number | (() => number)
   get speed(): number {

@@ -1,4 +1,4 @@
-import { GeneratorThrottler } from './throttle.mjs'
+import { Throttle } from './throttle.mjs'
 import { suite, test } from 'node:test'
 import assert from 'node:assert'
 
@@ -17,7 +17,7 @@ async function consumes(generator: AsyncGenerator) {
 suite('it throttle one', () => {
   test('base test', async () => {
     // 10MB/s
-    const throttler = new GeneratorThrottler(10 * 1024 * 1024)
+    const throttler = new Throttle(10 * 1024 * 1024)
     const throttled = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 20))
 
     const start = Date.now()
@@ -27,7 +27,7 @@ suite('it throttle one', () => {
   })
   test('variable speed test', async () => {
     // 10MB/s
-    const throttler = new GeneratorThrottler(() => 10 * 1024 * 1024)
+    const throttler = new Throttle(() => 10 * 1024 * 1024)
     const throttled = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 20))
 
     const start = Date.now()
@@ -37,7 +37,7 @@ suite('it throttle one', () => {
   })
   test('multiple generator test', async () => {
     // 10MB/s
-    const throttler = new GeneratorThrottler(10 * 1024 * 1024)
+    const throttler = new Throttle(10 * 1024 * 1024)
     const first = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 10))
     const second = throttler.createThrottledGenerator(makeGenerator(1024 * 1024, 10))
     const start = Date.now()

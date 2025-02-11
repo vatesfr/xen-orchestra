@@ -26,7 +26,7 @@ const streamToBuffer = stream => {
 
 let tempDir
 
-describe('VhdAbstract', { concurrency: 1 }, async () => {
+describe('VhdAbstract', async () => {
   beforeEach(async () => {
     tempDir = await pFromCallback(cb => tmp.dir(cb))
   })
