@@ -58,8 +58,9 @@ export class PrivateNetwork {
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
     const password = otherConfig['xo:sdn-controller:encrypted'] === 'true' ? createPassword() : undefined
 
-    const hostPif = this._getHostTransportPif(host)
-    const centerPif = this._getHostTransportPif(this.center)
+    const transportPif = await this.getTransportPif(network)
+    const hostPif = host.$PIFs.find(pif => pif.network === transportPif.network)
+    const centerPif = this.center.$PIFs.find(pif => pif.network === transportPif.network)
 
     assert(hostPif !== undefined, 'No PIF found', {
       privateNetwork: this.uuid,
@@ -153,6 +154,19 @@ export class PrivateNetwork {
     return pools
   }
 
+  /**
+   *
+   * @param {Network} network
+   * @returns {Pif} returns one transport_PIF of the private network
+   */
+  async getTransportPif(network) {
+    // ensure to get an fresh version of the network
+    network = await network.$xapi.getRecord('network', network.$ref)
+    const privatePif = network.$PIFs[0]
+    const tunnels = privatePif.$tunnel_access_PIF_of
+    return tunnels?.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
+  }
+
   // ---------------------------------------------------------------------------
 
   _reset() {
@@ -206,17 +220,5 @@ export class PrivateNetwork {
         return host
       }
     }
-  }
-
-  /**
-   *
-   * @param {Host} host
-   * @returns {Pif | undefined}
-   */
-  _getHostTransportPif(host) {
-    const network = this.networks[host.$pool.uuid]
-    const privatePif = host.$PIFs.find(pif => pif.$network.uuid === network.uuid)
-    const tunnels = privatePif?.$tunnel_access_PIF_of
-    return tunnels?.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
   }
 }
