@@ -142,7 +142,7 @@ The component would look like this:
 <template>
   <div>
     <slot name="icon">
-      <UiIcon :icon />
+      <VtsIcon :icon />
     </slot>
     <!--  rest of the code  -->
   </div>
@@ -161,7 +161,7 @@ defineSlots<{
 </script>
 ```
 
-In this case, you can use the `icon` prop for simple uses, and keep the flexibility of using the slot when needed, as the `UiIcon` component is overwritten when the slot is used.
+In this case, you can use the `icon` prop for simple uses, and keep the flexibility of using the slot when needed, as the `VtsIcon` component is overwritten when the slot is used.
 
 ## Component MUST use inline handler or inline function for event handling
 

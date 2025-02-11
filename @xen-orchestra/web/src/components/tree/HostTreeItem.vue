@@ -11,7 +11,7 @@
         />
       </template>
       <template #addons>
-        <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
+        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
         <UiCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
@@ -35,7 +35,7 @@ import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { HostBranch } from '@/types/tree.type'
 import type { HostState } from '@core/types/object-icon.type'
-import UiIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
