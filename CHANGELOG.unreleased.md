@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +36,7 @@
 <!--packages-start-->
 
 - @vates/types major
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
