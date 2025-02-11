@@ -1558,6 +1558,22 @@ export default class RestApi {
         res.sendStatus(204)
       }, true)
     )
+    api.delete(
+      '/:collection(groups)/:groupid/users/:userid',
+      json(),
+      wrap(async (req, res) => {
+        const { groupid, userid } = req.params
+        const group = await app.getGroup(groupid)
+        await app.getUser(userid)
+
+        if (!group.users.includes(userid)) {
+          return res.status(409).json({ message: 'User not found in this group' })
+        }
+        await app.removeUserFromGroup(userid, groupid)
+
+        res.sendStatus(204)
+      }, true)
+    )
 
     api.delete(
       '/:collection(groups)/:id',
