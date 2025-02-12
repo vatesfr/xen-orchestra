@@ -1,8 +1,9 @@
 export interface Disk {
   name_label: string
   name_description: string
-  size: number
+  size?: number
   SR: string | undefined
+  type?: string
 }
 
 export interface NetworkInterface {
