@@ -164,7 +164,7 @@ export class PrivateNetwork {
     network = await network.$xapi.getRecord('network', network.$ref)
     const privatePif = network.$PIFs[0]
     const tunnels = privatePif.$tunnel_access_PIF_of
-    return tunnels?.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
+    return tunnels.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
   }
 
   // ---------------------------------------------------------------------------
