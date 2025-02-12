@@ -50,6 +50,8 @@ To check a template’s settings in Xen Orchestra:
 2. Check the box next to the template(s) you want to inspect.
 3. Click the hamburger button at the corresponding line to see details like CPU, RAM, and template tags.
 
+![Basic template details from the Xen Orchestra UI](./assets/template-details-ui.png)
+
 ### From the REST API
 
 If you need more technical details that aren’t shown in the UI, you can use the Xen Orchestra API to dig deeper.
