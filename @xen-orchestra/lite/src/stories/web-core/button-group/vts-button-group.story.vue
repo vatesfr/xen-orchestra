@@ -7,8 +7,8 @@
     ]"
   >
     <VtsButtonGroup v-bind="properties">
-      <UiButton variant="secondary" accent="info" size="medium">Cancel</UiButton>
-      <UiButton variant="primary" accent="info" size="medium">Call to action</UiButton>
+      <UiButton variant="secondary" accent="brand" size="medium">Cancel</UiButton>
+      <UiButton variant="primary" accent="brand" size="medium">Call to action</UiButton>
       <template #tertiary>
         <UiButton variant="tertiary" accent="warning" size="medium">Secondary call to action</UiButton>
       </template>

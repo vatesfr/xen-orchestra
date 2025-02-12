@@ -3,14 +3,7 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiDropdownButton
-          v-tooltip="$t('coming-soon')"
-          disabled
-          :left-icon="faPlus"
-          variant="secondary"
-          accent="info"
-          size="medium"
-        >
+        <UiDropdownButton v-tooltip="$t('coming-soon')" disabled>
           {{ $t('new') }}
         </UiDropdownButton>
       </template>
@@ -24,7 +17,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}
@@ -34,7 +27,7 @@
             disabled
             :left-icon="faCopy"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('copy-info-json') }}
@@ -66,7 +59,7 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -97,7 +90,7 @@
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
                 :icon="faEllipsis"
-                accent="info"
+                accent="brand"
                 disabled
                 size="small"
               />
@@ -146,7 +139,6 @@ import {
   faEdit,
   faEllipsis,
   faHashtag,
-  faPlus,
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'

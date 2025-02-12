@@ -1,5 +1,5 @@
 <template>
-  <UiButton size="medium" accent="info" variant="primary" :busy="modal.isBusy" type="submit">
+  <UiButton size="medium" accent="brand" variant="primary" :busy="modal.isBusy" type="submit">
     <slot />
   </UiButton>
 </template>

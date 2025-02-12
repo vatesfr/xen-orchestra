@@ -24,7 +24,7 @@
                   VM {{ i }}.{{ j }}
                   <template #addons>
                     <VtsIcon v-if="j === 2" busy accent="current" />
-                    <VtsButtonIcon accent="info" size="medium" :icon="faEllipsis" />
+                    <UiButtonIcon accent="brand" size="medium" :icon="faEllipsis" />
                   </template>
                 </UiTreeItemLabel>
               </VtsTreeItem>
@@ -38,7 +38,7 @@
 ```
 
 ```vue-script
-import VtsButtonIcon from '@core/components/button-icon/VtsButtonIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import VtsCounter from '@core/components/counter/VtsCounter.vue'
 import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'

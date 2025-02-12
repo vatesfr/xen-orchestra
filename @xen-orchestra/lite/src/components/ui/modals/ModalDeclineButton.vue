@@ -1,5 +1,5 @@
 <template>
-  <UiButton size="medium" accent="info" variant="secondary" :busy="modal.isBusy" @click="modal.decline()">
+  <UiButton size="medium" accent="brand" variant="secondary" :busy="modal.isBusy" @click="modal.decline()">
     <slot>{{ $t('cancel') }}</slot>
   </UiButton>
 </template>
