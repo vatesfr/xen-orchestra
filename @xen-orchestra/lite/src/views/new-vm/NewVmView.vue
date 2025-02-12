@@ -44,7 +44,7 @@
             </div>
             <div class="install-ssh-key">
               <UiInput v-model="newVmState.ssh_key" placeholder="Paste public key" accent="info" />
-              <UiButton accent="info" size="medium" variant="primary" @click="addSshKey">
+              <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
                 {{ $t('add') }}
               </UiButton>
             </div>
@@ -112,8 +112,15 @@
           <UiInput v-model="newVmState.tags" :label-icon="faTags" accent="info" href="''">
             {{ $t('new-vm.tags') }}
           </UiInput>
-          <UiInput v-model="newVmState.boot_firmware" accent="info" href="''">{{ $t('new-vm.boot-firmware') }}</UiInput>
-          <UiCheckbox v-model="newVmState.bios" accent="info">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+          <div>
+            <UiLabel accent="neutral" href="''">{{ $t('new-vm.boot-firmware') }}</UiLabel>
+            <FormSelect v-model="newVmState.boot_firmware">
+              <option v-for="boot in getBootFirmwares" :key="boot" :value="boot">
+                {{ boot === undefined ? t('bios-default') : boot }}
+              </option>
+            </FormSelect>
+          </div>
+          <UiCheckbox v-model="getCopyHostBiosStrings" accent="info">{{ $t('new-vm.copy-host') }}</UiCheckbox>
         </div>
         <div class="col-right">
           <UiTextarea v-model="newVmState.vm_description" accent="info" href="''">
@@ -125,7 +132,7 @@
       <!--      MEMORY SECTION -->
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
-        <UiInput v-model="newVmState.vcpu" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
+        <UiInput v-model="newVmState.vCPU" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
         <UiInput v-model="newVmState.ram" accent="info" href="''">{{ $t('new-vm.ram') }}</UiInput>
         <UiInput v-model="newVmState.topology" accent="info" href="''">{{ $t('new-vm.topology') }}</UiInput>
       </div>
@@ -158,7 +165,7 @@
                 <UiButtonIcon
                   :icon="faTrash"
                   size="medium"
-                  accent="info"
+                  accent="brand"
                   variant="secondary"
                   @click="newVmState.networkInterfaces.splice(index, 1)"
                 />
@@ -169,7 +176,7 @@
                 <UiButton
                   :left-icon="faPlus"
                   variant="tertiary"
-                  accent="info"
+                  accent="brand"
                   size="medium"
                   @click="addNetworkInterface"
                 >
@@ -209,7 +216,7 @@
                   <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="info" />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
@@ -218,7 +225,7 @@
                   <UiButtonIcon
                     :icon="faTrash"
                     size="medium"
-                    accent="info"
+                    accent="brand"
                     variant="secondary"
                     @click="newVmState.existingDisks.splice(index, 1)"
                   />
@@ -238,7 +245,7 @@
                   <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="info" />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
@@ -247,7 +254,7 @@
                   <UiButtonIcon
                     :icon="faTrash"
                     size="medium"
-                    accent="info"
+                    accent="brand"
                     variant="secondary"
                     @click="newVmState.VDIs.splice(index, 1)"
                   />
@@ -256,7 +263,7 @@
             </template>
             <tr>
               <td colspan="5">
-                <UiButton :left-icon="faPlus" variant="tertiary" accent="info" size="medium" @click="addStorageEntry">
+                <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addStorageEntry">
                   {{ $t('new-vm.new') }}
                 </UiButton>
               </td>
@@ -278,17 +285,21 @@
       <div class="summary-container">
         <VtsResources>
           <VtsResource :icon="faDisplay" count="1" label="VMs" />
-          <VtsResource :icon="faMicrochip" :count="newVmState.vcpu" label="vCPUs" />
+          <VtsResource :icon="faMicrochip" :count="newVmState.vCPU" label="vCPUs" />
           <VtsResource :icon="faMemory" :count="newVmState.ram" label="RAM" />
-          <VtsResource :icon="faDatabase" :count="newVmState.existingDisks.length" label="SR" />
+          <VtsResource
+            :icon="faDatabase"
+            :count="newVmState.existingDisks.length + newVmState.VDIs.length"
+            label="SR"
+          />
           <VtsResource :icon="faNetworkWired" :count="newVmState.networkInterfaces.length" label="Interfaces" />
         </VtsResources>
       </div>
       <div class="footer">
         <RouterLink :to="{ name: 'home' }">
-          <UiButton variant="secondary" accent="info" size="medium">{{ $t('cancel') }}</UiButton>
+          <UiButton variant="secondary" accent="brand" size="medium">{{ $t('cancel') }}</UiButton>
         </RouterLink>
-        <UiButton variant="primary" accent="info" size="medium" @click="createVM">{{ $t('new-vm.create') }}</UiButton>
+        <UiButton variant="primary" accent="brand" size="medium" @click="createVM">{{ $t('new-vm.create') }}</UiButton>
       </div>
     </UiCard>
   </div>
@@ -297,7 +308,7 @@
 <script setup lang="ts">
 import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -320,6 +331,7 @@ import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTextarea from '@core/components/ui/input/UiTextarea.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
@@ -335,6 +347,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, reactive, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { templates } = useVmStore().subscribe()
 const { records: srs, vdisGroupedBySrName, getByOpaqueRef: getOpaqueRefSr } = useSrStore().subscribe()
@@ -344,6 +357,8 @@ const { getByOpaqueRef: getOpaqueRefVdi } = useVdiStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefVif } = useVifStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefPif } = usePifStore().subscribe()
 const { records: networks, getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
+
+const { t } = useI18n()
 
 const newVmState = reactive({
   vm_name: '',
@@ -355,23 +370,24 @@ const newVmState = reactive({
   affinity_host: '',
   boot_firmware: '',
   new_vm_template: null as XenApiVm | null,
-  boot_vm: false,
+  boot_vm: true,
   auto_power: false,
   fast_clone: false,
   ssh_key: '',
   selectedVdi: '',
   networkConfig: '',
   cloudConfig: '',
-  vcpu: 0,
+  vCPU: 0,
   ram: 0,
   topology: '',
-  bios: false,
+  bios_strings: '',
+  copyHostBiosStrings: false,
   sshKeys: [] as string[],
   isDiskTemplateSelected: false,
   existingDisks: [] as Disk[],
   VDIs: [] as Disk[],
   networkInterfaces: [] as NetworkInterface[],
-  defautNetwork: null,
+  defaultNetwork: null,
 })
 
 const byteFormatter = (value: number) => {
@@ -386,11 +402,11 @@ const generateRandomString = (length: number): string => {
 
 const addStorageEntry = () => {
   if (newVmState.new_vm_template) {
-    newVmState.existingDisks.push({
+    newVmState.VDIs.push({
       name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
       name_description: 'Created by XO',
-      size: 0,
       SR: pool.value ? getOpaqueRefSr(pool.value.default_SR)?.name_label || '' : '',
+      type: 'system',
     })
   }
 }
@@ -410,12 +426,30 @@ const isDiskTemplate = (template: XenApiVm) => {
   return template && template.VBDs.length !== 0 && template.name_label !== 'Other install media'
 }
 
+const getAutomaticNetwork = computed(() => {
+  return networks.value.filter(network => {
+    return network.other_config.automatic === 'true'
+  })
+})
+
+const getBootFirmwares = computed(() => {
+  return [...new Set(templates.value.map(template => template.HVM_boot_params.firmware))]
+})
+
+const getCopyHostBiosStrings = computed(() => {
+  return newVmState.boot_firmware !== 'uefi'
+})
+
 const getDefaultSr = computed(() => {
   return pool && pool.value ? getOpaqueRefSr(pool.value?.default_SR)?.name_label : ''
 })
 
 const getFilteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
+})
+
+const poolName = computed(() => {
+  return pool.value?.name_label
 })
 
 const getVDis = (template: XenApiVm) => {
@@ -429,7 +463,7 @@ const getVDis = (template: XenApiVm) => {
   const size = diskElement?.getAttribute('size')
 
   if (size === undefined) {
-    return
+    return []
   }
 
   VdisArray.push({
@@ -466,20 +500,14 @@ const getExistingDisks = (template: XenApiVm) => {
   return existingDisksArray
 }
 
-const getAutomaticNetwork = computed(() => {
-  return networks.value.filter(network => {
-    return network.other_config.automatic === 'true'
-  })
-})
-
 const getDefaultNetwork = (template: XenApiVm) => {
   if (template === undefined) {
     return []
   }
 
-  const automaticNetworks = getAutomaticNetwork
+  const automaticNetworks = getAutomaticNetwork.value
 
-  if (automaticNetworks.value.length !== 0) {
+  if (automaticNetworks.length !== 0) {
     return automaticNetworks
   }
 
@@ -493,11 +521,11 @@ const getDefaultNetwork = (template: XenApiVm) => {
 
 const getExistingInterface = (template: XenApiVm) => {
   const existingInterfaces = [] as NetworkInterface[]
-  const defaultNetworkIds = getDefaultNetwork(template)
+  const defaultNetwork = getDefaultNetwork(template)[0] as XenApiNetwork
 
-  if (template.VIFs.length === 0) {
+  if (template.VIFs.length === 0 && defaultNetwork) {
     existingInterfaces.push({
-      interface: defaultNetworkIds.value[0].name_label,
+      interface: defaultNetwork.name_label,
       macAddress: '',
     })
   }
@@ -517,14 +545,15 @@ const getExistingInterface = (template: XenApiVm) => {
 
 const addNetworkInterface = () => {
   if (newVmState.new_vm_template) {
-    const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)
+    const defaultNetwork = getDefaultNetwork(newVmState.new_vm_template)[0] as XenApiNetwork
 
     newVmState.networkInterfaces.push({
-      interface: defaultNetwork ? defaultNetwork?.value[0].name_label : '',
+      interface: defaultNetwork ? defaultNetwork.name_label : '',
       macAddress: '',
     })
   }
 }
+
 const onTemplateChange = () => {
   if (newVmState.new_vm_template) {
     newVmState.isDiskTemplateSelected = isDiskTemplate(newVmState.new_vm_template)
@@ -535,8 +564,10 @@ const onTemplateChange = () => {
         ? ''
         : newVmState.new_vm_template.name_description
     newVmState.boot_firmware = newVmState.new_vm_template.HVM_boot_params.firmware
-    newVmState.vcpu = newVmState.new_vm_template.VCPUs_at_startup
+    newVmState.vCPU = newVmState.new_vm_template.VCPUs_at_startup
     newVmState.ram = byteFormatter(newVmState.new_vm_template.memory_dynamic_max)
+
+    newVmState.bios_strings = newVmState.new_vm_template.bios_strings
 
     newVmState.VDIs = getVDis(newVmState.new_vm_template)
     console.log('VDIs Disks:', newVmState.VDIs)
@@ -546,12 +577,9 @@ const onTemplateChange = () => {
 
     newVmState.networkInterfaces = getExistingInterface(newVmState.new_vm_template)
     console.log('Network Interfaces:', newVmState.networkInterfaces)
+    console.log('getBootFirmwares getBootFirmwares:', getBootFirmwares)
   }
 }
-
-const poolName = computed(() => {
-  return pool.value?.name_label
-})
 
 const data2 = {
   affinityHost: null,
@@ -564,7 +592,7 @@ const data2 = {
   VIFs: newVmState.networkInterfaces,
   resourceSet: null,
   coresPerSocket: undefined,
-  CPUs: newVmState.vcpu,
+  CPUs: newVmState.vCPU,
   cpusMax: 0,
   cpuWeight: null,
   cpuCap: null,
@@ -602,12 +630,12 @@ const data = computed(() => ({
     network: net.interface,
     mac: net.macAddress,
   })),
-  CPUs: newVmState.vcpu,
+  CPUs: newVmState.vCPU,
   name_description: newVmState.vm_description,
   memory: newVmState.ram,
   autoPoweron: newVmState.auto_power,
   bootAfterCreate: newVmState.boot_vm,
-  copyHostBiosStrings: newVmState.bios,
+  copyHostBiosStrings: newVmState.copyHostBiosStrings,
   hvmBootFirmware: newVmState.boot_firmware,
   tags: newVmState.tags.split(',').map(tag => tag.trim()),
   cloudConfig: '',
@@ -680,11 +708,13 @@ watchEffect(() => {
   .col-left {
     display: flex;
     flex-direction: column;
+    gap: 2.5rem;
   }
 
   .col-right {
     display: flex;
     flex-direction: column;
+    gap: 2.5rem;
   }
 }
 
@@ -707,6 +737,7 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 50%;
 }
 
 .install-chips {
