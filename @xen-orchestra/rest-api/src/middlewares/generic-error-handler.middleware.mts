@@ -12,7 +12,7 @@ const log = createLogger('xo:rest-api:error-handler')
 
 // must have 4 parameters to be recognized as an error middleware by express
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function notFoundErrorMiddleware(error: unknown, req: Request, res: Response, _next: NextFunction) {
+export default function genericErrorHandler(error: unknown, req: Request, res: Response, _next: NextFunction) {
   if (!(error instanceof Error)) {
     log.error(error)
     res.status(500).json({ error })
