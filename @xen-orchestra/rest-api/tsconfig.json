@@ -6,13 +6,11 @@
     "strict": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "target": "ESNext",
+    "target": "ES2023",
     "skipLibCheck": true,
 
-    "resolveJsonModule": true,
-
     /* Experimental options */
-    "experimentalDecorators": true
+    "experimentalDecorators": true // used by the TSOA framework
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules", "./dist"]

@@ -7,12 +7,12 @@
   "name": "@xen-orchestra/rest-api",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/rest-api",
   "version": "0.0.0",
-  "description": "",
+  "description": "REST API to manage your XOA",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.18"
   },
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",
@@ -31,7 +31,10 @@
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0"
   },
-  "files": [
-    "dist"
-  ]
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/rest-api",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  }
 }

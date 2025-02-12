@@ -3,7 +3,7 @@
   "noImplicitAdditionalProperties": "throw-on-extras",
   "controllerPathGlobs": ["./src/**/*.controller.mts"],
   "spec": {
-    "outputDirectory": "./src/open-api/spec",
+    "outputDirectory": "./open-api/spec",
     "specVersion": 3,
     "basePath": "/rest/v0"
   },
