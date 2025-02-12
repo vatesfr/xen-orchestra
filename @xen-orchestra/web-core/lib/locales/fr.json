@@ -44,6 +44,7 @@
   "backups.vms-protection.protected": "Dans au moins 1 job et protégé",
   "backups.vms-protection.tooltip": "Une VM est protégée si elle se trouve dans un job, avec une planification activée, et si la dernière exécution a réussi",
   "backups.vms-protection.unprotected": "Dans au moins 1 job mais sans protection",
+  "bios-default": "bios (défaut)",
   "bond": "Bond",
   "bond-devices": "Devices du bond",
   "bond-status": "Statut du bond",
