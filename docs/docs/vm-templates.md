@@ -47,7 +47,7 @@ To know more on VM creation, read the [Infrastructure Management → VM Creation
 To check a template’s settings in Xen Orchestra:
 
 1. Head to the **Home → Templates** section.
-2. Check the box next to the template(s) you want to copy.
+2. Check the box next to the template(s) you want to inspect.
 3. Open the **Advanced** tab to see details like CPU, RAM, and other settings.
 
 ### From the REST API
