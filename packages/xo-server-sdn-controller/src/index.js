@@ -1,6 +1,7 @@
 import assert from 'assert'
 import NodeOpenssl from 'node-openssl-cert'
 import { access, constants, readFile, writeFile } from 'fs'
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { filter, find, forOwn, map, omitBy } from 'lodash'
@@ -721,14 +722,12 @@ class SDNController extends EventEmitter {
 
       // For each pool's host, create a tunnel to the private network
       const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
-      await Promise.all(
-        map(hosts, async host => {
-          const hostPif = host.$PIFs.find(_pif => _pif.network === pif.network)
-          await createTunnel(host, createdNetwork, hostPif)
-          this._getOrCreateOvsdbClient(host)
-          this._getOrCreateOfChannel(host)
-        })
-      )
+      await asyncEach(hosts, async host => {
+        const hostPif = host.$PIFs.find(_pif => _pif.network === pif.network)
+        await createTunnel(host, createdNetwork, hostPif)
+        this._getOrCreateOvsdbClient(host)
+        this._getOrCreateOfChannel(host)
+      })
       await this._setPoolControllerIfNeeded(pool)
 
       await privateNetwork.addNetwork(createdNetwork)
