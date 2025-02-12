@@ -1559,17 +1559,16 @@ export default class RestApi {
       }, true)
     )
     api.delete(
-      '/:collection(groups)/:groupid/users/:userid',
-      json(),
+      '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {
-        const { groupid, userid } = req.params
-        const group = await app.getGroup(groupid)
-        await app.getUser(userid)
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
 
-        if (!group.users.includes(userid)) {
-          return res.status(409).json({ message: 'User not found in this group' })
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot remove user from synchronized group' })
         }
-        await app.removeUserFromGroup(userid, groupid)
+
+        await app.removeUserFromGroup(userId, id)
 
         res.sendStatus(204)
       }, true)
