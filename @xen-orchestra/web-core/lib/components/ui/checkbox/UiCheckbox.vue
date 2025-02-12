@@ -33,7 +33,7 @@ type CheckboxAccent = 'brand' | 'warning' | 'danger'
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps<{
+const { accent, disabled } = defineProps<{
   accent: CheckboxAccent
   disabled?: boolean
   wrapperAttrs?: LabelHTMLAttributes
@@ -46,11 +46,11 @@ const slots = defineSlots<{
   info?(): any
 }>()
 
-const isDisabled = useDisabled(() => props.disabled)
+const isDisabled = useDisabled(() => disabled)
 
 const classNames = computed(() => [
   toVariants({
-    accent: props.accent,
+    accent,
     disabled: isDisabled.value,
   }),
 ])
