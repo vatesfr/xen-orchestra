@@ -1356,7 +1356,8 @@ export default class RestApi {
 
       res.json(result)
     })
-    // Generic route captures all PATCH requests, preventing group/update from being executed so patch/groups must be placed before patch/object
+
+    // should go before routes /:collection/:object because they will match before
     api.patch(
       '/:collection(groups)/:id',
       json(),
@@ -1364,14 +1365,17 @@ export default class RestApi {
         const { id } = req.params
         const { name } = req.body
 
-        await app.getGroup(id)
+        const group = await app.getGroup(id)
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'Cannot edit synchronized group' })
+        }
 
-        if (name === undefined || name === null) {
-          return res.status(400).json({ message: 'Name is required' })
+        if (name == null) {
+          return res.status(400).json({ message: 'name is required' })
         }
 
         await app.updateGroup(id, { name })
-        res.sendStatus(200)
+        res.sendStatus(204)
       }, true)
     )
     api
