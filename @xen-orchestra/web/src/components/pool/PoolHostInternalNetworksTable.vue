@@ -52,7 +52,7 @@
             <tr>
               <template v-for="column of visibleColumns" :key="column.id">
                 <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="info" disabled />
+                  <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
                 </th>
                 <th v-else-if="column.id === 'more'" class="more">
                   <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
@@ -80,7 +80,7 @@
                 :class="{ checkbox: column.id === 'checkbox' }"
               >
                 <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                  <UiCheckbox v-model="selected" accent="info" :value="row.id" disabled />
+                  <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
                 </div>
                 <UiButtonIcon
                   v-else-if="column.id === 'more'"

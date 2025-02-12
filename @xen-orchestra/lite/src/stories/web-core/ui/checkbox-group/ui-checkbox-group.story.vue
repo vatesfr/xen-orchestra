@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
+      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
       prop('label').str().widget().preset('Label'),
       prop('info').str().widget().preset('message'),
       prop('vertical').bool().widget(),
