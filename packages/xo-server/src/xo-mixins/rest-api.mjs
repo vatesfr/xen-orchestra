@@ -1533,15 +1533,6 @@ export default class RestApi {
       })
     )
 
-    api.patch(
-      '/groups/update/:id',
-      json(),
-      wrap(async (req, res) => {
-        await collections.groups.actions.update(req.body, req)
-        res.sendStatus(200)
-      })
-    )
-
     setupRestApi(express)
   }
 
