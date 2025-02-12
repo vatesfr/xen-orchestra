@@ -1520,11 +1520,18 @@ export default class RestApi {
       json(),
       wrap(async (req, res) => {
         const { name } = req.body
-        if (name === undefined || name === null) {
+        if (name == null) {
           return res.status(400).json({ message: 'Name is required' })
         }
-        const id = await app.createGroup({ name })
-        res.status(201).json(id)
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ message: error.message })
+          }
+          throw error
+        }
       })
     )
   }
