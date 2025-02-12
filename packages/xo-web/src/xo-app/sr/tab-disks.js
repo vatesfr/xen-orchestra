@@ -102,6 +102,11 @@ const COLUMNS = [
     itemRenderer: vdi => vdi.tags,
   },
   {
+    name: _('vdiDiskFormat'),
+    itemRenderer: vdi => vdi.disk_format,
+    sortCriteria: vdi => vdi.disk_format,
+  },
+  {
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size,
