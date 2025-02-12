@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').required().enum('info', 'success', 'warning', 'danger').preset('info').widget(),
+      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
       prop('disabled').bool().widget(),
       slot().help('Meant to receive a label'),
       setting('defaultSlot').widget(text()).preset('Label'),
