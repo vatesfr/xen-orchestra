@@ -15,7 +15,7 @@
         <UiCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
-          accent="info"
+          accent="brand"
           variant="secondary"
           size="small"
         />
