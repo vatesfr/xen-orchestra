@@ -42,14 +42,17 @@ defineSlots<{
   :deep(tbody) tr {
     &:hover {
       cursor: pointer;
-      background-color: var(--color-info-background-hover);
+      background-color: var(--color-brand-background-hover);
     }
+
     &:active {
-      background-color: var(--color-info-background-active);
+      background-color: var(--color-brand-background-active);
     }
+
     &.selected {
-      background-color: var(--color-info-background-selected);
+      background-color: var(--color-brand-background-selected);
     }
+
     &:last-child {
       border-bottom: 0.1rem solid var(--color-neutral-border);
     }

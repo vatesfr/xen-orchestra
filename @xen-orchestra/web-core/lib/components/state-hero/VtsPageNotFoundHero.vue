@@ -19,7 +19,7 @@ defineProps<{
   margin-top: 4rem;
 
   .numeric {
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
     font-size: 9.6rem;
     font-weight: 900;
     letter-spacing: 1em;

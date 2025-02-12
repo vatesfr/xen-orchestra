@@ -39,6 +39,6 @@ import { faPlus, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 <style lang="postcss" scoped>
 .loader {
   font-size: 2rem;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 }
 </style>
