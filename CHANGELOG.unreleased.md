@@ -12,7 +12,9 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
-- [REST API] Swagger interface available on `/rest/v0` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
+- **XO6**:
+  - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
+- [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
 
 ### Bug fixes
 
@@ -36,6 +38,7 @@
 
 - @vates/types major
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor

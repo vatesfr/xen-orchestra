@@ -8,7 +8,7 @@
           disabled
           :left-icon="faPlus"
           variant="secondary"
-          accent="info"
+          accent="brand"
           size="medium"
         >
           {{ $t('scan-pifs') }}
@@ -24,7 +24,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}
@@ -52,7 +52,7 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -83,7 +83,7 @@
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
                 :icon="faEllipsis"
-                accent="info"
+                accent="brand"
                 disabled
                 size="small"
               />
