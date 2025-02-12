@@ -8,11 +8,20 @@ import { RandomAccessDisk, type DiskBlock, type PortableDisk } from './PortableD
  * qcow2 use 64KB clusters, and can use subclusters
  */
 export class BlockSizeChanger extends RandomAccessDisk {
+
   #source: RandomAccessDisk
+  #blockSize
   constructor(source: RandomAccessDisk, blockSize: number) {
     super()
     this.#source = source
-    this.blockSize = blockSize
+    this.#blockSize = this.#blockSize = blockSize
+  }  
+  
+  getVirtualSize(): number {
+    return this.#source.getVirtualSize()
+  }
+  getBlockSize(): number {
+    return this.#blockSize
   }
   readBlock(index: number): Promise<DiskBlock> {
     throw new Error('Method not implemented.')
@@ -20,8 +29,7 @@ export class BlockSizeChanger extends RandomAccessDisk {
   buildDiskBlockGenerator(): AsyncGenerator<DiskBlock, void, unknown> {
     throw new Error('Method not implemented.')
   }
-  generatedDiskBlocks: number
-  yieldedDiskBlocks: number
+  
   init(): Promise<void> {
     return this.#source.init()
   }
@@ -30,7 +38,7 @@ export class BlockSizeChanger extends RandomAccessDisk {
   }
   async openParent(): Promise<PortableDisk> {
     const parent = (await this.#source.openParent()) as RandomAccessDisk
-    return new BlockSizeChanger(parent, this.blockSize)
+    return new BlockSizeChanger(parent, this.#blockSize)
   }
   isDifferencing(): boolean {
     return this.#source.isDifferencing()

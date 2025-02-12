@@ -5,7 +5,6 @@ exports.checkFooter = require('./checkFooter')
 exports.checkVhdChain = require('./checkChain')
 exports.createReadableSparseStream = require('./createReadableSparseStream')
 exports.createVhdStreamWithLength = require('./createVhdStreamWithLength')
-exports.isVhdDifferencingDisk = require('./isVhdDifferencingDisk')
 exports.peekFooterFromVhdStream = require('./peekFooterFromVhdStream')
 exports.openVhd = require('./openVhd').openVhd
 exports.VhdAbstract = require('./Vhd/VhdAbstract').VhdAbstract

@@ -241,8 +241,8 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
         const streamBuilder = new VhdStream(disk)
-
-        await vdi.$importContent(streamBuilder.toStream(), { cancelToken, format: 'vhd' })
+        const stream = streamBuilder.toStream()
+        await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),

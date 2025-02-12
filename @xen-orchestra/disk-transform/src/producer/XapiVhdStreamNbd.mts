@@ -18,7 +18,7 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
     await super.close()
   }
   async readBlock(index: number): Promise<DiskBlock> {
-    const data = await this.#nbdClient.readBlock(index, this.blockSize)
+    const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
     return { index, data }
   }
   async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {

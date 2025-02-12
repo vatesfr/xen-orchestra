@@ -1,11 +1,12 @@
 import assert from 'node:assert'
-import { PortableDisk, type DiskBlock } from '../PortableDisk.mjs'
+import { PortableDisk, RandomAccessDisk, type DiskBlock } from '../PortableDisk.mjs'
 import { connectNbdClientIfPossible } from './nbdutils.mjs'
 
 type ErrorWithCode = Error & {
   code: string
 }
-export class XapiVhdCbtSource extends PortableDisk {
+export class XapiVhdCbtSource extends RandomAccessDisk {
+
   #nbdClient: any
   #nbdConcurrency: number
   #ref: string
@@ -13,6 +14,8 @@ export class XapiVhdCbtSource extends PortableDisk {
   #parentId: string
   #xapi: any
   #cbt: Buffer
+  #virtualSize
+
   constructor({ vdiRef, baseRef, xapi, nbdConcurrency }:{vdiRef:string, baseRef:string, xapi:any, nbdConcurrency:number}) {
     super()
     this.#ref = vdiRef
@@ -28,13 +31,11 @@ export class XapiVhdCbtSource extends PortableDisk {
     const baseRef = this.#baseRef
     const nbdConcurrency = this.#nbdConcurrency
 
-    const [cbt_enabled, size, uuid, vdiName] = await Promise.all([
+    const [cbt_enabled, size] = await Promise.all([
       xapi.getField('VDI', ref, 'cbt_enabled').catch(() => {
         /* on XS < 7.3 cbt is not supported */
       }),
-      xapi.getField('VDI', ref, 'virtual_size'),
-      xapi.getField('VDI', ref, 'uuid'),
-      xapi.getField('VDI', ref, 'name_label'),
+      xapi.getField('VDI', ref, 'virtual_size')
     ])
     if (cbt_enabled === false) {
       const error = new Error(`CBT is disabled`) as ErrorWithCode
@@ -46,15 +47,20 @@ export class XapiVhdCbtSource extends PortableDisk {
       .getField('VDI', baseRef, 'sm_config')
       .then((sm_config: { 'vhd-parent': string }) => sm_config['vhd-parent'])
     //const baseParentType = await xapi.getField('VDI', baseRef, 'type')  // cbt_metadata
-    this.virtualSize = size
+    this.#virtualSize = size
 
+    this.#cbt = (await this.#xapi.VDI_listChangedBlock(this.#ref, this.#baseRef)) as Buffer
     this.#nbdClient = await connectNbdClientIfPossible(xapi, ref, nbdConcurrency)
-
-    this.#cbt = (await this.#xapi.VDI_listChangedBlock(this.#baseRef, this.#ref)) as Buffer
   }
 
+  getVirtualSize(): number {
+    return this.#virtualSize
+  }
+  getBlockSize(): number {
+    return 2 * 1024 * 1024
+  }
   getBlockIndexes(): Array<number> {
-    assert.strictEqual(this.blockSize, 2 * 1024 * 1024)
+    assert.strictEqual(this.getBlockSize(), 2 * 1024 * 1024)
 
     // block are aligned, we could probably compare the bytes to 255
     // each CBT block is 64KB
@@ -73,15 +79,15 @@ export class XapiVhdCbtSource extends PortableDisk {
     }
     return blocks
   }
-  async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
-    for (const index of this.getBlockIndexes()) {
-      const data = await this.#nbdClient.readBlock(index, this.blockSize)
-      yield { index, data }
-    }
+  
+  async readBlock(index: number): Promise<DiskBlock> {
+    const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
+    return  { index, data }
   }
 
+
   async close() {
-    await this.#nbdClient.disconnect()
+    await this.#nbdClient?.disconnect()
   }
   isDifferencing(): boolean {
     return true

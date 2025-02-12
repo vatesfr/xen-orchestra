@@ -5,6 +5,7 @@ import {
   type DiskBlock,
 } from '../PortableDisk.mjs'
 import { openVhd } from 'vhd-lib'
+import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import type { VhdDirectory } from 'vhd-lib/Vhd/VhdDirectory.js'
 import type { VhdFile } from 'vhd-lib/Vhd/VhdFile.js'
 
@@ -12,6 +13,7 @@ export class RemoteVhd extends RandomAccessDisk  {
   #path:string
   #handler: FileAccessor
   #vhd: VhdFile | VhdDirectory
+  #isDifferencing:boolean
   #dispose: () => any
 
   constructor({ handler, path }: { handler: FileAccessor; path: string }) {
@@ -20,14 +22,21 @@ export class RemoteVhd extends RandomAccessDisk  {
     this.#path =path
     this.#handler = handler 
   }
+  getVirtualSize(): number { 
+    return this.#vhd.footer.currentSize
+  }
+  getBlockSize(): number {
+    return 2*1024*1024
+  }
 
   async init(): Promise<void> {
+    console.log('INIT')
     const { value, dispose } = await openVhd(this.#handler, this.#path)
     this.#vhd = value
-    this.virtualSize = this.#vhd.footer.currentSize
-    this.blockSize = 2*1024*1024
     this.#dispose = dispose
     await this.#vhd.readBlockAllocationTable()
+    this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
+    console.log('vhd',this.#vhd)
   }
   async close(): Promise<void> {
     await this.#dispose()
@@ -57,6 +66,7 @@ export class RemoteVhd extends RandomAccessDisk  {
 
   async openParent():Promise<PortableDisk>{
     const parentPath = this.#vhd.header.parentUnicodeName
+    console.log({parentPath})
     if(!parentPath){
       throw new Error(`Disk ${this.#path} doesn't have parents`)
     }
@@ -65,6 +75,6 @@ export class RemoteVhd extends RandomAccessDisk  {
     return parent
   }  
   isDifferencing():boolean{
-    return !!this.#vhd.header.parentUnicodeName
+    return this.#isDifferencing
   }
 }

@@ -14,6 +14,23 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node ."
+    "test": "node --test"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-transform",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/disk-transform",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=20.17"
+  },
+  "dependencies": {
+    "vhd-lib": "^4.11.2"
   }
 }

@@ -33,7 +33,8 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 
 import { VhdDirectoryRemote } from '../../@xen-orchestra/disk-transform/dist/consumer/VhdDirectory.mjs'
 import { VhdStream } from '../../@xen-orchestra/disk-transform/dist/consumer/VhdStream.mjs'
-import { openRemoteDisk,openRemoteChain } from '../../@xen-orchestra/disk-transform/dist/factory/Remote.mjs'
+import {RemoteVhd} from '../../@xen-orchestra/disk-transform/dist/producer/RemoteVhd.mjs'
+import {RemoteChain} from '../../@xen-orchestra/disk-transform/dist/producer/RemoteChain.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -684,7 +685,7 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, {  validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -725,7 +726,10 @@ export class RemoteAdapter {
 
   // open the  hierarchy of ancestors until we find a full one
   async _createVhdDisk(handler, path, { useChain }) {
-    const disk = useChain ? await openRemoteDisk(handler, path) : await openRemoteChain(handler, path)  
+
+
+    const disk = useChain ?  new RemoteChain({handler, path}) : new RemoteVhd({handler, path})  
+    await disk.init()
     return disk
   }
 

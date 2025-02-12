@@ -74,7 +74,11 @@ prototype.wrap = function (message, fn) {
     }
   }
 }
-
+/**
+ * 
+ * @param {string} namespace 
+ * @returns {Logger}
+ */
 const createLogger = namespace => new Logger(namespace)
 
 module.exports = exports = createLogger

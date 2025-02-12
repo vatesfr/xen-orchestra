@@ -19,7 +19,7 @@ export class VhdStream extends BaseVhd {
       yield footer
       yield header
       yield bat
-      for await (const { data } of blocks) {
+      for await (const { data, index } of blocks) {
         yield Buffer.concat([FULL_BLOCK_BITMAP, data])
       }
       yield footer

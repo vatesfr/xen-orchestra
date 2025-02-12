@@ -1,17 +1,18 @@
 import { PortableDisk, RandomAccessDisk, type DiskBlock } from './PortableDisk.mjs'
 
 export class DiskChain extends RandomAccessDisk {
+
   #disks: Array<RandomAccessDisk> = []
-  public get virtualSize(): number {
-    return this.#disks[this.#disks.length - 1].virtualSize
-  }
-  public get blockSize(): number {
-    return this.#disks[0].blockSize
-  }
 
   constructor({disks}:{disks:Array<RandomAccessDisk>}) {
     super()
     this.#disks = disks
+  }
+  getVirtualSize(): number {
+    return this.#disks[this.#disks.length - 1].getVirtualSize()
+  }
+  getBlockSize(): number {
+    return this.#disks[0].getBlockSize()
   }
   hasBlock(index: number): boolean {
     for (let i = this.#disks.length - 1; i >= 0; i--) {

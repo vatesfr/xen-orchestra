@@ -22,6 +22,7 @@ export class VhdDirectoryRemote extends BaseVhd {
     this.#target = target
   }
   async write() {
+    console.log('WILL WRITE VHDD ')
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
     try {
@@ -36,10 +37,15 @@ export class VhdDirectoryRemote extends BaseVhd {
         },
         { concurrency }
       )
+      console.log('BLOCK WRITTEN ')
       await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
+      console.log('HEADER WRITTEN ')
       await validator(dataPath)
+      console.log('VALIDATOR DONE ')
       await VhdAbstract.createAlias(handler, path, dataPath)
+      console.log('ALIAS CREATED')
     } catch (err) {
+      console.log('error in write', err)
       await handler.unlink(dataPath).catch(() => {})
       throw err
     }

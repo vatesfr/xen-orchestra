@@ -1,5 +1,5 @@
 import computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
-import type { PortableDisk } from '../PortableDisk.mts'
+import { PortableDisk } from "../PortableDisk.mjs"
 import { DEFAULT_BLOCK_SIZE, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from 'vhd-lib/_constants.js'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 
@@ -10,20 +10,21 @@ export abstract class BaseVhd {
   get source() {
     return this.#source
   }
-  constructor(source: PortableDisk) {
+  constructor(source: PortableDisk) { 
     this.#source = source
   }
-  computeVhdHeader() {
-    const source = this.#source
-    const size = source.virtualSize
+
+  computeVhdHeader():Buffer{
+    const source = this.source
+    const size = source.getVirtualSize()
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
     const header = createHeader(nbTotalBlocks)
     return header
   }
 
   computeVhdFooter(): Buffer {
-    const source = this.#source
-    const size = source.virtualSize
+    const source = this.source
+    const size = source.getVirtualSize()
     const geometry = computeGeometryForSize(size)
     const diskType = source.isDifferencing() ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
     const footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, diskType)
@@ -31,8 +32,8 @@ export abstract class BaseVhd {
   }
 
   computeVhdBatAndFileSize(): { fileSize: number; bat: Buffer } {
-    const source = this.#source
-    const size = source.virtualSize
+    const source = this.source
+    const size = source.getVirtualSize()
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
     // align bat size to a sector
     const batSize = Math.ceil((nbTotalBlocks * 4) / SECTOR_SIZE) * SECTOR_SIZE

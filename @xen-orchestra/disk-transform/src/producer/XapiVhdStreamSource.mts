@@ -7,9 +7,11 @@ import { Readable } from 'node:stream'
 import assert from 'node:assert'
 
 export class XapiVhdStreamSource extends PortableDisk {
+
   #vhdStream: Readable
   #busy = false
   #streamOffset = 0
+  #virtualSize:number
 
   #blocks: Array<{ index: number; offset: number }> = []
   #blockSet = new Set<number>()
@@ -19,7 +21,7 @@ export class XapiVhdStreamSource extends PortableDisk {
 
   #initDone = false
 
-  #xapi
+  #xapi:any
   get xapi() {
     return this.#xapi
   }
@@ -40,6 +42,12 @@ export class XapiVhdStreamSource extends PortableDisk {
     this.#ref = vdiRef
     this.#baseRef = baseRef
     this.#xapi = xapi
+  }
+  getVirtualSize(): number {
+    return this.#virtualSize
+  }
+  getBlockSize(): number {
+    return 2*1024*1024
   }
   async #read(length: number): Promise<Buffer> {
     if (this.#busy) {
@@ -76,9 +84,8 @@ export class XapiVhdStreamSource extends PortableDisk {
     this.#vhdStream = await this.#getExportStream()
     const footer = unpackFooter(await this.#read(FOOTER_SIZE))
     this.#isDifferencing = footer.diskType === DISK_TYPES.DIFFERENCING
-    this.virtualSize = footer.currentSize
+    this.#virtualSize = footer.currentSize
     const header = unpackHeader(await this.#read(HEADER_SIZE))
-    this.blockSize = header.blockSize
     const batSize = Math.ceil((header.maxTableEntries * 4) / SECTOR_SIZE) * SECTOR_SIZE
     // skip space between header and beginning of the table
     console.log({ header, already: FOOTER_SIZE + HEADER_SIZE })

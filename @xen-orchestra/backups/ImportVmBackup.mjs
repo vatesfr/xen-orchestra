@@ -4,12 +4,13 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
 import { Task } from './Task.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-import { VhdNegative, VhdSynthetic } from 'vhd-lib'
 import { decorateClass } from '@vates/decorate-with'
 import { createLogger } from '@xen-orchestra/log'
 import { dirname, join } from 'node:path'
 import pickBy from 'lodash/pickBy.js'
-import { defer } from 'golike-defer'
+import { defer } from 'golike-defer' 
+import { RemoteChain} from '../disk-transform/dist/producer/RemoteChain.mjs'
+import { NegativeDisk} from '../disk-transform/dist/NegativeDisk.mjs'
 
 const { debug, info, warn } = createLogger('xo:backups:importVmBackup')
 async function resolveUuid(xapi, cache, uuid, type) {
@@ -59,7 +60,7 @@ export class ImportVmBackup {
     const metadata = this._metadata
     const { mapVdisSrs } = this._importIncrementalVmSettings
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
-    const streams = {}
+    const disks = {}
     const metdataDir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
@@ -110,21 +111,24 @@ export class ImportVmBackup {
         }
       }
 
-      let stream
+      let disk
       const backupWithSnapshotPath = join(metdataDir, backupCandidate ?? '')
       if (vhdPath === backupWithSnapshotPath) {
         // all the data are already on the host
         debug('direct reuse of a snapshot')
-        stream = null
+        disk = null
         vdis[vdiRef].baseVdi = snapshotCandidate
         // go next disk , we won't use this stream
         continue
       }
 
-      let disposableDescendants
 
-      const disposableSynthetic = await VhdSynthetic.fromVhdChain(this._adapter._handler, vhdPath)
-
+      const parent = new RemoteChain({
+        handler: this._adapter._handler,
+        path:  vhdPath
+      })
+      await parent.init()
+      
       // this will also clean if another disk of this VM backup fails
       // if user really only need to restore non failing disks he can retry with ignoredVdis
       let disposed = false
@@ -132,8 +136,7 @@ export class ImportVmBackup {
         if (!disposed) {
           disposed = true
           try {
-            await disposableDescendants?.dispose()
-            await disposableSynthetic?.dispose()
+            await parent?.close() 
           } catch (error) {
             warn('openVhd: failed to dispose VHDs', { error })
           }
@@ -141,11 +144,11 @@ export class ImportVmBackup {
       }
       $defer.onFailure(() => disposeOnce())
 
-      const parentVhd = disposableSynthetic.value
-      await parentVhd.readBlockAllocationTable()
-      debug('got vhd synthetic of parents', parentVhd.length)
+
+      debug('got vhd synthetic of parents', parent)
 
       if (snapshotCandidate !== undefined) {
+        let descendant,negativeDisk
         try {
           debug('will try to use differential restore', {
             backupWithSnapshotPath,
@@ -153,39 +156,39 @@ export class ImportVmBackup {
             vdiRef,
           })
 
-          disposableDescendants = await VhdSynthetic.fromVhdChain(this._adapter._handler, backupWithSnapshotPath, {
+          descendant = new RemoteChain({
+            handler: this._adapter._handler,
+            path:  backupWithSnapshotPath,
             until: vhdPath,
           })
-          const descendantsVhd = disposableDescendants.value
-          await descendantsVhd.readBlockAllocationTable()
+          await descendant.init()
+
           debug('got vhd synthetic of descendants')
-          const negativeVhd = new VhdNegative(parentVhd, descendantsVhd)
+          negativeDisk = new NegativeDisk(parent, descendant)
           debug('got vhd negative')
 
           // update the stream with the negative vhd stream
-          stream = await negativeVhd.stream()
+          disk = negativeDisk
           vdis[vdiRef].baseVdi = snapshotCandidate
+
         } catch (error) {
           // can be a broken VHD chain, a vhd chain with a key backup, ....
           // not an irrecuperable error, don't dispose parentVhd, and fallback to full restore
           warn(`can't use differential restore`, { error })
-          disposableDescendants?.dispose()
+          descendant?.close()
+          negativeDisk?.close()
         }
       }
       // didn't make a negative stream : fallback to classic stream
-      if (stream === undefined) {
+      if (disk === undefined) {
         debug('use legacy restore')
-        stream = await parentVhd.stream()
+        disk = parent
       }
-
-      stream.on('end', disposeOnce)
-      stream.on('close', disposeOnce)
-      stream.on('error', disposeOnce)
-      info('everything is ready, will transfer', stream.length)
-      streams[`${vdiRef}.vhd`] = stream
+      info('everything is ready, will transfer', disk)
+      disks[`${vdiRef}.vhd`] = disk
     }
     return {
-      streams,
+      disks,
       vbds,
       vdis,
       version: '1.0.0',
@@ -205,8 +208,7 @@ export class ImportVmBackup {
     )
     let backup
     if (useDifferentialRestore) {
-      throw new Error('differentiela resotre is not supported')
-      // backup = await this._reuseNearestSnapshot(ignoredVdis)
+      backup = await this._reuseNearestSnapshot(ignoredVdis)
     } else {
       backup = await this._adapter.readIncrementalVmBackup(this._metadata, ignoredVdis)
     }
@@ -242,7 +244,6 @@ export class ImportVmBackup {
       assert.strictEqual(metadata.mode, 'delta')
 
       backup = await this.#decorateIncrementalVmMetadata()
-      // @todo put back the stream size 
     }
 
     return Task.run(

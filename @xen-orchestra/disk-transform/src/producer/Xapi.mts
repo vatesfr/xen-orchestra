@@ -14,6 +14,7 @@ const warn = console.error
  * use nbd , change block tracking and stream export depending of capabilities
  */
 export class XapiDiskSource extends PortableDisk{
+
     #vdiRef:string
     #baseRef?:string
     #preferNbd:boolean
@@ -21,19 +22,7 @@ export class XapiDiskSource extends PortableDisk{
     #xapi:any // @todo do a better type here 
 
     #source:PortableDisk
-    public get virtualSize(): number {
-        return this.#source.virtualSize
-      }
-      public set virtualSize(value: number) {
-        this.#source.virtualSize = value
-      }
-    
-      public get blockSize(): number {
-        return this.#source.blockSize
-      }
-      public set blockSize(value: number) {
-        this.#source.blockSize = value
-      }
+  
     constructor({xapi, vdiRef, baseRef, preferNbd=true, nbdConcurrency=2}){
         super()
         this.#vdiRef = vdiRef
@@ -43,7 +32,12 @@ export class XapiDiskSource extends PortableDisk{
         this.#xapi = xapi
 
     }
-
+    getVirtualSize(): number {
+        return this.#source.getVirtualSize()
+    }
+    getBlockSize(): number {
+        return this.#source.getBlockSize()
+    }
     /**
      * create a disk source using stream export + NBD 
      * on failure fall back to a full 
@@ -51,6 +45,7 @@ export class XapiDiskSource extends PortableDisk{
      * @returns {Promise<XapiVhdStreamSource>}
      */
     async #openNbdStream():Promise<XapiVhdStreamNbdSource>{
+        console.log('open nbd stream')
         const xapi = this.#xapi
         const baseRef = this.#baseRef
         const vdiRef = this.#vdiRef
@@ -78,6 +73,7 @@ export class XapiDiskSource extends PortableDisk{
      */
     
     async #openExportStream():Promise<XapiVhdStreamSource>{
+        console.log('open export stream')
         const xapi = this.#xapi
         const baseRef = this.#baseRef
         const vdiRef = this.#vdiRef
@@ -106,6 +102,7 @@ export class XapiDiskSource extends PortableDisk{
      */
 
     async #openNbdCbt():Promise<XapiVhdCbtSource|XapiVhdStreamNbdSource>{
+        console.log('open nbdcbt')
         const xapi = this.#xapi
         const baseRef = this.#baseRef
         const vdiRef = this.#vdiRef
@@ -114,6 +111,7 @@ export class XapiDiskSource extends PortableDisk{
             await source.init()
             return source
         }catch(error){
+            warn('opennbdCBT',error)
             await source.close()
             // a lot of things can go wrong with cbt: 
                 // no enabled on the basref
@@ -129,6 +127,11 @@ export class XapiDiskSource extends PortableDisk{
 
     
     async init(): Promise<void> {
+        console.log('INIT XAPI export', {
+            preferNbd:this.#preferNbd,
+            baseRef:this.#baseRef,
+            vdiRef:this.#vdiRef,
+        })
         if(this.#preferNbd){
             if(this.#baseRef !== undefined){
                 this.#source = await this.#openNbdCbt() 
