@@ -33,3 +33,4 @@ __snapshots__/
 
 /docs/
 /src/
+eslint.config.mjs
