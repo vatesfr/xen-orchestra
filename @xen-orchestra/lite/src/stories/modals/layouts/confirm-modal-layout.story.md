@@ -4,8 +4,8 @@
     <template #title>Do you confirm?</template>
     <template #subtitle>You should be sure about this</template>
     <template #buttons>
-      <ModalDeclineButton>I prefer not</UiButton>
-      <ModalApproveButton>Yes, I'm sure!</UiButton>
+      <ModalDeclineButton>I prefer not</ModalDeclineButton>
+      <ModalApproveButton>Yes, I'm sure!</ModalApproveButton>
     </template>
   </ConfirmModalLayout>
 </UiModal>
