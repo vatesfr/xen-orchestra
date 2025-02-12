@@ -28,6 +28,7 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.7.1",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
     "xo-common": "^0.8.0"

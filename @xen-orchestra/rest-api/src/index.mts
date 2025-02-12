@@ -2,7 +2,7 @@ import * as swaggerUi from 'swagger-ui-express'
 import { createRequire } from 'module'
 import type { Express } from 'express'
 
-import notFoundErrorMiddleware from './middlewares/not-found-error.middleware.mjs'
+import genericErrorHandler from './middlewares/generic-error-handler.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
@@ -17,5 +17,5 @@ export default function setupRestApi(express: Express) {
   express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
   express.use('/rest/v0/docs', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
 
-  express.use('/rest/v0', notFoundErrorMiddleware)
+  express.use('/rest/v0', genericErrorHandler)
 }
