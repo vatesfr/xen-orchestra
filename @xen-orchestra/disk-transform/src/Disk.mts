@@ -6,27 +6,27 @@ export type DiskBlock = {
 
 export type BytesLength = number
 
-export abstract class PortableDisk {
+export abstract class Disk {
   generatedDiskBlocks = 0
   yieldedDiskBlocks = 0
 
-  abstract getVirtualSize():number
-  abstract getBlockSize():number
+  abstract getVirtualSize(): number
+  abstract getBlockSize(): number
   abstract init(): Promise<void>
   abstract close(): Promise<void>
 
   abstract isDifferencing(): boolean
   // must throw if disk is not differencing
-  abstract openParent(): Promise<PortableDisk>
+  abstract openParent(): Promise<Disk>
 
   /**
    * return the block without any order nor stability guarantee
-   */ 
+   */
   abstract getBlockIndexes(): Array<number>
   abstract hasBlock(index: number): boolean
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
-    let generator:AsyncGenerator<DiskBlock>
+    let generator: AsyncGenerator<DiskBlock>
     try {
       generator = await this.buildDiskBlockGenerator()
       for await (const block of generator) {
@@ -60,7 +60,7 @@ export abstract class PortableDisk {
  * For example xva will need to have data in the offset order
  */
 
-export abstract class RandomAccessDisk extends PortableDisk {
+export abstract class RandomAccessDisk extends Disk {
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator() {
     for (const index of this.getBlockIndexes()) {

@@ -1,4 +1,4 @@
-import type { DiskBlock } from '../PortableDisk.mts'
+import type { DiskBlock } from '../Disk.mjs'
 import { connectNbdClientIfPossible } from './nbdutils.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
 

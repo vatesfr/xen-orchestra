@@ -1,32 +1,28 @@
 import type { FileAccessor } from '../FileAccessor.mts'
-import {
-  PortableDisk,
-  RandomAccessDisk,
-  type DiskBlock,
-} from '../PortableDisk.mjs'
+import { Disk, RandomAccessDisk, type DiskBlock } from '../Disk.mjs'
 import { openVhd } from 'vhd-lib'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import type { VhdDirectory } from 'vhd-lib/Vhd/VhdDirectory.js'
 import type { VhdFile } from 'vhd-lib/Vhd/VhdFile.js'
 
-export class RemoteVhd extends RandomAccessDisk  {
-  #path:string
+export class RemoteVhd extends RandomAccessDisk {
+  #path: string
   #handler: FileAccessor
   #vhd: VhdFile | VhdDirectory
-  #isDifferencing:boolean
+  #isDifferencing: boolean
   #dispose: () => any
 
   constructor({ handler, path }: { handler: FileAccessor; path: string }) {
     super()
-    // @todo : ensure this is the full path from the root of the remote 
-    this.#path =path
-    this.#handler = handler 
+    // @todo : ensure this is the full path from the root of the remote
+    this.#path = path
+    this.#handler = handler
   }
-  getVirtualSize(): number { 
+  getVirtualSize(): number {
     return this.#vhd.footer.currentSize
   }
   getBlockSize(): number {
-    return 2*1024*1024
+    return 2 * 1024 * 1024
   }
 
   async init(): Promise<void> {
@@ -36,7 +32,7 @@ export class RemoteVhd extends RandomAccessDisk  {
     this.#dispose = dispose
     await this.#vhd.readBlockAllocationTable()
     this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
-    console.log('vhd',this.#vhd)
+    console.log('vhd', this.#vhd)
   }
   async close(): Promise<void> {
     await this.#dispose()
@@ -56,25 +52,24 @@ export class RemoteVhd extends RandomAccessDisk  {
   }
 
   async readBlock(index: number): Promise<DiskBlock> {
-    const {data} = await this.#vhd.readBlock(index)
+    const { data } = await this.#vhd.readBlock(index)
     return {
       index,
-      data
+      data,
     }
   }
 
-
-  async openParent():Promise<PortableDisk>{
+  async openParent(): Promise<Disk> {
     const parentPath = this.#vhd.header.parentUnicodeName
-    console.log({parentPath})
-    if(!parentPath){
+    console.log({ parentPath })
+    if (!parentPath) {
       throw new Error(`Disk ${this.#path} doesn't have parents`)
     }
-    const parent = new RemoteVhd({handler: this.#handler, path: parentPath})
+    const parent = new RemoteVhd({ handler: this.#handler, path: parentPath })
     await parent.init()
     return parent
-  }  
-  isDifferencing():boolean{
+  }
+  isDifferencing(): boolean {
     return this.#isDifferencing
   }
 }

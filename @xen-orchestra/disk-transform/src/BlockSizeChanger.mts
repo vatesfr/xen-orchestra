@@ -1,4 +1,4 @@
-import { RandomAccessDisk, type DiskBlock, type PortableDisk } from './PortableDisk.mjs'
+import { RandomAccessDisk, type DiskBlock, type Disk } from './Disk.mjs'
 
 /**
  * Present a portable disk with another block size, for example
@@ -8,15 +8,14 @@ import { RandomAccessDisk, type DiskBlock, type PortableDisk } from './PortableD
  * qcow2 use 64KB clusters, and can use subclusters
  */
 export class BlockSizeChanger extends RandomAccessDisk {
-
   #source: RandomAccessDisk
   #blockSize
   constructor(source: RandomAccessDisk, blockSize: number) {
     super()
     this.#source = source
     this.#blockSize = this.#blockSize = blockSize
-  }  
-  
+  }
+
   getVirtualSize(): number {
     return this.#source.getVirtualSize()
   }
@@ -29,14 +28,14 @@ export class BlockSizeChanger extends RandomAccessDisk {
   buildDiskBlockGenerator(): AsyncGenerator<DiskBlock, void, unknown> {
     throw new Error('Method not implemented.')
   }
-  
+
   init(): Promise<void> {
     return this.#source.init()
   }
   close(): Promise<void> {
     return this.#source.close()
   }
-  async openParent(): Promise<PortableDisk> {
+  async openParent(): Promise<Disk> {
     const parent = (await this.#source.openParent()) as RandomAccessDisk
     return new BlockSizeChanger(parent, this.#blockSize)
   }

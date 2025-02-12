@@ -1,4 +1,4 @@
-import { PortableDisk, type DiskBlock } from '../PortableDisk.mjs'
+import { Disk, type DiskBlock } from '../Disk.mjs'
 import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
@@ -6,12 +6,11 @@ import { BLOCK_UNUSED, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from 
 import { Readable } from 'node:stream'
 import assert from 'node:assert'
 
-export class XapiVhdStreamSource extends PortableDisk {
-
+export class XapiVhdStreamSource extends Disk {
   #vhdStream: Readable
   #busy = false
   #streamOffset = 0
-  #virtualSize:number
+  #virtualSize: number
 
   #blocks: Array<{ index: number; offset: number }> = []
   #blockSet = new Set<number>()
@@ -21,7 +20,7 @@ export class XapiVhdStreamSource extends PortableDisk {
 
   #initDone = false
 
-  #xapi:any
+  #xapi: any
   get xapi() {
     return this.#xapi
   }
@@ -37,7 +36,7 @@ export class XapiVhdStreamSource extends PortableDisk {
 
   #isDifferencing: boolean
 
-  constructor({ vdiRef, baseRef, xapi }:{vdiRef: string, baseRef?:string, xapi:any}) {
+  constructor({ vdiRef, baseRef, xapi }: { vdiRef: string; baseRef?: string; xapi: any }) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef
@@ -47,7 +46,7 @@ export class XapiVhdStreamSource extends PortableDisk {
     return this.#virtualSize
   }
   getBlockSize(): number {
-    return 2*1024*1024
+    return 2 * 1024 * 1024
   }
   async #read(length: number): Promise<Buffer> {
     if (this.#busy) {
@@ -135,7 +134,7 @@ export class XapiVhdStreamSource extends PortableDisk {
     // @todo read the end to check the end footer and ensure the stream is complete
   }
 
-  openParent(): Promise<PortableDisk> {
+  openParent(): Promise<Disk> {
     throw new Error('Method openParent not implemented for xapi stream')
   }
   isDifferencing(): boolean {

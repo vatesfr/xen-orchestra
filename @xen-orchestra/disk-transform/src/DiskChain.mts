@@ -1,10 +1,9 @@
-import { PortableDisk, RandomAccessDisk, type DiskBlock } from './PortableDisk.mjs'
+import { Disk, RandomAccessDisk, type DiskBlock } from './Disk.mjs'
 
 export class DiskChain extends RandomAccessDisk {
-
   #disks: Array<RandomAccessDisk> = []
 
-  constructor({disks}:{disks:Array<RandomAccessDisk>}) {
+  constructor({ disks }: { disks: Array<RandomAccessDisk> }) {
     super()
     this.#disks = disks
   }
@@ -45,7 +44,7 @@ export class DiskChain extends RandomAccessDisk {
     return this.#disks[0].isDifferencing()
   }
 
-  openParent(): Promise<PortableDisk> {
+  openParent(): Promise<Disk> {
     throw new Error('Method not implemented.')
   }
 }

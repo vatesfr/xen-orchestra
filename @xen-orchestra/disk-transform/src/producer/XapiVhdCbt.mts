@@ -1,12 +1,11 @@
 import assert from 'node:assert'
-import { PortableDisk, RandomAccessDisk, type DiskBlock } from '../PortableDisk.mjs'
+import { Disk, RandomAccessDisk, type DiskBlock } from '../Disk.mjs'
 import { connectNbdClientIfPossible } from './nbdutils.mjs'
 
 type ErrorWithCode = Error & {
   code: string
 }
 export class XapiVhdCbtSource extends RandomAccessDisk {
-
   #nbdClient: any
   #nbdConcurrency: number
   #ref: string
@@ -16,7 +15,17 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
   #cbt: Buffer
   #virtualSize
 
-  constructor({ vdiRef, baseRef, xapi, nbdConcurrency }:{vdiRef:string, baseRef:string, xapi:any, nbdConcurrency:number}) {
+  constructor({
+    vdiRef,
+    baseRef,
+    xapi,
+    nbdConcurrency,
+  }: {
+    vdiRef: string
+    baseRef: string
+    xapi: any
+    nbdConcurrency: number
+  }) {
     super()
     this.#ref = vdiRef
     this.#baseRef = baseRef
@@ -35,7 +44,7 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
       xapi.getField('VDI', ref, 'cbt_enabled').catch(() => {
         /* on XS < 7.3 cbt is not supported */
       }),
-      xapi.getField('VDI', ref, 'virtual_size')
+      xapi.getField('VDI', ref, 'virtual_size'),
     ])
     if (cbt_enabled === false) {
       const error = new Error(`CBT is disabled`) as ErrorWithCode
@@ -79,12 +88,11 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
     }
     return blocks
   }
-  
+
   async readBlock(index: number): Promise<DiskBlock> {
     const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
-    return  { index, data }
+    return { index, data }
   }
-
 
   async close() {
     await this.#nbdClient?.disconnect()
@@ -92,7 +100,7 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
   isDifferencing(): boolean {
     return true
   }
-  openParent(): Promise<PortableDisk> {
+  openParent(): Promise<Disk> {
     throw new Error('Method not implemented.')
   }
   hasBlock(index: number): boolean {

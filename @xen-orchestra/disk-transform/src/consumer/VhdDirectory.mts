@@ -1,4 +1,4 @@
-import type { DiskBlock, PortableDisk } from '../PortableDisk.mts'
+import type { DiskBlock, Disk } from '../Disk.mjs'
 import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
 import { dirname } from 'node:path'
 import { v4 as uuidv4 } from 'uuid'
@@ -17,7 +17,7 @@ type VhdRemoteTarget = {
 }
 export class VhdDirectoryRemote extends BaseVhd {
   #target: VhdRemoteTarget
-  constructor(source: PortableDisk, target: VhdRemoteTarget) {
+  constructor(source: Disk, target: VhdRemoteTarget) {
     super(source)
     this.#target = target
   }

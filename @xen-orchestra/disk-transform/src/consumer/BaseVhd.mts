@@ -1,20 +1,20 @@
 import computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
-import { PortableDisk } from "../PortableDisk.mjs"
+import { Disk } from '../Disk.mjs'
 import { DEFAULT_BLOCK_SIZE, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from 'vhd-lib/_constants.js'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 
 export const FULL_BLOCK_BITMAP = Buffer.alloc(SECTOR_SIZE, 255)
 
 export abstract class BaseVhd {
-  #source: PortableDisk
+  #source: Disk
   get source() {
     return this.#source
   }
-  constructor(source: PortableDisk) { 
+  constructor(source: Disk) {
     this.#source = source
   }
 
-  computeVhdHeader():Buffer{
+  computeVhdHeader(): Buffer {
     const source = this.source
     const size = source.getVirtualSize()
     const nbTotalBlocks = Math.ceil(size / DEFAULT_BLOCK_SIZE)
