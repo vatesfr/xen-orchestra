@@ -2,7 +2,7 @@
   <TitleBar :icon="faBuilding">
     {{ name }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="primary" accent="info" size="medium" @click="goToNewVm">
+      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm">
         {{ $t('new-vm') }}
       </UiButton>
     </template>
