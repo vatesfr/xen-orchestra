@@ -26,7 +26,7 @@ defineProps<{
 .ui-user-link {
   display: inline-flex;
   align-items: center;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   gap: 0.8rem;
 
   &.disabled {
@@ -37,18 +37,18 @@ defineProps<{
 
   &.is-link {
     &:hover {
-      color: var(--color-info-txt-hover);
+      color: var(--color-brand-txt-hover);
 
       .logo {
-        border-color: var(--color-info-txt-hover);
+        border-color: var(--color-brand-txt-hover);
       }
     }
 
     &:active {
-      color: var(--color-info-txt-active);
+      color: var(--color-brand-txt-active);
 
       .logo {
-        border-color: var(--color-info-txt-active);
+        border-color: var(--color-brand-txt-active);
       }
     }
 

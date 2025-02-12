@@ -43,7 +43,7 @@ defineSlots<{
   display: flex;
   min-width: 0;
   align-items: center;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   gap: 1rem;
 
   &.disabled {
@@ -60,11 +60,11 @@ defineSlots<{
 
   &.is-link {
     &:hover {
-      color: var(--color-info-txt-hover);
+      color: var(--color-brand-txt-hover);
     }
 
     &:active {
-      color: var(--color-info-txt-active);
+      color: var(--color-brand-txt-active);
     }
 
     &:focus-visible {
