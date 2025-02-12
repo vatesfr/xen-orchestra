@@ -60,20 +60,20 @@ const computedData = computed(() => {
 }
 
 .progress-item:nth-child(1) {
-  --progress-bar-color: var(--color-info-txt-item);
+  --progress-bar-color: var(--color-brand-txt-item);
 }
 
 .progress-item:nth-child(2) {
-  --progress-bar-color: var(--color-info-txt-active);
+  --progress-bar-color: var(--color-brand-txt-active);
 }
 
 .progress-item:nth-child(3) {
-  --progress-bar-color: var(--color-info-txt-hover);
+  --progress-bar-color: var(--color-brand-txt-hover);
 }
 
 .progress-item {
   --progress-bar-height: 1.2rem;
-  --progress-bar-color: var(--color-info-item-hover);
+  --progress-bar-color: var(--color-brand-item-hover);
   --progress-bar-background-color: var(--color-neutral-background-disabled);
 
   &.warning {

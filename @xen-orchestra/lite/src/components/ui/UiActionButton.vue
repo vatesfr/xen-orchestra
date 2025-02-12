@@ -58,8 +58,8 @@ const isDisabled = useDisabled(() => props.disabled)
     &:active,
     &.active,
     &.busy {
-      color: var(--color-info-txt-base);
-      background-color: var(--color-info-background-selected);
+      color: var(--color-brand-txt-base);
+      background-color: var(--color-brand-background-selected);
     }
   }
 }

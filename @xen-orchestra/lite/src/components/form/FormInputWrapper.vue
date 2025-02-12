@@ -124,7 +124,7 @@ useDisabled(() => props.disabled)
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 
   & > span {
     text-decoration: underline;

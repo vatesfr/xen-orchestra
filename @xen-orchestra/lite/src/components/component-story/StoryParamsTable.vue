@@ -27,7 +27,7 @@
     }
 
     &:nth-child(odd) {
-      background-color: var(--color-info-background-selected);
+      background-color: var(--color-brand-background-selected);
     }
   }
 
