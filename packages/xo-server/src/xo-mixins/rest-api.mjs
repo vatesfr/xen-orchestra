@@ -9,6 +9,7 @@ import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
+import isEmpty from 'lodash/isEmpty.js'
 import groupBy from 'lodash/groupBy.js'
 import path from 'node:path'
 import pDefer from 'promise-toolbox/defer'
@@ -1360,6 +1361,35 @@ export default class RestApi {
 
       res.json(result)
     })
+    // Generic route captures all PATCH requests, preventing group/update from being executed so patch/users must be placed before patch/object
+    api.patch(
+      '/:collection(users)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const isAdmin = app.apiContext.permission === 'admin'
+
+        const { id } = req.params
+        const { name, password, permission, preferences } = req.body
+
+        if (isAdmin) {
+          if (permission != null && id === app.apiContext.user.id) {
+            return res.status(403).json({ message: 'A user cannot change its own permission' })
+          }
+        } else if (name != null || password != null || permission != null) {
+          return res.status(403).json({ message: 'This properties can only changed by an administrator' })
+        }
+
+        const user = await app.getUser(id)
+
+        if (!isEmpty(user.authProviders) && (name != null || password != null)) {
+          return res.status(403).json({ message: 'Cannot change the name or password of synchronized user' })
+        }
+
+        await app.updateUser(id, { name, password, permission, preferences })
+
+        res.sendStatus(204)
+      }, true)
+    )
     api
       .patch(
         '/:collection/:object',
