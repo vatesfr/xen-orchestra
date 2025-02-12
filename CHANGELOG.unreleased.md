@@ -44,6 +44,6 @@
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
-- xo-server-sdn-controller patch
+- xo-server-sdn-controller minor
 
 <!--packages-end-->
