@@ -19,7 +19,7 @@
               <VtsTreeItem v-for="j of 3" :key="j">
                 <UiTreeItemLabel no-indent route="#">
                   <template #icon>
-                    <ObjectIcon :state="j === 3 ? 'halted' : 'running'" type="vm" />
+                    <UiObjectIcon size="medium" :state="j === 3 ? 'halted' : 'running'" type="vm" />
                   </template>
                   VM {{ i }}.{{ j }}
                   <template #addons>
@@ -38,13 +38,10 @@
 ```
 
 ```vue-script
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import VtsCounter from '@core/components/counter/VtsCounter.vue'
-import ObjectIcon from '@core/components/icon/ObjectIcon.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
-import VtsButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
