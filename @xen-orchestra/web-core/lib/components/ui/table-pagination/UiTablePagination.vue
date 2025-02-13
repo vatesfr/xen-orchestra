@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">
@@ -111,21 +111,21 @@ watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
     .dropdown {
       cursor: pointer;
       padding: 0.2rem 0.6rem;
-      height: 2.6rem;
-      width: 4.8rem;
+      height: 3rem;
+      width: 5rem;
       appearance: none;
       border-radius: 0.4rem;
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
       border: 0.1rem solid var(--color-neutral-border);
       background-color: var(--color-neutral-background-primary);
 
       &:hover {
-        border-color: var(--color-info-item-hover);
-        background-color: var(--color-info-background-hover);
-        color: var(--color-info-txt-hover);
+        border-color: var(--color-brand-item-hover);
+        background-color: var(--color-brand-background-hover);
+        color: var(--color-brand-txt-hover);
 
         + .icon {
-          color: var(--color-info-txt-hover);
+          color: var(--color-brand-txt-hover);
         }
       }
 
@@ -141,18 +141,18 @@ watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
       }
 
       &:active {
-        background-color: var(--color-info-background-active);
-        border-color: var(--color-info-item-active);
+        background-color: var(--color-brand-background-active);
+        border-color: var(--color-brand-item-active);
       }
 
       &:focus-visible {
-        outline: 0.1rem solid var(--color-info-item-base);
-        border: 0.1rem solid var(--color-info-item-base);
-        color: var(--color-info-txt-base);
-        background-color: var(--color-info-background-selected);
+        outline: 0.1rem solid var(--color-brand-item-base);
+        border: 0.1rem solid var(--color-brand-item-base);
+        color: var(--color-brand-txt-base);
+        background-color: var(--color-brand-background-selected);
 
         + .icon {
-          color: var(--color-info-txt-base);
+          color: var(--color-brand-txt-base);
         }
       }
 
@@ -171,7 +171,7 @@ watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
       transform: translateY(-50%);
       pointer-events: none;
       font-size: 1rem;
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
     }
   }
 }
