@@ -1,3 +1,4 @@
+import setupRestApi from '@xen-orchestra/rest-api'
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
@@ -1139,11 +1140,6 @@ export default class RestApi {
       }
     })
 
-    api.get(
-      '/',
-      wrap((req, res) => sendObjects(Object.values(collections), req, res))
-    )
-
     // For compatibility redirect from /backups* to /backup
     api.get('/backups*', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup' + req.params[0])
@@ -1360,6 +1356,38 @@ export default class RestApi {
 
       res.json(result)
     })
+
+    // should go before routes /:collection/:object because they will match before
+    api.patch(
+      '/:collection(groups)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const { id } = req.params
+        const { name } = req.body
+
+        const group = await app.getGroup(id)
+        if (group.provider !== undefined) {
+          return res.status(403).json({ error: 'Cannot edit synchronized group' })
+        }
+
+        if (name === null) {
+          return res.status(400).json({ error: 'name cannot be removed' })
+        }
+        if (name !== undefined && typeof name !== 'string') {
+          return res.status(400).json({ error: 'name must be a string' })
+        }
+
+        try {
+          await app.updateGroup(id, { name })
+          res.sendStatus(204)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      }, true)
+    )
     api
       .patch(
         '/:collection/:object',
@@ -1530,6 +1558,40 @@ export default class RestApi {
         res.sendStatus(204)
       }, true)
     )
+
+    api.delete(
+      '/:collection(groups)/:id',
+      wrap(async (req, res) => {
+        await app.deleteGroup(req.params.id)
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        if (name == null) {
+          return res.status(400).json({ error: 'name is required' })
+        }
+        if (typeof name !== 'string') {
+          return res.status(400).json({ message: 'name must be a string' })
+        }
+
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      })
+    )
+
+    setupRestApi(express)
   }
 
   registerRestApi(spec, base = '/') {

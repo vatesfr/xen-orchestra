@@ -8,7 +8,7 @@
 
       <UiButton
         :disabled="selectedItems === totalItems"
-        accent="info"
+        accent="brand"
         size="small"
         variant="tertiary"
         @click="emit('toggleSelectAll', true)"
@@ -17,7 +17,7 @@
       </UiButton>
       <UiButton
         :disabled="selectedItems === 0"
-        accent="info"
+        accent="brand"
         size="small"
         variant="tertiary"
         @click="emit('toggleSelectAll', false)"

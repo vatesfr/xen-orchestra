@@ -3,12 +3,12 @@
     <UiTreeItemLabel :icon="faServer" :route="{ name: 'host.console', params: { uuid: host.uuid } }" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <UiIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
+        <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
         <UiCounter
           v-if="isReady"
           v-tooltip="$t('running-vm', { count: vmCount })"
           :value="vmCount"
-          accent="info"
+          accent="brand"
           variant="secondary"
           size="small"
         />
@@ -28,7 +28,7 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import UiIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

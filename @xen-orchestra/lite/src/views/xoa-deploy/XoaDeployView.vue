@@ -13,7 +13,7 @@
         <strong>{{ $t('check-errors') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
-      <UiButton size="medium" accent="info" variant="primary" :left-icon="faDownload" @click="resetValues()">
+      <UiButton size="medium" accent="brand" variant="primary" :left-icon="faDownload" @click="resetValues()">
         {{ $t('xoa-deploy-retry') }}
       </UiButton>
     </template>
@@ -24,7 +24,7 @@
         <h2>{{ $t('xoa-deploy-successful') }}</h2>
         <UiIcon :icon="faCircleCheck" class="success" />
       </div>
-      <UiButton size="medium" accent="info" variant="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
+      <UiButton size="medium" accent="brand" variant="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
         {{ $t('access-xoa') }}
       </UiButton>
     </template>
@@ -202,10 +202,10 @@
         </FormSection>
 
         <VtsButtonGroup>
-          <UiButton size="medium" accent="info" variant="secondary" @click="router.back()">
+          <UiButton size="medium" accent="brand" variant="secondary" @click="router.back()">
             {{ $t('cancel') }}
           </UiButton>
-          <UiButton size="medium" accent="info" variant="primary" type="submit">
+          <UiButton size="medium" accent="brand" variant="primary" type="submit">
             {{ $t('deploy') }}
           </UiButton>
         </VtsButtonGroup>
