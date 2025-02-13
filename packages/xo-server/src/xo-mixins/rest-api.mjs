@@ -1356,6 +1356,38 @@ export default class RestApi {
 
       res.json(result)
     })
+
+    // should go before routes /:collection/:object because they will match before
+    api.patch(
+      '/:collection(groups)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const { id } = req.params
+        const { name } = req.body
+
+        const group = await app.getGroup(id)
+        if (group.provider !== undefined) {
+          return res.status(403).json({ error: 'Cannot edit synchronized group' })
+        }
+
+        if (name === null) {
+          return res.status(400).json({ error: 'name cannot be removed' })
+        }
+        if (name !== undefined && typeof name !== 'string') {
+          return res.status(400).json({ error: 'name must be a string' })
+        }
+
+        try {
+          await app.updateGroup(id, { name })
+          res.sendStatus(204)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      }, true)
+    )
     api
       .patch(
         '/:collection/:object',
@@ -1527,6 +1559,10 @@ export default class RestApi {
         if (name == null) {
           return res.status(400).json({ error: 'name is required' })
         }
+        if (typeof name !== 'string') {
+          return res.status(400).json({ message: 'name must be a string' })
+        }
+
         try {
           const group = await app.createGroup({ name })
           res.status(201).end(group.id)
