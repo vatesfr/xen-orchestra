@@ -1140,6 +1140,11 @@ export default class RestApi {
       }
     })
 
+    api.get(
+      '/',
+      wrap((req, res) => sendObjects(Object.values(collections), req, res))
+    )
+
     // For compatibility redirect from /backups* to /backup
     api.get('/backups*', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup' + req.params[0])
