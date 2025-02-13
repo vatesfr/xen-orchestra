@@ -82,6 +82,14 @@ class Task {
     return this.#status
   }
 
+  get abortSignal() {
+    return this.#abortController.signal
+  }
+
+  get onProgress() {
+    return this.#onProgress
+  }
+
   constructor({ properties, onProgress } = {}) {
     this.#startData = { properties }
 
@@ -90,12 +98,11 @@ class Task {
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        const { signal } = parent.#abortController
-        signal.addEventListener('abort', () => {
-          this.#abortController.abort(signal.reason)
+        parent.abortSignal.addEventListener('abort', () => {
+          this.#abortController.abort(parent.abortSignal.reason)
         })
 
-        this.#onProgress = parent.#onProgress
+        this.#onProgress = parent.onProgress
         this.#startData.parentId = parent.id
       } else {
         this.#onProgress = noop
