@@ -28,7 +28,7 @@
     "@vates/generator-toolbox": "^1.0.4",
     "@vates/nbd-client": "^3.1.4",
     "@vates/parse-duration": "^0.1.1",
-    "@vates/task": "^0.4.0",
+    "@vates/task": "^0.6.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.1.0",
     "@xen-orchestra/fs": "^4.6.1",

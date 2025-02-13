@@ -5337,11 +5337,6 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@vates/task@^0.4.0":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@vates/task/-/task-0.4.1.tgz#ee5c50f2df370af2b0cab3946973d54e6ed6ed90"
-  integrity sha512-w53EJWJbzn25PnnHVopEzv6bznAAdTSeCe6L5BI4i1l14trYRvFImTRNVysqe81zLHpB1uSkQOxq0SagqpYHNg==
-
 "@vitejs/plugin-vue@^5.2.1":
   version "5.2.4"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz#9e8a512eb174bfc2a333ba959bbf9de428d89ad8"
