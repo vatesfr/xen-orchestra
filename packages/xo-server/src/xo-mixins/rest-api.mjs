@@ -1517,14 +1517,14 @@ export default class RestApi {
       wrap(async (req, res) => {
         const { name } = req.body
         if (name == null) {
-          return res.status(400).json({ message: 'Name is required' })
+          return res.status(400).json({ error: 'name is required' })
         }
         try {
           const group = await app.createGroup({ name })
           res.status(201).end(group.id)
         } catch (error) {
           if (error.message === `the group ${name} already exists`) {
-            return res.status(400).json({ message: error.message })
+            return res.status(400).json({ error: error.message })
           }
           throw error
         }
