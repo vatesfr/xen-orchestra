@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Implement CRUD for `groups` (PR [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276)) (PR [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277)) (PR [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278)) (PR [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334)) (PR [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334)) (PR [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
+- [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
 
 ### Bug fixes
 
