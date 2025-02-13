@@ -4,6 +4,7 @@ import { openVhd } from 'vhd-lib'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import type { VhdDirectory } from 'vhd-lib/Vhd/VhdDirectory.js'
 import type { VhdFile } from 'vhd-lib/Vhd/VhdFile.js'
+import { dirname, join } from 'node:path'
 
 export class RemoteVhd extends RandomAccessDisk {
   #path: string
@@ -12,6 +13,9 @@ export class RemoteVhd extends RandomAccessDisk {
   #isDifferencing: boolean
   #dispose: () => any
 
+  get path(): string {
+    return this.#path
+  }
   constructor({ handler, path }: { handler: FileAccessor; path: string }) {
     super()
     // @todo : ensure this is the full path from the root of the remote
@@ -26,13 +30,11 @@ export class RemoteVhd extends RandomAccessDisk {
   }
 
   async init(): Promise<void> {
-    console.log('INIT')
     const { value, dispose } = await openVhd(this.#handler, this.#path)
     this.#vhd = value
     this.#dispose = dispose
     await this.#vhd.readBlockAllocationTable()
     this.#isDifferencing = value.footer.diskType === DISK_TYPES.DIFFERENCING
-    console.log('vhd', this.#vhd)
   }
   async close(): Promise<void> {
     await this.#dispose()
@@ -62,10 +64,11 @@ export class RemoteVhd extends RandomAccessDisk {
   async openParent(): Promise<Disk> {
     const parentPath = this.#vhd.header.parentUnicodeName
     console.log({ parentPath })
+    const fullParentPath = join(dirname(this.#path), parentPath)
     if (!parentPath) {
       throw new Error(`Disk ${this.#path} doesn't have parents`)
     }
-    const parent = new RemoteVhd({ handler: this.#handler, path: parentPath })
+    const parent = new RemoteVhd({ handler: this.#handler, path: fullParentPath })
     await parent.init()
     return parent
   }

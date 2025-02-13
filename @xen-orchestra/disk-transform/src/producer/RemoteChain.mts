@@ -29,9 +29,12 @@ export class RemoteChain extends RandomAccessDisk {
     disk = new RemoteVhd({ handler: this.#handler, path: this.#path })
     await disk.init()
     const disks = [disk]
-
+    const until = this.#until
     while (disk.isDifferencing()) {
       disk = (await disk.openParent()) as RemoteVhd
+      if (disk.path === until) {
+        break
+      }
       disks.unshift(disk)
     }
     // the root disk

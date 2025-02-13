@@ -34,15 +34,9 @@ export abstract class Disk {
         yield block
         this.yieldedDiskBlocks++
       }
-    } catch (error) {
-      console.error({ error, generatedDIskBlocks: this.generatedDiskBlocks, yieldedDiskBlocks: this.yieldedDiskBlocks })
-      throw error
     } finally {
-      console.log('finally', this)
       await this.close()
-      console.log('closed', this)
     }
-    console.log('DONE')
   }
 
   check() {

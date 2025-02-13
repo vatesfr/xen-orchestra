@@ -23,7 +23,7 @@ export class NegativeDisk extends RandomAccessDisk {
     if (this.#parent.hasBlock(index)) {
       return this.#parent.readBlock(index)
     }
-    // anew block => return an empty one
+    // a new block => return an empty one
     return Promise.resolve({
       index,
       data: Buffer.alloc(this.getBlockSize(), 0),
