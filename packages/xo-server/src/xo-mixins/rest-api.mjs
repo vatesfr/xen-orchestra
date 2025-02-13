@@ -603,6 +603,8 @@ export default class RestApi {
     })
 
     const collections = { __proto__: null }
+    // add migrated collections to maintain their discoverability
+    const swaggerEndpoints = ['docs']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1142,7 +1144,7 @@ export default class RestApi {
 
     api.get(
       '/',
-      wrap((req, res) => sendObjects(Object.values(collections), req, res))
+      wrap((req, res) => sendObjects([...Object.values(collections), ...swaggerEndpoints], req, res))
     )
 
     // For compatibility redirect from /backups* to /backup
