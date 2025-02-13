@@ -10,9 +10,9 @@
 
 <script setup lang="ts">
 import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
-import { formatSizeRaw } from '@/utils/size.util'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 
 const { record } = useDashboardStore().subscribe()

@@ -11,7 +11,7 @@
         v-if="!attrs.disabled && modelValue && clearable"
         :icon="faXmark"
         class="after"
-        accent="info"
+        accent="brand"
         @click="modelValue = ''"
       />
     </div>
@@ -69,6 +69,7 @@ const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
   position: relative;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 0.4rem;
   flex: 1;
 

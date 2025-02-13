@@ -1,9 +1,9 @@
 {
   "alarms": "هشدارها",
 
+  "bytes.gi": "GiB",
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
-  "bytes.gi": "GiB",
 
   "coming-soon": "به زودی!",
   "console": "کنسول",
@@ -27,11 +27,12 @@
   "core.sort.ascending": "مرتب سازی صعودی",
   "core.sort.descending": "مرتب سازی نزولی",
 
-  "dark-mode.enable": "فعال کردن حالت تاریک",
-  "dark-mode.disable": "غیر فعال کردن حالت تاریک",
   "dark-mode.auto": "حالت خودکار تاریک",
+  "dark-mode.disable": "غیر فعال کردن حالت تاریک",
+  "dark-mode.enable": "فعال کردن حالت تاریک",
 
   "dashboard": "داشبورد",
+  "dhcp": "DHCP",
   "documentation-name": "اسناد {name}",
   "error-no-data": "خطا، نمی توان داده ها را جمع آوری کرد.",
   "fullscreen": "تمام صفحه",
@@ -44,8 +45,8 @@
   "open-console-in-new-tab": "باز کردن کنسول در برگه جدید",
   "page-not-found": "این صفحه پیدا نمی شود…",
   "patches": "وصله ها",
-  "power-on-vm-for-console": "ماشین مجازی خود را روشن کنید تا به کنسول آن دسترسی داشته باشید",
   "power-on-host-for-console": "هاست خود را برای دسترسی به کنسول آن روشن کنید",
+  "power-on-vm-for-console": "ماشین مجازی خود را روشن کنید تا به کنسول آن دسترسی داشته باشید",
   "running-vm": "ماشین های مجازی در حال اجرا | ماشین مجازی در حال اجرا",
   "send-ctrl-alt-del": "ارسال کلیدهای Ctrl+Alt+Del",
   "stats": "آمار",

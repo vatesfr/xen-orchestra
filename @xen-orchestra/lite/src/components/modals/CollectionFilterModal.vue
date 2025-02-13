@@ -23,7 +23,7 @@
       </template>
 
       <template #buttons>
-        <UiButton size="medium" accent="info" variant="tertiary" @click="addNewFilter()">
+        <UiButton size="medium" accent="brand" variant="tertiary" @click="addNewFilter()">
           {{ $t('add-or') }}
         </UiButton>
         <ModalDeclineButton />

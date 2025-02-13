@@ -1,28 +1,28 @@
 {
   "alarms": "Výstrahy",
 
+  "bytes.gi": "GiB",
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
-  "bytes.gi": "GiB",
 
   "coming-soon": "Už brzy!",
   "console": "Konzole",
 
+  "core.close": "Zavřít",
   "core.copied": "Zkopírováno",
   "core.copy-id": "Zkopírovat identif.",
-  "core.close": "Zavřít",
   "core.current": "Stávající",
   "core.filter": "Filtrovat",
   "core.group": "Skupina",
   "core.hide": "Skrýt",
   "core.open": "Otevřít",
-  "core.quick-actions": "Rychlé akce",
-
-  "core.search": "Hledat",
-
   "core.query-search-bar.label": "Vyhledávací engine",
+
   "core.query-search-bar.placeholder": "Zadejte svůj dotaz…",
+
   "core.query-search-bar.use-query-builder": "Použít nástroj pro sestavování dotazů",
+  "core.quick-actions": "Rychlé akce",
+  "core.search": "Hledat",
 
   "core.select.all": "Vybrat vše",
   "core.select.none": "Zrušit výběr všeho",
@@ -35,9 +35,9 @@
   "core.sort.ascending": "Seřadit vzestupně",
   "core.sort.descending": "Seřadit sestupně",
 
-  "dark-mode.enable": "Zapnout tmavý režim",
-  "dark-mode.disable": "Vypnout tmavý režim",
   "dark-mode.auto": "Automatický tmavý režim",
+  "dark-mode.disable": "Vypnout tmavý režim",
+  "dark-mode.enable": "Zapnout tmavý režim",
 
   "dashboard": "Přehled",
   "documentation-name": "Dokumentace k {name}",
@@ -53,8 +53,8 @@
   "object-not-found": "Objekt {id} nebylo možné nalézt…",
   "other": "Ostatní",
   "patches": "Záplaty",
-  "power-on-vm-for-console": "Konzole virt. stroje bude přístupná až po jeho zapnutí",
   "power-on-host-for-console": "Konzole virt. stroje bude přístupná až po jeho zapnutí",
+  "power-on-vm-for-console": "Konzole virt. stroje bude přístupná až po jeho zapnutí",
   "professional-support": "Profesionální podpora",
   "running-vm": "Spuštěný virt. stroj | Spuštěné virt. stroje",
   "see-all": "Zobrazit vše",

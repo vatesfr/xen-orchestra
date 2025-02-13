@@ -46,7 +46,7 @@ const slots = defineSlots<{
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
   }
 
   .description {

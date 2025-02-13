@@ -18,7 +18,7 @@
         v-if="hasToggle"
         v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
         class="toggle"
-        accent="info"
+        accent="brand"
         :icon="isExpanded ? faAngleDown : faAngleRight"
         size="small"
         :target-scale="{ x: 1.5, y: 2 }"
@@ -27,7 +27,7 @@
       <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
         <slot name="icon">
-          <UiIcon :icon accent="current" class="icon" />
+          <VtsIcon :icon accent="current" class="icon" />
         </slot>
         <div class="text text-ellipsis">
           <slot />
@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

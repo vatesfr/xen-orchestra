@@ -68,7 +68,7 @@ const isDisabled = useDisabled(() => disabled)
         position: absolute;
         content: '';
         inset: -0.5rem;
-        border: 0.2rem solid var(--color-normal-txt-base);
+        border: 0.2rem solid var(--color-info-txt-base);
         border-radius: 0.4rem;
       }
     }

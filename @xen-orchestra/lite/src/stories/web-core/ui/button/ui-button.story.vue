@@ -2,19 +2,14 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent')
-        .type('ButtonAccent')
-        .enum('info', 'success', 'warning', 'danger')
-        .preset('info')
-        .required()
-        .widget(),
+      prop('accent').type('ButtonAccent').enum('brand', 'warning', 'danger').preset('brand').required().widget(),
       prop('variant')
         .type('ButtonVariant')
         .enum('primary', 'secondary', 'tertiary')
         .preset('primary')
         .required()
         .widget(),
-      prop('size').type('ButtonSize').enum('small', 'medium', 'large').preset('medium').required().widget(),
+      prop('size').type('ButtonSize').enum('small', 'medium').preset('medium').required().widget(),
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
       prop('lockIcon').bool().widget(),
@@ -33,7 +28,7 @@
     :presets="{
       'Save Button': {
         props: {
-          accent: 'success',
+          accent: 'brand',
           leftIcon: faFloppyDisk,
           rightIcon: undefined,
         },

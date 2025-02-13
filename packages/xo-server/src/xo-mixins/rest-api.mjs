@@ -1,3 +1,4 @@
+import setupRestApi from '@xen-orchestra/rest-api'
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
@@ -342,7 +343,7 @@ async function _getDashboardStats(app) {
   )
 
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
-  storageRepositoriesSize.other = storageRepositoriesSize.total - storageRepositoriesSize.replicated
+  storageRepositoriesSize.other = storageRepositoriesSize.used - storageRepositoriesSize.replicated
   resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
@@ -1139,11 +1140,6 @@ export default class RestApi {
       }
     })
 
-    api.get(
-      '/',
-      wrap((req, res) => sendObjects(Object.values(collections), req, res))
-    )
-
     // For compatibility redirect from /backups* to /backup
     api.get('/backups*', (req, res) => {
       res.redirect(308, req.baseUrl + '/backup' + req.params[0])
@@ -1522,6 +1518,28 @@ export default class RestApi {
         res.sendStatus(204)
       }, true)
     )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        if (name == null) {
+          return res.status(400).json({ error: 'name is required' })
+        }
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      })
+    )
+
+    setupRestApi(express)
   }
 
   registerRestApi(spec, base = '/') {

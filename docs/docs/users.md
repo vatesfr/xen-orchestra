@@ -95,6 +95,61 @@ Importing the groups doesn't import their members. The users will still be impor
 You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
 :::
 
+### OpenID Connect
+
+#### Overview
+
+The OpenID Connect (OIDC) plugin (`auth-oidc`) allows Xen Orchestra to integrate with identity providers that support the OIDC protocol.
+
+In this section, you'll learn:
+
+- how users can log in with OpenID Connect
+- how administrators can configure the plugin to suit their needs
+
+#### Prerequisites
+
+- Make sure your identity provider supports OpenID Connect.
+
+#### User Workflow
+
+##### Log In with OpenID Connect
+
+On the Xen Orchestra login page, click **Sign in with OpenID Connect**
+
+![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
+
+You’ll be redirected to the login page of your internal portal. Once authentificated on it, you will be redirected to the Xen Orchestra home page.
+
+#### Administrator Guide
+
+##### Set Up the OpenID Connect Plugin
+
+You can set up the `auth-oidc` plugin directly in Xen Orchestra:
+
+1. Go to **Settings** → **Plugins**.
+2. Find the `auth-oidc` plugin in the list.
+3. Click **+** next to the plugin name to expand the configuration options.
+
+![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
+
+##### Required Configuration
+
+Fill in the mandatory fields. You can also specify the auto-discovery URL, if needed.
+
+##### Advanced Configuration (Optional)
+
+To access advanced options:
+
+1. Check **Fill information (optional)** to reveal additional fields.
+2. Complete the fields as needed.
+
+##### Save and Activate the Plugin
+
+1. Once everything is configured, click **Save configuration**.
+2. Toggle the switch next to the `auth-oidc` plugin name to enable it. This will:
+   - Activate the plugin immediately.
+   - Ensure it loads automatically when the Xen Orchestra server restarts.
+
 ### SAML
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.
@@ -115,7 +170,15 @@ Save the configuration and then activate the plugin (button on top).
 
 Use the screenshots below as a reference as how to setup SAML with Google Workspace.
 
+1. Sign in to your [Google Workspace Admin Dashboard](https://admin.google.com).
+2. Go to **Apps/Web and mobile apps**
+3. Click **Add app** and select **Add custom SAML app**.
+4. Give your app a name and optionally a description.
+5. To see how the fields should be filled out, refer to the screenshots below.
+
 > Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+
+> If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
 
