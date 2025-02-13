@@ -26,7 +26,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
   } else if (unauthorized.is(error)) {
     res.status(401)
   } else if (invalidParameters.is(error)) {
-    res.status(400)
+    res.status(422)
   } else {
     res.status(500)
     log.error(error)
