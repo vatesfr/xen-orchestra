@@ -15,8 +15,8 @@ import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
-import { Task } from '@xen-orchestra/backups/Task.mjs'
 import { Xapi } from '@xen-orchestra/xapi'
+import { Task } from '@vates/task'
 
 const noop = Function.prototype
 
@@ -122,15 +122,15 @@ export default class Backups {
       try {
         await Task.run(
           {
-            name: 'backup run',
-            data: {
+            properties: {
               jobId: job.id,
               jobName: job.name,
               mode: job.mode,
+              name: 'backup run',
               reportWhen: job.settings['']?.reportWhen,
               scheduleId: schedule.id,
             },
-            onLog,
+            onProgress: onLog,
           },
           () => run(params)
         )
@@ -201,23 +201,20 @@ export default class Backups {
             const run = () => new ImportVmBackup({ adapter, metadata, settings, srUuid, xapi }).run()
 
             if (streamLogs) {
-              return runWithLogs(
-                async (args, onLog) =>
-                  Task.run(
-                    {
-                      data: {
-                        backupId,
-                        jobId: metadata.jobId,
-                        srId: srUuid,
-                        time: metadata.timestamp,
-                      },
-                      name: 'restore',
-                      onLog,
-                    },
-                    run
-                  ).catch(() => {}), // errors are handled by logs,
-                dispose
-              )
+              return runWithLogs(async (args, onLog) => {
+                return Task({
+                  properties: {
+                    backupId,
+                    jobId: metadata.jobId,
+                    name: 'restore',
+                    srId: srUuid,
+                    time: metadata.timestamp,
+                  },
+                  onProgress: onLog,
+                })
+                  .run(run)
+                  .catch(() => {}) // errors are handled by logs,
+              }, dispose)
             }
 
             try {
@@ -347,9 +344,11 @@ export default class Backups {
                 async (args, onLog) =>
                   Task.run(
                     {
-                      name: 'metadataRestore',
-                      data: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
-                      onLog,
+                      properties: {
+                        name: 'metadataRestore',
+                        metadata: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
+                      },
+                      onProgress: onLog,
                     },
                     () =>
                       new RestoreMetadataBackup({

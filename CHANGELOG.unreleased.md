@@ -42,6 +42,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
