@@ -54,7 +54,7 @@ const imageSrc = computed(() => {
 
   .loader,
   .text {
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
   }
 
   .image {

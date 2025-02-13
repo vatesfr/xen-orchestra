@@ -1,14 +1,15 @@
 <template>
   <div class="page-not-found">
     <VtsPageNotFoundHero type="page" />
-    <RouterLink class="link" to="/">
+    <UiLink to="/" size="medium">
       {{ $t('back-site-dashboard') }}
-    </RouterLink>
+    </UiLink>
   </div>
 </template>
 
 <script setup lang="ts">
 import VtsPageNotFoundHero from '@core/components/state-hero/VtsPageNotFoundHero.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 </script>
 
 <style lang="postcss" scoped>
