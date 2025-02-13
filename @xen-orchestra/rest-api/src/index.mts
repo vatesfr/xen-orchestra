@@ -13,6 +13,7 @@ export default function setupRestApi(express: Express) {
   RegisterRoutes(express)
 
   // do not register the doc at the root level, or it may lead to unwated behaviour
-  express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
+  // uncomment when all endpoints are migrated to this API
+  // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
   express.use('/rest/v0/docs', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
 }
