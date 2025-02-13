@@ -112,6 +112,9 @@ export class Synchronized<T, TReturn, TNext> {
         this.#nextValueForksReady.forksWaitingReject(new Error('Source generator terminated.', { cause: error }))
         this.#nextValueForksReady = undefined
       }
+      // clear state
+      this.#removedForks.clear()
+      this.#waitingForks.clear()
     } else {
       // this fork was maybe blocking the others
       if (this.#nextValueForksReady) {

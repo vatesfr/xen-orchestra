@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2024",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
+    "target": "es2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "declaration": true, // Generates `.d.ts` files for type safety
     "outDir": "dist" // Outputs compiled code to the `dist` directory

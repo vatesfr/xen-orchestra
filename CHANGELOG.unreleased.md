@@ -39,11 +39,11 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox major
 - @vates/types major
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @vates/generator-toolbox major
 - xo-server minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor

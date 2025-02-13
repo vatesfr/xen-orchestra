@@ -26,14 +26,14 @@ export class Throttle {
     this.#bytesPerSecond = speed
   }
 
-  getNextSlot(length: number): { timeout?: ReturnType<typeof setTimeout>; promise?: Promise<void> } {
+  getNextSlot(length: number): { timeout?: ReturnType<typeof setTimeout>; promise?: Promise<unknown> } {
     assert.notStrictEqual(length, undefined, `throttled stream need to expose a length property }`)
     assert.ok(length > 0, `throttled stream must expose a positive length property , ${length} given }`)
 
     const previous = this.#previousSlot
     const nextSlot = Math.round(previous + (length * 1000) / this.speed)
     if (nextSlot < Date.now()) {
-      // we're above the limmit, go now
+      // we're above the limit, go now
       this.#previousSlot = Date.now()
       return {}
     }
@@ -43,11 +43,11 @@ export class Throttle {
     let timeout: ReturnType<typeof setTimeout> | undefined = undefined
     const promise = new Promise(function (resolve) {
       timeout = setTimeout(resolve, nextSlot - Date.now())
-    }) as Promise<void>
+    })
     return { promise, timeout }
   }
 
-  async *createThrottledGenerator(source: AsyncGenerator<{ length: number }>): AsyncGenerator {
+  async *createThrottledGenerator(source: AsyncGenerator<{ length: number }>): AsyncGenerator<{ length: number }> {
     let timeout: ReturnType<typeof setTimeout> | undefined
     try {
       for await (const value of source) {
@@ -60,7 +60,6 @@ export class Throttle {
         yield value
       }
     } finally {
-      // in case of error or early stop : cleanup the timeout
       clearTimeout(timeout)
     }
   }
