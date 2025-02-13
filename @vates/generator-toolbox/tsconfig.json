@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "declaration": true, // Generates `.d.ts` files for type safety
+    "outDir": "dist" // Outputs compiled code to the `dist` directory
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
