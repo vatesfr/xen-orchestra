@@ -1373,7 +1373,7 @@ export default class RestApi {
         if (name === null) {
           return res.status(400).json({ error: 'name cannot be removed' })
         }
-        if (typeof name !== 'string') {
+        if (name !== undefined && typeof name !== 'string') {
           return res.status(400).json({ error: 'name must be a string' })
         }
 
