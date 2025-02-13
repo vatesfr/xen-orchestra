@@ -1558,6 +1558,7 @@ export default class RestApi {
         res.sendStatus(204)
       }, true)
     )
+
     api.delete(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {
