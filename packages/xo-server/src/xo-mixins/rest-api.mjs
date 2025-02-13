@@ -1560,6 +1560,22 @@ export default class RestApi {
     )
 
     api.delete(
+      '/:collection(groups)/:id/users/:userId',
+      wrap(async (req, res) => {
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
+
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot remove user from synchronized group' })
+        }
+
+        await app.removeUserFromGroup(userId, id)
+
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
       '/:collection(groups)/:id',
       wrap(async (req, res) => {
         await app.deleteGroup(req.params.id)
