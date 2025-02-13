@@ -95,7 +95,6 @@
   "go-back": "Revenir en arrière",
   "gzip": "gzip",
   "here": "Ici",
-
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
 
@@ -253,6 +252,7 @@
   "total-used:": "Total utilisé :",
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
+  "uuid": "UUID",
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",

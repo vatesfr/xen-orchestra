@@ -64,6 +64,7 @@
   "exit-fullscreen": "Exit fullscreen",
   "fullscreen": "Fullscreen",
   "gateway": "Gateway",
+  "host": "Host",
   "host-internal-networks": "Host internal networks",
   "hosts": "Hosts",
   "id": "Id",
