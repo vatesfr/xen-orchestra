@@ -29,7 +29,7 @@ class Task {
   static get abortSignal() {
     const task = getTask()
     if (task !== undefined) {
-      return task.#abortController.signal
+      return task._abortController.signal
     }
   }
 
@@ -65,8 +65,10 @@ class Task {
     }
   }
 
-  #abortController = new AbortController()
-  #onProgress
+  // These two properties should not be used outside the class
+  // For compatibility reasons they are kept public, to always allow a task to read its parent properties
+  _abortController = new AbortController()
+  _onProgress
 
   get id() {
     return (this.id = Math.random().toString(36).slice(2))
@@ -82,34 +84,27 @@ class Task {
     return this.#status
   }
 
-  get abortSignal() {
-    return this.#abortController.signal
-  }
-
-  get onProgress() {
-    return this.#onProgress
-  }
-
   constructor({ properties, onProgress } = {}) {
     this.#startData = { properties }
 
     if (onProgress !== undefined) {
-      this.#onProgress = onProgress
+      this._onProgress = onProgress
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        parent.abortSignal.addEventListener('abort', () => {
-          this.#abortController.abort(parent.abortSignal.reason)
+        const { signal } = parent._abortController
+        signal.addEventListener('abort', () => {
+          this._abortController.abort(signal.reason)
         })
 
-        this.#onProgress = parent.onProgress
+        this._onProgress = parent._onProgress
         this.#startData.parentId = parent.id
       } else {
-        this.#onProgress = noop
+        this._onProgress = noop
       }
     }
 
-    const { signal } = this.#abortController
+    const { signal } = this._abortController
     signal.addEventListener('abort', () => {
       if (this.status === PENDING) {
         this.#maybeStart()
@@ -124,7 +119,7 @@ class Task {
   }
 
   abort(reason) {
-    this.#abortController.abort(reason)
+    this._abortController.abort(reason)
   }
 
   #emit(type, data) {
@@ -133,7 +128,7 @@ class Task {
     data.id = this.id
     data.timestamp = Date.now()
     data.type = type
-    this.#onProgress(data)
+    this._onProgress(data)
   }
 
   #end(status, result) {
@@ -141,7 +136,7 @@ class Task {
     assert.equal(this.#running, false)
 
     this.#emit('end', { status, result })
-    this.#onProgress = alreadyEnded
+    this._onProgress = alreadyEnded
     this.#status = status
   }
 
