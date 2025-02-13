@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <label class="ui-toggle typo c2-semi-bold">
+  <label class="ui-toggle typo-caption">
     <slot />
     <span class="toggle-container">
       <input v-model="checked" :disabled="isDisabled || busy" class="input" type="checkbox" />

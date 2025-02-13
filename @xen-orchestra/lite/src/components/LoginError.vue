@@ -1,5 +1,5 @@
 <template>
-  <div v-if="error !== undefined" class="error typo p2-regular">
+  <div v-if="error !== undefined" class="error typo-body-regular-small">
     <UiIcon :icon="faExclamationCircle" />
     <span v-if="error.message === 'SESSION_AUTHENTICATION_FAILED'">
       {{ $t('password-invalid') }}

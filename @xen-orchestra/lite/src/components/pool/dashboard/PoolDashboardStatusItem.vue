@@ -2,18 +2,18 @@
   <div class="pool-dashboard-status-item">
     <ProgressCircle :max-value="total" :value="active" />
     <div class="content">
-      <h6 class="typo h6-semi-bold">{{ label }}</h6>
-      <div class="status-line typo p1-regular">
+      <h6 class="typo-h6">{{ label }}</h6>
+      <div class="status-line typo-body-regular">
         <div class="bullet" />
         <div class="label">{{ activeLabel }}</div>
         <div class="count">{{ active }}</div>
       </div>
-      <div class="status-line typo p1-regular">
+      <div class="status-line typo-body-regular">
         <div class="bullet inactive" />
         <div class="label">{{ inactiveLabel }}</div>
         <div class="count">{{ inactive }}</div>
       </div>
-      <div class="total typo c2-semi-bold">
+      <div class="total typo-caption-small">
         {{ $t('total') }} <span>{{ total }}</span>
       </div>
     </div>

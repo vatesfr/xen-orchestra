@@ -12,7 +12,7 @@
     <span class="fake-checkbox">
       <VtsIcon :icon accent="current" class="icon" />
     </span>
-    <span v-if="slots.default" class="typo p1-regular">
+    <span v-if="slots.default" class="typo-body-regular">
       <slot />
     </span>
   </label>

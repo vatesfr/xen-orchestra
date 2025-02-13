@@ -1,6 +1,6 @@
 <!-- v3 -->
 <template>
-  <RouterLink v-if="route && !disabled" :to="route" class="ui-object-link is-link typo p3-regular-underline">
+  <RouterLink v-if="route && !disabled" :to="route" class="ui-object-link is-link typo-action-link-small">
     <span class="icon">
       <slot name="icon">
         <VtsIcon :icon accent="current" />
@@ -10,7 +10,7 @@
       <slot />
     </span>
   </RouterLink>
-  <span v-else :class="{ disabled }" class="ui-object-link typo p3-regular-underline">
+  <span v-else :class="{ disabled }" class="ui-object-link typo-action-link-small">
     <span class="icon">
       <slot name="icon">
         <VtsIcon :icon accent="current" />
@@ -53,7 +53,7 @@ defineSlots<{
 
   .icon {
     color: var(--color-neutral-txt-primary);
-    font-size: 0.8rem;
+    font-size: 1.6rem;
   }
 
   /* INTERACTION VARIANTS */

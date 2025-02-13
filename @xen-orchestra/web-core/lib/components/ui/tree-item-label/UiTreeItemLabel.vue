@@ -25,7 +25,7 @@
         @click="emit('toggle')"
       />
       <div v-else class="h-line" />
-      <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
+      <a v-tooltip="{ selector: '.text' }" :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :icon accent="current" class="icon" />
         </slot>
