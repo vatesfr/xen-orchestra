@@ -11,7 +11,7 @@
         <p class="text typo h4-medium">
           {{ $t('click-to-display-alarms') }}
         </p>
-        <UiButton size="medium" accent="info" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
+        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />

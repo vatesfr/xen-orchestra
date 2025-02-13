@@ -18,7 +18,7 @@ defineProps<{
   display: block;
   background: var(--color-neutral-txt-primary) url('../../../assets/user.png') no-repeat;
   border-style: solid;
-  border-color: var(--color-info-item-base);
+  border-color: var(--color-brand-item-base);
   border-radius: 20rem;
 
   /* SIZE VARIANTS */

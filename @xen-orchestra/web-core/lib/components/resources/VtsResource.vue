@@ -1,6 +1,6 @@
 <template>
-  <li class="ui-resource">
-    <UiIcon :icon class="icon" />
+  <li class="vts-resource">
+    <VtsIcon accent="brand" :icon class="icon" />
     <div class="separator" />
     <div class="label typo h6-semi-bold">{{ label }}</div>
     <div class="count typo p2-regular">{{ count }}</div>
@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 defineProps<{
@@ -19,7 +19,7 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.ui-resource {
+.vts-resource {
   display: flex;
   align-items: center;
 }

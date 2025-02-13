@@ -8,15 +8,15 @@
     ]"
     :presets
   >
-    <UiResource v-bind="properties" />
+    <VtsResource v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import UiResource from '@/components/ui/resources/UiResource.vue'
 import { iconProp, prop } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
+import VtsResource from '@core/components/resources/VtsResource.vue'
 import {
   faDatabase,
   faDisplay,

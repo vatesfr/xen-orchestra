@@ -1,6 +1,6 @@
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
-import { formatSizeRaw } from '@/utils/size.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import { formatSizeRaw } from '@core/utils/size.util'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -22,6 +22,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       total: formatSizeRaw(baseContext.record.value?.storageRepositories.size.total, 1),
       used: formatSizeRaw(baseContext.record.value?.storageRepositories.size.used, 1),
       available: formatSizeRaw(baseContext.record.value?.storageRepositories.size.available, 1),
+      replicated: formatSizeRaw(baseContext.record.value?.storageRepositories.size.replicated, 1),
+      other: formatSizeRaw(baseContext.record.value?.storageRepositories.size.other, 1),
     }
   })
 

@@ -11,12 +11,21 @@ exports.configurationSchema = {
   type: 'object',
   properties: {
     discoveryURL: {
-      description: 'If this field is not used, you will need to manually enter settings in the *Advanced* section.',
+      description:
+        'The OIDC discovery URL provided by your identity provider.\n\nIf this field is not used, you will need to manually enter settings in the *Advanced* section.',
       title: 'Auto-discovery URL',
       type: 'string',
     },
-    clientID: { title: 'Client identifier (key)', type: 'string' },
-    clientSecret: { title: 'Client secret', type: 'string' },
+    clientID: {
+      description: 'The client ID from your identity provider.',
+      title: 'Client identifier (key)',
+      type: 'string',
+    },
+    clientSecret: {
+      description: 'Your client secret.',
+      title: 'Client secret',
+      type: 'string',
+    },
 
     advanced: {
       title: 'Advanced',
@@ -25,6 +34,7 @@ exports.configurationSchema = {
       properties: {
         authorizationURL: { title: 'Authorization URL', type: 'string' },
         callbackURL: {
+          description: 'The redirect URI for OIDC responses.',
           title: 'Callback URL',
           default: '/signin/oidc/callback',
           type: 'string',

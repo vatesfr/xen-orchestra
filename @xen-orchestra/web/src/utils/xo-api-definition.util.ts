@@ -41,13 +41,13 @@ export const xoApiDefinition = {
   pif: {
     type: 'collection',
     path: 'pifs',
-    fields: '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,mode,mtu,netmask,speed',
+    fields: '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan',
     handler: (record: XoPif) => record,
   },
   network: {
     type: 'collection',
     path: 'networks',
-    fields: 'id, defaultIsLocked,name_label,nbd,tags',
+    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs',
     handler: (record: XoNetwork) => record,
   },
 } satisfies ApiDefinition

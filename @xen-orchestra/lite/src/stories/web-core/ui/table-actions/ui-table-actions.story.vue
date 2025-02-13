@@ -15,7 +15,7 @@
         :key="index"
         :left-icon="label.icon"
         variant="tertiary"
-        accent="info"
+        accent="brand"
         size="medium"
       >
         {{ label.title }}

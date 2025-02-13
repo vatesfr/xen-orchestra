@@ -1,14 +1,9 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
     <VtsIcon :icon accent="current" />
     <slot />
-    <VtsIcon
-      v-if="attributes.target === '_blank'"
-      :icon="faArrowUpRightFromSquare"
-      accent="current"
-      class="external-icon"
-    />
+    <VtsIcon v-if="attributes.target === '_blank'" :icon="faUpRightFromSquare" accent="current" class="external-icon" />
   </component>
 </template>
 
@@ -16,7 +11,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import { faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<
@@ -41,14 +36,14 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 
   &:hover {
-    color: var(--color-info-txt-hover);
+    color: var(--color-brand-txt-hover);
   }
 
   &:active {
-    color: var(--color-info-txt-active);
+    color: var(--color-brand-txt-active);
   }
 
   &:focus-visible {
@@ -57,7 +52,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
     &::before {
       content: '';
       position: absolute;
-      inset: -0.6rem;
+      inset: -0.4rem;
       border: 0.2rem solid var(--color-info-txt-base);
       border-radius: 0.4rem;
     }

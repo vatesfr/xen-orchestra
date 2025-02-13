@@ -50,10 +50,10 @@ defineProps<{
   }
 
   &.brand {
-    color: var(--color-info-item-base);
+    color: var(--color-brand-item-base);
 
     .overlay-icon {
-      color: var(--color-info-txt-item);
+      color: var(--color-brand-txt-item);
     }
   }
 
