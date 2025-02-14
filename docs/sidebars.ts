@@ -63,6 +63,7 @@ export default {
         'manage',
         'manage_infrastructure',
         'users',
+        'vm-templates',
         'advanced',
         'load_balancing',
         'sdn_controller',
