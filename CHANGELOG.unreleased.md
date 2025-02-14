@@ -22,6 +22,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 [SDN-controller] Fix _No PIF found_ error when creating a private network [#8027](https://github.com/vatesfr/xen-orchestra/issues/8027) (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/8319))
+- [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
+
 
 ### Packages to release
 
@@ -41,6 +43,7 @@
 
 - @vates/types major
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
