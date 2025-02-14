@@ -69,6 +69,7 @@
   "console-unavailable": "Console indisponible",
   "copy": "Copier",
   "copy-info-json": "Copier les informations en JSON",
+  "core.character-limit": "{count}/{max} caractère | {count}/{max} caractères",
   "core.close": "Fermer",
   "core.copied": "Copié",
   "core.copy-id": "Copier l'ID",
