@@ -24,7 +24,7 @@ defineProps<{
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 }
 
 .title {

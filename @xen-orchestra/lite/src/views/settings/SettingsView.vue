@@ -182,10 +182,10 @@ h5 {
     gap: 1.6em;
 
     &.selected {
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
 
       img {
-        outline: solid 2px var(--color-info-txt-base);
+        outline: solid 2px var(--color-brand-txt-base);
       }
     }
 

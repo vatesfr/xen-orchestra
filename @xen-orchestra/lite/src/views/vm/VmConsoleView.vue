@@ -110,7 +110,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 }
 
 .spinner {
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   display: flex;
   margin: auto;
   width: 10rem;

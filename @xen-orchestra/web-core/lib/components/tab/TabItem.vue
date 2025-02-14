@@ -46,20 +46,20 @@ const classNames = computed(() => {
 
   &:is(:hover, .hover, :focus-visible) {
     --color: var(--color-neutral-txt-primary);
-    --border-color: var(--color-info-item-hover);
-    --background-color: var(--color-info-background-hover);
+    --border-color: var(--color-brand-item-hover);
+    --background-color: var(--color-brand-background-hover);
   }
 
   &:is(:active, .pressed) {
     --color: var(--color-neutral-txt-primary);
-    --border-color: var(--color-info-item-active);
-    --background-color: var(--color-info-background-active);
+    --border-color: var(--color-brand-item-active);
+    --background-color: var(--color-brand-background-active);
   }
 
   &:is(.active, .selected) {
     --color: var(--color-neutral-txt-primary);
-    --border-color: var(--color-info-item-base);
-    --background-color: var(--color-info-background-selected);
+    --border-color: var(--color-brand-item-base);
+    --background-color: var(--color-brand-background-selected);
   }
 
   &:is(:disabled, .disabled) {
