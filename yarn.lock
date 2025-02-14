@@ -4543,6 +4543,13 @@
   dependencies:
     undici-types "~6.19.2"
 
+"@types/node@^22.3.0":
+  version "22.13.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.13.4.tgz#3fe454d77cd4a2d73c214008b3e331bfaaf5038a"
+  integrity sha512-ywP2X0DYtX3y08eFVx5fNIw7/uIv8hYUKgXoK8oayJlLnKcRfEYCxWMVE1XagUdVtCJlZT1AU4LXEABW+L1Peg==
+  dependencies:
+    undici-types "~6.20.0"
+
 "@types/novnc__novnc@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@types/novnc__novnc/-/novnc__novnc-1.5.0.tgz#5f58687f0fa6591b75e91eb75237520da440dbb4"
