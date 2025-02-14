@@ -7,7 +7,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "es2022",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "declaration": true // Generates `.d.ts` files for type safety
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules", "./dist"]
