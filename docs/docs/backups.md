@@ -68,6 +68,19 @@ Full backups create one file per backup with all the data, that can go over 64 G
 
 The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French)](https://cyber.gouv.fr/sites/default/files/2021/03/anssi-guide-selection_crypto-1.0.pdf).
 
+### Switching to the new encryption algorithm
+
+If you see an exclamation mark next to the encryption icon on a remote, it means the encryption algorithm isn't the recommended one. 
+
+To switch to `ChaCha20-Poly1305`, follow these steps:
+
+1. Make sure the remote doesn't contain any backups encrypted with the old algorithm.
+2. If the remote has `AES-256-GCM` backups, create a new remote and do a full backup to that location.
+3. Once all backups with the old encryption are gone, set up encryption on the remote with the new algorithm.
+4. The exclamation mark should disappear.
+
+If the warning icon is still there, double-check that no encrypted backups remain before switching algorithms.
+
 ## Exclude disks
 
 During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
