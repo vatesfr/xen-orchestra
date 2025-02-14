@@ -1,9 +1,14 @@
 <!-- v2 -->
 <template>
   <div class="ui-textarea" :class="toVariants({ accent })">
-    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href><slot /></UiLabel>
+    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href>
+      <slot />
+    </UiLabel>
     <textarea v-model="model" :disabled class="textarea" v-bind="attrs" />
-    <UiInfo v-if="slots.info" :accent><slot name="info" /></UiInfo>
+    <slot name="character-limit" />
+    <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
+      <slot name="info" />
+    </UiInfo>
   </div>
 </template>
 
@@ -18,8 +23,8 @@ defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps<{
-  accent: 'info' | 'warning' | 'danger'
+const { accent } = defineProps<{
+  accent: 'brand' | 'warning' | 'danger'
   disabled?: boolean
   href?: string
   icon?: IconDefinition
@@ -30,12 +35,13 @@ const model = defineModel<string>({ required: true })
 
 const slots = defineSlots<{
   default?(): any
+  'character-limit'?(): any
   info?(): any
 }>()
 
 const attrs = useAttrs()
 
-const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
+const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 </script>
 
 <style lang="postcss" scoped>
@@ -54,20 +60,23 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
     width: 100%;
   }
 
-  &.accent--info {
+  &.accent--brand {
     .textarea {
       border-color: var(--color-neutral-border);
 
       &:hover {
-        border-color: var(--color-info-item-hover);
+        border-color: var(--color-brand-item-hover);
       }
+
       &:active {
-        border-color: var(--color-info-item-active);
+        border-color: var(--color-brand-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
-        border-color: var(--color-info-item-base);
+        border-color: var(--color-brand-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
@@ -82,13 +91,16 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:hover {
         border-color: var(--color-warning-item-hover);
       }
+
       &:active {
         border-color: var(--color-warning-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-warning-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
@@ -103,13 +115,16 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:hover {
         border-color: var(--color-danger-item-hover);
       }
+
       &:active {
         border-color: var(--color-danger-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-danger-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
