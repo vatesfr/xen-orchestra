@@ -1550,6 +1550,18 @@ export default class RestApi {
       })
     )
 
+    api.post(
+      '/:collection(users)',
+      json(),
+      wrap(async (req, res) => {
+        const { name, password, permission } = req.body
+        if (name != null || password != null) {
+          return res.status(400).json({ message: 'Name and password are required.' })
+        }
+        const user = await app.createUser({ name, password, permission })
+        res.status(201).end(user.id)
+      })
+    )
     api.put(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {
