@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @typedef {import('../../disk-transform/src/Disk.mjs').Disk} Disk
+ * @typedef {import('../../disk-transform/dist/Disk.mjs').Disk} Disk
  */
 import assert from 'node:assert';
 import {  RandomAccessDisk } from '../../disk-transform/dist/Disk.mjs'

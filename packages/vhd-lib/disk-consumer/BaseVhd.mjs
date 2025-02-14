@@ -8,7 +8,6 @@ import { DEFAULT_BLOCK_SIZE, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE }
 import { createFooter, createHeader } from '../_createFooterHeader.js'
 
 export const FULL_BLOCK_BITMAP = Buffer.alloc(SECTOR_SIZE, 255)
-
 /**
  * @abstract
  */

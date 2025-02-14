@@ -11,7 +11,7 @@
 import { openVhd } from 'vhd-lib'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { dirname, join } from 'node:path'
-import { RandomAccessDisk } from '../../disk-transform/src/Disk.mjs';
+import { RandomAccessDisk } from '../../disk-transform/dist/Disk.mjs';
 
 /**
  * Represents a remote VHD (Virtual Hard Disk) that extends RandomAccessDisk.

@@ -1,7 +1,7 @@
 // @ts-check
 /**
- * @typedef {import('../../disk-transform/src/Disk.mjs').DiskBlock} DiskBlock
- * @typedef {import('../../disk-transform/src/Disk.mjs').Disk} Disk
+ * @typedef {import('../../disk-transform/dist/Disk.mjs').DiskBlock} DiskBlock
+ * @typedef {import('../../disk-transform/dist/Disk.mjs').Disk} Disk
  * @typedef {import('@vates/nbd-client/multi.mjs')} MultiNbdClient
  */
  

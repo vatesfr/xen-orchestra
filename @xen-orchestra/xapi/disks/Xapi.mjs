@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @typedef {import('../../disk-transform/src/Disk.mjs').DiskBlock} DiskBlock
+ * @typedef {import('../../disk-transform/dist/Disk.mjs').DiskBlock} DiskBlock
  */
  
 import { Disk } from '../../disk-transform/dist/Disk.mjs';
