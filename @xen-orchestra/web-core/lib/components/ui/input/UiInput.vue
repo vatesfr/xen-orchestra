@@ -22,7 +22,7 @@
         @click="modelValue = ''"
       />
     </div>
-    <UiInfo v-if="slots.info || info" :accent>
+    <UiInfo v-if="slots.info || info" :accent="accent === 'brand' ? 'info' : accent">
       <slot name="info">{{ info }}</slot>
     </UiInfo>
   </div>
@@ -37,7 +37,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed, useAttrs, useId } from 'vue'
 
-type InputAccent = 'info' | 'warning' | 'danger'
+type InputAccent = 'brand' | 'warning' | 'danger'
 type InputType = 'text' | 'number' | 'password' | 'search'
 
 defineOptions({
@@ -67,7 +67,7 @@ const slots = defineSlots<{
 
 const attrs = useAttrs()
 
-const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
+const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 </script>
 
 <style lang="postcss" scoped>
@@ -76,7 +76,6 @@ const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
   position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1;
   gap: 0.4rem;
   flex: 1;
 
@@ -107,20 +106,20 @@ const labelAccent = computed(() => (accent === 'info' ? 'neutral' : accent))
 
   /* VARIANT */
 
-  &.accent--info {
+  &.accent--brand {
     .input {
       border-color: var(--color-neutral-border);
 
       &:hover {
-        border-color: var(--color-info-item-hover);
+        border-color: var(--color-brand-item-hover);
       }
 
       &:focus {
-        border-color: var(--color-info-item-base);
+        border-color: var(--color-brand-item-base);
       }
 
       &:active {
-        border-color: var(--color-info-item-active);
+        border-color: var(--color-brand-item-active);
       }
 
       &:disabled {

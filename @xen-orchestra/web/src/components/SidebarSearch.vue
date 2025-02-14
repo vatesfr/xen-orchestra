@@ -6,7 +6,7 @@
       :aria-label="$t('sidebar.search-tree-view')"
       :icon="faMagnifyingGlass"
       :placeholder="$t('sidebar.search-tree-view')"
-      accent="info"
+      accent="brand"
     />
   </div>
 </template>

@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       model().type('string').preset(''),
-      prop('accent').enum('info', 'warning', 'danger').required().preset('info').widget(),
+      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
       iconProp(),
@@ -26,5 +26,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, prop, setting, slot, model } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import UiTextarea from '@core/components/ui/input/UiTextarea.vue'
+import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 </script>
