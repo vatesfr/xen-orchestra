@@ -21,13 +21,13 @@
       <div>
         <div v-if="newVmState.isDiskTemplateSelected">
           <div class="install-radio-container">
-            <UiRadioButton v-model="newVmState.install" accent="info" value="no-config">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="no-config">
               {{ $t('new-vm.no-config') }}
             </UiRadioButton>
-            <UiRadioButton v-model="newVmState.install" accent="info" value="ssh-key">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="ssh-key">
               {{ $t('new-vm.ssh-key') }}
             </UiRadioButton>
-            <UiRadioButton v-model="newVmState.install" accent="info" value="custom_config">
+            <UiRadioButton v-model="newVmState.install" accent="brand" value="custom_config">
               {{ $t('new-vm.custom-config') }}
             </UiRadioButton>
           </div>
@@ -78,7 +78,7 @@
             <UiRadioButton
               v-model="newVmState.install"
               :disabled="!newVmState.new_vm_template"
-              accent="info"
+              accent="brand"
               value="iso_dvd"
             >
               {{ $t('new-vm.iso-dvd') }}
@@ -86,7 +86,7 @@
             <UiRadioButton
               v-model="newVmState.install"
               :disabled="!newVmState.new_vm_template"
-              accent="info"
+              accent="brand"
               value="pxe"
             >
               {{ $t('new-vm.pxe') }}
@@ -120,7 +120,7 @@
               </option>
             </FormSelect>
           </div>
-          <UiCheckbox v-model="getCopyHostBiosStrings" accent="info">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+          <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
         </div>
         <div class="col-right">
           <UiTextarea v-model="newVmState.vm_description" accent="info" href="''">
@@ -274,10 +274,10 @@
       <!--      SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.settings') }}</UiTitle>
       <div class="settings-container">
-        <UiCheckboxGroup accent="info">
-          <UiCheckbox v-model="newVmState.boot_vm" accent="info">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-          <UiCheckbox v-model="newVmState.auto_power" accent="info">{{ $t('new-vm.auto-power') }}</UiCheckbox>
-          <UiCheckbox v-model="newVmState.fast_clone" accent="info">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+        <UiCheckboxGroup accent="brand">
+          <UiCheckbox v-model="newVmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
+          <UiCheckbox v-model="newVmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+          <UiCheckbox v-model="newVmState.fast_clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
         </UiCheckboxGroup>
       </div>
       <!--      SUMMARY SECTION -->
@@ -350,13 +350,13 @@ import { computed, reactive, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { templates } = useVmStore().subscribe()
-const { records: srs, vdisGroupedBySrName, getByOpaqueRef: getOpaqueRefSr } = useSrStore().subscribe()
 const { pool } = usePoolStore().subscribe()
+const { records: srs, vdisGroupedBySrName, getByOpaqueRef: getOpaqueRefSr } = useSrStore().subscribe()
+const { records: networks, getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefVbd } = useVbdStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefVdi } = useVdiStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefVif } = useVifStore().subscribe()
 const { getByOpaqueRef: getOpaqueRefPif } = usePifStore().subscribe()
-const { records: networks, getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
 
@@ -479,13 +479,18 @@ const getVDis = (template: XenApiVm) => {
 const getExistingDisks = (template: XenApiVm) => {
   const existingDisksArray = [] as Disk[]
 
+  console.log('template', template)
+
   template.VBDs.forEach(vbdId => {
     const vbd = getOpaqueRefVbd(vbdId)
+    console.log('vbd', vbd)
     if (!vbd || vbd.type === 'CD') {
       return
     }
 
     const vdi = getOpaqueRefVdi(vbd.VDI)
+
+    console.log('vdi', vdi)
 
     if (vdi) {
       existingDisksArray.push({
@@ -651,11 +656,25 @@ const createVM = async () => {
     return
   }
 
+  const isDiskTemplate =
+    newVmState.new_vm_template &&
+    newVmState.new_vm_template.VBDs.length !== 0 &&
+    newVmState.new_vm_template.name_label !== 'Other install media'
+
+  const vmRef = await (isDiskTemplate
+    ? xapi.vm.clone({ [templateRef]: newVmName })
+    : xapi.vm.copy({ [templateRef]: newVmName }, ''))
+
+  console.log('Clone réussi, référence VM :', vmRef)
+
+  // const allowed = await xapi.vm.getAllowedVBDDevices(templateRef)
+  //
+  // const userdevice = allowed.includes('3') ? '3' : allowed[0]
+  //
+  // console.log('userdevice: =>', userdevice)
+  // console.log('allowed: =>', allowed)
   console.log('VDIS: =>', data.value.VDIs)
   console.log('VIFS: =>', data.value.VIFs)
-
-  const vmRef = await xapi.vm.clone({ [templateRef]: newVmName })
-  console.log('Clone réussi, référence VM :', vmRef)
 
   await Promise.all([
     xapi.vm.setNameLabel(vmRef, data.value.name_label),
@@ -664,34 +683,6 @@ const createVM = async () => {
 
   await xapi.vm.provision(vmRef)
   console.log('Provisioning réussi')
-
-  // xapi.vm
-  //   .clone({ [templateRef]: newVmName })
-  //   .then(cloneResult => {
-  //     const vmRef = cloneResult[0]
-  //     xapi.vm
-  //       .provision([vmRef])
-  //       .then(result => {
-  //         console.log('Provision réussi', result)
-  //       })
-  //       .catch(error => {
-  //         console.error('Erreur lors de la provision', error)
-  //       })
-  //     // Promise.all([
-  //     //   xapi.vm.setNameLabel(templateRef, data.value.name_label),
-  //     //   xapi.vm.setNameDescription(templateRef, data.value.name_description),
-  //     // ])
-  //     //   .then(result => {
-  //     //     console.log('Set réussi :', result)
-  //     //   })
-  //     //   .catch(error => {
-  //     //     console.error('Erreur lors du Set :', error)
-  //     //   })
-  //     console.log('Clone réussi :', cloneResult[0])
-  //   })
-  //   .catch(error => {
-  //     console.error('Erreur lors du clonage :', error)
-  //   })
 }
 
 watchEffect(() => {
