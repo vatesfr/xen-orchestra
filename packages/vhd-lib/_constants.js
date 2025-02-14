@@ -1,9 +1,7 @@
-// @ts-check
-
 'use strict'
 
 /**
- * @typedef {Object} VhdConstants
+ * @typedef {Object} Constants
  * @property {number} BLOCK_UNUSED - Represents an unused block.
  * @property {string} CREATOR_APPLICATION - The creator application identifier.
  * @property {number} FOOTER_SIZE - Size of the VHD footer in bytes.
@@ -21,37 +19,101 @@
  */
 
 /**
- * @type {VhdConstants}
+ * Represents an unused block.
+ * @type {number}
  */
-module.exports = {
-  BLOCK_UNUSED: 0xffffffff,
-  CREATOR_APPLICATION: 'xo  ',
-  FOOTER_SIZE: 512,
-  HEADER_SIZE: 1024,
-  SECTOR_SIZE: 512,
-  DEFAULT_BLOCK_SIZE: 0x00200000,
-  FOOTER_COOKIE: 'conectix',
-  HEADER_COOKIE: 'cxsparse',
-  DISK_TYPES: {
-    __proto__: null,
+exports.BLOCK_UNUSED = 0xffffffff
 
-    FIXED: 2,
-    DYNAMIC: 3,
-    DIFFERENCING: 4,
-  },
-  PARENT_LOCATOR_ENTRIES: 8,
-  PLATFORMS: {
-    __proto__: null,
+/**
+ * The creator application identifier.
+ * @type {string}
+ */
+exports.CREATOR_APPLICATION = 'xo  '
 
-    NONE: 0,
-    WI2R: 0x57693272,
-    WI2K: 0x5769326b,
-    W2RU: 0x57327275,
-    W2KU: 0x57326b75,
-    MAC: 0x4d616320,
-    MACX: 0x4d616358,
-  },
-  FILE_FORMAT_VERSION: 1 << 16,
-  HEADER_VERSION: 1 << 16,
-  ALIAS_MAX_PATH_LENGTH: 1024,
+/**
+ * Size of the VHD footer in bytes.
+ * @type {number}
+ */
+exports.FOOTER_SIZE = 512
+
+/**
+ * Size of the VHD header in bytes.
+ * @type {number}
+ */
+exports.HEADER_SIZE = 1024
+
+/**
+ * Size of a sector in bytes.
+ * @type {number}
+ */
+exports.SECTOR_SIZE = 512
+
+/**
+ * Default block size in bytes.
+ * @type {number}
+ */
+exports.DEFAULT_BLOCK_SIZE = 0x00200000 // from the spec
+
+/**
+ * The footer cookie identifier.
+ * @type {string}
+ */
+exports.FOOTER_COOKIE = 'conectix'
+
+/**
+ * The header cookie identifier.
+ * @type {string}
+ */
+exports.HEADER_COOKIE = 'cxsparse'
+
+/**
+ * Types of VHD disks.
+ * @type {Object.<string, number>}
+ */
+exports.DISK_TYPES = {
+  __proto__: null,
+
+  FIXED: 2,
+  DYNAMIC: 3,
+  DIFFERENCING: 4,
 }
+
+/**
+ * Number of parent locator entries.
+ * @type {number}
+ */
+exports.PARENT_LOCATOR_ENTRIES = 8
+
+/**
+ * Platform identifiers.
+ * @type {Object.<string, number>}
+ */
+exports.PLATFORMS = {
+  __proto__: null,
+
+  NONE: 0,
+  WI2R: 0x57693272,
+  WI2K: 0x5769326b,
+  W2RU: 0x57327275,
+  W2KU: 0x57326b75,
+  MAC: 0x4d616320,
+  MACX: 0x4d616358,
+}
+
+/**
+ * File format version.
+ * @type {number}
+ */
+exports.FILE_FORMAT_VERSION = 1 << 16
+
+/**
+ * Header version.
+ * @type {number}
+ */
+exports.HEADER_VERSION = 1 << 16
+
+/**
+ * Maximum length of an alias path.
+ * @type {number}
+ */
+exports.ALIAS_MAX_PATH_LENGTH = 1024
