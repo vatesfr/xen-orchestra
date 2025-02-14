@@ -135,11 +135,19 @@
       <!--      MEMORY SECTION -->
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
-        <UiInput v-model="newVmState.vCpu" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
-        <UiInput v-model="newVmState.ram" accent="info" href="''">{{ $t('new-vm.ram') }}</UiInput>
+        <UiInput v-model="newVmState.vCpu" v-bind="vCpuProps" type="number" href="''">
+          {{ $t('new-vm.vcpu') }}
+        </UiInput>
+        <UiInput v-model="newVmState.ram" v-bind="ramProps" type="number" href="''">
+          {{ $t('new-vm.ram') }}
+        </UiInput>
         <select id="topology" v-model="newVmState.vCpu" :disabled="!newVmState.new_vm_template">
-          <option v-for="option in coresPerSocketOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
+          <option
+            v-for="coresPerSocket in coresPerSocketOptions"
+            :key="coresPerSocket.value"
+            :value="coresPerSocket.value"
+          >
+            {{ coresPerSocket.label }}
           </option>
         </select>
       </div>
@@ -439,7 +447,7 @@ const removeSshKey = (index: number) => {
 }
 
 const isDiskTemplate = (template: XoVmTemplate) => {
-  return template && template.$VBDs.length !== 0 && template.name_label !== 'Other install media'
+  return template && template.$VBDs.length !== 0 && template.name_label !== t('new-vm.other-installation-media')
 }
 
 const getBootFirmwares = computed(() => {
@@ -594,6 +602,37 @@ const totalDisks = computed(() => {
   return newVmState.existingDisks?.length + newVmState.VDIs?.length
 })
 
+const vCpuProps = computed(() => {
+  const props: Record<string, any> = {
+    accent: 'info',
+  }
+  if (!newVmState.new_vm_template) return
+  if (newVmState.vCpu > newVmState.new_vm_template?.CPUs.max) {
+    props.info = t('new-vm.max-vcpu', { maxCpu: newVmState.new_vm_template.CPUs.max })
+    props.accent = 'danger'
+  } else if (newVmState.vCpu < 1) {
+    props.info = t('new-vm.min-vcpu', { minCpu: 1 })
+    props.accent = 'danger'
+  }
+  return props
+})
+
+const ramProps = computed(() => {
+  const props: Record<string, any> = {
+    accent: 'info',
+  }
+  if (!newVmState.new_vm_template) return props
+  const ram = byteFormatter(newVmState.new_vm_template.memory.dynamic[1])
+  if (newVmState.ram > ram) {
+    props.info = t('new-vm.max-memory', { maxRam: byteFormatter(newVmState.new_vm_template.memory.dynamic[1]) })
+    props.accent = 'danger'
+  } else if (newVmState.ram < 1) {
+    props.info = t('new-vm.min-memory', { minRam: 1 })
+    props.accent = 'danger'
+  }
+  return props
+})
+
 const coresPerSocketOptions = computed(() => {
   if (!newVmState.new_vm_template) return
   const options = []
@@ -602,7 +641,7 @@ const coresPerSocketOptions = computed(() => {
   for (let coresPerSocket = maxCpu; coresPerSocket >= 1; coresPerSocket--) {
     if (cpuNumber % coresPerSocket === 0) {
       options.push({
-        label: t('vmSocketsWithCoresPerSocket', {
+        label: t('new-vm.socketsWithCoresPerSocket', {
           nSockets: cpuNumber / coresPerSocket,
           nCores: coresPerSocket,
         }),
@@ -656,6 +695,7 @@ watchEffect(() => {
 <style scoped lang="postcss">
 .container {
   margin: 1rem;
+  flex-grow: 1;
 }
 
 .system-container,
@@ -717,6 +757,6 @@ thead tr th {
   display: flex;
   justify-content: center;
   gap: 1.6rem;
-  margin-top: 4.2rem;
+  margin-top: auto;
 }
 </style>
