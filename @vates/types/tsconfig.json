@@ -4,7 +4,7 @@
     "declaration": true,
     "strict": true,
     "module": "ESNext",
-    "target": "ESNext",
+    "target": "ES2022",
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
