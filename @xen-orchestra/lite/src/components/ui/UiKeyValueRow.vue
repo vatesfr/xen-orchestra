@@ -1,9 +1,9 @@
 <template>
   <tr class="ui-key-value-row">
-    <th v-if="slots.key" class="key typo p1-regular">
+    <th v-if="slots.key" class="key typo-body-regular">
       <slot name="key" />
     </th>
-    <td :colspan="slots.key ? 1 : 2" class="value typo p1-regular">
+    <td :colspan="slots.key ? 1 : 2" class="value typo-body-regular">
       <slot name="value" />
     </td>
   </tr>

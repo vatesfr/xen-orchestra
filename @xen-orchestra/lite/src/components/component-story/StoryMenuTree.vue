@@ -3,13 +3,13 @@
     <li v-for="[key, node] in tree" :key="key">
       <span
         v-if="node.children.size > 0"
-        class="directory typo p1-medium"
+        class="directory typo-body-bold"
         @click="emit('toggleDirectory', node.directory)"
       >
         <UiIcon :icon="isOpen(node.directory) ? faFolderOpen : faFolderClosed" />
         {{ formatName(key) }}
       </span>
-      <RouterLink v-else :to="node.path" class="link typo p1-regular">
+      <RouterLink v-else :to="node.path" class="link typo-body-regular">
         <UiIcon :icon="faFile" />
         {{ formatName(key) }}
       </RouterLink>

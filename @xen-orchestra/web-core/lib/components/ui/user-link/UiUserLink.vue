@@ -1,10 +1,10 @@
 <!-- v3 -->
 <template>
-  <RouterLink v-if="route && !disabled" :to="route" class="ui-user-link is-link typo p3-regular-underline">
+  <RouterLink v-if="route && !disabled" :to="route" class="ui-user-link is-link typo-action-link-small">
     <UiUserLogo size="extra-small" class="logo" />
     {{ username }}
   </RouterLink>
-  <span v-else :class="toVariants({ disabled })" class="ui-user-link typo p3-regular-underline">
+  <span v-else :class="toVariants({ disabled })" class="ui-user-link typo-action-link-small">
     <UiUserLogo size="extra-small" class="logo" />
     {{ username }}
   </span>

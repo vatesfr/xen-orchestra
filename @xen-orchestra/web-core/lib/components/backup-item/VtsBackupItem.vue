@@ -3,7 +3,7 @@
     <RouterLink v-if="backup.route !== undefined" :to="backup.route">
       {{ backup.label }}
     </RouterLink>
-    <p v-else class="typo p3-medium">
+    <p v-else class="typo-body-bold">
       {{ backup.label }}
     </p>
     <div class="states">

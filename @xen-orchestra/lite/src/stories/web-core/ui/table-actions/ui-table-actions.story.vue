@@ -26,7 +26,7 @@
         </UiActionsTitle>
       </template>
       <template #groupedBy>
-        <span>Grouped By</span>
+        <span class="typo-body-regular-small">Grouped By</span>
       </template>
     </UiTableActions>
   </ComponentStory>
