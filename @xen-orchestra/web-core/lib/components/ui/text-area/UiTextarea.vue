@@ -5,6 +5,7 @@
       <slot />
     </UiLabel>
     <textarea v-model="model" :disabled class="textarea" v-bind="attrs" />
+    <slot name="character-limit" />
     <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
       <slot name="info" />
     </UiInfo>
@@ -34,6 +35,7 @@ const model = defineModel<string>({ required: true })
 
 const slots = defineSlots<{
   default?(): any
+  'character-limit'?(): any
   info?(): any
 }>()
 
