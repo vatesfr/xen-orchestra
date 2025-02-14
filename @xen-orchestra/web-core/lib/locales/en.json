@@ -289,6 +289,8 @@
   "new-vm.networks": "Networks",
   "new-vm.new": "New",
   "new-vm.no-config": "No config",
+  "new-vm.other-installation-media": "Other installation media",
+  "new-vm.paste-public-key": "Paste public key",
   "new-vm.pick-template": "Pick a template from your list",
   "new-vm.pxe": "PXE",
   "new-vm.ram": "Ram",
