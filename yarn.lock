@@ -4263,6 +4263,11 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node20/-/node20-20.1.4.tgz#3457d42eddf12d3bde3976186ab0cd22b85df928"
   integrity sha512-sqgsT69YFeLWf5NtJ4Xq/xAF8p4ZQHlmGW74Nu2tD4+g5fAsposc4ZfaaPixVu4y01BEiDCWLRDCvDM5JOsRxg==
 
+"@tsconfig/recommended@^1.0.7":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@tsconfig/recommended/-/recommended-1.0.8.tgz#16483d57b56bbbd32b8c3af0eff1a40c32d006fa"
+  integrity sha512-TotjFaaXveVUdsrXCdalyF6E5RyG6+7hHHQVZonQtdlk1rJZ1myDIvPUUKPhoYv+JAzThb2lQJh9+9ZfF46hsA==
+
 "@tsoa/cli@^6.6.0":
   version "6.6.0"
   resolved "https://registry.yarnpkg.com/@tsoa/cli/-/cli-6.6.0.tgz#7946adfb64a3f081d18d1b4b8e4546626b99c602"
@@ -19698,7 +19703,7 @@ typescript-eslint@^8.23.0:
     "@typescript-eslint/parser" "8.23.0"
     "@typescript-eslint/utils" "8.23.0"
 
-typescript@5, typescript@^5.0.3, typescript@^5.7.2:
+typescript@5, typescript@^5.0.3, typescript@^5.5.4, typescript@^5.7.2:
   version "5.7.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.7.3.tgz#919b44a7dbb8583a9b856d162be24a54bf80073e"
   integrity sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==
