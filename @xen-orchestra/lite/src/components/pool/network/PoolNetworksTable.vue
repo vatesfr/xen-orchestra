@@ -3,14 +3,7 @@
     <UiTitle>
       {{ $t('networks') }}
       <template #actions>
-        <UiDropdownButton
-          v-tooltip="$t('coming-soon')"
-          disabled
-          :left-icon="faPlus"
-          variant="secondary"
-          accent="info"
-          size="medium"
-        >
+        <UiDropdownButton v-tooltip="$t('coming-soon')" disabled>
           {{ $t('new') }}
         </UiDropdownButton>
       </template>
@@ -24,7 +17,7 @@
             disabled
             :left-icon="faEdit"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('edit') }}
@@ -34,7 +27,7 @@
             disabled
             :left-icon="faCopy"
             variant="tertiary"
-            accent="info"
+            accent="brand"
             size="medium"
           >
             {{ $t('copy-info-json') }}
@@ -62,11 +55,11 @@
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <div v-tooltip="$t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="info" @update:model-value="toggleSelect" />
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="info" disabled size="small" />
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -91,13 +84,13 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="info" :value="row.id" />
+                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="$t('coming-soon')"
                 :icon="faEllipsis"
-                accent="info"
+                accent="brand"
                 disabled
                 size="small"
               />
@@ -146,7 +139,6 @@ import {
   faEdit,
   faEllipsis,
   faHashtag,
-  faPlus,
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'

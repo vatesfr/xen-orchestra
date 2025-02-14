@@ -21,7 +21,7 @@
         </template>
         <template #addons>
           <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
-          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -42,7 +42,7 @@
           </UiObjectLink>
         </template>
         <template #addons>
-          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
+          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -54,8 +54,8 @@
           <UiInfo accent="success">Connected</UiInfo>
         </template>
         <template #addons>
-          <UiButtonIcon :icon="faCopy" size="medium" accent="info" />
-          <UiButtonIcon :icon="faEllipsis" size="medium" accent="info" />
+          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
+          <UiButtonIcon :icon="faEllipsis" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
     </UiCard>

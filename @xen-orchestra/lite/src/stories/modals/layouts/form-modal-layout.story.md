@@ -9,9 +9,9 @@
 
     <template #buttons>
       <ModalDeclineButton />
-      <ModalApproveButton>Migrate 3 VMs</UiButton>
+      <ModalApproveButton>Migrate 3 VMs</ModalApproveButton>
     </template>
-  </ConfirmModalLayout>
+  </FormModalLayout>
 </UiModal>
 ```
 

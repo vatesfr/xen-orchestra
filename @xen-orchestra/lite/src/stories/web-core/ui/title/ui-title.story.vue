@@ -12,8 +12,8 @@
       {{ settings.default }}
 
       <template v-if="settings.showDemoButtons" #actions>
-        <UiButton size="medium" variant="secondary" accent="info">Label</UiButton>
-        <UiButton size="medium" variant="secondary" accent="info">Label</UiButton>
+        <UiButton size="medium" variant="secondary" accent="brand">Label</UiButton>
+        <UiButton size="medium" variant="secondary" accent="brand">Label</UiButton>
       </template>
     </UiTitle>
   </ComponentStory>
