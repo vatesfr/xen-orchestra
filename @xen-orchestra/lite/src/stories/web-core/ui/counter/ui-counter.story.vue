@@ -5,8 +5,8 @@
       prop('value').type(`'number' | 'string'`).str().required().preset(2).widget(),
       prop('accent')
         .required()
-        .enum('info', 'neutral', 'success', 'warning', 'danger', 'muted')
-        .preset('info')
+        .enum('brand', 'neutral', 'info', 'success', 'warning', 'danger', 'muted')
+        .preset('brand')
         .widget(),
       prop('size').enum('small', 'medium').required().preset('small').widget(),
       prop('variant').enum('primary', 'secondary').required().preset('primary').widget(),

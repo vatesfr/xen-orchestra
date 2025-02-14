@@ -19,8 +19,8 @@
         migrating... (34%)
       </template>
       <template v-if="settings.showDemoButtons" #actions>
-        <UiButton size="medium" variant="primary" accent="info" :left-icon="faPlus">New VM</UiButton>
-        <UiButton size="medium" variant="secondary" accent="info" :left-icon="faPowerOff">Change state</UiButton>
+        <UiButton size="medium" variant="primary" accent="brand" :left-icon="faPlus">New VM</UiButton>
+        <UiButton size="medium" variant="secondary" accent="brand" :left-icon="faPowerOff">Change state</UiButton>
       </template>
     </UiHeadBar>
   </ComponentStory>

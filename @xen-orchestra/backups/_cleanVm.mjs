@@ -133,6 +133,7 @@ export async function checkAliases(
           await handler.unlink(alias)
         }
       }
+      continue
     }
 
     if (!isVhdFile(target)) {

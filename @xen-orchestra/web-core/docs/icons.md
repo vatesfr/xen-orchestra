@@ -2,7 +2,7 @@
 
 XO Lite / 6 / Core projects are using Font Awesome 6 Free.
 
-Icons can be displayed with the `UiIcon` component.
+Icons can be displayed with the `VtsIcon` component.
 
 The component takes an `icon` prop that should be an icon object imported from `@fortawesome/free-solid-svg-icons` or `@fortawesome/free-regular-svg-icons`.
 
@@ -20,7 +20,7 @@ Use the `busy` prop to display a loader icon.
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 </script>
 ```

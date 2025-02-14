@@ -11,7 +11,7 @@
           <slot name="description" />
         </div>
       </div>
-      <UiButtonIcon class="close-icon" :icon="faXmark" :accent size="medium" />
+      <UiButtonIcon class="close-icon" :icon="faXmark" accent="brand" size="medium" />
     </div>
     <div v-if="slots.actions" class="actions">
       <slot name="actions" />

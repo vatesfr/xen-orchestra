@@ -2,7 +2,7 @@
   <UiButtonIcon
     ref="buttonRef"
     v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
-    accent="info"
+    accent="brand"
     :dot="hasNewTask"
     :icon="faBarsProgress"
     size="large"

@@ -85,7 +85,7 @@ set.params = {
     type: 'string',
   },
   label: {
-    type: 'string',
+    type: ['null', 'string'],
     optional: true,
   },
   host: {

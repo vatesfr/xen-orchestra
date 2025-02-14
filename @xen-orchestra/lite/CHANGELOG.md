@@ -1,6 +1,10 @@
 # ChangeLog
 
-## **next**
+## **0.7.1** (2025-02-04)
+
+- [Host/Console] Fix console sometimes not correctly displayed (PR [#8305](https://github.com/vatesfr/xen-orchestra/pull/8305))
+
+## **0.7.0** (2025-01-30)
 
 - Fix persistent scrollbar on the right (PR [#8191](https://github.com/vatesfr/xen-orchestra/pull/8191))
 - [Console]: Displays a loader when the console is loading (PR [#8226](https://github.com/vatesfr/xen-orchestra/pull/8226))
@@ -8,6 +12,8 @@
 - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
 - [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 - [Host/Network]: Display pifs list in host view (PR [#8180](https://github.com/vatesfr/xen-orchestra/pull/8180))
+- [Host/Network]: Fix issue with wording in host pif table (PR [8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
+- [Pool/Network]: Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ## **0.6.0** (2024-11-29)
 
