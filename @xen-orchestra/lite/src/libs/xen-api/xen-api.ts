@@ -15,6 +15,7 @@ import type {
   XenApiRecordEvent,
   XenApiRecordLoadErrorEvent,
   XenApiRecordModEvent,
+  XenApiSr,
   XenApiVm,
 } from '@/libs/xen-api/xen-api.types'
 import { buildXoObject, typeToRawType } from '@/libs/xen-api/xen-api.utils'
@@ -340,6 +341,9 @@ export default class XenApi {
       setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_label', [vmRef, nameLabel]))),
 
+      getAllowedVBDDevices: (vmRefs: VmRefs) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VBD_devices', [vmRef]))),
+
       delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
 
       start: (vmRefs: VmRefs) =>
@@ -382,6 +386,14 @@ export default class XenApi {
         const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
 
         return Promise.all(vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
+      },
+
+      copy: (vmRefsToClone: VmRefsWithNameLabel, srRef: XenApiSr['$ref']): Promise<XenApiVm['$ref'][]> => {
+        const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
+
+        return Promise.all(
+          vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.copy', [vmRef, vmRefsToClone[vmRef], srRef]))
+        )
       },
 
       provision: (vmRefs: VmRefs) => {
