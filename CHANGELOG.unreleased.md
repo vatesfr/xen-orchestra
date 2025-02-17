@@ -24,6 +24,7 @@
 [SDN-controller] Fix _No PIF found_ error when creating a private network [#8027](https://github.com/vatesfr/xen-orchestra/issues/8027) (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/8319))
 - [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
 - [V2] Fix `Cannot read properties of undefined (reading 'map')` with empty datastore (PR [#8311](https://github.com/vatesfr/xen-orchestra/pull/8311))
+- [Plugin/audit] Do not log various API calls [Forum#89777](https://xcp-ng.org/forum/post/89777)
 
 ### Packages to release
 
@@ -47,6 +48,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-audit patch
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
 - xo-server-sdn-controller minor
