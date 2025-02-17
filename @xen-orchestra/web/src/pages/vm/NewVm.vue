@@ -126,7 +126,7 @@
           </UiTextarea>
           <label for="select">{{ $t('new-vm.affinity-host') }}</label>
           <select id="select" v-model="newVmState.affinity_host">
-            <option v-for="host in getHosts" :key="host.id" :value="host">
+            <option v-for="host in getHosts" :key="host.id" :value="host.id">
               {{ host.name_label }}
             </option>
           </select>
@@ -315,7 +315,7 @@
         variant="primary"
         accent="brand"
         size="medium"
-        @click="createVM"
+        @click="createNewVM"
       >
         {{ $t('new-vm.create') }}
       </UiButton>
@@ -324,6 +324,7 @@
 </template>
 
 <script setup lang="ts">
+import { createVM } from '@/jobs/vm-create.jobs'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -388,7 +389,7 @@ const newVmState = reactive({
   toggle: false,
   install: '',
   tags: [] as string[],
-  affinity_host: [],
+  affinity_host: '',
   boot_firmware: '',
   new_vm_template: null as XoVmTemplate | null,
   boot_vm: false,
@@ -429,8 +430,7 @@ const addStorageEntry = () => {
   newVmState.VDIs.push({
     name_label: (newVmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: t('new-vm.created-by-xo'),
-    SR: poolDefaultSr ? poolDefaultSr.name_label : '',
-    type: 'system',
+    sr: poolDefaultSr ? poolDefaultSr.name_label : '',
     size: 0,
   })
 }
@@ -656,33 +656,58 @@ const redirectToHome = () => {
   router.push({ name: '/' })
 }
 
-const data = computed(() => ({
-  affinityHost: newVmState.affinity_host,
+// const data = computed(() => ({
+//   affinityHost: newVmState.affinity_host,
+//   clone: newVmState.fast_clone,
+//   existingDisks: newVmState.existingDisks,
+//   installation: newVmState.install,
+//   name_label: newVmState.vm_name,
+//   template: newVmState.new_vm_template?.id,
+//   VDIs: newVmState.VDIs,
+//   VIFs: newVmState.networkInterfaces.map(net => ({
+//     network: net.interface,
+//     mac: net.macAddress,
+//   })),
+//   CPUs: newVmState.vCpu,
+//   name_description: newVmState.vm_description,
+//   memory: newVmState.ram,
+//   autoPoweron: newVmState.auto_power,
+//   bootAfterCreate: newVmState.boot_vm,
+//   copyHostBiosStrings: newVmState.bios,
+//   hvmBootFirmware: newVmState.boot_firmware,
+//   tags: newVmState.tags.map(tag => tag.trim()),
+//   cloudConfig: '',
+// }))
+
+const data2 = computed(() => ({
+  affinity: newVmState.affinity_host,
+  auto_poweron: newVmState.auto_power,
+  boot: newVmState.boot_vm,
   clone: newVmState.fast_clone,
-  existingDisks: newVmState.existingDisks,
-  installation: newVmState.install,
+  destroy_cloud_config_vdi: false,
+  install: { method: 'cdrom', repository: 'string' },
+  memory: newVmState.ram,
+  name_description: newVmState.vm_description,
   name_label: newVmState.vm_name,
   template: newVmState.new_vm_template?.id,
-  VDIs: newVmState.VDIs,
-  VIFs: newVmState.networkInterfaces.map(net => ({
+  vdis: [
+    { destroy: true, userdevice: 'string', size: 1, sr: 'string', name_description: 'string', name_label: 'string' },
+  ],
+  vifs: newVmState.networkInterfaces.map(net => ({
     network: net.interface,
     mac: net.macAddress,
   })),
-  CPUs: newVmState.vCpu,
-  name_description: newVmState.vm_description,
-  memory: newVmState.ram,
-  autoPoweron: newVmState.auto_power,
-  bootAfterCreate: newVmState.boot_vm,
-  copyHostBiosStrings: newVmState.bios,
-  hvmBootFirmware: newVmState.boot_firmware,
-  tags: newVmState.tags.map(tag => tag.trim()),
-  cloudConfig: '',
 }))
 
-const createVM = () => {
-  return data
-  // console.log('createVMdata', data)
-  // console.log('createVM', newVmState)
+const createNewVM = async () => {
+  // console.log('data2', data2.value)
+  // console.log('data', data.value)
+  try {
+    await createVM(data2.value, '355ee47d-ff4c-4924-3db2-fd86ae629676')
+    // console.log('Created VM:', newVM)
+  } catch (error) {
+    console.error('Error creating VM:', error)
+  }
 }
 
 watchEffect(() => {
