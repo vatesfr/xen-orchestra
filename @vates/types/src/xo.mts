@@ -183,9 +183,11 @@ export type XoVtpm = {
 }
 
 export type XoRecord =
+  | XoGroup
   | XoHost
   | XoPool
   | XoSr
+  | XoUser
   | XoVbd
   | XoVdi
   | XoVgpu
