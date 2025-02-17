@@ -8,7 +8,7 @@ Virtual machine templates in Xen Orchestra make it easy to deploy new VMs by pro
 
 There are a few ways to create a VM template in Xen Orchestra:
 
-### From an Existing VM ###
+### From an Existing VM
 
 Set up a VM with your preferred OS and settings, then convert it into a template.
 
@@ -23,7 +23,7 @@ Once you convert a VM into a template, it won’t show up in the VM list anymore
 
 ![VM screen with Convert to template button](./assets/convert-to-template.png)
 
-### Clone an Existing Template ###
+### Clone an Existing Template
 
 Duplicate one of the built-in templates and customize it to match your needs.
 
@@ -34,9 +34,9 @@ Duplicate one of the built-in templates and customize it to match your needs.
 
 ![List of selected VM templates with Copy button](./assets/copy-template.png)
 
-### Create a VM and Convert It ###
+### Create a VM and Convert It
 
-Set up a new VM (without installing an OS), adjust its hardware settings, and turn it into a template.  This is useful if you just want a predefined hardware setup without an OS baked in.
+Set up a new VM (without installing an OS), adjust its hardware settings, and turn it into a template. This is useful if you just want a predefined hardware setup without an OS baked in.
 
 To know more on VM creation, read the [Infrastructure Management → VM Creation](./manage_infrastructure#vm-creation) section.
 
@@ -96,7 +96,7 @@ If you want VMs to set themselves up automatically after deployment, **Cloud-Ini
 
 ### Cloud-init (Linux)
 
-Cloud-init is a program that handles the early initialization of a cloud instance. 
+Cloud-init is a program that handles the early initialization of a cloud instance.
 In other words, on a "Cloud-init-ready" VM template, you can pass a lot of data at first boot, such as:
 
 - Set the host name
@@ -115,7 +115,7 @@ As of release 5.101, Xen Orchestra also supports Cloudbase-init. This tool provi
 
 ### Requirements
 
-You only need to use a template of a VM with Cloud-init (for Linux VMs) or Cloudbase-init (for Windows VMs) installed inside it.  
+You only need to use a template of a VM with Cloud-init (for Linux VMs) or Cloudbase-init (for Windows VMs) installed inside it.
 [Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
 
 :::tip
@@ -123,10 +123,11 @@ In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https:
 :::
 
 ### Example: How to create a Cloudbase-init template with Windows Server 2019?
+
 1. Create a VM.
 2. Install Windows Server 2019 on it.
-3. Upon boot, install Cloudbase-Init.  
-To do that, run the following commands:  
+3. Upon boot, install Cloudbase-Init.
+   To do that, run the following commands:
 
 ```
 # For 64-bit environments
@@ -138,25 +139,23 @@ curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi --outp
 installer.msi
 ```
 
-4. At the end of the installation, check the option **Run Sysprep**.  
-Do not check **Shutdown when SysPrep terminates**!
+4. At the end of the installation, check the option **Run Sysprep**.
+   Do not check **Shutdown when SysPrep terminates**!
 5. (Optional). Delete the .msi installer.
 6. The Cloudbase-init installer creates these configuration files:
-* `cloudbase-init-unattend.conf`
-* `cloudbase-init.conf`
-
+   - `cloudbase-init-unattend.conf`
+   - `cloudbase-init.conf`
 7. Depending on your needs, choose the file that you need and make sure it contains the following three lines, with the same values:
+   ```
+   ...
+   config_drive_vfat=true
+   ...
+   metadata_services=cloudbaseinit.metadata.services.nocloudservice.NoCloudConfigDriveService
+   plugins=cloudbaseinit.plugins.common.userdata.UserDataPlugin
+   ...
+   ```
 
-```
-...
-config_drive_vfat=true
-...
-metadata_services=cloudbaseinit.metadata.services.nocloudservice.NoCloudConfigDriveService
-plugins=cloudbaseinit.plugins.common.userdata.UserDataPlugin
-...
-```
-
-If the file does not contain these lines or if the values are different, modify the file and set it to the values above.  
+If the file does not contain these lines or if the values are different, modify the file and set it to the values above.
 Cloudbase-init needs these settings to find the configuration disk and set up your VM.
 
 8. Shut the VM down.
