@@ -639,6 +639,7 @@ export default class RestApi {
         return object
       }
       function getObjects(filter, limit) {
+        console.log(filter)
         return Object.values(
           app.getObjects({
             filter: every(this.isCorrectType, filter),
