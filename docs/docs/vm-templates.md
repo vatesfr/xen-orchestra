@@ -13,9 +13,7 @@ There are a few ways to create a VM template in Xen Orchestra:
 Set up a VM with your preferred OS and settings, then convert it into a template.
 
 :::warning
-
 Once you convert a VM into a template, it won’t show up in the VM list anymore—this change is permanent.
-
 :::
 
 1. Select your VM and go to the **Advanced** tab.
@@ -81,9 +79,7 @@ xe template-param-list uuid=$uuid | less
 Need to delete a template? Here’s how:
 
 :::warning
-
 Before deleting a template, make sure to find and remove any attached disks. Otherwise, you'll end up with orphaned VDIs.
-
 :::
 
 1. In Xen Orchestra, open the template, go to **Home → Templates** section.
