@@ -3,7 +3,7 @@
     <UiTreeItemLabel :icon="faServer" :route="{ name: 'host.console', params: { uuid: host.uuid } }" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
+        <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
         <UiCounter
           v-if="isReady"
           v-tooltip="$t('running-vm', { count: vmCount })"
@@ -34,7 +34,7 @@ import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 
