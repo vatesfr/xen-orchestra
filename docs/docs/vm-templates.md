@@ -68,7 +68,7 @@ You can also use the CLI tools to dig deeper.
 
 For example, if your template is named `My Debian Template`, you can get its details in the CLI like this:
 
-```
+```sh
 xe template-list name-label="My Debian Template"
 uuid=$(xe template-list name-label="My Debian Template" --minimal)
 xe template-param-list uuid=$uuid | less
@@ -125,7 +125,7 @@ In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https:
 3. Upon boot, install Cloudbase-Init.
    To do that, run the following commands:
 
-```
+```sh
 # For 64-bit environments
 curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi --output installer.msi
 installer.msi
@@ -163,12 +163,12 @@ Cloudbase-init needs these settings to find the configuration disk and set up yo
 2. Upon reboot, `apt update` and `apt upgrade` the machine.
 3. Install the [Guest Tools](https://docs.xcp-ng.org/vms/#%EF%B8%8F-guest-tools).
 4. Install the "cloud-initramfs-growroot" so that the VM can apply a Cloud Config:
-   ```
+   ```sh
    sudo apt install cloud-initramfs-growroot
    ```
 5. Run the command `sudo cloud-init clean`.
 6. Clear out the machine-id so it can be regenerated when the template is used:
-   ```
+   ```sh
    sudo truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id
    ```
 7. Shutdown the VM and create a template from that image.
@@ -198,21 +198,21 @@ Now start the VM and SSH to its IP:
 - **the system has the right VM hostname** (from VM name)
 - you don't need to use a password to access it (thanks to your SSH key):
 
-```
+```console
 $ ssh centos@192.168.100.226
 [centos@tmp-app1 ~]$
 ```
 
 The default `cloud-init` configuration can allow you to be to be a sudoer directly:
 
-```
+```console
 [centos@tmp-app1 ~]$ sudo -s
 [root@tmp-app1 centos]#
 ```
 
 Check the root file system size: indeed, **it was automatically increased** to what you need:
 
-```
+```console
 [centos@tmp-app1 ~]$ df -h
 /dev/xvda1          20G    1,2G   18G   6% /
 ```
