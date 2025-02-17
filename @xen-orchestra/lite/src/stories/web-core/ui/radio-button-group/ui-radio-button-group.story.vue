@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
+      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
       prop('label').str().widget().preset('Label'),
       prop('info').str().widget().preset('message'),
       prop('vertical').bool().widget(),
@@ -31,6 +31,7 @@ import { prop, slot } from '@/libs/story/story-param'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import { ref } from 'vue'
+
 const selectedRadio = ref('')
 
 const labels = ref(['Label 1', 'Label 2', 'Label 3'])

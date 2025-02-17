@@ -33,33 +33,57 @@ By default, a _user_ won't have any permissions. At the opposite, an _admin_ wil
 
 XO currently supports connections to LDAP directories, like _Open LDAP_ or _Active Directory_.
 
-To configure your LDAP, you need to go into the _Plugins_ section in the "Settings" view. Then configure it:
+1. **Access the Plugin**:
+   1. Navigate to the **Settings → Plugins** screen.
+   2. Locate the **auth-ldap plugin** by scrolling or using the search bar.
+2. **Configure LDAP Settings**:
+   1. Click **+** button for the LDAP plugin.\
+      A list of settings appears: ![LDAP plugin settings](./assets/ldapconfig.png)
+   2. Fill in the required fields based on your LDAP server details.
+3. **Save and Activate**:
+   1. Click **Save configuration**.
+   2. To check if the plugin is activated, activate the toggle switch next to the **auth-ldap** plugin name.\
+      The switch should now appear green.
 
-![LDAP plugin settings](./assets/ldapconfig.png)
+#### Common LDAP Filters
 
-Don't forget to save the configuration, and also check if the plugin is activated (green button on top).
+LDAP Filters allow you to properly match your user. Finding the right filter is no easy task, and it entirely depends on your LDAP configuration.
 
-#### Filters
+Still, here is a list of common filters:
 
-LDAP Filters allow you to properly match your user. It's not an easy task to always find the right filter, and it entirely depends on your LDAP configuration. Still, here is a list of common filters:
+- `'(uid={{name}})'` is usually the default filter for _Open LDAP_.
+- `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for _Active Directory_.\
+  Please check with your AD Admin to find the right one.
 
-- `'(uid={{name}})'` is usually the default filter for _Open LDAP_
-- `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for _Active Directory_. Please check with your AD Admin to find the right one.
+Once configured, users can authenticate using their LDAP credentials. Upon a successful initial login, the user's account will appear in the XO user list.
 
-After finishing the configuration, you can try to log in with your LDAP username and password. Finally, right after your initial successful log in, your account will be visible in the user list of Xen Orchestra.
+#### Group Synchronization
 
-#### Groups
+The LDAP plugin allows for the synchronization of user groups.
 
-The LDAP plugin allows you to synchronize user groups. To configure the synchronization, check the checkbox next to **Synchronize groups** and fill out the configuration:
+1. **Access group synchronization settings**
 
-![LDAP plugin group settings](./assets/ldapgroupconfig.png)
+   To configure the synchronization:
 
-- **Base and filter**: similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
-- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create/update XO groups if necessary.
-- **Display name attribute**: the attribute that will be used as the group's name in XO.
-- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given an LDAP directory that looks like this:
+   1. Go to the **Synchronize groups** section.
+   2. Check the box called **Fill information (optional)**.\
+      A list of text fields appear.
+   3. Fill out the fields according to the picture below:
 
-User:
+   ![LDAP plugin group settings](./assets/ldapgroupconfig.png)
+
+2. **Basic group settings**:
+   - **Base** and **Filter**: Similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
+   - **ID attribute**: The attribute used by the plugin to uniquely identify each group. The ID attribute must be unique across groups and not change over time.\
+      On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create or update XO groups if necessary.
+   - **Display name attribute**: Set the attribute used as the group's name in Xen Orchestra.
+3. **Members mapping**:
+
+This part of the configuration is used to determine which LDAP users belong to which LDAP groups.
+
+For example, here's an LDAP directory:
+
+**User:**
 
 ```
 objectClass: Person
@@ -68,7 +92,7 @@ uid: 347
 ...
 ```
 
-Group:
+**Group:**
 
 ```
 objectClass: Group
@@ -80,20 +104,106 @@ member: 348
 ...
 ```
 
-The plugin needs to know that Bruce Wayne belongs to the heroes group. To do so, you need to set 2 entries in the configuration:
+The plugin needs to know that Bruce Wayne is part of the **heroes** group. To do so, you need to set 2 entries in the configuration:
 
-- **Group attribute**, which is the name of the _group_ attribute that is used to list users within a group. In this example, it would be `member`.
-- **User attribute**, which is the name of the _user_ attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
+- **Group attribute**: the name of the _group_ attribute that is used to list users within a group. In this example, it would be `member`.
+- **User attribute**: the name of the _user_ attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
 
-Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. If you need to import all the groups at once, you can do so from Settings > Groups > Synchronize LDAP Groups. This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
+Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups.
+
+**Importing all groups manually**
+
+If you need to import all the groups at once, you can do so from **Settings → Groups → Synchronize LDAP Groups**.\
+This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
 
 :::tip
-Importing the groups doesn't import their members. The users will still be imported one by one when they log in for the first time.
+Importing the groups won't import their members. Users will still be imported one by one when they log in for the first time.
 :::
 
 :::tip
-You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
+To find the LDAP users, enter this filter in the users table: `authProviders:ldap?`.
 :::
+
+#### Troubleshooting
+
+If users can authenticate but group memberships are not reflected:
+
+1. Verify Your **Group Filter**
+
+   Check if your LDAP group filter is too restrictive. By default, the filter should match all relevant groups.
+
+   Example of a broad filter:
+
+   ```text
+   (objectclass=posixGroup)
+   ```
+
+   If you are using a more specific filter, ensure that it correctly matches your intended groups. For instance, if you only sync a specific group, it may look like this:
+
+   ```text
+   (&(objectclass=posixGroup)(cn=group1))
+   ```
+
+   This filter will **only** synchronize `group1`. To sync all groups, remove the `(cn=group1)` condition.
+
+2. Verify that the **Group Attribute** and **User Attribute** in the plugin configuration match the corresponding attributes in your LDAP directory.
+3. Ensure that the **ID Attribute** for both users and groups is unique and correctly specified.
+4. Check XO logs for any synchronization errors and adjust configurations accordingly.
+
+### OpenID Connect
+
+#### Overview
+
+The OpenID Connect (OIDC) plugin (`auth-oidc`) allows Xen Orchestra to integrate with identity providers that support the OIDC protocol.
+
+In this section, you'll learn:
+
+- how users can log in with OpenID Connect
+- how administrators can configure the plugin to suit their needs
+
+#### Prerequisites
+
+- Make sure your identity provider supports OpenID Connect.
+
+#### User Workflow
+
+##### Log In with OpenID Connect
+
+On the Xen Orchestra login page, click **Sign in with OpenID Connect**
+
+![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
+
+You’ll be redirected to the login page of your internal portal. Once authentificated on it, you will be redirected to the Xen Orchestra home page.
+
+#### Administrator Guide
+
+##### Set Up the OpenID Connect Plugin
+
+You can set up the `auth-oidc` plugin directly in Xen Orchestra:
+
+1. Go to **Settings** → **Plugins**.
+2. Find the `auth-oidc` plugin in the list.
+3. Click **+** next to the plugin name to expand the configuration options.
+
+![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
+
+##### Required Configuration
+
+Fill in the mandatory fields. You can also specify the auto-discovery URL, if needed.
+
+##### Advanced Configuration (Optional)
+
+To access advanced options:
+
+1. Check **Fill information (optional)** to reveal additional fields.
+2. Complete the fields as needed.
+
+##### Save and Activate the Plugin
+
+1. Once everything is configured, click **Save configuration**.
+2. Toggle the switch next to the `auth-oidc` plugin name to enable it. This will:
+   - Activate the plugin immediately.
+   - Ensure it loads automatically when the Xen Orchestra server restarts.
 
 ### SAML
 
@@ -115,7 +225,15 @@ Save the configuration and then activate the plugin (button on top).
 
 Use the screenshots below as a reference as how to setup SAML with Google Workspace.
 
+1. Sign in to your [Google Workspace Admin Dashboard](https://admin.google.com).
+2. Go to **Apps/Web and mobile apps**
+3. Click **Add app** and select **Add custom SAML app**.
+4. Give your app a name and optionally a description.
+5. To see how the fields should be filled out, refer to the screenshots below.
+
 > Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+
+> If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
 

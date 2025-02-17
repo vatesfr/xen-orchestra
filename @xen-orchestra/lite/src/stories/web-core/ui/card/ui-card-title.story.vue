@@ -15,7 +15,7 @@
       <UiCounter :value="3" accent="danger" size="medium" variant="primary" />
       <template #info>
         {{ settings.infoSlotContent }}
-        <UiButton variant="tertiary" size="small" accent="info" :right-icon="faAngleRight">See all</UiButton>
+        <UiButton variant="tertiary" size="small" accent="brand" :right-icon="faAngleRight">See all</UiButton>
       </template>
       <template #description>{{ settings.descriptionSlotContent }}</template>
     </UiCardTitle>

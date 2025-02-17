@@ -15,8 +15,8 @@ const slots = defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-card-subtitle {
-  color: var(--color-info-txt-base);
-  border-bottom: 0.1rem solid var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
+  border-bottom: 0.1rem solid var(--color-brand-txt-base);
   display: flex;
   justify-content: space-between;
   gap: 0.8rem;

@@ -11,7 +11,7 @@
         v-if="!attrs.disabled && modelValue && clearable"
         :icon="faXmark"
         class="after"
-        accent="info"
+        accent="brand"
         @click="modelValue = ''"
       />
     </div>

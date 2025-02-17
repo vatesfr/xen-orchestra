@@ -11,11 +11,11 @@
         />
       </template>
       <template #addons>
-        <UiIcon v-if="isMaster" v-tooltip="$t('master')" :icon="faStar" accent="warning" />
+        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
         <UiCounter
           v-tooltip="$t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
-          accent="info"
+          accent="brand"
           variant="secondary"
           size="small"
         />
@@ -35,14 +35,14 @@ import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { HostBranch } from '@/types/tree.type'
 import type { HostState } from '@core/types/object-icon.type'
-import UiIcon from '@core/components/icon/VtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faServer, faStar } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const props = defineProps<{

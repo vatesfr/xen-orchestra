@@ -9,7 +9,7 @@
           content: sidebar.isLocked ? $t('core.sidebar.unlock') : $t('core.sidebar.lock'),
           placement: 'right',
         }"
-        accent="info"
+        accent="brand"
         size="medium"
         :icon="sidebar.isLocked ? faLock : faLockOpen"
         @click="sidebar.toggleLock()"

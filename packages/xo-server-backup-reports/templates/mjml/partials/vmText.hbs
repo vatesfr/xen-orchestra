@@ -1,5 +1,8 @@
 {{#if vm}}
 <h3>{{vm.name_label}}</h3>
+{{#if vm.name_description}}
+{{vm.name_description}}
+{{/if}}
 <ul>
   <li><span style="font-weight: bold">UUID</span>: {{vm.uuid}}</li>
 {{else}}

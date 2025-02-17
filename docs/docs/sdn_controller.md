@@ -55,24 +55,18 @@ The plugin's configuration contains:
 
 ### VxLAN
 
-- On XCP-ng prior to 7.6:
-  - To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
-
 ### Encryption
 
-:::warning
-Encryption is not available prior to XCP-ng 8.0.
-:::
-
-- On XCP-ng 8.0:
-  - To be able to encrypt the networks, `openvswitch-ipsec` package must be installed on all the hosts:
-    - `yum install openvswitch-ipsec --enablerepo=xcp-ng-testing`
-    - `systemctl enable ipsec`
-    - `systemctl enable openvswitch-ipsec`
-    - `systemctl start ipsec`
-    - `systemctl start openvswitch-ipsec`
+- To be able to encrypt the networks, `openvswitch-ipsec` package must be installed on all the hosts:
+  - `yum install openvswitch-ipsec --enablerepo=xcp-ng-testing`
+  - `systemctl enable ipsec`
+  - `systemctl enable openvswitch-ipsec`
+  - `systemctl start ipsec`
+  - `systemctl start openvswitch-ipsec`
 
 ## OpenFlow rules
+
+> Warning: only works for VIFs attached to the physical host's management network (no bond nor VLAN).
 
 Please see the [devblog about OpenFlow rules](https://xen-orchestra.com/blog/vms-vif-network-traffic-control/).
 
@@ -99,6 +93,3 @@ In the VM network tab a new column has been added: _Network rules_.
 ### Requirements
 
 ### Openflow
-
-- On XCP-ng prior to 8.0:
-  - To be able to use `OpenFlow`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `OpenFlow` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m tcp --dport 6653 -j ACCEPT`

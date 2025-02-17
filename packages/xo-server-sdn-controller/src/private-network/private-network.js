@@ -57,26 +57,17 @@ export class PrivateNetwork {
     const encapsulation = otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
     const password = otherConfig['xo:sdn-controller:encrypted'] === 'true' ? createPassword() : undefined
-    const pifDevice = otherConfig['xo:sdn-controller:pif-device']
-    const pifVlan = +otherConfig['xo:sdn-controller:vlan']
-    const hostPif = hostClient.host.$PIFs.find(
-      pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
-    )
-    const centerDevice = centerNetwork.other_config['xo:sdn-controller:pif-device']
-    const centerVlan = +centerNetwork.other_config['xo:sdn-controller:vlan']
-    const centerPif = centerClient.host.$PIFs.find(
-      pif => pif?.device === centerDevice && pif.VLAN === centerVlan && pif.ip_configuration_mode !== 'None'
-    )
+
+    const transportPif = await this.getTransportPif(network)
+    const hostPif = host.$PIFs.find(pif => pif.network === transportPif.network)
+    const centerPif = this.center.$PIFs.find(pif => pif.network === transportPif.network)
+
     assert(hostPif !== undefined, 'No PIF found', {
       privateNetwork: this.uuid,
-      pifDevice,
-      pifVlan,
       host: host.name_label,
     })
     assert(centerPif !== undefined, 'No PIF found in center', {
       privateNetwork: this.uuid,
-      pifDevice,
-      pifVlan,
       host: this.center.name_label,
     })
 
@@ -161,6 +152,19 @@ export class PrivateNetwork {
       pools.push(network.$pool)
     })
     return pools
+  }
+
+  /**
+   *
+   * @param {Network} network
+   * @returns {Pif} returns one transport_PIF of the private network
+   */
+  async getTransportPif(network) {
+    // ensure to get an fresh version of the network
+    network = await network.$xapi.getRecord('network', network.$ref)
+    const privatePif = network.$PIFs[0]
+    const tunnels = privatePif.$tunnel_access_PIF_of
+    return tunnels.find(tunnel => tunnel.$transport_PIF.ip_configuration_mode !== 'None').$transport_PIF
   }
 
   // ---------------------------------------------------------------------------
