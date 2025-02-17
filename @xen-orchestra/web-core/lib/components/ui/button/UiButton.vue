@@ -103,7 +103,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-info-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -137,7 +137,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-info-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -171,7 +171,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-info-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -207,7 +207,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-warning-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -241,7 +241,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-warning-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -275,7 +275,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-warning-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -311,7 +311,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-danger-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -345,7 +345,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-danger-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -379,7 +379,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-danger-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
