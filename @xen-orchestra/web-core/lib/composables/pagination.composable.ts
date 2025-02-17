@@ -12,13 +12,15 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
     set: value => (showBy.value = value),
   })
 
-  function toStartIndex(index: number) {
-    return Math.floor(clamp(index, 0, records.value.length - 1) / pageSize.value) * pageSize.value
+  function toStartIndex(rawIndex: number | string) {
+    const index = clamp(+rawIndex, 0, records.value.length - 1) || 0
+
+    return Math.floor(index / pageSize.value) * pageSize.value
   }
 
   const startIndex = useRouteQuery<number>(`${id}.idx`, {
     defaultQuery: '0',
-    toData: value => toStartIndex(parseInt(value, 10)),
+    toData: value => toStartIndex(value),
     toQuery: value => toStartIndex(value).toString(10),
   })
 
