@@ -80,7 +80,7 @@
 - @xen-orchestra/mcp minor
 - @xen-orchestra/mixin patch
 - @xen-orchestra/mixins patch
-- @xen-orchestra/proxy patch
+- @xen-orchestra/proxy minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/template patch
