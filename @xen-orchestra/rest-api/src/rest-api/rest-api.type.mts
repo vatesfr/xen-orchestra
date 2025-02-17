@@ -1,13 +1,10 @@
-// TODO: Use from @vates/types instead
-type XoUser = {
-  id: string
-  permission: string
-}
+import type { XoUser } from '@vates/types/xo'
 
 export type XoApp = {
   authenticateUser: (
-    params: { token?: string; username?: string; password?: string },
-    optional?: { ip?: string }
-  ) => Promise<{ bypassOtp: boolean; user: XoUser }>
+    credentials: { token?: string; username?: string; password?: string },
+    userData?: { ip?: string },
+    opts?: { bypassOtp?: boolean }
+  ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

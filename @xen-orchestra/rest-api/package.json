@@ -28,6 +28,7 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@vates/types": "^0.0.0",
     "@xen-orchestra/log": "^0.7.1",
     "inversify": "^6.2.2",
     "inversify-binding-decorators": "^4.0.0",

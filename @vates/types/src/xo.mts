@@ -89,6 +89,12 @@ type BaseXoVm = {
       }
 }
 
+export type XoGroup = {
+  id: Branded<'group'>
+  name: string
+  users: XoUser['id'][]
+}
+
 export type XoHost = {
   id: Branded<'host'>
   type: 'host'
@@ -102,6 +108,17 @@ export type XoPool = {
 export type XoSr = {
   id: Branded<'SR'>
   type: 'SR'
+}
+
+export type XoUser = {
+  authProviders?: Record<string, string>
+  email: string
+  groups: XoGroup['id'][]
+  id: Branded<'user'>
+  name: string
+  permission: string
+  pw_hash: string
+  preferences: Record<string, string>
 }
 
 export type XoVbd = {

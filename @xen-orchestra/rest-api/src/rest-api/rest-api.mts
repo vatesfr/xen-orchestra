@@ -5,7 +5,7 @@ export class RestApi {
   runWithApiContext: XoApp['runWithApiContext']
 
   constructor(xoApp: XoApp) {
-    this.authenticateUser = (params, optional) => xoApp.authenticateUser(params, optional)
+    this.authenticateUser = (credentials, userData, opts) => xoApp.authenticateUser(credentials, userData, opts)
     this.runWithApiContext = (user, cb) => xoApp.runWithApiContext(user, cb)
   }
 }
