@@ -59,7 +59,7 @@ defineProps<{
         content: '';
         position: absolute;
         inset: -0.6rem;
-        border: 0.2rem solid var(--color-info-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
         border-radius: 0.4rem;
       }
     }
