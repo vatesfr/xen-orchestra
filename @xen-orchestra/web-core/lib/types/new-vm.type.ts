@@ -2,7 +2,7 @@ export interface Disk {
   name_label: string
   name_description: string
   size: number
-  SR: string
+  sr: string
   type?: string
 }
 
