@@ -58,6 +58,9 @@ export default class Esxi extends EventEmitter {
     const res = await this.search('Datacenter', ['name', 'datastore'])
     await Promise.all(
       Object.values(res).map(async ({ datastore, name }) => {
+        if (datastore.ManagedObjectReference === undefined) {
+          return
+        }
         await Promise.all(
           datastore.ManagedObjectReference.map(async ({ $value }) => {
             // get the datastore name
