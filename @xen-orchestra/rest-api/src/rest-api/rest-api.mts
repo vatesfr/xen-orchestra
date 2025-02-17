@@ -1,4 +1,4 @@
-import type { XoApp } from './rest-api.type.mjs'
+import type { XapiXoRecordByType, XoApp } from './rest-api.type.mjs'
 
 export class RestApi {
   #xoApp: XoApp
@@ -9,6 +9,14 @@ export class RestApi {
 
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {
     return this.#xoApp.authenticateUser(...args)
+  }
+
+  getObject(id, type) {
+    return this.#xoApp.getObject(id, type)
+  }
+
+  getObjectsByType() {
+    return this.getObjectsByType()
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
