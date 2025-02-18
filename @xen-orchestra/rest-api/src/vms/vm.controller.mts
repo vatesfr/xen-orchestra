@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { Example, Get, Path, Query, Request, Response, Route, Security } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
@@ -7,7 +5,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoVm } from '@vates/types'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helpers.type.mjs'
+import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
@@ -28,11 +26,18 @@ export class VmController extends XapiXoController<'VM'> {
    * @example limit 42
    */
   @Example(['/rest/v0/vms/f07ab729-c0e8-721c-45ec-f11276377030', '/rest/v0/vms/d5d1c4a3-4c5e-ca7b-6be8-33c824f87571'])
-  @Example({
-    name_label: 'foo',
-    power_state: 'Running',
-    href: '/rest/v0/vms/f07ab729-c0e8-721c-45ec-f11276377030',
-  })
+  @Example([
+    {
+      name_label: 'foo',
+      power_state: 'Running',
+      href: '/rest/v0/vms/f07ab729-c0e8-721c-45ec-f11276377030',
+    },
+    {
+      name_label: 'foo_bar',
+      power_state: 'Halted',
+      href: '/rest/v0/vms/d5d1c4a3-4c5e-ca7b-6be8-33c824f87571',
+    },
+  ])
   @Get('')
   getVms(
     @Request() req: ExRequest,
@@ -40,7 +45,7 @@ export class VmController extends XapiXoController<'VM'> {
     @Query() filter?: string,
     @Query() limit?: number
   ): string[] | WithHref<Partial<Unbrand<XoVm>>>[] {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit: 1 })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
   /**

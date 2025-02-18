@@ -2,22 +2,20 @@ import path from 'node:path'
 import pick from 'lodash/pick.js'
 import { Request } from 'express'
 
+import type { WithHref } from './helper.type.mjs'
 import { XapiXoRecordByType } from '../rest-api/rest-api.type.mjs'
 
 const { join } = path.posix
 
 export function makeObjectMapper<T extends keyof XapiXoRecordByType>(req: Request, path = req.path) {
   type XapiXoRecord = XapiXoRecordByType[T]
-  const { query, baseUrl } = req
 
   const makeUrl = ({ id }: XapiXoRecord) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let objectMapper: (object: XapiXoRecord) => string | any
+  let objectMapper: (object: XapiXoRecord) => string | WithHref<Partial<XapiXoRecord>> | WithHref<XapiXoRecord>
 
+  const { query, baseUrl } = req
   const { fields } = query
-  if (fields === undefined) {
-    objectMapper = makeUrl
-  } else if (fields === '*') {
+  if (fields === '*') {
     objectMapper = object => ({
       ...object,
       href: makeUrl(object),
@@ -29,7 +27,7 @@ export function makeObjectMapper<T extends keyof XapiXoRecordByType>(req: Reques
       return { ...pick(object, _fields), href: url }
     }
   } else {
-    throw new Error('something goes wrong with `fields` query string')
+    objectMapper = makeUrl
   }
 
   return function (obj: XapiXoRecord) {

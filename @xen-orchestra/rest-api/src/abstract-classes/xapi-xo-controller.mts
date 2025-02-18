@@ -3,9 +3,9 @@ import { Controller } from 'tsoa'
 import { Request } from 'express'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { makeObjectMapper } from '../helpers/object-wrapper.mjs'
+import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { XapiXoBrandedRecordByType, XapiXoRecordByType } from '../rest-api/rest-api.type.mjs'
-import { WithHref } from '../helpers/helpers.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 
 export abstract class XapiXoController<T extends keyof XapiXoRecordByType> extends Controller {
   #type: T
@@ -28,8 +28,16 @@ export abstract class XapiXoController<T extends keyof XapiXoRecordByType> exten
     return this.restApi.getObject(id, this.#type)
   }
 
-  sendObjects(objects: XapiXoRecordByType[T][], req: Request): string[] | WithHref<Partial<XapiXoRecordByType[T]>>[] {
+  sendObjects(
+    objects: XapiXoRecordByType[T][],
+    req: Request
+  ): string[] | WithHref<XapiXoRecordByType[T]>[] | WithHref<Partial<XapiXoRecordByType[T]>>[] {
     const mapper = makeObjectMapper(req)
-    return objects.map(mapper)
+    const mappedObjects = objects.map(mapper) as
+      | string[]
+      | WithHref<XapiXoRecordByType[T]>[]
+      | WithHref<Partial<XapiXoRecordByType[T]>>[]
+
+    return mappedObjects
   }
 }
