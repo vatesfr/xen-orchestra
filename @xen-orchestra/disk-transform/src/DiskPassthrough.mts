@@ -8,6 +8,9 @@ export abstract class DiskPassthrough extends Disk {
     }
     return this.#source
   }
+  get parent(): Disk | undefined {
+    return this.#source?.parent
+  }
   getVirtualSize(): number {
     if (this.#source === undefined) {
       throw new Error(`can't call getVirtualsize before init`)
@@ -69,6 +72,14 @@ export abstract class RandomDiskPassthrough extends RandomAccessDisk {
     }
     return this.#source
   }
+  get parent(): RandomAccessDisk | undefined {
+    return this.#source?.parent as RandomAccessDisk
+  }
+  /**
+   * return an empty block if asking for and block not included in this disk
+   * @param index
+   * @returns {Promise<DiskBlock>}
+   */
   readBlock(index: number): Promise<DiskBlock> {
     if (this.#source === undefined) {
       throw new Error(`can't call readBlock before init`)

@@ -66,6 +66,10 @@ export abstract class Disk {
  */
 
 export abstract class RandomAccessDisk extends Disk {
+  #parent?: RandomAccessDisk
+  get parent(): RandomAccessDisk | undefined {
+    return this.#parent
+  }
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator() {
     for (const index of this.getBlockIndexes()) {
