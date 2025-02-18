@@ -43,6 +43,7 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox major
 - @vates/types major
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
