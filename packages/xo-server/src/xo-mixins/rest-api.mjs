@@ -639,7 +639,6 @@ export default class RestApi {
         return object
       }
       function getObjects(filter, limit) {
-        console.log(filter)
         return Object.values(
           app.getObjects({
             filter: every(this.isCorrectType, filter),
@@ -775,7 +774,7 @@ export default class RestApi {
           )
         }
 
-        for (const collection of ['vms', 'vm-controllers', 'vm-snapshots', 'vm-templates']) {
+        for (const collection of ['vm-controllers', 'vm-snapshots', 'vm-templates']) {
           collections[collection].routes.vdis = vdis
         }
       }
