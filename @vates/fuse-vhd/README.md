@@ -29,7 +29,7 @@ await mount(handler, diskId, mountPoint)
 
 ### cli
 
-From the install folder :
+From the install folder:
 
 ```
 cli.mjs <remoteUrl> <vhdPathInRemote> <mountPoint>
@@ -41,7 +41,35 @@ After installing the package
 xo-fuse-vhd <remoteUrl> <vhdPathInRemote> <mountPoint>
 ```
 
-remoteUrl can be found by using cli in `@xen-orchestra/fs` , for example a local remote will have a url like `file:///path/to/remote/root`
+remoteUrl can be found by using cli in `@xen-orchestra/fs` , for example a local remote will have a url like `file:///path/to/remote/root`, or with command:
+
+```
+xo-server-db ls remote
+```
+
+## Restore a file from a VHD using `fuse-vhd` CLI
+
+- Mount a VHD to filesystem (see "Usage")
+
+- Check that your VHD is correctly mounted:
+
+```
+mount | grep fuse
+```
+
+- Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get an offset value. (`mountedVhdPath` is the `mountPoint` value from earlier followed by `/vhd0` for example)
+
+```
+partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>
+```
+
+- Mount the disk:
+
+```
+mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>
+```
+
+- You can now copy your files from the mounted partition and unmount the partition.
 
 ## Contributions
 
