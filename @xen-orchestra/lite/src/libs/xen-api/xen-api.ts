@@ -7,6 +7,7 @@ import type {
   RawXenApiRecord,
   XenApiEvent,
   XenApiHost,
+  XenApiNetwork,
   XenApiPool,
   XenApiRecord,
   XenApiRecordAddEvent,
@@ -17,6 +18,7 @@ import type {
   XenApiRecordLoadErrorEvent,
   XenApiRecordModEvent,
   XenApiSr,
+  XenApiVdi,
   XenApiVm,
 } from '@/libs/xen-api/xen-api.types'
 import { buildXoObject, typeToRawType } from '@/libs/xen-api/xen-api.utils'
@@ -345,6 +347,13 @@ export default class XenApi {
       getAllowedVBDDevices: (vmRefs: VmRefs) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VBD_devices', [vmRef]))),
 
+      getAllowedVIFDevices: (vmRefs: VmRefs) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VIF_devices', [vmRef]))),
+
+      removeFromOtherConfig: (vmRefs: VmRefs, key: string) => {
+        return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.remove_from_other_config', [vmRef, key])))
+      },
+
       delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
 
       start: (vmRefs: VmRefs) =>
@@ -389,11 +398,11 @@ export default class XenApi {
         return Promise.all(vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
       },
 
-      copy: (vmRefsToClone: VmRefsWithNameLabel, srRef: XenApiSr['$ref']): Promise<XenApiVm['$ref'][]> => {
-        const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
+      copy: (vmRefsToCopy: VmRefsWithNameLabel, srRef: XenApiSr['$ref']): Promise<XenApiVm['$ref'][]> => {
+        const vmRefs = Object.keys(vmRefsToCopy) as XenApiVm['$ref'][]
 
         return Promise.all(
-          vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.copy', [vmRef, vmRefsToClone[vmRef], srRef]))
+          vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.copy', [vmRef, vmRefsToCopy[vmRef], srRef]))
         )
       },
 
@@ -439,6 +448,81 @@ export default class XenApi {
           })
           onClose(() => blockedUrls.forEach(url => URL.revokeObjectURL(url.toString())))
         }
+      },
+    }
+  }
+
+  // TODO move to another file
+  get vif() {
+    type VmRef = XenApiVm['$ref']
+    type NetworkRef = XenApiNetwork['$ref']
+    return {
+      create: (
+        vmRefs: VmRef,
+        device: string,
+        networkRef: NetworkRef,
+        mac: string,
+        mtu: string,
+        other_config = {},
+        qos_algorithm_params = {},
+        qos_algorithm_type: string
+      ) => {
+        return Promise.all(
+          castArray(vmRefs).map(vmRef =>
+            this.call(`VIF.create`, [
+              vmRef,
+              networkRef,
+              device,
+              mac,
+              mtu,
+              other_config,
+              qos_algorithm_params,
+              qos_algorithm_type,
+            ])
+          )
+        )
+      },
+    }
+  }
+
+  // TODO move to another file
+  get vbd() {
+    type VmRef = XenApiVm['$ref']
+    type VdiRef = XenApiVdi['$ref']
+    return {
+      create: (
+        vmRefs: VmRef,
+        vdiRefs: VdiRef,
+        bootable: boolean,
+        currently_attached: boolean,
+        device: string,
+        empty: boolean,
+        type: string = 'Disk',
+        mode: string,
+        qos_algorithm_params = {},
+        qos_algorithm_type: string,
+        unpluggable: string,
+        userdevice: string
+      ) => {
+        return Promise.all(
+          castArray(vmRefs).map(vmRef =>
+            this.call(`VIF.create`, [
+              vmRef,
+              vdiRefs,
+              device,
+              bootable,
+              currently_attached,
+              device,
+              empty,
+              type,
+              mode,
+              qos_algorithm_params,
+              qos_algorithm_type,
+              unpluggable,
+              userdevice,
+            ])
+          )
+        )
       },
     }
   }
