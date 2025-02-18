@@ -95,6 +95,7 @@
   "core.sidebar.unlock": "Déverrouiller la barre latérale",
   "core.sort.ascending": "Trier par ordre croissant",
   "core.sort.descending": "Trier par ordre décroissant",
+  "core.textarea.exceeds-max-characters": "Le champ doit contenir {max} caractères ou moins.",
   "cpu-provisioning": "Provisionnement CPU",
   "cpu-provisioning-warning": "Le nombre de vCPU alloués dépasse le nombre de CPU physique disponible. Les performances du système pourraient être affectées",
   "cpu-usage": "Utilisation CPU",

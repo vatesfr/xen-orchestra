@@ -95,6 +95,7 @@
   "core.sidebar.unlock": "Unlock sidebar",
   "core.sort.ascending": "Sort ascending",
   "core.sort.descending": "Sort descending",
+  "core.textarea.exceeds-max-characters": "Field value must be {max} characters or less.",
   "cpu-provisioning": "CPU provisioning",
   "cpu-provisioning-warning": "The number of vCPUs allocated exceeds the number of physical CPUs available. System performance could be affected",
   "cpu-usage": "CPU usage",
