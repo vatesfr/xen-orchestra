@@ -30,6 +30,7 @@ const DEFAULT_BLOCKED_LIST = {
   'cloudConfig.getAll': true,
   'cloudConfig.getAllNetworkConfigs': true,
   'group.getAll': true,
+  'host.getBiosInfo': true,
   'host.getIpmiSensors': true,
   'host.getMdadmHealth': true,
   'host.getSchedulerGranularity': true,
