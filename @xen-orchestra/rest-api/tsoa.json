@@ -19,7 +19,7 @@
     "esm": true,
     "middleware": "express",
     "basePath": "/rest/v0",
-    "authenticationModule": "./src/middleware/authentication.middleware.mts",
+    "authenticationModule": "./src/middlewares/authentication.middleware.mts",
     "iocModule": "./src/ioc/ioc.mts"
   }
 }
