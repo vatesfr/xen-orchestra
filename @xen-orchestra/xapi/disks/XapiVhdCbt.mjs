@@ -132,11 +132,6 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
     return true
   }
 
-  /** @returns {Promise<Disk>} */
-  openParent() {
-    throw new Error('Method not implemented.')
-  }
-
   /**
    * @param {number} index
    * @returns {boolean}

@@ -3,7 +3,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  */
 
-import { Disk } from '@xen-orchestra/disk-transform'
+import { DiskPassthrough } from '@xen-orchestra/disk-transform'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiVhdStreamNbdSource } from './XapiVhdStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
@@ -17,7 +17,7 @@ const warn = console.error
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
  * Uses NBD, change block tracking, and stream export depending on capabilities.
  */
-export class XapiDiskSource extends Disk {
+export class XapiDiskSource extends DiskPassthrough {
   /** @type {string} */
   #vdiRef
 
@@ -32,9 +32,6 @@ export class XapiDiskSource extends Disk {
 
   /** @type {any} */
   #xapi // @todo do a better type here
-
-  /** @type {XapiVhdCbtSource | XapiVhdStreamNbdSource | XapiVhdStreamSource | undefined} */
-  #source
 
   /**
    * @param {Object} params
@@ -51,22 +48,6 @@ export class XapiDiskSource extends Disk {
     this.#preferNbd = preferNbd
     this.#nbdConcurrency = nbdConcurrency
     this.#xapi = xapi
-  }
-
-  /** @returns {number} */
-  getVirtualSize() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't get the virtual size of a Xapi disk before init`)
-    }
-    return this.#source.getVirtualSize()
-  }
-
-  /** @returns {number} */
-  getBlockSize() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't get the block size of a Xapi disk before init`)
-    }
-    return this.#source.getBlockSize()
   }
 
   /**
@@ -150,66 +131,21 @@ export class XapiDiskSource extends Disk {
     }
   }
 
-  /** @returns {Promise<void>} */
-  async init() {
+  /**
+   *
+   * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource | XapiVhdStreamSource>}
+   */
+  openSource() {
     if (this.#preferNbd) {
       if (this.#baseRef !== undefined) {
-        this.#source = await this.#openNbdCbt()
+        return this.#openNbdCbt()
       } else {
         // Pure CBT/NBD is not available for base:
         // The base incremental needs the block list to work efficiently.
-        this.#source = await this.#openNbdStream()
+        return this.#openNbdStream()
       }
     } else {
-      this.#source = await this.#openExportStream()
+      return this.#openExportStream()
     }
-  }
-
-  /** @returns {Promise<void>} */
-  async close() {
-    return this.#source?.close()
-  }
-
-  /** @returns {boolean} */
-  isDifferencing() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't get isDifferencing of a Xapi disk before init`)
-    }
-    return this.#source.isDifferencing()
-  }
-
-  /** @returns {Promise<Disk>} */
-  openParent() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't open parent of a Xapi disk before init`)
-    }
-    return this.#source.openParent()
-  }
-
-  /** @returns {Array<number>} */
-  getBlockIndexes() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't getBlockIndexes a Xapi disk before init`)
-    }
-    return this.#source.getBlockIndexes()
-  }
-
-  /**
-   * @param {number} index
-   * @returns {boolean}
-   */
-  hasBlock(index) {
-    if (this.#source === undefined) {
-      throw new Error(`Can't hasBlock of a Xapi disk before init`)
-    }
-    return this.#source.hasBlock(index)
-  }
-
-  /** @returns {Promise<AsyncGenerator<DiskBlock> | AsyncGenerator<DiskBlock>} */
-  async buildDiskBlockGenerator() {
-    if (this.#source === undefined) {
-      throw new Error(`Can't buildDiskBlockGenerator of  a Xapi disk before init`)
-    }
-    return this.#source.buildDiskBlockGenerator()
   }
 }

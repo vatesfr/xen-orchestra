@@ -198,12 +198,6 @@ export class XapiVhdStreamSource extends Disk {
   }
 
   /**
-   * @returns {Promise<Disk>}
-   */
-  openParent() {
-    throw new Error('Method openParent not implemented for xapi stream')
-  }
-  /**
    * @returns {boolean}
    */
   isDifferencing() {
