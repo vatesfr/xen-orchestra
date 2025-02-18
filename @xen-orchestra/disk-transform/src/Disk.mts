@@ -9,6 +9,10 @@ export type BytesLength = number
 export abstract class Disk {
   generatedDiskBlocks = 0
   yieldedDiskBlocks = 0
+  #parent?: Disk
+  get parent(): Disk | undefined {
+    return this.#parent
+  }
 
   abstract getVirtualSize(): number
   abstract getBlockSize(): number
@@ -16,8 +20,15 @@ export abstract class Disk {
   abstract close(): Promise<void>
 
   abstract isDifferencing(): boolean
-  // must throw if disk is not differencing
-  abstract openParent(): Promise<Disk>
+  // optional method, must throw if disk is not differencing
+  instantiateParent(): Promise<Disk> {
+    throw new Error('Method not implemented.')
+  }
+  async openParent(): Promise<Disk> {
+    this.#parent = await this.instantiateParent()
+    await this.#parent.init()
+    return this.#parent
+  }
 
   /**
    * return the block without any order nor stability guarantee

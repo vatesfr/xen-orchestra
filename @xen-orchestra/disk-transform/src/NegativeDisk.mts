@@ -46,9 +46,6 @@ export class NegativeDisk extends RandomAccessDisk {
   isDifferencing(): boolean {
     return true
   }
-  openParent(): Promise<Disk> {
-    throw new Error('Method not implemented.')
-  }
   getBlockIndexes(): Array<number> {
     return this.#child.getBlockIndexes()
   }

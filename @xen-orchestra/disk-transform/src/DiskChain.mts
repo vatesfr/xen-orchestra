@@ -43,8 +43,4 @@ export class DiskChain extends RandomAccessDisk {
   isDifferencing(): boolean {
     return this.#disks[0].isDifferencing()
   }
-
-  openParent(): Promise<Disk> {
-    throw new Error('Method not implemented.')
-  }
 }

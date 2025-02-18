@@ -41,9 +41,6 @@ export class DebugDisk extends RandomAccessDisk {
   isDifferencing(): boolean {
     return false
   }
-  openParent(): Promise<Disk> {
-    throw new Error('Method not implemented.')
-  }
   getBlockIndexes(): Array<number> {
     const indexes = []
     for (let i = 0; i < this.#nbBlocks; i++) {

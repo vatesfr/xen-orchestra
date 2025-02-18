@@ -1,0 +1,125 @@
+import { Disk, DiskBlock, RandomAccessDisk } from './Disk.mjs'
+
+export abstract class DiskPassthrough extends Disk {
+  #source: Disk | undefined
+  get source(): Disk {
+    if (this.#source === undefined) {
+      throw new Error(`can't call get source before init`)
+    }
+    return this.#source
+  }
+  getVirtualSize(): number {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getVirtualsize before init`)
+    }
+    return this.#source.getVirtualSize()
+  }
+  getBlockSize(): number {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getBlockSize before init`)
+    }
+    return this.#source.getVirtualSize()
+  }
+
+  abstract openSource(): Promise<Disk>
+  async init(): Promise<void> {
+    this.#source = await this.openSource()
+  }
+
+  instantiateParent(): Promise<Disk> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call instantiateParent before init`)
+    }
+    return this.#source.instantiateParent()
+  }
+  async close(): Promise<void> {
+    await this.#source?.close()
+  }
+  isDifferencing(): boolean {
+    if (this.#source === undefined) {
+      throw new Error(`can't call isDifferencing before init`)
+    }
+    return this.#source.isDifferencing()
+  }
+  getBlockIndexes(): Array<number> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getBlockIndexes before init`)
+    }
+    return this.#source.getBlockIndexes()
+  }
+  hasBlock(index: number): boolean {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getVirtualsize before init`)
+    }
+    return this.#source.hasBlock(index)
+  }
+  buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call buildDiskBlockGenerator before init`)
+    }
+    return this.#source.buildDiskBlockGenerator()
+  }
+}
+
+export abstract class RandomDiskPassthrough extends RandomAccessDisk {
+  #source: RandomAccessDisk | undefined
+  get source(): Disk {
+    if (this.#source === undefined) {
+      throw new Error(`can't call get source before init`)
+    }
+    return this.#source
+  }
+  readBlock(index: number): Promise<DiskBlock> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call readBlock before init`)
+    }
+    return this.#source.readBlock(index)
+  }
+  getVirtualSize(): number {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getVirtualSize before init`)
+    }
+    return this.#source.getVirtualSize()
+  }
+  getBlockSize(): number {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getBlockSize before init`)
+    }
+    return this.#source.getBlockSize()
+  }
+
+  abstract openSource(): Promise<RandomAccessDisk>
+  async init(): Promise<void> {
+    this.#source = await this.openSource()
+  }
+
+  instantiateParent(): Promise<Disk> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call instantiateParent before init`)
+    }
+    return this.#source.instantiateParent()
+  }
+
+  async close(): Promise<void> {
+    await this.#source?.close()
+  }
+
+  isDifferencing(): boolean {
+    if (this.#source === undefined) {
+      throw new Error(`can't call isDifferencing before init`)
+    }
+    return this.#source.isDifferencing()
+  }
+  getBlockIndexes(): Array<number> {
+    if (this.#source === undefined) {
+      throw new Error(`can't call getBlockIndexes before init`)
+    }
+    return this.#source.getBlockIndexes()
+  }
+  hasBlock(index: number): boolean {
+    if (this.#source === undefined) {
+      throw new Error(`can't call hasBlock before init`)
+    }
+    return this.#source.hasBlock(index)
+  }
+}
