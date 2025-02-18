@@ -775,7 +775,7 @@ export default class RestApi {
           )
         }
 
-        for (const collection of ['vm-controllers', 'vm-snapshots', 'vm-templates']) {
+        for (const collection of ['vms', 'vm-controllers', 'vm-snapshots', 'vm-templates']) {
           collections[collection].routes.vdis = vdis
         }
       }
