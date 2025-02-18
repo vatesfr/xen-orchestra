@@ -16,8 +16,8 @@
       Slot names, separated by comma
       <span class="slots">
         <FormInput v-model="slots" />
-        <UiButton size="medium" accent="info" variant="primary" @click="slots = 'default'">Default</UiButton>
-        <UiButton size="medium" accent="info" variant="secondary" @click="slots = ''">Clear</UiButton>
+        <UiButton size="medium" accent="brand" variant="primary" @click="slots = 'default'">Default</UiButton>
+        <UiButton size="medium" accent="brand" variant="secondary" @click="slots = ''">Clear</UiButton>
       </span>
     </div>
 

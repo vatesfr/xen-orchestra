@@ -8,7 +8,7 @@
       <slot />
     </div>
     <div v-if="info" class="info-text p3 italic">{{ info }}</div>
-    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'info'" :icon="faAngleRight" class="right-icon" />
+    <VtsIcon v-if="arrow" :accent="disabled ? 'current' : 'brand'" :icon="faAngleRight" class="right-icon" />
   </div>
 </template>
 

@@ -7,6 +7,8 @@
 /@vates/*/node_modules/
 /@xen-orchestra/*/dist/
 /@xen-orchestra/*/node_modules/
+/@xen-orchestra/rest-api/open-api/spec/swagger.json
+/@xen-orchestra/rest-api/src/open-api/routes/routes.ts
 /packages/*/dist/
 /packages/*/node_modules/
 

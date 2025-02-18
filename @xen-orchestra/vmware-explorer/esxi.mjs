@@ -58,6 +58,9 @@ export default class Esxi extends EventEmitter {
     const res = await this.search('Datacenter', ['name', 'datastore'])
     await Promise.all(
       Object.values(res).map(async ({ datastore, name }) => {
+        if (datastore.ManagedObjectReference === undefined) {
+          return
+        }
         await Promise.all(
           datastore.ManagedObjectReference.map(async ({ $value }) => {
             // get the datastore name
@@ -400,13 +403,14 @@ export default class Esxi extends EventEmitter {
     const taskId = res.returnval.$value
     let state = 'running'
     let info
-    for (let i = 0; i < 60 && state === 'running'; i++) {
+    for (let i = 0; i < 60; i++) {
       // https://developer.vmware.com/apis/1720/
       info = await this.fetchProperty('Task', taskId, 'info')
       state = info.state[0]
-      if (state === 'running') {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+      if (state === 'success') {
+        break
       }
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
     strictEqual(state, 'success', info.error ?? `fail to power off vm ${vmId}, state:${state}`)
     return info

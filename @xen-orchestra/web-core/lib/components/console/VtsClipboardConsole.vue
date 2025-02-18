@@ -3,10 +3,10 @@
     <UiCardTitle>{{ $t('console-clipboard') }}</UiCardTitle>
     <UiTextarea v-tooltip="$t('coming-soon')" accent="info" disabled :model-value="modelValue" />
     <div class="buttons-container">
-      <UiButton v-tooltip="$t('coming-soon')" accent="info" variant="primary" size="medium" disabled>
+      <UiButton v-tooltip="$t('coming-soon')" accent="brand" variant="primary" size="medium" disabled>
         {{ $t('send') }}
       </UiButton>
-      <UiButton v-tooltip="$t('coming-soon')" accent="info" variant="secondary" size="medium" disabled>
+      <UiButton v-tooltip="$t('coming-soon')" accent="brand" variant="secondary" size="medium" disabled>
         {{ $t('receive') }}
       </UiButton>
     </div>

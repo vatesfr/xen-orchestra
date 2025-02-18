@@ -39,7 +39,7 @@ const COLUMNS = [
     itemRenderer: (server, formatMessage) => (
       <Text
         value={server.label || ''}
-        onChange={label => editServer(server, { label })}
+        onChange={label => editServer(server, { label: label || null })}
         placeholder={formatMessage(messages.serverPlaceHolderLabel)}
       />
     ),

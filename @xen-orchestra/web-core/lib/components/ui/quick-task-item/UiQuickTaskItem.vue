@@ -2,7 +2,7 @@
 <template>
   <li class="ui-quick-task-item">
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
-      <UiButtonIcon accent="info" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
+      <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
     </div>
     <div class="content">
       <div class="typo p1-medium">

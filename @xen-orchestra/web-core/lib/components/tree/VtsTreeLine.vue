@@ -22,7 +22,7 @@ defineProps<{
 
   .tree-line-vertical {
     width: 0.1rem;
-    background: var(--color-info-txt-base);
+    background: var(--color-brand-txt-base);
     height: calc(100% + 0.7rem);
     transform: translateY(calc(0.7rem * -1));
   }
@@ -33,7 +33,7 @@ defineProps<{
     background: transparent;
 
     &.right {
-      background: var(--color-info-txt-base);
+      background: var(--color-brand-txt-base);
     }
   }
 }

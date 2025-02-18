@@ -1,3 +1,4 @@
+import setupRestApi from '@xen-orchestra/rest-api'
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
@@ -342,7 +343,7 @@ async function _getDashboardStats(app) {
   )
 
   storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
-  storageRepositoriesSize.other = storageRepositoriesSize.total - storageRepositoriesSize.replicated
+  storageRepositoriesSize.other = storageRepositoriesSize.used - storageRepositoriesSize.replicated
   resourcesOverview.srSize = storageRepositoriesSize.total
 
   dashboard.storageRepositories = { size: storageRepositoriesSize }
@@ -602,6 +603,8 @@ export default class RestApi {
     })
 
     const collections = { __proto__: null }
+    // add migrated collections to maintain their discoverability
+    const swaggerEndpoints = ['docs']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1141,7 +1144,7 @@ export default class RestApi {
 
     api.get(
       '/',
-      wrap((req, res) => sendObjects(Object.values(collections), req, res))
+      wrap((req, res) => sendObjects([...Object.values(collections), ...swaggerEndpoints], req, res))
     )
 
     // For compatibility redirect from /backups* to /backup
@@ -1360,6 +1363,38 @@ export default class RestApi {
 
       res.json(result)
     })
+
+    // should go before routes /:collection/:object because they will match before
+    api.patch(
+      '/:collection(groups)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const { id } = req.params
+        const { name } = req.body
+
+        const group = await app.getGroup(id)
+        if (group.provider !== undefined) {
+          return res.status(403).json({ error: 'Cannot edit synchronized group' })
+        }
+
+        if (name === null) {
+          return res.status(400).json({ error: 'name cannot be removed' })
+        }
+        if (name !== undefined && typeof name !== 'string') {
+          return res.status(400).json({ error: 'name must be a string' })
+        }
+
+        try {
+          await app.updateGroup(id, { name })
+          res.sendStatus(204)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      }, true)
+    )
     api
       .patch(
         '/:collection/:object',
@@ -1523,6 +1558,93 @@ export default class RestApi {
         res.sendStatus(204)
       }, true)
     )
+
+    api.post(
+      '/:collection(users)',
+      json(),
+      wrap(async (req, res) => {
+        const { name, password, permission } = req.body
+        if (name == null || password == null) {
+          return res.status(400).json({ message: 'name and password are required.' })
+        }
+
+        if (
+          typeof name !== 'string' ||
+          typeof password !== 'string' ||
+          (permission !== undefined && typeof permission !== 'string')
+        ) {
+          return res.status(400).json({ message: 'name, password and permission (if provided) must be strings.' })
+        }
+
+        const user = await app.createUser({ name, password, permission })
+        res.status(201).end(user.id)
+      })
+    )
+    api.put(
+      '/:collection(groups)/:id/users/:userId',
+      wrap(async (req, res) => {
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
+
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot add user to synchronized group' })
+        }
+
+        await app.addUserToGroup(userId, id)
+
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
+      '/:collection(groups)/:id/users/:userId',
+      wrap(async (req, res) => {
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
+
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot remove user from synchronized group' })
+        }
+
+        await app.removeUserFromGroup(userId, id)
+
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
+      '/:collection(groups)/:id',
+      wrap(async (req, res) => {
+        await app.deleteGroup(req.params.id)
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        if (name == null) {
+          return res.status(400).json({ error: 'name is required' })
+        }
+        if (typeof name !== 'string') {
+          return res.status(400).json({ message: 'name must be a string' })
+        }
+
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      })
+    )
+
+    setupRestApi(express)
   }
 
   registerRestApi(spec, base = '/') {

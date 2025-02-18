@@ -13,37 +13,40 @@ import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
-type ButtonIconAccent = 'info' | 'success' | 'warning' | 'danger'
+type ButtonIconAccent = 'brand' | 'warning' | 'danger'
 type ButtonSize = 'small' | 'medium' | 'large'
 
-const props = withDefaults(
-  defineProps<{
-    icon: IconDefinition
-    size: ButtonSize
-    accent: ButtonIconAccent
-    disabled?: boolean
-    selected?: boolean
-    dot?: boolean
-    targetScale?: number | { x: number; y: number }
-  }>(),
-  { targetScale: 1 }
-)
+const {
+  accent,
+  size,
+  disabled,
+  selected,
+  targetScale = 1,
+} = defineProps<{
+  icon: IconDefinition
+  size: ButtonSize
+  accent: ButtonIconAccent
+  disabled?: boolean
+  selected?: boolean
+  dot?: boolean
+  targetScale?: number | { x: number; y: number }
+}>()
 
 const cssTargetScale = computed(() => {
-  if (typeof props.targetScale === 'number') {
-    return `scale(${props.targetScale})`
+  if (typeof targetScale === 'number') {
+    return `scale(${targetScale})`
   }
 
-  return `scale(${props.targetScale.x}, ${props.targetScale.y})`
+  return `scale(${targetScale.x}, ${targetScale.y})`
 })
 
 const classNames = computed(() => {
   return [
     toVariants({
-      accent: props.accent,
-      size: props.size,
-      muted: props.disabled,
-      selected: props.selected,
+      accent,
+      size,
+      muted: disabled,
+      selected,
     }),
   ]
 })
@@ -72,54 +75,44 @@ const classNames = computed(() => {
     background-color: var(--color-danger-txt-base);
   }
 
-  /* ACCENT VARIANTS */
+  &:focus-visible {
+    outline: none;
 
-  &.accent--info {
-    & {
-      color: var(--color-info-txt-base);
-      background-color: transparent;
-    }
-
-    &:is(:hover, :focus-visible) {
-      color: var(--color-info-txt-hover);
-      background-color: var(--color-info-background-hover);
-    }
-
-    &:active {
-      color: var(--color-info-txt-active);
-      background-color: var(--color-info-background-active);
-    }
-
-    &.selected {
-      color: var(--color-info-txt-base);
-      background-color: var(--color-info-background-selected);
-    }
-
-    &.muted {
-      color: var(--color-neutral-txt-secondary);
-      background-color: transparent;
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -0.2rem;
+      border-radius: 0.4rem;
+      border-width: 0.2rem;
+      border-style: solid;
     }
   }
 
-  &.accent--success {
+  /* ACCENT VARIANTS */
+
+  &.accent--brand {
     & {
-      color: var(--color-success-txt-base);
+      color: var(--color-brand-txt-base);
       background-color: transparent;
     }
 
-    &:is(:hover, :focus-visible) {
-      color: var(--color-success-txt-hover);
-      background-color: var(--color-success-background-hover);
+    &:hover {
+      color: var(--color-brand-txt-hover);
+      background-color: var(--color-brand-background-hover);
+    }
+
+    &:focus-visible::before {
+      border-color: var(--color-info-txt-base);
     }
 
     &:active {
-      color: var(--color-success-txt-active);
-      background-color: var(--color-success-background-active);
+      color: var(--color-brand-txt-active);
+      background-color: var(--color-brand-background-active);
     }
 
     &.selected {
-      color: var(--color-success-txt-base);
-      background-color: var(--color-success-background-selected);
+      color: var(--color-brand-txt-base);
+      background-color: var(--color-brand-background-selected);
     }
 
     &.muted {
@@ -134,9 +127,13 @@ const classNames = computed(() => {
       background-color: transparent;
     }
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       color: var(--color-warning-txt-hover);
       background-color: var(--color-warning-background-hover);
+    }
+
+    &:focus-visible::before {
+      border-color: var(--color-warning-txt-base);
     }
 
     &:active {
@@ -165,9 +162,13 @@ const classNames = computed(() => {
       }
     }
 
-    &:is(:hover, :focus-visible) {
+    &:hover {
       color: var(--color-danger-txt-hover);
       background-color: var(--color-danger-background-hover);
+    }
+
+    &:focus-visible::before {
+      border-color: var(--color-danger-txt-base);
     }
 
     &:active {

@@ -285,7 +285,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XCP-ng CloudInit section](advanced.md#cloud-init) for more.
+Please refer to the [XCP-ng CloudInit section](vm-templates.md#cloud-init) for more.
 
 #### Interfaces
 
