@@ -6,7 +6,7 @@
         disabled
         variant="tertiary"
         size="medium"
-        accent="info"
+        accent="brand"
         :left-icon="faEdit"
       >
         {{ $t('edit') }}
@@ -21,132 +21,128 @@
       >
         {{ $t('delete') }}
       </UiButton>
-      <UiButtonIcon v-tooltip="$t('coming-soon')" disabled accent="info" size="medium" :icon="faEllipsis" />
+      <UiButtonIcon v-tooltip="$t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
     </template>
-    <template #default>
-      <VtsNoSelectionHero v-if="!network" type="panel" />
-      <template v-else>
-        <UiCard class="card-container">
-          <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
-            {{ network.name_label }}
-          </UiCardTitle>
-          <div class="content">
-            <!-- UUID -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('uuid') }}
-              </template>
-              <template #value>{{ formatValue(network.uuid) }}</template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="network.uuid"
-                  v-tooltip="copied && $t('core.copied')"
-                  accent="info"
-                  size="medium"
-                  :icon="faCopy"
-                  @click="copy(network.uuid)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- DESCRIPTION -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ $t('description') }}</template>
-              <template #value>{{ formatValue(network.name_description) }}</template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="network.name_description"
-                  v-tooltip="copied && $t('core.copied')"
-                  accent="info"
-                  size="medium"
-                  :icon="faCopy"
-                  @click="copy(network.name_description)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- VLAN -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ $t('vlan') }}</template>
-              <template #value>{{ formatValue(networkVlan) }}</template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="networkVlan"
-                  v-tooltip="copied && $t('core.copied')"
-                  accent="info"
-                  size="medium"
-                  :icon="faCopy"
-                  @click="copy(String(networkVlan))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- MTU -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ $t('mtu') }}</template>
-              <template #value>{{ formatValue(network.MTU) }}</template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="network.MTU"
-                  v-tooltip="copied && $t('core.copied')"
-                  accent="info"
-                  size="medium"
-                  :icon="faCopy"
-                  @click="copy(String(network.MTU))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- NBD -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ $t('network-block-device') }}</template>
-              <template #value>{{ networkNbd }}</template>
-              <template #addons>
-                <UiButtonIcon
-                  v-tooltip="copied && $t('core.copied')"
-                  accent="info"
-                  size="medium"
-                  :icon="faCopy"
-                  @click="copy(networkNbd)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- DEFAULT LOCKING MODE -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ $t('locking-mode-default') }}</template>
-              <template #value>{{ networkDefaultLockingMode }}</template>
-            </VtsCardRowKeyValue>
-          </div>
-        </UiCard>
-        <UiCard v-if="network?.PIFs?.length > 0" class="card-container">
-          <div class="typo p1-medium">
-            {{ $t('pifs') }}
-            <UiCounter v-if="pifsCount" :value="pifsCount" variant="primary" size="small" accent="neutral" />
-          </div>
-          <table class="simple-table">
-            <thead>
-              <tr>
-                <th class="text-left typo p3-regular">
-                  {{ $t('host') }}
-                </th>
-                <th class="text-left typo p3-regular">
-                  {{ $t('device') }}
-                </th>
-                <th class="text-left typo p3-regular">
-                  {{ $t('pifs-status') }}
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
-            </tbody>
-          </table>
-        </UiCard>
-      </template>
+    <template v-if="network" #default>
+      <UiCard class="card-container">
+        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
+          {{ network.name_label }}
+        </UiCardTitle>
+        <div class="content">
+          <!-- UUID -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('uuid') }}
+            </template>
+            <template #value>{{ formattedValues.uuid }}</template>
+            <template v-if="network.uuid" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                accent="brand"
+                size="medium"
+                :icon="faCopy"
+                @click="copy(network.uuid)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- DESCRIPTION -->
+          <VtsCardRowKeyValue>
+            <template #key>{{ $t('description') }}</template>
+            <template #value>{{ formattedValues.name_description }}</template>
+            <template v-if="network.name_description" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                accent="brand"
+                size="medium"
+                :icon="faCopy"
+                @click="copy(network.name_description)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- VLAN -->
+          <VtsCardRowKeyValue>
+            <template #key>{{ $t('vlan') }}</template>
+            <template #value>{{ formattedValues.vlan }}</template>
+            <template v-if="networkVlan" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                accent="brand"
+                size="medium"
+                :icon="faCopy"
+                @click="copy(String(networkVlan))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- MTU -->
+          <VtsCardRowKeyValue>
+            <template #key>{{ $t('mtu') }}</template>
+            <template #value>{{ formattedValues.mtu }}</template>
+            <template v-if="network.MTU" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                accent="brand"
+                size="medium"
+                :icon="faCopy"
+                @click="copy(String(network.MTU))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- NBD -->
+          <VtsCardRowKeyValue>
+            <template #key>{{ $t('network-block-device') }}</template>
+            <template #value>{{ networkNbd }}</template>
+            <template #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                accent="brand"
+                size="medium"
+                :icon="faCopy"
+                @click="copy(networkNbd)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- DEFAULT LOCKING MODE -->
+          <VtsCardRowKeyValue>
+            <template #key>{{ $t('locking-mode-default') }}</template>
+            <template #value>{{ networkDefaultLockingMode }}</template>
+          </VtsCardRowKeyValue>
+        </div>
+      </UiCard>
+      <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
+        <div class="typo p1-medium">
+          {{ $t('pifs') }}
+          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
+        </div>
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th class="text-left typo p3-regular">
+                {{ $t('host') }}
+              </th>
+              <th class="text-left typo p3-regular">
+                {{ $t('device') }}
+              </th>
+              <th class="text-left typo p3-regular">
+                {{ $t('pifs-status') }}
+              </th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
+          </tbody>
+        </table>
+      </UiCard>
+    </template>
+    <template v-else #default>
+      <VtsNoSelectionHero type="panel" />
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
@@ -156,22 +152,21 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { toArray } from '@core/utils/to-array.utils'
 import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { records: networks } = useNetworkStore().subscribe()
-const { pifsByNetwork } = usePifStore().subscribe()
+const { network } = defineProps<{
+  network: XenApiNetwork | undefined
+}>()
+
+const { getPifsByNetworkRef } = usePifStore().subscribe()
+
 const { t } = useI18n()
 
-const networkId = useRouteQuery('id')
-const network = computed(() => networks.value.find(network => network.uuid === networkId.value))
-
-const pifs = computed(() => (network.value ? toArray(pifsByNetwork.value.get(network.value.$ref)) : []))
+const pifs = computed(() => (network ? getPifsByNetworkRef(network.$ref) : []))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
@@ -180,17 +175,20 @@ const networkVlan = computed(() => {
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : ''
 })
 
-const networkNbd = computed(() => (network?.value?.purpose[0] ? t('on') : t('off')))
+const networkNbd = computed(() => (network?.purpose[0] ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() =>
-  network?.value?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
+  network?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
 )
 
 const pifsCount = computed(() => pifs.value.length)
 
-const formatValue = (value?: string | number): string => {
-  return value ? String(value) : '-'
-}
+const formattedValues = computed(() => ({
+  uuid: network?.uuid ? network?.uuid : '-',
+  name_description: network?.name_description ? network?.name_description : '-',
+  vlan: networkVlan.value ? networkVlan.value : '-',
+  mtu: network?.MTU ? network?.MTU : '-',
+}))
 
 const { copy, copied } = useClipboard()
 </script>
@@ -215,20 +213,8 @@ const { copy, copied } = useClipboard()
     border-spacing: 0;
     padding: 0.4rem;
 
-    tbody tr {
-      cursor: pointer;
-
-      &:hover {
-        background-color: var(--color-info-background-hover);
-      }
-    }
-
     thead tr th {
       color: var(--color-neutral-txt-secondary);
-    }
-
-    tbody tr td {
-      color: var(--color-neutral-txt-primary);
     }
   }
 }

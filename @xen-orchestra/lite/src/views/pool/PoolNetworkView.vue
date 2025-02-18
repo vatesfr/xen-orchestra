@@ -4,7 +4,7 @@
       <PoolNetworksTable />
       <PoolHostInternalNetworksTable />
     </UiCard>
-    <PoolNetworksSidePanel />
+    <PoolNetworksSidePanel :network />
   </div>
 </template>
 
@@ -13,10 +13,19 @@ import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInt
 import PoolNetworksSidePanel from '@/components/pool/network/PoolNetworksSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
+import { useNetworkStore } from '@/stores/xen-api/network.store'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
+
+const { records: networks } = useNetworkStore().subscribe()
+
+const networkId = useRouteQuery('id')
+
+const network = computed(() => networks.value.find(network => network.uuid === networkId.value))
 </script>
 
 <style lang="postcss" scoped>
