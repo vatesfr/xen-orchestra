@@ -1,17 +1,17 @@
 <template>
-  <tr @click="redirect()">
-    <td v-if="host" class="typo p3-regular text-ellipsis host">
+  <tr class="pif-row" @click="redirect()">
+    <td v-tooltip class="typo p3-regular text-ellipsis host">
       <UiObjectIcon :state="hostPowerState" type="host" size="small" />
       <span v-tooltip class="typo p3-regular text-ellipsis host-name">
-        {{ host.name_label }}
+        {{ host?.name_label }}
       </span>
     </td>
-    <td class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
-    <td class="typo p3-regular status">
+    <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
+    <td v-tooltip class="typo p3-regular status">
       <VtsConnectionStatus v-if="status !== undefined" :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
+      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" />
     </td>
   </tr>
 </template>
@@ -20,7 +20,7 @@
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
+import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
@@ -33,35 +33,17 @@ const { pif } = defineProps<{
   pif: XenApiPif
 }>()
 
-const { getByOpaqueRef: getOpaqueRefHost } = useHostStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefMetricsHost } = useHostMetricsStore().subscribe()
-const { getPifCarrier } = usePifMetricsStore().subscribe()
+const { getByOpaqueRef } = useHostStore().subscribe()
+const { isHostRunning } = useHostMetricsStore().subscribe()
+const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
 
-const pifCarrier = computed(() => getPifCarrier(pif))
+const status = computed<ConnectionStatus | undefined>(() => getPifStatus(pif))
 
-const status = computed<ConnectionStatus | undefined>(() => {
-  if (pifCarrier.value === undefined) {
-    return undefined
-  }
+const host = computed(() => getByOpaqueRef(pif.host))
 
-  const isPifCurrentlyAttached = pif.currently_attached
-
-  if (pifCarrier.value && isPifCurrentlyAttached) {
-    return 'connected'
-  }
-
-  if (!pifCarrier.value && isPifCurrentlyAttached) {
-    return 'disconnected-from-physical-device'
-  }
-
-  return 'disconnected'
-})
-
-const host = computed(() => getOpaqueRefHost(pif.host))
-
-const hostStatus = computed(() => (host.value ? getOpaqueRefMetricsHost(host.value.metrics)?.live : undefined))
+const hostStatus = computed(() => (host.value ? isHostRunning(host.value) : undefined))
 
 const hostPowerState = computed(() => (hostStatus.value ? 'running' : 'halted'))
 
@@ -79,8 +61,18 @@ const redirect = () => {
 </script>
 
 <style lang="postcss" scoped>
-td {
-  &.host {
+.pif-row {
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-info-background-hover);
+  }
+
+  td {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .host {
     width: 14rem;
     max-width: 14rem;
 
@@ -90,12 +82,12 @@ td {
     }
   }
 
-  &.device {
+  .device {
     width: 8rem;
     max-width: 8rem;
   }
 
-  &.status {
+  .status {
     width: 12rem;
     max-width: 12rem;
   }
