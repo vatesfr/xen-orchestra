@@ -90,9 +90,9 @@ Before deleting a template, make sure to find and remove any attached disks. Oth
 
 If you want VMs to set themselves up automatically after deployment, **Cloud-Init** (for Linux) and **Cloudbase-Init** (for Windows) can help.
 
-### Cloud-init (Linux)
+### Cloud-init
 
-Cloud-init is a program that handles the early initialization of a cloud instance.
+Cloud-init is a program that handles the early initialization of a cloud instance of Linux.
 In other words, on a "Cloud-init-ready" VM template, you can pass a lot of data at first boot, such as:
 
 - Set the host name

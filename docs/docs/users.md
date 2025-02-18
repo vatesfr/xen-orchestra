@@ -446,7 +446,7 @@ Finally, if a user has been granted access to multiple resource sets, they can b
 
 ### Toward the Cloud
 
-Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](advanced.md#cloud-init) for a full experience:
+Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](vm-templates.md#cloud-init) for a full experience:
 
 - create a Cloud ready template
 - create a set and put Cloud templates inside
