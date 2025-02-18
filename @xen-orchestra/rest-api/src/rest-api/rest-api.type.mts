@@ -20,6 +20,6 @@ export type XoApp = {
   getObjectsByType: <T extends keyof XapiXoRecordByType>(
     type: T,
     opts?: { filter?: string; limit?: number }
-  ) => XapiXoRecordByType[T]
+  ) => XapiXoBrandedRecordByType[T]
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

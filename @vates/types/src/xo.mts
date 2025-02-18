@@ -46,9 +46,9 @@ type BaseXoVm = {
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
-    dynamic: [number, number]
+    dynamic: number[]
     size: number
-    static: [number, number]
+    static: number[]
     usage?: number
   }
   mainIpAddress?: string

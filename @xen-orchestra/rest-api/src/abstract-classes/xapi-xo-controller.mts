@@ -5,6 +5,7 @@ import { Request } from 'express'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.mjs'
 import type { XapiXoBrandedRecordByType, XapiXoRecordByType } from '../rest-api/rest-api.type.mjs'
+import { WithHref } from '../helpers/helpers.type.mjs'
 
 export abstract class XapiXoController<T extends keyof XapiXoRecordByType> extends Controller {
   #type: T
@@ -27,11 +28,8 @@ export abstract class XapiXoController<T extends keyof XapiXoRecordByType> exten
     return this.restApi.getObject(id, this.#type)
   }
 
-  sendObjects(
-    objects: XapiXoRecordByType[T][],
-    req: Request
-  ): (string | (Partial<XapiXoRecordByType[T]> & { href: string }))[] {
+  sendObjects(objects: XapiXoRecordByType[T][], req: Request): string[] | WithHref<Partial<XapiXoRecordByType[T]>>[] {
     const mapper = makeObjectMapper(req)
-    return objects.map(obj => mapper(obj))
+    return objects.map(mapper)
   }
 }

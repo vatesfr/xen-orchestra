@@ -1,0 +1,37 @@
+# @xen-orchestra/rest-api
+
+## Rules
+
+The REST API is based on the `TSOA` framework and therefore we use decorators a lot to define the behavior of a route or a group of routes. To keep things easily visible, it is best to always use the decorators in the same order.
+
+### Class decorator
+
+```ts
+@Routes('foo')
+@Security('*')
+@Response(401)
+@provide(Foo)
+class Foo extends Controller {}
+```
+
+### Methods decorator
+
+```ts
+@Routes('foo')
+...
+class Foo extends Controller {
+
+
+ /**
+  * any jsdoc anotations
+  * @example id 1234
+  */
+ @Example(['foo', 'bar'])
+ @Get('{id}')
+ @Security('*')
+ @Response(404)
+ getFoo(@Path() id: string): {
+    return this.getFoo(id)
+ }
+}
+```
