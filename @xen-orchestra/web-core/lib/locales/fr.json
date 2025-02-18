@@ -46,6 +46,8 @@
   "core.sort.ascending": "Trier par ordre croissant",
   "core.sort.descending": "Trier par ordre décroissant",
 
+  "core.textarea.exceeds-max-characters": "Le champ doit contenir {max} caractères ou moins.",
+
   "dark-mode.auto": "Mode sombre automatique",
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.enable": "Activer le mode sombre",

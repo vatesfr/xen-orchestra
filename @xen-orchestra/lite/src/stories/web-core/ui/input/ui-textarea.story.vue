@@ -7,13 +7,12 @@
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
       iconProp(),
+      prop('max-characters').num().help('When used, it will display the character count under the input').widget(),
       prop('placeholder').str().widget(),
       prop('required').bool().widget(),
       slot(),
-      slot('character-limit').help('Meant to receive a UiCharacterLimit component.'),
       slot('info'),
       setting('defaultSlot').widget(text()).preset('Some label'),
-      setting('characterLimit').widget(boolean()),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
     ]"
   >
@@ -29,8 +28,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting, slot, model } from '@/libs/story/story-param'
-import { boolean, text } from '@/libs/story/story-widget'
+import { iconProp, model, prop, setting, slot } from '@/libs/story/story-param'
+import { text } from '@/libs/story/story-widget'
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 </script>

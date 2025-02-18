@@ -46,6 +46,8 @@
   "core.sort.ascending": "Sort ascending",
   "core.sort.descending": "Sort descending",
 
+  "core.textarea.exceeds-max-characters": "Field value must be {max} characters or less.",
+
   "dark-mode.auto": "Auto dark mode",
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.enable": "Enable dark mode",
