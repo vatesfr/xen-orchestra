@@ -679,7 +679,7 @@ const redirectToHome = () => {
 //   cloudConfig: '',
 // }))
 
-const data2 = computed(() => ({
+const vmData = computed(() => ({
   affinity: newVmState.affinity_host,
   auto_poweron: newVmState.auto_power,
   boot: newVmState.boot_vm,
@@ -703,7 +703,7 @@ const createNewVM = async () => {
   // console.log('data2', data2.value)
   // console.log('data', data.value)
   try {
-    await createVM(data2.value, '355ee47d-ff4c-4924-3db2-fd86ae629676')
+    await createVM(vmData.value, newVmState.pool!.id)
     // console.log('Created VM:', newVM)
   } catch (error) {
     console.error('Error creating VM:', error)
