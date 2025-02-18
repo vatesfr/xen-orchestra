@@ -4582,12 +4582,12 @@
   dependencies:
     undici-types "~6.19.2"
 
-"@types/node@^22.3.0":
-  version "22.13.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.13.2.tgz#6f401c5ccadac75354f5652128e9fcc3b0cf23b7"
-  integrity sha512-Z+r8y3XL9ZpI2EY52YYygAFmo2/oWfNSj4BCpAXE2McAexDk8VcnBMGC9Djn9gTKt4d2T/hhXqmPzo4hfIXtTg==
+"@types/node@^20.6":
+  version "20.17.19"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.17.19.tgz#0f2869555719bef266ca6e1827fcdca903c1a697"
+  integrity sha512-LEwC7o1ifqg/6r2gn9Dns0f1rhK+fPFDoMiceTJ6kWmVk6bgXBI/9IOWfVan4WiAavK9pIVWdX0/e3J+eEUh5A==
   dependencies:
-    undici-types "~6.20.0"
+    undici-types "~6.19.2"
 
 "@types/novnc__novnc@^1.5.0":
   version "1.5.0"
