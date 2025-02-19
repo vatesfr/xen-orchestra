@@ -34,7 +34,7 @@
             <template #key>
               {{ $t('uuid') }}
             </template>
-            <template #value>{{ formattedValues.uuid }}</template>
+            <template #value>{{ formattedNetwork.uuid }}</template>
             <template v-if="network.uuid" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -48,7 +48,7 @@
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue>
             <template #key>{{ $t('description') }}</template>
-            <template #value>{{ formattedValues.name_description }}</template>
+            <template #value>{{ formattedNetwork.name_description }}</template>
             <template v-if="network.name_description" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -62,7 +62,7 @@
           <!-- VLAN -->
           <VtsCardRowKeyValue>
             <template #key>{{ $t('vlan') }}</template>
-            <template #value>{{ formattedValues.vlan }}</template>
+            <template #value>{{ formattedNetwork.vlan }}</template>
             <template v-if="networkVlan" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -76,7 +76,7 @@
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>{{ $t('mtu') }}</template>
-            <template #value>{{ formattedValues.mtu }}</template>
+            <template #value>{{ formattedNetwork.mtu }}</template>
             <template v-if="network.MTU" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -183,7 +183,7 @@ const networkDefaultLockingMode = computed(() =>
 
 const pifsCount = computed(() => pifs.value.length)
 
-const formattedValues = computed(() => ({
+const formattedNetwork = computed(() => ({
   uuid: network?.uuid ? network?.uuid : '-',
   name_description: network?.name_description ? network?.name_description : '-',
   vlan: networkVlan.value ? networkVlan.value : '-',

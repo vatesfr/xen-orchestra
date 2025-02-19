@@ -66,6 +66,7 @@
   "gateway": "Passerelle",
   "host": "Hôte",
   "host-internal-networks": "Réseaux internes de l'hôte",
+  "host-unknown": "Hôte inconnu",
   "hosts": "Hôtes",
   "id": "Id",
   "ip-addresses": "IP addresses",
