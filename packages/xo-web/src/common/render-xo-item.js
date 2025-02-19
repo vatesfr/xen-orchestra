@@ -246,8 +246,6 @@ export const Sr = decorate([
       return unknowItem(id, 'SR', name)
     }
 
-    console.log({sr, vdis})
-
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
         <Icon icon='sr' /> {sr.name_label}
