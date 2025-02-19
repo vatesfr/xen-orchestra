@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import keyBy from 'lodash/keyBy.js'
+import mapValues from 'lodash/mapValues.js'
 
 import { AbstractXapi } from './_AbstractXapi.mjs'
 import { exportIncrementalVm } from '../../_incrementalVm.mjs'
@@ -12,6 +13,7 @@ import {
   setVmDeltaChainLength,
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
+import { forkDeltaExport } from './_forkDeltaExport.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -41,13 +43,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     Object.entries(deltaExport.disks).forEach(([key, disk])=>{
       isVhdDifferencing[key] = disk.isDifferencing()
     })
+
+    //deltaExport.disks = mapValues(deltaExport.disks, disk=>this._throttleGenerator.createThrottledGenerator(disk) )
+
     // @todo : reimplement fork, throttle, validation,isVhdDifferencingDisk , nbd use
     const timestamp = Date.now()
 
     await this._callWriters(
       writer =>
         writer.transfer({
-          deltaExport,
+          deltaExport: forkDeltaExport(deltaExport),
           isVhdDifferencing,
           sizeContainers: {},
           timestamp,

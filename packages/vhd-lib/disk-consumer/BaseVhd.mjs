@@ -45,6 +45,7 @@ export class BaseVhd {
    */
   computeVhdFooter() {
     const source = this.source
+    console.log({source})
     const size = source.getVirtualSize()
     const geometry = computeGeometryForSize(size)
     const diskType = source.isDifferencing() ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
@@ -80,7 +81,7 @@ export class BaseVhd {
    * @returns {AsyncGenerator<Buffer>}
    */
   async *vhdblockGenerator() {
-    for await (const { data } of this.#source.diskBlocks()) {
+    for await (const { data } of await this.#source.diskBlocks()) {
       yield Buffer.concat([FULL_BLOCK_BITMAP, data])
     }
   }

@@ -14,7 +14,7 @@ export async function consume(disk: Disk, { blockDelay = 20, concurrency = 8 } =
     nbBlocks = 0
 
   await asyncEach(
-    disk.diskBlocks(),
+    await disk.diskBlocks(),
     async (block: DiskBlock) => {
       consumed += block.data.length
       nbBlocks++

@@ -50,7 +50,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       vhd.footer = unpackFooter(this.computeVhdFooter())
       vhd.header = unpackHeader(this.computeVhdHeader())
       await asyncEach(
-        this.source.diskBlocks(),
+        await this.source.diskBlocks(),
         async ({ index, data }) => {
           await vhd.writeEntireBlock({ id: index, buffer: Buffer.concat([FULL_BLOCK_BITMAP, data]) })
         },

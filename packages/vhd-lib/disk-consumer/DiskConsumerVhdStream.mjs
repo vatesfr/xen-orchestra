@@ -13,11 +13,11 @@ export class DiskConsumerVhdStream extends BaseVhd {
   /**
    * @returns {VhdStream}
    */
-  toStream() {
+  async toStream() {
     const footer = this.computeVhdFooter()
     const header = this.computeVhdHeader()
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
-    const blocks = this.source.diskBlocks()
+    const blocks = await this.source.diskBlocks()
     const FULL_BLOCK_BITMAP = Buffer.alloc(SECTOR_SIZE, 255)
 
     async function* generator() {

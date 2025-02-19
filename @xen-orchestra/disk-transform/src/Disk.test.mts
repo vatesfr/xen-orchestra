@@ -28,7 +28,7 @@ test('Disk class', async t => {
       disk.blocks[key] = true
     }
     const foundKeys = []
-    for await (const block of disk.diskBlocks()) {
+    for await (const block of await disk.diskBlocks()) {
       foundKeys.push(block.index)
       assert.strictEqual(block.data.length, blockSize)
     }

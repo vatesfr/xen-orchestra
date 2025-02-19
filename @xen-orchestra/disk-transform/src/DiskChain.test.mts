@@ -41,7 +41,7 @@ test('Disk class', async t => {
     }
 
     const foundKeys = []
-    for await (const block of chain.diskBlocks()) {
+    for await (const block of await chain.diskBlocks()) {
       foundKeys.push(block.index)
       assert.strictEqual(block.data.length, blockSize)
       if (block.index < nbDisks) {

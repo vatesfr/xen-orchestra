@@ -1,3 +1,5 @@
+import { Synchronized } from '@vates/generator-toolbox'
+
 export type DiskBlockData = Buffer
 export type DiskBlock = {
   index: number // the index of the block. Offset in raw disk is index * blockSize
@@ -9,6 +11,7 @@ export type BytesLength = number
 export abstract class Disk {
   generatedDiskBlocks = 0
   yieldedDiskBlocks = 0
+  #synchronized:Synchronized<DiskBlock, any, any> | undefined
   #parent?: Disk
   get parent(): Disk | undefined {
     return this.#parent
@@ -36,19 +39,28 @@ export abstract class Disk {
   abstract getBlockIndexes(): Array<number>
   abstract hasBlock(index: number): boolean
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
-  async *diskBlocks(): AsyncGenerator<DiskBlock> {
-    let generator: AsyncGenerator<DiskBlock>
-    try {
-      generator = await this.buildDiskBlockGenerator()
-      for await (const block of generator) {
-        this.generatedDiskBlocks++
-        yield block
-        this.yieldedDiskBlocks++
-      }
-    } finally {
-      await this.close()
+  async diskBlocks(uid?:string): Promise<AsyncGenerator<DiskBlock>>{
+    if(this.#synchronized === undefined){  
+      try{
+
+        const blockGenerator = await this.buildDiskBlockGenerator()   
+        const self = this   
+        async function *trackedGenerator():AsyncGenerator<DiskBlock>{
+          for await (const block of blockGenerator){
+            self.generatedDiskBlocks ++
+            yield block
+            self.yieldedDiskBlocks ++
+  
+          }
+        } 
+        this.#synchronized = new Synchronized(trackedGenerator())
+      }finally{
+        await this.close()
+      }  
     }
-  }
+    return this.#synchronized.fork(uid ?? "unanamed generator fork")
+    
+  } 
 
   check() {
     // @todo move here the checks done in cleanVm if possible
