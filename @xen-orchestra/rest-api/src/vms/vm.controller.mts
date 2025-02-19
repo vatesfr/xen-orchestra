@@ -8,7 +8,7 @@ import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 import { partialVms, vm, vmIds } from '../open-api/examples/vm.example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
-import { vmStatsExample } from '../open-api/examples/vm.examples.mjs'
+import { vmStatsExample } from '../open-api/examples/vm.example.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
