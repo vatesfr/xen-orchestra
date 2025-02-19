@@ -305,8 +305,6 @@ export const Vdi = decorate([
       return unknowItem(id, 'VDI')
     }
 
-    console.log({vdi})
-
     return (
       <span>
         <Icon icon='disk' /> {vdi.name_label}
