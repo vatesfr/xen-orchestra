@@ -165,19 +165,30 @@ class Vdi {
    * @param {OpaqueRef} vdiRef
    */
   async disableCbtOnChain(vdiRef) {
-    const smConfig = await this.getField('VDI', vdiRef, 'sm-config')
+    const smConfig = await this.getField('VDI', vdiRef, 'sm_config')
     if (smConfig['vhd-parent']) {
-      await this.VDI_disableCbtOnChain(smConfig['vhd-parent'])
+      const parentRef = await this.call('VDI.get_by_uuid', smConfig['vhd-parent'])
+      await this.VDI_disableCbtOnChain(parentRef)
     }
     const snapshotRefs = await this.getField('VDI', vdiRef, 'snapshots')
     for (const snapshotRef of snapshotRefs) {
       const type = await this.getField('VDI', snapshotRef, 'type')
       if (type === 'cbt_metadata') {
-        await this.VDI_destroy(snapshotRef)
+        try {
+          await this.VDI_destroy(snapshotRef)
+        } catch (err) {
+          warn('couldn t destroy snapshot', { err, vdiRef, snapshotRef })
+        }
       }
-      await this.callAsync('VDI.disable_cbt', snapshotRef)
+      /**
+       * xapi can't disable CBT on a snapshot OPERATION_NOT_ALLOWED(VDI is a snapshot )
+       */
     }
-    await this.callAsync('VDI.disable_cbt', vdiRef)
+    try {
+      await this.callAsync('VDI.disable_cbt', vdiRef)
+    } catch (err) {
+      warn('couldn t disable cbt on disk', { err, vdiRef })
+    }
   }
 
   async disconnectFromControlDomain(vdiRef) {
