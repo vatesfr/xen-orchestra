@@ -224,7 +224,6 @@ export const Sr = decorate([
     )
 
     const getVdis = createGetObjectsOfType('VDI');
-    console.log({getVdis})
     const getSrVdis = createSelector(
       getSr,
       getVdis,
