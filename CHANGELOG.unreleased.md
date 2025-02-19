@@ -14,6 +14,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] VM stats available at `/rest/v0/vms/<vm-id>/stats`
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - xo-server patch
 
