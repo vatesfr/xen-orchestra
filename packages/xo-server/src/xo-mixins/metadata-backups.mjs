@@ -5,7 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
-import { Task } from '@xen-orchestra/backups/Task.mjs'
+import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { handleBackupLog } from '../_handleBackupLog.mjs'
@@ -124,8 +124,8 @@ export default class metadataBackup {
         const localTaskIds = { __proto__: null }
         return Task.run(
           {
-            name: 'backup run',
-            onLog: log =>
+            properties: { name: 'backup run' },
+            onProgress: log =>
               handleBackupLog(log, {
                 localTaskIds,
                 logger,
@@ -386,9 +386,11 @@ export default class metadataBackup {
         const handler = await app.getRemoteHandler(remoteId)
         await Task.run(
           {
-            name: 'metadataRestore',
-            data: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
-            onLog,
+            properties: {
+              name: 'metadataRestore',
+              metadata: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
+            },
+            onProgress: onLog,
           },
           async () =>
             new RestoreMetadataBackup({
