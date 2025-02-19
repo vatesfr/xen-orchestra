@@ -66,7 +66,8 @@ class Task {
   }
 
   // These two properties should not be used outside the class
-  // For compatibility reasons they are kept public, to always allow a task to read its parent properties
+  //
+  // To ensure compatibility between multiple versions of this lib, they are kept public for now
   _abortController = new AbortController()
   _onProgress
 
