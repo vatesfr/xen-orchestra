@@ -1,12 +1,12 @@
 <template>
-  <UiPanel class="pif-panel">
+  <UiPanel>
     <template v-if="pif" #header>
       <UiButton
         v-tooltip="$t('coming-soon')"
         disabled
         size="medium"
         variant="tertiary"
-        accent="info"
+        accent="brand"
         :left-icon="faEdit"
       >
         {{ $t('edit') }}
@@ -22,321 +22,309 @@
         {{ $t('delete') }}
       </UiButton>
     </template>
-    <template #default>
-      <VtsNoSelectionHero v-if="!pif" type="panel" />
-      <template v-else>
-        <!-- PIF -->
-        <UiCard class="card">
-          <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
-          <div class="content">
-            <!-- UUID -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('uuid') }}
-              </template>
-              <template #value>
-                {{ pif.uuid }}
-              </template>
-              <template #addons>
-                <VtsIcon
-                  v-if="pif.management"
-                  v-tooltip="t('management')"
-                  accent="warning"
-                  :icon="faCircle"
-                  :overlay-icon="faStar"
-                />
-                <UiButtonIcon
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(pif.uuid)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- NETWORK -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('network') }}
-              </template>
-              <template #value>
-                <div class="network">
-                  <!-- TODO Remove the span when the link works and the icon is fixed -->
-                  <!--
-                  <UiComplexIcon size="medium">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
-                    <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                  </UiComplexIcon>
-                  <a href="">{{ networkNameLabel }}</a>
-                  -->
-                  <span v-tooltip class="text-ellipsis">{{ networkNameLabel }}</span>
+    <template v-if="pif" #default>
+      <!-- PIF -->
+      <UiCard class="card">
+        <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
+        <div class="content">
+          <!-- UUID -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('uuid') }}
+            </template>
+            <template #value>
+              {{ pif.uuid }}
+            </template>
+            <template #addons>
+              <VtsIcon
+                v-if="pif.management"
+                v-tooltip="t('management')"
+                accent="warning"
+                :icon="faCircle"
+                :overlay-icon="faStar"
+              />
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(pif.uuid)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- NETWORK -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('network') }}
+            </template>
+            <template #value>
+              <div class="network">
+                <!-- TODO Remove the span when the link works and the icon is fixed -->
+                <!--
+                <UiComplexIcon size="medium">
+                  <VtsIcon :icon="faNetworkWired" accent="current" />
+                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+                </UiComplexIcon>
+                <a href="">{{ networkNameLabel }}</a>
+                -->
+                <span v-tooltip class="text-ellipsis">{{ networkNameLabel }}</span>
+              </div>
+            </template>
+            <template v-if="networkNameLabel" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(networkNameLabel)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- DEVICE -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('device') }}
+            </template>
+            <template #value>
+              {{ pif.device }}
+            </template>
+            <template v-if="pif.device" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(pif.device)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- PIF STATUS -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('pif-status') }}
+            </template>
+            <template #value>
+              <VtsConnectionStatus :status="pifStatus" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- PHYSICAL INTERFACE STATUS -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('physical-interface-status') }}
+            </template>
+            <template #value>
+              <VtsConnectionStatus :status="physicalInterfaceStatus" />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- VLAN -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('vlan') }}
+            </template>
+            <template #value>
+              {{ getVlan }}
+            </template>
+            <template v-if="getVlan !== '-'" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(String(getVlan))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- TAGS -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('tags') }}
+            </template>
+            <template #value>
+              <div v-if="networkTags">{{ networkTags }}</div>
+              <div v-else class="tags">
+                <UiTag v-for="tag in networkTags" :key="tag" accent="info" variant="secondary">
+                  {{ tag }}
+                </UiTag>
+              </div>
+            </template>
+          </VtsCardRowKeyValue>
+        </div>
+      </UiCard>
+      <!-- NETWORK INFORMATION -->
+      <UiCard class="card">
+        <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
+        <div class="content">
+          <!-- IP ADDRESSES -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('ip-addresses') }}
+            </template>
+            <template v-if="addressesIp.length > 0" #value>
+              <div v-for="(ip, index) in addressesIp" :key="ip" class="ip-addresses">
+                <span class="text-ellipsis">{{ ip }}</span>
+                <div>
+                  <UiButtonIcon
+                    v-if="ip !== '-'"
+                    v-tooltip="copied && $t('core.copied')"
+                    :icon="faCopy"
+                    size="medium"
+                    accent="brand"
+                    @click="copy(ip)"
+                  />
+                  <UiButtonIcon
+                    v-if="index === 0 && addressesIp.length > 1"
+                    :icon="faEllipsis"
+                    size="medium"
+                    accent="brand"
+                  />
                 </div>
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="networkNameLabel"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(networkNameLabel)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- DEVICE -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('device') }}
-              </template>
-              <template #value>
-                {{ pif.device }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="pif.device"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(pif.device)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- PIF STATUS -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('pif-status') }}
-              </template>
-              <template #value>
-                <VtsConnectionStatus :status="pifStatus" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- PHYSICAL INTERFACE STATUS -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('physical-interface-status') }}
-              </template>
-              <template #value>
-                <VtsConnectionStatus :status="physicalInterfaceStatus" />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- VLAN -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('vlan') }}
-              </template>
-              <template #value>
-                {{ getVlan }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="getVlan !== '-'"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(String(getVlan))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- TAGS -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('tags') }}
-              </template>
-              <template #value>
-                <div v-if="networkTags">{{ networkTags }}</div>
-                <div v-else class="tags">
-                  <UiTag v-for="tag in networkTags" :key="tag" accent="info" variant="secondary">
-                    {{ tag }}
-                  </UiTag>
-                </div>
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-        </UiCard>
-        <!-- NETWORK INFORMATION -->
-        <UiCard class="card">
-          <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
-          <div class="content">
-            <!-- IP ADDRESSES -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('ip-addresses') }}
-              </template>
-              <template v-if="addressesIp.length > 0" #value>
-                <div v-for="(ip, index) in addressesIp" :key="ip" class="ip-addresses">
-                  <span class="text-ellipsis">{{ ip }}</span>
-                  <div>
-                    <UiButtonIcon
-                      v-if="ip !== '-'"
-                      v-tooltip="copied && $t('core.copied')"
-                      :icon="faCopy"
-                      size="medium"
-                      accent="info"
-                      @click="copy(ip)"
-                    />
-                    <UiButtonIcon
-                      v-if="index === 0 && addressesIp.length > 1"
-                      :icon="faEllipsis"
-                      size="medium"
-                      accent="info"
-                    />
-                  </div>
-                </div>
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- MAC ADDRESSES -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('mac-address') }}
-              </template>
-              <template #value>
-                {{ pif.MAC }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="pif.MAC"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(pif.MAC)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- NETMASK -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('netmask') }}
-              </template>
-              <template #value>
-                {{ getNetmask }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="getNetmask !== '-'"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(String(getNetmask))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- DNS -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('dns') }}
-              </template>
-              <template #value>
-                {{ getDNS }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="getDNS !== '-'"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(String(getDNS))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- GATEWAY -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('gateway') }}
-              </template>
-              <template #value>
-                {{ getGateway }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="getGateway !== '-'"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(String(getGateway))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- IP CONFIGURATION MODE -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('ip-mode') }}
-              </template>
-              <template #value>
-                {{ getIpConfigurationMode }}
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-        </UiCard>
-        <!-- PROPERTIES -->
-        <UiCard class="card">
-          <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
-          <div class="content">
-            <!-- MTU -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('mtu') }}
-              </template>
-              <template #value>
-                {{ pif.MTU }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="pif.MTU"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(String(pif.MTU))"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- SPEED -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('speed') }}
-              </template>
-              <template #value>
-                {{ byteFormatter(getSpeed) }}
-              </template>
-            </VtsCardRowKeyValue>
-            <!-- NETWORK BLOCK DEVICE -->
-            <VtsCardRowKeyValue>
-              <template #key>
-                {{ $t('network-block-device') }}
-              </template>
-              <template #value>
-                {{ networkPurpose }}
-              </template>
-              <template #addons>
-                <UiButtonIcon
-                  v-if="networkPurpose"
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="info"
-                  @click="copy(networkPurpose)"
-                />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-        </UiCard>
-      </template>
+              </div>
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- MAC ADDRESSES -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('mac-address') }}
+            </template>
+            <template #value>
+              {{ pif.MAC }}
+            </template>
+            <template v-if="pif.MAC" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(pif.MAC)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- NETMASK -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('netmask') }}
+            </template>
+            <template #value>
+              {{ getNetmask }}
+            </template>
+            <template v-if="getNetmask !== '-'" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(String(getNetmask))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- DNS -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('dns') }}
+            </template>
+            <template #value>
+              {{ getDNS }}
+            </template>
+            <template v-if="getDNS !== '-'" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(String(getDNS))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- GATEWAY -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('gateway') }}
+            </template>
+            <template #value>
+              {{ getGateway }}
+            </template>
+            <template v-if="getGateway !== '-'" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(String(getGateway))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- IP CONFIGURATION MODE -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('ip-mode') }}
+            </template>
+            <template #value>
+              {{ getIpConfigurationMode }}
+            </template>
+          </VtsCardRowKeyValue>
+        </div>
+      </UiCard>
+      <!-- PROPERTIES -->
+      <UiCard class="card">
+        <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
+        <div class="content">
+          <!-- MTU -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('mtu') }}
+            </template>
+            <template #value>
+              {{ pif.MTU }}
+            </template>
+            <template v-if="pif.MTU" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(String(pif.MTU))"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- SPEED -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('speed') }}
+            </template>
+            <template #value>
+              {{ byteFormatter(getSpeed) }}
+            </template>
+          </VtsCardRowKeyValue>
+          <!-- NETWORK BLOCK DEVICE -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('network-block-device') }}
+            </template>
+            <template #value>
+              {{ networkPurpose }}
+            </template>
+            <template v-if="networkPurpose" #addons>
+              <UiButtonIcon
+                v-tooltip="copied && $t('core.copied')"
+                :icon="faCopy"
+                size="medium"
+                accent="brand"
+                @click="copy(networkPurpose)"
+              />
+            </template>
+          </VtsCardRowKeyValue>
+        </div>
+      </UiCard>
+    </template>
+    <template v-else #default>
+      <VtsNoSelectionHero type="panel" />
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -347,78 +335,50 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCopy, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
-const { records } = usePifStore().subscribe()
-const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefMetrics, getPifCarrier } = usePifMetricsStore().subscribe()
+const { pif, network } = defineProps<{
+  pif: XenApiPif | undefined
+  network: XenApiNetwork | undefined
+}>()
+
+const { getByOpaqueRef, getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
-const pifId = useRouteQuery('id')
-const route = useRoute()
-
-const hostId = route.params.uuid as XenApiHost['uuid']
-
-const pifs = computed(() => {
-  return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
-
-    return host?.uuid === hostId
-  })
-})
-
-const pif = computed(() => pifs.value.find(pif => pif.uuid === pifId.value))
-
-const network = computed(() => (pif.value ? getOpaqueRefNetwork(pif.value.network) : undefined))
-
-//  TODO FOR TEST => TO REMOVE
-const ipv6Addresses: string[] = [
-  '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-  '2001:0db8:85a3:0000:0000:8a2e:0370:7335',
-  'fe80::1ff:fe23:4567:890a',
-  'fd00:0:0:0:0:0:0:1',
-  '2001:4860:4860::8888',
-  '',
-]
 
 const addressesIp = computed(() => {
-  if (!pif.value) return ['-']
-  const ips = [pif.value.IP, ...ipv6Addresses].filter(ip => ip)
+  if (!pif) return ['-']
+  const ips = [pif.IP, ...pif.IPv6].filter(ip => ip)
   return ips.length > 0 ? ips : ['-']
 })
 
-const networkNameLabel = computed(() => network.value?.name_label || '-')
+const networkNameLabel = computed(() => network?.name_label || '-')
 
-const networkPurpose = computed(() => (network.value?.purpose?.[0] ? t('on') : t('off')))
+const networkPurpose = computed(() => (network?.purpose?.[0] ? t('on') : t('off')))
 
-const networkTags = computed(() => (network.value?.tags?.length ? network.value.tags : '-'))
+const networkTags = computed(() => (network?.tags?.length ? network.tags : '-'))
 
-const pifStatus = computed(() => (pif.value?.currently_attached ? 'connected' : 'disconnected'))
+const pifStatus = computed(() => (pif?.currently_attached ? 'connected' : 'disconnected'))
 
-const physicalInterfaceStatus = computed(() => {
-  return pif.value && getPifCarrier(pif.value) ? 'connected' : 'physically-disconnected'
-})
+const physicalInterfaceStatus = computed(() => (pif && getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
 
-const getSpeed = computed(() => (pif.value ? getOpaqueRefMetrics(pif.value.metrics)?.speed || 0 : 0))
+const getSpeed = computed(() => (pif ? getByOpaqueRef(pif.metrics)?.speed || 0 : 0))
 
-const getVlan = computed(() => (pif.value?.VLAN === -1 ? '-' : pif.value?.VLAN))
+const getVlan = computed(() => (pif?.VLAN === -1 ? '-' : pif?.VLAN))
 
-const getNetmask = computed(() => (pif.value?.netmask === '' ? '-' : pif.value?.netmask))
+const getNetmask = computed(() => (pif?.netmask === '' ? '-' : pif?.netmask))
 
-const getDNS = computed(() => (pif.value?.DNS === '' ? '-' : pif.value?.DNS))
+const getDNS = computed(() => (pif?.DNS === '' ? '-' : pif?.DNS))
 
-const getGateway = computed(() => (pif.value?.gateway === '' ? '-' : pif.value?.gateway))
+const getGateway = computed(() => (pif?.gateway === '' ? '-' : pif?.gateway))
 
 const getIpConfigurationMode = computed(() => {
-  const ipMode = pif.value?.ip_configuration_mode
+  const ipMode = pif?.ip_configuration_mode
 
   if (ipMode === 'Static') return t('static')
   if (ipMode === 'DHCP') return t('dhcp')
@@ -439,11 +399,6 @@ const { copy, copied } = useClipboard()
 </script>
 
 <style scoped lang="postcss">
-.pif-panel {
-  width: 40rem;
-  border-top: none;
-}
-
 .card {
   gap: 1.6rem;
 
