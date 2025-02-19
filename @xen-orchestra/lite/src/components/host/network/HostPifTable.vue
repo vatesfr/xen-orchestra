@@ -129,10 +129,8 @@
 
 <script lang="ts" setup>
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -164,48 +162,36 @@ import {
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
-const { records, isReady, hasError } = usePifStore().subscribe()
-const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
-const { getByOpaqueRef: getNetworkOpaqueRef } = useNetworkStore().subscribe()
-const { getPifCarrier } = usePifMetricsStore().subscribe()
+const { pifs } = defineProps<{
+  pifs: XenApiPif[]
+}>()
+
+const { isReady, hasError } = usePifStore().subscribe()
+const { getByOpaqueRef } = useNetworkStore().subscribe()
+const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
 const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
-
-const route = useRoute()
-
-const hostId = route.params.uuid as XenApiHost['uuid']
-
-const pifs = computed(() => {
-  return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
-
-    return host?.uuid === hostId
-  })
-})
 
 // TODO change to match with network name
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return pifs.value
+    return pifs
   }
 
-  return pifs.value.filter(pif =>
-    Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
+  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const pifsUuids = computed(() => pifs.value.map(pif => pif.uuid))
+const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(pifsUuids)
 
 const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
-  const network = getNetworkOpaqueRef(networkRef)
+  const network = getByOpaqueRef(networkRef)
 
   return network?.name_label ? network.name_label : ''
 }
@@ -213,21 +199,6 @@ const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
 const getIPv6Formatted = (pif: XenApiPif) => pif.IPv6.filter(ip => ip.trim() !== '').length
-
-const getPifStatus = (pif: XenApiPif) => {
-  const carrier = getPifCarrier(pif)
-  const isCurrentlyAttached = pif.currently_attached
-
-  if (!isCurrentlyAttached) {
-    return 'disconnected'
-  }
-
-  if (!carrier) {
-    return 'disconnected-from-physical-device'
-  }
-
-  return 'connected'
-}
 
 const getIpConfigurationMode = (ipMode: string) => {
   if (ipMode === 'Static') return t('static')
