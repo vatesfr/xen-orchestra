@@ -49,8 +49,10 @@ const {
   accent,
   id = useId(),
   name,
+  modelValue,
 } = defineProps<{
   name?: string
+  modelValue: string | number
   accent: InputAccent
   label?: string
   info?: string
@@ -66,24 +68,25 @@ const {
 
 const emit = defineEmits<{ 'update:modelValue': (value: string | number) => void }>()
 
-const modelValue = defineModel<string | number>({ required: true })
-
 const slots = defineSlots<{
   default?(): any
   info?(): any
 }>()
 
-const { value, errorMessage } = useField(() => name ?? '', undefined)
+const { value, errorMessage } = useField(() => name ?? '', undefined, {
+  initialValue: modelValue,
+  syncVModel: true,
+})
 
 const attrs = useAttrs()
 
 const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 
 const inputValue = computed({
-  get: () => modelValue.value,
-  set: (val: string | number) => {
-    emit('update:modelValue', val)
+  get: () => modelValue,
+  set: val => {
     value.value = val
+    emit('update:modelValue', val)
   },
 })
 </script>
