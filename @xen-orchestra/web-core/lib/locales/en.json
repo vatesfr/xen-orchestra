@@ -66,6 +66,7 @@
   "gateway": "Gateway",
   "host": "Host",
   "host-internal-networks": "Host internal networks",
+  "host-unknown": "Host unknown",
   "hosts": "Hosts",
   "id": "Id",
   "ip-addresses": "IP addresses",

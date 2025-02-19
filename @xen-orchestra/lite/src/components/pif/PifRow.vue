@@ -1,10 +1,15 @@
 <template>
   <tr class="pif-row" @click="redirect()">
     <td v-tooltip class="typo p3-regular text-ellipsis host">
-      <UiObjectIcon :state="hostPowerState" type="host" size="small" />
-      <span v-tooltip class="typo p3-regular text-ellipsis host-name">
-        {{ host?.name_label }}
-      </span>
+      <div v-if="host">
+        <UiObjectIcon :state="hostPowerState" type="host" size="small" />
+        <span v-tooltip class="typo p3-regular text-ellipsis host-name">
+          {{ host.name_label }}
+        </span>
+      </div>
+      <div v-else>
+        <span>{{ $t('host-unknown') }}</span>
+      </div>
     </td>
     <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
     <td v-tooltip class="typo p3-regular status">
@@ -65,7 +70,7 @@ const redirect = () => {
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-info-background-hover);
+    background-color: var(--color-brand-background-hover);
   }
 
   td {
@@ -78,7 +83,7 @@ const redirect = () => {
 
     .host-name {
       margin-left: 0.4rem;
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
     }
   }
 

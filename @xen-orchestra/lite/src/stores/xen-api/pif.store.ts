@@ -40,10 +40,6 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     const carrier = pifMetricsContext.getPifCarrier(pif)
     const isCurrentlyAttached = pif.currently_attached
 
-    if (carrier === undefined) {
-      return undefined
-    }
-
     if (!isCurrentlyAttached) {
       return 'disconnected'
     }
