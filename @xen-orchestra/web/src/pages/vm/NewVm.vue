@@ -141,6 +141,7 @@
           <UiInput v-model="newVmState.vCpu" name="vCpu" accent="info" type="number" href="''">
             {{ $t('new-vm.vcpu') }}
           </UiInput>
+          {{ newVmState.vCpu }}
           <UiInput v-model="newVmState.ram" name="ram" accent="info" type="number" href="''">
             {{ $t('new-vm.ram') }}
           </UiInput>
@@ -321,11 +322,10 @@
         <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToHome">{{ $t('cancel') }}</UiButton>
         <UiButton
           type="submit"
-          :disabled="!newVmState.new_vm_template"
+          :disabled="!newVmState.new_vm_template || !meta.valid"
           variant="primary"
           accent="brand"
           size="medium"
-          @click="createNewVM"
         >
           {{ $t('new-vm.create') }}
         </UiButton>
@@ -335,7 +335,7 @@
 </template>
 
 <script setup lang="ts">
-import { createVM } from '@/jobs/vm-create.jobs'
+// import { createVM } from '@/jobs/vm-create.jobs'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -347,7 +347,7 @@ import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
-import { formSchema } from '@/validation/vm-create.schema'
+import { createVMSchema } from '@/validation/vm-create.schema'
 import type { Branded } from '@core/types/utility.type'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -414,6 +414,7 @@ const newVmState = reactive({
   vCpu: 0,
   ram: 0,
   maxRam: 0,
+  maxVcpu: 0,
   topology: '',
   bios: false,
   sshKeys: [] as string[],
@@ -425,14 +426,10 @@ const newVmState = reactive({
   pool: null as XoPool | null,
 })
 
-const { handleSubmit } = useForm({
-  validationSchema: formSchema(newVmState.maxRam),
-})
+const formSchema = computed(() => createVMSchema(newVmState.maxRam, newVmState.maxVcpu))
 
-const onSubmit = handleSubmit(values => {
-  return values
-  // Handle form submission
-  // console.log('Form values:', values)
+const { handleSubmit, meta } = useForm({
+  validationSchema: formSchema,
 })
 
 const getHosts = computed(() => {
@@ -610,6 +607,7 @@ const onTemplateChange = () => {
     newVmState.tags = newVmState.new_vm_template.tags
 
     newVmState.vCpu = newVmState.new_vm_template.CPUs.number
+    newVmState.maxVcpu = newVmState.new_vm_template.CPUs.number
     newVmState.ram = byteFormatter(newVmState.new_vm_template.memory.dynamic[1])
     newVmState.maxRam = byteFormatter(newVmState.new_vm_template.memory.size)
 
@@ -695,15 +693,21 @@ const vmData = computed(() => ({
 }))
 
 const createNewVM = async () => {
+  return vmData
   // console.log('vmData', vmData.value)
   // console.log('data', data.value)
-  try {
-    await createVM(vmData.value, newVmState.pool!.id)
-    // console.log('Created VM:', newVM)
-  } catch (error) {
-    console.error('Error creating VM:', error)
-  }
+  // try {
+  // await createVM(vmData.value, newVmState.pool!.id)
+  // console.log('Created VM:', newVM)
+  // } catch (error) {
+  //   console.error('Error creating VM:', error)
+  // }
 }
+const onSubmit = handleSubmit(values => {
+  // console.log('values', values)
+  createNewVM()
+  return values
+})
 
 watchEffect(() => {
   if (pools.value.length === 1 && !newVmState.pool) {
