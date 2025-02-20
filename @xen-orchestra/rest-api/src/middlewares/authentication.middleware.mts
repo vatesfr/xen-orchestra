@@ -16,15 +16,7 @@ function getCredentials(
 ): { token?: string; username?: string; password?: string } | undefined {
   const token = req.cookies.token ?? req.cookies.authenticationToken
 
-  if (securityName === 'token') {
-    return token !== undefined ? { token } : undefined
-  }
-
-  if (securityName === 'basic') {
-    throw notImplemented()
-  }
-
-  if (securityName === '*') {
+  if (securityName === '*' || securityName === 'token') {
     if (token !== undefined) {
       return { token }
     }
