@@ -1,25 +1,31 @@
 <template>
-  <tr @click="redirect()">
-    <td v-if="host" class="typo p3-regular text-ellipsis host">
-      <UiObjectIcon :state="hostPowerState" type="host" size="small" />
-      <span v-tooltip class="typo p3-regular text-ellipsis host-name">
-        {{ host.name_label }}
-      </span>
+  <tr class="pif-row" :class="{ disabled: !pifHost }" @click="pifHost?.redirect()">
+    <td v-tooltip class="typo p3-regular text-ellipsis host-container">
+      <div v-if="pifHost" class="host">
+        <UiObjectIcon :state="pifHost?.powerState" type="host" size="small" />
+        <span v-tooltip class="typo p3-regular text-ellipsis host-name">
+          {{ pifHost.label }}
+        </span>
+      </div>
+      <div v-else>
+        <span>{{ $t('host-unknown') }}</span>
+      </div>
     </td>
-    <td class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
-    <td class="typo p3-regular status">
-      <VtsConnectionStatus v-if="status !== undefined" :status />
+    <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
+    <td v-tooltip class="typo p3-regular status">
+      <VtsConnectionStatus :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
+      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" />
     </td>
   </tr>
 </template>
 
 <script setup lang="ts">
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoPif } from '@/types/xo/pif.type'
-import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -31,59 +37,71 @@ const { pif } = defineProps<{
   pif: XoPif
 }>()
 const { records: hosts } = useHostStore().subscribe()
+const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
 
-const status = computed<ConnectionStatus | undefined>(() => {
-  if (pif.carrier === undefined) {
-    return undefined
-  }
+const status = computed(() => getPifStatus(pif))
 
-  if (pif.carrier && pif.attached) {
-    return 'connected'
-  }
-  if (!pif.carrier && pif.attached) {
-    return 'disconnected-from-physical-device'
-  }
-  return 'disconnected'
-})
-
-const host = computed(() => hosts.value.find(host => host.id === pif.$host))
-
-const hostPowerState = computed(() => {
-  return host.value?.power_state ? 'running' : 'halted'
-})
-
-const redirect = () => {
-  if (host.value === undefined) {
+const pifHost = computed(() => {
+  const host = hosts.value.find(host => host.id === pif.$host)
+  if (!host) {
     return
   }
-  router.push({
-    name: '/host/[id]/networks',
-    params: { id: host.value.id },
-    query: { id: pif.id },
-  })
-}
+  return {
+    label: host.name_label,
+    powerState: host.power_state ? 'running' : 'halted',
+    redirect() {
+      router.push({
+        name: '/host/[id]/networks',
+        params: { id: host.id },
+        query: { id: pif.id },
+      })
+    },
+  } as const
+})
 </script>
 
 <style lang="postcss" scoped>
-td {
-  &.host {
-    width: 14rem;
-    max-width: 14rem;
+.pif-row {
+  cursor: pointer;
 
-    .host-name {
-      margin-left: 0.4rem;
-      color: var(--color-info-txt-base);
+  &.disabled {
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
-  &.device {
+  &:hover {
+    background-color: var(--color-brand-background-hover);
+  }
+
+  td {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .host-container {
+    width: 14rem;
+    max-width: 14rem;
+
+    .host {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .host-name {
+      color: var(--color-brand-txt-base);
+    }
+  }
+  .device {
     width: 8rem;
     max-width: 8rem;
   }
 
-  &.status {
+  .status {
     width: 12rem;
     max-width: 12rem;
   }

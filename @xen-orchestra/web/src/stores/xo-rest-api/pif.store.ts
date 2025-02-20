@@ -32,19 +32,25 @@ export const usePifStore = defineStore('pif', () => {
     return hostMasterPifsByNetworkMap
   })
 
-  const pifsByNetwork = computed(() => {
-    const pifsByNetworkMap = new Map<XoNetwork['id'], XoPif[]>()
+  const getPifsByNetworkRef = (networkRef: XoNetwork['id']) => {
+    return baseContext.records.value.filter(pif => pif.$network === networkRef)
+  }
 
-    baseContext.records.value.forEach(pif => {
-      const networkId = pif.$network
-      if (!pifsByNetworkMap.has(networkId)) {
-        pifsByNetworkMap.set(networkId, [])
-      }
-      pifsByNetworkMap.get(networkId)?.push(pif)
-    })
+  const getPifStatus = (pif: XoPif) => {
+    if (pif.carrier === undefined) {
+      return 'disconnected-from-physical-device'
+    }
 
-    return pifsByNetworkMap
-  })
+    if (!pif.attached) {
+      return 'disconnected'
+    }
+
+    if (!pif.carrier) {
+      return 'disconnected-from-physical-device'
+    }
+
+    return 'connected'
+  }
 
   const pifsByHost = computed(() => {
     const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
@@ -63,9 +69,10 @@ export const usePifStore = defineStore('pif', () => {
 
   const context = {
     ...baseContext,
-    pifsByNetwork,
     hostMasterPifsByNetwork,
     pifsByHost,
+    getPifsByNetworkRef,
+    getPifStatus,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })

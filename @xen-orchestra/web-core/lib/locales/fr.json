@@ -176,6 +176,7 @@
   "host-unknown": "Hôte inconnu",
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
+  "host-unknown": "Hôte inconnu",
   "hosts": "Hôtes",
   "hosts-status": "Statut des hôtes",
   "hosts-status.halted": "Arrêtés",
