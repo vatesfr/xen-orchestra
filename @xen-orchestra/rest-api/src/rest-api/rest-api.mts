@@ -16,7 +16,7 @@ export class RestApi {
   }
 
   getObjectsByType<T extends keyof XapiXoRecordByType>(type: T, opts: Parameters<XoApp['getObjectsByType']>[1]) {
-    return this.getObjectsByType(type, opts)
+    return this.#xoApp.getObjectsByType(type, opts)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {

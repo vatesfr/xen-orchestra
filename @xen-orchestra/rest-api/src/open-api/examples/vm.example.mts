@@ -7,11 +7,13 @@ export const partialVms = [
   {
     name_label: 'foo',
     power_state: 'Running',
+    uuid: 'f07ab729-c0e8-721c-45ec-f11276377030',
     href: '/rest/v0/vms/f07ab729-c0e8-721c-45ec-f11276377030',
   },
   {
     name_label: 'foo_bar',
     power_state: 'Halted',
+    uuid: 'd5d1c4a3-4c5e-ca7b-6be8-33c824f87571',
     href: '/rest/v0/vms/d5d1c4a3-4c5e-ca7b-6be8-33c824f87571',
   },
 ]

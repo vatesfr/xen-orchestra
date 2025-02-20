@@ -8,6 +8,10 @@ type BaseXoVm = {
 
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
+  /**
+   * @deprecated use $pool instead
+   */
+  $poolId: XoPool['id']
 
   _xapiRef: string
 
