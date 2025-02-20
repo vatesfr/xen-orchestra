@@ -3,15 +3,13 @@ import pick from 'lodash/pick.js'
 import { Request } from 'express'
 
 import type { WithHref } from './helper.type.mjs'
-import { XapiXoRecordByType } from '../rest-api/rest-api.type.mjs'
+import { XapiXoRecord } from '@vates/types'
 
 const { join } = path.posix
 
-export function makeObjectMapper<T extends keyof XapiXoRecordByType>(req: Request, path = req.path) {
-  type XapiXoRecord = XapiXoRecordByType[T]
-
-  const makeUrl = ({ id }: XapiXoRecord) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
-  let objectMapper: (object: XapiXoRecord) => string | WithHref<Partial<XapiXoRecord>> | WithHref<XapiXoRecord>
+export function makeObjectMapper<T extends XapiXoRecord>(req: Request, path = req.path) {
+  const makeUrl = ({ id }: T) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
+  let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
 
   const { query, baseUrl } = req
   const { fields } = query
@@ -30,7 +28,7 @@ export function makeObjectMapper<T extends keyof XapiXoRecordByType>(req: Reques
     objectMapper = makeUrl
   }
 
-  return function (obj: XapiXoRecord) {
+  return function (obj: T) {
     return objectMapper(obj)
   }
 }

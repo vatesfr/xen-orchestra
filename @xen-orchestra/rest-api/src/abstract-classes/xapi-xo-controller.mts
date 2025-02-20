@@ -4,39 +4,33 @@ import { Request } from 'express'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
-import type { XapiXoBrandedRecordByType, XapiXoRecordByType } from '../rest-api/rest-api.type.mjs'
+import type { XapiXoRecord } from '@vates/types/xo'
 import type { WithHref } from '../helpers/helper.type.mjs'
 
-export abstract class XapiXoController<T extends keyof XapiXoRecordByType> extends Controller {
-  #type: T
+export abstract class XapiXoController<T extends XapiXoRecord> extends Controller {
+  #type: T['type']
   restApi: RestApi
 
-  constructor(type: T, restApi: RestApi) {
+  constructor(type: T['type'], restApi: RestApi) {
     super()
     this.#type = type
     this.restApi = restApi
   }
 
-  getObjects({ filter, limit }: { filter?: string; limit?: number } = {}): XapiXoBrandedRecordByType[T] {
+  getObjects({ filter, limit }: { filter?: string; limit?: number } = {}): Record<T['id'], T> {
     if (filter !== undefined) {
       filter = CM.parse(filter).createPredicate()
     }
     return this.restApi.getObjectsByType(this.#type, { filter, limit })
   }
 
-  getObject(id: XapiXoRecordByType[T]['id']): XapiXoRecordByType[T] {
+  getObject(id: T['id']): T {
     return this.restApi.getObject(id, this.#type)
   }
 
-  sendObjects(
-    objects: XapiXoRecordByType[T][],
-    req: Request
-  ): string[] | WithHref<XapiXoRecordByType[T]>[] | WithHref<Partial<XapiXoRecordByType[T]>>[] {
+  sendObjects(objects: T[], req: Request): string[] | WithHref<T>[] | WithHref<Partial<T>>[] {
     const mapper = makeObjectMapper(req)
-    const mappedObjects = objects.map(mapper) as
-      | string[]
-      | WithHref<XapiXoRecordByType[T]>[]
-      | WithHref<Partial<XapiXoRecordByType[T]>>[]
+    const mappedObjects = objects.map(mapper) as string[] | WithHref<T>[] | WithHref<Partial<T>>[]
 
     return mappedObjects
   }

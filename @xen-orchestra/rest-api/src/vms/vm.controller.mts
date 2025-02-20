@@ -15,7 +15,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 // the `provide` decorator is mandatory on class that injects/receives dependencies.
 // It automatically bind the class to the IOC container that handles dependency injection
 @provide(VmController)
-export class VmController extends XapiXoController<'VM'> {
+export class VmController extends XapiXoController<XoVm> {
   constructor(@inject(RestApi) restApi: RestApi) {
     super('VM', restApi)
   }
@@ -34,7 +34,7 @@ export class VmController extends XapiXoController<'VM'> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+  ): string[] | WithHref<Unbrand<XoVm>>[] | WithHref<Partial<Unbrand<XoVm>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

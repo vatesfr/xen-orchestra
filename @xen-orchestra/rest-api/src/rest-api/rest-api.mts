@@ -1,4 +1,6 @@
-import type { XapiXoRecordByType, XoApp } from './rest-api.type.mjs'
+import { XapiXoRecord } from '@vates/types'
+
+import type { XoApp } from './rest-api.type.mjs'
 
 export class RestApi {
   #xoApp: XoApp
@@ -11,11 +13,11 @@ export class RestApi {
     return this.#xoApp.authenticateUser(...args)
   }
 
-  getObject<T extends keyof XapiXoRecordByType>(id: XapiXoRecordByType[T]['id'], type: T) {
+  getObject<T extends XapiXoRecord>(id: T['id'], type: T['type']) {
     return this.#xoApp.getObject(id, type)
   }
 
-  getObjectsByType<T extends keyof XapiXoRecordByType>(type: T, opts: Parameters<XoApp['getObjectsByType']>[1]) {
+  getObjectsByType<T extends XapiXoRecord>(type: T['type'], opts: Parameters<XoApp['getObjectsByType']>[1]) {
     return this.#xoApp.getObjectsByType(type, opts)
   }
 
