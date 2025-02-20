@@ -41,11 +41,9 @@ After installing the package
 xo-fuse-vhd <remoteUrl> <vhdPathInRemote> <mountPoint>
 ```
 
-remoteUrl can be found by using cli in `@xen-orchestra/fs` , for example a local remote will have a url like `file:///path/to/remote/root`, or with command:
+The `remoteUrl` can be found using the following command from the XOA CLI, and then picking the right `url` property:
 
-```
-xo-server-db ls remote
-```
+`xo-server-db ls remote`
 
 ## Restore a file from a VHD using `fuse-vhd` CLI
 
@@ -54,38 +52,15 @@ xo-server-db ls remote
 
 `mount | grep fuse`
 
-3. Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get the offset value. (`mountedVhdPath` is the `mountPoint` value from earlier, followed by `/vhd0`, for example).
+3. Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get the offset value. (`mountedVhdPath` is the `mountPoint` value from earlier, followed by `/vhd0`, for example). Depending on the partition type, you may need to do some additional setup to discover the partitions.
 
 `partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>`
 
-4.  Mount the disk:
+4.  Mount the disk. Depending on the partition type, you may need to add some additionnal options.
 
 `mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>`
 
 5. Copy Your Files from the mounted partition and then unmount the partition.
-
-
-- Mount a VHD to filesystem (see "Usage")
-
-- Check that your VHD is correctly mounted:
-
-```
-mount | grep fuse
-```
-
-- Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get an offset value. (`mountedVhdPath` is the `mountPoint` value from earlier followed by `/vhd0` for example)
-
-```
-partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>
-```
-
-- Mount the disk:
-
-```
-mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>
-```
-
-- You can now copy your files from the mounted partition and unmount the partition.
 
 ## Contributions
 
