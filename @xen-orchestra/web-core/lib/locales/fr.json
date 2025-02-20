@@ -1,6 +1,9 @@
 {
   "access-forum": "Accès au forum",
   "alarms": "Alarmes",
+  "bond": "Bond",
+  "bond-devices": "Devices du bond",
+  "bond-status": "Statut du bond",
 
   "bytes.gi": "Gio",
   "bytes.ki": "Kio",

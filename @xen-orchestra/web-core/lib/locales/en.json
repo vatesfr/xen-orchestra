@@ -1,6 +1,9 @@
 {
   "access-forum": "Access forum",
   "alarms": "Alarms",
+  "bond": "Bond",
+  "bond-devices": "Bond devices",
+  "bond-status": "Bond status",
 
   "bytes.gi": "GiB",
   "bytes.ki": "KiB",
