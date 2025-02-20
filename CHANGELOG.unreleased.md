@@ -26,6 +26,8 @@
 - [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
 - [V2] Fix `Cannot read properties of undefined (reading 'map')` with empty datastore (PR [#8311](https://github.com/vatesfr/xen-orchestra/pull/8311))
 - [Plugin/audit] Do not log call to `host.getBiosInfo` and `host.getMdadmHealth`
+- **XO 6**:
+  - [Deps] Fix `type-check` and CI issues (PR [#8362](https://github.com/vatesfr/xen-orchestra/pull/8362))
 
 ### Packages to release
 
