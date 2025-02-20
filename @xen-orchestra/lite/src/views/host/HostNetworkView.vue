@@ -3,7 +3,10 @@
     <UiCard class="container">
       <HostPifTable :pifs />
     </UiCard>
-    <HostPifSidePanel :pif :network />
+    <HostPifSidePanel v-if="pif" :pif />
+    <UiPanel v-else>
+      <VtsNoSelectionHero type="panel" />
+    </UiPanel>
   </div>
 </template>
 
@@ -13,9 +16,10 @@ import HostPifTable from '@/components/host/network/HostPifTable.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,7 +27,6 @@ import { useRoute } from 'vue-router'
 
 const { records } = usePifStore().subscribe()
 const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 
 const pifId = useRouteQuery('id')
 const route = useRoute()
@@ -41,7 +44,6 @@ const pifs = computed(() => {
 })
 
 const pif = computed(() => pifs.value.find(pif => pif.uuid === pifId.value))
-const network = computed(() => (pif.value ? getOpaqueRefNetwork(pif.value.network) : undefined))
 </script>
 
 <style lang="postcss" scoped>
