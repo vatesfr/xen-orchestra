@@ -1,5 +1,5 @@
 <template>
-  <div class="host-pifs-table">
+  <div class="host-pif-table">
     <UiTitle>
       {{ $t('pifs') }}
       <template #actions>
@@ -124,7 +124,6 @@
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoHost } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -157,17 +156,30 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { host } = defineProps<{
-  host: XoHost
+const { pifs } = defineProps<{
+  pifs: XoPif[]
 }>()
 
+const { isReady, hasError, getPifStatus } = usePifStore().subscribe()
 const { get } = useNetworkStore().subscribe()
-const { records, isReady, hasError } = usePifStore().subscribe()
+
 const { t } = useI18n()
-
-const pifs = computed(() => records.value.filter(pif => pif.$host === host.id))
-
 const selectedPifId = useRouteQuery('id')
+const searchQuery = ref('')
+
+const filteredPifs = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return pifs
+  }
+
+  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const pifsIds = computed(() => pifs.map(pif => pif.id))
+
+const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getNetworkName = (pif: XoPif) => {
   const network = get(pif.$network)!
@@ -182,35 +194,6 @@ const getIpConfigurationMode = (ipMode: string) => {
   if (ipMode === 'Static') return t('static')
   if (ipMode === 'DHCP') return t('dhcp')
   return t('none')
-}
-
-const searchQuery = ref('')
-
-const filteredPifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return pifs.value
-  }
-
-  return pifs.value.filter(pif =>
-    Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
-
-const pifsIds = computed(() => pifs.value.map(pif => pif.id))
-const { selected, areAllSelected } = useMultiSelect(pifsIds)
-
-const getPifStatus = (pif: XoPif) => {
-  if (!pif.attached) {
-    return 'disconnected'
-  }
-
-  if (!pif.carrier) {
-    return 'disconnected-from-physical-device'
-  }
-
-  return 'connected'
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
@@ -257,14 +240,14 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.host-pifs-table,
+.host-pif-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.host-pifs-table {
+.host-pif-table {
   gap: 2.4rem;
 
   .container,
@@ -278,6 +261,16 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
     gap: 1.8rem;
   }
 
+  .ip-addresses {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .ipv6 {
+      color: var(--color-neutral-txt-secondary);
+    }
+  }
+
   .checkbox,
   .more {
     width: 4.8rem;
@@ -286,15 +279,6 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
-  }
-
-  .ip-addresses {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    .ipv6 {
-      color: var(--color-neutral-txt-secondary);
-    }
   }
 }
 </style>
