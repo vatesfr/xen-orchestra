@@ -1,6 +1,6 @@
 <template>
   <UiPanel>
-    <template v-if="network" #header>
+    <template #header>
       <UiButton
         v-tooltip="$t('coming-soon')"
         disabled
@@ -23,7 +23,7 @@
       </UiButton>
       <UiButtonIcon v-tooltip="$t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
     </template>
-    <template v-if="network" #default>
+    <template #default>
       <UiCard class="card-container">
         <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
           {{ network.name_label }}
@@ -134,9 +134,6 @@
         </table>
       </UiCard>
     </template>
-    <template v-else #default>
-      <VtsNoSelectionHero type="panel" />
-    </template>
   </UiPanel>
 </template>
 
@@ -145,7 +142,6 @@ import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -159,7 +155,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
-  network: XenApiNetwork | undefined
+  network: XenApiNetwork
 }>()
 
 const { getPifsByNetworkRef } = usePifStore().subscribe()
@@ -175,19 +171,19 @@ const networkVlan = computed(() => {
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : ''
 })
 
-const networkNbd = computed(() => (network?.purpose[0] ? t('on') : t('off')))
+const networkNbd = computed(() => (network.purpose[0] ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() =>
-  network?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
+  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
 )
 
 const pifsCount = computed(() => pifs.value.length)
 
 const formattedNetwork = computed(() => ({
-  uuid: network?.uuid ? network?.uuid : '-',
-  name_description: network?.name_description ? network?.name_description : '-',
+  uuid: network.uuid ? network.uuid : '-',
+  name_description: network.name_description ? network.name_description : '-',
   vlan: networkVlan.value ? networkVlan.value : '-',
-  mtu: network?.MTU ? network?.MTU : '-',
+  mtu: network.MTU ? network.MTU : '-',
 }))
 
 const { copy, copied } = useClipboard()

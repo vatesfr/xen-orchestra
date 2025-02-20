@@ -1,7 +1,7 @@
 <template>
   <tr class="pif-row" @click="redirect()">
-    <td v-tooltip class="typo p3-regular text-ellipsis host">
-      <div v-if="host">
+    <td v-tooltip class="typo p3-regular text-ellipsis host-container">
+      <div v-if="host" class="host">
         <UiObjectIcon :state="hostPowerState" type="host" size="small" />
         <span v-tooltip class="typo p3-regular text-ellipsis host-name">
           {{ host.name_label }}
@@ -77,12 +77,17 @@ const redirect = () => {
     color: var(--color-neutral-txt-primary);
   }
 
-  .host {
+  .host-container {
     width: 14rem;
     max-width: 14rem;
 
+    .host {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
     .host-name {
-      margin-left: 0.4rem;
       color: var(--color-brand-txt-base);
     }
   }

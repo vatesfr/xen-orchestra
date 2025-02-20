@@ -108,6 +108,7 @@
 
 <script setup lang="ts">
 import useMultiSelect from '@/composables/multi-select.composable'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -136,7 +137,11 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networksWithoutPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { networks } = defineProps<{
+  networks: XenApiNetwork[]
+}>()
+
+const { isReady, hasError } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
 const searchQuery = ref('')
@@ -145,14 +150,14 @@ const selectedNetworkId = useRouteQuery('id')
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkUuids = computed(() => networks.value.map(network => network.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
