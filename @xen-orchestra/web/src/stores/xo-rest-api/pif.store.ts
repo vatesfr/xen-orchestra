@@ -64,6 +64,18 @@ export const usePifStore = defineStore('pif', () => {
     return pifsByHostMap
   })
 
+  const getPifStatus = (pif: XoPif) => {
+    if (!pif.attached) {
+      return 'disconnected'
+    }
+
+    if (!pif.carrier) {
+      return 'disconnected-from-physical-device'
+    }
+
+    return 'connected'
+  }
+
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
