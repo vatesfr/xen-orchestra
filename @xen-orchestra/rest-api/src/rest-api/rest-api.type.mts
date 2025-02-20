@@ -7,7 +7,7 @@ export type XapiXoRecordByType = {
 
 /* VM: Record<Branded<'VM'>, XoVm> */
 export type XapiXoBrandedRecordByType = {
-  [T in XapiXoRecord['type']]: Record<XapiXoRecordByType[T]['id'], T>
+  [T in XapiXoRecord['type']]: Record<XapiXoRecordByType[T]['id'], XapiXoRecordByType[T]>
 }
 
 export type XoApp = {
