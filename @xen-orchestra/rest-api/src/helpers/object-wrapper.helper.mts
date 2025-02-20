@@ -1,9 +1,9 @@
 import path from 'node:path'
 import pick from 'lodash/pick.js'
 import { Request } from 'express'
+import type { XapiXoRecord } from '@vates/types'
 
 import type { WithHref } from './helper.type.mjs'
-import { XapiXoRecord } from '@vates/types'
 
 const { join } = path.posix
 

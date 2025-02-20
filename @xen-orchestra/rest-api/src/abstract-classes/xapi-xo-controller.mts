@@ -1,10 +1,10 @@
 import * as CM from 'complex-matcher'
 import { Controller } from 'tsoa'
 import { Request } from 'express'
+import type { XapiXoRecord } from '@vates/types/xo'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
-import type { XapiXoRecord } from '@vates/types/xo'
 import type { WithHref } from '../helpers/helper.type.mjs'
 
 export abstract class XapiXoController<T extends XapiXoRecord> extends Controller {
@@ -21,11 +21,11 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends Controlle
     if (filter !== undefined) {
       filter = CM.parse(filter).createPredicate()
     }
-    return this.restApi.getObjectsByType(this.#type, { filter, limit })
+    return this.restApi.getObjectsByType<T>(this.#type, { filter, limit })
   }
 
   getObject(id: T['id']): T {
-    return this.restApi.getObject(id, this.#type)
+    return this.restApi.getObject<T>(id, this.#type)
   }
 
   sendObjects(objects: T[], req: Request): string[] | WithHref<T>[] | WithHref<Partial<T>>[] {
