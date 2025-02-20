@@ -49,6 +49,22 @@ xo-server-db ls remote
 
 ## Restore a file from a VHD using `fuse-vhd` CLI
 
+1. Mount a VHD to the Filesystem (see **Usage**).
+2. Verify the VHD is Correctly Mounted:
+
+`mount | grep fuse`
+
+3. Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get the offset value. (`mountedVhdPath` is the `mountPoint` value from earlier, followed by `/vhd0`, for example).
+
+`partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>`
+
+4.  Mount the disk:
+
+`mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>`
+
+5. Copy Your Files from the mounted partition and then unmount the partition.
+
+
 - Mount a VHD to filesystem (see "Usage")
 
 - Check that your VHD is correctly mounted:
