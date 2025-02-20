@@ -1,23 +1,29 @@
 <template>
-  <tr @click="redirect()">
-    <td v-if="host" class="typo p3-regular text-ellipsis host">
-      <UiObjectIcon :state="hostPowerState" type="host" size="small" />
-      <span v-tooltip class="typo p3-regular text-ellipsis host-name">
-        {{ host.name_label }}
-      </span>
+  <tr class="pif-row" @click="redirect()">
+    <td v-tooltip class="typo p3-regular text-ellipsis host-container">
+      <div v-if="host" class="host">
+        <UiObjectIcon :state="hostPowerState" type="host" size="small" />
+        <span v-tooltip class="typo p3-regular text-ellipsis host-name">
+          {{ host.name_label }}
+        </span>
+      </div>
+      <div v-else>
+        <span>{{ $t('host-unknown') }}</span>
+      </div>
     </td>
-    <td class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
-    <td class="typo p3-regular status">
+    <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
+    <td v-tooltip class="typo p3-regular status">
       <VtsConnectionStatus v-if="status !== undefined" :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="info" :icon="faAngleRight" />
+      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" />
     </td>
   </tr>
 </template>
 
 <script setup lang="ts">
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -31,22 +37,11 @@ const { pif } = defineProps<{
   pif: XoPif
 }>()
 const { records: hosts } = useHostStore().subscribe()
+const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
 
-const status = computed<ConnectionStatus | undefined>(() => {
-  if (pif.carrier === undefined) {
-    return undefined
-  }
-
-  if (pif.carrier && pif.attached) {
-    return 'connected'
-  }
-  if (!pif.carrier && pif.attached) {
-    return 'disconnected-from-physical-device'
-  }
-  return 'disconnected'
-})
+const status = computed<ConnectionStatus | undefined>(() => getPifStatus(pif))
 
 const host = computed(() => hosts.value.find(host => host.id === pif.$host))
 
@@ -67,23 +62,36 @@ const redirect = () => {
 </script>
 
 <style lang="postcss" scoped>
-td {
-  &.host {
+.pif-row {
+  cursor: pointer;
+  &:hover {
+    background-color: var(--color-brand-background-hover);
+  }
+  td {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .host-container {
     width: 14rem;
     max-width: 14rem;
 
+    .host {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
     .host-name {
-      margin-left: 0.4rem;
-      color: var(--color-info-txt-base);
+      color: var(--color-brand-txt-base);
     }
   }
 
-  &.device {
+  .device {
     width: 8rem;
     max-width: 8rem;
   }
 
-  &.status {
+  .status {
     width: 12rem;
     max-width: 12rem;
   }
