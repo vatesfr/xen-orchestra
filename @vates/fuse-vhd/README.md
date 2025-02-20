@@ -56,7 +56,7 @@ The `remoteUrl` can be found using the following command from the XOA CLI, and t
 
 `partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>`
 
-4.  Mount the disk. Depending on the partition type, you may need to add some additionnal options.
+4.  Mount the disk. Depending on the partition type, you may need to add some additionnal options. The `norecovery` option is used for ext3/ext4/xfs file systems, otherwise remove this option.
 
 `mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>`
 
