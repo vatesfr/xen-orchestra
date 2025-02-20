@@ -11,12 +11,12 @@ export class RestApi {
     return this.#xoApp.authenticateUser(...args)
   }
 
-  getObject(id, type) {
+  getObject<T extends keyof XapiXoRecordByType>(id: XapiXoRecordByType[T]['id'], type: T) {
     return this.#xoApp.getObject(id, type)
   }
 
-  getObjectsByType() {
-    return this.getObjectsByType()
+  getObjectsByType<T extends keyof XapiXoRecordByType>(type: T, opts: Parameters<XoApp['getObjectsByType']>[1]) {
+    return this.getObjectsByType(type, opts)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {

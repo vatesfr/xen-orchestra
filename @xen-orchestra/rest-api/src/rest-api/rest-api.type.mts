@@ -2,12 +2,12 @@ import type { XoUser, XapiXoRecord } from '@vates/types/xo'
 
 /* VM: XoVm */
 export type XapiXoRecordByType = {
-  [K in XapiXoRecord['type']]: Extract<XapiXoRecord, { type: K }>
+  [T in XapiXoRecord['type']]: Extract<XapiXoRecord, { type: T }>
 }
 
 /* VM: Record<Branded<'VM'>, XoVm> */
 export type XapiXoBrandedRecordByType = {
-  [K in XapiXoRecord as K['type']]: Record<K['id'], K>
+  [T in XapiXoRecord['type']]: Record<XapiXoRecordByType[T]['id'], T>
 }
 
 export type XoApp = {
