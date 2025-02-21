@@ -7,7 +7,7 @@
       </div>
     </li>
     <template v-else>
-      <li v-if="tasks.length === 0" class="typo p1-medium">{{ $t('tasks.no-tasks') }}</li>
+      <li v-if="tasks.length === 0" class="typo-body-bold">{{ $t('tasks.no-tasks') }}</li>
       <UiQuickTaskItem v-for="task of tasks" :key="task.id" :task />
     </template>
   </ul>

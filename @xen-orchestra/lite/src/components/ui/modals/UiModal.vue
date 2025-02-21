@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <form class="ui-modal typo p1-regular" v-bind="attrs" @click.self="modal.decline()">
+    <form class="ui-modal typo-body-regular" v-bind="attrs" @click.self="modal.decline()">
       <slot />
     </form>
   </Teleport>

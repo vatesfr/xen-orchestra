@@ -3,7 +3,7 @@
     v-if="isSelectWidget(widget)"
     v-model="model"
     :wrapper-attrs="{ class: 'full-width' }"
-    class="typo p2-regular"
+    class="typo-body-regular-small"
   >
     <option v-if="!required && model === undefined" :value="undefined" />
     <option v-for="choice in widget.choices" :key="choice.label" :value="choice.value">
@@ -19,9 +19,9 @@
   <div v-else-if="isBooleanWidget(widget)">
     <FormCheckbox v-model="model" />
   </div>
-  <FormInput v-else-if="isNumberWidget(widget)" v-model.number="model" type="number" class="typo p2-regular" />
-  <FormInput v-else-if="isTextWidget(widget)" v-model="model" class="typo p2-regular" />
-  <FormJson v-else-if="isObjectWidget(widget)" v-model="model" class="typo p2-regular" />
+  <FormInput v-else-if="isNumberWidget(widget)" v-model.number="model" type="number" class="typo-body-regular-small" />
+  <FormInput v-else-if="isTextWidget(widget)" v-model="model" class="typo-body-regular-small" />
+  <FormJson v-else-if="isObjectWidget(widget)" v-model="model" class="typo-body-regular-small" />
 </template>
 
 <script lang="ts" setup>

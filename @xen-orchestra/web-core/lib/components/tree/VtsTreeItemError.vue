@@ -1,5 +1,5 @@
 <template>
-  <li class="vts-tree-item-error typo h6-semi-bold">
+  <li class="vts-tree-item-error typo-h6">
     <slot />
   </li>
 </template>
