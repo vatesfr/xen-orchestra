@@ -5,10 +5,9 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
-import { partialVms, vm, vmIds } from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
-import { vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
