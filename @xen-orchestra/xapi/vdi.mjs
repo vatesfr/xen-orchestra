@@ -312,7 +312,7 @@ class Vdi {
         await this.VDI_disableCbtOnChain(snapshotOf)
         const e = new Error(`can't create a stream from a metadata VDI, fall back to a base `)
         e.code = 'VDI_CANT_DO_DELTA'
-        // CBt is not usable: reset it
+        // CBT is not usable: reset it
         throw e
       }
 
