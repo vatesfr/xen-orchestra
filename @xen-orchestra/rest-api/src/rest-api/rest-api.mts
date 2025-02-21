@@ -21,6 +21,10 @@ export class RestApi {
     return this.#xoApp.getObjectsByType(type, opts)
   }
 
+  getXapiHostStats(...args: Parameters<XoApp['getXapiHostStats']>) {
+    return this.#xoApp.getXapiHostStats(...args)
+  }
+
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
     return this.#xoApp.runWithApiContext(...args)
   }
