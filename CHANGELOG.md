@@ -24,11 +24,13 @@
 - @vates/generator-toolbox 1.0.0
 - @vates/task 0.6.1
 - @vates/types 1.0.0
-- @xen-orchestra/xapi 7.12.0
+- @xen-orchestra/backups 0.58.2
+- @xen-orchestra/mixins 0.16.3
+- @xen-orchestra/xapi 8.0.1
 - @xen-orchestra/web-core 0.14.0
-- @xen-orchestra/proxy 0.29.12
-- @xen-orchestra/rest-api 0.1.0
-- @xen-orchestra/vmware-explorer 0.9.1
+- @xen-orchestra/proxy 0.29.13
+- @xen-orchestra/rest-api 0.1.1
+- @xen-orchestra/vmware-explorer 0.9.2
 - @xen-orchestra/web 0.10.0
 - xo-server 5.171.0
 - xo-server-audit 0.12.3
