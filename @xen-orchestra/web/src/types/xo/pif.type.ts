@@ -20,4 +20,6 @@ export type XoPif = {
   netmask: string
   speed: number
   vlan: number
+  isBondMaster: boolean
+  isBondSlave: boolean
 }
