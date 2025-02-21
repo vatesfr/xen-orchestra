@@ -108,7 +108,7 @@
                   :overlay-icon="faStar"
                 />
               </div>
-              <div v-else-if="column.id === 'IP'" class="ip-addresses">
+              <div v-else-if="column.id === 'IP'" class="ip-addresses" :class="{ center: column.value.IP === '-' }">
                 <span class="text-ellipsis">{{ column.value.IP }}</span>
                 <span v-if="column.value.IPV6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.IPV6}` }}</span>
               </div>
@@ -196,6 +196,10 @@ const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
   return network?.name_label ? network.name_label : ''
 }
 
+const getFormattedValue = (value: string) => {
+  return value || '-'
+}
+
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
 const getIPv6Formatted = (pif: XenApiPif) => pif.IPv6.filter(ip => ip.trim() !== '').length
@@ -224,7 +228,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define(
       'IP',
       record => ({
-        IP: record.IP,
+        IP: getFormattedValue(record.IP),
         IPV6: getIPv6Formatted(record),
       }),
       { label: t('ip-addresses') }
@@ -290,6 +294,11 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

@@ -378,12 +378,11 @@ const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 const { t } = useI18n()
 
 const addressesIp = computed(() => {
-  if (!pif) return ['-']
   const ips = [pif.IP, ...pif.IPv6].filter(ip => ip)
   return ips.length > 0 ? ips : ['-']
 })
 
-const network = computed(() => (pif ? getOpaqueRefNetwork(pif.network) : undefined))
+const network = computed(() => getOpaqueRefNetwork(pif.network))
 
 const networkNameLabel = computed(() => network.value?.name_label || '-')
 
@@ -393,11 +392,11 @@ const networkTags = computed(() => (network.value?.tags.length ? network.value.t
 
 const pifStatus = computed(() => (pif.currently_attached ? 'connected' : 'disconnected'))
 
-const physicalInterfaceStatus = computed(() => (pif && getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
+const physicalInterfaceStatus = computed(() => (getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
 
-const getSpeed = computed(() => (pif ? getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0 : 0))
+const getSpeed = computed(() => getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0)
 
-const getVlan = computed(() => (pif.VLAN === -1 ? '-' : pif?.VLAN))
+const getVlan = computed(() => (pif.VLAN === -1 ? t('none') : pif?.VLAN))
 
 const getNetmask = computed(() => (pif.netmask === '' ? '-' : pif.netmask))
 
@@ -413,7 +412,7 @@ const getIpConfigurationMode = computed(() => {
   return t('none')
 })
 
-const getMtu = computed(() => (pif.MTU === -1 ? '-' : pif.MTU))
+const getMtu = computed(() => (pif.MTU === -1 ? t('none') : pif.MTU))
 
 const bondDevices = computed(() => getBondsDevices(pif))
 
