@@ -1,4 +1,5 @@
-import type { XoUser, XapiXoRecord } from '@vates/types/xo'
+import type { XapiHostStats, XapiStatsGranularity } from '@vates/types'
+import type { XoUser, XapiXoRecord, XoHost } from '@vates/types/xo'
 
 export type XoApp = {
   authenticateUser: (
@@ -11,5 +12,6 @@ export type XoApp = {
     type: T['type'],
     opts?: { filter?: string; limit?: number }
   ) => Record<T['id'], T>
+  getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

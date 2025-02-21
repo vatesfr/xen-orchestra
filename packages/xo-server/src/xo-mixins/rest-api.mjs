@@ -1357,13 +1357,12 @@ export default class RestApi {
     )
 
     api.get(
-      '/:collection(vms|hosts)/:object/stats',
+      '/:collection(vms)/:object/stats',
       wrap(async (req, res) => {
         const object = req.object
-        const method = object.type === 'VM' ? 'getXapiVmStats' : 'getXapiHostStats'
         const granularity = req.query.granularity
 
-        const result = await app[method](object.id, granularity)
+        const result = await app.getXapiVmStats(object.id, granularity)
         return res.json(result)
       })
     )

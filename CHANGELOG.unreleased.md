@@ -14,6 +14,7 @@
 - **Migrated REST API endpoints**:
   - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+  - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
@@ -40,5 +41,6 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server patch
 
 <!--packages-end-->
