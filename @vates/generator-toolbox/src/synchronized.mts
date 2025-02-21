@@ -17,7 +17,7 @@ export class Synchronized<T, TReturn, TNext> {
     this.#source = source
   }
 
-  fork(uid: string): AsyncGenerator {
+  fork(uid: string): AsyncGenerator<T, TReturn, TNext> {
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
     const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
