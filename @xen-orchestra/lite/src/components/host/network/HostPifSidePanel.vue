@@ -39,7 +39,7 @@
               <VtsIcon
                 v-if="pif.management"
                 v-tooltip="t('management')"
-                accent="warning"
+                accent="info"
                 :icon="faCircle"
                 :overlay-icon="faStar"
               />
@@ -104,7 +104,7 @@
               {{ isBond ? $t('bond-status') : $t('pif-status') }}
             </template>
             <template #value>
-              <VtsConnectionStatus :status="pifStatus" />
+              <VtsConnectionStatus :status />
             </template>
           </VtsCardRowKeyValue>
           <!-- PHYSICAL INTERFACE STATUS -->
@@ -122,15 +122,15 @@
               {{ $t('vlan') }}
             </template>
             <template #value>
-              {{ getVlan }}
+              {{ vlan }}
             </template>
-            <template v-if="getVlan !== '-'" #addons>
+            <template v-if="vlan !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getVlan))"
+                @click="copy(String(vlan))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -159,8 +159,8 @@
             <template #key>
               <div class="ip-addresses-title">{{ $t('ip-addresses') }}</div>
             </template>
-            <template v-if="addressesIp.length > 0" #value>
-              <div v-for="(ip, index) in addressesIp" :key="ip" class="ip-addresses">
+            <template v-if="ipAddresses.length > 0" #value>
+              <div v-for="(ip, index) in ipAddresses" :key="ip" class="ip-addresses">
                 <span class="text-ellipsis">{{ ip }}</span>
                 <div>
                   <UiButtonIcon
@@ -172,7 +172,9 @@
                     @click="copy(ip)"
                   />
                   <UiButtonIcon
-                    v-if="index === 0 && addressesIp.length > 1"
+                    v-if="index === 0 && ipAddresses.length > 1"
+                    v-tooltip="$t('coming-soon')"
+                    disabled
                     :icon="faEllipsis"
                     size="medium"
                     accent="brand"
@@ -205,15 +207,15 @@
               {{ $t('netmask') }}
             </template>
             <template #value>
-              {{ getNetmask }}
+              {{ netmask }}
             </template>
-            <template v-if="getNetmask !== '-'" #addons>
+            <template v-if="netmask !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getNetmask))"
+                @click="copy(String(netmask))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -223,15 +225,15 @@
               {{ $t('dns') }}
             </template>
             <template #value>
-              {{ getDNS }}
+              {{ dns }}
             </template>
-            <template v-if="getDNS !== '-'" #addons>
+            <template v-if="dns !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getDNS))"
+                @click="copy(String(dns))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -241,15 +243,15 @@
               {{ $t('gateway') }}
             </template>
             <template #value>
-              {{ getGateway }}
+              {{ gateway }}
             </template>
-            <template v-if="getGateway !== '-'" #addons>
+            <template v-if="gateway !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getGateway))"
+                @click="copy(String(gateway))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -259,7 +261,7 @@
               {{ $t('ip-mode') }}
             </template>
             <template #value>
-              {{ getIpConfigurationMode }}
+              {{ ipConfigurationMode }}
             </template>
           </VtsCardRowKeyValue>
           <!-- BOND DEVICES -->
@@ -281,6 +283,8 @@
                   />
                   <UiButtonIcon
                     v-if="index === 0 && bondDevices.length > 1"
+                    v-tooltip="$t('coming-soon')"
+                    disabled
                     :icon="faEllipsis"
                     size="medium"
                     accent="brand"
@@ -301,15 +305,15 @@
               {{ $t('mtu') }}
             </template>
             <template #value>
-              {{ getMtu }}
+              {{ mtu }}
             </template>
-            <template v-if="getMtu !== '-'" #addons>
+            <template v-if="mtu !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getMtu))"
+                @click="copy(String(mtu))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -319,7 +323,7 @@
               {{ $t('speed') }}
             </template>
             <template #value>
-              {{ byteFormatter(getSpeed) }}
+              {{ byteFormatter }}
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK BLOCK DEVICE -->
@@ -372,17 +376,17 @@ const { pif } = defineProps<{
 }>()
 
 const { getByOpaqueRef: getPifMetricsByOpaqueRef, getPifCarrier } = usePifMetricsStore().subscribe()
+const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
-const { getByOpaqueRef: getOpaqueRefNetwork } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
 
-const addressesIp = computed(() => {
+const ipAddresses = computed(() => {
   const ips = [pif.IP, ...pif.IPv6].filter(ip => ip)
   return ips.length > 0 ? ips : ['-']
 })
 
-const network = computed(() => getOpaqueRefNetwork(pif.network))
+const network = computed(() => getNetworkByOpaqueRef(pif.network))
 
 const networkNameLabel = computed(() => network.value?.name_label || '-')
 
@@ -390,21 +394,21 @@ const networkPurpose = computed(() => (network.value?.purpose?.[0] ? t('on') : t
 
 const networkTags = computed(() => (network.value?.tags.length ? network.value.tags : '-'))
 
-const pifStatus = computed(() => (pif.currently_attached ? 'connected' : 'disconnected'))
+const status = computed(() => (pif.currently_attached ? 'connected' : 'disconnected'))
 
 const physicalInterfaceStatus = computed(() => (getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
 
-const getSpeed = computed(() => getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0)
+const speed = computed(() => getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0)
 
-const getVlan = computed(() => (pif.VLAN === -1 ? t('none') : pif?.VLAN))
+const vlan = computed(() => (pif.VLAN === -1 ? t('none') : pif?.VLAN))
 
-const getNetmask = computed(() => (pif.netmask === '' ? '-' : pif.netmask))
+const netmask = computed(() => (pif.netmask === '' ? '-' : pif.netmask))
 
-const getDNS = computed(() => (pif.DNS === '' ? '-' : pif.DNS))
+const dns = computed(() => (pif.DNS === '' ? '-' : pif.DNS))
 
-const getGateway = computed(() => (pif.gateway === '' ? '-' : pif.gateway))
+const gateway = computed(() => (pif.gateway === '' ? '-' : pif.gateway))
 
-const getIpConfigurationMode = computed(() => {
+const ipConfigurationMode = computed(() => {
   const ipMode = pif.ip_configuration_mode
 
   if (ipMode === 'Static') return t('static')
@@ -412,14 +416,14 @@ const getIpConfigurationMode = computed(() => {
   return t('none')
 })
 
-const getMtu = computed(() => (pif.MTU === -1 ? t('none') : pif.MTU))
+const mtu = computed(() => (pif.MTU === -1 ? t('none') : pif.MTU))
 
 const bondDevices = computed(() => getBondsDevices(pif))
 
 const isBond = computed(() => isBondMaster(pif))
 
-const byteFormatter = computed(() => (value: number) => {
-  const speedInBytes = value * 1000000
+const byteFormatter = computed(() => {
+  const speedInBytes = speed.value * 1000000
 
   return humanFormat(speedInBytes, {
     scale: 'SI',

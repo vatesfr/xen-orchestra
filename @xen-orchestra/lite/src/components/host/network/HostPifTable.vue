@@ -103,7 +103,7 @@
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="$t('management')"
-                  accent="warning"
+                  accent="info"
                   :icon="faCircle"
                   :overlay-icon="faStar"
                 />
@@ -202,7 +202,7 @@ const getFormattedValue = (value: string) => {
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
-const getIPv6Formatted = (pif: XenApiPif) => pif.IPv6.filter(ip => ip.trim() !== '').length
+const getNumberOfIPv6 = (pif: XenApiPif) => pif.IPv6.filter(ip => ip.trim() !== '').length
 
 const getIpConfigurationMode = (ipMode: string) => {
   if (ipMode === 'Static') return t('static')
@@ -229,7 +229,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
       'IP',
       record => ({
         IP: getFormattedValue(record.IP),
-        IPV6: getIPv6Formatted(record),
+        IPV6: getNumberOfIPv6(record),
       }),
       { label: t('ip-addresses') }
     ),
