@@ -1356,17 +1356,6 @@ export default class RestApi {
       })
     )
 
-    api.get(
-      '/:collection(hosts)/:object/stats',
-      wrap(async (req, res) => {
-        const object = req.object
-        const granularity = req.query.granularity
-
-        const result = await app.getXapiHostStats(object.id, granularity)
-        return res.json(result)
-      })
-    )
-
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
       if (swaggerEndpoints.includes(collection.id)) {
