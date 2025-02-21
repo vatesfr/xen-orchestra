@@ -3,10 +3,11 @@
     v-slot="{ properties, settings }"
     :params="[
       model().type('string').preset(''),
-      prop('accent').enum('info', 'warning', 'danger').required().preset('info').widget(),
+      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
       iconProp(),
+      prop('max-characters').num().help('When used, it will display the character count under the input').widget(),
       prop('placeholder').str().widget(),
       prop('required').bool().widget(),
       slot(),
@@ -17,6 +18,9 @@
   >
     <UiTextarea v-bind="properties">
       {{ settings.defaultSlot }}
+      <template v-if="settings.characterLimit" #character-limit>
+        <UiCharacterLimit :count="properties.modelValue.length" :max="200" />
+      </template>
       <template v-if="settings.info" #info>{{ settings.info }}</template>
     </UiTextarea>
   </ComponentStory>
@@ -24,7 +28,8 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, setting, slot, model } from '@/libs/story/story-param'
+import { iconProp, model, prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import UiTextarea from '@core/components/ui/input/UiTextarea.vue'
+import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
+import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 </script>

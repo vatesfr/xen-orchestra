@@ -1,25 +1,41 @@
 <!-- v2 -->
 <template>
-  <div class="ui-textarea" :class="toVariants({ accent })">
-    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href><slot /></UiLabel>
-    <textarea v-model="model" :disabled class="textarea" v-bind="attrs" />
-    <UiInfo v-if="slots.info" :accent><slot name="info" /></UiInfo>
+  <div class="ui-textarea" :class="toVariants({ accent: hasMaxCharactersError ? 'danger' : accent })">
+    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href :for="id">
+      <slot />
+    </UiLabel>
+    <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
+    <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
+    <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
+      {{ $t('core.textarea.exceeds-max-characters', { max: maxCharacters }) }}
+    </UiInfo>
+    <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
+      <slot name="info" />
+    </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
+import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { computed, useAttrs } from 'vue'
+import { useFocus } from '@vueuse/core'
+import { computed, useAttrs, useId, useTemplateRef } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps<{
-  accent: 'info' | 'warning' | 'danger'
+const {
+  accent,
+  maxCharacters,
+  id = useId(),
+} = defineProps<{
+  accent: 'brand' | 'warning' | 'danger'
+  id?: string
+  maxCharacters?: number
   disabled?: boolean
   href?: string
   icon?: IconDefinition
@@ -35,7 +51,24 @@ const slots = defineSlots<{
 
 const attrs = useAttrs()
 
-const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
+const textAreaElement = useTemplateRef('textarea')
+
+const { focused } = useFocus(textAreaElement)
+
+// WIP: To update when using VeeValidate and custom validation rules
+const isExceedingMaxCharacters = computed(() =>
+  maxCharacters !== undefined ? model.value.trim().length > maxCharacters : false
+)
+
+const hasMaxCharactersError = computed(() => !focused.value && isExceedingMaxCharacters.value)
+
+const labelAccent = computed(() => {
+  if (hasMaxCharactersError.value) {
+    return 'danger'
+  }
+
+  return accent === 'brand' ? 'neutral' : accent
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -54,20 +87,23 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
     width: 100%;
   }
 
-  &.accent--info {
+  &.accent--brand {
     .textarea {
       border-color: var(--color-neutral-border);
 
       &:hover {
-        border-color: var(--color-info-item-hover);
+        border-color: var(--color-brand-item-hover);
       }
+
       &:active {
-        border-color: var(--color-info-item-active);
+        border-color: var(--color-brand-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
-        border-color: var(--color-info-item-base);
+        border-color: var(--color-brand-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
@@ -82,13 +118,16 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:hover {
         border-color: var(--color-warning-item-hover);
       }
+
       &:active {
         border-color: var(--color-warning-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-warning-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
@@ -103,13 +142,16 @@ const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.
       &:hover {
         border-color: var(--color-danger-item-hover);
       }
+
       &:active {
         border-color: var(--color-danger-item-active);
       }
+
       &:focus:not(:active) {
         border-width: 0.2rem;
         border-color: var(--color-danger-item-base);
       }
+
       &:disabled {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-border);
