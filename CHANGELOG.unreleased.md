@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- Ensure password is not logged in error messages when adding hosts to a pool (PR [#8369](https://github.com/vatesfr/xen-orchestra/pull/8369))
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -36,6 +38,7 @@
 <!--packages-start-->
 
 - @vates/types patch
+- xen-api patch
 - xo-cli patch
 - xo-server minor
 
