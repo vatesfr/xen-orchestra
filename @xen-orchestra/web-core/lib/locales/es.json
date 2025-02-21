@@ -18,10 +18,10 @@
   "core.group": "Grupar",
   "core.hide": "Ocultar",
   "core.open": "Abrir",
+  "core.pagination.show-by": "Mostrar por...",
   "core.quick-actions": "Acciones rápidas",
 
   "core.search": "Buscar",
-  "core.show-by": "Mostrar por...",
 
   "core.query-search-bar.label": "Buscador",
   "core.query-search-bar.placeholder": "Entre su búsqueda",
