@@ -31,7 +31,7 @@
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/disposable": "^0.1.6",
-    "@vates/task": "^0.6.0",
+    "@vates/task": "^0.6.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.58.1",
     "@xen-orchestra/fs": "^4.4.0",
