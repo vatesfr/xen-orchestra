@@ -95,7 +95,12 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+              <div
+                v-else
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+                :class="{ center: column.value === '-' }"
+              >
                 {{ column.value }}
               </div>
             </td>
@@ -184,6 +189,10 @@ const getNetworkVlan = (network: XenApiNetwork) => {
   }
 }
 
+const getFormattedValue = (value: string) => {
+  return value || '-'
+}
+
 const getNetworkStatus = (network: XenApiNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
 
@@ -210,7 +219,9 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', { label: t('description') }),
+    define('name_description', record => getFormattedValue(record.name_description), {
+      label: t('description'),
+    }),
     define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
     define('vlan', record => getNetworkVlan(record), { label: t('vlan') }),
     define('MTU', { label: t('mtu') }),
@@ -257,6 +268,11 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
   }
 }
 </style>
