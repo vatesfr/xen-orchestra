@@ -1,5 +1,5 @@
 <template>
-  <div class="host-pifs-table">
+  <div class="host-pif-table">
     <UiTitle>
       {{ $t('pifs') }}
       <template #actions>
@@ -107,9 +107,11 @@
                 disabled
                 size="small"
               />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ column.value }}
+              <div v-else-if="column.id === 'ip'" class="ip-addresses">
+                <span class="text-ellipsis">{{ column.value.ip }}</span>
+                <span v-if="column.value.ipv6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.ipv6}` }}</span>
               </div>
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ column.value }}</div>
             </td>
           </tr>
         </template>
@@ -122,7 +124,6 @@
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoHost } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -155,17 +156,30 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { host } = defineProps<{
-  host: XoHost
+const { pifs } = defineProps<{
+  pifs: XoPif[]
 }>()
 
+const { isReady, hasError, getPifStatus } = usePifStore().subscribe()
 const { get } = useNetworkStore().subscribe()
-const { records, isReady, hasError } = usePifStore().subscribe()
+
 const { t } = useI18n()
-
-const pifs = computed(() => records.value.filter(pif => pif.$host === host.id))
-
 const selectedPifId = useRouteQuery('id')
+const searchQuery = ref('')
+
+const filteredPifs = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return pifs
+  }
+
+  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const pifsIds = computed(() => pifs.map(pif => pif.id))
+
+const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getNetworkName = (pif: XoPif) => {
   const network = get(pif.$network)!
@@ -174,46 +188,12 @@ const getNetworkName = (pif: XoPif) => {
 
 const getPifVlan = (pif: XoPif) => (pif.vlan !== -1 ? pif.vlan.toString() : t('none'))
 
-const getIpMode = (pif: XoPif) => {
-  switch (pif.mode) {
-    case 'Static':
-      return t('static')
-    case 'DHCP':
-      return t('dhcp')
-    case 'None':
-      return t('none')
-    default:
-      return t('unknown')
-  }
-}
+const getIPv6Formatted = (pif: XoPif) => pif.ipv6.filter(ip => ip.trim() !== '').length
 
-const searchQuery = ref('')
-
-const filteredPifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return pifs.value
-  }
-
-  return pifs.value.filter(pif =>
-    Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
-
-const pifsIds = computed(() => pifs.value.map(pif => pif.id))
-const { selected, areAllSelected } = useMultiSelect(pifsIds)
-
-const getPifStatus = (pif: XoPif) => {
-  if (!pif.attached) {
-    return 'disconnected'
-  }
-
-  if (!pif.carrier) {
-    return 'disconnected-from-physical-device'
-  }
-
-  return 'connected'
+const getIpConfigurationMode = (ipMode: string) => {
+  if (ipMode === 'Static') return t('static')
+  if (ipMode === 'DHCP') return t('dhcp')
+  return t('none')
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
@@ -231,9 +211,16 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('device', record => record.device, { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('vlan', record => getPifVlan(record), { label: t('vlan') }),
-    define('ip', record => record.ip, { label: t('ip-addresses') }),
+    define(
+      'ip',
+      record => ({
+        ip: record.ip,
+        ipv6: getIPv6Formatted(record),
+      }),
+      { label: t('ip-addresses') }
+    ),
     define('mac', record => record.mac, { label: t('mac-addresses') }),
-    define('mode', record => getIpMode(record), { label: t('ip-mode') }),
+    define('mode', record => getIpConfigurationMode(record.mode), { label: t('ip-mode') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
@@ -253,14 +240,14 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.host-pifs-table,
+.host-pif-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.host-pifs-table {
+.host-pif-table {
   gap: 2.4rem;
 
   .container,
@@ -272,6 +259,16 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
     display: flex;
     align-items: center;
     gap: 1.8rem;
+  }
+
+  .ip-addresses {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .ipv6 {
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 
   .checkbox,
