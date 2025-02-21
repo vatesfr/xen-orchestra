@@ -186,9 +186,13 @@ const getNetworkName = (pif: XoPif) => {
   return network.name_label ? network.name_label : ''
 }
 
+const getFormattedValue = (value: string) => {
+  return value || '-'
+}
+
 const getPifVlan = (pif: XoPif) => (pif.vlan !== -1 ? pif.vlan.toString() : t('none'))
 
-const getIPv6Formatted = (pif: XoPif) => pif.ipv6.filter(ip => ip.trim() !== '').length
+const getNumberOfIPv6 = (pif: XoPif) => pif.ipv6.filter(ip => ip.trim() !== '').length
 
 const getIpConfigurationMode = (ipMode: string) => {
   if (ipMode === 'Static') return t('static')
@@ -214,8 +218,8 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define(
       'ip',
       record => ({
-        ip: record.ip,
-        ipv6: getIPv6Formatted(record),
+        ip: getFormattedValue(record.ip),
+        ipv6: getNumberOfIPv6(record),
       }),
       { label: t('ip-addresses') }
     ),
