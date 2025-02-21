@@ -181,7 +181,7 @@ class Vdi {
         }
       }
       /**
-       * xapi can't disable CBT on a snapshot OPERATION_NOT_ALLOWED(VDI is a snapshot )
+       * xapi can't disable CBT on a snapshot OPERATION_NOT_ALLOWED(VDI is a snapshot)
        */
     }
     try {
