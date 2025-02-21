@@ -60,10 +60,10 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue v-if="networkVlan">
             <template #key>{{ $t('vlan') }}</template>
-            <template #value>{{ formattedNetwork.vlan }}</template>
-            <template v-if="networkVlan" #addons>
+            <template #value>{{ networkVlan }}</template>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 accent="brand"
@@ -162,13 +162,13 @@ const { getPifsByNetworkRef } = usePifStore().subscribe()
 
 const { t } = useI18n()
 
-const pifs = computed(() => (network ? getPifsByNetworkRef(network.$ref) : []))
+const pifs = computed(() => getPifsByNetworkRef(network.$ref))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
     return ''
   }
-  return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : ''
+  return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : t('none')
 })
 
 const networkNbd = computed(() => (network.purpose[0] ? t('on') : t('off')))
@@ -182,7 +182,6 @@ const pifsCount = computed(() => pifs.value.length)
 const formattedNetwork = computed(() => ({
   uuid: network.uuid ? network.uuid : '-',
   name_description: network.name_description ? network.name_description : '-',
-  vlan: networkVlan.value ? networkVlan.value : '-',
   mtu: network.MTU ? network.MTU : '-',
 }))
 
