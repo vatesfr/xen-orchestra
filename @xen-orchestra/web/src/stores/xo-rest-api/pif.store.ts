@@ -76,12 +76,18 @@ export const usePifStore = defineStore('pif', () => {
     return 'connected'
   }
 
+  const getBondsDevices = () => {
+    // Todo map all device with pif ids
+    return ['eth0', 'eth1']
+  }
+
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
     pifsByHost,
     getPifsByNetworkId,
     getPifStatus,
+    getBondsDevices,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })

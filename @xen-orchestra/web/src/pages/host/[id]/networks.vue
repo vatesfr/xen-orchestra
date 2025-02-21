@@ -3,14 +3,13 @@
     <UiCard class="container">
       <HostPifsTable :pifs />
     </UiCard>
-    <HostPifsSidePanel :pif :network />
+    <HostPifsSidePanel v-if="pif" :pif />
   </div>
 </template>
 
 <script setup lang="ts">
 import HostPifsSidePanel from '@/components/host/HostPifsSidePanel.vue'
 import HostPifsTable from '@/components/host/HostPifsTable.vue'
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoHost } from '@/types/xo/host.type'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -23,7 +22,6 @@ defineProps<{
 }>()
 
 const { records } = usePifStore().subscribe()
-const { get } = useNetworkStore().subscribe()
 
 const pifId = useRouteQuery('id')
 const route = useRoute()
@@ -36,7 +34,6 @@ const pifs = computed(() => {
 })
 
 const pif = computed(() => records.value.find(pif => pif.id === pifId.value))
-const network = computed(() => (pif.value ? get(pif.value.$network) : undefined))
 </script>
 
 <style scoped lang="postcss">

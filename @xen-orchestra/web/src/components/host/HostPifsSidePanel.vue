@@ -1,6 +1,6 @@
 <template>
   <UiPanel>
-    <template v-if="pif" #header>
+    <template #header>
       <UiButton
         v-tooltip="$t('coming-soon')"
         disabled
@@ -22,15 +22,15 @@
         {{ $t('delete') }}
       </UiButton>
     </template>
-    <template v-if="pif" #default>
+    <template #default>
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ $t('pif') }}</UiCardTitle>
+        <UiCardTitle>{{ pif.isBondMaster ? $t('bond') : $t('pif') }}</UiCardTitle>
         <div class="content">
-          <!-- UUID -->
+          <!-- ID -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('uuid') }}
+              {{ $t('id') }}
             </template>
             <template #value>
               {{ pif.id }}
@@ -101,7 +101,7 @@
           <!-- PIF STATUS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('pif-status') }}
+              <!--              {{ isBond ? $t('bond-status') : $t('pif-status') }} -->
             </template>
             <template #value>
               <VtsConnectionStatus :status="pifStatus" />
@@ -157,12 +157,12 @@
         <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue class="ip-addresses-container">
             <template #key>
-              {{ $t('ip-addresses') }}
+              <div class="ip-addresses-title">{{ $t('ip-addresses') }}</div>
             </template>
-            <template v-if="addressesIp.length > 0" #value>
-              <div v-for="(ip, index) in addressesIp" :key="ip" class="ip-addresses">
+            <template v-if="ipAddresses.length > 0" #value>
+              <div v-for="(ip, index) in ipAddresses" :key="ip" class="ip-addresses">
                 <span class="text-ellipsis">{{ ip }}</span>
                 <div>
                   <UiButtonIcon
@@ -174,7 +174,7 @@
                     @click="copy(ip)"
                   />
                   <UiButtonIcon
-                    v-if="index === 0 && addressesIp.length > 1"
+                    v-if="index === 0 && ipAddresses.length > 1"
                     :icon="faEllipsis"
                     size="medium"
                     accent="brand"
@@ -264,6 +264,33 @@
               {{ getIpConfigurationMode }}
             </template>
           </VtsCardRowKeyValue>
+          <!-- BOND DEVICES -->
+          <VtsCardRowKeyValue v-if="bondDevices.length > 0" class="bond-devices-container">
+            <template #key>
+              <div class="bond-devices-title">{{ $t('bond-devices') }}</div>
+            </template>
+            <template #value>
+              <div v-for="(device, index) in bondDevices" :key="device" class="bond-devices">
+                <span class="text-ellipsis">{{ device }}</span>
+                <div>
+                  <UiButtonIcon
+                    v-if="device"
+                    v-tooltip="copied && $t('core.copied')"
+                    :icon="faCopy"
+                    size="medium"
+                    accent="brand"
+                    @click="copy(device)"
+                  />
+                  <UiButtonIcon
+                    v-if="index === 0 && bondDevices.length > 1"
+                    :icon="faEllipsis"
+                    size="medium"
+                    accent="brand"
+                  />
+                </div>
+              </div>
+            </template>
+          </VtsCardRowKeyValue>
         </div>
       </UiCard>
       <!-- PROPERTIES -->
@@ -276,15 +303,15 @@
               {{ $t('mtu') }}
             </template>
             <template #value>
-              {{ pif.mtu }}
+              {{ getMtu }}
             </template>
-            <template v-if="pif.mtu" #addons>
+            <template v-if="getMtu !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(pif.mtu))"
+                @click="copy(String(getMtu))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -318,19 +345,16 @@
         </div>
       </UiCard>
     </template>
-    <template v-else #default>
-      <VtsNoSelectionHero type="panel" />
-    </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
-import type { XoNetwork } from '@/types/xo/network.type'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -345,25 +369,29 @@ import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pif, network } = defineProps<{
-  pif: XoPif | undefined
-  network: XoNetwork | undefined
+const { pif } = defineProps<{
+  pif: XoPif
 }>()
+
+const { get } = useNetworkStore().subscribe()
+const { getBondsDevices } = usePifStore().subscribe()
 
 const { copy, copied } = useClipboard()
 const { t } = useI18n()
 
-const addressesIp = computed(() => {
+const network = computed(() => get(pif.$network))
+
+const ipAddresses = computed(() => {
   if (!pif) return ['-']
   const ips = [pif.ip, ...pif.ipv6].filter(ip => ip)
   return ips.length > 0 ? ips : ['-']
 })
 
-const networkNameLabel = computed(() => network?.name_label || '-')
+const networkNameLabel = computed(() => network.value?.name_label || '-')
 
-const networkNbd = computed(() => (network?.nbd ? t('on') : t('off')))
+const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-const networkTags = computed(() => (network?.tags?.length ? network.tags : '-'))
+const networkTags = computed(() => (network.value?.tags?.length ? network.value.tags : '-'))
 
 const pifStatus = computed(() => (pif?.attached ? 'connected' : 'disconnected'))
 
@@ -371,15 +399,15 @@ const physicalInterfaceStatus = computed(() => {
   return pif && pif.carrier ? 'connected' : 'physically-disconnected'
 })
 
-const getSpeed = computed(() => (pif ? pif.speed || 0 : 0))
+const getSpeed = computed(() => pif.speed || 0)
 
-const getVlan = computed(() => (pif?.vlan === -1 ? '-' : pif?.vlan))
+const getVlan = computed(() => (pif.vlan === -1 ? t('none') : pif?.vlan))
 
-const getNetmask = computed(() => (pif?.netmask === '' ? '-' : pif?.netmask))
+const getNetmask = computed(() => (pif.netmask === '' ? t('none') : pif?.netmask))
 
-const getDNS = computed(() => (pif?.dns === '' ? '-' : pif?.dns))
+const getDNS = computed(() => (pif.dns === '' ? '-' : pif?.dns))
 
-const getGateway = computed(() => (pif?.gateway === '' ? '-' : pif?.gateway))
+const getGateway = computed(() => (pif.gateway === '' ? '-' : pif?.gateway))
 
 const getIpConfigurationMode = computed(() => {
   const ipMode = pif?.mode
@@ -387,6 +415,12 @@ const getIpConfigurationMode = computed(() => {
   if (ipMode === 'Static') return t('static')
   if (ipMode === 'DHCP') return t('dhcp')
   return t('none')
+})
+
+const getMtu = computed(() => (pif.mtu === -1 ? t('none') : pif.mtu))
+
+const bondDevices = computed(() => {
+  return getBondsDevices(pif)
 })
 
 const byteFormatter = computed(() => (value: number) => {
@@ -415,7 +449,19 @@ const byteFormatter = computed(() => (value: number) => {
     gap: 0.8rem;
   }
 
-  .ip-addresses {
+  .ip-addresses-container,
+  .bond-devices-container {
+    display: flex;
+    align-items: start;
+
+    .ip-addresses-title,
+    .bond-devices-title {
+      margin-top: 0.4rem;
+    }
+  }
+
+  .ip-addresses,
+  .bond-devices {
     display: flex;
     align-items: center;
     margin-bottom: 0.4rem;
