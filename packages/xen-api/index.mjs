@@ -809,6 +809,10 @@ export class Xapi extends EventEmitter {
       obfuscated[0] = '* session id *'
     }
 
+    if (method === 'pool.join' || method === 'pool.join_force') {
+      obfuscated[3] = '* obfuscated *'
+    }
+
     const callId = Math.random().toString(36).slice(2)
     const startTime = Date.now()
     debug(`${this._humanId}: ${method} started`, { callId, args: obfuscated })

@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- Ensure password is not logged in error message when adding hosts to a pool
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -50,6 +52,7 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xen-api patch
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-oidc patch
