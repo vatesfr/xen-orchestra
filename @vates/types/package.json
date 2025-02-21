@@ -2,7 +2,12 @@
   "name": "@vates/types",
   "private": false,
   "version": "0.0.0",
+  "main": "./dist/index.mjs",
   "exports": {
+    ".": {
+      "default": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    },
     "./xo": "./dist/xo.d.mts",
     "./xen-api": "./dist/xen-api.d.mts",
     "./common": {

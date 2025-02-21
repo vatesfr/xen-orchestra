@@ -8,6 +8,10 @@ type BaseXoVm = {
 
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
+  /**
+   * @deprecated use $pool instead
+   */
+  $poolId: XoPool['id']
 
   _xapiRef: string
 
@@ -46,9 +50,9 @@ type BaseXoVm = {
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
-    dynamic: [number, number]
+    dynamic: number[]
     size: number
-    static: [number, number]
+    static: number[]
     usage?: number
   }
   mainIpAddress?: string
@@ -123,7 +127,7 @@ export type XoUser = {
 
 export type XoVbd = {
   id: Branded<'VBD'>
-  type: 'VBDu'
+  type: 'VBD'
 }
 
 export type XoVdi = {
@@ -182,12 +186,10 @@ export type XoVtpm = {
   type: 'VTPM'
 }
 
-export type XoRecord =
-  | XoGroup
+export type XapiXoRecord =
   | XoHost
   | XoPool
   | XoSr
-  | XoUser
   | XoVbd
   | XoVdi
   | XoVgpu
@@ -196,3 +198,5 @@ export type XoRecord =
   | XoVmController
   | XoVmSnapshot
   | XoVtpm
+
+export type XoRecord = XapiXoRecord | XoGroup | XoUser

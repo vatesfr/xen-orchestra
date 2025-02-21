@@ -604,7 +604,7 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs']
+    const swaggerEndpoints = ['docs', 'vms']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1277,8 +1277,11 @@ export default class RestApi {
 
     api.get(
       '/:collection',
-      wrap(async (req, res) => {
+      wrap(async (req, res, next) => {
         const { collection, query } = req
+        if (swaggerEndpoints.includes(collection.id)) {
+          return next('route')
+        }
 
         const filter = handleOptionalUserFilter(query.filter)
 
@@ -1349,11 +1352,15 @@ export default class RestApi {
       })
     )
 
-    api.get('/:collection/:object', (req, res) => {
+    api.get('/:collection/:object', (req, res, next) => {
+      const { collection } = req
+      if (swaggerEndpoints.includes(collection.id)) {
+        return next('route')
+      }
       let result = req.object
 
       // add locations of sub-routes for discoverability
-      const { routes } = req.collection
+      const { routes } = collection
       if (routes !== undefined) {
         result = { ...result }
         for (const route of Object.keys(routes)) {

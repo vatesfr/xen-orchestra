@@ -3,6 +3,7 @@ import { createRequire } from 'module'
 import type { Express } from 'express'
 
 import genericErrorHandler from './middlewares/generic-error-handler.middleware.mjs'
+import tsoaToXoErrorHandler from './middlewares/tsoa-to-xo-error.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import type { XoApp } from './rest-api/rest-api.type.mjs'
@@ -21,5 +22,6 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
   express.use('/rest/v0/docs', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
 
+  express.use('/rest/v0', tsoaToXoErrorHandler)
   express.use('/rest/v0', genericErrorHandler)
 }
