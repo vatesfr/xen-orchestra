@@ -57,7 +57,7 @@
     "@xen-orchestra/rest-api": "^0.1.0",
     "@xen-orchestra/self-signed": "^0.2.1",
     "@xen-orchestra/template": "^0.1.0",
-    "@xen-orchestra/vmware-explorer": "^0.9.0",
+    "@xen-orchestra/vmware-explorer": "^0.9.1",
     "@xen-orchestra/xapi": "^8.0.0",
     "@xen-orchestra/xva": "^1.0.2",
     "ajv": "^8.0.3",
