@@ -46,6 +46,7 @@
 - @vates/generator-toolbox major
 - @vates/task patch
 - @vates/types major
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
