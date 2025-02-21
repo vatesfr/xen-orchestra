@@ -29,7 +29,7 @@ await mount(handler, diskId, mountPoint)
 
 ### cli
 
-From the install folder :
+From the install folder:
 
 ```
 cli.mjs <remoteUrl> <vhdPathInRemote> <mountPoint>
@@ -41,7 +41,28 @@ After installing the package
 xo-fuse-vhd <remoteUrl> <vhdPathInRemote> <mountPoint>
 ```
 
-remoteUrl can be found by using cli in `@xen-orchestra/fs` , for example a local remote will have a url like `file:///path/to/remote/root`
+The `remoteUrl` can be found using the following command from the XOA CLI, and then picking the right `url` property:
+
+`xo-server-db ls remote`
+
+The `vhdPathInRemote` follows a file structure described [here](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/docs/VM%20backups/README.md).
+
+## Restore a file from a VHD using `fuse-vhd` CLI
+
+1. Mount a VHD to the Filesystem (see **Usage**).
+2. Verify the VHD is Correctly Mounted:
+
+`mount | grep fuse`
+
+3. Get the `START` and `SIZE` of the disk whose file you want to restore. Multiply `START` by 512 (block size) to get the offset value. (`mountedVhdPath` is the `mountPoint` value from earlier, followed by `/vhd0`, for example). Depending on the partition type, you may need to do some additional setup to discover the partitions.
+
+`partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>`
+
+4.  Mount the disk. Depending on the partition type, you may need to add some additionnal options. The `norecovery` option is used for ext3/ext4/xfs file systems, otherwise remove this option.
+
+`mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>`
+
+5. Copy your files from the mounted partition, then unmount the partition.
 
 ## Contributions
 
