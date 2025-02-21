@@ -62,12 +62,12 @@ import { Synchronized } from '@vates/generator-toolbox'
 
 async function consume(generator: AsyncGenerator) {
   for await (const val of generator) {
-    console.log({val})
+    console.log({ val })
   }
 }
- const forker = new Synchronized(generator)
- const first = forker.fork('first')
- const second = forker.fork('second')
+const forker = new Synchronized(generator)
+const first = forker.fork('first')
+const second = forker.fork('second')
 await Promise.all([consume(first), consume(second)])
 ```
 
