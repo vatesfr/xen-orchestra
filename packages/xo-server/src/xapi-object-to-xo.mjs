@@ -643,6 +643,7 @@ const TRANSFORMS = {
       VDI_type: obj.type,
       current_operations: obj.current_operations,
       other_config: obj.other_config,
+      disk_format: obj.sm_config['supported-image-formats'] ?? [], // an array with values 'raw', 'vhd', 'qcow2', or can be empty if not provided by the driver
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
