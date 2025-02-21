@@ -91,7 +91,12 @@
                 disabled
                 size="small"
               />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+              <div
+                v-else
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+                :class="{ center: column.value === '-' }"
+              >
                 {{ column.value }}
               </div>
             </td>
@@ -108,6 +113,7 @@
 
 <script setup lang="ts">
 import useMultiSelect from '@/composables/multi-select.composable'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -136,7 +142,11 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networksWithoutPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { networks } = defineProps<{
+  networks: XenApiNetwork[]
+}>()
+
+const { isReady, hasError } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
 const searchQuery = ref('')
@@ -145,19 +155,23 @@ const selectedNetworkId = useRouteQuery('id')
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkUuids = computed(() => networks.value.map(network => network.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkUuids.value : []
+}
+
+const getFormattedValue = (value: string) => {
+  return value || '-'
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
@@ -167,7 +181,9 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', { label: t('description') }),
+    define('name_description', record => getFormattedValue(record.name_description), {
+      label: t('description'),
+    }),
     define('MTU', { label: t('mtu') }),
     define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
@@ -210,6 +226,11 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

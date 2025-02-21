@@ -95,7 +95,12 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+              <div
+                v-else
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis"
+                :class="{ center: column.value === '-' }"
+              >
                 {{ column.value }}
               </div>
             </td>
@@ -146,7 +151,11 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networksWithPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { networks } = defineProps<{
+  networks: XenApiNetwork[]
+}>()
+
+const { isReady, hasError } = useNetworkStore().subscribe()
 const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
@@ -157,15 +166,15 @@ const selectedNetworkId = useRouteQuery('id')
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
 
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkUuids = computed(() => networks.value.map(network => network.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
@@ -178,6 +187,10 @@ const getNetworkVlan = (network: XenApiNetwork) => {
   if (networkPIFs.length > 0) {
     return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
   }
+}
+
+const getFormattedValue = (value: string) => {
+  return value || '-'
 }
 
 const getNetworkStatus = (network: XenApiNetwork) => {
@@ -206,7 +219,9 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', { label: t('description') }),
+    define('name_description', record => getFormattedValue(record.name_description), {
+      label: t('description'),
+    }),
     define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
     define('vlan', record => getNetworkVlan(record), { label: t('vlan') }),
     define('MTU', { label: t('mtu') }),
@@ -253,6 +268,11 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
   }
 }
 </style>
