@@ -655,6 +655,30 @@ type XapiStatsResponse<T> = {
 
 export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
 
+export type XapiHostStats = XapiStatsResponse<{
+  cpus: Record<string, number[]>
+  ioThroughput: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  iops: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  iowait: Record<string, number[]>
+  latency: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  load: number[]
+  memory: number[]
+  memoryFree: number[]
+  pifs: {
+    rx: Record<string, number[]>
+    tx: Record<string, number[]>
+  }
+}>
+
 export type XapiVmStats = XapiStatsResponse<{
   cpus: Record<string, number[]>
   iops: {

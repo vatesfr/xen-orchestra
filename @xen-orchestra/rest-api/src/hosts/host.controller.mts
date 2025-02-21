@@ -2,9 +2,9 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoHost } from '@vates/types'
+import type { XapiHostStats, XapiStatsGranularity, XoHost } from '@vates/types'
 
-import { host, hostIds, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
+import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -44,5 +44,18 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(404, 'Host not found')
   getHost(@Path() id: string): Unbrand<XoHost> {
     return this.getObject(id as XoHost['id'])
+  }
+
+  /**
+   * Host must be running
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(hostStats)
+  @Get('{id}/stats')
+  @Response(404, 'Host not found')
+  @Response(422, 'Invalid granularity')
+  @Response(500, 'Internal server error, XenServer/XCP-ng error')
+  getHostStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiHostStats> {
+    return this.restApi.xoApp.getXapiHostStats(id as XoHost['id'], granularity)
   }
 }
