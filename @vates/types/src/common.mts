@@ -2,6 +2,14 @@ declare const __brand: unique symbol
 
 export type Branded<TBrand extends string, TType = string> = TType & { [__brand]: TBrand }
 
+export const HOST_POWER_STATE = {
+  RUNNING: 'Running',
+  HALTED: 'Halted',
+  UNKNOWN: 'Unknown',
+} as const
+
+export type HOST_POWER_STATE = (typeof HOST_POWER_STATE)[keyof typeof HOST_POWER_STATE]
+
 export const TASK_ALLOWED_OPERATIONS = {
   CANCEL: 'cancel',
   DESTROY: 'destroy',
