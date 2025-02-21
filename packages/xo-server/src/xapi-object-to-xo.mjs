@@ -593,13 +593,19 @@ const TRANSFORMS = {
 
   pif(obj) {
     const metrics = obj.$metrics
+    const isBondMaster = !isEmpty(obj.bond_master_of)
+    const isBondSlave = obj.bond_slave_of !== 'OpaqueRef:NULL'
+
+    const bond = isBondMaster ? obj.$bond_master_of[0] : isBondSlave ? obj.$bond_slave_of : undefined
 
     return {
       type: 'PIF',
 
       attached: Boolean(obj.currently_attached),
-      isBondMaster: !isEmpty(obj.bond_master_of),
-      isBondSlave: obj.bond_slave_of !== 'OpaqueRef:NULL',
+      bondMaster: isBondSlave ? link(bond, 'master') : undefined,
+      isBondSlave,
+      bondSlaves: isBondMaster ? link(bond, 'slaves') : undefined,
+      bondMasterOf: link(obj, 'bond_master_of'),
       device: obj.device,
       deviceName: metrics && metrics.device_name,
       dns: obj.DNS,
@@ -962,6 +968,7 @@ const TRANSFORMS = {
     return {
       type: 'bond',
       master: link(obj, 'master'),
+      slaves: link(obj, 'slaves'),
       mode: obj.mode,
     }
   },
