@@ -600,6 +600,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       isBondMaster: !isEmpty(obj.bond_master_of),
       isBondSlave: obj.bond_slave_of !== 'OpaqueRef:NULL',
+      bondMasterOf: link(obj, 'bond_master_of'),
       device: obj.device,
       deviceName: metrics && metrics.device_name,
       dns: obj.DNS,
