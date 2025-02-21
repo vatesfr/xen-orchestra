@@ -68,7 +68,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
   gap: 0.1rem;
 
   &:focus-within {
-    outline: 1px solid var(--color-info-item-active);
+    outline: 1px solid var(--color-brand-item-active);
   }
 }
 
@@ -78,7 +78,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
 }
 
 .form-widget:hover .widget {
-  border-color: var(--color-info-item-hover);
+  border-color: var(--color-brand-item-hover);
 }
 
 .element {

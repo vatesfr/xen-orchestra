@@ -53,7 +53,7 @@ whenever(
 <style lang="postcss" scoped>
 .collapsible {
   padding: 1rem 1.5rem;
-  background-color: var(--color-info-background-selected);
+  background-color: var(--color-brand-background-selected);
   border-radius: 0.8rem;
 }
 
@@ -67,9 +67,9 @@ whenever(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   border: none;
-  border-bottom: 1px solid var(--color-info-txt-base);
+  border-bottom: 1px solid var(--color-brand-txt-base);
   width: 100%;
   padding-bottom: 1rem;
 
@@ -85,6 +85,6 @@ whenever(
 }
 
 .collapse-icon {
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 }
 </style>

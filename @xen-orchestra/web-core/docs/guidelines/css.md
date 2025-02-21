@@ -154,7 +154,7 @@ So, a small utility can be used to add this style on the element that needs it:
     content: '';
     position: absolute;
     inset: -0.4rem;
-    border: 0.2rem solid var(--color-info-txt-base);
+    border: 0.2rem solid var(--color-brand-txt-base);
     border-radius: 0.4rem;
   }
 }
