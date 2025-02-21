@@ -17,6 +17,7 @@
 - [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
 - [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
 - [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
+- [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
 
 ### Bug fixes
 
@@ -50,6 +51,7 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-audit patch
 - xo-server-auth-oidc patch
