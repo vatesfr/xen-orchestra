@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/web minor
 
 <!--packages-end-->
