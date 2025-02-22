@@ -1,6 +1,6 @@
 {
   "name": "xo-server-audit",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "license": "AGPL-3.0-or-later",
   "description": "Audit plugin for XO-Server",
   "keywords": [

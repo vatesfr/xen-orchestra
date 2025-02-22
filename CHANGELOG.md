@@ -1,5 +1,43 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
+- **XO6**:
+  - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
+- [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
+- [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
+- [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
+- [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
+
+### Bug fixes
+
+- [SDN-controller] Fix _No PIF found_ error when creating a private network [#8027](https://github.com/vatesfr/xen-orchestra/issues/8027) (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/8319))
+- [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
+- [V2] Fix `Cannot read properties of undefined (reading 'map')` with empty datastore (PR [#8311](https://github.com/vatesfr/xen-orchestra/pull/8311))
+- [Plugin/audit] Do not log call to `host.getBiosInfo` and `host.getMdadmHealth`
+
+### Released packages
+
+- @vates/generator-toolbox 1.0.0
+- @vates/task 0.6.1
+- @vates/types 1.0.0
+- @xen-orchestra/web-core 0.14.0
+- @xen-orchestra/web 0.10.0
+- xo-server 5.171.0
+- xo-server-audit 0.12.3
+- xo-server-auth-oidc 0.3.1
+- xo-server-backup-reports 1.5.0
+- xo-server-sdn-controller 1.1.0
+- @xen-orchestra/backups 0.58.2
+- @xen-orchestra/mixins 0.16.3
+- @xen-orchestra/proxy 0.29.13
+- @xen-orchestra/rest-api 0.1.1
+- @xen-orchestra/vmware-explorer 0.9.2
+- @xen-orchestra/xapi 8.0.1
+
 ## **5.103.1** (2025-02-04)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

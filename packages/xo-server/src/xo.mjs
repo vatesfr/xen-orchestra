@@ -134,6 +134,34 @@ export default class Xo extends EventEmitter {
     return results
   }
 
+  getObjectsByType(type, { filter, limit } = {}) {
+    const objects = this._objects.indexes.type[type]
+
+    if (filter === undefined) {
+      if (limit === undefined || limit === Infinity) {
+        return objects
+      }
+      filter = stubTrue
+    } else {
+      filter = iteratee(filter)
+      if (limit === undefined) {
+        limit = Infinity
+      }
+    }
+
+    const results = { __proto__: null }
+    for (const id in objects) {
+      const object = objects[id]
+      if (filter(object, id, objects)) {
+        if (limit-- <= 0) {
+          break
+        }
+        results[id] = object
+      }
+    }
+    return results
+  }
+
   // -----------------------------------------------------------------
 
   _handleHttpRequest(req, res, next) {
