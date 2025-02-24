@@ -197,6 +197,7 @@ export type XapiXoRecord =
   | XoVm
   | XoVmController
   | XoVmSnapshot
+  | XoVmTemplate
   | XoVtpm
 
 export type XoRecord = XapiXoRecord | XoGroup | XoUser
