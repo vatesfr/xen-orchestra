@@ -20,7 +20,7 @@
           </span>
         </template>
         <template #addons>
-          <VtsIcon accent="warning" :icon="faCircle" :overlay-icon="faStar" />
+          <VtsIcon accent="info" :icon="faCircle" :overlay-icon="faStar" />
           <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>

@@ -116,7 +116,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 }
 
 .spinner {
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   display: flex;
   margin: auto;
   width: 10rem;
@@ -130,7 +130,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
   flex-direction: column;
   text-align: center;
   gap: 4rem;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   font-size: 3.6rem;
 }
 
@@ -144,8 +144,8 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
     display: flex;
     align-items: center;
     gap: 1rem;
-    background-color: var(--color-info-txt-base);
-    color: var(--color-info-txt-item);
+    background-color: var(--color-brand-txt-base);
+    color: var(--color-brand-txt-item);
     text-decoration: none;
     padding: 1.5rem;
     font-size: 1.6rem;

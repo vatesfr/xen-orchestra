@@ -52,7 +52,7 @@ const tags = computed(() => {
   --section-title-left-color: var(--color-neutral-txt-primary);
   --section-title-left-weight: 500;
   --section-title-right-size: 1.6rem;
-  --section-title-right-color: var(--color-info-txt-base);
+  --section-title-right-color: var(--color-brand-txt-base);
   --section-title-right-weight: 700;
 
   &.h6 {
@@ -65,12 +65,12 @@ const tags = computed(() => {
   &.h5 {
     margin-top: 2rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-info-txt-base);
+    border-bottom: 1px solid var(--color-brand-txt-base);
     --section-title-left-size: 1.6rem;
-    --section-title-left-color: var(--color-info-txt-base);
+    --section-title-left-color: var(--color-brand-txt-base);
     --section-title-left-weight: 700;
     --section-title-right-size: 1.4rem;
-    --section-title-right-color: var(--color-info-txt-base);
+    --section-title-right-color: var(--color-brand-txt-base);
     --section-title-right-weight: 400;
   }
 }

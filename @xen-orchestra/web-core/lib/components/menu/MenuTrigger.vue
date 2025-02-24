@@ -40,12 +40,12 @@ defineProps<{
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-info-background-selected);
+      background-color: var(--color-brand-background-selected);
     }
 
     &:active,
     &.active {
-      background-color: var(--color-info-background-hover);
+      background-color: var(--color-brand-background-hover);
     }
   }
 }
