@@ -1359,10 +1359,6 @@ export default class RestApi {
         const method = object.type === 'VM' ? 'getXapiVmStats' : 'getXapiHostStats'
         const granularity = req.query.granularity
 
-        if (granularity !== undefined && granularity !== 'string') {
-          return res.status(422).json({ error: 'invalid granularity' })
-        }
-
         try {
           const result = await app[method](object.id, granularity)
           return res.json(result)
