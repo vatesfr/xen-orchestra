@@ -1,17 +1,18 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { XoVm } from '@vates/types'
+import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
-import { partialVms, vm, vmIds } from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
 @Security('*')
-@Response(401)
+@Response(401, 'Authentication required')
 // the `provide` decorator is mandatory on class that injects/receives dependencies.
 // It automatically bind the class to the IOC container that handles dependency injection
 @provide(VmController)
@@ -44,8 +45,30 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vm)
   @Get('{id}')
-  @Response(404)
+  @Response(404, 'VM not found')
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
+  }
+
+  /**
+   *
+   *  VM must be running
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(vmStatsExample)
+  @Get('{id}/stats')
+  @Response(404, 'VM not found')
+  @Response(422, 'VM is halted or host could not be found')
+  @Response(422, 'Invalid granularity')
+  async getVmStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiVmStats> {
+    try {
+      return await this.restApi.getXapiVmStats(id as XoVm['id'], granularity)
+    } catch (error) {
+      if (error instanceof Error && error.message === `VM ${id} is halted or host could not be found.`) {
+        /* throw */ invalidParameters(error.message, error)
+      }
+      throw error
+    }
   }
 }
