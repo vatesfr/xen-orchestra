@@ -107,7 +107,7 @@
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'ip'" class="ip-addresses">
+              <div v-else-if="column.id === 'ip'" class="ip-addresses" :class="{ center: column.value.ip === '-' }">
                 <span class="text-ellipsis">{{ column.value.ip }}</span>
                 <span v-if="column.value.ipv6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.ipv6}` }}</span>
               </div>
