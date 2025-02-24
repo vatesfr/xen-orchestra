@@ -1557,6 +1557,15 @@ export default class RestApi {
       })
     )
 
+    api.delete(
+      '/:collection(users)/:id',
+      wrap(async (req, res) => {
+        const { id } = req.params
+        await app.deleteUser(id)
+        res.sendStatus(204)
+      }, true)
+    )
+
     api.post(
       '/:collection(users)',
       json(),
