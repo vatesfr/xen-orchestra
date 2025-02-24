@@ -4,7 +4,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { XoVm } from '@vates/types'
 
-import { partialVms, vm, vmIds } from '../open-api/examples/vm.example.mjs'
+import { partialVms, vm, vmIds } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
