@@ -1352,6 +1352,26 @@ export default class RestApi {
       })
     )
 
+    api.get(
+      '/:collection(vms|hosts)/:object/stats',
+      wrap(async (req, res) => {
+        const object = req.object
+        const method = object.type === 'VM' ? 'getXapiVmStats' : 'getXapiHostStats'
+        const granularity = req.query.granularity
+
+        if (granularity !== undefined && granularity !== 'string') {
+          return res.status(422).json({ error: 'invalid granularity' })
+        }
+
+        try {
+          const result = await app[method](object.id, granularity)
+          return res.json(result)
+        } catch (error) {
+          res.status(400).json({ error: error.message })
+        }
+      })
+    )
+
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
       if (swaggerEndpoints.includes(collection.id)) {
