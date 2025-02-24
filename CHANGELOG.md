@@ -21,12 +21,10 @@
 
 ### Released packages
 
-- @vates/generator-toolbox 1.0.0
 - @vates/task 0.6.1
 - @vates/types 1.0.0
 - @xen-orchestra/web-core 0.14.0
 - @xen-orchestra/web 0.10.0
-- xo-server 5.171.0
 - xo-server-audit 0.12.3
 - xo-server-auth-oidc 0.3.1
 - xo-server-backup-reports 1.5.0
@@ -34,9 +32,11 @@
 - @xen-orchestra/backups 0.58.2
 - @xen-orchestra/mixins 0.16.3
 - @xen-orchestra/proxy 0.29.13
-- @xen-orchestra/rest-api 0.1.1
 - @xen-orchestra/vmware-explorer 0.9.2
 - @xen-orchestra/xapi 8.0.1
+- @vates/generator-toolbox 1.0.1
+- @xen-orchestra/rest-api 0.1.2
+- xo-server 5.171.1
 
 ## **5.103.1** (2025-02-04)
 
