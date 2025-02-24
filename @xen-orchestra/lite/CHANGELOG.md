@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
+
 ## **0.7.1** (2025-02-04)
 
 - [Host/Console] Fix console sometimes not correctly displayed (PR [#8305](https://github.com/vatesfr/xen-orchestra/pull/8305))

@@ -14,6 +14,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Ability to delete a user (PR [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283))
+- **XO 6:**
+  - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
 
 ### Bug fixes
 
@@ -39,6 +41,8 @@
 <!--packages-start-->
 
 - @vates/types patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xen-api patch
 - xo-cli patch
 - xo-server minor
