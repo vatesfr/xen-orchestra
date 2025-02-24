@@ -1,25 +1,26 @@
 <template>
   <div class="networks">
     <UiCard class="container">
-      <HostPifsTable :pifs />
+      <HostPifTable :pifs />
     </UiCard>
-    <HostPifsSidePanel v-if="pif" :pif />
+    <HostPifSidePanel v-if="pif" :pif />
+    <UiPanel v-else>
+      <VtsNoSelectionHero type="panel" />
+    </UiPanel>
   </div>
 </template>
 
 <script setup lang="ts">
-import HostPifsSidePanel from '@/components/host/HostPifsSidePanel.vue'
-import HostPifsTable from '@/components/host/HostPifsTable.vue'
+import HostPifSidePanel from '@/components/host/HostPifSidePanel.vue'
+import HostPifTable from '@/components/host/HostPifTable.vue'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoHost } from '@/types/xo/host.type'
+import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router/auto'
-
-defineProps<{
-  host: XoHost
-}>()
 
 const { records } = usePifStore().subscribe()
 

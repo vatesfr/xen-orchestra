@@ -39,7 +39,7 @@
               <VtsIcon
                 v-if="pif.management"
                 v-tooltip="t('management')"
-                accent="warning"
+                accent="info"
                 :icon="faCircle"
                 :overlay-icon="faStar"
               />
@@ -104,7 +104,7 @@
               <!--              {{ isBond ? $t('bond-status') : $t('pif-status') }} -->
             </template>
             <template #value>
-              <VtsConnectionStatus :status="pifStatus" />
+              <VtsConnectionStatus :status />
             </template>
           </VtsCardRowKeyValue>
           <!-- PHYSICAL INTERFACE STATUS -->
@@ -122,15 +122,15 @@
               {{ $t('vlan') }}
             </template>
             <template #value>
-              {{ getVlan }}
+              {{ vlan }}
             </template>
-            <template v-if="getVlan !== '-'" #addons>
+            <template v-if="vlan !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getVlan))"
+                @click="copy(String(vlan))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -207,15 +207,15 @@
               {{ $t('netmask') }}
             </template>
             <template #value>
-              {{ getNetmask }}
+              {{ netmask }}
             </template>
-            <template v-if="getNetmask !== '-'" #addons>
+            <template v-if="netmask !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getNetmask))"
+                @click="copy(String(netmask))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -225,15 +225,15 @@
               {{ $t('dns') }}
             </template>
             <template #value>
-              {{ getDNS }}
+              {{ dns }}
             </template>
-            <template v-if="getDNS !== '-'" #addons>
+            <template v-if="dns !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getDNS))"
+                @click="copy(String(dns))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -243,15 +243,15 @@
               {{ $t('gateway') }}
             </template>
             <template #value>
-              {{ getGateway }}
+              {{ gateway }}
             </template>
-            <template v-if="getGateway !== '-'" #addons>
+            <template v-if="gateway !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getGateway))"
+                @click="copy(String(gateway))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -261,7 +261,7 @@
               {{ $t('ip-mode') }}
             </template>
             <template #value>
-              {{ getIpConfigurationMode }}
+              {{ ipConfigurationMode }}
             </template>
           </VtsCardRowKeyValue>
           <!-- BOND DEVICES -->
@@ -303,15 +303,15 @@
               {{ $t('mtu') }}
             </template>
             <template #value>
-              {{ getMtu }}
+              {{ mtu }}
             </template>
-            <template v-if="getMtu !== '-'" #addons>
+            <template v-if="mtu !== '-'" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(getMtu))"
+                @click="copy(String(mtu))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -321,7 +321,7 @@
               {{ $t('speed') }}
             </template>
             <template #value>
-              {{ byteFormatter(getSpeed) }}
+              {{ byteFormatter }}
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK BLOCK DEVICE -->
@@ -393,23 +393,23 @@ const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
 const networkTags = computed(() => (network.value?.tags?.length ? network.value.tags : '-'))
 
-const pifStatus = computed(() => (pif?.attached ? 'connected' : 'disconnected'))
+const status = computed(() => (pif?.attached ? 'connected' : 'disconnected'))
 
 const physicalInterfaceStatus = computed(() => {
   return pif && pif.carrier ? 'connected' : 'physically-disconnected'
 })
 
-const getSpeed = computed(() => pif.speed || 0)
+const speed = computed(() => pif.speed || 0)
 
-const getVlan = computed(() => (pif.vlan === -1 ? t('none') : pif?.vlan))
+const vlan = computed(() => (pif.vlan === -1 ? t('none') : pif?.vlan))
 
-const getNetmask = computed(() => (pif.netmask === '' ? t('none') : pif?.netmask))
+const netmask = computed(() => (pif.netmask === '' ? t('none') : pif?.netmask))
 
-const getDNS = computed(() => (pif.dns === '' ? '-' : pif?.dns))
+const dns = computed(() => (pif.dns === '' ? '-' : pif?.dns))
 
-const getGateway = computed(() => (pif.gateway === '' ? '-' : pif?.gateway))
+const gateway = computed(() => (pif.gateway === '' ? '-' : pif?.gateway))
 
-const getIpConfigurationMode = computed(() => {
+const ipConfigurationMode = computed(() => {
   const ipMode = pif?.mode
 
   if (ipMode === 'Static') return t('static')
@@ -417,14 +417,14 @@ const getIpConfigurationMode = computed(() => {
   return t('none')
 })
 
-const getMtu = computed(() => (pif.mtu === -1 ? t('none') : pif.mtu))
+const mtu = computed(() => (pif.mtu === -1 ? t('none') : pif.mtu))
 
 const bondDevices = computed(() => {
   return getBondsDevices(pif)
 })
 
-const byteFormatter = computed(() => (value: number) => {
-  const speedInBytes = value * 1000000
+const byteFormatter = computed(() => {
+  const speedInBytes = speed.value * 1000000
 
   return humanFormat(speedInBytes, {
     scale: 'SI',
