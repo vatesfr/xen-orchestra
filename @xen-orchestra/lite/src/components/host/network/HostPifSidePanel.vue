@@ -38,7 +38,7 @@
             <template #addons>
               <VtsIcon
                 v-if="pif.management"
-                v-tooltip="t('management')"
+                v-tooltip="$t('management')"
                 accent="info"
                 :icon="faCircle"
                 :overlay-icon="faStar"
