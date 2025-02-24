@@ -1376,13 +1376,24 @@ export default class RestApi {
             return res.status(403).json({ message: 'A user cannot change its own permission' })
           }
         } else if (name != null || password != null || permission != null) {
-          return res.status(403).json({ message: 'This properties can only changed by an administrator' })
+          return res.status(403).json({ message: 'These properties can only be changed by an administrator' })
         }
 
         const user = await app.getUser(id)
 
         if (!isEmpty(user.authProviders) && (name != null || password != null)) {
           return res.status(403).json({ message: 'Cannot change the name or password of synchronized user' })
+        }
+
+        if (
+          (name !== undefined && typeof name !== 'string') ||
+          (password !== undefined && typeof password !== 'string') ||
+          (permission !== undefined && typeof permission !== 'string') ||
+          (preferences !== undefined && (preferences === null || typeof preferences !== 'object'))
+        ) {
+          return res.status(400).json({
+            message: 'name, password and permission (if provided) must be strings. preferences must be an object',
+          })
         }
 
         await app.updateUser(id, { name, password, permission, preferences })
