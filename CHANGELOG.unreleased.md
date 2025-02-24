@@ -31,6 +31,7 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
 - @xen-orchestra/rest-api patch
 
 <!--packages-end-->
