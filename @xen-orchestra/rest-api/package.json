@@ -6,7 +6,7 @@
   "main": "./dist/index.mjs",
   "name": "@xen-orchestra/rest-api",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/rest-api",
-  "version": "0.0.0",
+  "version": "0.1.2",
   "description": "REST API to manage your XOA",
   "license": "AGPL-3.0-or-later",
   "private": false,
@@ -28,7 +28,12 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@vates/types": "^1.0.0",
     "@xen-orchestra/log": "^0.7.1",
+    "complex-matcher": "^0.7.1",
+    "inversify": "^6.2.2",
+    "inversify-binding-decorators": "^4.0.0",
+    "lodash": "^4.17.21",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
     "xo-common": "^0.8.0"

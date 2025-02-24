@@ -2,8 +2,10 @@ import { createLogger } from '@xen-orchestra/log'
 import {
   featureUnauthorized,
   forbiddenOperation,
+  invalidCredentials,
   invalidParameters,
   noSuchObject,
+  notImplemented,
   unauthorized,
 } from 'xo-common/api-errors.js'
 import { NextFunction, Request, Response } from 'express'
@@ -21,12 +23,14 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
 
   if (noSuchObject.is(error)) {
     res.status(404)
-  } else if (forbiddenOperation.is(error) || featureUnauthorized.is(error)) {
+  } else if (unauthorized.is(error) || forbiddenOperation.is(error) || featureUnauthorized.is(error)) {
     res.status(403)
-  } else if (unauthorized.is(error)) {
+  } else if (invalidCredentials.is(error)) {
     res.status(401)
   } else if (invalidParameters.is(error)) {
     res.status(422)
+  } else if (notImplemented.is(error)) {
+    res.status(501)
   } else {
     res.status(500)
     log.error(error)
