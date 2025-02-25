@@ -109,8 +109,10 @@
                 />
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
-                <span class="value text-ellipsis">{{ column.value.IP }}</span>
-                <span v-if="column.value.IPV6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.IPV6}` }}</span>
+                <span class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo p3-regular more-ips">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -190,20 +192,21 @@ const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(pifsUuids)
 
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
-  const network = getByOpaqueRef(networkRef)
-
-  return network?.name_label ? network.name_label : ''
-}
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
-const getNumberOfIPv6 = (pif: XenApiPif) => pif.IPv6.filter(ip => ip.trim() !== '').length
+const getIpAddresses = (pif: XenApiPif) => [pif.IP, ...pif.IPv6].filter(ip => ip)
 
 const getIpConfigurationMode = (ipMode: string) => {
-  if (ipMode === 'Static') return t('static')
-  if (ipMode === 'DHCP') return t('dhcp')
-  return t('none')
+  switch (ipMode) {
+    case 'Static':
+      return t('static')
+    case 'DHCP':
+      return t('dhcp')
+    default:
+      return t('none')
+  }
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
@@ -221,14 +224,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('device', { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('VLAN', record => getVlanData(record.VLAN), { label: t('vlan') }),
-    define(
-      'IP',
-      record => ({
-        IP: record.IP,
-        IPV6: getNumberOfIPv6(record),
-      }),
-      { label: t('ip-addresses') }
-    ),
+    define('IP', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('MAC', { label: t('mac-addresses') }),
     define('ip_configuration_mode', record => getIpConfigurationMode(record.ip_configuration_mode), {
       label: t('ip-mode'),
@@ -277,7 +273,7 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
     justify-content: space-between;
     align-items: center;
 
-    .ipv6 {
+    .more-ips {
       color: var(--color-neutral-txt-secondary);
     }
 

@@ -334,7 +334,7 @@
               {{ $t('speed') }}
             </template>
             <template #value>
-              {{ byteFormatter }}
+              {{ speed }}
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK BLOCK DEVICE -->
@@ -403,8 +403,6 @@ const status = computed(() => (pif.currently_attached ? 'connected' : 'disconnec
 
 const physicalInterfaceStatus = computed(() => (getPifCarrier(pif) ? 'connected' : 'physically-disconnected'))
 
-const speed = computed(() => getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0)
-
 const ipConfigurationMode = computed(() => {
   switch (pif.ip_configuration_mode) {
     case 'Static':
@@ -420,8 +418,9 @@ const bondDevices = computed(() => getBondsDevices(pif))
 
 const isBond = computed(() => isBondMaster(pif))
 
-const byteFormatter = computed(() => {
-  const speedInBytes = speed.value * 1000000
+const speed = computed(() => {
+  const speed = getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0
+  const speedInBytes = speed * 1000000
 
   return humanFormat(speedInBytes, {
     scale: 'SI',
@@ -446,29 +445,6 @@ const { copy, copied } = useClipboard()
   .network {
     display: flex;
     gap: 0.8rem;
-  }
-
-  .ip-addresses-container,
-  .bond-devices-container {
-    display: flex;
-    align-items: start;
-
-    .ip-addresses-title,
-    .bond-devices-title {
-      margin-top: 0.4rem;
-    }
-  }
-
-  .ip-addresses,
-  .bond-devices {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.4rem;
-    justify-content: space-between;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
   }
 
   .tags {

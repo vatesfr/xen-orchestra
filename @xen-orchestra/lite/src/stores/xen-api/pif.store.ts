@@ -54,21 +54,6 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     return 'connected'
   }
 
-  const getPifStatus = (pif: XenApiPif) => {
-    const carrier = pifMetricsContext.getPifCarrier(pif)
-    const isCurrentlyAttached = pif.currently_attached
-
-    if (!isCurrentlyAttached) {
-      return 'disconnected'
-    }
-
-    if (!carrier) {
-      return 'disconnected-from-physical-device'
-    }
-
-    return 'connected'
-  }
-
   const getBondsDevices = (pif: XenApiPif) => {
     if (!pif.bond_master_of) return []
 
