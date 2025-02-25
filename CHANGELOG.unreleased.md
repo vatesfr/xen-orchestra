@@ -33,4 +33,6 @@
 
 <!--packages-start-->
 
+- xo-server-audit patch
+
 <!--packages-end-->
