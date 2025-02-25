@@ -7,7 +7,6 @@ import type { WithHref } from './helper.type.mjs'
 
 const { join } = path.posix
 
-// need to fix the makeUrl
 export function makeObjectMapper<T extends XapiXoRecord>(req: Request, path = req.path) {
   const makeUrl = ({ id }: T) => join(path, typeof id === 'number' ? String(id) : id)
   let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
