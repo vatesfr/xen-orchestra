@@ -1,5 +1,5 @@
 <template>
-  <tr class="pif-row" :class="{ disabled: !pifHost }" @click="pifHost?.redirect()">
+  <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo p3-regular text-ellipsis host-container">
       <div v-if="pifHost" class="host">
         <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
@@ -16,7 +16,7 @@
       <VtsConnectionStatus :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" />
+      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" :disabled="!pifHost" />
     </td>
   </tr>
 </template>
@@ -66,18 +66,12 @@ const pifHost = computed(() => {
 
 <style lang="postcss" scoped>
 .pif-row {
-  cursor: pointer;
-
-  &.disabled {
-    cursor: not-allowed;
+  &.clickable {
+    cursor: pointer;
 
     &:hover {
-      background-color: var(--color-neutral-background-disabled);
+      background-color: var(--color-brand-background-hover);
     }
-  }
-
-  &:hover {
-    background-color: var(--color-brand-background-hover);
   }
 
   td {

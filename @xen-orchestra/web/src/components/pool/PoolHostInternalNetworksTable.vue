@@ -91,7 +91,7 @@
                 disabled
                 size="small"
               />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis column">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -108,7 +108,7 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import type { XoPool } from '@/types/xo/pool.type'
+import type { XoNetwork } from '@/types/xo/network.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -137,33 +137,29 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPool
+const { networks } = defineProps<{
+  networks: XoNetwork[]
 }>()
 
+const { isReady, hasError } = useNetworkStore().subscribe()
+
 const { t } = useI18n()
-
-const { networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
-
-const networks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
-
 const searchQuery = ref('')
-
 const selectedNetworkId = useRouteQuery('id')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
 
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.value.map(network => network.id))
+const networkIds = computed(() => networks.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
 
@@ -225,13 +221,10 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .column:empty {
+  .value:empty::before {
+    content: '-';
     display: flex;
     justify-content: center;
-  }
-
-  .column:empty::before {
-    content: '-';
   }
 }
 </style>

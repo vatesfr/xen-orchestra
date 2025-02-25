@@ -95,7 +95,7 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis column">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -114,7 +114,6 @@
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -146,17 +145,15 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPool
+const { networks } = defineProps<{
+  networks: XoNetwork[]
 }>()
 
 const { t } = useI18n()
 
-const { networksWithPifs, isReady, hasError } = useNetworkStore().subscribe()
+const { isReady, hasError } = useNetworkStore().subscribe()
 
 const { records: pifs } = usePifStore().subscribe()
-
-const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -166,15 +163,15 @@ const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
 
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.value.map(network => network.id))
+const networkIds = computed(() => networks.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
 
@@ -215,7 +212,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', record => record.name_description, {
+    define('name_description', {
       label: t('description'),
     }),
     define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
@@ -266,12 +263,9 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .column:empty {
+  .value:empty::before {
     display: flex;
     justify-content: center;
-  }
-
-  .column:empty::before {
     content: '-';
   }
 }

@@ -170,11 +170,11 @@ const { network } = defineProps<{
   network: XoNetwork
 }>()
 
-const { getPifsByNetworkRef } = usePifStore().subscribe()
+const { getPifsByNetworkId } = usePifStore().subscribe()
 
 const { t } = useI18n()
 
-const pifs = computed(() => getPifsByNetworkRef(network.id))
+const pifs = computed(() => getPifsByNetworkId(network.id))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
