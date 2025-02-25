@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Ability to delete a user (PR [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283))
+- [REST API] Migrate `/vms/:id/actions/start` endpoint into the swagger documentation (PR [#8379](https://github.com/vatesfr/xen-orchestra/pull/8379))
 
 ### Bug fixes
 
@@ -33,7 +34,8 @@
 
 <!--packages-start-->
 
-- @vates/types patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - xo-server minor
 
 <!--packages-end-->
