@@ -192,18 +192,14 @@ module.exports = {
     // Specific rules for XO i18n-related files
     {
       files: [
-        '@xen-orchestra/lite/**/*.{vue,ts,json}',
-        '@xen-orchestra/web/**/*.{vue,ts,json}',
+        '@xen-orchestra/lite/**/*.{vue,ts}',
+        '@xen-orchestra/web/**/*.{vue,ts}',
         '@xen-orchestra/web-core/**/*.{vue,ts,json}',
       ],
       extends: ['plugin:@intlify/vue-i18n/base'],
       settings: {
         'vue-i18n': {
-          localeDir: [
-            '@xen-orchestra/lite/src/locales/*.json',
-            '@xen-orchestra/web/src/locales/*.json',
-            '@xen-orchestra/web-core/lib/locales/*.json',
-          ],
+          localeDir: ['@xen-orchestra/web-core/lib/locales/*.json'],
           messageSyntaxVersion: '^9.9.0',
         },
       },
