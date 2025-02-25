@@ -9,6 +9,10 @@ export class RestApi {
     this.#xoApp = xoApp
   }
 
+  get tasks() {
+    return this.#xoApp.tasks
+  }
+
   get xoApp() {
     return this.#xoApp
   }
@@ -23,6 +27,10 @@ export class RestApi {
 
   getObjectsByType<T extends XapiXoRecord>(type: T['type'], opts: Parameters<XoApp['getObjectsByType']>[1]) {
     return this.#xoApp.getObjectsByType(type, opts)
+  }
+
+  getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) {
+    return this.#xoApp.getXapiObject<T>(maybeId, type)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
