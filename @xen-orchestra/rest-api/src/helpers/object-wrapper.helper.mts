@@ -8,10 +8,10 @@ import type { WithHref } from './helper.type.mjs'
 const { join } = path.posix
 
 export function makeObjectMapper<T extends XapiXoRecord>(req: Request, path = req.path) {
-  const makeUrl = ({ id }: T) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
+  const makeUrl = ({ id }: T) => join(path, typeof id === 'number' ? String(id) : id)
   let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
 
-  const { query, baseUrl } = req
+  const { query } = req
   const { fields } = query
   if (fields === '*') {
     objectMapper = object => ({
