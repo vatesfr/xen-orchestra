@@ -95,7 +95,7 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="center text-ellipsis">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -259,7 +259,7 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .center:empty::before {
+  .value:empty::before {
     content: '-';
     display: flex;
     justify-content: center;

@@ -49,7 +49,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('description') }}</template>
             <template #value>
-              <span class="empty">{{ network.name_description }}</span>
+              <span class="value">{{ network.name_description }}</span>
             </template>
             <template v-if="network.name_description" #addons>
               <UiButtonIcon
@@ -79,7 +79,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('mtu') }}</template>
             <template #value>
-              <span class="empty">{{ network.MTU }}</span>
+              <span class="value">{{ network.MTU }}</span>
             </template>
             <template v-if="network.MTU" #addons>
               <UiButtonIcon
@@ -211,7 +211,7 @@ const { copy, copied } = useClipboard()
     }
   }
 
-  .empty:empty::before {
+  .value:empty::before {
     content: '-';
   }
 }

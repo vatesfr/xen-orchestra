@@ -4,7 +4,7 @@
       <PoolNetworksTable :networks="networksWithPifs" />
       <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
     </UiCard>
-    <PoolNetworksSidePanel v-if="network" :network />
+    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" />
     <UiPanel v-else>
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
-import PoolNetworksSidePanel from '@/components/pool/network/PoolNetworksSidePanel.vue'
+import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
@@ -28,7 +28,7 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
 
-const network = useRouteQuery<XenApiNetwork | undefined>('id', {
+const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
   toData: id => getByUuid(id as XenApiNetwork['uuid']),
   toQuery: network => network?.uuid ?? '',
 })

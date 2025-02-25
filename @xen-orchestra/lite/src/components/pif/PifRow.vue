@@ -48,9 +48,11 @@ const status = computed(() => getPifStatus(pif))
 
 const pifHost = computed(() => {
   const host = getByOpaqueRef(pif.host)
+
   if (!host) {
     return
   }
+
   return {
     label: host.name_label,
     powerState: isHostRunning(host) ? 'running' : 'halted',
