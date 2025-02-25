@@ -109,7 +109,7 @@
                 />
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
-                <span class="center text-ellipsis">{{ column.value.IP }}</span>
+                <span class="value text-ellipsis">{{ column.value.IP }}</span>
                 <span v-if="column.value.IPV6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.IPV6}` }}</span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
@@ -280,6 +280,10 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
     .ipv6 {
       color: var(--color-neutral-txt-secondary);
     }
+
+    &:has(.value:empty) {
+      justify-content: center;
+    }
   }
 
   .checkbox,
@@ -292,7 +296,7 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .center:empty::before {
+  .value:empty::before {
     content: '-';
   }
 }

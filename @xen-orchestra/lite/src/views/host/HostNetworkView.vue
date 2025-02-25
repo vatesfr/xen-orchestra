@@ -3,7 +3,7 @@
     <UiCard class="container">
       <HostPifTable :pifs />
     </UiCard>
-    <HostPifSidePanel v-if="pif" :pif />
+    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" />
     <UiPanel v-else>
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifTable from '@/components/host/network/HostPifTable.vue'
-import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -32,17 +32,15 @@ const route = useRoute()
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const hostId = route.params.uuid as XenApiHost['uuid']
-
 const pifs = computed(() => {
   return records.value.filter(pif => {
     const host = getHostOpaqueRef(pif.host)
 
-    return host?.uuid === hostId
+    return host?.uuid === route.params.uuid
   })
 })
 
-const pif = useRouteQuery<XenApiPif | undefined>('id', {
+const selectedPif = useRouteQuery<XenApiPif | undefined>('id', {
   toData: id => pifs.value.find(pif => pif.uuid === id),
   toQuery: pif => pif?.uuid ?? '',
 })
