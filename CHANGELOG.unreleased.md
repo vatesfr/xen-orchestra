@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-cli] Fix timeouts when using the legacy JSON-RPC API (e.g. exporting a VM)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +36,7 @@
 <!--packages-start-->
 
 - @vates/types patch
+- xo-cli patch
 - xo-server minor
 
 <!--packages-end-->
