@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [xo-cli] Fix timeouts when using the legacy JSON-RPC API (e.g. exporting a VM)
+- [Plugin/audit] Do not log getBiosInfo and getSmartctlHealth API calls [Forum#89777](https://xcp-ng.org/forum/post/89777) (PR [#8353](https://github.com/vatesfr/xen-orchestra/pull/8353))
 
 ### Packages to release
 
@@ -41,5 +42,6 @@
 - xen-api patch
 - xo-cli patch
 - xo-server minor
+- xo-server-audit patch
 
 <!--packages-end-->
