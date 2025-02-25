@@ -1,18 +1,15 @@
 {
   "access-forum": "Accès au forum",
   "alarms": "Alarmes",
-
   "bytes.gi": "Gio",
   "bytes.ki": "Kio",
   "bytes.mi": "Mio",
-
   "coming-soon": "Bientôt disponible !",
   "connected": "Connecté",
   "console": "Console",
   "console-actions": "Actions de la console",
   "console-clipboard": "Presse-papiers de la console",
   "copy-info-json": "Copier les informations en JSON",
-
   "core.close": "Fermer",
   "core.copied": "Copié",
   "core.copy-id": "Copier l'ID",
@@ -21,34 +18,26 @@
   "core.group": "Grouper",
   "core.hide": "Masquer",
   "core.open": "Ouvrir",
-
   "core.query-search-bar.label": "Moteur de recherche",
   "core.query-search-bar.placeholder": "Écrivez votre requête…",
   "core.query-search-bar.use-query-builder": "Utiliser le constructeur de requête",
-
   "core.quick-actions": "Actions rapides",
   "core.search": "Rechercher",
-
   "core.select.all": "Tout sélectionner",
   "core.select.n-object-of": "{from} - {to} de {total} objets",
   "core.select.n-selected-of": "{count} objet sélectionné sur {total} | {count} objet sélectionné sur {total} | {count} objets sélectionnés sur {total}",
   "core.select.none": "Tout désélectionner",
   "core.select.unselect": "Tout désélectionner",
-
   "core.show-by": "Afficher par",
-
   "core.sidebar.close": "Fermer la barre latérale",
   "core.sidebar.lock": "Verrouiller la barre latérale",
   "core.sidebar.open": "Ouvrir la barre latérale",
   "core.sidebar.unlock": "Déverrouiller la barre latérale",
-
   "core.sort.ascending": "Trier par ordre croissant",
   "core.sort.descending": "Trier par ordre décroissant",
-
   "dark-mode.auto": "Mode sombre automatique",
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.enable": "Activer le mode sombre",
-
   "dashboard": "Tableau de bord",
   "default-locking-mode": "Mode de verrouillage par défaut",
   "delete": "Supprimer",
@@ -69,12 +58,12 @@
   "host-unknown": "Hôte inconnu",
   "hosts": "Hôtes",
   "id": "Id",
-  "ip-addresses": "IP addresses",
+  "ip-addresses": "Adresses IP",
   "ip-mode": "Mode IP",
   "learn-more": "En savoir plus",
   "loading-in-progress": "Chargement en cours…",
-  "locking-mode": "Mode verrouillé",
-  "locking-mode-default": "Mode verrouillé par défaut",
+  "locking-mode": "Mode de verrouillage",
+  "locking-mode-default": "Mode de verrouillage par défaut",
   "log-out": "Se déconnecter",
   "mac-addresses": "Adresses MAC",
   "management": "Gestion",
@@ -83,7 +72,7 @@
   "n-vms": "1 VM | {n} VMs",
   "name": "Nom",
   "network": "Réseau",
-  "network-block-device": "Dispositif de blocage réseau",
+  "network-block-device": "Protocole NBD (Network Block Device)",
   "networks": "Réseaux",
   "new": "Nouveau",
   "no-data": "Aucune donnée",
@@ -119,7 +108,6 @@
   "system": "Système",
   "table-actions": "Actions du tableau",
   "tasks": "Tâches",
-
   "tasks.n-subtasks": "{n} sous-tâche | {n} sous-tâches",
   "tasks.no-tasks": "Aucune tâche",
   "tasks.quick-view": "Vue rapide des tâches",
@@ -127,7 +115,6 @@
   "tasks.quick-view.done": "Terminées",
   "tasks.quick-view.failed": "Échouées",
   "tasks.quick-view.in-progress": "En cours",
-
   "total": "Total",
   "total-cpus": "Total CPUs",
   "unknown": "Inconnu",
