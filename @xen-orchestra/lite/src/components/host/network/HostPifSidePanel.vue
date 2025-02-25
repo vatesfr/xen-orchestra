@@ -67,16 +67,16 @@
                 </UiComplexIcon>
                 <a href="">{{ networkNameLabel }}</a>
                 -->
-                <span v-tooltip class="text-ellipsis">{{ networkNameLabel }}</span>
+                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
               </div>
             </template>
-            <template v-if="networkNameLabel" #addons>
+            <template v-if="network?.name_label" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(networkNameLabel)"
+                @click="copy(network?.name_label)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -207,15 +207,15 @@
               {{ $t('netmask') }}
             </template>
             <template #value>
-              {{ netmask }}
+              <span class="empty">{{ pif.netmask }}</span>
             </template>
-            <template v-if="netmask !== '-'" #addons>
+            <template v-if="pif.netmask" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(netmask))"
+                @click="copy(String(pif.netmask))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -225,15 +225,17 @@
               {{ $t('dns') }}
             </template>
             <template #value>
-              {{ dns }}
+              <span class="empty">
+                {{ pif.DNS }}
+              </span>
             </template>
-            <template v-if="dns !== '-'" #addons>
+            <template v-if="pif.DNS" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(dns))"
+                @click="copy(String(pif.DNS))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -243,15 +245,17 @@
               {{ $t('gateway') }}
             </template>
             <template #value>
-              {{ gateway }}
+              <span class="empty">
+                {{ pif.gateway }}
+              </span>
             </template>
-            <template v-if="gateway !== '-'" #addons>
+            <template v-if="pif.gateway" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(gateway))"
+                @click="copy(String(pif.gateway))"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -388,8 +392,6 @@ const ipAddresses = computed(() => {
 
 const network = computed(() => getNetworkByOpaqueRef(pif.network))
 
-const networkNameLabel = computed(() => network.value?.name_label || '-')
-
 const networkPurpose = computed(() => (network.value?.purpose?.[0] ? t('on') : t('off')))
 
 const networkTags = computed(() => (network.value?.tags.length ? network.value.tags : '-'))
@@ -401,12 +403,6 @@ const physicalInterfaceStatus = computed(() => (getPifCarrier(pif) ? 'connected'
 const speed = computed(() => getPifMetricsByOpaqueRef(pif.metrics)?.speed || 0)
 
 const vlan = computed(() => (pif.VLAN === -1 ? t('none') : pif?.VLAN))
-
-const netmask = computed(() => (pif.netmask === '' ? '-' : pif.netmask))
-
-const dns = computed(() => (pif.DNS === '' ? '-' : pif.DNS))
-
-const gateway = computed(() => (pif.gateway === '' ? '-' : pif.gateway))
 
 const ipConfigurationMode = computed(() => {
   const ipMode = pif.ip_configuration_mode
@@ -477,6 +473,10 @@ const { copy, copied } = useClipboard()
     width: 100%;
     display: flex;
     gap: 0.8rem;
+  }
+
+  .empty:empty::before {
+    content: '-';
   }
 }
 </style>

@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifTable from '@/components/host/network/HostPifTable.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -28,7 +28,6 @@ import { useRoute } from 'vue-router'
 const { records } = usePifStore().subscribe()
 const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
 
-const pifId = useRouteQuery('id')
 const route = useRoute()
 
 usePageTitleStore().setTitle(useI18n().t('network'))
@@ -43,7 +42,10 @@ const pifs = computed(() => {
   })
 })
 
-const pif = computed(() => pifs.value.find(pif => pif.uuid === pifId.value))
+const pif = useRouteQuery<XenApiPif | undefined>('id', {
+  toData: id => pifs.value.find(pif => pif.uuid === id),
+  toQuery: pif => pif?.uuid ?? '',
+})
 </script>
 
 <style lang="postcss" scoped>
