@@ -79,7 +79,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   .input.indeterminate + .fake-checkbox > .icon {
     opacity: 1;
-    color: var(--color-info-txt-item);
+    color: var(--color-brand-txt-item);
   }
 }
 
@@ -141,7 +141,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 .icon {
   font-size: var(--checkbox-icon-size);
   position: absolute;
-  color: var(--color-info-txt-item);
+  color: var(--color-brand-txt-item);
 
   filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1)) drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
     drop-shadow(0 0.1875em 0.25em rgba(0, 0, 0, 0.08));
@@ -160,7 +160,7 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
 
-  --border-color: var(--color-info-item-base);
+  --border-color: var(--color-brand-item-base);
 }
 
 .input:disabled {
@@ -171,32 +171,32 @@ const isIndeterminate = computed(() => (type === 'checkbox' || type === 'toggle'
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-info-item-disabled);
+    --background-color: var(--color-brand-item-disabled);
   }
 }
 
 .input:not(:disabled) {
   &:hover + .fake-checkbox,
   &:focus + .fake-checkbox {
-    --border-color: var(--color-info-item-hover);
+    --border-color: var(--color-brand-item-hover);
   }
 
   &:active + .fake-checkbox {
-    --border-color: var(--color-info-item-active);
+    --border-color: var(--color-brand-item-active);
   }
 
   &:checked + .fake-checkbox {
     --border-color: transparent;
-    --background-color: var(--color-info-item-base);
+    --background-color: var(--color-brand-item-base);
   }
 
   &:checked:hover + .fake-checkbox,
   &:checked:focus + .fake-checkbox {
-    --background-color: var(--color-info-item-hover);
+    --background-color: var(--color-brand-item-hover);
   }
 
   &:checked:active + .fake-checkbox {
-    --background-color: var(--color-info-item-active);
+    --background-color: var(--color-brand-item-active);
   }
 }
 </style>

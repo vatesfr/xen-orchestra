@@ -68,7 +68,7 @@ const isDisabled = useDisabled(() => disabled)
         position: absolute;
         content: '';
         inset: -0.5rem;
-        border: 0.2rem solid var(--color-info-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
         border-radius: 0.4rem;
       }
     }
@@ -88,7 +88,7 @@ const isDisabled = useDisabled(() => disabled)
     width: 2rem;
     height: 2rem;
     margin: -0.1rem 0 0 -0.1rem;
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
     background-color: var(--color-neutral-background-primary);
     border: 0.1rem solid var(--border-color);
     border-radius: 1rem;
