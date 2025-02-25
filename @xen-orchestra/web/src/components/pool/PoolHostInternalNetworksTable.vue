@@ -174,7 +174,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', record => record.name_description, {
+    define('name_description', {
       label: t('description'),
     }),
     define('MTU', { label: t('mtu') }),
