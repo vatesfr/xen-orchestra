@@ -1,8 +1,8 @@
 <template>
-  <div class="pool-network-view">
+  <div class="networks">
     <UiCard class="container">
-      <PoolNetworksTable :networks="networksWithPifs" />
-      <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
+      <PoolNetworksTable :pool />
+      <PoolHostInternalNetworksTable :pool />
     </UiCard>
     <PoolNetworksSidePanel v-if="network" :network />
     <UiPanel v-else>
@@ -27,7 +27,7 @@ defineProps<{
   pool: XoPool
 }>()
 
-const { get, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
+const { get } = useNetworkStore().subscribe()
 
 const network = useRouteQuery<XoNetwork | undefined>('id', {
   toData: id => get(id as XoNetwork['id']),
@@ -36,7 +36,7 @@ const network = useRouteQuery<XoNetwork | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.pool-network-view {
+.networks {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 40rem;
   .container {

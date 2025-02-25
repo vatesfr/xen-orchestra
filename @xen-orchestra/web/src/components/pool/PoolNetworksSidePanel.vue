@@ -86,7 +86,7 @@
             <template #key>{{ $t('mtu') }}</template>
             <template #value>
               <div class="value">
-                {{ network.mtu }}
+                {{ network.MTU }}
               </div>
             </template>
             <template v-if="network.MTU" #addons>
@@ -183,10 +183,10 @@ const networkVlan = computed(() => {
   return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
 })
 
-const networkNbd = computed(() => (network?.nbd ? t('on') : t('off')))
+const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() =>
-  network?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
+  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
 )
 
 const pifsCount = computed(() => pifs.value.length)

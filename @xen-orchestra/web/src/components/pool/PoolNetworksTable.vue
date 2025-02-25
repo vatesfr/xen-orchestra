@@ -11,7 +11,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
+        <UiTableActions :title="$t('table-actions')">
           <UiButton
             v-tooltip="$t('coming-soon')"
             disabled
@@ -95,12 +95,7 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div
-                v-else
-                v-tooltip="{ placement: 'bottom-end' }"
-                class="text-ellipsis"
-                :class="{ center: column.value === '-' }"
-              >
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis column">
                 {{ column.value }}
               </div>
             </td>
@@ -119,6 +114,7 @@
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -150,30 +146,35 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks } = defineProps<{
-  networks: XoNetwork[]
+const { pool } = defineProps<{
+  pool: XoPool
 }>()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
+const { t } = useI18n()
+
+const { networksWithPifs, isReady, hasError } = useNetworkStore().subscribe()
+
 const { records: pifs } = usePifStore().subscribe()
 
-const { t } = useI18n()
-const searchQuery = ref('')
+const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
+
 const selectedNetworkId = useRouteQuery('id')
+
+const searchQuery = ref('')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks
+    return networks.value
   }
 
-  return networks.filter(network =>
+  return networks.value.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.map(network => network.id))
+const networkIds = computed(() => networks.value.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
 
@@ -187,10 +188,6 @@ const getNetworkVlan = (network: XoNetwork) => {
   if (networkPIFs.length > 0) {
     return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
   }
-}
-
-const getFormattedValue = (value: string) => {
-  return value || '-'
 }
 
 const getNetworkStatus = (network: XoNetwork) => {
@@ -218,7 +215,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', record => getFormattedValue(record.name_description), {
+    define('name_description', record => record.name_description, {
       label: t('description'),
     }),
     define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
@@ -269,9 +266,13 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .center {
+  .column:empty {
     display: flex;
     justify-content: center;
+  }
+
+  .column:empty::before {
+    content: '-';
   }
 }
 </style>

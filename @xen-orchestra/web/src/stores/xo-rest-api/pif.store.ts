@@ -32,15 +32,11 @@ export const usePifStore = defineStore('pif', () => {
     return hostMasterPifsByNetworkMap
   })
 
-  const getPifsByNetworkRef = (networkRef: XoNetwork['id']) => {
-    return baseContext.records.value.filter(pif => pif.$network === networkRef)
+  const getPifsByNetworkRef = (networkId: XoNetwork['id']) => {
+    return baseContext.records.value.filter(pif => pif.$network === networkId)
   }
 
   const getPifStatus = (pif: XoPif) => {
-    if (pif.carrier === undefined) {
-      return 'disconnected-from-physical-device'
-    }
-
     if (!pif.attached) {
       return 'disconnected'
     }

@@ -18,7 +18,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
+        <UiTableActions :title="$t('table-actions')">
           <UiButton
             v-tooltip="$t('coming-soon')"
             disabled
@@ -108,7 +108,7 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import type { XoNetwork } from '@/types/xo/network.type'
+import type { XoPool } from '@/types/xo/pool.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -137,38 +137,38 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks } = defineProps<{
-  networks: XoNetwork[]
+const { pool } = defineProps<{
+  pool: XoPool
 }>()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
-
 const { t } = useI18n()
+
+const { networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
+
+const networks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+
 const searchQuery = ref('')
+
 const selectedNetworkId = useRouteQuery('id')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks
+    return networks.value
   }
 
-  return networks.filter(network =>
+  return networks.value.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.map(network => network.id))
+const networkIds = computed(() => networks.value.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
 
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkIds.value : []
-}
-
-const getFormattedValue = (value: string) => {
-  return value || '-'
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
@@ -178,7 +178,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', record => getFormattedValue(record.name_description), {
+    define('name_description', record => record.name_description, {
       label: t('description'),
     }),
     define('MTU', { label: t('mtu') }),

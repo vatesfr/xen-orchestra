@@ -2,7 +2,7 @@
   <tr class="pif-row" :class="{ disabled: !pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo p3-regular text-ellipsis host-container">
       <div v-if="pifHost" class="host">
-        <UiObjectIcon :state="pifHost?.powerState" type="host" size="small" />
+        <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
         <span v-tooltip class="typo p3-regular text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
@@ -45,9 +45,11 @@ const status = computed(() => getPifStatus(pif))
 
 const pifHost = computed(() => {
   const host = hosts.value.find(host => host.id === pif.$host)
+
   if (!host) {
     return
   }
+
   return {
     label: host.name_label,
     powerState: host.power_state ? 'running' : 'halted',
