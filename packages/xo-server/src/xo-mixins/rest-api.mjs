@@ -605,7 +605,15 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs', 'vms']
+    const swaggerEndpoints = {
+      docs: {},
+      vms: {
+        // TODO: handle getAll/getId
+        actions: {
+          start: true,
+        },
+      },
+    }
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1146,7 +1154,7 @@ export default class RestApi {
     api.get(
       '/',
       wrap((req, res) => {
-        const endpoints = new Set([...Object.keys(collections), ...swaggerEndpoints])
+        const endpoints = new Set([...Object.keys(collections), ...Object.keys(swaggerEndpoints)])
         return sendObjects(endpoints, req, res)
       })
     )
@@ -1283,7 +1291,7 @@ export default class RestApi {
       '/:collection',
       wrap(async (req, res, next) => {
         const { collection, query } = req
-        if (swaggerEndpoints.includes(collection.id)) {
+        if (swaggerEndpoints[collection.id] !== undefined) {
           return next('route')
         }
 
@@ -1370,7 +1378,7 @@ export default class RestApi {
 
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
-      if (swaggerEndpoints.includes(collection.id)) {
+      if (swaggerEndpoints[collection.id] !== undefined) {
         return next('route')
       }
       let result = req.object
@@ -1534,9 +1542,10 @@ export default class RestApi {
       res.json({ ...action })
     })
     api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
+      const { collection } = req
       const { action } = req.params
       const fn = req.collection.actions?.[action]
-      if (fn === undefined) {
+      if (fn === undefined || swaggerEndpoints[collection.id]?.actions?.[action]) {
         return next()
       }
 
