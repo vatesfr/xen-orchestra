@@ -124,11 +124,20 @@ async function sendObjects(iterable, req, res, mapper) {
     if (typeof mapper !== 'function') {
       mapper = makeObjectMapper(req, ...Array.prototype.slice.call(arguments, 3))
     }
-    iterable = mapIterable(iterable, mapper)
+    // iterable = mapIterable(iterable, mapper)
   }
 
   res.setHeader('content-type', json ? 'application/json' : 'application/x-ndjson')
-  return pipeline((json ? makeJsonStream : makeNdJsonStream)(iterable), res)
+  return pipeline(
+    iterable,
+    async function* (iterable) {
+      for await (const object of iterable) {
+        yield mapper(object)
+      }
+    },
+    json ? makeJsonStream : makeNdJsonStream,
+    res
+  )
 }
 
 function handleArray(array, filter, limit) {
@@ -965,6 +974,7 @@ export default class RestApi {
         return app.tasks.list({ filter, limit })
       },
       watch(filter) {
+        console.log('start watch tasks')
         const stream = new Readable({ objectMode: true, read: noop })
         const onUpdate = object => {
           if (filter === undefined || filter(object)) {
@@ -976,9 +986,10 @@ export default class RestApi {
         }
         app.tasks.on('update', onUpdate).on('remove', onRemove)
         stream.on('close', () => {
+          console.log('stop watch tasks')
           app.tasks.off('update', onUpdate).off('remove', onRemove)
         })
-        return stream[Symbol.asyncIterator]()
+        return stream
       },
     }
     collections.servers = {
@@ -1289,6 +1300,13 @@ export default class RestApi {
           const objectMapper = makeObjectMapper(req)
           const entryMapper = entry => [entry[0], objectMapper(entry[1])]
 
+          req.on('close', () => {
+            console.log('req close')
+          })
+          res.on('close', () => {
+            console.log('res close')
+          })
+
           try {
             await sendObjects(collection.watch(filter), req, res, entryMapper)
           } catch (error) {
@@ -1296,6 +1314,7 @@ export default class RestApi {
             if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
               throw error
             }
+            console.log(error)
           }
           return
         }
