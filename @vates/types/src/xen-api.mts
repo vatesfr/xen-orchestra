@@ -77,8 +77,8 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $callAsync: Fn
   $type: Type
   $xapi: {
-    call: <T>(...args: unknown[]) => Promise<T>
-    callAsync: <T>(...args: unknown[]) => Promise<T>
+    call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+    callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   }
 }
 

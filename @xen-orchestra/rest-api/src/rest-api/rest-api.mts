@@ -26,7 +26,7 @@ export class RestApi {
   }
 
   getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) {
-    return this.#xoApp.getXapiObject(maybeId, type)
+    return this.#xoApp.getXapiObject<T>(maybeId, type)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
