@@ -3,15 +3,17 @@ import pick from 'lodash/pick.js'
 import { Request } from 'express'
 import type { XapiXoRecord } from '@vates/types'
 
+import { BASE_URL } from '../index.mjs'
 import type { WithHref } from './helper.type.mjs'
 
 const { join } = path.posix
 
+// need to fix the makeUrl
 export function makeObjectMapper<T extends XapiXoRecord>(req: Request, path = req.path) {
-  const makeUrl = ({ id }: T) => join(baseUrl, path, typeof id === 'number' ? String(id) : id)
+  const makeUrl = ({ id }: T) => join(BASE_URL, path, typeof id === 'number' ? String(id) : id)
   let objectMapper: (object: T) => string | WithHref<Partial<T>> | WithHref<T>
 
-  const { query, baseUrl } = req
+  const { query } = req
   const { fields } = query
   if (fields === '*') {
     objectMapper = object => ({
