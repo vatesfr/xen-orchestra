@@ -1,10 +1,10 @@
 <template>
-  <tr class="pif-row" @click="redirect()">
+  <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo p3-regular text-ellipsis host-container">
-      <div v-if="host" class="host">
-        <UiObjectIcon :state="hostPowerState" type="host" size="small" />
+      <div v-if="pifHost" class="host">
+        <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
         <span v-tooltip class="typo p3-regular text-ellipsis host-name">
-          {{ host.name_label }}
+          {{ pifHost.label }}
         </span>
       </div>
       <div v-else>
@@ -13,10 +13,10 @@
     </td>
     <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
     <td v-tooltip class="typo p3-regular status">
-      <VtsConnectionStatus v-if="status !== undefined" :status />
+      <VtsConnectionStatus :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" />
+      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" :disabled="!pifHost" />
     </td>
   </tr>
 </template>
@@ -26,7 +26,7 @@ import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsConnectionStatus, { type ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -44,33 +44,35 @@ const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
 
-const status = computed<ConnectionStatus | undefined>(() => getPifStatus(pif))
+const status = computed(() => getPifStatus(pif))
 
-const host = computed(() => getByOpaqueRef(pif.host))
-
-const hostStatus = computed(() => (host.value ? isHostRunning(host.value) : undefined))
-
-const hostPowerState = computed(() => (hostStatus.value ? 'running' : 'halted'))
-
-const redirect = () => {
-  if (host.value === undefined) {
+const pifHost = computed(() => {
+  const host = getByOpaqueRef(pif.host)
+  if (!host) {
     return
   }
-
-  router.push({
-    name: 'host.network',
-    params: { uuid: host.value.uuid },
-    query: { id: pif.uuid },
-  })
-}
+  return {
+    label: host.name_label,
+    powerState: isHostRunning(host) ? 'running' : 'halted',
+    redirect() {
+      router.push({
+        name: 'host.network',
+        params: { uuid: host.uuid },
+        query: { id: pif.uuid },
+      })
+    },
+  } as const
+})
 </script>
 
 <style lang="postcss" scoped>
 .pif-row {
-  cursor: pointer;
+  &.clickable {
+    cursor: pointer;
 
-  &:hover {
-    background-color: var(--color-brand-background-hover);
+    &:hover {
+      background-color: var(--color-brand-background-hover);
+    }
   }
 
   td {
@@ -98,8 +100,8 @@ const redirect = () => {
   }
 
   .status {
-    width: 12rem;
-    max-width: 12rem;
+    width: 11.5rem;
+    max-width: 11.5rem;
   }
 }
 </style>

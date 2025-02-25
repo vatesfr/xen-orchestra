@@ -34,7 +34,7 @@
             <template #key>
               {{ $t('uuid') }}
             </template>
-            <template #value>{{ formattedNetwork.uuid }}</template>
+            <template #value>{{ network.uuid }}</template>
             <template v-if="network.uuid" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -48,7 +48,9 @@
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue>
             <template #key>{{ $t('description') }}</template>
-            <template #value>{{ formattedNetwork.name_description }}</template>
+            <template #value>
+              <span class="empty">{{ network.name_description }}</span>
+            </template>
             <template v-if="network.name_description" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -76,7 +78,9 @@
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>{{ $t('mtu') }}</template>
-            <template #value>{{ formattedNetwork.mtu }}</template>
+            <template #value>
+              <span class="empty">{{ network.MTU }}</span>
+            </template>
             <template v-if="network.MTU" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -179,12 +183,6 @@ const networkDefaultLockingMode = computed(() =>
 
 const pifsCount = computed(() => pifs.value.length)
 
-const formattedNetwork = computed(() => ({
-  uuid: network.uuid ? network.uuid : '-',
-  name_description: network.name_description ? network.name_description : '-',
-  mtu: network.MTU ? network.MTU : '-',
-}))
-
 const { copy, copied } = useClipboard()
 </script>
 
@@ -211,6 +209,10 @@ const { copy, copied } = useClipboard()
     thead tr th {
       color: var(--color-neutral-txt-secondary);
     }
+  }
+
+  .empty:empty::before {
+    content: '-';
   }
 }
 </style>

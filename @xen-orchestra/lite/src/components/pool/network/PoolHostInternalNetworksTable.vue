@@ -91,12 +91,7 @@
                 disabled
                 size="small"
               />
-              <div
-                v-else
-                v-tooltip="{ placement: 'bottom-end' }"
-                class="text-ellipsis"
-                :class="{ center: column.value === '-' }"
-              >
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="center text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -170,10 +165,6 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkUuids.value : []
 }
 
-const getFormattedValue = (value: string) => {
-  return value || '-'
-}
-
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
@@ -181,9 +172,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', record => getFormattedValue(record.name_description), {
-      label: t('description'),
-    }),
+    define('name_description', { label: t('description') }),
     define('MTU', { label: t('mtu') }),
     define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
@@ -228,7 +217,8 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
     line-height: 1;
   }
 
-  .center {
+  .center:empty::before {
+    content: '-';
     display: flex;
     justify-content: center;
   }

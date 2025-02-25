@@ -15,22 +15,23 @@
 import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
 import PoolNetworksSidePanel from '@/components/pool/network/PoolNetworksSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const { records: networks, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
+const { getByUuid, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
 
-const networkId = useRouteQuery('id')
-
-const network = computed(() => networks.value.find(network => network.uuid === networkId.value))
+const network = useRouteQuery<XenApiNetwork | undefined>('id', {
+  toData: id => getByUuid(id as XenApiNetwork['uuid']),
+  toQuery: network => network?.uuid ?? '',
+})
 </script>
 
 <style lang="postcss" scoped>
