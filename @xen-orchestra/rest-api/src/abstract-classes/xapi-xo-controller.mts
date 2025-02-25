@@ -3,9 +3,12 @@ import { Controller } from 'tsoa'
 import { Request } from 'express'
 import type { XapiXoRecord } from '@vates/types/xo'
 
+import { BASE_URL } from '../index.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
+
+const noop = () => {}
 
 export abstract class XapiXoController<T extends XapiXoRecord> extends Controller {
   #type: T['type']
@@ -33,5 +36,42 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends Controlle
     const mappedObjects = objects.map(mapper) as string[] | WithHref<T>[] | WithHref<Partial<T>>[]
 
     return mappedObjects
+  }
+
+  getXapiObject(maybeId: T['id'] | T) {
+    return this.restApi.getXapiObject<T>(maybeId, this.#type)
+  }
+
+  /**
+   * statusCode must represent the status code in case of a synchronous request. Default 200
+   */
+  async createAction<CbType>(
+    cb: () => CbType,
+    {
+      sync = false,
+      statusCode = 200,
+      taskProperties,
+    }: {
+      taskProperties: { name: string; objectId: T['id']; [key: string]: unknown }
+      statusCode?: number
+      sync?: boolean
+    }
+  ) {
+    taskProperties.name = 'REST API: ' + taskProperties.name
+
+    const task = this.restApi.tasks.create(taskProperties)
+    const pResult = task.run(cb)
+
+    if (sync) {
+      this.setStatus(statusCode)
+      return pResult
+    } else {
+      pResult.catch(noop)
+      const location = `${BASE_URL}/tasks/${task.id}`
+      this.setStatus(202)
+      this.setHeader('Location', location)
+
+      return location
+    }
   }
 }
