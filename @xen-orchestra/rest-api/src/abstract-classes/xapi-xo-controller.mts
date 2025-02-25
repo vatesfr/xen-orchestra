@@ -48,16 +48,17 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends Controlle
   async createAction<CbType>(
     cb: () => CbType,
     {
-      sync = false,
       statusCode = 200,
+      sync = false,
       taskProperties,
     }: {
-      taskProperties: { name: string; objectId: T['id']; [key: string]: unknown }
       statusCode?: number
       sync?: boolean
+      taskProperties: { name: string; objectId: T['id']; [key: string]: unknown }
     }
   ) {
     taskProperties.name = 'REST API: ' + taskProperties.name
+    taskProperties.type = 'xo:rest-api:action'
 
     const task = this.restApi.tasks.create(taskProperties)
     const pResult = task.run(cb)

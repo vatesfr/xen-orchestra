@@ -608,7 +608,6 @@ export default class RestApi {
     const swaggerEndpoints = {
       docs: {},
       vms: {
-        // TODO: handle getAll/getId
         actions: {
           start: true,
         },
