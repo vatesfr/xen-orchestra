@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [
     vue(),
     vueI18n({
-      include: [resolve(__dirname, 'src/locales/**'), resolve(__dirname, '../web-core/lib/locales/**')],
+      include: resolve(__dirname, '../web-core/lib/locales/**'),
     }),
   ],
   define: {
