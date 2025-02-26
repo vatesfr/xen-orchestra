@@ -1,7 +1,7 @@
 <template>
   <div class="host-network-view">
     <UiCard class="container">
-      <HostPifTable :pifs />
+      <HostPifsTable :pifs />
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" />
     <UiPanel v-else>
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
-import HostPifTable from '@/components/host/network/HostPifTable.vue'
+import HostPifsTable from '@/components/host/network/HostPifsTable.vue'
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
