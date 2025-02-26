@@ -269,14 +269,10 @@ You can also restore specific files and directories inside a VM. It works with a
 ### Restore a file
 
 1. Go to the **Backup → File restore** section:
-
-![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
-
-2. Choose the VM whose files you want to restore and click the Restore icon at the corresponding line.
-
+   ![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
+2. Choose the VM whose files you want to restore and click the **Restore** icon at the corresponding line.
 3. Follow the instructions as shown below:
-
-![](../static/img/vm-files-restore.png)
+   ![](../static/img/vm-files-restore.png)
 
 That's it! Your chosen file will be restored.
 
