@@ -49,7 +49,7 @@
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
     "vhd-lib": "^4.11.2",
-    "xen-api": "^4.7.0",
+    "xen-api": "^4.7.1",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
