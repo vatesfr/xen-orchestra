@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "7.11.0",
+  "version": "8.0.1",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -28,7 +28,7 @@
     "@vates/nbd-client": "^3.1.2",
     "@vates/parse-duration": "^0.1.1",
     "@vates/read-chunk": "^1.2.0",
-    "@vates/task": "^0.6.0",
+    "@vates/task": "^0.6.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.7.1",
     "d3-time-format": "^4.1.0",

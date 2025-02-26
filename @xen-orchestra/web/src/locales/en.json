@@ -20,7 +20,6 @@
   "eol": "EOL",
   "for-backup": "For backup",
   "for-replication": "For replication",
-  "host": "Host",
   "host-description": "Host description",
   "hosts-status": "Hosts status",
   "hosts-status.halted": "Stopped",

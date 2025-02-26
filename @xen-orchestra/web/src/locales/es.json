@@ -2,6 +2,7 @@
   "account-organization-more": "Cuenta, organización y más…",
   "available": "Disponible",
   "back-site-dashboard": "Regresar al panel del sitio",
+
   "backup-issues": "Problemas de salvaguarda",
   "backup-repository": "Repositorio de salvaguardas (local, NFS, SMB)",
   "backups": "Salvaguardas",
@@ -12,7 +13,7 @@
   "backups.jobs.looks-like-issue": "Parece que hay un problema",
   "backups.jobs.running-good": "Todo bien",
   "backups.vms-protection": "Protección de máquinas virtuales",
-  "backups.vms-protection.no-job": "No listada en ninguna tarea salvaguarda",
+  "backups.vms-protection.no-job": "No listada en ninguna tarea",
   "backups.vms-protection.protected": "Listada en al menos una tarea y protejida",
   "backups.vms-protection.tooltip": "Una máquina virtual está «protejida» si está en una tarea de salvaguarda, con un horario activado, y la última ejecución tuvo éxito",
   "backups.vms-protection.unprotected": "En al menos una tarea pero no está protejida",
@@ -34,10 +35,11 @@
   "pools": "Conjuntos de servidores",
   "pools-status": "Estatus conjuntos",
   "pools-status.connected": "Conectado",
-  "pools-status.unreachable": "Inaccesible",
-  "pools-status.unreachable.tooltip": "Servidores conocidos que no se puede acceder",
   "pools-status.unknown": "Desconocido",
   "pools-status.unknown.tooltip": "Servidores en estado desconocido",
+  "pools-status.unreachable": "Inaccesible",
+  "pools-status.unreachable.tooltip": "Servidores conocidos que no se puede acceder",
+
   "resources-overview": "Mirador recursos",
   "s3-backup-repository": "Repositorio S3 de salvaguardas",
   "sidebar.search-tree-view": "Buscar en la vista de árbol",
@@ -54,7 +56,9 @@
   "vms-status.inactive.tooltip": "Paradas o suspendidas",
   "vms-status.running": "En marcha",
   "vms-status.unknown": "Desconocido",
+
   "vms-status.unknown.tooltip": "XO ha perdido su conección al conjunto de servidores"
   "xo-backups": "Salvaguardas XO",
   "xo-replications": "Replicaciones XO"
+
 }

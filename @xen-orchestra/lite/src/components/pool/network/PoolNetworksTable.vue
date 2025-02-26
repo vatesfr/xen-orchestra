@@ -95,7 +95,7 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -146,7 +146,11 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networksWithPifs: networks, isReady, hasError } = useNetworkStore().subscribe()
+const { networks } = defineProps<{
+  networks: XenApiNetwork[]
+}>()
+
+const { isReady, hasError } = useNetworkStore().subscribe()
 const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
@@ -157,15 +161,15 @@ const selectedNetworkId = useRouteQuery('id')
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
 
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkUuids = computed(() => networks.value.map(network => network.uuid))
+const networkUuids = computed(() => networks.map(network => network.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(networkUuids)
 
@@ -253,6 +257,12 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .value:empty::before {
+    content: '-';
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

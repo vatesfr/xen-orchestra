@@ -8,7 +8,6 @@
   "admin-login": "Nom d'utilisateur administrateur",
   "admin-password": "Mot de passe administrateur",
   "admin-password-confirm": "Confirmer le mot de passe administrateur",
-
   "alarm-type.cpu_usage": "L'utilisation du CPU dépasse {n}%",
   "alarm-type.disk_usage": "L'utilisation du disque dépasse {n}%",
   "alarm-type.fs_usage": "L'utilisation de FS dépasse {n}%",
@@ -19,7 +18,6 @@
   "alarm-type.physical_utilisation": "L'utilisation physique dépasse {n}%",
   "alarm-type.sr_io_throughput_total_per_host": "Le débit total de l'IO SR par hôte dépasse {n}%",
   "alarm-type.unknown": "Type d'alarme inconnu",
-
   "all-good": "Tout va bien !",
   "allow-self-signed-ssl": "Vous devrez peut-être autoriser les certificats SSL auto-signés depuis votre navigateur",
   "appearance": "Apparence",
@@ -48,14 +46,12 @@
   "deploy-xoa": "Déployer XOA",
   "deploy-xoa-available-on-desktop": "Le déploiement de la XOA est disponible sur ordinateur",
   "deploy-xoa-custom-ntp-servers": "Serveurs NTP (séparés par des espaces)",
-
   "deploy-xoa-status.configuring": "Configuration de la XOA…",
   "deploy-xoa-status.importing": "Importation de la XOA…",
   "deploy-xoa-status.not-responding": "La XOA ne répond pas",
   "deploy-xoa-status.ready": "La XOA est prête !",
   "deploy-xoa-status.starting": "Démarrage de la XOA…",
   "deploy-xoa-status.waiting": "En attente de réponse de la XOA…",
-
   "descending": "descendant",
   "dhcp": "DHCP",
   "display": "Affichage",
@@ -72,7 +68,6 @@
   "export-vms": "Exporter les VMs",
   "export-vms-manually-information": "Certaines exportations de VMs n'ont pas pu démarrer automatiquement, peut-être en raison des paramètres du navigateur. Pour les exporter, vous devrez cliquer sur chacune d'entre elles. (Ou copier le lien.)",
   "fetching-fresh-data": "Récupération de données à jour",
-
   "filter.comparison.contains": "Contient",
   "filter.comparison.ends-with": "Termine par",
   "filter.comparison.equals": "Est égal à",
@@ -87,7 +82,6 @@
   "filter.comparison.not-match-regex": "Ne correspond pas à la regex",
   "filter.comparison.not-start-with": "Ne commence pas par",
   "filter.comparison.starts-with": "Commence par",
-
   "following-hosts-unreachable": "Les hôtes suivants sont inaccessibles",
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
@@ -95,70 +89,53 @@
   "go-back": "Revenir en arrière",
   "gzip": "gzip",
   "here": "Ici",
-
   "host.active": "Actif | Actif | Actifs",
   "host.inactive": "Inactif | Inactif | Inactifs",
-
   "invalid-field": "Champ invalide",
-
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
   "job.vm-copy.in-progress": "Copie en cours…",
   "job.vm-copy.missing-vms": "Aucune VM à copier",
-
   "job.vm-delete.bad-power-state": "La VM doit être arrêtée",
   "job.vm-delete.in-progress": "Suppression en cours…",
   "job.vm-delete.missing-vms": "Aucune VM à supprimer",
-
   "job.vm-export.in-progress": "Exportation en cours…",
   "job.vm-export.missing-compression": "La compression est requise",
   "job.vm-export.missing-vms": "Aucune VM à exporter",
   "job.vm-export.not-allowed": "VM non autorisée à être exportée",
-
   "job.vm-force-reboot.bad-power-state": "La VM doit être allumée ou en pause",
   "job.vm-force-reboot.in-progress": "Redémarrage forcé en cours…",
   "job.vm-force-reboot.missing-vms": "Aucune VM à redémarrer de force",
-
   "job.vm-force-shutdown.bad-power-state": "La VM doit être allumée, suspendue ou en pause",
   "job.vm-force-shutdown.in-progress": "Arrêt forcé en cours…",
   "job.vm-force-shutdown.missing-vms": "Aucune VM à arrêter de force",
-
   "job.vm-migrate.bad-power-state": "La VM doit être allumée",
   "job.vm-migrate.in-progress": "Migration en cours…",
   "job.vm-migrate.missing-host": "L'hôte de destination est requis",
   "job.vm-migrate.missing-vms": "Aucune VM à migrer",
-
   "job.vm-pause.bad-power-state": "La VM doit être allumée",
   "job.vm-pause.in-progress": "Mise en pause en cours…",
   "job.vm-pause.missing-vms": "Aucune VM à mettre en pause",
-
   "job.vm-reboot.bad-power-state": "La VM doit être allumée",
   "job.vm-reboot.in-progress": "Redémarrage en cours…",
   "job.vm-reboot.missing-vms": "Aucune VM à redémarrer",
-
   "job.vm-resume.bad-power-state": "La VM doit être en pause ou suspendue",
   "job.vm-resume.in-progress": "Reprise en cours…",
   "job.vm-resume.missing-vms": "Aucune VM à reprendre",
-
   "job.vm-shutdown.bad-power-state": "La VM doit être allumée",
   "job.vm-shutdown.in-progress": "Arrêt en cours…",
   "job.vm-shutdown.missing-vms": "Aucune VM à arrêter",
-
   "job.vm-snapshot.in-progress": "Instantané en cours…",
   "job.vm-snapshot.missing-vms": "Aucune VM pour l'instantané",
-
   "job.vm-start-on.bad-power-state": "La VM doit être arrêtée",
   "job.vm-start-on.in-progress": "Démarrage en cours…",
   "job.vm-start-on.missing-host": "L'hôte de destination est requis",
   "job.vm-start-on.missing-vms": "Aucune VM à démarrer",
-
   "job.vm-start.bad-power-state": "La VM doit être arrêtée",
   "job.vm-start.in-progress": "Démarrage en cours…",
   "job.vm-start.missing-vms": "Aucune VM à démarrer",
-
   "job.vm-suspend.bad-power-state": "La VM doit être allumée",
   "job.vm-suspend.in-progress": "Suspension en cours…",
   "job.vm-suspend.missing-vms": "Aucune VM à suspendre",
-
   "keep-me-logged": "Rester connecté",
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
   "language": "Langue",
@@ -201,7 +178,6 @@
   "ram-usage": "Utilisation de la RAM",
   "reboot": "Redémarrer",
   "reformat": "Reformater",
-
   "relative-time.day": "1 jour | {n} jours",
   "relative-time.future": "Dans {str}",
   "relative-time.hour": "1 heure | {n} heures",
@@ -211,15 +187,12 @@
   "relative-time.past": "Il y a {str}",
   "relative-time.second": "1 seconde | {n} secondes",
   "relative-time.year": "1 an | {n} ans",
-
   "resume": "Reprendre",
   "save": "Enregistrer",
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
-
   "select.network": "Sélectionner un réseau",
   "select.storage": "Sélectionner un SR",
-
   "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
   "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
@@ -239,11 +212,9 @@
   "support": "Support",
   "suspend": "Suspendre",
   "switch-theme": "Changer de thème",
-
   "task.estimated-end": "Fin estimée",
   "task.progress": "Progression",
   "task.started": "Démarré",
-
   "theme-auto": "Auto",
   "theme-dark": "Sombre",
   "theme-light": "Clair",
@@ -253,21 +224,20 @@
   "total-used:": "Total utilisé :",
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
+  "uuid": "UUID",
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vm-is-running": "La VM est en cours d'exécution",
-
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
-
   "xo-lite-under-construction": "XOLite est en construction",
   "xoa-admin-account": "Compte administrateur de la XOA",
   "xoa-deploy": "Déploiement de la XOA",
   "xoa-deploy-failed": "Erreur lors du déploiement de la XOA !",
   "xoa-deploy-retry": "Ré-essayer de déployer une XOA",
   "xoa-deploy-successful": "XOA deployée avec succès !",
-  "xoa-ip": "XOA IP address",
+  "xoa-ip": "Adresse IP XOA",
   "xoa-password-confirm-different": "La confirmation du mot de passe XOA est différente",
   "xoa-ssh-account": "Compte SSH de la XOA",
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",

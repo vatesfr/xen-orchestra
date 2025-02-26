@@ -626,6 +626,7 @@ async function call(args) {
     const baseUrl = xo._url.replace(/^ws/, 'http')
     const httpOptions = {
       rejectUnauthorized: !(await getServerConfig()).allowUnauthorized,
+      timeout: 0,
     }
 
     const result = await xo.call(method, params)

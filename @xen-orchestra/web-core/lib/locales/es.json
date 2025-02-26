@@ -1,7 +1,7 @@
 {
   "access-forum": "Acceso al foro",
   "alarms": "Alarmas",
-
+  
   "bytes.gi": "Gio",
   "bytes.ki": "Kio",
   "bytes.mi": "Mio",
@@ -11,10 +11,10 @@
   "console": "Consola",
   "console-actions": "Acciones de la cónsola",
   "console-clipboard": "Portapales de la cónsola",
-  "copy-info-json": "Copiar información en formato JSON",
 
+  "copy-info-json": "Copiar información en JSON",
   "core.close": "Cerrar",
-  "core.copied": "Copiar",
+  "core.copied": "Copiado",
   "core.copy-id": "Copiar la ID",
   "core.current": "Actual",
   "core.filter": "Filtrar",
@@ -23,38 +23,38 @@
   "core.open": "Abrir",
 
   "core.query-search-bar.label": "Buscador",
-  "core.query-search-bar.placeholder": "Entre su búsqueda",
+  "core.query-search-bar.placeholder": "Entre su búsqueda…",
   "core.query-search-bar.use-query-builder": "Utilizar la constructora de búsquedas",
 
   "core.quick-actions": "Acciones rápidas",
   "core.search": "Buscar",
 
   "core.select.all": "Selectionar todos",
-  "core.select.none": "Selectionar ninguno",
-  "core.select.unselect": "Deseleccionar todos",
   "core.select.n-object-of": "{from} - {to} de {total} objectos",
   "core.select.n-selected-of": "{count} objectos selectionados de un total de {total}",
 
-  "core.show-by": "Mostrar por...",
+  "core.select.none": "Selectionar ninguno",
+  "core.select.unselect": "Deseleccionar todos",
+  "core.show-by": "Mostrar por",
 
   "core.sidebar.close": "Cerrar la barra lateral",
   "core.sidebar.lock": "Bloquear abierta la barra lateral",
   "core.sidebar.open": "Abrir la barra lateral",
   "core.sidebar.unlock": "Desbloquear la barra lateral",
-
   "core.sort.ascending": "Ordenar",
   "core.sort.descending": "Ordenar descendentemente",
+
 
   "dark-mode.auto": "Modo oscuro automática",
   "dark-mode.disable": "Desactivar modo oscuro",
   "dark-mode.enable": "Activar modo oscuro",
-
   "dashboard": "Panel",
-  "default-locking-mode": "Modo de bloque por defecto",
-  "delete": "Borrar",
+  "default-locking-mode": "Modo de bloqueo por defecto",
+  "delete": "Eliminar",
   "description": "Descripción",
   "device": "Dispositivo",
-  "disabled": "Deshabilitado",
+  "disabled": "Desactivado",
+
   "disconnected": "Disconectado",
   "disconnected-from-physical-device": "Disconectado del aparato físico",
   "dns": "DNS",
@@ -64,58 +64,67 @@
   "exit-fullscreen": "Salir de pantala completa",
   "fullscreen": "Pantalla completa",
   "gateway": "Puerta de enlace",
+
   "host-internal-networks": "Redes internas del servidor",
   "hosts": "Servidores",
   "id": "Id",
   "ip-addresses": "Direcciones IP",
   "ip-mode": "Modo IP",
+  
   "learn-more": "Saber más",
   "loading-in-progress": "Cargando…",
-  "log-out": "Desconectarse",
-  "master": "Servidor principal",
   "locking-mode": "Modo de bloqueo",
   "locking-mode-default": "Modo de bloqueo por defecto",
-  "management": "Gestión",
+  "log-out": "Desconectarse",
+  "mac-addresses": "Dirección MAC",
+  "management": "Administración",
+
   "master": "Servidor maestro",
-  "mtu": "MTU",
   "n-vms": "1 VM | {n} VMs",
   "name": "Nombre",
   "network": "Red",
-  "network-block-device": "Dispositivo de bloque por red",
+  "network-block-device": "Dispositivo de bloques por red",
   "networks": "Redes",
   "new": "Nuevos",
   "no-data": "No hay datos",
   "no-network-detected": "No se encuentra red",
-  "no-pif-detected": "No se encuentra PIF (interfaz de red físico)",
+  "no-pif-detected": "No se encuentra ningún PIF (interfaz de red físico)",
+  
   "no-result": "Sin resultado",
   "none": "Ninguno",
   "object-not-found": "No se encuentra el objecto {id}…",
   "off": "Apagado",
-  "on": "En marcha",
+  "on": "Encendido",
+
   "open-console-in-new-tab": "Abrir la cónsola en una nueva pestaña",
   "other": "Otro",
-  "page-not-found": "No se encuentra esta página",
+  "page-not-found": "No se encuentra esta página…",
   "partially-connected": "Parcialmente connectado",
   "patches": "Parches",
+
   "pifs": "PIFs (interfaces de red físicas)",
-  "pifs-status": "Estatus PIFs",
+  "pifs-status": "Estado de los PIFs",
   "power-on-vm-for-console": "Poner la MV en marcha para acceder a su cónsola",
+  
   "power-on-host-for-console": "Poner en marcha el servidor para acceder a su cónsola",
+  "power-on-vm-for-console": "Poner la MV en marcha para acceder a su cónsola",
   "professional-support": "Soporte profesional",
   "receive": "Recibir",
   "running-vm": "MV en marcha | MVs en marcha",
-  "scan-pifs": "Scanear PIFs",
+  
+  "scan-pifs": "Escanear PIFs",
+
   "see-all": "Ver todos",
   "select-to-see-details": "Elegir un elemento para ver las detalles",
   "send": "Enviar",
   "send-ctrl-alt-del": "Enviar Ctrl+Alt+Supr",
   "speed": "Velocidad",
   "static": "Estatico",
+
   "stats": "Estatísticas",
-  "status": "Estatus",
-  "storage": "Amacenamiento",
-  "system": "Sistema",
+  "status": "Estado",
   "table-actions": "Acciones tabla",
+
   "tasks": "Tareas",
 
   "tasks.n-subtasks": "{n} subtarea | {n} subtareas",
@@ -125,8 +134,10 @@
   "tasks.quick-view.done": "Terminadas",
   "tasks.quick-view.failed": "Falladas",
   "tasks.quick-view.in-progress": "En progreso",
-
   "total": "Total",
-  "total-cpus": "Total CPUs",
-  "vms": "VMs"
+  "total-cpus": "CPUs Totales",
+  "unknown": "Desconocido",
+  "unlocked": "Desbloqueado",
+  "vlan": "VLAN",
+  "vms": "MVs"
 }
