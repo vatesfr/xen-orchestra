@@ -22,8 +22,8 @@ const props = defineProps<
 >()
 
 const typoClasses = {
-  small: 'typo p3-regular-underline',
-  medium: 'typo p1-regular-underline',
+  small: 'typo-action-link-small',
+  medium: 'typo-action-link',
 }
 
 const { component, attributes, isDisabled } = useLinkComponent('span', () => props)
@@ -53,7 +53,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
       content: '';
       position: absolute;
       inset: -0.4rem;
-      border: 0.2rem solid var(--color-info-txt-base);
+      border: 0.2rem solid var(--color-brand-txt-base);
       border-radius: 0.4rem;
     }
   }

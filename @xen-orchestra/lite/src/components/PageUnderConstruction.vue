@@ -4,7 +4,7 @@
     :subtitle="$t('new-features-are-coming')"
     :title="$t('xo-lite-under-construction')"
   >
-    <p class="contact typo p1-regular">
+    <p class="contact typo-body-regular">
       {{ $t('do-you-have-needs') }}
       <a
         href="https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng"

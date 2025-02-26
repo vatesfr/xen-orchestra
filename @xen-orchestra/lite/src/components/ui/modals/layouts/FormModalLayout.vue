@@ -1,7 +1,7 @@
 <template>
   <ModalContainer tag="form">
     <template #header>
-      <div :class="borderClass" class="title-bar typo h3-medium">
+      <div :class="borderClass" class="title-bar typo-h3">
         <UiIcon :class="textClass" :icon />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />

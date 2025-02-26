@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isDisplayed" class="summary typo c2-semi-bold">
+  <div v-if="isDisplayed" class="summary typo-caption-small">
     <div class="summary-card">
       <p>{{ $t('total-used:') }}</p>
       <div class="summary-value">
@@ -24,6 +24,7 @@
 <script lang="ts" setup>
 import { formatSize, percent } from '@/libs/utils'
 import { computed } from 'vue'
+
 const props = defineProps<{
   size: number
   usage: number

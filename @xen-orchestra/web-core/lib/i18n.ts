@@ -33,6 +33,10 @@ export const locales: Locales = {
     code: 'cs',
     name: 'čeština',
   },
+  sv: {
+    code: 'sv',
+    name: 'Svenska',
+  },
 }
 
 export default createI18n({

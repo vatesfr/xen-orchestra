@@ -1,7 +1,7 @@
 <!-- v2 -->
 <template>
   <div class="ui-title">
-    <div class="typo h4-medium label">
+    <div class="typo-h4 label">
       <slot />
     </div>
     <div v-if="slots.actions" class="actions">
@@ -23,10 +23,10 @@ const slots = defineSlots<{
   align-items: center;
   gap: 2.4rem;
   padding-block-end: 0.4rem;
-  border-bottom: 0.1rem solid var(--color-info-txt-base);
+  border-bottom: 0.1rem solid var(--color-brand-txt-base);
 
   .label {
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
   }
 
   .actions {

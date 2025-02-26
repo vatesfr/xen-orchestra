@@ -1,5 +1,5 @@
 <template>
-  <div class="footer typo c2-semi-bold">
+  <div class="footer typo-caption-small">
     <div class="footer-card">
       <slot name="left" />
     </div>

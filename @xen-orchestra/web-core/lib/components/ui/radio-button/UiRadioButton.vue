@@ -1,6 +1,6 @@
 <!-- v4 -->
 <template>
-  <label :class="variant" class="ui-radio-button typo p1-regular">
+  <label :class="variant" class="ui-radio-button typo-body-regular">
     <span class="radio-container">
       <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
       <VtsIcon :icon="faCircle" accent="current" class="radio-icon" />
@@ -60,7 +60,7 @@ const isDisabled = useDisabled(() => disabled)
         position: absolute;
         content: '';
         inset: -0.5rem;
-        border: 0.2rem solid var(--color-info-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
         border-radius: 0.4rem;
       }
     }

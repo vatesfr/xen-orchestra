@@ -1,8 +1,8 @@
 <!-- v1 -->
 <template>
-  <div class="ui-card-subtitle">
-    <span class="typo h7-semi-bold"><slot /></span>
-    <span v-if="slots.info" class="typo p3-medium"><slot name="info" /></span>
+  <div class="ui-card-subtitle typo-body-bold-small">
+    <span><slot /></span>
+    <span v-if="slots.info"><slot name="info" /></span>
   </div>
 </template>
 

@@ -12,7 +12,7 @@
     <span class="fake-checkbox">
       <VtsIcon :icon accent="current" class="icon" />
     </span>
-    <span v-if="slots.default" class="typo p1-regular">
+    <span v-if="slots.default" class="typo-body-regular">
       <slot />
     </span>
   </label>
@@ -156,7 +156,7 @@ const attrs = useAttrs()
       }
 
       &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-info-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
       }
 
       &:active + .fake-checkbox {
@@ -207,7 +207,7 @@ const attrs = useAttrs()
       }
 
       &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-warning-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
       }
 
       &:active + .fake-checkbox {
@@ -262,7 +262,7 @@ const attrs = useAttrs()
       }
 
       &:focus-visible + .fake-checkbox::before {
-        border: 0.2rem solid var(--color-danger-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
       }
 
       &:active + .fake-checkbox {

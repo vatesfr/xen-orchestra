@@ -2,7 +2,7 @@
 <template>
   <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
     <VtsIcon :icon accent="current" class="left-icon" fixed-width />
-    <span class="typo p1-regular label">
+    <span class="typo-action-button label">
       <slot />
     </span>
     <VtsIcon :icon="faAngleDown" accent="current" class="right-icon" fixed-width />
@@ -62,7 +62,7 @@ const isDisabled = useDisabled(() => disabled)
       content: '';
       position: absolute;
       inset: -0.5rem;
-      border: 0.2rem solid var(--color-info-txt-base);
+      border: 0.2rem solid var(--color-brand-txt-base);
       border-radius: 0.4rem;
     }
   }

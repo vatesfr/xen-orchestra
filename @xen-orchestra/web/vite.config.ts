@@ -16,10 +16,7 @@ export default defineConfig(({ mode }) => {
       }),
       vue(),
       vueI18n({
-        include: [
-          fileURLToPath(new URL('./src/locales/**', import.meta.url)),
-          fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
-        ],
+        include: fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
       }),
     ] as PluginOption[],
     resolve: {

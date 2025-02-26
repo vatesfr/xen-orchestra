@@ -21,8 +21,8 @@ const { size, accent, variant } = defineProps<{
 }>()
 
 const typoClasses = {
-  small: 'typo p4-semi-bold',
-  medium: 'typo p1-medium',
+  small: 'typo-body-bold-small',
+  medium: 'typo-body-bold',
 }
 
 const classNames = computed(() => {
@@ -57,14 +57,14 @@ const classNames = computed(() => {
       color: var(--color-brand-txt-item);
     }
 
-    &.accent--info {
-      background-color: var(--color-info-item-base);
-      color: var(--color-info-txt-item);
-    }
-
     &.accent--neutral {
       background-color: var(--color-neutral-txt-primary);
       color: var(--color-neutral-background-primary);
+    }
+
+    &.accent--info {
+      background-color: var(--color-info-item-base);
+      color: var(--color-info-txt-item);
     }
 
     &.accent--success {

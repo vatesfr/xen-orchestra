@@ -1,11 +1,11 @@
 <!-- WIP -->
 <template>
   <td class="vts-cell-text">
-    <div class="data typo p2-regular">
+    <div class="data typo-body-regular-small">
       <span v-tooltip class="text-ellipsis">
         <slot />
       </span>
-      <span v-if="slots.secondary" class="info typo p4-regular">
+      <span v-if="slots.secondary" class="info">
         <slot name="secondary" />
       </span>
     </div>

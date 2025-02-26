@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <div v-if="!isDisabled" ref="tooltipElement" class="ui-tooltip typo p3-regular">
+  <div v-if="!isDisabled" ref="tooltipElement" class="ui-tooltip typo-body-regular-small">
     {{ content }}
   </div>
 </template>
