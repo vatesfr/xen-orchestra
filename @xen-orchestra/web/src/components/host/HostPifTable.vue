@@ -6,10 +6,10 @@
         <UiButton
           v-tooltip="$t('coming-soon')"
           disabled
-          size="medium"
+          :left-icon="faPlus"
           variant="secondary"
           accent="brand"
-          :left-icon="faArrowsRotate"
+          size="medium"
         >
           {{ $t('scan-pifs') }}
         </UiButton>
@@ -40,15 +40,16 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-
         <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
       <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <div v-tooltip="$t('coming-soon')">
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
+                </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
@@ -76,8 +77,16 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
+                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
+              <UiButtonIcon
+                v-else-if="column.id === 'more'"
+                v-tooltip="$t('coming-soon')"
+                :icon="faEllipsis"
+                accent="brand"
+                disabled
+                size="small"
+              />
               <div v-else-if="column.id === 'status'" v-tooltip>
                 <VtsConnectionStatus :status="column.value" />
               </div>
@@ -94,28 +103,27 @@
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="$t('management')"
-                  accent="warning"
+                  accent="info"
                   :icon="faCircle"
                   :overlay-icon="faStar"
                 />
               </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
-                :icon="faEllipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'ip'" class="ip-addresses" :class="{ center: column.value.ip === '-' }">
-                <span class="text-ellipsis">{{ column.value.ip }}</span>
-                <span v-if="column.value.ipv6 > 0" class="typo p3-regular ipv6">{{ `+${column.value.ipv6}` }}</span>
+              <div v-else-if="column.id === 'ip'" class="ip-addresses">
+                <span class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo p3-regular more-ips">{{
+                  `+${column.value.length - 1}`
+                }}</span>
               </div>
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">{{ column.value }}</div>
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                {{ column.value }}
+              </div>
             </td>
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>
   </div>
@@ -128,6 +136,7 @@ import type { XoPif } from '@/types/xo/pif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -142,12 +151,12 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
-  faArrowsRotate,
   faAt,
   faCaretDown,
   faCircle,
   faEdit,
   faEllipsis,
+  faPlus,
   faPowerOff,
   faStar,
   faTrash,
@@ -183,21 +192,23 @@ const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getNetworkName = (pif: XoPif) => {
   const network = get(pif.$network)!
+
   return network.name_label ? network.name_label : ''
 }
 
-const getFormattedValue = (value: string) => {
-  return value || '-'
-}
+const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
-const getPifVlan = (pif: XoPif) => (pif.vlan !== -1 ? pif.vlan.toString() : t('none'))
-
-const getNumberOfIPv6 = (pif: XoPif) => pif.ipv6.filter(ip => ip.trim() !== '').length
+const getIpAddresses = (pif: XoPif) => [pif.ip, ...pif.ipv6].filter(ip => ip)
 
 const getIpConfigurationMode = (ipMode: string) => {
-  if (ipMode === 'Static') return t('static')
-  if (ipMode === 'DHCP') return t('dhcp')
-  return t('none')
+  switch (ipMode) {
+    case 'Static':
+      return t('static')
+    case 'DHCP':
+      return t('dhcp')
+    default:
+      return t('none')
+  }
 }
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
@@ -212,19 +223,14 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
       }),
       { label: t('network') }
     ),
-    define('device', record => record.device, { label: t('device') }),
+    define('device', { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
-    define('vlan', record => getPifVlan(record), { label: t('vlan') }),
-    define(
-      'ip',
-      record => ({
-        ip: getFormattedValue(record.ip),
-        ipv6: getNumberOfIPv6(record),
-      }),
-      { label: t('ip-addresses') }
-    ),
-    define('mac', record => record.mac, { label: t('mac-addresses') }),
-    define('mode', record => getIpConfigurationMode(record.mode), { label: t('ip-mode') }),
+    define('vlan', record => getVlanData(record.vlan), { label: t('vlan') }),
+    define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
+    define('mac', { label: t('mac-addresses') }),
+    define('mode', record => getIpConfigurationMode(record.mode), {
+      label: t('ip-mode'),
+    }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
@@ -270,8 +276,12 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
     justify-content: space-between;
     align-items: center;
 
-    .ipv6 {
+    .more-ips {
       color: var(--color-neutral-txt-secondary);
+    }
+
+    &:has(.value:empty) {
+      justify-content: center;
     }
   }
 
@@ -283,6 +293,10 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .value:empty::before {
+    content: '-';
   }
 }
 </style>

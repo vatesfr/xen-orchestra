@@ -3,7 +3,7 @@
     <UiCard class="container">
       <HostPifTable :pifs />
     </UiCard>
-    <HostPifSidePanel v-if="pif" :pif />
+    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" />
     <UiPanel v-else>
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -14,7 +14,7 @@
 import HostPifSidePanel from '@/components/host/HostPifSidePanel.vue'
 import HostPifTable from '@/components/host/HostPifTable.vue'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoHost } from '@/types/xo/host.type'
+import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -23,18 +23,18 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router/auto'
 
 const { records } = usePifStore().subscribe()
-
-const pifId = useRouteQuery('id')
 const route = useRoute()
 
-const hostId = route.params.id as XoHost['id']
 const pifs = computed(() => {
   return records.value.filter(pif => {
-    return pif.$host === hostId
+    return pif.$host === route.params.id
   })
 })
 
-const pif = computed(() => records.value.find(pif => pif.id === pifId.value))
+const selectedPif = useRouteQuery<XoPif | undefined>('id', {
+  toData: id => pifs.value.find(pif => pif.id === id),
+  toQuery: pif => pif?.id ?? '',
+})
 </script>
 
 <style scoped lang="postcss">
