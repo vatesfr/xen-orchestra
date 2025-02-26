@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Ability to delete a user (PR [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283))
-- [REST API] VM/Host stats available at `/rest/v0/<vms|host>/<id>/stats`
+- [REST API] VM/Host stats available at `/rest/v0/<vms|host>/<id>/stats` (PR [#8378](https://github.com/vatesfr/xen-orchestra/pull/8378))
 
 ### Bug fixes
 
