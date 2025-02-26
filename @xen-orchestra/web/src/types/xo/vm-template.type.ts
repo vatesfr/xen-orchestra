@@ -10,17 +10,17 @@ type Disk = {
 }
 
 export type XoVmTemplate = {
-  id: Branded<'vm-template'>
-  boot: { firmware: string; order: string }
-  CPUs: { max: number; number: number }
-  type: 'VM-template'
-  $pool: XoPool['id']
-  memory: { dynamic: number[]; static: number[] }
-  name_label: string
-  name_description: string
-  template_info: { disks: Disk[]; install_methods: string[] }
-  isDefaultTemplate: boolean
-  VIFs: []
   $VBDs: []
+  $pool: XoPool['id']
+  CPUs: { max: number; number: number }
+  VIFs: []
+  boot: { firmware: string; order: string }
+  id: Branded<'vm-template'>
+  isDefaultTemplate: boolean
+  memory: { dynamic: number[]; static: number[]; size: number }
+  name_description: string
+  name_label: string
   tags: []
+  template_info: { disks: Disk[]; install_methods: string[] }
+  type: 'VM-template'
 }
