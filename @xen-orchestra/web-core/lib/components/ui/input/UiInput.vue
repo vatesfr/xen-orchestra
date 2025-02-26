@@ -6,12 +6,14 @@
     </UiLabel>
     <div>
       <VtsIcon :icon accent="current" class="before" />
-      <input :id
-             v-model.trim="inputValue"
-             class="typo-body-regular input text-ellipsis"
-             :type
-             :disabled
-             v-bind="attrs" />
+      <input
+        :id
+        v-model.trim="inputValue"
+        class="typo-body-regular input text-ellipsis"
+        :type
+        :disabled
+        v-bind="attrs"
+      />
       <VtsIcon
         v-if="!attrs.disabled && inputValue && clearable"
         :icon="faXmark"
@@ -66,7 +68,9 @@ const {
   type?: InputType
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': (value: string | number) => void }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string | number]
+}>()
 
 const slots = defineSlots<{
   default?(): any

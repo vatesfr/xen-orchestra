@@ -22,7 +22,7 @@ const { accent, value, disabled } = defineProps<{
   disabled?: boolean
 }>()
 
-const model = defineModel<any>()
+const model = defineModel<string>()
 
 defineSlots<{
   default(): any
