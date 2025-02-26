@@ -2,15 +2,23 @@
 
 ## **next**
 
+### Security
+
+- Ensure password is not logged in error messages when adding hosts to a pool (PR [#8369](https://github.com/vatesfr/xen-orchestra/pull/8369))
+
 ### Enhancements
 
 - [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
 - **XO6**:
   - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
+  - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
+  - [i18n] Merge XO 6 translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
 - [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
 - [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
 - [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
 - [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
+- [REST API] Ability to delete/update a user (PRs [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283), [#8343](https://github.com/vatesfr/xen-orchestra/pull/8343))
+- [REST API] VM/Host stats available at `/rest/v0/<vms|hosts>/<id>/stats` (PR [#8378](https://github.com/vatesfr/xen-orchestra/pull/8378))
 
 ### Bug fixes
 
@@ -18,25 +26,29 @@
 - [V2V] Fix `fail to power off vm vm-XXXXXX, state:queued.` when powering down source VM (PR [#8328](https://github.com/vatesfr/xen-orchestra/pull/8328))
 - [V2] Fix `Cannot read properties of undefined (reading 'map')` with empty datastore (PR [#8311](https://github.com/vatesfr/xen-orchestra/pull/8311))
 - [Plugin/audit] Do not log call to `host.getBiosInfo` and `host.getMdadmHealth`
+- [xo-cli] Fix timeouts when using the legacy JSON-RPC API (e.g. exporting a VM)
+- [Plugin/audit] Do not log getBiosInfo and getSmartctlHealth API calls [Forum#89777](https://xcp-ng.org/forum/post/89777) (PR [#8353](https://github.com/vatesfr/xen-orchestra/pull/8353))
 
 ### Released packages
 
 - @vates/task 0.6.1
-- @vates/types 1.0.0
-- @xen-orchestra/web-core 0.14.0
-- @xen-orchestra/web 0.10.0
-- xo-server-audit 0.12.3
 - xo-server-auth-oidc 0.3.1
 - xo-server-backup-reports 1.5.0
 - xo-server-sdn-controller 1.1.0
 - @xen-orchestra/backups 0.58.2
 - @xen-orchestra/mixins 0.16.3
-- @xen-orchestra/proxy 0.29.13
 - @xen-orchestra/vmware-explorer 0.9.2
 - @xen-orchestra/xapi 8.0.1
 - @vates/generator-toolbox 1.0.1
 - @xen-orchestra/rest-api 0.1.2
-- xo-server 5.171.1
+- xen-api 4.7.1
+- @vates/types 1.0.1
+- @xen-orchestra/web-core 0.15.0
+- @xen-orchestra/proxy 0.29.14
+- @xen-orchestra/web 0.11.0
+- xo-cli 0.32.2
+- xo-server 5.172.0
+- xo-server-audit 0.12.4
 
 ## **5.103.1** (2025-02-04)
 

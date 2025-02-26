@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.171.1",
+  "version": "5.172.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -138,7 +138,7 @@
     "vhd-lib": "^4.11.2",
     "ws": "^8.2.3",
     "xdg-basedir": "^5.1.0",
-    "xen-api": "^4.7.0",
+    "xen-api": "^4.7.1",
     "xo-acl-resolver": "^0.5.0",
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",

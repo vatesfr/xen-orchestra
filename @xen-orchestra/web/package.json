@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/web",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -27,7 +27,7 @@
     "@vueuse/math": "^10.7.1",
     "@vueuse/shared": "^10.7.1",
     "@vueuse/integrations": "^10.7.1",
-    "@xen-orchestra/web-core": "^0.14.0",
+    "@xen-orchestra/web-core": "^0.15.0",
     "lodash-es": "^4.17.21",
     "npm-run-all2": "^6.1.1",
     "pinia": "^2.2.6",
