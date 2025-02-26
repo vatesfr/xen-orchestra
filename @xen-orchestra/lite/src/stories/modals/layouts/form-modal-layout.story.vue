@@ -23,8 +23,8 @@
       </div>
 
       <template #buttons>
-        <UiButton variant="secondary" accent="info" size="medium">Cancel</UiButton>
-        <UiButton variant="primary" accent="info" size="medium">Migrate 3 VMs</UiButton>
+        <UiButton variant="secondary" accent="brand" size="medium">Cancel</UiButton>
+        <UiButton variant="primary" accent="brand" size="medium">Migrate 3 VMs</UiButton>
       </template>
     </FormModalLayout>
   </ComponentStory>

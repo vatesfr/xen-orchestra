@@ -2,14 +2,14 @@
 <template>
   <div class="ui-card-title">
     <div class="main-content">
-      <div class="title typo h6-medium">
+      <div class="title typo-body-bold">
         <slot />
       </div>
-      <div v-if="slots.info" class="info typo h7-semi-bold">
+      <div v-if="slots.info" class="info typo-body-bold-small">
         <slot name="info" />
       </div>
     </div>
-    <p v-if="slots.description" class="description typo p3-regular">
+    <p v-if="slots.description" class="description typo-body-regular-small">
       <slot name="description" />
     </p>
   </div>
@@ -46,7 +46,7 @@ const slots = defineSlots<{
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    color: var(--color-info-txt-base);
+    color: var(--color-brand-txt-base);
   }
 
   .description {

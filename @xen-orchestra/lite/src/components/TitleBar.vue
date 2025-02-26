@@ -1,7 +1,7 @@
 <template>
   <div class="title-bar">
     <UiIcon :icon class="icon" />
-    <div class="title typo h4-medium">
+    <div class="title typo-h4">
       <slot />
     </div>
     <div class="actions">
@@ -36,7 +36,7 @@ defineProps<{
 
 .icon {
   font-size: 2.5rem;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 }
 
 .title {

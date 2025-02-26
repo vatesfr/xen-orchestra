@@ -21,8 +21,8 @@
       {{ settings.label }}
       <template #description>{{ settings.description }}</template>
       <template #actions>
-        <UiObjectLink v-if="settings.showLink" class="link typo p1-regular" route="#">See tasks</UiObjectLink>
-        <UiButton v-else variant="tertiary" size="medium" :accent="properties.accent === 'danger' ? 'danger' : 'info'">
+        <UiObjectLink v-if="settings.showLink" class="link typo-body-regular" route="#">See tasks</UiObjectLink>
+        <UiButton v-else variant="tertiary" size="medium" :accent="properties.accent === 'danger' ? 'danger' : 'brand'">
           {{ settings.actions }}
         </UiButton>
       </template>

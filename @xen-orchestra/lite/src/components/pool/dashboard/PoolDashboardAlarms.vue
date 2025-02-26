@@ -8,10 +8,10 @@
     </UiCardTitle>
     <div v-if="!isStarted" class="pre-start">
       <div>
-        <p class="text typo h4-medium">
+        <p class="text typo-h4">
           {{ $t('click-to-display-alarms') }}
         </p>
-        <UiButton size="medium" accent="info" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
+        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />
@@ -25,7 +25,7 @@
       <div>
         <img alt="" src="@/assets/server-status.svg" />
       </div>
-      <p class="text typo h4-medium">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
+      <p class="text typo-h4">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
     </div>
     <div v-else class="table-container">
       <UiTable>

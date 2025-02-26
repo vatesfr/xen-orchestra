@@ -2,7 +2,7 @@
 <template>
   <div :class="toVariants({ accent })" class="ui-label">
     <VtsIcon accent="current" :icon class="icon" />
-    <label :for="htmlFor" :class="{ required }" class="typo c2-semi-bold label">
+    <label :for="htmlFor" :class="{ required }" class="typo-caption label">
       <slot />
     </label>
     <UiLink v-if="href" class="learn-more-link" size="small" :href>{{ $t('learn-more') }}</UiLink>

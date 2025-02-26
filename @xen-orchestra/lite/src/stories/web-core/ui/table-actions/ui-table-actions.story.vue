@@ -15,7 +15,7 @@
         :key="index"
         :left-icon="label.icon"
         variant="tertiary"
-        accent="info"
+        accent="brand"
         size="medium"
       >
         {{ label.title }}
@@ -26,7 +26,7 @@
         </UiActionsTitle>
       </template>
       <template #groupedBy>
-        <span>Grouped By</span>
+        <span class="typo-body-regular-small">Grouped By</span>
       </template>
     </UiTableActions>
   </ComponentStory>

@@ -29,15 +29,15 @@ const isDisabled = useDisabled()
   }
 
   &:hover {
-    background-color: var(--color-info-background-hover);
+    background-color: var(--color-brand-background-hover);
   }
 
   &:active {
-    background-color: var(--color-info-background-active);
+    background-color: var(--color-brand-background-active);
   }
 
   &.selected {
-    background-color: var(--color-info-background-selected);
+    background-color: var(--color-brand-background-selected);
   }
 
   &:focus-visible {
@@ -47,7 +47,7 @@ const isDisabled = useDisabled()
       content: '';
       position: absolute;
       inset: -0.4rem;
-      border: 0.2rem solid var(--color-info-txt-base);
+      border: 0.2rem solid var(--color-brand-txt-base);
       border-radius: 0.4rem;
     }
   }

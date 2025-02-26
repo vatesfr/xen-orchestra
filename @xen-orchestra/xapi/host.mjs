@@ -51,13 +51,26 @@ class Host {
     } catch (error) {}
 
     const residentVmRefs = await this.getField('host', ref, 'resident_VMs')
+
+    // check the VMs with PCI passthrough
+    const vms = await asyncMap(residentVmRefs, ref => this.getRecord('VM', ref))
+    const vmsNotSuspendable = vms.filter(async vm => {
+      try {
+        await this.call('VM.assert_operation_valid', vm.$ref, 'suspend')
+        return false
+      } catch (err) {
+        return true
+      }
+    })
+    const vmsNotSuspendableRefs = new Set(vmsNotSuspendable.map(vm => vm.$ref))
+
     const vmsWithSuspendBlocked = await asyncMap(residentVmRefs, ref => this.getRecord('VM', ref)).filter(
       vm =>
         vm.$ref !== currentVmRef &&
         !vm.is_control_domain &&
         vm.power_state !== 'Halted' &&
         vm.power_state !== 'Suspended' &&
-        vm.blocked_operations.suspend !== undefined
+        (vm.blocked_operations.suspend !== undefined || vmsNotSuspendableRefs.has(vm.$ref))
     )
 
     if (!bypassBlockedSuspend && vmsWithSuspendBlocked.length > 0) {
@@ -116,7 +129,12 @@ class Host {
             }
           }
 
-          throw error
+          // fallback on suspend error
+          try {
+            await this.callAsync('VM.clean_shutdown', vmRef)
+          } catch (error) {
+            await this.callAsync('VM.hard_shutdown', vmRef)
+          }
         }
       },
       { stopOnError: false }

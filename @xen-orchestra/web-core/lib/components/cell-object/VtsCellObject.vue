@@ -4,7 +4,7 @@
     <div class="data">
       <slot />
       <template v-if="id !== undefined">
-        <span v-tooltip class="id typo p4-regular-italic text-ellipsis">
+        <span v-tooltip class="id typo-form-info text-ellipsis">
           {{ id }}
         </span>
         <UiButton
@@ -12,7 +12,7 @@
           :left-icon="faCopy"
           variant="secondary"
           size="small"
-          :accent="copied ? 'success' : 'info'"
+          accent="brand"
           @click="copy(id)"
         >
           {{ copied ? $t('core.copied') : $t('core.copy-id') }}

@@ -1,7 +1,7 @@
 <template>
   <div class="form-input-wrapper">
     <div v-if="label !== undefined || learnMoreUrl !== undefined" class="label-container">
-      <label :class="[light ? 'p1-regular light' : 'h7-semi-bold']" :for="id" class="label typo">
+      <label :class="[light ? 'typo-body-regular light' : 'typo-body-bold-small']" :for="id" class="label">
         <UiIcon :icon />
         {{ label }}
       </label>
@@ -124,7 +124,7 @@ useDisabled(() => props.disabled)
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 
   & > span {
     text-decoration: underline;

@@ -57,9 +57,9 @@ const slots = defineSlots<{
 }>()
 
 const fontClasses = {
-  small: 'typo p3-medium', // Typography classes, "typo" is required
-  medium: 'typo h6-medium',
-  large: 'typo h3-semi-bold',
+  small: 'typo-body-bold-small',
+  medium: 'typo-h6',
+  large: 'typo-h3',
 }
 
 const classNames = computed(() => [
@@ -118,7 +118,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-info-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -146,7 +146,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-info-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -176,7 +176,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-success-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {
@@ -204,7 +204,7 @@ const classNames = computed(() => [
       }
 
       &:focus-visible::before {
-        border-color: var(--color-success-txt-base);
+        border-color: var(--color-brand-txt-base);
       }
 
       &:active {

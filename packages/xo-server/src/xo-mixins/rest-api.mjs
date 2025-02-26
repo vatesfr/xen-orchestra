@@ -1,3 +1,4 @@
+import setupRestApi from '@xen-orchestra/rest-api'
 import { asyncEach } from '@vates/async-each'
 import { createGzip } from 'node:zlib'
 import { defer } from 'golike-defer'
@@ -603,6 +604,8 @@ export default class RestApi {
     })
 
     const collections = { __proto__: null }
+    // add migrated collections to maintain their discoverability
+    const swaggerEndpoints = ['docs', 'vms']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1142,7 +1145,7 @@ export default class RestApi {
 
     api.get(
       '/',
-      wrap((req, res) => sendObjects(Object.values(collections), req, res))
+      wrap((req, res) => sendObjects([...Object.values(collections), ...swaggerEndpoints], req, res))
     )
 
     // For compatibility redirect from /backups* to /backup
@@ -1275,8 +1278,11 @@ export default class RestApi {
 
     api.get(
       '/:collection',
-      wrap(async (req, res) => {
+      wrap(async (req, res, next) => {
         const { collection, query } = req
+        if (swaggerEndpoints.includes(collection.id)) {
+          return next('route')
+        }
 
         const filter = handleOptionalUserFilter(query.filter)
 
@@ -1347,11 +1353,15 @@ export default class RestApi {
       })
     )
 
-    api.get('/:collection/:object', (req, res) => {
+    api.get('/:collection/:object', (req, res, next) => {
+      const { collection } = req
+      if (swaggerEndpoints.includes(collection.id)) {
+        return next('route')
+      }
       let result = req.object
 
       // add locations of sub-routes for discoverability
-      const { routes } = req.collection
+      const { routes } = collection
       if (routes !== undefined) {
         result = { ...result }
         for (const route of Object.keys(routes)) {
@@ -1361,6 +1371,7 @@ export default class RestApi {
 
       res.json(result)
     })
+
     // Generic route captures all PATCH requests, preventing group/update from being executed so patch/users must be placed before patch/object
     api.patch(
       '/:collection(users)/:id',
@@ -1399,6 +1410,36 @@ export default class RestApi {
         await app.updateUser(id, { name, password, permission, preferences })
 
         res.sendStatus(204)
+
+    // should go before routes /:collection/:object because they will match before
+    api.patch(
+      '/:collection(groups)/:id',
+      json(),
+      wrap(async (req, res) => {
+        const { id } = req.params
+        const { name } = req.body
+
+        const group = await app.getGroup(id)
+        if (group.provider !== undefined) {
+          return res.status(403).json({ error: 'Cannot edit synchronized group' })
+        }
+
+        if (name === null) {
+          return res.status(400).json({ error: 'name cannot be removed' })
+        }
+        if (name !== undefined && typeof name !== 'string') {
+          return res.status(400).json({ error: 'name must be a string' })
+        }
+
+        try {
+          await app.updateGroup(id, { name })
+          res.sendStatus(204)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
       }, true)
     )
     api
@@ -1555,6 +1596,102 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+
+    api.delete(
+      '/:collection(users)/:id',
+      wrap(async (req, res) => {
+        const { id } = req.params
+        await app.deleteUser(id)
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.post(
+      '/:collection(users)',
+      json(),
+      wrap(async (req, res) => {
+        const { name, password, permission } = req.body
+        if (name == null || password == null) {
+          return res.status(400).json({ message: 'name and password are required.' })
+        }
+
+        if (
+          typeof name !== 'string' ||
+          typeof password !== 'string' ||
+          (permission !== undefined && typeof permission !== 'string')
+        ) {
+          return res.status(400).json({ message: 'name, password and permission (if provided) must be strings.' })
+        }
+
+        const user = await app.createUser({ name, password, permission })
+        res.status(201).end(user.id)
+      })
+    )
+    api.put(
+      '/:collection(groups)/:id/users/:userId',
+      wrap(async (req, res) => {
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
+
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot add user to synchronized group' })
+        }
+
+        await app.addUserToGroup(userId, id)
+
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
+      '/:collection(groups)/:id/users/:userId',
+      wrap(async (req, res) => {
+        const { id, userId } = req.params
+        const group = await app.getGroup(id)
+
+        if (group.provider !== undefined) {
+          return res.status(403).json({ message: 'cannot remove user from synchronized group' })
+        }
+
+        await app.removeUserFromGroup(userId, id)
+
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
+      '/:collection(groups)/:id',
+      wrap(async (req, res) => {
+        await app.deleteGroup(req.params.id)
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        if (name == null) {
+          return res.status(400).json({ error: 'name is required' })
+        }
+        if (typeof name !== 'string') {
+          return res.status(400).json({ message: 'name must be a string' })
+        }
+
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      })
+    )
+
+    setupRestApi(express, app)
   }
 
   registerRestApi(spec, base = '/') {

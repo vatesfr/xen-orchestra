@@ -7,7 +7,7 @@
           content: sidebarStore.isExpanded ? $t('core.sidebar.close') : $t('core.sidebar.open'),
           placement: 'right',
         }"
-        accent="info"
+        accent="brand"
         size="medium"
         :icon="sidebarStore.isExpanded ? faAngleDoubleLeft : faBars"
         class="sidebar-toggle"

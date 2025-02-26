@@ -19,8 +19,8 @@ Please see the plugin's [official documentation](https://xen-orchestra.com/docs/
 
 - `private-network`: logic for private networks
 - `protocol`:
-  - `openflow-channel.js`: protocol to manage OpenFlow rules
-  - `ovsdb-client.js`: protocol to manage private networks
+  - `openflow-channel.js`: manages OpenFlow rules
+  - `ovsdb-client.js`: manages private networks
 - `utils/tls-helper.js`: small class to create connections using TLS
 
 ## Contributions

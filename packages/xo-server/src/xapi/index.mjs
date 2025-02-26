@@ -168,15 +168,7 @@ export default class Xapi extends XapiBase {
   // =================================================================
 
   async joinPool(masterAddress, masterUsername, masterPassword, force = false) {
-    try {
-      await this.call(force ? 'pool.join_force' : 'pool.join', masterAddress, masterUsername, masterPassword)
-    } catch (error) {
-      const params = error?.call?.params
-      if (Array.isArray(params)) {
-        params[2] = '* obfuscated *'
-      }
-      throw error
-    }
+    await this.call(force ? 'pool.join_force' : 'pool.join', masterAddress, masterUsername, masterPassword)
   }
 
   // =================================================================

@@ -61,7 +61,7 @@ Please only use this if you have issues with [the default way to deploy XOA](ins
 Alternatively, you can deploy it by connecting to your XCP-ng/XenServer host and executing the following:
 
 ```sh
-bash -c "$(wget -qO- https://xoa.io/deploy)"
+bash -c "$(wget --no-verbose -O- https://xoa.io/deploy)"
 ```
 
 :::tip
@@ -78,7 +78,7 @@ curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protoc
 It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
 
 ```sh
-bash -c "$(wget -qO- http://xoa.io/deploy)"
+bash -c "$(wget --no-verbose -O- https://xoa.io/deploy)"
 ```
 
 :::

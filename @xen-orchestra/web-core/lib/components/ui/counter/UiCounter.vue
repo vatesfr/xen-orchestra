@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <span :class="classNames" class="ui-counter">
     <span class="inner">{{ value }}</span>
@@ -9,11 +9,11 @@
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type CounterAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
+type CounterAccent = 'brand' | 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
 type CounterVariant = 'primary' | 'secondary'
 type CounterSize = 'small' | 'medium'
 
-const props = defineProps<{
+const { size, accent, variant } = defineProps<{
   value: number | string
   accent: CounterAccent
   variant: CounterVariant
@@ -21,17 +21,17 @@ const props = defineProps<{
 }>()
 
 const typoClasses = {
-  small: 'typo p4-semi-bold',
-  medium: 'typo p1-medium',
+  small: 'typo-body-bold-small',
+  medium: 'typo-body-bold',
 }
 
 const classNames = computed(() => {
   return [
-    typoClasses[props.size],
+    typoClasses[size],
     toVariants({
-      accent: props.accent,
-      variant: props.variant,
-      size: props.size,
+      accent,
+      variant,
+      size,
     }),
   ]
 })
@@ -52,14 +52,19 @@ const classNames = computed(() => {
   /* VARIANT + ACCENT VARIANTS */
 
   &.variant--primary {
-    &.accent--info {
-      background-color: var(--color-info-item-base);
-      color: var(--color-info-txt-item);
+    &.accent--brand {
+      background-color: var(--color-brand-item-base);
+      color: var(--color-brand-txt-item);
     }
 
     &.accent--neutral {
       background-color: var(--color-neutral-txt-primary);
       color: var(--color-neutral-background-primary);
+    }
+
+    &.accent--info {
+      background-color: var(--color-info-item-base);
+      color: var(--color-info-txt-item);
     }
 
     &.accent--success {
@@ -84,6 +89,11 @@ const classNames = computed(() => {
   }
 
   &.variant--secondary {
+    &.accent--brand {
+      background-color: var(--color-brand-background-selected);
+      color: var(--color-brand-txt-base);
+    }
+
     &.accent--info {
       background-color: var(--color-info-background-selected);
       color: var(--color-info-txt-base);

@@ -2,7 +2,7 @@
   <UiCardTitle>{{ $t('console-actions') }}</UiCardTitle>
   <UiButton
     class="button"
-    accent="info"
+    accent="brand"
     variant="tertiary"
     size="medium"
     :left-icon="isFullscreen ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter"
@@ -12,7 +12,7 @@
   </UiButton>
   <UiButton
     class="button"
-    accent="info"
+    accent="brand"
     variant="tertiary"
     size="medium"
     :left-icon="faArrowUpRightFromSquare"
@@ -22,7 +22,7 @@
   </UiButton>
   <UiButton
     class="button"
-    accent="info"
+    accent="brand"
     variant="tertiary"
     size="medium"
     :left-icon="faKeyboard"

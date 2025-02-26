@@ -192,18 +192,14 @@ module.exports = {
     // Specific rules for XO i18n-related files
     {
       files: [
-        '@xen-orchestra/lite/**/*.{vue,ts,json}',
-        '@xen-orchestra/web/**/*.{vue,ts,json}',
+        '@xen-orchestra/lite/**/*.{vue,ts}',
+        '@xen-orchestra/web/**/*.{vue,ts}',
         '@xen-orchestra/web-core/**/*.{vue,ts,json}',
       ],
       extends: ['plugin:@intlify/vue-i18n/base'],
       settings: {
         'vue-i18n': {
-          localeDir: [
-            '@xen-orchestra/lite/src/locales/*.json',
-            '@xen-orchestra/web/src/locales/*.json',
-            '@xen-orchestra/web-core/lib/locales/*.json',
-          ],
+          localeDir: ['@xen-orchestra/web-core/lib/locales/*.json'],
           messageSyntaxVersion: '^9.9.0',
         },
       },
@@ -227,7 +223,10 @@ module.exports = {
         '@intlify/vue-i18n/no-v-html': 'error',
         '@intlify/vue-i18n/valid-message-syntax': 'error',
         '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
-        '@intlify/vue-i18n/no-missing-keys-in-other-locales': ['error', { ignoreLocales: ['de', 'fa', 'cs', 'es' ] }],
+        '@intlify/vue-i18n/no-missing-keys-in-other-locales': [
+          'error',
+          { ignoreLocales: ['de', 'fa', 'cs', 'es', 'sv'] },
+        ],
       },
     },
     // Specific rules for XO dev-related files

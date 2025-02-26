@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p v-tooltip="!wrap" class="typo p3-regular" :class="{ 'text-ellipsis': !wrap }">
+    <p v-tooltip="!wrap" class="typo-form-info" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
   </div>

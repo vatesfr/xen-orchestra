@@ -2,13 +2,13 @@
 <template>
   <div class="ui-top-bottom-table">
     <div class="content">
-      <span class="typo p3-regular label">
+      <span class="typo-body-regular-small label">
         {{ $t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
       </span>
 
       <UiButton
         :disabled="selectedItems === totalItems"
-        accent="info"
+        accent="brand"
         size="small"
         variant="tertiary"
         @click="emit('toggleSelectAll', true)"
@@ -17,7 +17,7 @@
       </UiButton>
       <UiButton
         :disabled="selectedItems === 0"
-        accent="info"
+        accent="brand"
         size="small"
         variant="tertiary"
         @click="emit('toggleSelectAll', false)"

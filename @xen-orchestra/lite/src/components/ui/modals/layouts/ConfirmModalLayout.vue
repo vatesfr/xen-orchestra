@@ -12,7 +12,7 @@
         <UiTitle v-if="slots.title" type="h4">
           <slot name="title" />
         </UiTitle>
-        <div v-if="slots.subtitle" class="subtitle typo p1-regular">
+        <div v-if="slots.subtitle" class="subtitle typo-body-regular">
           <slot name="subtitle" />
         </div>
       </div>

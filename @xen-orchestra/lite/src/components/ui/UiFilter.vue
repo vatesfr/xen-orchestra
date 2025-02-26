@@ -1,5 +1,5 @@
 <template>
-  <span class="ui-filter typo p1-regular">
+  <span class="ui-filter typo-body-regular">
     <span class="label" @click="emit('edit')">
       <slot />
     </span>
@@ -26,11 +26,11 @@ const emit = defineEmits<{
   align-items: stretch;
   justify-content: center;
   height: 3.4rem;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
   border-radius: 1.7rem;
-  background-color: var(--color-info-background-selected);
+  background-color: var(--color-brand-background-selected);
   gap: 1rem;
-  border: 1px solid var(--color-info-txt-base);
+  border: 1px solid var(--color-brand-txt-base);
 }
 
 .label,
@@ -54,7 +54,7 @@ const emit = defineEmits<{
   border-radius: 1.4rem;
   width: 2.8rem;
   margin: 0.2rem;
-  background-color: var(--color-info-item-active);
+  background-color: var(--color-brand-item-active);
 
   &:hover {
     background-color: var(--color-danger-item-hover);

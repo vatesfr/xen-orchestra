@@ -16,7 +16,7 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "1.0.11",
+  "version": "1.1.0",
   "engines": {
     "node": ">=10"
   },
@@ -27,6 +27,7 @@
     "cross-env": "^7.0.2"
   },
   "dependencies": {
+    "@vates/async-each": "^1.0.0",
     "@vates/coalesce-calls": "^0.1.0",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/openflow": "^0.1.2",

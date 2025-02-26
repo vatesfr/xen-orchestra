@@ -1,4 +1,4 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <RouterLink v-slot="{ isExactActive, isActive, href, navigate }" :to="route" custom>
     <div
@@ -18,14 +18,14 @@
         v-if="hasToggle"
         v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
         class="toggle"
-        accent="info"
+        accent="brand"
         :icon="isExpanded ? faAngleDown : faAngleRight"
         size="small"
         :target-scale="{ x: 1.5, y: 2 }"
         @click="emit('toggle')"
       />
       <div v-else class="h-line" />
-      <a v-tooltip="{ selector: '.text' }" :href class="link typo p2-medium" @click="navigate">
+      <a v-tooltip="{ selector: '.text' }" :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :icon accent="current" class="icon" />
         </slot>
@@ -114,22 +114,22 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
   .h-line {
     width: 2rem;
-    border-bottom: 0.1rem solid var(--color-info-txt-base);
+    border-bottom: 0.1rem solid var(--color-brand-txt-base);
     margin-left: -0.4rem;
   }
 
   /* INTERACTION VARIANTS */
 
   &:is(.exact-active, .active) {
-    background-color: var(--color-info-background-selected);
+    background-color: var(--color-brand-background-selected);
   }
 
   &:hover {
-    background-color: var(--color-info-background-hover);
+    background-color: var(--color-brand-background-hover);
   }
 
   &:active {
-    background-color: var(--color-info-background-active);
+    background-color: var(--color-brand-background-active);
   }
 }
 </style>

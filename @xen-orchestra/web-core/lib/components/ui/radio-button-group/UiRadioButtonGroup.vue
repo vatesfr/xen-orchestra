@@ -10,7 +10,7 @@
       <slot />
     </div>
     <slot v-if="slots.info || info !== undefined" name="info">
-      <UiInfo :accent>
+      <UiInfo :accent="accent === 'brand' ? 'info' : accent">
         {{ info }}
       </UiInfo>
     </slot>
@@ -22,8 +22,8 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { computed } from 'vue'
 
-const props = defineProps<{
-  accent: 'info' | 'warning' | 'danger'
+const { accent } = defineProps<{
+  accent: 'brand' | 'warning' | 'danger'
   label?: string
   info?: string
   vertical?: boolean
@@ -34,7 +34,7 @@ const slots = defineSlots<{
   label?(): any
   info?(): any
 }>()
-const labelAccent = computed(() => (props.accent === 'info' ? 'neutral' : props.accent))
+const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 </script>
 
 <style scoped lang="postcss">

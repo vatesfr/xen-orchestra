@@ -1,8 +1,8 @@
 <!-- v1 -->
 <template>
-  <div class="ui-card-subtitle">
-    <span class="typo h7-semi-bold"><slot /></span>
-    <span v-if="slots.info" class="typo p3-medium"><slot name="info" /></span>
+  <div class="ui-card-subtitle typo-body-bold-small">
+    <span><slot /></span>
+    <span v-if="slots.info"><slot name="info" /></span>
   </div>
 </template>
 
@@ -15,8 +15,8 @@ const slots = defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-card-subtitle {
-  color: var(--color-info-txt-base);
-  border-bottom: 0.1rem solid var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
+  border-bottom: 0.1rem solid var(--color-brand-txt-base);
   display: flex;
   justify-content: space-between;
   gap: 0.8rem;

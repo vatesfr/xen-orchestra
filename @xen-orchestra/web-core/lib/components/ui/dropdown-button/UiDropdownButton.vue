@@ -1,8 +1,8 @@
-<!-- v3 -->
+<!-- v5 -->
 <template>
   <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
     <VtsIcon :icon accent="current" class="left-icon" fixed-width />
-    <span class="typo p1-regular label">
+    <span class="typo-action-button label">
       <slot />
     </span>
     <VtsIcon :icon="faAngleDown" accent="current" class="right-icon" fixed-width />
@@ -28,31 +28,31 @@ const isDisabled = useDisabled(() => disabled)
 .ui-dropdown-item {
   display: inline-flex;
   align-items: center;
-  padding-block: 0.4rem;
+  padding-block: 1.2rem;
   padding-inline: 1.6rem;
   gap: 0.8rem;
   background: var(--color-neutral-background-primary);
-  border: 0.1rem solid var(--color-info-txt-base);
+  border: 0.1rem solid var(--color-brand-txt-base);
   border-radius: 9rem;
   cursor: pointer;
   position: relative;
-  color: var(--color-info-txt-base);
+  color: var(--color-brand-txt-base);
 
   &:hover {
-    border-color: var(--color-info-txt-hover);
-    background-color: var(--color-info-background-hover);
-    color: var(--color-info-txt-hover);
+    border-color: var(--color-brand-txt-hover);
+    background-color: var(--color-brand-background-hover);
+    color: var(--color-brand-txt-hover);
   }
 
   &:active {
-    border-color: var(--color-info-txt-active);
-    background-color: var(--color-info-background-active);
-    color: var(--color-info-txt-active);
+    border-color: var(--color-brand-txt-active);
+    background-color: var(--color-brand-background-active);
+    color: var(--color-brand-txt-active);
   }
 
   &.selected:not(:disabled) {
-    background-color: var(--color-info-background-selected);
-    outline: 0.1rem solid var(--color-info-txt-base);
+    background-color: var(--color-brand-background-selected);
+    outline: 0.1rem solid var(--color-brand-txt-base);
   }
 
   &:focus-visible {
@@ -62,7 +62,7 @@ const isDisabled = useDisabled(() => disabled)
       content: '';
       position: absolute;
       inset: -0.5rem;
-      border: 0.2rem solid var(--color-info-txt-base);
+      border: 0.2rem solid var(--color-brand-txt-base);
       border-radius: 0.4rem;
     }
   }

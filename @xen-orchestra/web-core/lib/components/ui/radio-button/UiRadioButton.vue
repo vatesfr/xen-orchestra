@@ -1,6 +1,6 @@
 <!-- v4 -->
 <template>
-  <label :class="variant" class="ui-radio-button typo p1-regular">
+  <label :class="variant" class="ui-radio-button typo-body-regular">
     <span class="radio-container">
       <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
       <VtsIcon :icon="faCircle" accent="current" class="radio-icon" />
@@ -17,7 +17,7 @@ import { faCircle } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const { accent, value, disabled } = defineProps<{
-  accent: 'info' | 'success' | 'warning' | 'danger'
+  accent: 'brand' | 'warning' | 'danger'
   value: any
   disabled?: boolean
 }>()
@@ -60,21 +60,8 @@ const isDisabled = useDisabled(() => disabled)
         position: absolute;
         content: '';
         inset: -0.5rem;
-        border: 0.2rem solid var(--color-info-txt-base);
+        border: 0.2rem solid var(--color-brand-txt-base);
         border-radius: 0.4rem;
-      }
-    }
-
-    &:has(.input:disabled) {
-      cursor: not-allowed;
-
-      /*
-      TODO: To be removed or kept after a decision has been taken
-      See https://www.figma.com/design/l2O2VvzJRnOCvqxhM7d124?node-id=8-1940#1021964394
-      */
-
-      &:not(:has(.input:checked)) {
-        --accent-color: var(--color-neutral-txt-secondary);
       }
     }
 
@@ -95,58 +82,37 @@ const isDisabled = useDisabled(() => disabled)
     .radio-icon {
       font-size: 0.8rem;
       position: absolute;
-      opacity: 0;
-      transition: opacity 0.125s ease-in-out;
+      transition: font-size 0.125s ease-in-out;
+      color: var(--radio-icon-color);
+      --radio-icon-color: var(--color-neutral-background-primary);
+    }
+
+    .input:not(:checked) + .radio-icon {
+      font-size: 1.2rem;
     }
 
     .input:disabled + .radio-icon {
-      color: var(--color-neutral-txt-secondary);
-    }
-
-    .input:checked + .radio-icon {
-      opacity: 1;
+      --radio-icon-color: var(--color-neutral-background-disabled);
     }
   }
 
   /* ACCENT */
 
-  &.accent--info {
-    --accent-color: var(--color-info-item-base);
+  &.accent--brand {
+    --accent-color: var(--color-brand-item-base);
 
     &:hover {
-      --accent-color: var(--color-info-item-hover);
+      --accent-color: var(--color-brand-item-hover);
     }
 
     &:active {
-      --accent-color: var(--color-info-item-active);
+      --accent-color: var(--color-brand-item-active);
     }
 
-    &:has(.input:disabled) {
-      --accent-color: var(--color-info-item-disabled);
-    }
-
-    .radio-icon {
-      color: var(--color-info-txt-item);
-    }
-  }
-
-  &.accent--success {
-    --accent-color: var(--color-success-item-base);
-
-    &:hover {
-      --accent-color: var(--color-success-item-hover);
-    }
-
-    &:active {
-      --accent-color: var(--color-success-item-active);
-    }
-
-    &:has(.input:disabled) {
-      --accent-color: var(--color-success-item-disabled);
-    }
-
-    .radio-icon {
-      color: var(--color-success-txt-item);
+    &:has(.input:checked:not(:disabled)) {
+      .radio-icon {
+        --radio-icon-color: var(--color-brand-txt-item);
+      }
     }
   }
 
@@ -161,12 +127,10 @@ const isDisabled = useDisabled(() => disabled)
       --accent-color: var(--color-warning-item-active);
     }
 
-    &:has(.input:disabled) {
-      --accent-color: var(--color-warning-item-disabled);
-    }
-
-    .radio-icon {
-      color: var(--color-warning-txt-item);
+    &:has(.input:checked:not(:disabled)) {
+      .radio-icon {
+        --radio-icon-color: var(--color-warning-txt-item);
+      }
     }
   }
 
@@ -181,13 +145,18 @@ const isDisabled = useDisabled(() => disabled)
       --accent-color: var(--color-danger-item-active);
     }
 
-    &:has(.input:disabled) {
-      --accent-color: var(--color-danger-item-disabled);
+    &:has(.input:checked:not(:disabled)) {
+      .radio-icon {
+        --radio-icon-color: var(--color-danger-txt-item);
+      }
     }
+  }
 
-    .radio-icon {
-      color: var(--color-danger-txt-item);
-    }
+  /* DISABLED */
+
+  &:has(.input:disabled) {
+    cursor: not-allowed;
+    --accent-color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
