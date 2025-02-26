@@ -713,7 +713,9 @@ const createVM = async () => {
       const vifsToDestroy = [] as XenApiVif[]
       const vmVifByDevice = keyBy(vifs, 'device')
 
-      vifs.forEach(vif => {
+      vifs.forEach(vif2 => {
+        const vif = getOpaqueRefVif(vif2)
+
         if (vif.device === undefined) {
           vif.device = devices.shift()
           vifsToCreate.push(vif)
@@ -737,16 +739,16 @@ const createVM = async () => {
       await Promise.all(vifsToDestroy.map(vif => xapi.vif.delete(vif.$ref)))
       await Promise.all(
         vifsToCreate.map(vif =>
-          xapi.vif.create({
-            ipv4_allowed: vif.ipv4_allowed,
-            ipv6_allowed: vif.ipv6_allowed,
-            device: vif.device,
-            locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
-            MTU: vif.mtu,
-            network: vif.network,
-            VM: vmRef,
-            MAC: vif.mac,
-          })
+          xapi.vif.create(
+            vmRef,
+            vif.network,
+            vif.device,
+            vif.MAC,
+            vif.MTU,
+            vif.ipv4_allowed,
+            vif.ipv6_allowed
+            // !vif.ipv4_allowed && !vif.ipv6_allowed ? 'network_default' : 'locked'
+          )
         )
       )
     }
@@ -769,7 +771,8 @@ const createVM = async () => {
 }
 
 watchEffect(() => {
-  console.log('selected network', vmState)
+  console.log('vmState', vmState)
+  console.log('vmState.new_vm_template?.VIFs', vmState.new_vm_template?.VIFs)
   console.log('templates', templates)
 })
 </script>
