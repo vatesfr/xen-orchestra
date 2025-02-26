@@ -2,7 +2,7 @@
 <template>
   <div class="ui-top-bottom-table">
     <div class="content">
-      <span class="typo p3-regular label">
+      <span class="typo-body-regular-small label">
         {{ $t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
       </span>
 

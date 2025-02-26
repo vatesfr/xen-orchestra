@@ -77,7 +77,7 @@
             <td
               v-for="column of row.visibleColumns"
               :key="column.id"
-              class="typo p2-regular"
+              class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">

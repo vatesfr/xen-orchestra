@@ -1,5 +1,5 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder }" class="vts-table typo p2-regular">
+  <table :class="{ 'vertical-border': verticalBorder }" class="vts-table typo-body-regular-small">
     <slot />
   </table>
 </template>

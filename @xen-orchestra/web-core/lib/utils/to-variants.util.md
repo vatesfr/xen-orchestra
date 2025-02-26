@@ -44,8 +44,8 @@ const props = defineProps<{
 const isDisabled = inject('isParentDisabled', ref(false))
 
 const typoClasses = {
-  small: 'typo p3-regular',
-  large: 'typo p2-medium',
+  small: 'typo-body-regular-small',
+  large: 'typo-body-bold-small',
 }
 
 const classes = computed(() => [
@@ -59,4 +59,4 @@ const classes = computed(() => [
 ])
 ```
 
-`classes` applied to the component will then look like `typo p3-regular disabled color-blue size-s state-off`
+`classes` applied to the component will then look like `typo-body-regular-small disabled color-blue size-s state-off`

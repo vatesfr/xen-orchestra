@@ -1,5 +1,5 @@
 <template>
-  <span class="ui-badge typo p2-medium">
+  <span class="ui-badge typo-body-bold-small">
     <UiIcon :icon />
     <slot />
   </span>

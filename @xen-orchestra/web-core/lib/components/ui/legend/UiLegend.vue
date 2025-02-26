@@ -2,9 +2,9 @@
 <template>
   <li :class="classNames" class="ui-legend">
     <VtsIcon :icon="faCircle" accent="current" class="circle-icon" />
-    <span class="label typo p3-regular"><slot /></span>
+    <span class="label typo-body-regular-small"><slot /></span>
     <VtsIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" accent="info" />
-    <span v-if="valueLabel" class="value-and-unit typo c3-semi-bold">{{ valueLabel }}</span>
+    <span v-if="valueLabel" class="value-and-unit typo-caption-small">{{ valueLabel }}</span>
   </li>
 </template>
 

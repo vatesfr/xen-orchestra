@@ -7,11 +7,11 @@
           <VtsIcon :icon accent="current" />
         </slot>
       </span>
-      <h4 v-tooltip class="typo h4-medium label text-ellipsis">
+      <h4 v-tooltip class="typo-h4 label text-ellipsis">
         <slot />
       </h4>
     </div>
-    <div v-if="slots.status" class="status typo c3-regular">
+    <div v-if="slots.status" class="status typo-caption-small">
       <slot name="status" />
     </div>
     <div v-if="slots.actions" class="actions">

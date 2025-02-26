@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <component :is="tag" :class="classNames" class="tab-item typo">
+  <component :is="tag" :class="classNames" class="tab-item">
     <slot />
   </component>
 </template>
@@ -26,7 +26,7 @@ const isDisabled = useDisabled(() => props.disabled)
 
 const classNames = computed(() => {
   return [
-    isMobile.value ? 'c3-semi-bold' : 'c1-semi-bold',
+    isMobile.value ? 'typo-caption-small' : 'typo-caption',
     {
       disabled: isDisabled.value,
       active: props.active,
@@ -71,11 +71,11 @@ const classNames = computed(() => {
 
 /* SIZE VARIANTS */
 .tab-item {
-  &.c3-semi-bold {
+  &.typo-caption-small {
     --spacing: 0.8rem;
   }
 
-  &.c1-semi-bold {
+  &.typo-caption {
     --spacing: 1.6rem;
   }
 }

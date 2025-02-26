@@ -6,7 +6,14 @@
     </UiLabel>
     <div>
       <VtsIcon :icon accent="current" class="before" />
-      <input :id v-model.trim="modelValue" class="typo p1-regular input text-ellipsis" :type :disabled v-bind="attrs" />
+      <input
+        :id
+        v-model.trim="modelValue"
+        class="typo-body-regular input text-ellipsis"
+        :type
+        :disabled
+        v-bind="attrs"
+      />
       <VtsIcon
         v-if="!attrs.disabled && modelValue && clearable"
         :icon="faXmark"

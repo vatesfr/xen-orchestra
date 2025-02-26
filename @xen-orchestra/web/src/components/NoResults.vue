@@ -1,5 +1,5 @@
 <template>
-  <div class="no-results typo p1-medium">{{ $t('no-results') }}</div>
+  <div class="no-results typo-body-bold">{{ $t('no-results') }}</div>
 </template>
 
 <style lang="postcss" scoped>

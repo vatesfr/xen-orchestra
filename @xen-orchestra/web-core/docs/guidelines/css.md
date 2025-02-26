@@ -115,20 +115,18 @@ The DS relies on a fixed set of font sizes, weights, styles, etc.
 
 To avoid redefining these values in every component, every time a specific font style is needed, there are utility classes available globally.
 
-The full list of classes is available in the typography directory. See [font sizes](../../lib/assets/css/typography/_size.pcss) file, for example.
+The full list of classes is available in the [typography file](../../lib/assets/css/_typography.pcss).
 
 These classes MUST be used to ensure the typography is consistent across all components.
-
-The `typo` class MUST be used to "activate" the typography behavior on the element that needs it.
 
 > [!TIP]
 > Example:
 >
-> In the DS, a component needs to style its label with the "Paragraph/P1 - 16 regular underline".
+> In the DS, a component needs to style its label with the "Body/regular-medium (default)".
 >
 > In the component, you can use typography classes like this:
 >
-> `<div class="typo p1-regular-underline` />
+> `<div class="typo-body-regular` />
 
 ## New CSS features support
 

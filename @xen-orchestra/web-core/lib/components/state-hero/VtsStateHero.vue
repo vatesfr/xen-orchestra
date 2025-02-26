@@ -24,7 +24,7 @@ const slots = defineSlots<{
   default?(): any
 }>()
 
-const typoClass = computed(() => (props.type === 'page' ? 'typo h2-black' : 'typo h4-medium'))
+const typoClass = computed(() => (props.type === 'page' ? 'typo-h2' : 'typo-h4'))
 const error = computed(() => !props.busy && props.image === 'error')
 
 const imageSrc = computed(() => {

@@ -1,5 +1,5 @@
 <template>
-  <table class="story-params-table typo p2-regular">
+  <table class="story-params-table typo-body-regular-small">
     <slot />
   </table>
 </template>

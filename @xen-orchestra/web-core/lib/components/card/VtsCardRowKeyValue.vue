@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-card-row-key-value typo p3-regular">
+  <div class="vts-card-row-key-value typo-body-regular-small">
     <div class="key">
       <slot name="key" />
     </div>

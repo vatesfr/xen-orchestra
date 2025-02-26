@@ -2,8 +2,8 @@
   <li class="vts-resource">
     <VtsIcon accent="brand" :icon class="icon" />
     <div class="separator" />
-    <div class="label typo h6-semi-bold">{{ label }}</div>
-    <div class="count typo p2-regular">{{ count }}</div>
+    <div class="label typo-h6">{{ label }}</div>
+    <div class="count typo-body-regular-small">{{ count }}</div>
   </li>
 </template>
 

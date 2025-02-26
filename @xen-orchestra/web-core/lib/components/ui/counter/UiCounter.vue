@@ -21,8 +21,8 @@ const { size, accent, variant } = defineProps<{
 }>()
 
 const typoClasses = {
-  small: 'typo p4-semi-bold',
-  medium: 'typo p1-medium',
+  small: 'typo-body-bold-small',
+  medium: 'typo-body-bold',
 }
 
 const classNames = computed(() => {
