@@ -25,7 +25,7 @@
     </template>
     <template #default>
       <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo p1-medium text-ellipsis">
+        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold text-ellipsis">
           {{ network.name_label }}
         </UiCardTitle>
         <div class="content">
@@ -121,20 +121,20 @@
         </div>
       </UiCard>
       <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
-        <div class="typo p1-medium">
+        <div class="typo-body-bold">
           {{ $t('pifs') }}
           <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
         </div>
         <table class="simple-table">
           <thead>
             <tr>
-              <th class="text-left typo p3-regular">
+              <th class="text-left typo-body-regular-small">
                 {{ $t('host') }}
               </th>
-              <th class="text-left typo p3-regular">
+              <th class="text-left typo-body-regular-small">
                 {{ $t('device') }}
               </th>
-              <th class="text-left typo p3-regular">
+              <th class="text-left typo-body-regular-small">
                 {{ $t('pifs-status') }}
               </th>
               <th />
