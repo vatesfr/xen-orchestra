@@ -109,7 +109,7 @@
                 />
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
-                <span class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span v-tooltip class="value text-ellipsis">{{ column.value[0] }}</span>
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
                   {{ `+${column.value.length - 1}` }}
                 </span>
@@ -174,19 +174,8 @@ const { getByOpaqueRef } = useNetworkStore().subscribe()
 const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
 const selectedPifId = useRouteQuery('id')
-const searchQuery = ref('')
-
-// TODO change to match with network name
-const filteredPifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return pifs
-  }
-
-  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
-})
 
 const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
 
@@ -208,6 +197,22 @@ const getIpConfigurationMode = (ipMode: string) => {
       return t('none')
   }
 }
+
+const searchQuery = ref('')
+
+const filteredPifs = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return pifs
+  }
+
+  return pifs.filter(pif =>
+    [...Object.values(pif), getNetworkName(pif.network)].some(value =>
+      String(value).toLocaleLowerCase().includes(searchTerm)
+    )
+  )
+})
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.uuid,
