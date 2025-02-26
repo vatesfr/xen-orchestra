@@ -98,16 +98,19 @@
   "job.vm-delete.bad-power-state": "La máquina virtual debe estar apagada",
   "job.vm-delete.in-progress": "Borrándola…",
   "job.vm-delete.missing-vms": "No hay máquinas virtuales para borrar",
+
   "job.vm-export.in-progress": "Exportación en curso…",
   "job.vm-export.missing-compression": "Se requiere compresión",
   "job.vm-export.missing-vms": "No hay máquinas virtuales para exportar",
   "job.vm-export.not-allowed": "Prohibido exportar una máquina virtual",
+
   "job.vm-force-reboot.bad-power-state": "La máquina virtual debe estar en marcha o pausada",
   "job.vm-force-reboot.in-progress": "Reinicio forzado en curso…",
   "job.vm-force-reboot.missing-vms": "No hay máquinas virtuales para reiniciar por fuerza",
   "job.vm-force-shutdown.bad-power-state": "La máquina virtual debe estar en marcha, suspendida o pausada",
   "job.vm-force-shutdown.in-progress": "Parada forzada en curso…",
   "job.vm-force-shutdown.missing-vms": "No hay máquinas virtuales para parar por fuerza",
+
   "job.vm-migrate.bad-power-state": "La máquina virtual debe estar en marcha",
   "job.vm-migrate.in-progress": "Migrándola…",
   "job.vm-migrate.missing-host": "Se requiere servidor de destino",
@@ -126,13 +129,16 @@
   "job.vm-shutdown.missing-vms": "No hay máquina virtual que apagar",
   "job.vm-snapshot.in-progress": "Creando instantánea…",
   "job.vm-snapshot.missing-vms": "No hay máquina virtual que instantanear",
+
   "job.vm-start-on.bad-power-state": "La máquina virtual debe estar parada",
   "job.vm-start-on.in-progress": "Iniciándola…",
   "job.vm-start-on.missing-host": "Se requiere servidor de destino",
   "job.vm-start-on.missing-vms": "No hay máquina virtual que iniciar",
+
   "job.vm-start.bad-power-state": "La máquina virtual debe estar parada",
-  "job.vm-start.in-progress": "Démarrage en curso…",
+  "job.vm-start.in-progress": "Arranque en curso…",
   "job.vm-start.missing-vms": "No hay máquina virtual que parar",
+
   "job.vm-suspend.bad-power-state": "La máquina virtual debe estar en marcha",
   "job.vm-suspend.in-progress": "Suspendiéndola…",
   "job.vm-suspend.missing-vms": "No hay máquina virtual que suspender",
@@ -161,6 +167,7 @@
   "no-alarm-triggered": "No hay alarma",
   "no-selected-vm-can-be-exported": "Ninguna máquina virtual selectionada puede exportarse",
   "no-selected-vm-can-be-migrated": "Ninguna máquina virtual selectionada puede migrarse",
+
   "no-tasks": "No hay tareas",
   "not-found": "No encontrado",
   "object": "Objeto",
@@ -191,8 +198,10 @@
   "save": "Guardar",
   "select-compression": "Elige modo de compression",
   "select-destination-host": "Elige servidor destino",
+
   "select.network": "Elige una red",
   "select.storage": "Elige un SR",
+
   "selected-vms-in-execution": "Algunas de las máquinas virtuales selectionadas están en marcha",
   "send-us-feedback": "Envíenos sus comentarios",
   "settings": "Parámetros",
@@ -228,8 +237,10 @@
   "vcpus-used": "vCPUs usados",
   "version": "Versión",
   "vm-is-running": "La máquina virtual está en marcha",
+ 
   "vm.active": "Activo | Activo | Activos",
   "vm.inactive": "No activo | No activo | No activos",
+
   "xo-lite-under-construction": "XOLite está en desarroyo",
   "xoa-admin-account": "Cuanta administrador de la XOA",
   "xoa-deploy": "Despliegue de la XOA",
