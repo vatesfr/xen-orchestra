@@ -1145,7 +1145,10 @@ export default class RestApi {
 
     api.get(
       '/',
-      wrap((req, res) => sendObjects([...Object.values(collections), ...swaggerEndpoints], req, res))
+      wrap((req, res) => {
+        const endpoints = new Set([...Object.keys(collections), ...swaggerEndpoints])
+        return sendObjects(endpoints, req, res)
+      })
     )
 
     // For compatibility redirect from /backups* to /backup
