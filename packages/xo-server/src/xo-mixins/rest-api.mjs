@@ -1410,6 +1410,8 @@ export default class RestApi {
         await app.updateUser(id, { name, password, permission, preferences })
 
         res.sendStatus(204)
+      })
+    )
 
     // should go before routes /:collection/:object because they will match before
     api.patch(
