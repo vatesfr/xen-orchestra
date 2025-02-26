@@ -58,12 +58,12 @@
             </div>
             <div v-if="newVmState.install === 'custom_config'" class="install-custom-config">
               <div class="col-left">
-                <UiTextarea :placeholder="t('new-vm.write-configurations')" accent="info" model-value="" href="''">
+                <UiTextarea :placeholder="$t('new-vm.write-configurations')" accent="info" model-value="" href="''">
                   {{ $t('new-vm.user-config') }}
                 </UiTextarea>
               </div>
               <div class="col-right">
-                <UiTextarea :placeholder="t('new-vm.write-configurations')" accent="info" model-value="" href="''">
+                <UiTextarea :placeholder="$t('new-vm.write-configurations')" accent="info" model-value="" href="''">
                   {{ $t('new-vm.network-config') }}
                 </UiTextarea>
               </div>
@@ -529,7 +529,7 @@ const getExistingDisks = (template: XoVmTemplate) => {
         name_label: vdi.name_label,
         name_description: vdi.name_description,
         size: byteFormatter(vdi.size),
-        SR: getSr(vdi.$SR)!.name_label,
+        sr: getSr(vdi.$SR)!.name_label,
       })
     }
   })
