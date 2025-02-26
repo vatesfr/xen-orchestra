@@ -604,9 +604,9 @@ const TRANSFORMS = {
       type: 'PIF',
 
       attached: Boolean(obj.currently_attached),
-      bondMaster: isBondSlave ? link(bond, 'master') : undefined,
       isBondMaster,
       isBondSlave,
+      bondMaster: isBondSlave ? link(bond, 'master') : undefined,
       bondSlaves: isBondMaster ? link(bond, 'slaves') : undefined,
       device: obj.device,
       deviceName: metrics && metrics.device_name,
