@@ -614,6 +614,7 @@ export default class RestApi {
       },
       hosts: {},
       srs: {},
+      servers: {},
     }
 
     const withParams = (fn, paramsSchema) => {
@@ -989,14 +990,6 @@ export default class RestApi {
           app.tasks.off('update', onUpdate).off('remove', onRemove)
         })
         return stream[Symbol.asyncIterator]()
-      },
-    }
-    collections.servers = {
-      getObject(id) {
-        return app.getXenServer(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllXenServers(), filter, limit)
       },
     }
     collections.users = {
