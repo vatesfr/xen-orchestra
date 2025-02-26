@@ -596,6 +596,8 @@ const TRANSFORMS = {
     const isBondMaster = !isEmpty(obj.bond_master_of)
     const isBondSlave = obj.bond_slave_of !== 'OpaqueRef:NULL'
 
+    // Why is `bond_master_of` a list? Getting the first one in the list seems to be the right way:
+    // https://github.com/xcp-ng/xenadmin/blob/4a9d971dadd04c62f7f77f5ccf1089b4aaa59639/XenModel/XenAPI-Extensions/PIF.cs#L246-L252
     const bond = isBondMaster ? obj.$bond_master_of[0] : isBondSlave ? obj.$bond_slave_of : undefined
 
     return {
@@ -603,9 +605,9 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       bondMaster: isBondSlave ? link(bond, 'master') : undefined,
+      isBondMaster,
       isBondSlave,
       bondSlaves: isBondMaster ? link(bond, 'slaves') : undefined,
-      bondMasterOf: link(obj, 'bond_master_of'),
       device: obj.device,
       deviceName: metrics && metrics.device_name,
       dns: obj.DNS,
@@ -968,7 +970,6 @@ const TRANSFORMS = {
     return {
       type: 'bond',
       master: link(obj, 'master'),
-      slaves: link(obj, 'slaves'),
       mode: obj.mode,
     }
   },
