@@ -50,7 +50,7 @@
 - @xen-orchestra/web 0.12.0
 - @xen-orchestra/web-core 0.16.0
 - xo-server 5.173.0
-- xo-web minor 5.169.0
+- xo-web 5.169.0
 
 ## **5.103.1** (2025-02-04)
 
