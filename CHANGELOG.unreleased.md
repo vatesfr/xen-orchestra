@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Self Service] Allow Self Service users to attach disks to their VMs
+- [Self Service] Allow Self Service users to attach disks to their VMs (PR [#8384](https://github.com/vatesfr/xen-orchestra/pull/8384))
 
 ### Bug fixes
 
