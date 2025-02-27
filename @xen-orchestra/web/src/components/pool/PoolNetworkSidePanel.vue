@@ -34,11 +34,7 @@
             <template #key>
               {{ $t('id') }}
             </template>
-            <template #value>
-              <div class="value">
-                {{ network.id }}
-              </div>
-            </template>
+            <template #value>{{ network.id }}</template>
             <template v-if="network.id" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
@@ -53,9 +49,9 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('description') }}</template>
             <template #value>
-              <div class="value">
+              <span class="value">
                 {{ network.name_description }}
-              </div>
+              </span>
             </template>
             <template v-if="network.name_description" #addons>
               <UiButtonIcon

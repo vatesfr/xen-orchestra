@@ -36,7 +36,7 @@ import { useRouter } from 'vue-router'
 const { pif } = defineProps<{
   pif: XoPif
 }>()
-const { records: hosts } = useHostStore().subscribe()
+const { get } = useHostStore().subscribe()
 const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
@@ -44,7 +44,7 @@ const router = useRouter()
 const status = computed(() => getPifStatus(pif))
 
 const pifHost = computed(() => {
-  const host = hosts.value.find(host => host.id === pif.$host)
+  const host = get(pif.$host)
 
   if (!host) {
     return
@@ -52,7 +52,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: host.power_state ? 'running' : 'halted',
+    powerState: host.power_state === 'Running' ? 'running' : 'halted',
     redirect() {
       router.push({
         name: '/host/[id]/networks',

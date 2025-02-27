@@ -174,9 +174,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
-    define('name_description', {
-      label: t('description'),
-    }),
+    define('name_description', { label: t('description') }),
     define('MTU', { label: t('mtu') }),
     define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
       label: t('default-locking-mode'),
