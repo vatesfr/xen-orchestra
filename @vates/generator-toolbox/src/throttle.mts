@@ -49,6 +49,7 @@ export class Throttle {
 
   async *createThrottledGenerator(source: AsyncGenerator<{ length: number }>): AsyncGenerator<{ length: number }> {
     let timeout: ReturnType<typeof setTimeout> | undefined
+   
     try {
       for await (const value of source) {
         const res = this.getNextSlot(value.length)
@@ -63,4 +64,20 @@ export class Throttle {
       clearTimeout(timeout)
     }
   }
+/*
+  throttleGeneratorInPlace(source: AsyncGenerator<{ length: number }>){
+    const originalNext = source.next
+    let timeout: ReturnType<typeof setTimeout> | undefined
+   
+    source.next = async  () :Promise<IteratorResult<{length:number}>>=>{
+      const value = (await originalNext()) as  <IteratorResult<{length:number}>>
+      const res = this.getNextSlot(value.length)
+      timeout = res.timeout
+      // wait for the time slot before yielding the data
+      if (res.promise !== undefined) {
+        await res.promise
+      }
+      return value
+    }
+  }*/
 }
