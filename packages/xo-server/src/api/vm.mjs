@@ -1557,7 +1557,14 @@ importMultipleFromEsxi.params = {
 
 // FIXME: if position is used, all other disks after this position
 // should be shifted.
-export async function attachDisk({ vm, vdi, position, mode, bootable }) {
+export const attachDisk = defer(async function ($defer, { vm, vdi, position, mode, bootable }) {
+  const { resourceSet } = vm
+  if (resourceSet != null) {
+    await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [vdi.$SR])
+    await this.allocateLimitsInResourceSet({ disk: vdi.size }, resourceSet)
+    $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet))
+  }
+
   await this.getXapi(vm).VBD_create({
     bootable,
     mode,
@@ -1565,7 +1572,7 @@ export async function attachDisk({ vm, vdi, position, mode, bootable }) {
     VDI: vdi._xapiRef,
     VM: vm._xapiRef,
   })
-}
+})
 
 attachDisk.params = {
   bootable: {
