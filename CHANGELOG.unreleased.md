@@ -11,8 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Self Service] Allow Self Service users to attach disks to their VMs (PR [#8384](https://github.com/vatesfr/xen-orchestra/pull/8384))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,10 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->
