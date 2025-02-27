@@ -61,11 +61,33 @@ export const usePifStore = defineStore('pif', () => {
     return pifsByHostMap
   })
 
+  const getPifStatus = (pif: XoPif) => {
+    if (!pif.attached) {
+      return 'disconnected'
+    }
+
+    if (!pif.carrier) {
+      return 'disconnected-from-physical-device'
+    }
+
+    return 'connected'
+  }
+
+  const getBondsDevices = (pif: XoPif) => {
+    if (!pif.isBondMaster) return []
+
+    return pif.bondSlaves
+      .map(slaveId => baseContext.records.value.find(pif => pif.id === slaveId))
+      .map(pif => pif!.device)
+  }
+
   const context = {
     ...baseContext,
     pifsByNetwork,
     hostMasterPifsByNetwork,
     pifsByHost,
+    getPifStatus,
+    getBondsDevices,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
