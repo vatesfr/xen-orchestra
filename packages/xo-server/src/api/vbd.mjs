@@ -2,6 +2,14 @@
 
 async function delete_({ vbd }) {
   await this.getXapiObject(vbd).$destroy()
+
+  const vdi = this.getObject(vbd.VDI)
+  const vm = this.getObject(vbd.VM)
+
+  const { resourceSet } = vm
+  if (resourceSet != null) {
+    await this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet)
+  }
 }
 
 delete_.params = {

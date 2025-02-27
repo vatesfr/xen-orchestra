@@ -1,4 +1,5 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
+import { useBondStore } from '@/stores/xen-api/bond.store'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -10,11 +11,13 @@ export const usePifStore = defineStore('xen-api-pif', () => {
   const deps = {
     poolStore: usePoolStore(),
     pifMetricsStore: usePifMetricsStore(),
+    bondStore: useBondStore(),
   }
   const { context: baseContext, ...configRest } = createXapiStoreConfig('pif')
 
   const poolContext = deps.poolStore.getContext()
   const pifMetricsContext = deps.pifMetricsStore.getContext()
+  const bondContext = deps.bondStore.getContext()
 
   const hostMasterPifsByNetwork = computed(() => {
     const hostMasterPifsByNetworkMap = new Map<XenApiNetwork['$ref'], XenApiPif[]>()
@@ -51,11 +54,25 @@ export const usePifStore = defineStore('xen-api-pif', () => {
     return 'connected'
   }
 
+  const getBondsDevices = (pif: XenApiPif) => {
+    if (!pif.bond_master_of) return []
+
+    return pif.bond_master_of.flatMap(bondRef => {
+      const bond = bondContext.getByOpaqueRef(bondRef)
+
+      return bond?.slaves.map((pifRef: XenApiPif['$ref']) => baseContext.getByOpaqueRef(pifRef)?.device)
+    })
+  }
+
+  const isBondMaster = (pif: XenApiPif) => pif.bond_master_of.length > 0
+
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
     getPifsByNetworkRef,
     getPifStatus,
+    getBondsDevices,
+    isBondMaster,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)

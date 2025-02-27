@@ -1,9 +1,9 @@
 <template>
   <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
-    <td v-tooltip class="typo p3-regular text-ellipsis host-container">
+    <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
       <div v-if="pifHost" class="host">
         <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
-        <span v-tooltip class="typo p3-regular text-ellipsis host-name">
+        <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
       </div>
@@ -11,8 +11,8 @@
         <span>{{ $t('host-unknown') }}</span>
       </div>
     </td>
-    <td v-tooltip class="typo p3-regular text-ellipsis device">{{ pif.device }}</td>
-    <td v-tooltip class="typo p3-regular status">
+    <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
+    <td v-tooltip class="typo-body-regular-small status">
       <VtsConnectionStatus :status />
     </td>
     <td>

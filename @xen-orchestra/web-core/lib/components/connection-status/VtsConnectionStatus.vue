@@ -14,6 +14,7 @@ export type ConnectionStatus =
   | 'disconnected'
   | 'partially-connected'
   | 'disconnected-from-physical-device'
+  | 'physically-disconnected'
 type ConnectionStatusesMap = Record<ConnectionStatus, { text: string; accent: InfoAccent }>
 
 const { status } = defineProps<{
@@ -27,6 +28,8 @@ const statuses: ComputedRef<ConnectionStatusesMap> = computed(() => ({
   disconnected: { text: t('disconnected'), accent: 'danger' },
   'partially-connected': { text: t('partially-connected'), accent: 'warning' },
   'disconnected-from-physical-device': { text: t('disconnected-from-physical-device'), accent: 'warning' },
+  // This status is used in host pif side panel
+  'physically-disconnected': { text: t('disconnected-from-physical-device'), accent: 'danger' },
 }))
 
 const currentStatus = computed(() => statuses.value[status])

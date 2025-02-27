@@ -53,6 +53,7 @@ export type RawTypeToType<RawType extends RawObjectType> = Lowercase<RawType>
 export type TypeToRawType<Type extends ObjectType> = TypeMapping[Type]
 
 type ObjectTypeToRecordMapping = {
+  bond: XenApiBond
   console: XenApiConsole
   host: XenApiHost
   host_metrics: XenApiHostMetrics

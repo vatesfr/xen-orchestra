@@ -404,7 +404,7 @@ class AttachDisk extends Component {
   static propTypes = {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
-    vbds: PropTypes.array.isRequired,
+    vbds: PropTypes.object.isRequired,
     vm: PropTypes.object.isRequired,
   }
 
@@ -621,19 +621,6 @@ export default class TabDisks extends Component {
     }, noop)
   }
 
-  _getIsVmAdmin = createSelector(
-    () => this.props.checkPermissions,
-    () => this.props.vm && this.props.vm.id,
-    (check, vmId) => check(vmId, 'administrate')
-  )
-
-  _getAttachDiskPredicate = createSelector(
-    () => this.props.isAdmin,
-    () => this.props.vm.resourceSet,
-    this._getIsVmAdmin,
-    (isAdmin, resourceSet, isVmAdmin) => isAdmin || (resourceSet == null && isVmAdmin)
-  )
-
   _getRequiredHost = createSelector(
     this._areSrsOnSameHost,
     this._getVdiSrs,
@@ -744,14 +731,12 @@ export default class TabDisks extends Component {
               icon='add'
               labelId='vbdCreateDeviceButton'
             />
-            {this._getAttachDiskPredicate() && (
-              <TabButton
-                btnStyle={attachDisk ? 'info' : 'primary'}
-                handler={this._toggleAttachDisk}
-                icon='disk'
-                labelId='vdiAttachDevice'
-              />
-            )}
+            <TabButton
+              btnStyle={attachDisk ? 'info' : 'primary'}
+              handler={this._toggleAttachDisk}
+              icon='disk'
+              labelId='vdiAttachDevice'
+            />
           </Col>
         </Row>
         <Row>
