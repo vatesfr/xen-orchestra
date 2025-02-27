@@ -1,6 +1,20 @@
 # ChangeLog
 
-## **next**
+## **5.104.0** (2025-02-27)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
+- **XO6**:
+  - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
+- [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
+- [REST API] VM/Host stats available at `/rest/v0/<vms|hosts>/<id>/stats` (PR [#8378](https://github.com/vatesfr/xen-orchestra/pull/8378))
+- [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
+- [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
+- [REST API] Ability to delete/update a user (PRs [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283), [#8343](https://github.com/vatesfr/xen-orchestra/pull/8343))
+- [Self Service] Allow Self Service users to attach disks to their VMs (PR [#8384](https://github.com/vatesfr/xen-orchestra/pull/8384))
 
 ### Security
 
@@ -10,16 +24,8 @@
 
 - [Plugin/backup-reports] Add VM Description to the backup report. (contribution made by [@truongtx8](https://github.com/truongtx8)) (PR [#8253](https://github.com/vatesfr/xen-orchestra/pull/8253))
 - **XO6**:
-  - [Dashboard] Adding a mobile layout (PR [#8268](https://github.com/vatesfr/xen-orchestra/pull/8268))
   - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
   - [i18n] Merge XO 6 translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
-- [REST API] Swagger interface available on `/rest/v0/docs` endpoint. Endpoint documentation will be added step by step (PR [#8316](https://github.com/vatesfr/xen-orchestra/pull/8316))
-- [REST API] Implement CRUD for `groups` (PRs [#8276](https://github.com/vatesfr/xen-orchestra/pull/8276), [#8277](https://github.com/vatesfr/xen-orchestra/pull/8277), [#8278](https://github.com/vatesfr/xen-orchestra/pull/8278), [#8334](https://github.com/vatesfr/xen-orchestra/pull/8334), [#8336](https://github.com/vatesfr/xen-orchestra/pull/8336))
-- [REST API] Ability to create a user (PR [#8282](https://github.com/vatesfr/xen-orchestra/pull/8282))
-- [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
-- [REST API] Ability to delete/update a user (PRs [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283), [#8343](https://github.com/vatesfr/xen-orchestra/pull/8343))
-- [REST API] VM/Host stats available at `/rest/v0/<vms|hosts>/<id>/stats` (PR [#8378](https://github.com/vatesfr/xen-orchestra/pull/8378))
-- [Self Service] Allow Self Service users to attach disks to their VMs (PR [#8384](https://github.com/vatesfr/xen-orchestra/pull/8384))
 
 ### Bug fixes
 
@@ -54,7 +60,7 @@
 
 ## **5.103.1** (2025-02-04)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -126,8 +132,6 @@
 - xo-web 5.168.1
 
 ## **5.102.1** (2025-01-09)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
