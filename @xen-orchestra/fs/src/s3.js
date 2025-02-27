@@ -72,6 +72,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
           keepAlive: true,
         }),
       }),
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     })
 
     const parts = split(path)
