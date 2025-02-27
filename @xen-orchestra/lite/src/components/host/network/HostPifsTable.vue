@@ -103,10 +103,16 @@
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="$t('management')"
-                  accent="warning"
+                  accent="info"
                   :icon="faCircle"
                   :overlay-icon="faStar"
                 />
+              </div>
+              <div v-else-if="column.id === 'IP'" class="ip-addresses">
+                <span v-tooltip class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -125,10 +131,8 @@
 
 <script lang="ts" setup>
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -160,68 +164,55 @@ import {
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
-const { records, isReady, hasError } = usePifStore().subscribe()
-const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
-const { getByOpaqueRef: getNetworkOpaqueRef } = useNetworkStore().subscribe()
-const { getPifCarrier } = usePifMetricsStore().subscribe()
+const { pifs } = defineProps<{
+  pifs: XenApiPif[]
+}>()
+
+const { isReady, hasError } = usePifStore().subscribe()
+const { getByOpaqueRef } = useNetworkStore().subscribe()
+const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
 const selectedPifId = useRouteQuery('id')
+
+const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
+
+const { selected, areAllSelected } = useMultiSelect(pifsUuids)
+
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label
+
+const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
+
+const getIpAddresses = (pif: XenApiPif) => [pif.IP, ...pif.IPv6].filter(ip => ip)
+
+const getIpConfigurationMode = (ipMode: string) => {
+  switch (ipMode) {
+    case 'Static':
+      return t('static')
+    case 'DHCP':
+      return t('dhcp')
+    default:
+      return t('none')
+  }
+}
+
 const searchQuery = ref('')
 
-const route = useRoute()
-
-const hostId = route.params.uuid as XenApiHost['uuid']
-
-const pifs = computed(() => {
-  return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
-
-    return host?.uuid === hostId
-  })
-})
-
-// TODO change to match with network name
 const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return pifs.value
+    return pifs
   }
 
-  return pifs.value.filter(pif =>
-    Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  return pifs.filter(pif =>
+    [...Object.values(pif), getNetworkName(pif.network)].some(value =>
+      String(value).toLocaleLowerCase().includes(searchTerm)
+    )
   )
 })
-
-const pifsUuids = computed(() => pifs.value.map(pif => pif.uuid))
-
-const { selected, areAllSelected } = useMultiSelect(pifsUuids)
-
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => {
-  const network = getNetworkOpaqueRef(networkRef)
-
-  return network?.name_label ? network.name_label : ''
-}
-
-const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
-
-const getPifStatus = (pif: XenApiPif) => {
-  const carrier = getPifCarrier(pif)
-  const isCurrentlyAttached = pif.currently_attached
-
-  if (!isCurrentlyAttached) {
-    return 'disconnected'
-  }
-
-  if (!carrier) {
-    return 'disconnected-from-physical-device'
-  }
-
-  return 'connected'
-}
 
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.uuid,
@@ -238,13 +229,17 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('device', { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('VLAN', record => getVlanData(record.VLAN), { label: t('vlan') }),
-    define('IP', { label: t('ip-addresses') }),
+    define('IP', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('MAC', { label: t('mac-addresses') }),
-    define('ip_configuration_mode', { label: t('ip-mode') }),
+    define('ip_configuration_mode', record => getIpConfigurationMode(record.ip_configuration_mode), {
+      label: t('ip-mode'),
+    }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
+
 type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
+
 const headerIcon: Record<PifHeader, IconDefinition> = {
   network: faAlignLeft,
   device: faAlignLeft,
@@ -278,6 +273,20 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
     gap: 1.8rem;
   }
 
+  .ip-addresses {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .more-ips {
+      color: var(--color-neutral-txt-secondary);
+    }
+
+    &:has(.value:empty) {
+      justify-content: center;
+    }
+  }
+
   .checkbox,
   .more {
     width: 4.8rem;
@@ -286,6 +295,10 @@ const headerIcon: Record<PifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .value:empty::before {
+    content: '-';
   }
 }
 </style>
