@@ -81,9 +81,9 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('mtu') }}</template>
             <template #value>
-              <div class="value">
+              <span class="value">
                 {{ network.MTU }}
-              </div>
+              </span>
             </template>
             <template v-if="network.MTU" #addons>
               <UiButtonIcon

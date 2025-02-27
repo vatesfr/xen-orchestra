@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -52,7 +53,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: host.power_state === 'Running' ? 'running' : 'halted',
+    powerState: host.power_state === HOST_POWER_STATE.RUNNING ? 'running' : 'halted',
     redirect() {
       router.push({
         name: '/host/[id]/networks',
