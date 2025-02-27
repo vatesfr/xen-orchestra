@@ -17,7 +17,7 @@
     </UiTitle>
     <div class="container">
       <div class="table-actions">
-        <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+        <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="$t('table-actions')">
           <UiButton
             v-tooltip="$t('coming-soon')"
@@ -40,75 +40,75 @@
             {{ $t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
       </div>
-      <div class="table-container">
-        <VtsDataTable
-          :is-ready
-          :has-error
-          :no-data-message="networks.length === 0 ? $t('no-network-detected') : undefined"
-        >
-          <template #thead>
-            <tr>
-              <template v-for="column of visibleColumns" :key="column.id">
-                <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
-                  <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
-                </th>
-                <th v-else-if="column.id === 'more'" class="more">
-                  <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
-                </th>
-                <th v-else>
-                  <div v-tooltip class="text-ellipsis">
-                    <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
-                    {{ column.label }}
-                  </div>
-                </th>
-              </template>
-            </tr>
-          </template>
-          <template #tbody>
-            <tr
-              v-for="row of rows"
-              :key="row.id"
-              :class="{ selected: selectedNetworkId === row.id }"
-              @click="selectedNetworkId = row.id"
+      <VtsDataTable
+        :is-ready
+        :has-error
+        :no-data-message="networks.length === 0 ? $t('no-network-detected') : undefined"
+      >
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <div v-tooltip="$t('coming-soon')">
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
+                </div>
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+              </th>
+              <th v-else>
+                <div v-tooltip class="text-ellipsis">
+                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr
+            v-for="row of rows"
+            :key="row.id"
+            :class="{ selected: selectedNetworkId === row.id }"
+            @click="selectedNetworkId = row.id"
+          >
+            <td
+              v-for="column of row.visibleColumns"
+              :key="column.id"
+              class="typo-body-regular-small"
+              :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <td
-                v-for="column of row.visibleColumns"
-                :key="column.id"
-                class="typo-body-regular-small"
-                :class="{ checkbox: column.id === 'checkbox' }"
-              >
-                <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
-                  <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
-                </div>
-                <UiButtonIcon
-                  v-else-if="column.id === 'more'"
-                  v-tooltip="$t('coming-soon')"
-                  :icon="faEllipsis"
-                  accent="brand"
-                  disabled
-                  size="small"
-                />
-                <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                  {{ column.value }}
-                </div>
-              </td>
-            </tr>
-          </template>
-        </VtsDataTable>
-        <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-          {{ $t('no-result') }}
-        </VtsStateHero>
-        <UiTopBottomTable :selected-items="0" :total-items="0" />
-      </div>
+              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
+              </div>
+              <UiButtonIcon
+                v-else-if="column.id === 'more'"
+                v-tooltip="$t('coming-soon')"
+                :icon="faEllipsis"
+                accent="brand"
+                disabled
+                size="small"
+              />
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+        <div>{{ $t('no-result') }}</div>
+      </VtsStateHero>
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import type { XoPool } from '@/types/xo/pool.type'
+import type { XoNetwork } from '@/types/xo/network.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -137,35 +137,35 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPool
+const { networks } = defineProps<{
+  networks: XoNetwork[]
 }>()
 
+const { isReady, hasError } = useNetworkStore().subscribe()
+
 const { t } = useI18n()
-
-const { networksWithoutPifs, isReady, hasError } = useNetworkStore().subscribe()
-
-const networks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
-
 const searchQuery = ref('')
-
 const selectedNetworkId = useRouteQuery('id')
 
 const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks.value
+    return networks
   }
 
-  return networks.value.filter(network =>
+  return networks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.value.map(network => network.id))
+const networkIds = computed(() => networks.map(network => network.id))
 
 const { selected, areAllSelected } = useMultiSelect(networkIds)
+
+const toggleSelect = () => {
+  selected.value = selected.value.length === 0 ? networkIds.value : []
+}
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
@@ -217,6 +217,12 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
+  }
+
+  .value:empty::before {
+    content: '-';
+    display: flex;
+    justify-content: center;
   }
 }
 </style>
