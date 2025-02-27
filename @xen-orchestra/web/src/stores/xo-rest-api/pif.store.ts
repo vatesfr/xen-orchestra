@@ -78,11 +78,10 @@ export const usePifStore = defineStore('pif', () => {
 
   const getBondsDevices = (pif: XoPif) => {
     if (!pif.isBondMaster) return []
-    return []
-    // Todo: replace by this code when the PR #8368 is merged
-    //   return pif.bondSlaves
-    //     .map(slaveId => baseContext.records.value.find(pif => pif.id === slaveId))
-    //     .map(pif => pif!.device)
+
+    return pif.bondSlaves
+      .map(slaveId => baseContext.records.value.find(pif => pif.id === slaveId))
+      .map(pif => pif!.device)
   }
 
   const context = {
