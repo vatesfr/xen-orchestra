@@ -144,18 +144,8 @@ const { networks } = defineProps<{
 const { isReady, hasError } = useNetworkStore().subscribe()
 
 const { t } = useI18n()
-const searchQuery = ref('')
-const selectedNetworkId = useRouteQuery('id')
 
-const filteredNetworks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-  if (!searchTerm) {
-    return networks
-  }
-  return networks.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const selectedNetworkId = useRouteQuery('id')
 
 const networkUuids = computed(() => networks.map(network => network.uuid))
 
@@ -166,6 +156,22 @@ const toggleSelect = () => {
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
+
+const searchQuery = ref('')
+
+const filteredNetworks = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return networks
+  }
+
+  return networks.filter(network =>
+    [...Object.values(network), network.name_label].some(value =>
+      String(value).toLocaleLowerCase().includes(searchTerm)
+    )
+  )
+})
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
