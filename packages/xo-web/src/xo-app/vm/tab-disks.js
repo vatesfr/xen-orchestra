@@ -404,7 +404,7 @@ class AttachDisk extends Component {
   static propTypes = {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
-    vbds: PropTypes.array.isRequired,
+    vbds: PropTypes.object.isRequired,
     vm: PropTypes.object.isRequired,
   }
 
