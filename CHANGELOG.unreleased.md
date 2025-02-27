@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 <!--packages-end-->
