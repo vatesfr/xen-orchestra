@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.8.0** (2025-02-27)
 
 - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
 - [i18n] Merge XO Lite translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
