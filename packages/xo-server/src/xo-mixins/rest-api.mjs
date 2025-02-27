@@ -605,7 +605,7 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs', 'vms']
+    const swaggerEndpoints = ['docs', 'vms', 'servers']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -980,14 +980,6 @@ export default class RestApi {
           app.tasks.off('update', onUpdate).off('remove', onRemove)
         })
         return stream[Symbol.asyncIterator]()
-      },
-    }
-    collections.servers = {
-      getObject(id) {
-        return app.getXenServer(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllXenServers(), filter, limit)
       },
     }
     collections.users = {
