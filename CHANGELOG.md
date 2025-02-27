@@ -19,6 +19,7 @@
 - [Hosts] Smart reboot improvements : unexpected suspend failures will automatically fall back (PR [#8333](https://github.com/vatesfr/xen-orchestra/pull/8333))
 - [REST API] Ability to delete/update a user (PRs [#8283](https://github.com/vatesfr/xen-orchestra/pull/8283), [#8343](https://github.com/vatesfr/xen-orchestra/pull/8343))
 - [REST API] VM/Host stats available at `/rest/v0/<vms|hosts>/<id>/stats` (PR [#8378](https://github.com/vatesfr/xen-orchestra/pull/8378))
+- [Self Service] Allow Self Service users to attach disks to their VMs (PR [#8384](https://github.com/vatesfr/xen-orchestra/pull/8384))
 
 ### Bug fixes
 
@@ -43,12 +44,13 @@
 - @xen-orchestra/rest-api 0.1.2
 - xen-api 4.7.1
 - @vates/types 1.0.1
-- @xen-orchestra/web-core 0.15.0
 - @xen-orchestra/proxy 0.29.14
-- @xen-orchestra/web 0.11.0
 - xo-cli 0.32.2
-- xo-server 5.172.0
 - xo-server-audit 0.12.4
+- @xen-orchestra/web 0.12.0
+- @xen-orchestra/web-core 0.16.0
+- xo-server 5.173.0
+- xo-web minor 5.169.0
 
 ## **5.103.1** (2025-02-04)
 
