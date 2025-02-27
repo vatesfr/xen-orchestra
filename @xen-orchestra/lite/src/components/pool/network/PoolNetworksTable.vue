@@ -205,7 +205,7 @@ const filteredNetworks = computed(() => {
   }
 
   return networks.filter(network =>
-    [...Object.values(network)].some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
