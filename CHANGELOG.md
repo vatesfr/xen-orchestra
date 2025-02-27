@@ -47,8 +47,8 @@
 - @xen-orchestra/proxy 0.29.14
 - xo-cli 0.32.2
 - xo-server-audit 0.12.4
-- @xen-orchestra/web 0.12.0
 - @xen-orchestra/web-core 0.16.0
+- @xen-orchestra/web 0.12.0
 - xo-server 5.173.0
 - xo-web 5.169.0
 
