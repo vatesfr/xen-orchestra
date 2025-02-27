@@ -155,19 +155,8 @@ const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
-const searchQuery = ref('')
+
 const selectedNetworkId = useRouteQuery('id')
-
-const filteredNetworks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-  if (!searchTerm) {
-    return networks
-  }
-
-  return networks.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
 
 const networkUuids = computed(() => networks.map(network => network.uuid))
 
@@ -179,6 +168,7 @@ const toggleSelect = () => {
 
 const getNetworkVlan = (network: XenApiNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
+
   if (networkPIFs.length > 0) {
     return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
   }
@@ -204,6 +194,20 @@ const getNetworkStatus = (network: XenApiNetwork) => {
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
+
+const searchQuery = ref('')
+
+const filteredNetworks = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return networks
+  }
+
+  return networks.filter(network =>
+    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  )
+})
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.uuid,
