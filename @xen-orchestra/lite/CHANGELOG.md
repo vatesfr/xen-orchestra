@@ -6,7 +6,6 @@
 - [i18n] Merge XO Lite translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
 - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8150](https://github.com/vatesfr/xen-orchestra/pull/8150))
 - [Host/Network]: Display pifs information in side panel (PR [#8186](https://github.com/vatesfr/xen-orchestra/pull/8186))
-- [Pool/Network]: Fix issue with search in pool networks table (PR [#8386](https://github.com/vatesfr/xen-orchestra/pull/8386))
 
 ## **0.7.1** (2025-02-04)
 
