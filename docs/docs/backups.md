@@ -260,22 +260,19 @@ You can restore your backup even on a brand new host/pool and on brand new hardw
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 :::warning
-File level restore **is only possible on delta backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./delta_backups.md#key-backup-interval) to set this correctly.
-:::
+- File level restore **is only possible on delta backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./delta_backups.md#key-backup-interval) to set this correctly.
+- File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
+- [Microsoft data deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview) and the Microsoft Logical Disk Manager (LDM) are **not supported**.
 
-:::warning
-File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 :::
 
 ### Restore a file
 
-Go into the Backup/File restore section:
-
-![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
-
-Then, click on the VM where your files are, and follow the instructions:
-
-![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore2.png)
+1. Go to the **Backup → File restore** section:
+   ![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
+2. Choose the VM whose files you want to restore and click the **Restore** icon at the corresponding line.
+3. Follow the instructions as shown below:
+   ![](../static/img/vm-files-restore.png)
 
 That's it! Your chosen file will be restored.
 
