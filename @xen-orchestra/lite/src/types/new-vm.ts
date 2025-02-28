@@ -1,3 +1,5 @@
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+
 export interface Disk {
   name_label: string
   name_description: string
@@ -7,6 +9,7 @@ export interface Disk {
 }
 
 export interface NetworkInterface {
-  interface: string
+  interface: XenApiNetwork['$ref'] | string
   macAddress: string
+  device: string
 }
