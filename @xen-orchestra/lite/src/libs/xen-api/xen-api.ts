@@ -453,36 +453,39 @@ export default class XenApi {
   }
 
   // TODO move to another file
+  // WIP
   get vif() {
     type VifRefs = XenApiVif['$ref'] | XenApiVif['$ref'][]
-    type VmRef = XenApiVm['$ref']
+    type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
     type NetworkRef = XenApiNetwork['$ref']
     return {
       create: (
-        vmRefs: VmRef,
+        vmRefs: VmRefs,
         device: string,
         networkRef: NetworkRef,
         MAC: string,
         MTU: string,
         other_config = {},
         qos_algorithm_params = {},
-        qos_algorithm_type: string
+        qos_algorithm_type = ''
       ) => {
         return Promise.all(
-          castArray(vmRefs).map(vmRef =>
-            this.call(`VIF.create`, [
-              vmRef,
-              networkRef,
+          castArray(vmRefs).map(vmRef => {
+            const vifRecord = {
               device,
+              network: networkRef,
+              VM: vmRef,
               MAC,
               MTU,
               other_config,
               qos_algorithm_params,
               qos_algorithm_type,
-            ])
-          )
+            }
+            return this.call('VIF.create', [vifRecord])
+          })
         )
       },
+
       delete: (vifRefs: VifRefs) => Promise.all(castArray(vifRefs).map(vifRef => this.call('VIF.destroy', [vifRef]))),
     }
   }
