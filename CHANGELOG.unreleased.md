@@ -11,8 +11,8 @@
 
 - **XO6**:
   - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
-
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vms/<vm-id>/actions/start` (PR [#8379](https://github.com/vatesfr/xen-orchestra/pull/8379))
 
 ### Bug fixes
 
@@ -34,6 +34,9 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
+- xo-server minor
 
 <!--packages-end-->

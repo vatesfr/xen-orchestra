@@ -68,9 +68,22 @@ import type {
 // https://github.com/vatesfr/xen-orchestra/tree/wip-xapi-types-generator/%40xen-orchestra/xapi-generator
 // All properties added after XenServer 7.0 (dundee) release have been marked as optional
 
+/**
+ * Add properties injected by `xen-api`.
+ * $ref property is also injected by XOLite, so she is not present here.
+ */
+type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
+  $call: Fn
+  $callAsync: Fn
+  $type: Type
+  $xapi: {
+    call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+    callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+  }
+}
+
 export interface XenApiSession {
   $ref: Branded<'session'>
-  $type: 'session'
   auth_user_name: string
   auth_user_sid: string
   client_certificate?: boolean
@@ -91,12 +104,10 @@ export interface XenApiSession {
 
 export interface XenApiAuth {
   $ref: Branded<'auth'>
-  $type: 'auth'
 }
 
 export interface XenApiSubject {
   $ref: Branded<'subject'>
-  $type: 'subject'
   other_config: Record<string, string>
   roles: XenApiRole['$ref'][]
   subject_identifier: string
@@ -105,7 +116,6 @@ export interface XenApiSubject {
 
 export interface XenApiRole {
   $ref: Branded<'role'>
-  $type: 'role'
   is_internal?: boolean
   name_description: string
   name_label: string
@@ -115,7 +125,6 @@ export interface XenApiRole {
 
 export interface XenApiTask {
   $ref: Branded<'task'>
-  $type: 'task'
   allowed_operations: TASK_ALLOWED_OPERATIONS[]
   backtrace: string
   created?: string
@@ -137,7 +146,6 @@ export interface XenApiTask {
 
 export interface XenApiEvent {
   $ref: Branded<'event'>
-  $type: 'event'
   class?: string
   id?: number
   /** @deprecated */
@@ -151,7 +159,6 @@ export interface XenApiEvent {
 
 export interface XenApiPool {
   $ref: Branded<'pool'>
-  $type: 'pool'
   allowed_operations: POOL_ALLOWED_OPERATIONS[]
   blobs: Record<string, XenApiBlob['$ref']>
   client_certificate_auth_enabled?: boolean
@@ -212,10 +219,10 @@ export interface XenApiPool {
   /** @deprecated */
   wlb_verify_cert?: boolean
 }
+export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool'>
 
 export interface XenApiPoolPatch {
   $ref: Branded<'pool_patch'>
-  $type: 'pool_patch'
   after_apply_guidance: AFTER_APPLY_GUIDANCE[]
   host_patches: XenApiHostPatch['$ref'][]
   name_description: string
@@ -230,7 +237,6 @@ export interface XenApiPoolPatch {
 
 export interface XenApiPoolUpdate {
   $ref: Branded<'pool_update'>
-  $type: 'pool_update'
   after_apply_guidance?: UPDATE_AFTER_APPLY_GUIDANCE[]
   enforce_homogeneity?: boolean
   hosts?: XenApiHost['$ref'][]
@@ -244,9 +250,11 @@ export interface XenApiPoolUpdate {
   version?: string
 }
 
+type XenApiVmCallMethods = {
+  (method: 'start', start_paused: boolean, force: boolean): Promise<void>
+}
 export interface XenApiVm {
   $ref: Branded<'VM'>
-  $type: 'VM'
   actions_after_crash?: ON_CRASH_BEHAVIOUR
   actions_after_reboot?: ON_NORMAL_EXIT
   actions_after_shutdown?: ON_NORMAL_EXIT
@@ -344,10 +352,10 @@ export interface XenApiVm {
   VUSBs: XenApiVusb['$ref'][]
   xenstore_data: Record<string, string>
 }
+export type XenApiVmWrapped = WrapperXenApi<XenApiVm, 'VM', XenApiVmCallMethods>
 
 export interface XenApiVmMetrics {
   $ref: Branded<'VM_metrics'>
-  $type: 'VM_metrics'
   current_domain_type?: DOMAIN_TYPE
   hvm?: boolean
   install_time?: string
@@ -369,7 +377,6 @@ export interface XenApiVmMetrics {
 
 export interface XenApiVmGuestMetrics {
   $ref: Branded<'VM_guest_metrics'>
-  $type: 'VM_guest_metrics'
   can_use_hotplug_vbd: TRISTATE_TYPE
   can_use_hotplug_vif: TRISTATE_TYPE
   /** @deprecated */
@@ -391,7 +398,6 @@ export interface XenApiVmGuestMetrics {
 
 export interface XenApiVmpp {
   $ref: Branded<'VMPP'>
-  $type: 'VMPP'
   /** @deprecated */
   alarm_config?: Record<string, string>
   /** @deprecated */
@@ -434,7 +440,6 @@ export interface XenApiVmpp {
 
 export interface XenApiVmss {
   $ref: Branded<'VMSS'>
-  $type: 'VMSS'
   enabled: boolean
   frequency?: VMSS_FREQUENCY
   last_run_time: string
@@ -449,7 +454,6 @@ export interface XenApiVmss {
 
 export interface XenApiVmAppliance {
   $ref: Branded<'VM_appliance'>
-  $type: 'VM_appliance'
   allowed_operations: VM_APPLIANCE_OPERATION[]
   current_operations: Record<string, VM_APPLIANCE_OPERATION>
   name_description: string
@@ -460,14 +464,12 @@ export interface XenApiVmAppliance {
 
 export interface XenApiDrTask {
   $ref: Branded<'DR_task'>
-  $type: 'DR_task'
   introduced_SRs: XenApiSr['$ref'][]
   uuid: string
 }
 
 export interface XenApiHost {
   $ref: Branded<'host'>
-  $type: 'host'
   address?: string
   allowed_operations: HOST_ALLOWED_OPERATIONS[]
   API_version_major?: number
@@ -542,10 +544,10 @@ export interface XenApiHost {
   uuid: string
   virtual_hardware_platform_versions: number[]
 }
+export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host'>
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>
-  $type: 'host_crashdump'
   host?: XenApiHost['$ref']
   other_config: Record<string, string>
   size?: number
@@ -555,7 +557,6 @@ export interface XenApiHostCrashdump {
 
 export interface XenApiHostPatch {
   $ref: Branded<'host_patch'>
-  $type: 'host_patch'
   applied?: boolean
   host?: XenApiHost['$ref']
   name_description: string
@@ -570,7 +571,6 @@ export interface XenApiHostPatch {
 
 export interface XenApiHostMetrics {
   $ref: Branded<'host_metrics'>
-  $type: 'host_metrics'
   last_updated?: string
   live?: boolean
   /** @deprecated */
@@ -582,7 +582,6 @@ export interface XenApiHostMetrics {
 
 export interface XenApiHostCpu {
   $ref: Branded<'host_cpu'>
-  $type: 'host_cpu'
   family?: number
   features?: string
   flags?: string
@@ -600,7 +599,6 @@ export interface XenApiHostCpu {
 
 export interface XenApiNetwork {
   $ref: Branded<'network'>
-  $type: 'network'
   allowed_operations: NETWORK_OPERATIONS[]
   assigned_ips: Record<XenApiVif['$ref'], string>
   blobs: Record<string, XenApiBlob['$ref']>
@@ -621,7 +619,6 @@ export interface XenApiNetwork {
 
 export interface XenApiVif {
   $ref: Branded<'VIF'>
-  $type: 'VIF'
   allowed_operations: VIF_OPERATIONS[]
   current_operations: Record<string, VIF_OPERATIONS>
   currently_attached: boolean
@@ -651,10 +648,10 @@ export interface XenApiVif {
   uuid: string
   VM?: XenApiVm['$ref']
 }
+export type XenApiVifWrapped = WrapperXenApi<XenApiVif, 'VIF'>
 
 export interface XenApiVifMetrics {
   $ref: Branded<'VIF_metrics'>
-  $type: 'VIF_metrics'
   /** @deprecated */
   io_read_kbs?: number
   /** @deprecated */
@@ -666,7 +663,6 @@ export interface XenApiVifMetrics {
 
 export interface XenApiPif {
   $ref: Branded<'PIF'>
-  $type: 'PIF'
   bond_master_of: XenApiBond['$ref'][]
   bond_slave_of?: XenApiBond['$ref']
   capabilities: string[]
@@ -706,7 +702,6 @@ export interface XenApiPif {
 
 export interface XenApiPifMetrics {
   $ref: Branded<'PIF_metrics'>
-  $type: 'PIF_metrics'
   carrier?: boolean
   device_id?: string
   device_name?: string
@@ -726,7 +721,6 @@ export interface XenApiPifMetrics {
 
 export interface XenApiBond {
   $ref: Branded<'Bond'>
-  $type: 'Bond'
   auto_update_mac?: boolean
   links_up: number
   master?: XenApiPif['$ref']
@@ -740,7 +734,6 @@ export interface XenApiBond {
 
 export interface XenApiVlan {
   $ref: Branded<'VLAN'>
-  $type: 'VLAN'
   other_config: Record<string, string>
   tag: number
   tagged_PIF?: XenApiPif['$ref']
@@ -750,7 +743,6 @@ export interface XenApiVlan {
 
 export interface XenApiSm {
   $ref: Branded<'SM'>
-  $type: 'SM'
   /** @deprecated */
   capabilities?: string[]
   configuration?: Record<string, string>
@@ -770,7 +762,6 @@ export interface XenApiSm {
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
-  $type: 'SR'
   allowed_operations: STORAGE_OPERATIONS[]
   blobs: Record<string, XenApiBlob['$ref']>
   clustered: boolean
@@ -793,10 +784,10 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation?: number
 }
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR'>
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>
-  $type: 'sr_stat'
   clustered?: boolean
   free_space?: number
   health?: SR_HEALTH
@@ -808,7 +799,6 @@ export interface XenApiSrStat {
 
 export interface XenApiProbeResult {
   $ref: Branded<'probe_result'>
-  $type: 'probe_result'
   complete?: boolean
   configuration?: Record<string, string>
   extra_info?: Record<string, string>
@@ -817,13 +807,11 @@ export interface XenApiProbeResult {
 
 export interface XenApiLvhd {
   $ref: Branded<'LVHD'>
-  $type: 'LVHD'
   uuid: string
 }
 
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
-  $type: 'VDI'
   allow_caching: boolean
   allowed_operations: VDI_OPERATIONS[]
   cbt_enabled?: boolean
@@ -858,10 +846,10 @@ export interface XenApiVdi {
   virtual_size?: number
   xenstore_data: Record<string, string>
 }
+export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
-  $type: 'VBD'
   allowed_operations: VBD_OPERATIONS[]
   bootable?: boolean
   current_operations: Record<string, VBD_OPERATIONS>
@@ -886,10 +874,10 @@ export interface XenApiVbd {
   VDI?: XenApiVdi['$ref']
   VM?: XenApiVm['$ref']
 }
+export type XenApiVbdWrapped = WrapperXenApi<XenApiVbd, 'VBD'>
 
 export interface XenApiVbdMetrics {
   $ref: Branded<'VBD_metrics'>
-  $type: 'VBD_metrics'
   /** @deprecated */
   io_read_kbs?: number
   /** @deprecated */
@@ -903,7 +891,6 @@ export interface XenApiVbdMetrics {
 
 export interface XenApiPbd {
   $ref: Branded<'PBD'>
-  $type: 'PBD'
   currently_attached?: boolean
   device_config?: Record<string, string>
   host?: XenApiHost['$ref']
@@ -914,7 +901,6 @@ export interface XenApiPbd {
 
 export interface XenApiCrashdump {
   $ref: Branded<'crashdump'>
-  $type: 'crashdump'
   other_config: Record<string, string>
   uuid: string
   VDI?: XenApiVdi['$ref']
@@ -923,7 +909,6 @@ export interface XenApiCrashdump {
 
 export interface XenApiVtpm {
   $ref: Branded<'VTPM'>
-  $type: 'VTPM'
   allowed_operations: VTPM_OPERATIONS[]
   backend?: XenApiVm['$ref']
   current_operations: Record<string, VTPM_OPERATIONS>
@@ -933,10 +918,10 @@ export interface XenApiVtpm {
   uuid: string
   VM?: XenApiVm['$ref']
 }
+export type XenApiVtpmWrapped = WrapperXenApi<XenApiVtpm, 'VTPM'>
 
 export interface XenApiConsole {
   $ref: Branded<'console'>
-  $type: 'console'
   location?: string
   other_config?: Record<string, string>
   protocol?: CONSOLE_PROTOCOL
@@ -946,7 +931,6 @@ export interface XenApiConsole {
 
 export interface XenApiUser {
   $ref: Branded<'user'>
-  $type: 'user'
   fullname?: string
   other_config: Record<string, string>
   short_name?: string
@@ -955,7 +939,6 @@ export interface XenApiUser {
 
 export interface XenApiDataSource {
   $ref: Branded<'data_source'>
-  $type: 'data_source'
   enabled?: boolean
   max?: number
   min?: number
@@ -968,7 +951,6 @@ export interface XenApiDataSource {
 
 export interface XenApiBlob {
   $ref: Branded<'blob'>
-  $type: 'blob'
   last_updated?: string
   mime_type?: string
   name_description: string
@@ -980,7 +962,6 @@ export interface XenApiBlob {
 
 export interface XenApiMessage {
   $ref: Branded<'message'>
-  $type: 'message'
   body?: string
   cls?: CLS
   name?: string
@@ -992,7 +973,6 @@ export interface XenApiMessage {
 
 export interface XenApiSecret {
   $ref: Branded<'secret'>
-  $type: 'secret'
   other_config: Record<string, string>
   uuid: string
   value?: string
@@ -1000,7 +980,6 @@ export interface XenApiSecret {
 
 export interface XenApiTunnel {
   $ref: Branded<'tunnel'>
-  $type: 'tunnel'
   access_PIF?: XenApiPif['$ref']
   other_config: Record<string, string>
   protocol?: TUNNEL_PROTOCOL
@@ -1011,7 +990,6 @@ export interface XenApiTunnel {
 
 export interface XenApiNetworkSriov {
   $ref: Branded<'network_sriov'>
-  $type: 'network_sriov'
   configuration_mode?: SRIOV_CONFIGURATION_MODE
   logical_PIF?: XenApiPif['$ref']
   physical_PIF?: XenApiPif['$ref']
@@ -1021,7 +999,6 @@ export interface XenApiNetworkSriov {
 
 export interface XenApiPci {
   $ref: Branded<'PCI'>
-  $type: 'PCI'
   class_name: string
   dependencies: XenApiPci['$ref'][]
   device_name: string
@@ -1037,7 +1014,6 @@ export interface XenApiPci {
 
 export interface XenApiPgpu {
   $ref: Branded<'PGPU'>
-  $type: 'PGPU'
   compatibility_metadata?: Record<string, string>
   dom0_access: PGPU_DOM0_ACCESS
   enabled_VGPU_types: XenApiVgpuType['$ref'][]
@@ -1054,7 +1030,6 @@ export interface XenApiPgpu {
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>
-  $type: 'GPU_group'
   allocation_algorithm: ALLOCATION_ALGORITHM
   enabled_VGPU_types: XenApiVgpuType['$ref'][]
   GPU_types: string[]
@@ -1069,7 +1044,6 @@ export interface XenApiGpuGroup {
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
-  $type: 'VGPU'
   compatibility_metadata?: Record<string, string>
   currently_attached: boolean
   device: string
@@ -1083,10 +1057,10 @@ export interface XenApiVgpu {
   uuid: string
   VM?: XenApiVm['$ref']
 }
+export type XenApiVgpuWrapped = WrapperXenApi<XenApiVgpu, 'VGPU'>
 
 export interface XenApiVgpuType {
   $ref: Branded<'VGPU_type'>
-  $type: 'VGPU_type'
   compatible_types_in_vm?: XenApiVgpuType['$ref'][]
   enabled_on_GPU_groups: XenApiGpuGroup['$ref'][]
   enabled_on_PGPUs: XenApiPgpu['$ref'][]
@@ -1107,7 +1081,6 @@ export interface XenApiVgpuType {
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
-  $type: 'PVS_site'
   cache_storage?: XenApiPvsCacheStorage['$ref'][]
   name_description?: string
   name_label?: string
@@ -1119,7 +1092,6 @@ export interface XenApiPvsSite {
 
 export interface XenApiPvsServer {
   $ref: Branded<'PVS_server'>
-  $type: 'PVS_server'
   addresses?: string[]
   first_port?: number
   last_port?: number
@@ -1129,7 +1101,6 @@ export interface XenApiPvsServer {
 
 export interface XenApiPvsProxy {
   $ref: Branded<'PVS_proxy'>
-  $type: 'PVS_proxy'
   currently_attached?: boolean
   site?: XenApiPvsSite['$ref']
   status?: PVS_PROXY_STATUS
@@ -1139,7 +1110,6 @@ export interface XenApiPvsProxy {
 
 export interface XenApiPvsCacheStorage {
   $ref: Branded<'PVS_cache_storage'>
-  $type: 'PVS_cache_storage'
   host?: XenApiHost['$ref']
   site?: XenApiPvsSite['$ref']
   size?: number
@@ -1150,7 +1120,6 @@ export interface XenApiPvsCacheStorage {
 
 export interface XenApiFeature {
   $ref: Branded<'Feature'>
-  $type: 'Feature'
   enabled?: boolean
   experimental?: boolean
   host?: XenApiHost['$ref']
@@ -1162,7 +1131,6 @@ export interface XenApiFeature {
 
 export interface XenApiSdnController {
   $ref: Branded<'SDN_controller'>
-  $type: 'SDN_controller'
   address?: string
   port?: number
   protocol?: SDN_CONTROLLER_PROTOCOL
@@ -1171,7 +1139,6 @@ export interface XenApiSdnController {
 
 export interface XenApiVdiNbdServerInfo {
   $ref: Branded<'vdi_nbd_server_info'>
-  $type: 'vdi_nbd_server_info'
   address?: string
   cert?: string
   exportname?: string
@@ -1181,7 +1148,6 @@ export interface XenApiVdiNbdServerInfo {
 
 export interface XenApiPusb {
   $ref: Branded<'PUSB'>
-  $type: 'PUSB'
   description?: string
   host?: XenApiHost['$ref']
   other_config?: Record<string, string>
@@ -1200,7 +1166,6 @@ export interface XenApiPusb {
 
 export interface XenApiUsbGroup {
   $ref: Branded<'USB_group'>
-  $type: 'USB_group'
   name_description?: string
   name_label?: string
   other_config?: Record<string, string>
@@ -1211,7 +1176,6 @@ export interface XenApiUsbGroup {
 
 export interface XenApiVusb {
   $ref: Branded<'VUSB'>
-  $type: 'VUSB'
   allowed_operations: VUSB_OPERATIONS[]
   current_operations: Record<string, VUSB_OPERATIONS>
   currently_attached: boolean
@@ -1223,7 +1187,6 @@ export interface XenApiVusb {
 
 export interface XenApiCluster {
   $ref: Branded<'Cluster'>
-  $type: 'Cluster'
   allowed_operations: CLUSTER_OPERATION[]
   cluster_config?: Record<string, string>
   cluster_hosts?: XenApiClusterHost['$ref'][]
@@ -1243,7 +1206,6 @@ export interface XenApiCluster {
 
 export interface XenApiClusterHost {
   $ref: Branded<'Cluster_host'>
-  $type: 'Cluster_host'
   allowed_operations: CLUSTER_HOST_OPERATION[]
   cluster?: XenApiCluster['$ref']
   current_operations: Record<string, CLUSTER_HOST_OPERATION>
@@ -1259,7 +1221,6 @@ export interface XenApiClusterHost {
 
 export interface XenApiCertificate {
   $ref: Branded<'Certificate'>
-  $type: 'Certificate'
   fingerprint?: string
   host?: XenApiHost['$ref']
   name?: string
@@ -1271,7 +1232,6 @@ export interface XenApiCertificate {
 
 export interface XenApiRepository {
   $ref: Branded<'Repository'>
-  $type: 'Repository'
   binary_url?: string
   gpgkey_path?: string
   hash?: string
@@ -1286,7 +1246,6 @@ export interface XenApiRepository {
 
 export interface XenApiObserver {
   $ref: Branded<'Observer'>
-  $type: 'Observer'
   attributes?: Record<string, string>
   components?: string[]
   enabled?: boolean
@@ -1365,3 +1324,14 @@ export type XenApiRecord =
   | XenApiCertificate
   | XenApiRepository
   | XenApiObserver
+
+export type WrappedXenApiRecord =
+  | XenApiHostWrapped
+  | XenApiPoolWrapped
+  | XenApiSrWrapped
+  | XenApiVbdWrapped
+  | XenApiVdiWrapped
+  | XenApiVgpuWrapped
+  | XenApiVifWrapped
+  | XenApiVmWrapped
+  | XenApiVtpmWrapped
