@@ -13,12 +13,20 @@ export class RestApi {
     return this.#xoApp.authenticateUser(...args)
   }
 
+  getAllXenServers() {
+    return this.#xoApp.getAllXenServers()
+  }
+
   getObject<T extends XapiXoRecord>(id: T['id'], type: T['type']) {
     return this.#xoApp.getObject(id, type)
   }
 
   getObjectsByType<T extends XapiXoRecord>(type: T['type'], opts: Parameters<XoApp['getObjectsByType']>[1]) {
     return this.#xoApp.getObjectsByType(type, opts)
+  }
+
+  getXenServer(...args: Parameters<XoApp['getXenServer']>) {
+    return this.#xoApp.getXenServer(...args)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
