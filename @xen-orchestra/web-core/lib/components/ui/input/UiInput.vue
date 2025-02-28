@@ -68,7 +68,9 @@ const {
   type?: InputType
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': (value: string | number) => void }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string | number]
+}>()
 
 const slots = defineSlots<{
   default?(): any
