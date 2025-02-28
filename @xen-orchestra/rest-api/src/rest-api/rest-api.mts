@@ -9,6 +9,10 @@ export class RestApi {
     this.#xoApp = xoApp
   }
 
+  get xoApp() {
+    return this.#xoApp
+  }
+
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {
     return this.#xoApp.authenticateUser(...args)
   }
@@ -19,10 +23,6 @@ export class RestApi {
 
   getObjectsByType<T extends XapiXoRecord>(type: T['type'], opts: Parameters<XoApp['getObjectsByType']>[1]) {
     return this.#xoApp.getObjectsByType(type, opts)
-  }
-
-  getXapiVmStats(...args: Parameters<XoApp['getXapiVmStats']>) {
-    return this.#xoApp.getXapiVmStats(...args)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
