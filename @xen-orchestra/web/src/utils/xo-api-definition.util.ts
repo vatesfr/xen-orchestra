@@ -42,7 +42,7 @@ export const xoApiDefinition = {
     type: 'collection',
     path: 'pifs',
     fields:
-      '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,isBondSlave,bondSlaves',
+      '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
     handler: (record: XoPif) => record,
   },
   network: {
