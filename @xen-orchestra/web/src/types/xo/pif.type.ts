@@ -21,6 +21,5 @@ export type XoPif = {
   speed: number
   vlan: number
   isBondMaster: boolean
-  isBondSlave: boolean
   bondSlaves: XoPif['id'][]
 }
