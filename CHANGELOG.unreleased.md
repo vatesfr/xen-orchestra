@@ -16,8 +16,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] VM stats available at `/rest/v0/vms/<vm-id>/stats` (PR [#8359](https://github.com/vatesfr/xen-orchestra/pull/8359))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
