@@ -38,7 +38,7 @@
               </UiChip>
             </div>
             <div class="install-ssh-key">
-              <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="info" />
+              <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
               <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
                 {{ $t('add') }}
               </UiButton>
@@ -46,7 +46,7 @@
           </div>
           <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
             <div>
-              <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="info" href="''">
+              <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
                 {{ $t('new-vm.user-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -57,7 +57,7 @@
               </span>
             </div>
             <div>
-              <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="info" href="''">
+              <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
                 {{ $t('new-vm.network-config') }}
               </UiTextarea>
               <span class="typo p3-regular-italic">
@@ -103,8 +103,8 @@
       <UiToggle v-model="vmState.toggle">{{ $t('new-vm.multi-creation') }}</UiToggle>
       <div class="system-container">
         <div class="col-left">
-          <UiInput v-model="vmState.vm_name" accent="info" href="''">{{ $t('new-vm.vm-name') }}</UiInput>
-          <UiInput v-model="vmState.tags" :label-icon="faTags" accent="info" href="''">
+          <UiInput v-model="vmState.vm_name" accent="brand" href="''">{{ $t('new-vm.vm-name') }}</UiInput>
+          <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" href="''">
             {{ $t('new-vm.tags') }}
           </UiInput>
           <div>
@@ -118,18 +118,18 @@
           <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
         </div>
         <div class="col-right">
-          <UiTextarea v-model="vmState.vm_description" accent="info" href="''">
+          <UiTextarea v-model="vmState.vm_description" accent="brand" href="''">
             {{ $t('new-vm.vm-description') }}
           </UiTextarea>
-          <UiInput v-model="vmState.affinity_host" accent="info" href="''">{{ $t('new-vm.affinity-host') }}</UiInput>
+          <UiInput v-model="vmState.affinity_host" accent="brand" href="''">{{ $t('new-vm.affinity-host') }}</UiInput>
         </div>
       </div>
       <!--      MEMORY SECTION -->
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
-        <UiInput v-model="vmState.vCPU" accent="info" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
-        <UiInput v-model="vmState.ram" accent="info" href="''">{{ $t('new-vm.ram') }}</UiInput>
-        <UiInput v-model="vmState.topology" accent="info" href="''">{{ $t('new-vm.topology') }}</UiInput>
+        <UiInput v-model="vmState.vCPU" accent="brand" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
+        <UiInput v-model="vmState.ram" accent="brand" href="''">{{ $t('new-vm.ram') }}</UiInput>
+        <UiInput v-model="vmState.topology" accent="brand" href="''">{{ $t('new-vm.topology') }}</UiInput>
       </div>
       <!--      NETWORK SECTION -->
       <UiTitle>{{ $t('new-vm.network') }}</UiTitle>
@@ -160,7 +160,7 @@
                 </FormSelect>
               </td>
               <td>
-                <UiInput v-model="network.macAddress" placeholder="Auto-generated" accent="info" />
+                <UiInput v-model="network.macAddress" placeholder="Auto-generated" accent="brand" />
               </td>
               <td>
                 <UiButtonIcon
@@ -224,13 +224,13 @@
                   </FormSelect>
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
+                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
+                  <UiInput v-model="disk.name_description" placeholder="Description" accent="brand" />
                 </td>
                 <td>
                   <UiButtonIcon
@@ -258,13 +258,13 @@
                   </FormSelect>
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="info" />
+                  <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="info" />
+                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.name_description" placeholder="Description" accent="info" />
+                  <UiInput v-model="disk.name_description" placeholder="Description" accent="brand" />
                 </td>
                 <td>
                   <UiButtonIcon
@@ -322,7 +322,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -346,9 +346,9 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import UiTextarea from '@core/components/ui/input/UiTextarea.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 
@@ -366,7 +366,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { keyBy } from 'lodash'
 import { computed, reactive, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -449,31 +448,19 @@ const isDiskTemplate = (template: XenApiVm) => {
   return template && template.VBDs.length !== 0 && template.name_label !== 'Other install media'
 }
 
-const getAutomaticNetwork = computed(() => {
-  return networks.value.filter(network => {
-    return network.other_config.automatic === 'true'
-  })
-})
+const getAutomaticNetwork = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const getBootFirmwares = computed(() => {
-  return [...new Set(templates.value.map(template => template.HVM_boot_params.firmware))]
-})
+const getBootFirmwares = computed(() => [
+  ...new Set(templates.value.map(template => template.HVM_boot_params.firmware)),
+])
 
-const getCopyHostBiosStrings = computed(() => {
-  return vmState.boot_firmware !== 'uefi'
-})
+const getCopyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi')
 
-const getDefaultSr = computed(() => {
-  return pool && pool.value ? getOpaqueRefSr(pool.value?.default_SR)?.$ref : ''
-})
+const getDefaultSr = computed(() => (pool && pool.value ? getOpaqueRefSr(pool.value?.default_SR)?.$ref : ''))
 
-const getFilteredSrs = computed(() => {
-  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
-})
+const getFilteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
-const poolName = computed(() => {
-  return pool.value?.name_label
-})
+const poolName = computed(() => pool.value?.name_label)
 
 const getVDis = (template: XenApiVm) => {
   const VdisArray = [] as Disk[]
@@ -546,23 +533,21 @@ const getExistingInterface = (template: XenApiVm) => {
   const existingInterfaces = [] as NetworkInterface[]
   const defaultNetwork = getDefaultNetwork(template)[0] as XenApiNetwork
 
-  console.log('defaultNetwork', defaultNetwork)
-
   if (template.VIFs.length === 0 && defaultNetwork) {
     existingInterfaces.push({
       interface: defaultNetwork.$ref,
       macAddress: '',
+      device: '',
     })
   }
 
   template.VIFs.forEach(ref => {
     const vif = getOpaqueRefVif(ref)
-
-    console.log('vif =>>>>', vif)
     if (vif) {
       existingInterfaces.push({
         interface: getOpaqueRefNetwork(vif.network)?.$ref || '',
         macAddress: vif.MAC || '',
+        device: vif.device,
       })
     }
   })
@@ -577,6 +562,7 @@ const addNetworkInterface = () => {
     vmState.networkInterfaces.push({
       interface: defaultNetwork ? defaultNetwork.$ref : '',
       macAddress: '',
+      device: '',
     })
   }
 }
@@ -664,6 +650,7 @@ const vmCreationParams = computed(() => ({
   VIFs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     mac: net.macAddress,
+    device: net.device,
   })),
   CPUs: vmState.vCPU,
   name_description: vmState.vm_description,
@@ -700,56 +687,33 @@ const createVM = async () => {
 
     // >>>>>>>>>>>>>>>>>>>>>
     // WIP
-    const destroyAllVifs = true
-    const vifs = vmState.new_vm_template?.VIFs
+    const newVifs = vmCreationParams.value.VIFs
+    const existingVif = vmState.new_vm_template?.VIFs
 
-    if (destroyAllVifs && vifs) {
-      await Promise.all(vifs.map(vif => xapi.vif.delete(vif)))
+    console.log('y a des vifs ? => ', newVifs)
+    console.log('y a des vifs 2 ? => ', existingVif)
+
+    if (existingVif) {
+      await Promise.all(existingVif.map(vif => xapi.vif.delete(vif)))
     }
 
-    if (vifs && vifs.length > 0) {
-      const devices = await xapi.vm.getAllowedVIFDevices(vmRef)
-      const vifsToCreate = [] as XenApiVif[]
-      const vifsToDestroy = [] as XenApiVif[]
-      const vmVifByDevice = keyBy(vifs, 'device')
-
-      vifs.forEach(vif2 => {
-        const vif = getOpaqueRefVif(vif2)
-
-        if (vif.device === undefined) {
-          vif.device = devices.shift()
-          vifsToCreate.push(vif)
-          return
-        }
-
-        const vmVif = vmVifByDevice[vif.device]
-        if (vif.destroy) {
-          if (vmVif !== undefined) {
-            vifsToDestroy.push(vmVif)
-          }
-          return
-        }
-
-        if (vmVif !== undefined) {
-          vifsToDestroy.push(vmVif)
-        }
-        vifsToCreate.push(vif)
-      })
-
-      await Promise.all(vifsToDestroy.map(vif => xapi.vif.delete(vif.$ref)))
+    if (newVifs && newVifs.length > 0) {
       await Promise.all(
-        vifsToCreate.map(vif =>
-          xapi.vif.create(
-            vmRef,
-            vif.network,
-            vif.device,
-            vif.MAC,
-            vif.MTU,
-            vif.ipv4_allowed,
-            vif.ipv6_allowed
-            // !vif.ipv4_allowed && !vif.ipv6_allowed ? 'network_default' : 'locked'
-          )
-        )
+        newVifs.map(async vif => {
+          let device = vif.device
+          if (!device) {
+            const allowedDevices = await xapi.vm.getAllowedVIFDevices(vmRef)
+
+            if (allowedDevices.length === 0) {
+              throw new Error('Aucun device VIF autorisé pour cette VM')
+            }
+            device = '0'
+          }
+          console.log('device', device)
+
+          await xapi.vif.create(vmRef, device, vif.network, vif.mac ?? '', '', {}, {}, '')
+          console.log('création de vif réussi', newVifs)
+        })
       )
     }
 
@@ -759,6 +723,7 @@ const createVM = async () => {
       xapi.vm.setNameLabel(vmRef, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRef, vmCreationParams.value.name_description),
     ])
+    console.log('Set réussi')
 
     await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
     console.log('remove disks réussi')
@@ -773,7 +738,7 @@ const createVM = async () => {
 watchEffect(() => {
   console.log('vmState', vmState)
   console.log('vmState.new_vm_template?.VIFs', vmState.new_vm_template?.VIFs)
-  console.log('templates', templates)
+  console.log('tempalte', templates.value)
 })
 </script>
 

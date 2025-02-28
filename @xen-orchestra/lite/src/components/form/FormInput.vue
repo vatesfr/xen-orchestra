@@ -199,15 +199,15 @@ defineExpose({
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-info-item-hover);
+        --border-color: var(--color-brand-item-hover);
       }
 
       &:active {
-        --border-color: var(--color-info-item-active);
+        --border-color: var(--color-brand-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-info-item-base);
+        --border-color: var(--color-brand-item-base);
       }
     }
 
