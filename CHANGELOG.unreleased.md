@@ -11,6 +11,7 @@
 
 - **XO6**:
   - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
+  - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
@@ -35,5 +36,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
