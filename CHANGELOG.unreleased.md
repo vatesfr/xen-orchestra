@@ -9,6 +9,9 @@
 
 ### Enhancements
 
+- **XO6**:
+  - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
@@ -30,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web minor
 
 <!--packages-end-->

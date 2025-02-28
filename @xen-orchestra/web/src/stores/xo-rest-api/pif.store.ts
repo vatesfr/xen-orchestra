@@ -3,6 +3,7 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
+import type { ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
@@ -32,19 +33,21 @@ export const usePifStore = defineStore('pif', () => {
     return hostMasterPifsByNetworkMap
   })
 
-  const pifsByNetwork = computed(() => {
-    const pifsByNetworkMap = new Map<XoNetwork['id'], XoPif[]>()
+  const getPifsByNetworkId = (networkId: XoNetwork['id']) => {
+    return baseContext.records.value.filter(pif => pif.$network === networkId)
+  }
 
-    baseContext.records.value.forEach(pif => {
-      const networkId = pif.$network
-      if (!pifsByNetworkMap.has(networkId)) {
-        pifsByNetworkMap.set(networkId, [])
-      }
-      pifsByNetworkMap.get(networkId)?.push(pif)
-    })
+  const getPifStatus = (pif: XoPif): ConnectionStatus => {
+    if (!pif.attached) {
+      return 'disconnected'
+    }
 
-    return pifsByNetworkMap
-  })
+    if (!pif.carrier) {
+      return 'disconnected-from-physical-device'
+    }
+
+    return 'connected'
+  }
 
   const pifsByHost = computed(() => {
     const pifsByHostMap = new Map<XoHost['id'], XoPif[]>()
@@ -63,9 +66,10 @@ export const usePifStore = defineStore('pif', () => {
 
   const context = {
     ...baseContext,
-    pifsByNetwork,
     hostMasterPifsByNetwork,
     pifsByHost,
+    getPifsByNetworkId,
+    getPifStatus,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
