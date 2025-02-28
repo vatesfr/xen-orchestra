@@ -43,6 +43,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/predicates": "^1.1.0",
     "@vates/read-chunk": "^1.2.0",
+    "@vates/task": "^0.6.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
