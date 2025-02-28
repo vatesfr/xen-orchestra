@@ -20,6 +20,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+import { resolve } from 'node:path'
 const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -218,8 +219,20 @@ export default class NbdClient {
   }
 
   #write(buffer) {
-    const promise = fromCallback.call(this.#serverSocket, 'write', buffer)
-    return pTimeout.call(promise, this.#messageTimeout)
+    let timeout
+    const messageTimeout = this.#messageTimeout
+    const socket = this.#serverSocket 
+    return Promise.race([
+      new Promise((resolve, reject)=>{
+        timeout = setTimeout(()=>{
+            reject('timeout')
+        }, messageTimeout)
+      }),
+      new Promise(resolve => socket.write(buffer, ()=>{
+        clearTimeout(timeout)
+        resolve()
+      }))
+    ])
   }
 
   async #readInt32() {
