@@ -51,7 +51,6 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
-   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
@@ -59,6 +58,7 @@ export class VmController extends XapiXoController<XoVm> {
   @SuccessResponse(202, 'Action executed asynchronously')
   @Response(204, 'No content')
   @Response(404, 'VM not found')
+  @Response(500, 'Internal server error, XenServer/XCP-ng error')
   async startVm(@Path() id: string, @Query() sync?: boolean) {
     const vmId = id as XoVm['id']
     const action = () => this.getXapiObject(vmId).$callAsync('start', false, false)
