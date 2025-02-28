@@ -257,7 +257,7 @@ export class ImportVmBackup {
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
             })
-        const remoteName = adapter._handler._remote.name ?? 'unamed remote'
+        const remoteName = adapter._handler._remote.name
         let desc = `Restored on ${formatFilenameDate(+new Date())}`
         if (remoteName !== undefined) {
           desc += ` from ${remoteName}`
