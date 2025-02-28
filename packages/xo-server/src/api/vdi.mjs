@@ -119,9 +119,9 @@ export async function migrate({ vdi, sr, resourceSet }) {
     }
   }
 
-  await xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
+  const { uuid } = await xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
 
-  return true
+  return uuid
 }
 
 migrate.params = {
