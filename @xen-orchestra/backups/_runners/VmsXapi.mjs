@@ -3,13 +3,13 @@ import Disposable from 'promise-toolbox/Disposable'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
-import { Task } from '../Task.mjs'
-import createStreamThrottle from './_createStreamThrottle.mjs'
+import { Task } from '../Task.mjs' 
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
 import { runTask } from './_runTask.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
+import { Throttle } from '@vates/generator-toolbox'
 
 const noop = Function.prototype
 
@@ -54,8 +54,8 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
     const settings = this._settings
-
-    const throttleStream = createStreamThrottle(settings.maxExportRate)
+ 
+    const throttleGenerator = new Throttle()
 
     const config = this._config
 
@@ -147,7 +147,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       schedule,
                       settings: vmSettings,
                       srs,
-                      throttleStream,
+                      throttleGenerator,
                       vm,
                     }
 

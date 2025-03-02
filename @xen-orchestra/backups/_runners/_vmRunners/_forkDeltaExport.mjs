@@ -1,11 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep.js'
-import mapValues from 'lodash/mapValues.js'
-
-import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
+import { Synchronized } from '@vates/generator-toolbox'
 
 export function forkDeltaExport(deltaExport) {
-  const { streams, ...rest } = deltaExport
+  const { disks, ...rest } = deltaExport
   const newMetadata = cloneDeep(rest)
-  newMetadata.streams = mapValues(streams, forkStreamUnpipe)
+  newMetadata.disks = {...deltaExport.disks}
   return newMetadata
 }

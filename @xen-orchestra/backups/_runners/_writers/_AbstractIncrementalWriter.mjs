@@ -21,10 +21,12 @@ export class AbstractIncrementalWriter extends AbstractWriter {
     try {
       return await this._transfer({ deltaExport, ...other })
     } finally {
-      // ensure all streams are properly closed
-      for (const stream of Object.values(deltaExport.streams)) {
-        stream.destroy()
-      }
+      // ensure all sources are properly closed
+      for (const disk of Object.values(deltaExport.disks)){
+        try{
+          await disk.close()
+        }catch(err){}
+      } 
     }
   }
 }
