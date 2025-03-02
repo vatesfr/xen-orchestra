@@ -13,7 +13,8 @@ import {
   setVmDeltaChainLength,
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
-import { forkDeltaExport } from './_forkDeltaExport.mjs'
+import { forkDeltaExport } from './_forkDeltaExport.mjs' 
+import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -40,10 +41,12 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     })
 
     const isVhdDifferencing = {}
-    Object.entries(deltaExport.disks).forEach(([key, disk])=>{
+    for(const key in deltaExport.disks){
+      const disk = deltaExport.disks[key]
       isVhdDifferencing[key] = disk.isDifferencing()
-    })
-
+      deltaExport.disks[key] = new SynchronizedDisk(disk)
+      await deltaExport.disks[key].init()
+    }
     //deltaExport.disks = mapValues(deltaExport.disks, disk=>this._throttleGenerator.createThrottledGenerator(disk) )
 
     // @todo : reimplement fork, throttle, validation,isVhdDifferencingDisk , nbd use
@@ -52,7 +55,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     await this._callWriters(
       writer =>
         writer.transfer({
-          deltaExport: forkDeltaExport(deltaExport),
+          deltaExport,
           isVhdDifferencing,
           sizeContainers: {},
           timestamp,

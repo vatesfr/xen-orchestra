@@ -689,7 +689,7 @@ export class RemoteAdapter {
 
     if (this.useVhdDirectory()) {
       await writeToVhdDirectory(
-        { disk },
+        { disk , target:
         {
           handler,
           path,
@@ -697,6 +697,7 @@ export class RemoteAdapter {
           validator,
           compression: 'brotli',
         }
+      }
       )
     } else {
       const stream = await toVhdStream({ disk })

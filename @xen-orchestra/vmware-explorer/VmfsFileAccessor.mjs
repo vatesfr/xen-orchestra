@@ -1,123 +1,140 @@
-// @ts-nocheck
+import { readChunkStrict, skipStrict } from '@vates/read-chunk';
 
-import { readChunkStrict, skipStrict } from '@vates/read-chunk'
-import assert from 'node:assert'
-
-class VmfsFileDescriptor {
-  #datastore
-  #path
-  #streamOffset = 0
-  #stream
-  #reading = false
-
-  #esxi
-  #datastoreName
-
-  #size
-  constructor(path, esxi, datastoreName) {
-    this.#path = path
-    this.#datastoreName = datastoreName
-    this.#esxi = esxi
-  }
-
-  async open() {
-    const res = await this.#esxi.download(this.datastoreName, this.#path)
-    // @todo close the connection
-    this.#size = Number(res.headers.get('content-length'))
-  }
-
-  async #readChunk(start, length) {
-    if (this.#reading) {
-      throw new Error('reading must be done sequentially')
+/**
+ * Implementation of FileAccessor for interacting with an ESXi datastore.
+ * @implements {FileAccessor}
+ */
+export class EsxiAccessor {
+    /**
+     * @param {Esxi} esxi - An instance of the Esxi class.
+     */
+    constructor(esxi) {
+        this.#esxi = esxi;
+        this.#descriptors = new Map(); // Map to associate descriptors with paths/stream/size
+        this.#nextDescriptor = 0; // Counter to generate unique descriptors
+        this.#activeReads = new Map(); // Map to manage ongoing reads
     }
-    try {
-      this.#reading = true
-      if (this.#stream !== undefined) {
-        // stream is too far ahead or to far behind
-        if (this.#streamOffset > start || this.#streamOffset + 1024 * 1024 < start) {
-          this.#stream.destroy()
-          this.#stream = undefined
-          this.#streamOffset = 0
+
+    // Private members
+    #esxi;
+    #descriptors;
+    #nextDescriptor;
+    #activeReads;
+
+    /**
+     * Opens a stream for a given path and returns a descriptor.
+     * @param {string} path - The file path.
+     * @param {number?} from - Starting position (optional).
+     * @param {number?} to - Ending position (optional).
+     * @param {number?} useDescriptor - reuse a descriptor number
+     * @returns {Promise<number>} - A file descriptor.
+     */
+    async open(path, from, to, useDescriptor) {
+        const descriptor = useDescriptor ? useDescriptor : this.#nextDescriptor++;
+        const res = await this.#esxi.download(path, from || to ? `${from}-${to}`: undefined);
+        const stream = res.body
+        const size =  Number(res.headers.get('content-length'))
+        this.#descriptors.set(descriptor,  { stream, size,path, from, to, currentPosition:from ??0});
+        return descriptor;
+    }
+
+    /**
+     * Reads data from a previously opened stream.
+     * @param {number} descriptor - The file descriptor.
+     * @param {Buffer} buffer - The pre allocated buffer that will contains the data
+     * @param {number?} from - Starting position.
+     * @returns {Promise<{buffer:Buffer, bytes_read:number}>} - The read data.
+     */
+    async read(descriptor, buffer, from) {
+        if (!this.#descriptors.has(descriptor)) {
+            throw new Error('Descriptor not found');
         }
-      }
-      // no stream
-      if (this.#stream === undefined) {
-        const end = this.#size - 1
-        this.#stream = await this.#datastore.getStream(this.#path, start, end)
-        this.#streamOffset = start
-      }
+        const to = from + buffer.length
+        const descriptor = this.#descriptors.get(descriptor);
+        const {path, stream , size, to:opennedTo,currentPosition} = descriptor
+        if(to > size || (opennedTo && opennedTo > to)){
+          throw new Error('Try to read after the end of the file');
+        }
 
-      // stream a little behind
-      if (this.#streamOffset < start) {
-        await skipStrict(this.#stream, start - this.#streamOffset)
-        this.#streamOffset = start
-      }
+        // Check if a read is already in progress for this descriptor
+        if (this.#activeReads.has(descriptor)) {
+            await this.#activeReads.get(descriptor);
+        }
 
-      // really read data
-      this.#streamOffset += length
-      const data = await readChunkStrict(this.#stream, length)
-      return data
-    } catch (error) {
-      error.start = start
-      error.length = length
-      error.streamLength = this.#size
-      this.#stream?.destroy()
-      this.#stream = undefined
-      this.#streamOffset = 0
-      throw error
-    } finally {
-      this.#reading = false
+        // Handle parallel reads
+        const readPromise = (async () => { 
+            const maxSkipSize = 2 * 1024 * 1024; // 2MB
+
+            // If the distance to skip is less than 2MB, skip
+            if (currentPosition < from && from - currentPosition <= maxSkipSize) {
+                await skipStrict(stream, from - currentPosition);
+            } else {
+                // Otherwise, close and reopen the stream
+                this.close(descriptor);
+                await this.open(path, from, to, descriptor);
+            }
+
+            // Read the requested data
+            const sizeToRead = to - from;
+            const buffer = await readChunkStrict(stream, sizeToRead);
+            descriptor.currentPosition = to
+            return buffer;
+        })();
+
+        // Store the read promise to avoid parallel reads
+        this.#activeReads.set(descriptor, readPromise);
+        const result = await readPromise;
+        this.#activeReads.delete(descriptor);
+        result.copy(buffer)
+        return {buffer, bytes_read: buffer.length};
     }
-  }
 
-  async read(buffer, position) {
-    const chunk = await this.#readChunk(position, buffer.length)
-    chunk.copy(buffer)
-    return { buffer, bytesRead: buffer.length }
-  }
+    /**
+     * Closes a previously opened stream.
+     * @param {number} descriptor - The file descriptor.
+     */
+    close(descriptor) {
+        if (this.#descriptors.has(descriptor)) {
+            const {stream} = this.#descriptors.get(descriptor);
+            stream.destroy(); // Close the stream 
+            this.#descriptors.delete(descriptor);
+        }
+    }
 
-  close() {
-    return this.#stream.destroy()
-  }
-}
+    /**
+     * Reads the entire content of a file.
+     * @param {string} path - The file path.
+     * @returns {Promise<Buffer>} - The file content.
+     */
+    async readFile(path) {
+        const descriptor = await this.open(path);
+        const {stream } = this.#descriptors.get(descriptor);
+        const chunks = [];
 
-export class VmfsFileAccessor /* implements file accessor */ {
-  #descriptors = new Map()
-  #esxi
-  #datastoreName
+        for await (const chunk of stream) {
+            chunks.push(chunk);
+        }
+        this.close(descriptor);
+        return Buffer.concat(chunks);
+    }
 
-  #nextDescriptorIndex = 0
+    async getSize(path){
+      const descriptor = await this.open(path)
+      const {size} = this.#descriptors.get(descriptor)
+      this.close(descriptor)
+      return size
+    }
+    mktree(path){
+      throw new Error('not implemented')
+    } 
+    rmtree(path){
+      throw new Error('not implemented')
+    }  
+    unlink(path){
+      throw new Error('not implemented')
+    }  
+    outputStream(stream){
+      throw new Error('not implemented')
+    }  
 
-  get datastoreName() {
-    return this.#datastoreName
-  }
-
-  constructor({ datastoreName, esxi, ...otherOptions } = {}) {
-    this.#datastoreName = datastoreName
-    this.#esxi = esxi
-  }
-  async open(path) {
-    const descriptor = new VmfsFileDescriptor(this.#esxi, this.#datastoreName, path)
-    this.#descriptors.set(this.#nextDescriptorIndex, descriptor)
-    this.#nextDescriptorIndex++
-  }
-
-  async close(filedecriptor) {
-    assert.strictEqual(typeof file, 'Number')
-    const descriptor = this.#descriptors.get(filedecriptor)
-    return descriptor.close()
-  }
-
-  async read(file, buffer, position) {
-    assert.strictEqual(typeof file, 'Number')
-    const descriptor = this.#descriptors.get(file)
-    return descriptor.read(buffer, position)
-  }
-  async getSize(path) {
-    const res = await this.#esxi.download(this.datastoreName, path)
-    // @todo close the connection
-    return Number(res.headers.get('content-length'))
-  }
-
-  // write function are not implemented on this backend
 }

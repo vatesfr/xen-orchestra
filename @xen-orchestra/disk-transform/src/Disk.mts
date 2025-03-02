@@ -11,7 +11,6 @@ export type BytesLength = number
 export abstract class Disk {
   generatedDiskBlocks = 0
   yieldedDiskBlocks = 0
-  #synchronized:Synchronized<DiskBlock, any, any> | undefined
   #parent?: Disk
   get parent(): Disk | undefined {
     return this.#parent
@@ -23,11 +22,17 @@ export abstract class Disk {
   abstract close(): Promise<void>
 
   abstract isDifferencing(): boolean
-  // optional method, must throw if disk is not differencing
+  // optional method
   instantiateParent(): Promise<Disk> {
     throw new Error('Method not implemented.')
   }
   async openParent(): Promise<Disk> {
+    if(this.#parent!==undefined){
+      return this.#parent
+    }
+    if(!this.isDifferencing()){
+      throw new Error("Can't open the parent of a non differencing disk")
+    }
     this.#parent = await this.instantiateParent()
     await this.#parent.init()
     return this.#parent
@@ -37,29 +42,27 @@ export abstract class Disk {
    * return the block without any order nor stability guarantee
    */
   abstract getBlockIndexes(): Array<number>
+  // must return true if the block is present in this disk
+  // without looking at the parent
   abstract hasBlock(index: number): boolean
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
-  async diskBlocks(uid?:string): Promise<AsyncGenerator<DiskBlock>>{
-    if(this.#synchronized === undefined){  
-      try{
+  async * diskBlocks(uid?:string): AsyncGenerator<DiskBlock>{ 
+    try {
+        const blockGenerator = await this.buildDiskBlockGenerator()  
+        console.log('got generator', blockGenerator)  
+        for await (const block of blockGenerator){
+          this.generatedDiskBlocks ++
+          yield block
+          this.yieldedDiskBlocks ++
 
-        const blockGenerator = await this.buildDiskBlockGenerator()   
-        const self = this   
-        async function *trackedGenerator():AsyncGenerator<DiskBlock>{
-          for await (const block of blockGenerator){
-            self.generatedDiskBlocks ++
-            yield block
-            self.yieldedDiskBlocks ++
-  
-          }
         } 
-        this.#synchronized = new Synchronized(trackedGenerator())
+        console.log('done')
+      }catch(err){
+        console.error('Disk.generator', err) 
       }finally{
+        console.log('finally')
         await this.close()
       }  
-    }
-    return this.#synchronized.fork(uid ?? "unanamed generator fork")
-    
   } 
 
   check() {
@@ -82,6 +85,8 @@ export abstract class RandomAccessDisk extends Disk {
   get parent(): RandomAccessDisk | undefined {
     return this.#parent
   }
+  // can read data parent if block size are not aligned
+  // but only if this disk has data on this block 
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator() {
     for (const index of this.getBlockIndexes()) {

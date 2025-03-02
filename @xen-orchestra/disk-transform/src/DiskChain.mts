@@ -13,6 +13,12 @@ export class DiskChain extends RandomAccessDisk {
   getBlockSize(): number {
     return this.#disks[0].getBlockSize()
   }
+
+  /**
+   * the main difference with the base disk block method 
+   * is that if any of th disk has this block it return true
+   * 
+   */
   hasBlock(index: number): boolean {
     for (let i = this.#disks.length - 1; i >= 0; i--) {
       if (this.#disks[i].hasBlock(index)) {
@@ -21,6 +27,7 @@ export class DiskChain extends RandomAccessDisk {
     }
     return false
   }
+
   readBlock(index: number): Promise<DiskBlock> {
     for (let i = this.#disks.length - 1; i >= 0; i--) {
       if (this.#disks[i].hasBlock(index)) {
@@ -42,5 +49,16 @@ export class DiskChain extends RandomAccessDisk {
 
   isDifferencing(): boolean {
     return this.#disks[0].isDifferencing()
+  }
+  static async openFromChild(child:RandomAccessDisk):Promise<RandomAccessDisk>{
+    let disk = child
+    const disks=[disk]
+    while (disk.isDifferencing()) {
+      disk = await disk.openParent() as RandomAccessDisk
+      disks.unshift(disk)
+      // @todo handle until
+    }
+    return new DiskChain({ disks })
+
   }
 }

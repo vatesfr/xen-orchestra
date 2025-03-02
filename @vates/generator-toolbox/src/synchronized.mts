@@ -18,6 +18,8 @@ export class Synchronized<T, TReturn, TNext> {
   }
 
   fork(uid: string): AsyncGenerator<T, TReturn, TNext> {
+    console.log('tooboxk FORK ')
+    uid = ''+Math.random()
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
     const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
@@ -28,6 +30,7 @@ export class Synchronized<T, TReturn, TNext> {
     if (!this.#nextValueForksReady) {
       throw new Error('Can t wait forks if there are noone waiting')
     }
+    console.log('wait for forks')
     const { promise, forksWaitingResolve } = this.#nextValueForksReady
     if (this.#waitingForks.size === this.#forks.size) {
       // reset value
@@ -39,6 +42,7 @@ export class Synchronized<T, TReturn, TNext> {
   }
 
   async next(uid: string): Promise<IteratorResult<T>> {
+    console.log('next', uid)
     if (this.#removedForks.has(uid)) {
       return { done: true, value: undefined }
     }
@@ -77,6 +81,7 @@ export class Synchronized<T, TReturn, TNext> {
   }
 
   async remove(uid: string, error?: Error): Promise<IteratorResult<T>> {
+    console.log('remove', uid)
     const fork = this.#forks.get(uid)
     if (fork === undefined) {
       if (this.#removedForks.has(uid)) {
@@ -133,16 +138,20 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
     this.#uid = uid
   }
   next(): Promise<IteratorResult<T>> {
+    console.log('forked next')
     return this.#parent.next(this.#uid)
   }
   async return(): Promise<IteratorResult<T>> {
+    console.log('forked return')
     return this.#parent.remove(this.#uid)
   }
   async throw(e: Error): Promise<IteratorResult<T>> {
+    console.log('forked throw')
     return this.#parent.remove(this.#uid, e)
   }
 
   [Symbol.asyncIterator](): AsyncGenerator<T> {
+    console.log('in Forked.symbol')
     return this
   }
 }
