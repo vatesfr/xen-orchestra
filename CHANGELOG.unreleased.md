@@ -10,7 +10,10 @@
 ### Enhancements
 
 - **XO6**:
+
   - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
+
+- [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
@@ -35,6 +38,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
