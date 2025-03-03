@@ -142,6 +142,7 @@ export async function checkAliases(
         continue
       }
       logWarn('unhandled error while checking alias', { alias, err })
+      continue
     }
 
     if (target === '') {
