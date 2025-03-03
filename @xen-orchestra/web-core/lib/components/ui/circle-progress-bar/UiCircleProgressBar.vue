@@ -1,10 +1,10 @@
+<!-- v3 -->
 <template>
   <svg
     :width="circleSize"
     :height="circleSize"
     :viewBox="`0 0 ${circleSize} ${circleSize}`"
     xmlns="http://www.w3.org/2000/svg"
-    class="progress-circle"
     :class="classNames"
   >
     <circle
@@ -71,6 +71,21 @@ const strokeWidthMap = {
   large: 10,
 }
 
+const fontClasses = {
+  'extra-small': '',
+  small: 'typo-action-button-small',
+  medium: 'typo-action-button',
+  large: 'typo-h3',
+}
+
+const classNames = computed(() => [
+  fontClasses[size],
+  toVariants({
+    accent,
+    size,
+  }),
+])
+
 const circleSize = sizeMap[size]
 const fontSize = fontSizeMap[size]
 const strokeWidth = strokeWidthMap[size]
@@ -91,20 +106,6 @@ const iconAccent = computed(() => {
 })
 const percentValue = computed(() => `${value}%`)
 const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExclamation : faCheck))
-
-const fontClasses = {
-  small: 'typo-action-button-small',
-  medium: 'typo-action-button',
-  large: 'typo-h3',
-}
-
-const classNames = computed(() => [
-  fontClasses[size],
-  toVariants({
-    accent,
-    size,
-  }),
-])
 </script>
 
 <style lang="postcss" scoped>
@@ -119,6 +120,13 @@ const classNames = computed(() => [
   transform: rotate(-90deg);
   transform-origin: center;
   /*transform-box: fill-box;*/
+}
+
+.progress-circle-icon {
+  width: 70%;
+  height: 70%;
+  display: block;
+  margin: auto;
 }
 
 .progress-circle-fill {
