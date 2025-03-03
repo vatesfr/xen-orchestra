@@ -21,6 +21,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/New] Fix _OTHER_OPERATION_IN_PROGRESS_ when creating a VM that requires a VDI migration
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
