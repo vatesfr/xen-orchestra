@@ -32,4 +32,8 @@ export type XoVm = {
   addresses: Record<string, string>
   mainIpAddress: string
   other: { disable_pv_vnc: string }
+  CPUs: {
+    max: number
+    number: number
+  }
 }
