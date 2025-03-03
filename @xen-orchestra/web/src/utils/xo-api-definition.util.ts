@@ -17,13 +17,14 @@ export const xoApiDefinition = {
   host: {
     type: 'collection',
     path: 'hosts',
-    fields: 'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations',
+    fields:
+      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,memory,tags',
     handler: (record: XoHost) => record,
   },
   vm: {
     type: 'collection',
     path: 'vms',
-    fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations',
+    fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs',
     handler: (record: XoVm) => record,
   },
   task: {

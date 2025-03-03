@@ -6,7 +6,11 @@
     {{ host.name_label }}
   </UiHeadBar>
   <TabList>
-    <TabItem disabled>{{ $t('dashboard') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/dashboard`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('dashboard') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/console`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ $t('console') }}

@@ -2,12 +2,12 @@
 
 ```vue
 <template>
-  <LinearChart :data="data" :value-formatter="customValueFormatter" />
+  <VtsLinearChart :data :value-formatter="customValueFormatter" />
 </template>
 
 <script lang="ts" setup>
-import type { LinearChartData } from '@/types/chart'
-import LinearChart from '@/components/charts/LinearChart.vue'
+import type { LinearChartData } from '@core/types/chart'
+import VstLinearChart from '@core/components/linear-chart/VtsLinearChart.vue'
 
 const data: LinearChartData = [
   {

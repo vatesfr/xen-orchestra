@@ -6,7 +6,7 @@
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
-    <LinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
+    <VtsLinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 
@@ -28,7 +28,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const LinearChart = defineAsyncComponent(() => import('@core/components/charts/LinearChart.vue'))
+const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
 
 const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS)
 const { hasError, isFetching } = useHostStore().subscribe()
