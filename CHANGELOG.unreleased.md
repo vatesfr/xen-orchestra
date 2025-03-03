@@ -12,11 +12,13 @@
 - **XO6**:
   - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
 - [Changed Block Tracking] Disabling CBT now cleanup the full disk and snapshot chains (PR [#8313](https://github.com/vatesfr/xen-orchestra/pull/8313))
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
+  > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VM/New] Fix _OTHER_OPERATION_IN_PROGRESS_ when creating a VM that requires a VDI migration
 
 ### Packages to release
 
