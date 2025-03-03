@@ -21,7 +21,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/New] Fix _OTHER_OPERATION_IN_PROGRESS_ when creating a VM that requires a VDI migration
+- [VM/New] Fix _OTHER_OPERATION_IN_PROGRESS_ when creating a VM that requires a VDI migration (PR [#8399](https://github.com/vatesfr/xen-orchestra/pull/8399))
 
 ### Packages to release
 
