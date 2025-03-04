@@ -21,10 +21,6 @@ export class RestApi {
     return this.#xoApp.authenticateUser(...args)
   }
 
-  getAllXenServers() {
-    return this.#xoApp.getAllXenServers()
-  }
-
   getObject<T extends XapiXoRecord>(id: T['id'], type: T['type']) {
     return this.#xoApp.getObject(id, type)
   }
@@ -35,11 +31,6 @@ export class RestApi {
 
   getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) {
     return this.#xoApp.getXapiObject<T>(maybeId, type)
-  }
-
-  // todo: do not expose this
-  getXenServer(...args: Parameters<XoApp['getXenServer']>) {
-    return this.#xoApp.getXenServer(...args)
   }
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
