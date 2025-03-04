@@ -36,6 +36,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/web minor
+- vhd-lib patch
 - xo-server patch
 
 <!--packages-end-->
