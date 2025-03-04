@@ -11,7 +11,6 @@ import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
 import { COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
 
-import assert from 'node:assert'
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const sr = this._sr
@@ -118,9 +117,10 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         const baseReplicatedTo = replicatedVdis.find(
           replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
         )
-        assert.notStrictEqual(baseReplicatedTo, undefined)
+        // baseReplicatedTo can be undefined if a new disk is added and other are already replicated
         vdi.baseVdi = baseReplicatedTo
       } else {
+        // first replication of this VM
         vdi.baseVdi = undefined
       }
       // ensure the VDI are created on the target SR
