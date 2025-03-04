@@ -44,7 +44,7 @@ const { accent, size, value, maxValue } = defineProps<{
 type ProgressCircleAccent = 'info' | 'success' | 'warning' | 'danger'
 type ProgressCircleSize = 'extra-small' | 'small' | 'medium' | 'large'
 
-const sizeMap = {
+const circleSizeMap = {
   'extra-small': 16,
   small: 40,
   medium: 64,
@@ -69,17 +69,19 @@ const fontClasses = {
   'extra-small': '',
   small: 'typo-body-bold-small',
   medium: 'typo-h5',
-  large: 'typo-h5',
+  large: 'typo-h3',
 }
 
-const circleSize = computed(() => sizeMap[size])
+const circleSize = computed(() => circleSizeMap[size])
 const fontClass = computed(() => fontClasses[size])
 const iconSize = computed(() => iconSizeMap[size])
 const strokeWidth = computed(() => strokeWidthMap[size])
+
 const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 
 const isComplete = computed(() => value >= maxValue)
+
 const strokeColor = computed(() =>
   size === 'extra-small'
     ? `var(--color-${accent}-item-base)`
