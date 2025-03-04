@@ -11,5 +11,4 @@ export interface Disk {
 export interface NetworkInterface {
   interface: XenApiNetwork['$ref'] | string
   macAddress: string
-  device: string
 }

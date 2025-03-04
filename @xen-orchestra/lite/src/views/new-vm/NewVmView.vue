@@ -322,7 +322,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -385,7 +385,6 @@ const { t } = useI18n()
 const vmState = reactive({
   vm_name: '',
   vm_description: '',
-  selectedNetwork: '',
   toggle: false,
   installMode: '',
   tags: '',
@@ -537,7 +536,6 @@ const getExistingInterface = (template: XenApiVm) => {
     existingInterfaces.push({
       interface: defaultNetwork.$ref,
       macAddress: '',
-      device: '',
     })
   }
 
@@ -547,7 +545,6 @@ const getExistingInterface = (template: XenApiVm) => {
       existingInterfaces.push({
         interface: getOpaqueRefNetwork(vif.network)?.$ref || '',
         macAddress: vif.MAC || '',
-        device: vif.device,
       })
     }
   })
@@ -562,7 +559,6 @@ const addNetworkInterface = () => {
     vmState.networkInterfaces.push({
       interface: defaultNetwork ? defaultNetwork.$ref : '',
       macAddress: '',
-      device: '',
     })
   }
 }
@@ -597,8 +593,6 @@ const onTemplateChange = () => {
 
   console.log('VDIs Disks:', vmState.VDIs)
   console.log('Existing Disks:', vmState.existingDisks)
-  console.log('Network Interfaces:', vmState.networkInterfaces)
-  console.log('getBootFirmwares:', getBootFirmwares.value)
 }
 
 // TODO to remove, it's just a exemple of data to send
@@ -650,7 +644,6 @@ const vmCreationParams = computed(() => ({
   VIFs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     mac: net.macAddress,
-    device: net.device,
   })),
   CPUs: vmState.vCPU,
   name_description: vmState.vm_description,
@@ -683,53 +676,45 @@ const createVM = async () => {
       ? await xapi.vm.clone({ [templateRef]: newVmName })
       : await xapi.vm.copy({ [templateRef]: newVmName }, '')
 
-    console.log('Clone/Copy réussi, référence VM :', vmRef)
+    console.log('Clone/Copy done, ref VM :', vmRef)
 
-    // >>>>>>>>>>>>>>>>>>>>>
-    // WIP
+    await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
+    console.log('remove disks done')
+
+    await xapi.vm.provision(vmRef)
+    console.log('Provisioning done')
+
     const newVifs = vmCreationParams.value.VIFs
-    const existingVif = vmState.new_vm_template?.VIFs
+    // Direct call to the API here because otherwise we do not yet have the vmRef of the clone or the copy before assigning the devices
+    const existingVifs = await xapi.call<string[]>('VM.get_VIFs', [vmRef[0]])
 
-    console.log('y a des vifs ? => ', newVifs)
-    console.log('y a des vifs 2 ? => ', existingVif)
-
-    if (existingVif) {
-      await Promise.all(existingVif.map(vif => xapi.vif.delete(vif)))
+    // Destroys the VIFs cloned from the template.
+    if (existingVifs) {
+      await Promise.all(existingVifs.map(vif => xapi.vif.delete(vif as XenApiVif['$ref'])))
     }
 
     if (newVifs && newVifs.length > 0) {
+      const [allowedDevices = []] = await xapi.vm.getAllowedVIFDevices(vmRef)
+
       await Promise.all(
         newVifs.map(async vif => {
-          let device = vif.device
+          let device: string | undefined = ''
+
           if (!device) {
-            const allowedDevices = await xapi.vm.getAllowedVIFDevices(vmRef)
-
-            if (allowedDevices.length === 0) {
-              throw new Error('Aucun device VIF autorisé pour cette VM')
-            }
-            device = '0'
+            device = allowedDevices.shift()
           }
-          console.log('device', device)
 
-          await xapi.vif.create(vmRef, device, vif.network, vif.mac ?? '', '', {}, {}, '')
-          console.log('création de vif réussi', newVifs)
+          await xapi.vif.create(vmRef, device!, vif.network, vif.mac ?? '', 1500, {}, {}, '')
         })
       )
+      console.log('vif creation done', newVifs)
     }
-
-    // <<<<<<<<<<<<<<<<<<<<<<<
 
     await Promise.all([
       xapi.vm.setNameLabel(vmRef, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRef, vmCreationParams.value.name_description),
     ])
     console.log('Set réussi')
-
-    await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
-    console.log('remove disks réussi')
-
-    await xapi.vm.provision(vmRef)
-    console.log('Provisioning réussi')
   } catch (error) {
     console.error('Erreur lors de la création de la VM :', error)
   }
@@ -737,7 +722,7 @@ const createVM = async () => {
 
 watchEffect(() => {
   console.log('vmState', vmState)
-  console.log('vmState.new_vm_template?.VIFs', vmState.new_vm_template?.VIFs)
+  console.log('vmState.networkInterfaces', vmState.networkInterfaces)
   console.log('tempalte', templates.value)
 })
 </script>
