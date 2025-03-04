@@ -14,6 +14,9 @@
 - [Changed Block Tracking] Disabling CBT now cleanup the full disk and snapshot chains (PR [#8313](https://github.com/vatesfr/xen-orchestra/pull/8313))
 - **XO6**:
   - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vbds` (PR [#8404](https://github.com/vatesfr/xen-orchestra/pull/8404))
+  - `/rest/v0/vbds/<vbd-id>` (PR [#8404](https://github.com/vatesfr/xen-orchestra/pull/8404))
 
 ### Bug fixes
 
