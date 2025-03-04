@@ -5,6 +5,10 @@ import type { XoApp } from './rest-api.type.mjs'
 export class RestApi {
   #xoApp: XoApp
 
+  get xoApp() {
+    return this.#xoApp
+  }
+
   constructor(xoApp: XoApp) {
     this.#xoApp = xoApp
   }

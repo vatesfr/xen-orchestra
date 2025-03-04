@@ -109,6 +109,22 @@ export type XoPool = {
   type: 'pool'
 }
 
+export type XoServer = {
+  allowUnauthorized: boolean
+  enabled: boolean
+  error?: Record<string, unknown>
+  host: string
+  httpProxy?: string
+  id: Branded<'server'>
+  label?: string
+  poolId?: XoPool['id']
+  poolNameDescription?: string
+  poolNameLabel?: string
+  readOnly: boolean
+  status: 'connected' | 'disconnected' | 'connecting'
+  username: string
+}
+
 export type XoSr = {
   id: Branded<'SR'>
   type: 'SR'
@@ -200,4 +216,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type XoRecord = XapiXoRecord | XoGroup | XoUser
+export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+
+export type XoRecord = XapiXoRecord | NonXapiXoRecord
