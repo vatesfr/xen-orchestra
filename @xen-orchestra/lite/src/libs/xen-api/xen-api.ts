@@ -347,8 +347,9 @@ export default class XenApi {
       getAllowedVBDDevices: (vmRefs: VmRefs) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VBD_devices', [vmRef]))),
 
-      getAllowedVIFDevices: (vmRefs: VmRefs) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VIF_devices', [vmRef]))),
+      getAllowedVIFDevices: (vmRefs: VmRefs): Promise<string[][]> => {
+        return Promise.all(castArray(vmRefs).map(vmRef => this.call<string[]>('VM.get_allowed_VIF_devices', [vmRef])))
+      },
 
       removeFromOtherConfig: (vmRefs: VmRefs, key: string) => {
         return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.remove_from_other_config', [vmRef, key])))
@@ -452,6 +453,11 @@ export default class XenApi {
     }
   }
 
+  // TODO, improve this
+  getField(type: string, field: string) {
+    return this.call(`${type}.get_${field}`)
+  }
+
   // TODO move to another file
   // WIP
   get vif() {
@@ -462,9 +468,9 @@ export default class XenApi {
       create: (
         vmRefs: VmRefs,
         device: string,
-        networkRef: NetworkRef,
+        networkRef: NetworkRef | string,
         MAC: string,
-        MTU: string,
+        MTU: number,
         other_config = {},
         qos_algorithm_params = {},
         qos_algorithm_type = ''
