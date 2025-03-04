@@ -3,7 +3,7 @@
     <UiCircleProgressBar variant="primary" accent="info" size="extra-small" :value="25" :max-value="100" />
     <UiCircleProgressBar variant="primary" accent="warning" size="small" :value="25" :max-value="100" />
     <UiCircleProgressBar variant="primary" accent="danger" size="medium" :value="50" :max-value="100" />
-    <UiCircleProgressBar variant="primary" accent="info" size="large" :value="100" :max-value="100" />
+    <UiCircleProgressBar variant="primary" accent="info" size="large" :value="99" :max-value="100" />
     <UiCircleProgressBar variant="primary" accent="success" size="large" :value="50" :max-value="100" />
   </div>
 </template>
