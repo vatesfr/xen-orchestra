@@ -33,7 +33,7 @@ const {
   maxCharacters,
   id = useId(),
 } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: TextareaAccent
   id?: string
   maxCharacters?: number
   disabled?: boolean
@@ -48,6 +48,8 @@ const slots = defineSlots<{
   default?(): any
   info?(): any
 }>()
+
+export type TextareaAccent = 'brand' | 'warning' | 'danger'
 
 const attrs = useAttrs()
 

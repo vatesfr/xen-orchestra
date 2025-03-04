@@ -8,23 +8,30 @@
       <VtsIcon :icon accent="current" class="before" />
       <input
         :id
-        v-model.trim="modelValue"
+        :value
         class="typo-body-regular input text-ellipsis"
         :type
         :disabled
         v-bind="attrs"
+        @change="handleChange"
+        @blur="handleBlur"
       />
       <VtsIcon
-        v-if="!attrs.disabled && modelValue && clearable"
+        v-if="!attrs.disabled && value && clearable"
         :icon="faXmark"
         class="after"
         accent="brand"
-        @click="modelValue = ''"
+        @click="value = ''"
       />
     </div>
     <UiInfo v-if="slots.info || info" :accent="accent === 'brand' ? 'info' : accent">
       <slot name="info">{{ info }}</slot>
     </UiInfo>
+    <template v-if="!meta.valid && meta.touched">
+      <UiInfo v-for="error of errors" :key="error" accent="danger">
+        {{ error }}
+      </UiInfo>
+    </template>
   </div>
 </template>
 
@@ -35,17 +42,23 @@ import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import { useField } from 'vee-validate'
 import { computed, useAttrs, useId } from 'vue'
 
-type InputAccent = 'brand' | 'warning' | 'danger'
-type InputType = 'text' | 'number' | 'password' | 'search'
+export type InputAccent = 'brand' | 'warning' | 'danger'
+export type InputType = 'text' | 'number' | 'password' | 'search'
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const { accent, id = useId() } = defineProps<{
+const {
+  accent,
+  name,
+  id = useId(),
+} = defineProps<{
   accent: InputAccent
+  name: string
   label?: string
   info?: string
   id?: string
@@ -58,7 +71,7 @@ const { accent, id = useId() } = defineProps<{
   type?: InputType
 }>()
 
-const modelValue = defineModel<string | number>({ required: true })
+// const modelValue = defineModel<string | number>({ required: true })
 
 const slots = defineSlots<{
   default?(): any
@@ -68,6 +81,10 @@ const slots = defineSlots<{
 const attrs = useAttrs()
 
 const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
+
+const { value, errors, meta, handleBlur, handleChange } = useField(() => name, undefined, {
+  syncVModel: true,
+})
 </script>
 
 <style lang="postcss" scoped>

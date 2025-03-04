@@ -2,12 +2,14 @@
 <template>
   <label :class="classNames" class="ui-checkbox" v-bind="wrapperAttrs">
     <input
-      v-model="checkboxModel"
+      :checked
+      :value
       :class="{ indeterminate: isIndeterminate }"
       :disabled="isDisabled"
       class="input"
       type="checkbox"
       v-bind="attrs"
+      @change="handleChange"
     />
     <span class="fake-checkbox">
       <VtsIcon :icon accent="current" class="icon" />
@@ -27,24 +29,32 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { useField } from 'vee-validate'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
-type CheckboxAccent = 'brand' | 'warning' | 'danger'
+export type CheckboxAccent = 'brand' | 'warning' | 'danger'
 
 defineOptions({ inheritAttrs: false })
 
-const { accent, disabled } = defineProps<{
+const { accent, name, value, disabled } = defineProps<{
   accent: CheckboxAccent
+  name: string
+  value: string
   disabled?: boolean
   wrapperAttrs?: LabelHTMLAttributes
 }>()
-
-const checkboxModel = defineModel<boolean | undefined | string[]>({ default: undefined })
 
 const slots = defineSlots<{
   default?(): any
   info?(): any
 }>()
+
+// const checkboxModel = defineModel<boolean | undefined | string[]>({ default: undefined })
+
+const { checked, handleChange } = useField(() => name, undefined, {
+  type: 'checkbox',
+  checkedValue: value,
+})
 
 const isDisabled = useDisabled(() => disabled)
 
@@ -55,7 +65,7 @@ const classNames = computed(() => [
   }),
 ])
 
-const isIndeterminate = computed(() => checkboxModel.value === undefined)
+const isIndeterminate = computed(() => checked?.value === undefined)
 
 const icon = computed(() => {
   if (isIndeterminate.value) {

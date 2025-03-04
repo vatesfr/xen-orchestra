@@ -18,6 +18,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.5",
     "@novnc/novnc": "^1.4.0",
     "@types/d3-time-format": "^4.0.3",
+    "@vee-validate/yup": "^4.15.0",
     "@vueuse/core": "^10.7.1",
     "@vueuse/math": "^10.7.1",
     "@vueuse/shared": "^10.7.1",
@@ -27,7 +28,9 @@
     "iterable-backoff": "^0.1.0",
     "lodash-es": "^4.17.21",
     "placement.js": "^1.0.0-beta.5",
-    "vue-echarts": "^6.6.8"
+    "vee-validate": "^4.15.0",
+    "vue-echarts": "^6.6.8",
+    "yup": "^1.6.1"
   },
   "peerDependencies": {
     "pinia": "^2.2.6",
