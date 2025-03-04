@@ -72,15 +72,14 @@ const fontClasses = {
   large: 'typo-h5',
 }
 
-const circleSize = sizeMap[size]
-const fontClass = fontClasses[size]
-const iconSize = iconSizeMap[size]
-const strokeWidth = strokeWidthMap[size]
-const radius = circleSize / 2 - strokeWidth / 2
-const circumference = 2 * Math.PI * radius
-const dashOffset = circumference * (1 - value / maxValue)
+const circleSize = computed(() => sizeMap[size])
+const fontClass = computed(() => fontClasses[size])
+const iconSize = computed(() => iconSizeMap[size])
+const strokeWidth = computed(() => strokeWidthMap[size])
+const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
+const circumference = computed(() => 2 * Math.PI * radius.value)
 
-const isComplete = computed(() => value === maxValue)
+const isComplete = computed(() => value >= maxValue)
 const strokeColor = computed(() =>
   size === 'extra-small'
     ? `var(--color-${accent}-item-base)`
@@ -89,22 +88,33 @@ const strokeColor = computed(() =>
       : `var(--color-${accent}-item-base)`
 )
 
+const backgroundStrokeColor = computed(() => `var(--color-${accent}-background-selected)`)
+
 const iconAccent = computed(() =>
   isComplete.value && (accent === 'info' || accent === 'success') ? 'success' : accent
 )
-const percentValue = computed(() => `${value}%`)
+const valuePercent = computed(() => Math.round((value / maxValue) * 100))
+
+const dashOffset = computed(() => {
+  if (valuePercent.value > 100) return
+  return circumference.value * (1 - valuePercent.value / 100)
+})
+
+const percentValue = computed(() => `${valuePercent.value}%`)
+
 const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExclamation : faCheck))
 </script>
 
 <style lang="postcss" scoped>
 .progress-circle-container {
-  display: flex;
-  width: v-bind(circleSize);
-  height: v-bind(circleSize);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .progress-circle-background {
-  stroke: var(--color-neutral-background-disabled);
+  stroke: v-bind(backgroundStrokeColor);
   stroke-width: v-bind(strokeWidth);
 }
 
@@ -127,7 +137,6 @@ const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExc
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: v-bind(strokeColor);
 }
 
 .progress-circle-text {
