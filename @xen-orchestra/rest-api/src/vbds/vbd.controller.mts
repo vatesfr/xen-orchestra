@@ -2,7 +2,7 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import { XoVbd } from '@vates/types'
+import type { XoVbd } from '@vates/types'
 
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
