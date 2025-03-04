@@ -257,7 +257,14 @@ export class ImportVmBackup {
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               newMacAddresses,
             })
-
+        const remoteName = adapter._handler._remote.name
+        let desc = `Restored on ${formatFilenameDate(+new Date())}`
+        if (remoteName !== undefined) {
+          desc += ` from ${remoteName}`
+        }
+        if (metadata.vm.name_description) {
+          desc += ` - ${metadata.vm.name_description}`
+        }
         await Promise.all([
           xapi.call('VM.add_tags', vmRef, 'restored from backup'),
           xapi.call(
@@ -265,13 +272,7 @@ export class ImportVmBackup {
             vmRef,
             `${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
           ),
-          xapi.call(
-            'VM.set_name_description',
-            vmRef,
-            `Restored on ${formatFilenameDate(+new Date())} from ${adapter._handler._remote.name} -
-             ${metadata.vm.name_description}
-            `
-          ),
+          xapi.call('VM.set_name_description', vmRef, desc),
         ])
 
         return {
