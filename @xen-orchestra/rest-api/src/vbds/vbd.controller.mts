@@ -1,12 +1,13 @@
-import { XoVbd } from '@vates/types'
-import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
-import { RestApi } from '../rest-api/rest-api.mjs'
+import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import { XoVbd } from '@vates/types'
+
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vbds')
 @Security('*')
