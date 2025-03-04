@@ -1,42 +1,36 @@
-<!-- v3 -->
 <template>
-  <svg
-    :width="circleSize"
-    :height="circleSize"
-    :viewBox="`0 0 ${circleSize} ${circleSize}`"
-    xmlns="http://www.w3.org/2000/svg"
-    :class="classNames"
-  >
-    <circle
-      :r="radius"
-      :cx="circleSize / 2"
-      :cy="circleSize / 2"
-      fill="transparent"
-      class="progress-circle-background"
-    />
-    <circle
-      :r="radius"
-      :cx="circleSize / 2"
-      :cy="circleSize / 2"
-      fill="transparent"
-      class="progress-circle-foreground progress-circle-fill"
-    />
-    <template v-if="size !== 'extra-small'">
-      <template v-if="isComplete">
-        <VtsIcon :icon="icon" :accent="iconAccent" class="progress-circle-icon" />
-      </template>
-      <template v-else>
-        <text :x="circleSize / 2" :y="circleSize / 2" class="progress-circle-text typo-h5" :style="{ fontSize }">
-          {{ percentValue }}
-        </text>
-      </template>
-    </template>
-  </svg>
+  <div class="progress-circle-container">
+    <svg
+      :width="circleSize"
+      :height="circleSize"
+      :viewBox="`0 0 ${circleSize} ${circleSize}`"
+      xmlns="http://www.w3.org/2000/svg"
+      class="progress-circle"
+    >
+      <circle
+        :r="radius"
+        :cx="circleSize / 2"
+        :cy="circleSize / 2"
+        fill="transparent"
+        class="progress-circle-background"
+      />
+      <circle
+        :r="radius"
+        :cx="circleSize / 2"
+        :cy="circleSize / 2"
+        fill="transparent"
+        class="progress-circle-foreground progress-circle-fill"
+      />
+    </svg>
+    <div v-if="size !== 'extra-small'" class="progress-circle-overlay">
+      <VtsIcon v-if="isComplete" :icon="icon" class="progress-circle-icon" :accent="iconAccent" />
+      <span v-else class="progress-circle-text" :class="fontClass">{{ percentValue }}</span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { toVariants } from '@core/utils/to-variants.util'
 import { faCheck, faExclamation } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
@@ -57,11 +51,11 @@ const sizeMap = {
   large: 164,
 }
 
-const fontSizeMap = {
-  'extra-small': '12px',
-  small: '14px',
-  medium: '18px',
-  large: '24px',
+const iconSizeMap = {
+  'extra-small': '',
+  small: '2rem',
+  medium: '3rem',
+  large: '9rem',
 }
 
 const strokeWidthMap = {
@@ -73,43 +67,44 @@ const strokeWidthMap = {
 
 const fontClasses = {
   'extra-small': '',
-  small: 'typo-action-button-small',
-  medium: 'typo-action-button',
-  large: 'typo-h3',
+  small: 'typo-body-bold-small',
+  medium: 'typo-h5',
+  large: 'typo-h5',
 }
 
-const classNames = computed(() => [
-  fontClasses[size],
-  toVariants({
-    accent,
-    size,
-  }),
-])
-
 const circleSize = sizeMap[size]
-const fontSize = fontSizeMap[size]
+const fontClass = fontClasses[size]
+const iconSize = iconSizeMap[size]
 const strokeWidth = strokeWidthMap[size]
 const radius = circleSize / 2 - strokeWidth / 2
 const circumference = 2 * Math.PI * radius
 const dashOffset = circumference * (1 - value / maxValue)
 
 const isComplete = computed(() => value === maxValue)
-const strokeColor = computed(() => {
-  if (isComplete.value && (accent === 'info' || accent === 'success')) {
-    return 'var(--color-success-item-base)'
-  }
-  return `var(--color-${accent}-item-base)`
-})
+const strokeColor = computed(() =>
+  size === 'extra-small'
+    ? `var(--color-${accent}-item-base)`
+    : isComplete.value && (accent === 'info' || accent === 'success')
+      ? 'var(--color-success-item-base)'
+      : `var(--color-${accent}-item-base)`
+)
 
-const iconAccent = computed(() => {
-  return isComplete.value && (accent === 'info' || accent === 'success') ? 'success' : accent
-})
+const iconAccent = computed(() =>
+  isComplete.value && (accent === 'info' || accent === 'success') ? 'success' : accent
+)
 const percentValue = computed(() => `${value}%`)
 const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExclamation : faCheck))
 </script>
 
 <style lang="postcss" scoped>
+.progress-circle-container {
+  display: flex;
+  width: v-bind(circleSize);
+  height: v-bind(circleSize);
+}
+
 .progress-circle-background {
+  stroke: var(--color-neutral-background-disabled);
   stroke-width: v-bind(strokeWidth);
 }
 
@@ -119,14 +114,6 @@ const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExc
   transition: stroke-dashoffset 0.3s ease;
   transform: rotate(-90deg);
   transform-origin: center;
-  transform-box: fill-box;
-}
-
-.progress-circle-icon {
-  width: 70%;
-  height: 70%;
-  display: block;
-  margin: auto;
 }
 
 .progress-circle-fill {
@@ -135,33 +122,19 @@ const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExc
   stroke-dashoffset: v-bind(dashOffset);
 }
 
+.progress-circle-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: v-bind(strokeColor);
+}
+
 .progress-circle-text {
-  fill: v-bind(strokeColor);
-  text-anchor: middle;
-  dominant-baseline: central;
+  color: v-bind(strokeColor);
 }
 
-.accent--success {
-  .progress-circle-background {
-    stroke: var(--color-success-background-selected);
-  }
-}
-
-.accent--info {
-  .progress-circle-background {
-    stroke: var(--color-info-background-selected);
-  }
-}
-
-.accent--warning {
-  .progress-circle-background {
-    stroke: var(--color-warning-background-selected);
-  }
-}
-
-.accent--danger {
-  .progress-circle-background {
-    stroke: var(--color-danger-background-selected);
-  }
+.progress-circle-icon {
+  font-size: v-bind(iconSize);
 }
 </style>
