@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api patch
+
 <!--packages-end-->
