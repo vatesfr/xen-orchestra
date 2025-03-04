@@ -53,16 +53,16 @@ const circleSizeMap = {
 
 const iconSizeMap = {
   'extra-small': '',
-  small: '2rem',
-  medium: '3rem',
-  large: '9rem',
+  small: '1.6rem',
+  medium: '3.2rem',
+  large: '4.8rem',
 }
 
 const strokeWidthMap = {
   'extra-small': 2,
   small: 4,
   medium: 6,
-  large: 10,
+  large: 16,
 }
 
 const fontClasses = {
