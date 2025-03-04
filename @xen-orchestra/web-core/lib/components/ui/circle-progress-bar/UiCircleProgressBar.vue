@@ -26,7 +26,7 @@
         <VtsIcon :icon="icon" :accent="iconAccent" class="progress-circle-icon" />
       </template>
       <template v-else>
-        <text :x="circleSize / 2" :y="circleSize / 2 + 8" class="progress-circle-text typo-h5" :style="{ fontSize }">
+        <text :x="circleSize / 2" :y="circleSize / 2" class="progress-circle-text typo-h5" :style="{ fontSize }">
           {{ percentValue }}
         </text>
       </template>
@@ -119,7 +119,7 @@ const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExc
   transition: stroke-dashoffset 0.3s ease;
   transform: rotate(-90deg);
   transform-origin: center;
-  /*transform-box: fill-box;*/
+  transform-box: fill-box;
 }
 
 .progress-circle-icon {
@@ -138,6 +138,7 @@ const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExc
 .progress-circle-text {
   fill: v-bind(strokeColor);
   text-anchor: middle;
+  dominant-baseline: central;
 }
 
 .accent--success {
