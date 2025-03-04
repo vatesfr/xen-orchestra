@@ -1,18 +1,20 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Queries, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
+import { CollectionQueryParams } from '../open-api/common/request.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
 @Security('*')
-@Response(401, 'Authentication required')
+@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 // the `provide` decorator is mandatory on class that injects/receives dependencies.
 // It automatically bind the class to the IOC container that handles dependency injection
@@ -33,10 +35,9 @@ export class VmController extends XapiXoController<XoVm> {
   @Get('')
   getVms(
     @Request() req: ExRequest,
-    @Query() fields?: string,
-    @Query() filter?: string,
-    @Query() limit?: number
+    @Queries() queries: CollectionQueryParams
   ): string[] | WithHref<Unbrand<XoVm>>[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+    const { filter, limit } = queries
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
@@ -46,7 +47,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vm)
   @Get('{id}')
-  @Response(404, 'VM not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
   }
