@@ -31,7 +31,7 @@
     "lodash": "^4.17.21",
     "promise-toolbox": "^0.21.0",
     "uuid": "^9.0.0",
-    "vhd-lib": "^4.11.2"
+    "vhd-lib": "^4.11.3"
   },
   "scripts": {
     "postversion": "npm publish",

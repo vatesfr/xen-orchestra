@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "vhd-lib",
-  "version": "4.11.2",
+  "version": "4.11.3",
   "license": "AGPL-3.0-or-later",
   "description": "Primitives for VHD file handling",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/vhd-lib",
