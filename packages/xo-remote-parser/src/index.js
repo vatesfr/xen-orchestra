@@ -7,6 +7,7 @@ import urlParser from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
+const AZURE_RE = /^([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)(\?[^?]*)?$/
 
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
@@ -77,6 +78,22 @@ export const parse = string => {
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
+  } else if (type === 'azure') {
+    object.type = 'azure'
+    let username, password, host, port, path, optionList
+    // Some users have a remote with a colon in the URL, which breaks the parsing since this commit: https://github.com/vatesfr/xen-orchestra/commit/fb1bf6a1e748b457f2d2b89ba02fa104554c03df
+    try {
+      ;[, username, password, host, port, path, optionList] = AZURE_RE.exec(rest)
+    } catch (err) {
+      ;[host, path] = rest.split(':')
+      object.invalidUrl = true
+    }
+    object.username = username
+    object.password = decodeURIComponent(password)
+    object.host = `${host}:${port}`
+    object.protocol = 'http'
+    object.path = path
+    object = { ...parseOptionList(optionList), ...object }
   }
   return object
 }
@@ -100,6 +117,9 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     path = '\0' + path.join('\\') // FIXME saving with the windows fashion \ was a bad idea :,(
   } else {
     path = `/${path}`
+  }
+  if (type === 'azure') {
+    string = `${protocol}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   string += path
 
