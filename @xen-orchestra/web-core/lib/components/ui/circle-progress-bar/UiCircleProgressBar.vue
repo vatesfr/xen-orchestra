@@ -1,3 +1,4 @@
+<!-- v3 -->
 <template>
   <div class="progress-circle-container">
     <svg
