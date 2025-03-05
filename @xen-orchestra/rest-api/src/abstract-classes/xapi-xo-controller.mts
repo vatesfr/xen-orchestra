@@ -71,6 +71,7 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends Controlle
       const location = `${BASE_URL}/tasks/${task.id}`
       this.setStatus(202)
       this.setHeader('Location', location)
+      this.setHeader('Content-Type', 'text/plain')
 
       return location
     }

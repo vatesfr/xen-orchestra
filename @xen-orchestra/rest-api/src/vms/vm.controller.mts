@@ -1,4 +1,4 @@
-import { Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse } from 'tsoa'
+import { Example, Get, Path, Post, Produces, Query, Request, Response, Route, Security, SuccessResponse } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -55,7 +55,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(202, 'Action executed asynchronously')
+  @SuccessResponse(202, 'Action executed asynchronously', 'text/plain')
   @Response(204, 'No content')
   @Response(404, 'VM not found')
   @Response(500, 'Internal server error, XenServer/XCP-ng error')
