@@ -445,6 +445,7 @@ const Acls = decorate([
         (state, { acls, vm }) =>
           confirm({
             title: _('vmAddAcls'),
+            icon: 'menu-settings-acls',
             body: <AddAclsModal acls={acls} vm={vm} />,
           })
             .then(async ({ action, subjects }) => {

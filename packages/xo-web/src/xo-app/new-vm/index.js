@@ -10,6 +10,7 @@ import Link from 'link'
 import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SelectBootFirmware from 'select-boot-firmware'
 import SelectCoresPerSocket from 'select-cores-per-socket'
 import store from 'store'
@@ -70,8 +71,10 @@ import {
   SelectResourceSetsSr,
   SelectResourceSetsVdi,
   SelectResourceSetsVmTemplate,
+  SelectRole,
   SelectSr,
   SelectSshKey,
+  SelectSubject,
   SelectVdi,
   SelectVgpuType,
   SelectVmTemplate,
@@ -94,6 +97,11 @@ import styles from './index.css'
 const MULTIPLICAND = 2
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
+const ACL_LEVELS = {
+  admin: 'danger',
+  operator: 'primary',
+  viewer: 'success',
+}
 
 /* eslint-disable camelcase */
 
@@ -199,6 +207,26 @@ class Vif extends BaseComponent {
           </Button>
         </Item>
       </LineItem>
+    )
+  }
+}
+
+class AddAclsModal extends BaseComponent {
+  get value() {
+    return this.state
+  }
+
+  render() {
+    const { action, subjects } = this.state
+    return (
+      <form>
+        <div className='form-group'>
+          <SelectSubject multi onChange={this.linkState('subjects')} value={subjects} />
+        </div>
+        <div className='form-group'>
+          <SelectRole onChange={this.linkState('action')} value={action} />
+        </div>
+      </form>
     )
   }
 }
@@ -484,6 +512,7 @@ export default class NewVm extends BaseComponent {
     }
 
     const data = {
+      acls: state.acls.map(acl => ({ subject: acl.subject.id, action: acl.action.id })),
       affinityHost: state.affinityHost && state.affinityHost.id,
       clone: this._isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
@@ -617,6 +646,7 @@ export default class NewVm extends BaseComponent {
       // settings
       secureBoot: template.secureBoot,
       createVtpm: this._templateNeedsVtpm(),
+      acls: [],
     })
 
     if (this._isCoreOs()) {
@@ -908,6 +938,37 @@ export default class NewVm extends BaseComponent {
       secureBoot: false,
       createVtpm: value === 'uefi' ? this._templateNeedsVtpm() : false,
     })
+
+  _addAcls = async () => {
+    let { action, subjects } = await confirm({
+      title: _('vmAddAcls'),
+      icon: 'menu-settings-acls',
+      body: <AddAclsModal />,
+    })
+
+    if (action == null) {
+      return
+    }
+
+    const { acls } = this.state.state
+    // Filter out ACLs that are already assigned
+    subjects = subjects.filter(
+      subject => acls.find(acl => acl.action.id === action.id && acl.subject.id === subject.id) === undefined
+    )
+
+    if (isEmpty(subjects)) {
+      return
+    }
+
+    this._setState({ acls: [...acls, ...subjects.map(subject => ({ action, subject }))] })
+  }
+
+  _removeAcl = event => {
+    const { action, subject } = event.currentTarget.dataset
+    this._setState({
+      acls: this.state.state.acls.filter(acl => acl.action.id !== action || acl.subject.id !== subject),
+    })
+  }
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1550,6 +1611,7 @@ export default class NewVm extends BaseComponent {
 
   _renderAdvanced = () => {
     const {
+      acls,
       affinityHost,
       autoPoweron,
       bootAfterCreate,
@@ -1844,6 +1906,37 @@ export default class NewVm extends BaseComponent {
                   _copyHostBiosStrings
                 )}
               </Item>
+            </SectionContent>
+          ),
+          isAdmin && (
+            <SectionContent>
+              <Container className='w-100'>
+                <Row>
+                  <Col>
+                    <span className='mr-1'>{_('vmAcls')}</span>
+                    <ActionButton
+                      btnStyle='primary'
+                      handler={this._addAcls}
+                      icon='add'
+                      size='small'
+                      tooltip={_('vmAddAcls')}
+                    />
+                  </Col>
+                </Row>
+                {acls.map(({ subject, action }) => (
+                  <Row key={`${subject.id}.${action.id}`}>
+                    <Col>
+                      <span>{renderXoItem(subject)}</span>{' '}
+                      <span className={`tag tag-pill tag-${ACL_LEVELS[action.id]}`}>{action.name}</span>{' '}
+                      <Tooltip content={_('removeAcl')}>
+                        <a data-action={action.id} data-subject={subject.id} onClick={this._removeAcl} role='button'>
+                          <Icon icon='remove' />
+                        </a>
+                      </Tooltip>
+                    </Col>
+                  </Row>
+                ))}
+              </Container>
             </SectionContent>
           ),
         ]}
