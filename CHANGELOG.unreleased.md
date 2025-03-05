@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins/Perf-alert] Fixing alert email notifications to be resent every minute for no reason (PR [#8408](https://github.com/vatesfr/xen-orchestra/pull/8408))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -36,5 +38,6 @@
 
 - @xen-orchestra/web minor
 - xo-server patch
+- xo-server-perf-alert patch
 
 <!--packages-end-->
