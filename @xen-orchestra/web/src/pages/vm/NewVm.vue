@@ -17,8 +17,8 @@
         <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
         <!--        // Todo: Replace by the new select component -->
         <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange">
-          <option v-for="template in vmsTemplates" :key="template.id" :value="template">
-            {{ template.name_label }} {{ vmState.pool!.name_label }}
+          <option v-for="template in vmsTemplatesByPool.get(vmState.pool.id)" :key="template.id" :value="template">
+            {{ template.name_label }}
           </option>
         </select>
       </div>
@@ -181,7 +181,7 @@
                 <td>
                   <!--        // Todo: Replace by the new select component -->
                   <select v-model="network.interface">
-                    <option v-for="nw in networks" :key="nw.id" :value="nw.name_label">
+                    <option v-for="nw in networks" :key="nw.id" :value="nw.id">
                       {{ nw.name_label }}
                     </option>
                   </select>
@@ -399,7 +399,7 @@ const { t } = useI18n()
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
 const { pifsByNetwork } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
-const { records: vmsTemplates } = useVmTemplateStore().subscribe()
+const { records: vmsTemplates, vmsTemplatesByPool } = useVmTemplateStore().subscribe()
 const { records: srs, get: getSr, vdisGroupedBySrName } = useSrStore().subscribe()
 const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdis } = useVdiStore().subscribe()
@@ -525,6 +525,7 @@ const getExistingDisks = (template: XoVmTemplate): Disk[] =>
       const vdi = getVdis(vbd!.VDI)
       return vdi
         ? {
+            id: vdi.id,
             name_label: vdi.name_label,
             name_description: vdi.name_description,
             size: byteFormatter(vdi.size),
@@ -554,13 +555,13 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
         const vif = getVifs(ref)
         return vif
           ? {
-              interface: getNetwork(vif.$network)?.name_label || '',
+              interface: getNetwork(vif.$network)?.id || '',
               macAddress: vif.MAC || '',
             }
           : null
       }).filter(Boolean) as NetworkInterface[])
     : defaultNetwork
-      ? [{ interface: defaultNetwork.name_label, macAddress: '' }]
+      ? [{ interface: defaultNetwork.id, macAddress: '' }]
       : []
 }
 
@@ -571,7 +572,7 @@ const addNetworkInterface = () => {
   const defaultNetwork = getDefaultNetwork(template)[0]
 
   vmState.networkInterfaces.push({
-    interface: defaultNetwork?.name_label || '',
+    interface: defaultNetwork?.id || '',
     macAddress: '',
   })
 }
@@ -631,13 +632,21 @@ const vmData = computed(() => ({
   clone: vmState.fast_clone,
   destroy_cloud_config_vdi: false,
   install: { method: 'cdrom', repository: 'string' },
-  memory: vmState.ram,
+  memory: vmState.ram * 1024 ** 3,
   name_description: vmState.vm_description,
   name_label: vmState.vm_name,
-  template: vmState.new_vm_template?.id,
-  vdis: [
-    { destroy: true, userdevice: 'string', size: 1, sr: 'string', name_description: 'string', name_label: 'string' },
-  ],
+  template: vmState.new_vm_template?.uuid,
+  vdis: vmState.VDIs,
+  // vdis: [
+  //   {
+  //     destroy: true,
+  //     userdevice: 'string',
+  //     size: 1024 ** 3,
+  //     sr: 'string',
+  //     name_description: 'string',
+  //     name_label: 'string',
+  //   },
+  // ],
   vifs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
     // mac: net.macAddress,
@@ -653,7 +662,6 @@ const createNewVM = async () => {
   }
 }
 const onSubmit = handleSubmit(values => {
-  // console.log('values', values)
   createNewVM()
   return values
 })
