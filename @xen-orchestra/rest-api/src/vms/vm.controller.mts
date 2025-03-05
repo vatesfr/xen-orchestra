@@ -3,6 +3,7 @@ import {
   Get,
   Path,
   Post,
+  Produces,
   Queries,
   Query,
   Request,
@@ -96,7 +97,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(202, 'Action executed asynchronously')
+  @SuccessResponse(202, 'Action executed asynchronously', 'text/plain')
   @Response(204, 'No content')
   @Response(404, 'VM not found')
   @Response(500, 'Internal server error, XenServer/XCP-ng error')
