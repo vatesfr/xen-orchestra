@@ -16,6 +16,7 @@ export type XoVmTemplate = {
   VIFs: []
   boot: { firmware: string; order: string }
   id: Branded<'vm-template'>
+  uuid: Branded<'vm-template'>
   isDefaultTemplate: boolean
   memory: { dynamic: number[]; static: number[]; size: number }
   name_description: string

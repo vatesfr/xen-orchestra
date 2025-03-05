@@ -1,7 +1,7 @@
 import { useFetch } from '@vueuse/core'
 
 export async function createVM(payload: Record<string, any>, poolId: string) {
-  const { data, error } = await useFetch(`/rest/v0/pools/${poolId}/actions/create_vm`, {
+  const { data, error } = await useFetch(`/rest/v0/pools/${poolId}/actions/create_vm?sync`, {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: { 'Content-Type': 'application/json' },
