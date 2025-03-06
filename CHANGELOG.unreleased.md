@@ -32,5 +32,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
