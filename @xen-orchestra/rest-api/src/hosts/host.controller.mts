@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Queries, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -14,6 +14,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import type { CollectionQueryParams } from '../open-api/common/request.common.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -35,10 +36,9 @@ export class HostController extends XapiXoController<XoHost> {
   @Get('')
   getHosts(
     @Request() req: ExRequest,
-    @Query() fields?: string,
-    @Query() filter?: string,
-    @Query() limit?: number
+    @Queries() queries: CollectionQueryParams
   ): string[] | WithHref<Unbrand<XoHost>>[] | WithHref<Partial<Unbrand<XoHost>>>[] {
+    const { filter, limit } = queries
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
