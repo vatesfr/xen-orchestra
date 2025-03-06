@@ -19,9 +19,11 @@ const {
 const assert = require('assert')
 const path = require('path')
 const asyncIteratorToStream = require('async-iterator-to-stream')
+const { createLogger } = require('@xen-orchestra/log')
 const { checksumStruct, fuFooter, fuHeader } = require('../_structs')
 const { isVhdAlias, resolveVhdAlias } = require('../aliases')
 
+const { warn } = createLogger('vhd-lib:VhdAbstract')
 exports.VhdAbstract = class VhdAbstract {
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
@@ -202,7 +204,16 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   static async unlink(handler, path) {
-    const resolved = await resolveVhdAlias(handler, path)
+    let resolved = path
+    try {
+      resolved = await resolveVhdAlias(handler, path)
+    } catch (err) {
+      // broken vhd directory must be unlinkable
+      if (err.code !== 'EISDIR') {
+        throw err
+      }
+      warn('Deleting directly a VhdDirectory', { path, err })
+    }
     try {
       await handler.unlink(resolved)
     } catch (err) {

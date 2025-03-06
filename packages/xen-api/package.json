@@ -67,7 +67,7 @@
     "source-map-support": "^0.5.21",
     "tap": "^18.7.0",
     "throttle": "^1.0.3",
-    "vhd-lib": "^4.11.2"
+    "vhd-lib": "^4.11.3"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",

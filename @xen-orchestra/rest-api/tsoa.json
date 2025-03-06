@@ -21,5 +21,8 @@
     "basePath": "/rest/v0",
     "authenticationModule": "./src/middlewares/authentication.middleware.mts",
     "iocModule": "./src/ioc/ioc.mts"
+  },
+  "compilerOptions": {
+    "strictNullChecks": true
   }
 }

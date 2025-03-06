@@ -1,8 +1,25 @@
 # ChangeLog
 
-## **5.104.0** (2025-02-27)
+## **5.104.1** (2025-03-04)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Changed Block Tracking] Disabling CBT now cleanup the full disk and snapshot chains (PR [#8313](https://github.com/vatesfr/xen-orchestra/pull/8313))
+- **XO6**:
+  - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
+
+### Released packages
+
+- vhd-lib 4.11.3
+- @xen-orchestra/xapi 8.1.0
+- @xen-orchestra/backups 0.58.3
+- @xen-orchestra/proxy 0.29.15
+- @xen-orchestra/web 0.13.0
+- xo-server 5.174.0
+
+## **5.104.0** (2025-02-27)
 
 ### Highlights
 

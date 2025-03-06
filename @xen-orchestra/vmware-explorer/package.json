@@ -10,7 +10,7 @@
     "@xen-orchestra/log": "^0.7.1",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
-    "vhd-lib": "^4.11.2",
+    "vhd-lib": "^4.11.3",
     "xml2js": "^0.6.2",
     "xo-vmdk-to-vhd": "^2.5.7"
   },
