@@ -18,7 +18,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Netbox] Fix synchronization not working if `checkNetboxVersion` is disabled in the config
+- [Netbox] Fix synchronization not working if `checkNetboxVersion` is disabled in the config (PR [#8416](https://github.com/vatesfr/xen-orchestra/pull/8416))
 
 ### Packages to release
 
