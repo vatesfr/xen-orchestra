@@ -118,7 +118,7 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     path = `/${path}`
   }
   if (type === 'azure') {
-    string = `${protocol}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
+    string = `${type}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}/${path}`
   }
   string += path
 

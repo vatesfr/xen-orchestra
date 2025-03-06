@@ -38,8 +38,6 @@ For Azure not Azurite
     this.#container = parts.shift()
     this.#dir = join(...parts)
     this.#containerClient = this.#blobServiceClient.getContainerClient(this.#container)
-    this.#createContainer()
-
     const WITH_RETRY = ['_copy', '_getSize', '_list', '_outputFile', '_read', '_rename', '_unlink', '_writeFile']
     WITH_RETRY.forEach(functionName => {
       if (this[functionName] !== undefined) {
@@ -64,8 +62,13 @@ For Azure not Azurite
     return 'azure'
   }
 
-  async #createContainer() {
+  async _sync() {
+    await super._sync()
     await this.#containerClient.createIfNotExists()
+  }
+
+  async #findBlobClient(file) {
+    return this.#containerClient.getBlobClient(file)
   }
 
   async #makePrefix(path) {
@@ -74,12 +77,10 @@ For Azure not Azurite
 
   async #isNotEmptyDir(dir) {
     const prefix = this.#makePrefix(dir)
-    const blobs = []
-    for await (const blob of this.#containerClient.listBlobsFlat({ prefix })) {
-      blobs.push(blob.name)
-    }
+    const iterator = this.#containerClient.listBlobsFlat({ prefix }).byPage({ maxPageSize: 1 })
 
-    return blobs.length > 0
+    const { value } = await iterator.next()
+    return !!(value && value.segment && value.segment.blobItems.length)
   }
 
   async #streamToBuffer(readableStream, buffer) {
@@ -102,18 +103,9 @@ For Azure not Azurite
   }
 
   // this can be used right away instead of _writeFile func
-  async #_outputStream(file, data) {
+  async _outputStream(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
     await blobClient.uploadStream(data, MAX_BLOCK_SIZE, MAX_BLOCK_COUNT)
-  }
-
-  // list containers
-  async _listContainers() {
-    const containers = []
-    for await (const container of this.#blobServiceClient.listContainers()) {
-      containers.push(container.name)
-    }
-    return containers
   }
 
   // list blobs in container
@@ -129,7 +121,7 @@ For Azure not Azurite
   async _writeFile(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
     if (data.length > MAX_BLOCK_SIZE) {
-      await this.#_outputStream(file, data)
+      await this._outputStream(file, data)
     } else {
       await blobClient.upload(data, data.length)
     }
@@ -141,18 +133,17 @@ For Azure not Azurite
       const response = await blobClient.download()
       return await response.readableStreamBody
     } catch (e) {
-      if (e.name === 'NoSuchKey') {
-        const error = new Error(`ENOENT: no such file '${this.#dir}'`)
+      if (e.name === 'RestError' && e.statusCode === 404) {
+        const error = new Error(`ENOENT: no such file '${this.#dir}'`, e)
         error.code = 'ENOENT'
         error.path = this.#dir
         throw error
       }
-      throw e
     }
   }
 
   async _unlink(file) {
-    const blobClient = this.#containerClient.getBlobClient(file)
+    const blobClient = this.#findBlobClient(file)
     await blobClient.delete()
   }
 
@@ -162,13 +153,13 @@ For Azure not Azurite
   }
 
   async _copy(oldPath, newPath) {
-    const sourceBlob = this.#containerClient.getBlobClient(oldPath)
-    const destinationBlob = this.#containerClient.getBlobClient(newPath)
+    const sourceBlob = this.#findBlobClient(oldPath)
+    const destinationBlob = this.#findBlobClient(newPath)
     await destinationBlob.beginCopyFromURL(sourceBlob.url, { requiresSync: true })
   }
 
   async _getSize(file) {
-    const blobClient = this.#containerClient.getBlobClient(file)
+    const blobClient = this.#findBlobClient(file)
     const properties = await blobClient.getProperties()
     return properties.contentLength
   }
