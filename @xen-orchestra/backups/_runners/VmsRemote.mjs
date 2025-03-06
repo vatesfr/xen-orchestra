@@ -4,11 +4,11 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
 import { Task } from '../Task.mjs'
-import createStreamThrottle from './_createStreamThrottle.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { FullRemote } from './_vmRunners/FullRemote.mjs'
 import { IncrementalRemote } from './_vmRunners/IncrementalRemote.mjs'
+import { Throttle } from '@vates/generator-toolbox'
 
 const noop = Function.prototype
 
@@ -41,7 +41,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
     const schedule = this._schedule
     const settings = this._settings
 
-    const throttleStream = createStreamThrottle(settings.maxExportRate)
+    const throttleGenerator = new Throttle()
 
     const config = this._config
 
@@ -89,7 +89,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             schedule,
             settings: vmSettings,
             sourceRemoteAdapter,
-            throttleStream,
+            throttleGenerator,
             vmUuid,
           }
           let vmBackup

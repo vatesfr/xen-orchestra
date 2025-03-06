@@ -29,14 +29,16 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     const { compression } = this.job
     const vm = this._vm
     const exportedVm = this._exportedVm
-    const stream = this._throttleStream(
+    // @todo put back throttle for full backup/Replication
+    const stream =
+      /* this._throttleStream( */
       (
         await this._xapi.VM_export(exportedVm.$ref, {
           compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
           useSnapshot: false,
         })
       ).body
-    )
+    /* ) */
 
     const vdis = await exportedVm.$getDisks()
     let maxStreamLength = 1024 * 1024 // Ovf file and tar headers are a few KB, let's stay safe
