@@ -623,7 +623,7 @@ const messages = {
   nbdConcurrency: 'Number of NBD connection per disk',
   cbtDestroySnapshotData: 'Purge snapshot data when using CBT',
   cbtDestroySnapshotDataInformation:
-    "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback",
+    "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   shorterBackupReports: 'Shorter backup reports',
