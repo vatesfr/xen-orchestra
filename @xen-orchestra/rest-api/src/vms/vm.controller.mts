@@ -1,4 +1,4 @@
-import { Example, Get, Path, Queries, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Queries, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
@@ -60,7 +60,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vmStatsExample)
   @Get('{id}/stats')
-  @Response(404, 'VM not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity, VM is halted or host could not be found')
   async getVmStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiVmStats> {
     try {

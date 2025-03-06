@@ -6,12 +6,18 @@ import type { XapiHostStats, XapiStatsGranularity, XoHost } from '@vates/types'
 
 import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import {
+  internalServerErrorResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 
 @Route('hosts')
 @Security('*')
-@Response(401, 'Authentication required')
+@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('hosts')
 @provide(HostController)
 export class HostController extends XapiXoController<XoHost> {
@@ -41,7 +47,7 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(host)
   @Get('{id}')
-  @Response(404, 'Host not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   getHost(@Path() id: string): Unbrand<XoHost> {
     return this.getObject(id as XoHost['id'])
   }
@@ -52,9 +58,9 @@ export class HostController extends XapiXoController<XoHost> {
    */
   @Example(hostStats)
   @Get('{id}/stats')
-  @Response(404, 'Host not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity')
-  @Response(500, 'Internal server error, XenServer/XCP-ng error')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   getHostStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiHostStats> {
     return this.restApi.xoApp.getXapiHostStats(id as XoHost['id'], granularity)
   }
