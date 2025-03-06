@@ -81,7 +81,6 @@ export const parse = string => {
   } else if (type === 'azure') {
     object.type = 'azure'
     let username, password, host, port, path, optionList
-    // Some users have a remote with a colon in the URL, which breaks the parsing since this commit: https://github.com/vatesfr/xen-orchestra/commit/fb1bf6a1e748b457f2d2b89ba02fa104554c03df
     try {
       ;[, username, password, host, port, path, optionList] = AZURE_RE.exec(rest)
     } catch (err) {
