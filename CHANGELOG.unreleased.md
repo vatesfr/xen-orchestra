@@ -16,6 +16,7 @@
   - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+- [Netbox] Support version 4.2.x
 
 ### Bug fixes
 
@@ -48,7 +49,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi patch
 - xo-server patch
-- xo-server-netbox patch
+- xo-server-netbox minor
 - xo-server-perf-alert patch
 
 <!--packages-end-->
