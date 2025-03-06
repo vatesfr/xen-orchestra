@@ -235,11 +235,12 @@ class Netbox {
   }
 
   async #checkNetboxVersion() {
+    await this.#fetchNetboxVersion()
+
     if (!this.#xo.config.getOptional('netbox.checkNetboxVersion')) {
       return
     }
 
-    await this.#fetchNetboxVersion()
     if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, SUPPORTED_VERSION)) {
       throw new Error(
         `Netbox version ${this.#netboxVersion ?? '<2.10'} not supported. Please check https://xen-orchestra.com/docs/advanced.html#supported-versions`
