@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vms/<vm-id>/stats` (PR [#8359](https://github.com/vatesfr/xen-orchestra/pull/8359))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +34,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- xo-server patch
 
 <!--packages-end-->
