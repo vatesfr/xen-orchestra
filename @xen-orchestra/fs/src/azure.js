@@ -26,7 +26,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
         `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
       )
     } else {
-      info('Conneting to Azure blob storage...')
+      info('Connecting to Azure blob storage...')
       const credentials = new StorageSharedKeyCredential(username, password)
       this.#blobServiceClient = new BlobServiceClient(`${protocol}://${username}.blob.core.windows.net`, credentials)
     }
