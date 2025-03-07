@@ -18,7 +18,7 @@ import { Ref } from 'xen-api'
 import isDefaultTemplate from './isDefaultTemplate.mjs'
 import isVmRunning from './_isVmRunning.mjs'
 
-const { warn } = createLogger('xo:xapi:vm')
+const { warn, error } = createLogger('xo:xapi:vm')
 
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
@@ -582,6 +582,14 @@ class Vm {
     const query = {}
     if (srRef !== undefined) {
       query.sr_id = srRef
+    } else if (this.pool.default_SR === Ref.EMPTY) {
+      error('Unable to import VM if no SR is specified and no default_SR is set on the pool')
+      /* throw */ incorrectState({
+        actual: this.pool.default_SR,
+        expected: 'Not empty',
+        object: this.pool.uuid,
+        property: 'default_SR',
+      })
     }
     if (onVmCreation != null) {
       const original = onVmCreation

@@ -1565,7 +1565,7 @@ export default class RestApi {
       '/:collection(pools)/:object/vms',
       wrap(async (req, res) => {
         let srRef
-        const { sr } = req.params
+        const { sr } = req.query
         if (sr !== undefined) {
           srRef = app.getXapiObject(sr, 'SR').$ref
         }

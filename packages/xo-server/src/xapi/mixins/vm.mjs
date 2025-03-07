@@ -210,9 +210,9 @@ const methods = {
       }
 
       // TODO: set vm.suspend_SR
-      await Promise.all([
-        // Creates the user defined VDIs.
-        ..._vdisToCreate.map(async (vdi, i) => {
+      // Creates the user defined VDIs.
+      await Promise.all(
+        _vdisToCreate.map(async (vdi, i) => {
           const vdiRef = await this.VDI_create({
             name_description: vdi.name_description,
             name_label: vdi.name_label,
@@ -232,9 +232,14 @@ const methods = {
             VDI: vdiRef,
             VM: vm.$ref,
           })
-        }),
-        // Modify existing (previous template) disks if necessary
-        ..._vdisToUpdate.map(async ({ $ref, sr, size, userdevice, ...properties }) => {
+        })
+      )
+
+      // Modify existing (previous template) disks if necessary
+      // Wait until all VDIs are created, otherwise VBD_create may throw an OTHER_OPERATION_IN_PROGRESS error
+      // in case a VDI is migrating
+      await Promise.all(
+        _vdisToUpdate.map(async ({ $ref, sr, size, userdevice, ...properties }) => {
           await this._setObjectProperties({ $ref, $type: 'VDI' }, properties)
 
           let _vdi = this.getObject($ref)
@@ -252,8 +257,8 @@ const methods = {
             }
             await this.resizeVdi(_vdi.$id, size)
           }
-        }),
-      ])
+        })
+      )
     }
 
     if (destroyAllVifs) {

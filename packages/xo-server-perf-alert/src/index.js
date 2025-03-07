@@ -518,7 +518,7 @@ ${monitorBodies.join('\n')}`
                   }
 
                   return true
-                })
+                }).map(obj => obj.uuid)
               : definition.uuids,
             async uuid => {
               try {
