@@ -45,6 +45,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi patch
 - xo-server minor
