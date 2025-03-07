@@ -74,7 +74,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     const iterator = this.#containerClient.listBlobsFlat({ prefix }).byPage({ maxPageSize: 1 })
 
     const { value } = await iterator.next()
-    return value?.segment?.blobItems?.length ?? 0 > 0
+    return (value?.segment?.blobItems?.length ?? 0) > 0
   }
 
   async #streamToBuffer(readableStream, buffer) {
@@ -94,41 +94,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       })
       readableStream.on('error', reject)
     })
-  }
-
-  async #processItem(result, item, containerClient) {
-    const parts = item.name.split('/').filter(Boolean)
-
-    if (item.kind === 'prefix') {
-      this.#insertIntoHierarchy(result, parts, true)
-      const subIter = containerClient.listBlobsByHierarchy('/', { prefix: item.name })
-      for await (const subItem of subIter) {
-        await this.#processItem(result, subItem, containerClient)
-      }
-    } else {
-      this.#insertIntoHierarchy(result, parts, false)
-    }
-  }
-
-  #insertIntoHierarchy(hierarchy, parts, isFolder) {
-    let currentLevel = hierarchy
-    for (let i = 0; i < parts.length; i++) {
-      const name = parts[i]
-      let existingEntry = currentLevel.find(
-        entry => typeof entry === 'object' && Object.prototype.hasOwnProperty.call(entry, name)
-      )
-
-      if (!existingEntry) {
-        if (i === parts.length - 1 && !isFolder) {
-          currentLevel.push(name)
-          return
-        } else {
-          existingEntry = { [name]: [] }
-          currentLevel.push(existingEntry)
-        }
-      }
-      currentLevel = existingEntry[name]
-    }
   }
 
   async #_rmtreeHelper(prefix) {
@@ -153,11 +118,11 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   // list blobs in container
-  async _list() {
+  async _list(path) {
     const result = []
-    const iter1 = this.#containerClient.listBlobsByHierarchy('/', { prefix: '' })
-    for await (const item of iter1) {
-      await this.#processItem(result, item, this.#containerClient)
+    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: path + '/' })) {
+      const strippedName = item.name.replace(`${path}/`, '')
+      result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
     }
     return result
   }
