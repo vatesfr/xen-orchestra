@@ -65,10 +65,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     await this.#containerClient.createIfNotExists()
   }
 
-  async #findBlobClient(file) {
-    return this.#containerClient.getBlobClient(file)
-  }
-
   async #makePrefix(path) {
     return path.endsWith('/') ? path : `${path}/`
   }
@@ -135,6 +131,18 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
   }
 
+  async #_rmtreeHelper(prefix) {
+    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix })
+    for await (const item of iter) {
+      const itemName = item.name
+      if (item.kind === 'prefix') {
+        await this._rmtreeHelper(itemName)
+      } else {
+        await this._unlink(itemName)
+      }
+    }
+  }
+
   // this can be used right away instead of _writeFile func
   async _outputStream(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
@@ -177,7 +185,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink(file) {
-    const blobClient = this.#findBlobClient(file)
+    const blobClient = this.#containerClient.getBlobClient(file)
     await blobClient.delete()
   }
 
@@ -187,13 +195,13 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _copy(oldPath, newPath) {
-    const sourceBlob = this.#findBlobClient(oldPath)
-    const destinationBlob = this.#findBlobClient(newPath)
+    const sourceBlob = this.#containerClient.getBlobClient(oldPath)
+    const destinationBlob = this.#containerClient.getBlobClient(newPath)
     await destinationBlob.beginCopyFromURL(sourceBlob.url, { requiresSync: true })
   }
 
   async _getSize(file) {
-    const blobClient = this.#findBlobClient(file)
+    const blobClient = this.#containerClient.getBlobClient(file)
     const properties = await blobClient.getProperties()
     return properties.contentLength
   }
@@ -215,6 +223,18 @@ export default class AzureHandler extends RemoteHandlerAbstract {
         }
       }
       throw e
+    }
+  }
+
+  async _rmtree(path) {
+    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix: path })
+    for await (const item of iter) {
+      const itemName = item.name
+      if (item.kind === 'prefix') {
+        await this.#_rmtreeHelper(itemName)
+      } else {
+        await this._unlink(itemName)
+      }
     }
   }
 }
