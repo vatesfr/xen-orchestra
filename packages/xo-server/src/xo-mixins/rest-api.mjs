@@ -605,7 +605,7 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs', 'vms']
+    const swaggerEndpoints = ['docs', 'vms', 'hosts']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -1356,18 +1356,6 @@ export default class RestApi {
       })
     )
 
-    api.get(
-      '/:collection(vms|hosts)/:object/stats',
-      wrap(async (req, res) => {
-        const object = req.object
-        const method = object.type === 'VM' ? 'getXapiVmStats' : 'getXapiHostStats'
-        const granularity = req.query.granularity
-
-        const result = await app[method](object.id, granularity)
-        return res.json(result)
-      })
-    )
-
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
       if (swaggerEndpoints.includes(collection.id)) {
@@ -1577,7 +1565,7 @@ export default class RestApi {
       '/:collection(pools)/:object/vms',
       wrap(async (req, res) => {
         let srRef
-        const { sr } = req.params
+        const { sr } = req.query
         if (sr !== undefined) {
           srRef = app.getXapiObject(sr, 'SR').$ref
         }

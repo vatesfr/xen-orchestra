@@ -9,16 +9,21 @@
 
 ### Enhancements
 
-- **XO6**:
-  - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
-
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vms/<vm-id>/stats` (PR [#8359](https://github.com/vatesfr/xen-orchestra/pull/8359))
+  - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+  - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+  - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Plugins/Perf-alert] Fixing alert email notifications to be resent every minute for no reason (PR [#8408](https://github.com/vatesfr/xen-orchestra/pull/8408))
+- [REST API] Fix _Internal Error_ when importing a VM without default SR on the pool (PR [#8409](https://github.com/vatesfr/xen-orchestra/pull/8409))
+- [REST API] Fix the SR ID ignored when importing a VM (PR [#8409](https://github.com/vatesfr/xen-orchestra/pull/8409))
 
 ### Packages to release
 
@@ -36,7 +41,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi patch
 - xo-server patch
 - xo-server-perf-alert patch
 

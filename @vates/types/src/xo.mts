@@ -1,12 +1,15 @@
 // Types based on xapi-object-to-xo
 
-import { Branded, DOMAIN_TYPE, VM_OPERATIONS, VM_POWER_STATE } from './common.mjs'
+import type {
+  Branded,
+  DOMAIN_TYPE,
+  HOST_ALLOWED_OPERATIONS,
+  HOST_POWER_STATE,
+  VM_OPERATIONS,
+  VM_POWER_STATE,
+} from './common.mjs'
 
-type BaseXoVm = {
-  $VBDs: XoVbd['id'][]
-  $VGPUs: XoVgpu['id'][]
-
-  $container: XoPool['id'] | XoHost['id']
+type BaseXapiXo = {
   $pool: XoPool['id']
   /**
    * @deprecated use $pool instead
@@ -14,6 +17,15 @@ type BaseXoVm = {
   $poolId: XoPool['id']
 
   _xapiRef: string
+
+  uuid: string
+}
+
+type BaseXoVm = BaseXapiXo & {
+  $VBDs: XoVbd['id'][]
+  $VGPUs: XoVgpu['id'][]
+
+  $container: XoPool['id'] | XoHost['id']
 
   CPUs: {
     max: number
@@ -99,17 +111,122 @@ export type XoGroup = {
   users: XoUser['id'][]
 }
 
-export type XoHost = {
+export type XoHost = BaseXapiXo & {
+  $PBDs: XoPbd['id'][]
+  $PCIs: XoPci['id'][]
+  $PGPUs: XoPgpu['id'][]
+  $PIFs: XoPif['id'][]
+
+  PCIs: XoPci['id'][]
+  PGPUs: XoPgpu['id'][]
+  PIFs: XoPif['id'][]
+  /**
+   * @deprecated use cpus instead
+   */
+  CPUs: Record<string, string>
+
+  address?: string
+  agentStartTime: null | number
+  bios_string: Record<string, string>
+  build: string
+  certificates?: {
+    fingerprint: string
+    notAfter: number
+  }
+  chipset_info: {
+    iommu?: boolean
+  }
+  controlDomain?: XoVm['id']
+  cpus: {
+    cores?: null | number
+    sockets?: null | number
+  }
+  current_operations: Record<string, HOST_ALLOWED_OPERATIONS>
+  enabled: boolean
+  hostname?: string
+  hvmCapable: boolean
   id: Branded<'host'>
+  iscsiIqn: string
+  license_expiry: null | number
+  license_params: Record<string, string>
+  license_server: Record<string, string>
+  logging?: Record<string, string>
+  memory: {
+    size: number
+    /**
+     * @deprecated
+     */
+    total?: number
+    usage: number
+  }
+  multipathing: boolean
+  name_description: string
+  name_label: string
+  otherConfig: Record<string, string>
+  /**
+   * @deprecated
+   */
+  patches: XoHostPatch['id'][]
+  power_state: HOST_POWER_STATE
+  powerOnMode: string
+  productBrand: string
+  rebootRequired: boolean
+  residentVms: XoVm['id'][]
+  startTime: null | number
+  supplementalPacks:
+    | {
+        author: string
+        description: string
+        guidance: string
+        hosts: XoHost['id'][]
+        name: string
+        size: number
+        version: string
+        vdi: XoVdi['id']
+      }[]
+    | {
+        author: string
+        description: string
+        name: string
+        version: string
+      }[]
+  tags: string[]
   type: 'host'
+  version: string
+  zstdSupported: boolean
 }
 
-export type XoPool = {
+export type XoHostPatch = BaseXapiXo & {
+  id: Branded<'host_patch'>
+  type: 'host_patch'
+}
+
+export type XoPbd = BaseXapiXo & {
+  id: Branded<'PBD'>
+  type: 'PBD'
+}
+
+export type XoPci = BaseXapiXo & {
+  id: Branded<'PCI'>
+  type: 'PCI'
+}
+
+export type XoPgpu = BaseXapiXo & {
+  id: Branded<'PGPU'>
+  type: 'PGPU'
+}
+
+export type XoPif = BaseXapiXo & {
+  id: Branded<'PIF'>
+  type: 'PIF'
+}
+
+export type XoPool = BaseXapiXo & {
   id: Branded<'pool'>
   type: 'pool'
 }
 
-export type XoSr = {
+export type XoSr = BaseXapiXo & {
   id: Branded<'SR'>
   type: 'SR'
 }
@@ -125,22 +242,22 @@ export type XoUser = {
   preferences: Record<string, string>
 }
 
-export type XoVbd = {
+export type XoVbd = BaseXapiXo & {
   id: Branded<'VBD'>
   type: 'VBD'
 }
 
-export type XoVdi = {
+export type XoVdi = BaseXapiXo & {
   id: Branded<'VDI'>
   type: 'VDI'
 }
 
-export type XoVgpu = {
+export type XoVgpu = BaseXapiXo & {
   id: Branded<'VGPU'>
   type: 'VGPU'
 }
 
-export type XoVif = {
+export type XoVif = BaseXapiXo & {
   id: Branded<'VIF'>
   type: 'VIF'
 }
@@ -181,7 +298,7 @@ export type XoVmTemplate = BaseXoVm & {
   type: 'VM-template'
 }
 
-export type XoVtpm = {
+export type XoVtpm = BaseXapiXo & {
   id: Branded<'VTPM'>
   type: 'VTPM'
 }
