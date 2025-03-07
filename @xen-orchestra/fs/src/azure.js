@@ -1,7 +1,7 @@
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob'
 import { createLogger } from '@xen-orchestra/log'
 import { parse } from 'xo-remote-parser'
-import { basename, join, split } from './path'
+import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
 
@@ -100,6 +100,41 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     })
   }
 
+  async #processItem(result, item, containerClient) {
+    const parts = item.name.split('/').filter(Boolean)
+
+    if (item.kind === 'prefix') {
+      this.#insertIntoHierarchy(result, parts, true)
+      const subIter = containerClient.listBlobsByHierarchy('/', { prefix: item.name })
+      for await (const subItem of subIter) {
+        await this.#processItem(result, subItem, containerClient)
+      }
+    } else {
+      this.#insertIntoHierarchy(result, parts, false)
+    }
+  }
+
+  #insertIntoHierarchy(hierarchy, parts, isFolder) {
+    let currentLevel = hierarchy
+    for (let i = 0; i < parts.length; i++) {
+      const name = parts[i]
+      let existingEntry = currentLevel.find(
+        entry => typeof entry === 'object' && Object.prototype.hasOwnProperty.call(entry, name)
+      )
+
+      if (!existingEntry) {
+        if (i === parts.length - 1 && !isFolder) {
+          currentLevel.push(name)
+          return
+        } else {
+          existingEntry = { [name]: [] }
+          currentLevel.push(existingEntry)
+        }
+      }
+      currentLevel = existingEntry[name]
+    }
+  }
+
   // this can be used right away instead of _writeFile func
   async _outputStream(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
@@ -108,11 +143,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   // list blobs in container
   async _list() {
-    const files = []
-    for await (const blob of this.#containerClient.listBlobsFlat(this.#container)) {
-      files.push(basename(blob.name))
+    const result = []
+    const iter1 = this.#containerClient.listBlobsByHierarchy('/', { prefix: '' })
+    for await (const item of iter1) {
+      await this.#processItem(result, item, this.#containerClient)
     }
-    return files
+    return result
   }
 
   // uploads a file to a blob
