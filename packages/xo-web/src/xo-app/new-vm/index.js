@@ -365,6 +365,7 @@ export default class NewVm extends BaseComponent {
   _reset = callback => {
     this._replaceState(
       {
+        acls: [],
         bootAfterCreate: true,
         copyHostBiosStrings: this._templateHasBiosStrings(),
         coresPerSocket: undefined,
@@ -646,7 +647,6 @@ export default class NewVm extends BaseComponent {
       // settings
       secureBoot: template.secureBoot,
       createVtpm: this._templateNeedsVtpm(),
-      acls: [],
     })
 
     if (this._isCoreOs()) {
