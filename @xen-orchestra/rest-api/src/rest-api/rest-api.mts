@@ -9,6 +9,10 @@ export class RestApi {
     this.#xoApp = xoApp
   }
 
+  get xoApp() {
+    return this.#xoApp
+  }
+
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {
     return this.#xoApp.authenticateUser(...args)
   }
