@@ -133,14 +133,17 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   async #_rmtreeHelper(prefix) {
     const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix })
+    const deletionPromises = []
     for await (const item of iter) {
       const itemName = item.name
+
       if (item.kind === 'prefix') {
-        await this._rmtreeHelper(itemName)
+        deletionPromises.push(this.#_rmtreeHelper(itemName))
       } else {
-        await this._unlink(itemName)
+        deletionPromises.push(this._unlink(itemName))
       }
     }
+    await Promise.all(deletionPromises)
   }
 
   // this can be used right away instead of _writeFile func
@@ -227,14 +230,16 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _rmtree(path) {
-    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix: path })
+    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix: path + '/' })
+    const deletionPromises = []
     for await (const item of iter) {
       const itemName = item.name
       if (item.kind === 'prefix') {
-        await this.#_rmtreeHelper(itemName)
+        deletionPromises.push(this.#_rmtreeHelper(itemName))
       } else {
-        await this._unlink(itemName)
+        deletionPromises.push(this._unlink(itemName))
       }
     }
+    await Promise.all(deletionPromises)
   }
 }
