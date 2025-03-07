@@ -8,9 +8,7 @@ import { pRetry } from 'promise-toolbox'
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 1024 * 1024 * 4
 const MAX_BLOCK_COUNT = 1250
-const { warn } = createLogger('xo:fs:azure')
-
-// <http|https>://<account-name>.<service-name>.core.windows.net/<resource-path>
+const { warn, info } = createLogger('xo:fs:azure')
 
 export default class AzureHandler extends RemoteHandlerAbstract {
   #container
@@ -21,13 +19,17 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
     const { username, path, password, host, protocol } = parse(remote.url)
-    const credentials = new StorageSharedKeyCredential(username, password)
 
-    this.#blobServiceClient = host
-      ? BlobServiceClient.fromConnectionString(
-          `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
-        )
-      : new BlobServiceClient(`${protocol}://${username}.blob.core.windows.net`, credentials)
+    if (host) {
+      info('Conneting to Azurite blob storage emulator...')
+      this.#blobServiceClient = BlobServiceClient.fromConnectionString(
+        `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
+      )
+    } else {
+      info('Conneting to Azure blob storage...')
+      const credentials = new StorageSharedKeyCredential(username, password)
+      this.#blobServiceClient = new BlobServiceClient(`${protocol}://${username}.blob.core.windows.net`, credentials)
+    }
 
     const parts = split(path)
     this.#container = parts.shift()
