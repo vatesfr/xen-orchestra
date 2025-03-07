@@ -40,7 +40,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       if (this[functionName] !== undefined) {
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
-          when: err => !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'EISDIR'].includes(err?.code),
+          // à réviser
+          when: err => !['BlobAlreadyExists', 'SystemInUse', 'BlobNotFound', 'ContainerNotFound'].includes(err?.code),
           onRetry(error) {
             warn('retrying method on fs ', {
               method: functionName,

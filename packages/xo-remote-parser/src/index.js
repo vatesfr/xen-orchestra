@@ -111,18 +111,18 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     string = protocol === 'https' ? 's3://' : 's3+http://'
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
+  if (type === 'azure') {
+    // used a double slash to seperate path cause password might contain slashes
+    string = host
+      ? `${protocol}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}//${path}`
+      : `azure://${username}:${encodeURIComponent(password)}//${path}`
+  }
   path = sanitizePath(path)
   if (type === 'smb') {
     path = path.split('/')
     path = '\0' + path.join('\\') // FIXME saving with the windows fashion \ was a bad idea :,(
   } else {
     path = `/${path}`
-  }
-  if (type === 'azure') {
-    // used a double slash to seperate path cause password might contain slashes
-    string = host
-      ? `${protocol}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}//${path}`
-      : `azure://${username}:${encodeURIComponent(password)}//${path}`
   }
   string += path
 
