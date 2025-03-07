@@ -940,7 +940,7 @@ export default class NewVm extends BaseComponent {
     })
 
   _addAcls = async () => {
-    let { action, subjects } = await confirm({
+    const { action, subjects } = await confirm({
       title: _('vmAddAcls'),
       icon: 'menu-settings-acls',
       body: <AddAclsModal />,
@@ -950,11 +950,9 @@ export default class NewVm extends BaseComponent {
       return
     }
 
-    const { acls } = this.state.state
-    // Filter out ACLs that are already assigned
-    subjects = subjects.filter(
-      subject => acls.find(acl => acl.action.id === action.id && acl.subject.id === subject.id) === undefined
-    )
+    // Remove ACLs that are being re-assigned
+    const subjectIds = subjects.map(subject => subject.id)
+    const acls = this.state.state.acls.filter(acl => !subjectIds.includes(acl.subject.id))
 
     if (isEmpty(subjects)) {
       return
