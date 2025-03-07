@@ -4,6 +4,7 @@ import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
+import { asyncEach } from '@vates/async-each'
 
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 1024 * 1024 * 4
@@ -41,7 +42,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
           // à réviser
-          when: err => !['BlobAlreadyExists', 'SystemInUse', 'BlobNotFound', 'ContainerNotFound'].includes(err?.code),
+          when: err => !['SystemInUse'].includes(err?.code),
           onRetry(error) {
             warn('retrying method on fs ', {
               method: functionName,
@@ -61,8 +62,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _sync() {
-    await super._sync()
     await this.#containerClient.createIfNotExists()
+    await super._sync()
   }
 
   async #makePrefix(path) {
@@ -97,18 +98,21 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async #_rmtreeHelper(prefix) {
-    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix })
-    const deletionPromises = []
-    for await (const item of iter) {
-      const itemName = item.name
-
-      if (item.kind === 'prefix') {
-        deletionPromises.push(this.#_rmtreeHelper(itemName))
-      } else {
-        deletionPromises.push(this._unlink(itemName))
+    const iter = this.#containerClient.listBlobsFlat({ prefix })
+    await asyncEach(
+      iter,
+      async item => {
+        const itemName = item.name
+        if (item.kind === 'prefix') {
+          await this.#_rmtreeHelper(itemName)
+        } else {
+          await this._unlink(itemName)
+        }
+      },
+      {
+        concurrency: 8,
       }
-    }
-    await Promise.all(deletionPromises)
+    )
   }
 
   // this can be used right away instead of _writeFile func
@@ -119,9 +123,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   // list blobs in container
   async _list(path) {
+    const prefix = path === '/' ? '' : path + '/'
     const result = []
-    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: path + '/' })) {
-      const strippedName = item.name.replace(`${path}/`, '')
+    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix })) {
+      const strippedName = item.name.startsWith(`${path}/`) ? item.name.replace(`${path}/`, '') : item.name
       result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
     }
     return result
@@ -195,16 +200,20 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _rmtree(path) {
-    const iter = this.#containerClient.listBlobsByHierarchy('/', { prefix: path + '/' })
-    const deletionPromises = []
-    for await (const item of iter) {
-      const itemName = item.name
-      if (item.kind === 'prefix') {
-        deletionPromises.push(this.#_rmtreeHelper(itemName))
-      } else {
-        deletionPromises.push(this._unlink(itemName))
+    const iter = this.#containerClient.listBlobsFlat({ prefix: path + '/' })
+    await asyncEach(
+      iter,
+      async item => {
+        const itemName = item.name
+        if (item.kind === 'prefix') {
+          await this.#_rmtreeHelper(itemName)
+        } else {
+          await this._unlink(itemName)
+        }
+      },
+      {
+        concurrency: 8,
       }
-    }
-    await Promise.all(deletionPromises)
+    )
   }
 }
