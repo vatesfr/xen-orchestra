@@ -15,12 +15,15 @@ export class Synchronized<T, TReturn, TNext> {
 
   constructor(source: AsyncGenerator<T, TReturn, TNext>) {
     this.#source = source
+    console.log('sync construcotr', { source })
   }
 
-  fork(uid: string): AsyncGenerator {
+  fork(uid: string): AsyncGenerator<T, TReturn, TNext> {
+    uid = '' + Math.random()
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
     const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
+
     return fork
   }
 
@@ -77,6 +80,7 @@ export class Synchronized<T, TReturn, TNext> {
   }
 
   async remove(uid: string, error?: Error): Promise<IteratorResult<T>> {
+    console.log('remove', uid)
     const fork = this.#forks.get(uid)
     if (fork === undefined) {
       if (this.#removedForks.has(uid)) {
@@ -142,7 +146,17 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
     return this.#parent.remove(this.#uid, e)
   }
 
-  [Symbol.asyncIterator](): AsyncGenerator<T> {
-    return this
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
+    console.log('generator symbol')
+    while (true) {
+      const res = await this.next()
+      console.log('next in forked', { res })
+      if (res.done) {
+        break
+      }
+
+      yield res.value
+    }
+    console.log('done')
   }
 }
