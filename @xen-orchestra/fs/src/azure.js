@@ -21,7 +21,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     const { username, path, password, host, protocol } = parse(remote.url)
 
     if (host) {
-      info('Conneting to Azurite blob storage emulator...')
+      info('Connecting to Azurite blob storage emulator...')
       this.#blobServiceClient = BlobServiceClient.fromConnectionString(
         `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
       )
