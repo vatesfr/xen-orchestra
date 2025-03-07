@@ -74,7 +74,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     const iterator = this.#containerClient.listBlobsFlat({ prefix }).byPage({ maxPageSize: 1 })
 
     const { value } = await iterator.next()
-    return !!(value && value.segment && value.segment.blobItems.length)
+    return value?.segment?.blobItems?.length ?? 0 > 0
   }
 
   async #streamToBuffer(readableStream, buffer) {
