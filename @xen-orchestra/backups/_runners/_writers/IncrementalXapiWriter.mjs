@@ -120,7 +120,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         // baseReplicatedTo can be undefined if a new disk is added and other are already replicated
         vdi.baseVdi = baseReplicatedTo
       } else {
-        // first replication of this VM
+        // first replication of this disk
         vdi.baseVdi = undefined
       }
       // ensure the VDI are created on the target SR
