@@ -1,4 +1,4 @@
-import { BlobServiceClient } from '@azure/storage-blob'
+import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob'
 import { createLogger } from '@xen-orchestra/log'
 import { parse } from 'xo-remote-parser'
 import { basename, join, split } from './path'
@@ -21,18 +21,13 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
     const { username, path, password, host, protocol } = parse(remote.url)
-    /* 
-For Azure not Azurite
- --------------------
-  const credentials = new StorageSharedKeyCredential(username, password);
-  this.#blobServiceClient = new BlobServiceClient(`${protocol}://${username}.blob.core.windows.net`, credentials);
- --------------------
-*/
+    const credentials = new StorageSharedKeyCredential(username, password)
 
-    // this works ONLY for Azurite
-    this.#blobServiceClient = BlobServiceClient.fromConnectionString(
-      `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
-    )
+    this.#blobServiceClient = host
+      ? BlobServiceClient.fromConnectionString(
+          `DefaultEndpointsProtocol=${protocol};AccountName=${username};AccountKey=${password};BlobEndpoint=${protocol}://${host}/${username}`
+        )
+      : new BlobServiceClient(`${protocol}://${username}.blob.core.windows.net`, credentials)
 
     const parts = split(path)
     this.#container = parts.shift()
