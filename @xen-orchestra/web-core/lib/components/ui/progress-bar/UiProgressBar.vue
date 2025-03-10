@@ -2,15 +2,14 @@
 <template>
   <div class="ui-progress-bar" :class="accentClass">
     <div class="progress-bar">
-      <div class="segment" :style="{ width: `${percentage}%` }" />
+      <div class="fill" :style="{ width: `${fillWidth}%` }" />
     </div>
-    <div v-if="steps" class="steps typo-body-regular-small">
-      <span>{{ $n(steps[0] / 100, 'percent') }}</span>
-      <span>{{ $n(steps[1] / 100, 'percent') }}</span>
-      <span>{{ $n(steps[2] / 100, 'percent') }}</span>
+    <div v-if="shouldShowSteps" class="steps typo-body-regular-small">
+      <span>{{ $n(0, 'percent') }}</span>
+      <span v-for="step in steps" :key="step">{{ $n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend :accent :value="rawPercentage" unit="%">{{ legend }}</UiLegend>
+      <UiLegend :accent :value="percentage" unit="%">{{ legend }}</UiLegend>
     </VtsLegendList>
   </div>
 </template>
@@ -19,30 +18,33 @@
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
 import { toVariants } from '@core/utils/to-variants.util'
+import { useMax } from '@vueuse/math'
 import { computed } from 'vue'
 
 const {
-  value,
+  value: _value,
   max = 100,
-  steps,
+  showSteps,
 } = defineProps<{
   legend: string
   value: number
   max?: number
-  steps?: [min: number, half: number, max: number]
+  showSteps?: boolean
 }>()
 
-const rawPercentage = computed(() => Math.round((value / max) * 1000) / 10)
+const value = useMax(0, () => _value)
 
-const percentage = computed(() => {
-  if (!steps) {
-    return rawPercentage.value
-  }
+const isInvalid = computed(() => !Number.isFinite(value.value / max) || value.value <= 0)
 
-  const relativeValue = (value / max) * 100
+const percentage = computed(() => (isInvalid.value ? 0 : Math.round((value.value / max) * 100)))
 
-  return Math.min(100, Math.round(relativeValue * steps?.[1]) / steps?.[2])
-})
+const maxPercentage = computed(() => (isInvalid.value ? 100 : Math.ceil(percentage.value / 100) * 100))
+
+const fillWidth = computed(() => Math.max(0, Math.min((percentage.value / maxPercentage.value) * 100, 100)))
+
+const shouldShowSteps = computed(() => showSteps || (value.value > max && percentage.value > 0))
+
+const steps = computed(() => Math.floor(maxPercentage.value / 100))
 
 const accent = computed(() => {
   if (percentage.value >= 90) {
@@ -72,7 +74,8 @@ const accentClass = computed(() => toVariants({ accent: accent.value }))
     overflow: hidden;
     background-color: var(--color-neutral-background-disabled);
 
-    .segment {
+    .fill {
+      width: 0;
       height: 100%;
       transition: width 0.25s ease-in-out;
     }
@@ -91,19 +94,19 @@ const accentClass = computed(() => toVariants({ accent: accent.value }))
   /* ACCENT */
 
   &.accent--info {
-    .segment {
+    .fill {
       background-color: var(--color-info-item-base);
     }
   }
 
   &.accent--warning {
-    .segment {
+    .fill {
       background-color: var(--color-warning-item-base);
     }
   }
 
   &.accent--danger {
-    .segment {
+    .fill {
       background-color: var(--color-danger-item-base);
     }
   }
