@@ -16,6 +16,7 @@
   - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+- [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 
 ### Bug fixes
 
@@ -46,8 +47,9 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi patch
-- xo-server patch
+- xo-server minor
 - xo-server-netbox patch
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->
