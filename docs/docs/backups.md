@@ -243,6 +243,17 @@ If you need to mount an unsupported store (FTP for example), you can always do i
 
 Any Debian Linux mount point could be supported this way, until we add further options directly in the web interface.
 
+### Amazon S3
+
+Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so you can back up your data to a variety of cloud storage services.
+
+:::warning
+- Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Make sure to test your setup before trusting it with critical backups.
+- Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
+:::
+
+![](./assets/XO-Amazon-S3-remote.png)
+
 ## Restore a backup
 
 All your scheduled backups are acccessible in the "Restore" view in the backup section of Xen Orchestra.
