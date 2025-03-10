@@ -2,32 +2,46 @@ import { DiskPassthrough } from './DiskPassthrough.mjs'
 import { Synchronized } from '@vates/generator-toolbox'
 import { Disk, DiskBlock } from './Disk.mjs'
 
-export class SynchronizedDisk extends DiskPassthrough {
-  #synchronized: Synchronized<DiskBlock, any, any> | undefined
-  #source: Disk
-  constructor(source: Disk) {
-    super()
-    this.#source = source
-  }
-  async openSource(): Promise<Disk> {
-    // await this.#source.init()
-    const generator = this.#source.diskBlocks()
-    this.#synchronized = new Synchronized(generator)
+
+class ForkedDisk extends DiskPassthrough{
+  #source:Disk
+  // source is already openned and init
+  get source(): Disk { 
     return this.#source
   }
-  diskBlocks(uid: string): AsyncGenerator<DiskBlock> {
-    console.log('will fork')
-    if (this.#synchronized === undefined) {
-      throw new Error("Can't call fork before init")
-    }
-    const fork = this.#synchronized.fork(uid)
-    console.log('got fork ', fork)
+  #generator:AsyncGenerator<DiskBlock, any, any> 
+  constructor(source:Disk, generator:AsyncGenerator<DiskBlock, any, any>){
+    super()
+    this.#generator = generator
+    this.#source = source 
 
-    return fork
   }
+  async openSource(): Promise<Disk> { 
+    return this.#source
+  }
+  diskBlocks( ){
+    console.log('CALL DISK BLOCK ')
+    return this.#generator
+  }
+}
 
-  async close() {
-    console.log('SynchronizedDisk.close')
-    await this.source.close() // this will trigger cleanup in syncrhonized
+export class SynchronizedDisk  {
+  #synchronized: Synchronized<DiskBlock, any, any> | undefined
+  #source: Disk
+
+  constructor(source: Disk) { 
+    this.#source = source
+  }
+ 
+  fork(uid:string):ForkedDisk{
+    if(this.#synchronized === undefined){
+    const generator = this.#source.diskBlocks()
+    this.#synchronized = new Synchronized(generator)
+    }
+    console.log('forked', uid)
+    return new ForkedDisk(this.#source, this.#synchronized.fork(uid))
+  }
+  close(){
+    return this.#source.close()
   }
 }

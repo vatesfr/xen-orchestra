@@ -43,15 +43,23 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       const disk = deltaExport.disks[key]
       isVhdDifferencing[key] = disk.isDifferencing()
       deltaExport.disks[key] = new SynchronizedDisk(disk)
-      await deltaExport.disks[key].init()
     }
 
-    // @todo : reimplement throttle,nbd use
+    function fork(deltaExport, label=''+Math.random()){
+      const {disks, ...forked} = deltaExport
+      forked.disks = {}
+      for(const key in disks){
+        forked.disks[key] = disks[key].fork(label)
+      }
+      return forked
+    }
+
+    // @todo : reimplement throttle,nbsource: d use
     const timestamp = Date.now()
     await this._callWriters(
       writer =>
         writer.transfer({
-          deltaExport,
+          deltaExport: fork(deltaExport),
           isVhdDifferencing,
           sizeContainers: {},
           timestamp,
@@ -60,9 +68,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         }),
       'writer.transfer()'
     )
-
-    // we want to control the uuid of the vhd in the chain
-    // and ensure they are correctly chained
+ 
     await this._callWriters(
       writer =>
         writer.updateUuidAndChain({

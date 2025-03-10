@@ -44,13 +44,15 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
   async write() {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
+    const uid = "to stream "+Math.random()
+    const generator = this.source.diskBlocks(uid)
     try {
       await handler.mktree(dataPath)
       const vhd = new VhdDirectory(handler, dataPath, { flags, compression })
       vhd.footer = unpackFooter(this.computeVhdFooter())
       vhd.header = unpackHeader(this.computeVhdHeader())
       await asyncEach(
-        this.source.diskBlocks(),
+        generator,
         async ({ index, data }) => {
           await vhd.writeEntireBlock({ id: index, buffer: Buffer.concat([FULL_BLOCK_BITMAP, data]) })
         },
