@@ -10,6 +10,9 @@ import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
+import { XapiDiskSource } from '@xen-orchestra/xapi'
+import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
+
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export async function exportIncrementalVm(
@@ -19,7 +22,7 @@ export async function exportIncrementalVm(
 ) {
   // refs of VM's VDIs → base's VDIs.
 
-  const streams = {}
+  const disks = {}
   const vdis = {}
   const vbds = {}
   await cancelableMap(cancelToken, vm.$VBDs, async (cancelToken, vbd) => {
@@ -52,32 +55,14 @@ export async function exportIncrementalVm(
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
-    try {
-      streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-        baseRef: baseVdi?.$ref,
-        cancelToken,
-        format: 'vhd',
-        nbdConcurrency,
-        preferNbd,
-      })
-    } catch (err) {
-      if (err.code === 'VDI_CANT_DO_DELTA') {
-        // fall back to a base
-        Task.info(`Can't do delta, will try to get a full stream`, { vdi })
-        streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-          cancelToken,
-          format: 'vhd',
-          nbdConcurrency,
-          preferNbd,
-        })
-        // only warn if the fall back succeed
-        Task.warning(`Can't do delta with this vdi, transfer will be a full`, {
-          vdi,
-        })
-      } else {
-        throw err
-      }
-    }
+    disks[vdiRef] = new XapiDiskSource({
+      vdiRef,
+      xapi: vm.$xapi,
+      baseRef: baseVdi?.$ref,
+      nbdConcurrency,
+      preferNbd,
+    })
+    await disks[vdiRef].init()
   })
 
   const suspendVdi = vm.$suspend_VDI
@@ -87,10 +72,13 @@ export async function exportIncrementalVm(
       ...suspendVdi,
       $SR$uuid: suspendVdi.$SR.uuid,
     }
-    streams[`${vdiRef}.vhd`] = await suspendVdi.$exportContent({
-      cancelToken,
-      format: 'vhd',
+    disks[vdiRef] = new XapiDiskSource({
+      vdiRef: suspendVdi.$ref,
+      xapi: vm.$xapi,
+      nbdConcurrency,
+      preferNbd,
     })
+    await disks[vdiRef].init()
   }
 
   const vifs = {}
@@ -116,24 +104,17 @@ export async function exportIncrementalVm(
     })
   )
 
-  return Object.defineProperty(
-    {
-      version: '1.1.0',
-      vbds,
-      vdis,
-      vifs,
-      vm: {
-        ...vm,
-      },
-      vtpms,
+  return {
+    version: '1.1.0',
+    vbds,
+    vdis,
+    vifs,
+    vm: {
+      ...vm,
     },
-    'streams',
-    {
-      configurable: true,
-      value: streams,
-      writable: true,
-    }
-  )
+    vtpms,
+    disks,
+  }
 }
 
 export const importIncrementalVm = defer(async function importIncrementalVm(
@@ -244,20 +225,17 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     }
   })
 
-  const { streams } = incrementalVm
-
+  const { disks } = incrementalVm
   await Promise.all([
     // Import VDI contents.
     cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
-      for (let stream of ensureArray(streams[`${id}.vhd`])) {
-        if (stream === null) {
+      for (const disk of ensureArray(disks[id])) {
+        if (disk === null) {
           // we restore a backup and reuse completly a local snapshot
           continue
         }
-        if (typeof stream === 'function') {
-          stream = await stream()
-        }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
+        const stream = await toVhdStream({ disk })
         await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }

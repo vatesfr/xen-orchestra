@@ -1,7 +1,5 @@
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
-import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
-import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 import { Disposable } from 'promise-toolbox'
 
@@ -18,21 +16,22 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     // the first one  is a RAW disk ( full )
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
-    if (isFull) {
+    if (isFull) { /*
       vhd = yield VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
         thin: false,
         esxi,
         dataStoreToHandlers,
-      })
+      }) */
     } else {
       if (parentVhd === undefined) {
         throw new Error(`Can't import delta of a running VM without its parent VHD`)
       }
+       /*
       vhd = yield openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
         lookMissingBlockInParent: isFullImport, // only look to missing block on full import
         esxi,
         dataStoreToHandlers,
-      })
+      }) */
     }
     vhd.label = fileName
     parentVhd = vhd
@@ -61,6 +60,8 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     return { vdi, vhd }
   } else {
     // delta mode works only in vhd mode for now
+
+    // @todo to port usinf disk-transform classes
     const stream = vhd.stream()
     await vhd.readBlockAllocationTable()
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
