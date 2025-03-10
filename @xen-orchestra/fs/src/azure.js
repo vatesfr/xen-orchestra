@@ -7,8 +7,8 @@ import { pRetry } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
 
 createLogger('xo:fs:azure')
-const MAX_BLOCK_SIZE = 1024 * 1024 * 1024 * 1024 * 4
-const MAX_BLOCK_COUNT = 1250
+const MAX_BLOCK_SIZE = 1024 * 1024 * 1024 * 4 // 4000 MiB
+const MAX_BLOCK_COUNT = 50000
 const { warn, info } = createLogger('xo:fs:azure')
 
 export default class AzureHandler extends RemoteHandlerAbstract {
@@ -59,7 +59,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   get type() {
     return 'azure'
   }
-
   async _sync() {
     await this.#containerClient.createIfNotExists()
     await super._sync()
@@ -98,8 +97,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   // this can be used right away instead of _writeFile func
   async _outputStream(file, data) {
+    const uploadOptions = {
+      blockSize: MAX_BLOCK_SIZE,
+      concurrency: data.length / MAX_BLOCK_SIZE < MAX_BLOCK_COUNT ? data.length / MAX_BLOCK_SIZE : MAX_BLOCK_COUNT,
+    }
     const blobClient = this.#containerClient.getBlockBlobClient(file)
-    await blobClient.uploadStream(data, MAX_BLOCK_SIZE, MAX_BLOCK_COUNT)
+    await blobClient.uploadStream(data, uploadOptions)
   }
 
   // list blobs in container
