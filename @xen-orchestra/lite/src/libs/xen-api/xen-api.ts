@@ -77,11 +77,11 @@ export default class XenApi {
     this.fromToken = undefined
   }
 
-  private request<T>(method: string, args: any[] = []): PromiseLike<T> {
-    return this.client.request(method, args)
+  private request<T>(method: string, args: unknown[] = []) {
+    return this.client.request(method, args) as Promise<T>
   }
 
-  call = <T>(method: string, args: any[] = []): PromiseLike<T> => {
+  call = <T>(method: string, args: unknown[] = []): Promise<T> => {
     return this.request(method, [this.sessionId, ...args])
   }
 
