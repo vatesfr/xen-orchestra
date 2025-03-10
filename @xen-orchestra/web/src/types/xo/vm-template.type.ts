@@ -21,6 +21,11 @@ export type XoVmTemplate = {
   memory: { dynamic: number[]; static: number[]; size: number }
   name_description: string
   name_label: string
+  install: {
+    method: string
+    repository?: string
+  }
+  affinity_host: string
   tags: []
   template_info: { disks: Disk[]; install_methods: string[] }
   type: 'VM-template'
