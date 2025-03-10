@@ -28,7 +28,7 @@ The REST API is based on the `TSOA` framework and therefore we use decorators a 
 @Routes('foo')
 @Security('*')
 @Response(401)
-@Tags('vms')
+@Tags('foo')
 @provide(Foo)
 class Foo extends Controller {}
 ```
