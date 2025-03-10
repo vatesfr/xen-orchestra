@@ -344,8 +344,9 @@ export default class XenApi {
       setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_label', [vmRef, nameLabel]))),
 
-      getAllowedVBDDevices: (vmRefs: VmRefs) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.get_allowed_VBD_devices', [vmRef]))),
+      getAllowedVBDDevices: (vmRefs: VmRefs): Promise<string[][]> => {
+        return Promise.all(castArray(vmRefs).map(vmRef => this.call<string[]>('VM.get_allowed_VBD_devices', [vmRef])))
+      },
 
       getAllowedVIFDevices: (vmRefs: VmRefs): Promise<string[][]> => {
         return Promise.all(castArray(vmRefs).map(vmRef => this.call<string[]>('VM.get_allowed_VIF_devices', [vmRef])))
@@ -453,40 +454,51 @@ export default class XenApi {
     }
   }
 
-  // TODO, improve this
-  getField(type: string, field: string) {
-    return this.call(`${type}.get_${field}`)
+  // Get field directly from xapi
+  getField<T>(type: string, ref: string, field: string): Promise<T> {
+    return this.call<T>(`${type}.get_${field}`, [ref])
   }
 
   // TODO move to another file
-  // WIP
   get vif() {
     type VifRefs = XenApiVif['$ref'] | XenApiVif['$ref'][]
     type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
     type NetworkRef = XenApiNetwork['$ref']
+    type VifRecord = {
+      vmRefs: VmRefs
+      device: string | undefined
+      network: NetworkRef | string
+      MAC: string
+      MTU?: number
+      other_config?: Record<string, any>
+      qos_algorithm_params?: Record<string, any>
+      qos_algorithm_type?: string
+    }
+
     return {
-      create: (
-        vmRefs: VmRefs,
-        device: string,
-        networkRef: NetworkRef | string,
-        MAC: string,
-        MTU: number,
+      create: ({
+        device,
+        vmRefs,
+        network,
+        MAC,
+        MTU = 1500,
         other_config = {},
         qos_algorithm_params = {},
-        qos_algorithm_type = ''
-      ) => {
+        qos_algorithm_type = '',
+      }: VifRecord) => {
         return Promise.all(
           castArray(vmRefs).map(vmRef => {
             const vifRecord = {
               device,
-              network: networkRef,
               VM: vmRef,
+              network,
               MAC,
               MTU,
               other_config,
               qos_algorithm_params,
               qos_algorithm_type,
             }
+
             return this.call('VIF.create', [vifRecord])
           })
         )
@@ -497,42 +509,103 @@ export default class XenApi {
   }
 
   // TODO move to another file
-  get vbd() {
-    type VmRef = XenApiVm['$ref']
-    type VdiRef = XenApiVdi['$ref']
+  get vdi() {
+    type VdiRefs = XenApiVdi['$ref'] | XenApiVdi['$ref'][]
+    type VdiRecord = {
+      name_label: string
+      name_description: string
+      SR: string | undefined
+      virtual_size: number
+      type?: string
+      sharable?: boolean
+      read_only?: boolean
+      other_config?: Record<string, any>
+      tags?: string[]
+    }
+
     return {
-      create: (
-        vmRefs: VmRef,
-        vdiRefs: VdiRef,
-        bootable: boolean,
-        currently_attached: boolean,
-        device: string,
-        empty: boolean,
-        type: string = 'Disk',
-        mode: string,
+      create: ({
+        name_label,
+        name_description,
+        SR,
+        virtual_size,
+        type = 'user',
+        sharable = false,
+        read_only = false,
+        other_config = {},
+        tags = [],
+      }: VdiRecord) => {
+        const vdiRecord = {
+          name_label,
+          name_description,
+          SR,
+          virtual_size,
+          type,
+          sharable,
+          read_only,
+          other_config,
+          tags,
+        }
+
+        return this.call('VDI.create', [vdiRecord])
+      },
+      delete: (vdiRefs: VdiRefs) => Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.destroy', [vdiRef]))),
+
+      setNameDescription: (vdiRefs: VdiRefs, nameDescription: string) =>
+        Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.set_name_description', [vdiRef, nameDescription]))),
+
+      setNameLabel: (vdiRefs: VdiRefs, nameLabel: string) =>
+        Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.set_name_label', [vdiRef, nameLabel]))),
+    }
+  }
+
+  // TODO move to another file
+  get vbd() {
+    type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
+    type VdiRef = XenApiVdi['$ref']
+    type VbdCreateParams = {
+      vmRefs: VmRefs
+      vdiRef: VdiRef
+      userdevice: string
+      bootable: boolean
+      mode: string
+      type: string
+      empty: boolean
+      other_config?: Record<string, any>
+      qos_algorithm_params?: Record<string, any>
+      qos_algorithm_type?: string
+    }
+
+    return {
+      create: ({
+        vmRefs,
+        vdiRef,
+        userdevice,
+        bootable = false,
+        type = 'Disk',
+        mode = type === 'Disk' ? 'RW' : 'RO',
+        empty = false,
+        other_config = {},
         qos_algorithm_params = {},
-        qos_algorithm_type: string,
-        unpluggable: string,
-        userdevice: string
-      ) => {
+        qos_algorithm_type = '',
+      }: VbdCreateParams) => {
         return Promise.all(
-          castArray(vmRefs).map(vmRef =>
-            this.call(`VIF.create`, [
-              vmRef,
-              vdiRefs,
-              device,
+          castArray(vmRefs).map(vmRef => {
+            const vbdRecord = {
+              VM: vmRef,
+              VDI: vdiRef,
+              userdevice,
               bootable,
-              currently_attached,
-              device,
-              empty,
-              type,
               mode,
+              type,
+              empty,
+              other_config,
               qos_algorithm_params,
               qos_algorithm_type,
-              unpluggable,
-              userdevice,
-            ])
-          )
+            }
+
+            return this.call('VBD.create', [vbdRecord])
+          })
         )
       },
     }
