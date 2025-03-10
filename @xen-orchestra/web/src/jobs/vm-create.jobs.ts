@@ -10,6 +10,5 @@ export async function createVM(payload: Record<string, any>, poolId: string) {
   if (error.value) {
     throw new Error(error.value.message)
   }
-
   return data.value
 }
