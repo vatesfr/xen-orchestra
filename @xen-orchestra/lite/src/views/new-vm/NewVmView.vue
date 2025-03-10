@@ -138,11 +138,11 @@
           <thead>
             <tr>
               <th id="interfaces">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faNetworkWired" />
                 {{ $t('new-vm.interfaces') }}
               </th>
               <th id="mac_addresses">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faAt" />
                 {{ $t('new-vm.mac-addresses') }}
               </th>
               <th id="delete" />
@@ -195,19 +195,19 @@
           <thead>
             <tr>
               <th id="storage-repositories">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faDatabase" />
                 {{ $t('new-vm.storage-repositories') }}
               </th>
               <th id="disk-name">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faAlignLeft" />
                 {{ $t('new-vm.disk-name') }}
               </th>
               <th id="disk-size">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faMemory" />
                 {{ $t('new-vm.size') }}
               </th>
               <th id="disk-description">
-                <VtsIcon accent="current" :icon="faSmile" />
+                <VtsIcon accent="current" :icon="faAlignLeft" />
                 {{ $t('new-vm.description') }}
               </th>
               <th id="delete" />
@@ -217,9 +217,14 @@
             <template v-if="vmState.existingDisks && vmState.existingDisks.length > 0">
               <tr v-for="(disk, index) in vmState.existingDisks" :key="index">
                 <td>
-                  <FormSelect v-model="disk.SR">
+                  <FormSelect v-model="disk.SR" disabled>
                     <option v-for="sr in getFilteredSrs" :key="sr.$ref" :value="sr.$ref">
-                      {{ sr.name_label }}
+                      {{ `${sr.name_label} -` }}
+                      {{
+                        $t('n-gb-left', {
+                          n: byteFormatter(sr.physical_size - sr.physical_utilisation),
+                        })
+                      }}
                     </option>
                   </FormSelect>
                 </td>
@@ -227,20 +232,12 @@
                   <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="brand" />
+                  <UiInput v-model="disk.size" placeholder="Size" accent="brand" disabled />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" placeholder="Description" accent="brand" />
                 </td>
-                <td>
-                  <UiButtonIcon
-                    :icon="faTrash"
-                    size="medium"
-                    accent="brand"
-                    variant="secondary"
-                    @click="vmState.existingDisks.splice(index, 1)"
-                  />
-                </td>
+                <td />
               </tr>
             </template>
             <template v-if="vmState.VDIs && vmState.VDIs.length > 0">
@@ -251,7 +248,7 @@
                       {{ `${sr.name_label} -` }}
                       {{
                         $t('n-gb-left', {
-                          n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
+                          n: byteFormatter(sr.physical_size - sr.physical_utilisation),
                         })
                       }}
                     </option>
@@ -261,7 +258,7 @@
                   <UiInput v-model="disk.name_label" placeholder="Disk Name" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-if="disk.size" v-model="disk.size" placeholder="Size" accent="brand" />
+                  <UiInput v-model="disk.size" placeholder="Size" accent="brand" />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" placeholder="Description" accent="brand" />
@@ -311,7 +308,9 @@
         <RouterLink :to="{ name: 'home' }">
           <UiButton variant="secondary" accent="brand" size="medium">{{ $t('cancel') }}</UiButton>
         </RouterLink>
-        <UiButton variant="primary" accent="brand" size="medium" @click="createVM">{{ $t('new-vm.create') }}</UiButton>
+        <UiButton variant="primary" accent="brand" size="medium" @click="createVM">
+          {{ $t('new-vm.create') }}
+        </UiButton>
       </div>
     </UiCard>
   </div>
@@ -322,7 +321,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -354,19 +353,20 @@ import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 
 // Icon Imports
 import {
+  faAlignLeft,
+  faAt,
   faDatabase,
   faDisplay,
   faMemory,
   faMicrochip,
   faNetworkWired,
   faPlus,
-  faSmile,
   faTags,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { computed, reactive, watchEffect } from 'vue'
+import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Store subscriptions
@@ -401,7 +401,6 @@ const vmState = reactive({
   vCPU: 0,
   ram: 0,
   topology: '',
-  bios_strings: '',
   copyHostBiosStrings: false,
   sshKeys: [] as string[],
   isDiskTemplateSelected: false,
@@ -428,6 +427,7 @@ const addStorageEntry = () => {
       name_description: 'Created by XO',
       SR: pool.value ? getOpaqueRefSr(pool.value.default_SR)?.$ref || '' : '',
       type: 'system',
+      size: 0,
     })
   }
 }
@@ -488,8 +488,9 @@ const getVDis = (template: XenApiVm) => {
 const getExistingDisks = (template: XenApiVm) => {
   const existingDisksArray = [] as Disk[]
 
-  template.VBDs.forEach(vbdId => {
-    const vbd = getOpaqueRefVbd(vbdId)
+  template.VBDs.forEach(vbdRef => {
+    const vbd = getOpaqueRefVbd(vbdRef)
+
     if (!vbd || vbd.type === 'CD') {
       return
     }
@@ -569,23 +570,13 @@ const onTemplateChange = () => {
 
   vmState.isDiskTemplateSelected = isDiskTemplate(template)
 
-  const {
-    name_label,
-    name_description,
-    bios_strings,
-    HVM_boot_params,
-    VCPUs_at_startup,
-    memory_dynamic_max,
-    other_config,
-    VBDs,
-  } = template
+  const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
 
   vmState.vm_name = name_label
   vmState.vm_description = other_config.default_template === 'true' ? '' : name_description
   vmState.boot_firmware = HVM_boot_params.firmware
   vmState.vCPU = VCPUs_at_startup
   vmState.ram = memory_dynamic_max
-  vmState.bios_strings = bios_strings
 
   vmState.VDIs = getVDis(template)
   vmState.existingDisks = getExistingDisks(template)
@@ -632,6 +623,33 @@ const data = {
   gpuGroup: null,
   hvmBootFirmware: undefined,
 }
+const resetVmState = () => {
+  vmState.vm_name = ''
+  vmState.vm_description = ''
+  vmState.toggle = false
+  vmState.installMode = ''
+  vmState.tags = ''
+  vmState.affinity_host = ''
+  vmState.boot_firmware = ''
+  vmState.new_vm_template = null
+  vmState.boot_vm = true
+  vmState.auto_power = false
+  vmState.fast_clone = false
+  vmState.ssh_key = ''
+  vmState.selectedVdi = ''
+  vmState.networkConfig = ''
+  vmState.cloudConfig = ''
+  vmState.vCPU = 0
+  vmState.ram = 0
+  vmState.topology = ''
+  vmState.copyHostBiosStrings = false
+  vmState.sshKeys = []
+  vmState.isDiskTemplateSelected = false
+  vmState.existingDisks = []
+  vmState.VDIs = []
+  vmState.networkInterfaces = []
+  vmState.defaultNetwork = null
+}
 
 const vmCreationParams = computed(() => ({
   affinityHost: vmState.affinity_host,
@@ -657,6 +675,7 @@ const vmCreationParams = computed(() => ({
 }))
 
 const xapi = useXenApiStore().getXapi()
+
 const createVM = async () => {
   const templateRef = vmCreationParams.value.template
   const newVmName = vmCreationParams.value.name_label
@@ -684,13 +703,14 @@ const createVM = async () => {
     await xapi.vm.provision(vmRef)
     console.log('Provisioning done')
 
+    // VIFs CREATION
     const newVifs = vmCreationParams.value.VIFs
     // Direct call to the API here because otherwise we do not yet have the vmRef of the clone or the copy before assigning the devices
-    const existingVifs = await xapi.call<string[]>('VM.get_VIFs', [vmRef[0]])
+    const existingVifs = await xapi.getField<string[]>('VM', vmRef[0], 'VIFs')
 
     // Destroys the VIFs cloned from the template.
     if (existingVifs) {
-      await Promise.all(existingVifs.map(vif => xapi.vif.delete(vif as XenApiVif['$ref'])))
+      await Promise.all(existingVifs.map(vifRef => xapi.vif.delete(vifRef as XenApiVif['$ref'])))
     }
 
     if (newVifs && newVifs.length > 0) {
@@ -700,16 +720,70 @@ const createVM = async () => {
         newVifs.map(async vif => {
           let device: string | undefined = ''
 
+          const MTU = await xapi.getField<number>('network', vif.network, 'MTU')
+
           if (!device) {
             device = allowedDevices.shift()
           }
 
-          await xapi.vif.create(vmRef, device!, vif.network, vif.mac ?? '', 1500, {}, {}, '')
+          await xapi.vif.create({
+            device,
+            vmRefs: vmRef,
+            network: vif.network,
+            MAC: '',
+            MTU,
+            other_config: {},
+            qos_algorithm_params: {},
+            qos_algorithm_type: '',
+          })
         })
       )
       console.log('vif creation done', newVifs)
     }
 
+    // VDIs / VBDs CREATION
+    const newVDIs = vmCreationParams.value.VDIs
+    const existingDisks = vmCreationParams.value.existingDisks
+
+    const VBDs = await xapi.getField<string[]>('VM', vmRef[0], 'VBDs')
+
+    const [allowedDevices] = await xapi.vm.getAllowedVBDDevices(vmRef)
+
+    await Promise.all([
+      newVDIs.map(async vdi => {
+        const vdiRef = await xapi.vdi.create({
+          name_description: vdi.name_description,
+          name_label: vdi.name_label,
+          virtual_size: vdi.size,
+          SR: vdi.SR,
+        })
+        console.log('vdi creation done', vdiRef)
+
+        await xapi.vbd.create({
+          vmRefs: vmRef,
+          vdiRef,
+          userdevice: allowedDevices.shift(),
+        })
+        console.log('Vbd creation done')
+      }),
+
+      VBDs.map(async vbdRef => {
+        const type = await xapi.getField<string>('VBD', vbdRef, 'type')
+        const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
+
+        if (!vbdRef || type === 'CD') {
+          return
+        }
+
+        existingDisks.map(async disk => {
+          await xapi.vdi.setNameLabel(vdiRef, disk.name_label)
+          await xapi.vdi.setNameDescription(vdiRef, disk.name_description)
+        })
+        console.log('existing vdi updated')
+      }),
+    ])
+
+    // OTHER FIELD CREATION
     await Promise.all([
       xapi.vm.setNameLabel(vmRef, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRef, vmCreationParams.value.name_description),
@@ -717,14 +791,17 @@ const createVM = async () => {
     console.log('Set réussi')
   } catch (error) {
     console.error('Erreur lors de la création de la VM :', error)
+  } finally {
+    resetVmState()
   }
 }
 
-watchEffect(() => {
-  console.log('vmState', vmState)
-  console.log('vmState.networkInterfaces', vmState.networkInterfaces)
-  console.log('tempalte', templates.value)
-})
+// watchEffect(() => {
+//   console.log('vmState', vmState)
+//   console.log('vmState.VDIs', vmState.VDIs)
+//   console.log('vmState.existingDisks', vmState.existingDisks)
+//   console.log('tempalte', templates.value)
+// })
 </script>
 
 <style scoped lang="postcss">
