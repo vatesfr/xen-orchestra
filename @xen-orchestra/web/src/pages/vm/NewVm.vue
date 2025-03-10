@@ -28,17 +28,17 @@
         <div>
           <div v-if="vmState.isDiskTemplateSelected">
             <div class="install-radio-container">
-              <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
+              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="no-config">
                 {{ $t('new-vm.no-config') }}
               </UiRadioButton>
-              <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="ssh-key">
                 {{ $t('new-vm.ssh-key') }}
               </UiRadioButton>
-              <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
+              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="custom_config">
                 {{ $t('new-vm.custom-config') }}
               </UiRadioButton>
             </div>
-            <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
+            <div v-if="vmState.installMode.properties.method === 'ssh-key'" class="install-ssh-key-container">
               <div class="install-chips">
                 <UiChip
                   v-for="(key, index) in vmState.sshKeys"
@@ -56,7 +56,7 @@
                 </UiButton>
               </div>
             </div>
-            <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+            <div v-if="vmState.installMode.properties.method === 'custom_config'" class="install-custom-config">
               <div class="col-left">
                 <UiTextarea
                   v-model="vmState.cloudConfig"
@@ -82,7 +82,7 @@
           <div>
             <div class="install-radio-container">
               <UiRadioButton
-                v-model="vmState.installMode"
+                v-model="vmState.installMode.properties.method"
                 :disabled="!vmState.new_vm_template"
                 accent="brand"
                 value="iso_dvd"
@@ -90,7 +90,7 @@
                 {{ $t('new-vm.iso-dvd') }}
               </UiRadioButton>
               <UiRadioButton
-                v-model="vmState.installMode"
+                v-model="vmState.installMode.properties.method"
                 :disabled="!vmState.new_vm_template"
                 accent="brand"
                 value="pxe"
@@ -99,7 +99,7 @@
               </UiRadioButton>
             </div>
             <!--        // Todo: Replace by the new select component -->
-            <select v-if="vmState.installMode === 'iso_dvd'" v-model="vmState.selectedVdi">
+            <select v-if="vmState.installMode.properties.method === 'iso_dvd'" v-model="vmState.selectedVdi">
               <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="srName">
                 <optgroup :label="srName">
                   <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.name_label">
@@ -312,8 +312,8 @@
         <div class="settings-container">
           <UiCheckboxGroup accent="brand">
             <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-            <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
-            <UiCheckbox v-model="vmState.fast_clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+            <UiCheckbox v-model="vmState.auto_poweron" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+            <UiCheckbox v-model="vmState.clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
           </UiCheckboxGroup>
         </div>
         <!--      SUMMARY SECTION -->
@@ -336,6 +336,7 @@
           variant="primary"
           accent="brand"
           size="medium"
+          :busy="isLoading"
         >
           {{ $t('new-vm.create') }}
         </UiButton>
@@ -388,7 +389,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useForm } from 'vee-validate'
 
-import { computed, reactive, watchEffect } from 'vue'
+import { computed, reactive, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -406,19 +407,26 @@ const { get: getVdis } = useVdiStore().subscribe()
 const { get: getVifs } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
 
+const isLoading = ref(false)
+
 const vmState = reactive({
   vm_name: '',
   vm_description: '',
   selectedNetwork: '',
   toggle: false,
-  installMode: '',
+  installMode: {
+    properties: {
+      method: '',
+      repository: '',
+    },
+  },
   tags: [] as string[],
   affinity_host: '',
   boot_firmware: '',
   new_vm_template: null as XoVmTemplate | null,
   boot_vm: false,
-  auto_power: false,
-  fast_clone: false,
+  auto_poweron: false,
+  clone: false,
   ssh_key: '',
   selectedVdi: '',
   networkConfig: '',
@@ -556,12 +564,12 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
         return vif
           ? {
               interface: getNetwork(vif.$network)?.id || '',
-              macAddress: vif.MAC || '',
+              macAddress: vif.MAC || '00:00:00:00:00:00',
             }
           : null
       }).filter(Boolean) as NetworkInterface[])
     : defaultNetwork
-      ? [{ interface: defaultNetwork.id, macAddress: '' }]
+      ? [{ interface: defaultNetwork.id, macAddress: '00:00:00:00:00:00' }]
       : []
 }
 
@@ -573,7 +581,7 @@ const addNetworkInterface = () => {
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork?.id || '',
-    macAddress: '',
+    macAddress: '00:00:00:00:00:00',
   })
 }
 
@@ -581,9 +589,10 @@ const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
 
-  const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+  const { affinity_host, name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
   Object.assign(vmState, {
+    ...(affinity_host !== '' ? { affinity_host } : {}),
     isDiskTemplateSelected: isDiskTemplate(template),
     vm_name: name_label,
     vm_description: isDefaultTemplate ? '' : name_description,
@@ -625,38 +634,34 @@ const redirectToHome = () => {
   router.push({ name: '/' })
 }
 
-const vmData = computed(() => ({
-  affinity: vmState.affinity_host,
-  auto_poweron: vmState.auto_power,
-  boot: vmState.boot_vm,
-  clone: vmState.fast_clone,
-  destroy_cloud_config_vdi: false,
-  install: { method: 'cdrom', repository: 'string' },
-  memory: vmState.ram * 1024 ** 3,
-  name_description: vmState.vm_description,
-  name_label: vmState.vm_name,
-  template: vmState.new_vm_template?.uuid,
-  vdis: vmState.VDIs,
-  // vdis: [
-  //   {
-  //     destroy: true,
-  //     userdevice: 'string',
-  //     size: 1024 ** 3,
-  //     sr: 'string',
-  //     name_description: 'string',
-  //     name_label: 'string',
-  //   },
-  // ],
-  vifs: vmState.networkInterfaces.map(net => ({
-    network: net.interface,
-    // mac: net.macAddress,
-    mac: '00:00:00:00:00:00',
-  })),
-}))
+const vmData = computed(() => {
+  return {
+    auto_poweron: vmState.auto_poweron,
+    boot: vmState.boot_vm,
+    clone: vmState.clone,
+    destroy_cloud_config_vdi: false,
+    memory: vmState.ram * 1024 ** 3,
+    name_description: vmState.vm_description,
+    name_label: vmState.vm_name,
+    template: vmState.new_vm_template?.uuid,
+    vdis: vmState.VDIs,
+    vifs: vmState.networkInterfaces.map(net => ({
+      network: net.interface,
+      mac: net.macAddress,
+    })),
+    ...(vmState.affinity_host ? { affinity: vmState.affinity_host } : {}),
+    ...(vmState.installMode?.properties.method && vmState.installMode.properties.method !== 'no-config'
+      ? { install: vmState.installMode }
+      : {}),
+  }
+})
 
 const createNewVM = async () => {
   try {
+    isLoading.value = true
     await createVM(vmData.value, vmState.pool!.id)
+    isLoading.value = false
+    redirectToHome()
   } catch (error) {
     console.error('Error creating VM:', error)
   }
