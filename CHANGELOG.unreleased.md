@@ -16,6 +16,8 @@
   - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
+  - `/rest/v0/srs` (PR [#8419](https://github.com/vatesfr/xen-orchestra/pull/8419))
+  - `/rest/v0/srs/<sr-id>` (PR [#8419](https://github.com/vatesfr/xen-orchestra/pull/8419))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 
 ### Bug fixes
