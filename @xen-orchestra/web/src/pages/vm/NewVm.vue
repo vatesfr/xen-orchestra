@@ -171,8 +171,14 @@
           <VtsTable vertical-border>
             <thead>
               <tr>
-                <ColumnTitle id="interfaces" :icon="faSmile">{{ $t('new-vm.networks') }}</ColumnTitle>
-                <ColumnTitle id="mac_addresses" :icon="faSmile">{{ $t('new-vm.mac-addresses') }}</ColumnTitle>
+                <th id="interfaces">
+                  <VtsIcon accent="current" :icon="faNetworkWired" />
+                  {{ $t('new-vm.interfaces') }}
+                </th>
+                <th id="mac_addresses">
+                  <VtsIcon accent="current" :icon="faAt" />
+                  {{ $t('new-vm.mac-addresses') }}
+                </th>
                 <th id="delete" />
               </tr>
             </thead>
@@ -221,12 +227,22 @@
           <VtsTable vertical-border>
             <thead>
               <tr>
-                <ColumnTitle id="storage-repositories" :icon="faSmile">
+                <th id="storage-repositories">
+                  <VtsIcon accent="current" :icon="faDatabase" />
                   {{ $t('new-vm.storage-repositories') }}
-                </ColumnTitle>
-                <ColumnTitle id="disk-name" :icon="faSmile">{{ $t('new-vm.disk-name') }}</ColumnTitle>
-                <ColumnTitle id="disk-size" :icon="faSmile">{{ $t('new-vm.size') }}</ColumnTitle>
-                <ColumnTitle id="disk-description" :icon="faSmile">{{ $t('new-vm.description') }}</ColumnTitle>
+                </th>
+                <th id="disk-name">
+                  <VtsIcon accent="current" :icon="faAlignLeft" />
+                  {{ $t('new-vm.disk-name') }}
+                </th>
+                <th id="disk-size">
+                  <VtsIcon accent="current" :icon="faMemory" />
+                  {{ $t('new-vm.size') }}
+                </th>
+                <th id="disk-description">
+                  <VtsIcon accent="current" :icon="faAlignLeft" />
+                  {{ $t('new-vm.description') }}
+                </th>
                 <th id="delete" />
               </tr>
             </thead>
@@ -360,9 +376,9 @@ import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import { createVMSchema } from '@/validation/vm-create.schema'
 import type { Branded } from '@core/types/utility.type'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
-import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -378,13 +394,14 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { type Disk, type NetworkInterface } from '@core/types/new-vm.type'
 import {
+  faAlignLeft,
+  faAt,
   faDatabase,
   faDisplay,
   faMemory,
   faMicrochip,
   faNetworkWired,
   faPlus,
-  faSmile,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { useForm } from 'vee-validate'
