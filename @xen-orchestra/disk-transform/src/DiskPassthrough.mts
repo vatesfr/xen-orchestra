@@ -12,16 +12,10 @@ export abstract class DiskPassthrough extends Disk {
     return this.#source?.parent
   }
   getVirtualSize(): number {
-    if (this.#source === undefined) {
-      throw new Error(`can't call getVirtualsize before init`)
-    }
-    return this.#source.getVirtualSize()
+    return this.source.getVirtualSize()
   }
   getBlockSize(): number {
-    if (this.#source === undefined) {
-      throw new Error(`can't call getBlockSize before init`)
-    }
-    return this.#source.getVirtualSize()
+    return this.source.getVirtualSize()
   }
 
   abstract openSource(): Promise<Disk>
@@ -31,38 +25,23 @@ export abstract class DiskPassthrough extends Disk {
   }
 
   instantiateParent(): Promise<Disk> {
-    if (this.#source === undefined) {
-      throw new Error(`can't call instantiateParent before init`)
-    }
-    return this.#source.instantiateParent()
+    return this.source.instantiateParent()
   }
   async close(): Promise<void> {
     console.log('diskpasstrhough close ')
     await this.#source?.close()
   }
   isDifferencing(): boolean {
-    if (this.#source === undefined) {
-      throw new Error(`can't call isDifferencing before init`)
-    }
-    return this.#source.isDifferencing()
+    return this.source.isDifferencing()
   }
   getBlockIndexes(): Array<number> {
-    if (this.#source === undefined) {
-      throw new Error(`can't call getBlockIndexes before init`)
-    }
-    return this.#source.getBlockIndexes()
+    return this.source.getBlockIndexes()
   }
   hasBlock(index: number): boolean {
-    if (this.#source === undefined) {
-      throw new Error(`can't call getVirtualsize before init`)
-    }
-    return this.#source.hasBlock(index)
+    return this.source.hasBlock(index)
   }
   async buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> {
-    if (this.#source === undefined) {
-      throw new Error(`can't call buildDiskBlockGenerator before init`)
-    }
-    return this.#source.buildDiskBlockGenerator()
+    return this.source.buildDiskBlockGenerator()
   }
 }
 

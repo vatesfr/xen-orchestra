@@ -1,5 +1,5 @@
 import { Readable } from 'stream'
-import { BaseVhd } from './BaseVhd.mjs'
+import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
 
 /**
  * @typedef {Readable & { length: number }} VhdStream
@@ -16,13 +16,14 @@ export class DiskConsumerVhdStream extends BaseVhd {
     const footer = this.computeVhdFooter()
     const header = this.computeVhdHeader()
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
-    const self = this
+    const uid = "to stream "+Math.random()
+    const blockGenerator = this.source.diskBlocks(uid)
     async function* generator() {
       yield footer
       yield header
       yield bat
-      for await (const data of self.vhdblockGenerator()) {
-        yield data
+      for await (const {data} of blockGenerator) {
+        yield Buffer.concat([FULL_BLOCK_BITMAP, data]) 
       }
       yield footer
     }

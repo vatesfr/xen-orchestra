@@ -226,16 +226,14 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   })
 
   const { disks } = incrementalVm
-
   await Promise.all([
     // Import VDI contents.
     cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
-      for (const disk of ensureArray(disks[`${id}.vhd`])) {
+      for (const disk of ensureArray(disks[id])) {
         if (disk === null) {
           // we restore a backup and reuse completly a local snapshot
           continue
         }
-
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
         const stream = await toVhdStream({ disk })
         await vdi.$importContent(stream, { cancelToken, format: 'vhd' })

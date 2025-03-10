@@ -7,6 +7,7 @@ export class Synchronized<T, TReturn, TNext> {
   #waitingForks = new Set<string>()
   #started = false
 
+
   #nextValueForksReady?: {
     promise: Promise<IteratorResult<T>>
     forksWaitingReject: (error: Error) => void
@@ -147,16 +148,13 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
   }
 
   async *[Symbol.asyncIterator](): AsyncGenerator<T> {
-    console.log('generator symbol')
     while (true) {
       const res = await this.next()
-      console.log('next in forked', { res })
       if (res.done) {
         break
       }
 
       yield res.value
     }
-    console.log('done')
   }
 }
