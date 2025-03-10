@@ -41,7 +41,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       if (this[functionName] !== undefined) {
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
-          // à réviser
           when: err => !['SystemInUse'].includes(err?.code),
           onRetry(error) {
             warn('retrying method on fs ', {
@@ -95,24 +94,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       })
       readableStream.on('error', reject)
     })
-  }
-
-  async #_rmtreeHelper(prefix) {
-    const iter = this.#containerClient.listBlobsFlat({ prefix })
-    await asyncEach(
-      iter,
-      async item => {
-        const itemName = item.name
-        if (item.kind === 'prefix') {
-          await this.#_rmtreeHelper(itemName)
-        } else {
-          await this._unlink(itemName)
-        }
-      },
-      {
-        concurrency: 8,
-      }
-    )
   }
 
   // this can be used right away instead of _writeFile func
@@ -200,15 +181,14 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _rmtree(path) {
-    const iter = this.#containerClient.listBlobsFlat({ prefix: path + '/' })
+    const iter = this.#containerClient.listBlobsFlat({ prefix: path?.endsWith('/') ? path : `${path}/` })
     await asyncEach(
       iter,
       async item => {
-        const itemName = item.name
         if (item.kind === 'prefix') {
-          await this.#_rmtreeHelper(itemName)
+          await this._rmtree(item.name)
         } else {
-          await this._unlink(itemName)
+          await this._unlink(item.name)
         }
       },
       {
