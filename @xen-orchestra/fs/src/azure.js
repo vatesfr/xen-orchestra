@@ -7,7 +7,8 @@ import { pRetry } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
 
 createLogger('xo:fs:azure')
-const MAX_BLOCK_SIZE = 1024 * 1024 * 1024 * 4 // 4000 MiB
+const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
+const MIN_BLOCK_SIZE = 1024 * 4 // 4 KiB
 const MAX_BLOCK_COUNT = 50000
 const { warn, info } = createLogger('xo:fs:azure')
 
@@ -95,14 +96,32 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     })
   }
 
-  // this can be used right away instead of _writeFile func
   async _outputStream(file, data) {
-    const uploadOptions = {
-      blockSize: MAX_BLOCK_SIZE,
-      concurrency: data.length / MAX_BLOCK_SIZE < MAX_BLOCK_COUNT ? data.length / MAX_BLOCK_SIZE : MAX_BLOCK_COUNT,
+    if (data.length < MIN_BLOCK_SIZE) {
+      await this._writeFile(file, data)
+      return
     }
+
     const blobClient = this.#containerClient.getBlockBlobClient(file)
-    await blobClient.uploadStream(data, uploadOptions)
+    const blockCount = Math.ceil(data.length / MAX_BLOCK_SIZE)
+
+    if (blockCount > MAX_BLOCK_COUNT) {
+      throw new Error(`File too large. Maximum upload size is ${MAX_BLOCK_SIZE * MAX_BLOCK_COUNT} bytes`)
+    }
+    const blockIds = []
+
+    for (let i = 0; i < blockCount; i++) {
+      const blockId = Buffer.from(i.toString().padStart(6, '0')).toString('base64')
+      blockIds.push(blockId)
+
+      const start = i * MAX_BLOCK_SIZE
+      const end = Math.min(start + MAX_BLOCK_SIZE, data.length)
+      const chunk = data.slice(start, end)
+
+      await blobClient.stageBlock(blockId, chunk, chunk.length)
+    }
+
+    await blobClient.commitBlockList(blockIds)
   }
 
   // list blobs in container
