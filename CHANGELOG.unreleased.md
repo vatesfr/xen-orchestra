@@ -16,7 +16,7 @@
   - `/rest/v0/hosts` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
   - `/rest/v0/hosts/<host-id>/stats` (PR [#8372](https://github.com/vatesfr/xen-orchestra/pull/8372))
-- [Netbox] Support version 4.2.x
+- [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 
 ### Bug fixes
 
