@@ -6,7 +6,7 @@
     <UiCard>
       <!--      TEMPLATE SECTION -->
       <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
-      <div>
+      <div class="template-container">
         <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
         <FormSelect v-model="vmState.new_vm_template" @change="onTemplateChange">
           <optgroup :label="poolName">
@@ -19,57 +19,80 @@
       <!--      INSTALL SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
       <div>
-        <div v-if="vmState.isDiskTemplateSelected">
-          <div class="install-radio-container">
+        <div v-if="vmState.isDiskTemplateSelected" class="install-settings-container">
+          <div class="radio-container">
             <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
               {{ $t('new-vm.no-config') }}
             </UiRadioButton>
-            <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-              {{ $t('new-vm.ssh-key') }}
+            <UiRadioButton
+              v-model="vmState.installMode"
+              :disabled="!vmState.new_vm_template"
+              accent="brand"
+              value="iso_dvd"
+            >
+              {{ $t('new-vm.iso-dvd') }}
             </UiRadioButton>
-            <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-              {{ $t('new-vm.custom-config') }}
-            </UiRadioButton>
+            <!-- TODO need to be add later -->
+            <!--
+              <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                {{ $t('new-vm.ssh-key') }}
+              </UiRadioButton>
+              <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
+                {{ $t('new-vm.custom-config') }}
+              </UiRadioButton>
+            -->
           </div>
-          <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
-            <div class="install-chips">
-              <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
-                {{ key }}
-              </UiChip>
+          <FormSelect v-if="vmState.installMode === 'iso_dvd'" v-model="vmState.selectedVdi">
+            <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="srName">
+              <optgroup :label="srName">
+                <option v-for="vdi in vdisGrouped" :key="vdi.$ref" :value="vdi.$ref">
+                  {{ vdi.name_label }}
+                </option>
+              </optgroup>
+            </template>
+          </FormSelect>
+          <!-- TODO need to be add later -->
+          <!--
+           <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
+              <div class="install-chips">
+                <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
+                  {{ key }}
+                </UiChip>
+              </div>
+              <div class="install-ssh-key">
+                <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
+                <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
+                  {{ $t('add') }}
+                </UiButton>
+              </div>
             </div>
-            <div class="install-ssh-key">
-              <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-              <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
-                {{ $t('add') }}
-              </UiButton>
-            </div>
-          </div>
-          <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
-            <div>
-              <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                {{ $t('new-vm.user-config') }}
-              </UiTextarea>
-              <span class="typo p3-regular-italic">
-                Available template variables <br />
-                - {name}: the VM's name. - It must not contain "_" <br />
-                - {index}: the VM's index,<br />
-                it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
-              </span>
-            </div>
-            <div>
-              <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                {{ $t('new-vm.network-config') }}
-              </UiTextarea>
-              <span class="typo p3-regular-italic">
-                Network configuration is only compatible with the NoCloud datasource. <br />
+            <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+              <div>
+                <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
+                  {{ $t('new-vm.user-config') }}
+                </UiTextarea>
+                <span class="typo p3-regular-italic">
+                  Available template variables <br />
+                  - {name}: the VM's name. - It must not contain "_" <br />
+                  - {index}: the VM's index,<br />
+                  it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
+                </span>
+              </div>
+              <div>
+                <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
+                  {{ $t('new-vm.network-config') }}
+                </UiTextarea>
+                <span class="typo p3-regular-italic">
+                  Network configuration is only compatible with the NoCloud datasource. <br />
 
-                See Network config documentation.
-              </span>
+                  See Network config documentation.
+                </span>
+              </div>
             </div>
-          </div>
+            -->
         </div>
-        <div v-else>
-          <div class="install-radio-container">
+        <div v-else class="install-settings-container">
+          <div class="radio-container">
             <UiRadioButton
               v-model="vmState.installMode"
               :disabled="!vmState.new_vm_template"
@@ -88,9 +111,9 @@
             </UiRadioButton>
           </div>
           <FormSelect v-if="vmState.installMode === 'iso_dvd'" v-model="vmState.selectedVdi">
-            <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="srName">
+            <template v-for="(VDIsGrouped, srName) in vdisGroupedBySrName" :key="srName">
               <optgroup :label="srName">
-                <option v-for="vdi in vdisGrouped" :key="vdi.uuid" :value="vdi.name_label">
+                <option v-for="vdi in VDIsGrouped" :key="vdi.$ref" :value="vdi.$ref">
                   {{ vdi.name_label }}
                 </option>
               </optgroup>
@@ -98,15 +121,15 @@
           </FormSelect>
         </div>
       </div>
-      <!--      SYSTEM SECTION -->
+      <!-- SYSTEM SECTION -->
       <UiTitle>{{ $t('new-vm.system') }}</UiTitle>
-      <UiToggle v-model="vmState.toggle">{{ $t('new-vm.multi-creation') }}</UiToggle>
+      <!-- <UiToggle v-model="vmState.toggle">{{ $t('new-vm.multi-creation') }}</UiToggle> -->
       <div class="system-container">
         <div class="col-left">
           <UiInput v-model="vmState.vm_name" accent="brand" href="''">{{ $t('new-vm.vm-name') }}</UiInput>
-          <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" href="''">
-            {{ $t('new-vm.tags') }}
-          </UiInput>
+          <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" href="''"> -->
+          <!-- {{ $t('new-vm.tags') }} -->
+          <!-- </UiInput> -->
           <div>
             <UiLabel accent="neutral" href="''">{{ $t('new-vm.boot-firmware') }}</UiLabel>
             <FormSelect v-model="vmState.boot_firmware">
@@ -115,23 +138,33 @@
               </option>
             </FormSelect>
           </div>
-          <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+          <div
+            v-tooltip="{
+              placement: 'top-start',
+              content:
+                vmState.boot_firmware !== 'uefi' ? $t('new-vm.boot-firmware-bios') : $t('new-vm.boot-firmware-uefi'),
+            }"
+          >
+            <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand" disabled>
+              {{ $t('new-vm.copy-host') }}
+            </UiCheckbox>
+          </div>
         </div>
         <div class="col-right">
           <UiTextarea v-model="vmState.vm_description" accent="brand" href="''">
             {{ $t('new-vm.vm-description') }}
           </UiTextarea>
-          <UiInput v-model="vmState.affinity_host" accent="brand" href="''">{{ $t('new-vm.affinity-host') }}</UiInput>
+          <!-- <UiInput v-model="vmState.affinity_host" accent="brand" href="''">{{ $t('new-vm.affinity-host') }}</UiInput> -->
         </div>
       </div>
-      <!--      MEMORY SECTION -->
+      <!-- MEMORY SECTION -->
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
         <UiInput v-model="vmState.vCPU" accent="brand" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
         <UiInput v-model="vmState.ram" accent="brand" href="''">{{ $t('new-vm.ram') }}</UiInput>
-        <UiInput v-model="vmState.topology" accent="brand" href="''">{{ $t('new-vm.topology') }}</UiInput>
+        <UiInput v-model="vmState.topology" accent="brand" href="''" disabled>{{ $t('new-vm.topology') }}</UiInput>
       </div>
-      <!--      NETWORK SECTION -->
+      <!-- NETWORK SECTION -->
       <UiTitle>{{ $t('new-vm.network') }}</UiTitle>
       <div class="network-container">
         <VtsTable vertical-border>
@@ -289,7 +322,7 @@
       <div class="settings-container">
         <UiCheckboxGroup accent="brand">
           <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-          <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+          <UiCheckbox v-model="vmState.auto_power" accent="brand" disabled>{{ $t('new-vm.auto-power') }}</UiCheckbox>
           <UiCheckbox v-model="vmState.fast_clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
         </UiCheckboxGroup>
       </div>
@@ -321,7 +354,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVbd, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -343,13 +376,12 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
-import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 // Icon Imports
 import {
@@ -361,12 +393,11 @@ import {
   faMicrochip,
   faNetworkWired,
   faPlus,
-  faTags,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { computed, reactive } from 'vue'
+import { computed, reactive, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Store subscriptions
@@ -399,6 +430,7 @@ const vmState = reactive({
   networkConfig: '',
   cloudConfig: '',
   vCPU: 0,
+  VCPUs_max: 0,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -460,6 +492,8 @@ const getDefaultSr = computed(() => (pool && pool.value ? getOpaqueRefSr(pool.va
 const getFilteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
 const poolName = computed(() => pool.value?.name_label)
+
+const templateHasBioStrings = computed(() => vmState.new_vm_template)
 
 const getVDis = (template: XenApiVm) => {
   const VdisArray = [] as Disk[]
@@ -623,39 +657,13 @@ const data = {
   gpuGroup: null,
   hvmBootFirmware: undefined,
 }
-const resetVmState = () => {
-  vmState.vm_name = ''
-  vmState.vm_description = ''
-  vmState.toggle = false
-  vmState.installMode = ''
-  vmState.tags = ''
-  vmState.affinity_host = ''
-  vmState.boot_firmware = ''
-  vmState.new_vm_template = null
-  vmState.boot_vm = true
-  vmState.auto_power = false
-  vmState.fast_clone = false
-  vmState.ssh_key = ''
-  vmState.selectedVdi = ''
-  vmState.networkConfig = ''
-  vmState.cloudConfig = ''
-  vmState.vCPU = 0
-  vmState.ram = 0
-  vmState.topology = ''
-  vmState.copyHostBiosStrings = false
-  vmState.sshKeys = []
-  vmState.isDiskTemplateSelected = false
-  vmState.existingDisks = []
-  vmState.VDIs = []
-  vmState.networkInterfaces = []
-  vmState.defaultNetwork = null
-}
 
 const vmCreationParams = computed(() => ({
   affinityHost: vmState.affinity_host,
   clone: vmState.fast_clone,
   existingDisks: vmState.existingDisks,
-  installation: vmState.installMode,
+  installMode: vmState.installMode,
+  installRepository: vmState.selectedVdi,
   name_label: vmState.vm_name,
   template: vmState.new_vm_template?.$ref,
   VDIs: vmState.VDIs,
@@ -664,6 +672,7 @@ const vmCreationParams = computed(() => ({
     mac: net.macAddress,
   })),
   CPUs: vmState.vCPU,
+  VCPUsMax: vmState.VCPUs_max,
   name_description: vmState.vm_description,
   memory: vmState.ram,
   autoPoweron: vmState.auto_power,
@@ -679,9 +688,10 @@ const xapi = useXenApiStore().getXapi()
 const createVM = async () => {
   const templateRef = vmCreationParams.value.template
   const newVmName = vmCreationParams.value.name_label
+  const selectedVdiRef = vmCreationParams.value.installRepository
 
   if (!templateRef) {
-    console.error('Erreur : templateRef is undefined or invalid.')
+    console.error('Error : templateRef is undefined or invalid.')
     return
   }
 
@@ -695,13 +705,47 @@ const createVM = async () => {
       ? await xapi.vm.clone({ [templateRef]: newVmName })
       : await xapi.vm.copy({ [templateRef]: newVmName }, '')
 
-    console.log('Clone/Copy done, ref VM :', vmRef)
-
+    // Removes disks from the provision XML, we will create them by ourselves.
     await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
-    console.log('remove disks done')
 
     await xapi.vm.provision(vmRef)
-    console.log('Provisioning done')
+
+    // INSTALL SETTINGS
+    const vm = await xapi.getField<XenApiVm>('VM', vmRef[0], 'record')
+
+    const installMethod = vmState.selectedVdi ? 'cd' : 'network'
+
+    if (vm.domain_type === 'hvm') {
+      // TODO for network
+    } else {
+      if (vm.PV_bootloader === 'eliloader') {
+        if (installMethod === 'network') {
+          await xapi.call('VM.set_other_config', [vmRef[0], 'install-repository', undefined])
+        } else if (installMethod === 'cd') {
+          await xapi.call('VM.set_other_config', [vmRef[0], 'install-repository', 'cdrom'])
+        }
+      }
+    }
+
+    if (installMethod === 'cd') {
+      const VBDs = await xapi.getField<XenApiVbd['$ref'][]>('VM', vmRef[0], 'VBDs')
+
+      for (const vbdRef of VBDs) {
+        const type = await xapi.getField<string>('VBD', vbdRef, 'type')
+        if (type === 'CD') {
+          await xapi.vbd.insert(vbdRef, selectedVdiRef as XenApiVdi['$ref'])
+          await xapi.vbd.setBootable(vbdRef, true)
+          return
+        }
+      }
+
+      await xapi.vbd.create({
+        vmRefs: vmRef,
+        vdiRef: selectedVdiRef,
+        type: 'CD',
+        bootable: true,
+      })
+    }
 
     // VIFs CREATION
     const newVifs = vmCreationParams.value.VIFs
@@ -738,73 +782,80 @@ const createVM = async () => {
           })
         })
       )
-      console.log('vif creation done', newVifs)
     }
 
-    // VDIs / VBDs CREATION
+    // VDIs AND VBDs CREATION
     const newVDIs = vmCreationParams.value.VDIs
     const existingDisks = vmCreationParams.value.existingDisks
 
     const VBDs = await xapi.getField<string[]>('VM', vmRef[0], 'VBDs')
 
-    const [allowedDevices] = await xapi.vm.getAllowedVBDDevices(vmRef)
+    for (const vdi of newVDIs) {
+      const vdiRef = await xapi.vdi.create({
+        name_description: vdi.name_description,
+        name_label: vdi.name_label,
+        virtual_size: vdi.size,
+        SR: vdi.SR,
+      })
 
-    await Promise.all([
-      newVDIs.map(async vdi => {
-        const vdiRef = await xapi.vdi.create({
-          name_description: vdi.name_description,
-          name_label: vdi.name_label,
-          virtual_size: vdi.size,
-          SR: vdi.SR,
-        })
-        console.log('vdi creation done', vdiRef)
+      await xapi.vbd.create({
+        vmRefs: vmRef,
+        vdiRef,
+      })
+    }
 
-        await xapi.vbd.create({
-          vmRefs: vmRef,
-          vdiRef,
-          userdevice: allowedDevices.shift(),
-        })
-        console.log('Vbd creation done')
-      }),
+    // EDIT VBDs IN CASE OF EXISTING DISKS
+    // TODO edit SR
+    for (const vbdRef of VBDs) {
+      const type = await xapi.getField<string>('VBD', vbdRef, 'type')
+      const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
 
-      VBDs.map(async vbdRef => {
-        const type = await xapi.getField<string>('VBD', vbdRef, 'type')
-        const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
+      if (!vbdRef || type === 'CD') {
+        continue
+      }
 
-        if (!vbdRef || type === 'CD') {
-          return
-        }
+      for (const disk of existingDisks) {
+        await xapi.vdi.setNameLabel(vdiRef, disk.name_label)
+        await xapi.vdi.setNameDescription(vdiRef, disk.name_description)
+      }
+    }
 
-        existingDisks.map(async disk => {
-          await xapi.vdi.setNameLabel(vdiRef, disk.name_label)
-          await xapi.vdi.setNameDescription(vdiRef, disk.name_description)
-        })
-        console.log('existing vdi updated')
-      }),
-    ])
+    // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
+    if (vmCreationParams.value.CPUs > vmCreationParams.value.VCPUsMax) {
+      await xapi.vm.setVCPUsMax(vmRef, vmCreationParams.value.CPUs)
+    }
 
     // OTHER FIELD CREATION
     await Promise.all([
       xapi.vm.setNameLabel(vmRef, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRef, vmCreationParams.value.name_description),
+      xapi.vm.setMemory(vmRef, vmCreationParams.value.memory),
+      xapi.vm.setVCPUsAtStartup(vmRef, vmCreationParams.value.CPUs),
     ])
-    console.log('Set réussi')
+
+    // BOOT VM AFTER CREATION
+    if (vmCreationParams.value.bootAfterCreate) {
+      await xapi.vm.start(vmRef)
+    }
   } catch (error) {
     console.error('Erreur lors de la création de la VM :', error)
-  } finally {
-    resetVmState()
   }
 }
 
-// watchEffect(() => {
-//   console.log('vmState', vmState)
-//   console.log('vmState.VDIs', vmState.VDIs)
-//   console.log('vmState.existingDisks', vmState.existingDisks)
-//   console.log('tempalte', templates.value)
-// })
+watchEffect(() => {
+  console.log('vmState', vmState)
+  console.log('template', templates.value)
+  console.log(' templateHasBioStrings', templateHasBioStrings)
+})
 </script>
 
 <style scoped lang="postcss">
+.template-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .system-container {
   display: flex;
   gap: 10.8rem;
@@ -813,18 +864,26 @@ const createVM = async () => {
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
+    width: 40%;
   }
 
   .col-right {
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
+    width: 40%;
   }
 }
 
-.install-radio-container {
+.install-settings-container {
   display: flex;
-  gap: 15rem;
+  flex-direction: column;
+  gap: 2.4rem;
+
+  .radio-container {
+    display: flex;
+    gap: 15rem;
+  }
 }
 
 .install-custom-config {
