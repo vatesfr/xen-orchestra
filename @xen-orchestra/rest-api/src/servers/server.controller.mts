@@ -4,14 +4,15 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { XoServer } from '@vates/types'
 
-import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
-import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialServers, server, serverIds } from '../open-api/oa-examples/server.oa-example.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
+import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('servers')
 @Security('*')
-@Response(401, 'Authentication required')
+@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('servers')
 @provide(ServerController)
 export class ServerController extends XoController<XoServer> {
@@ -49,7 +50,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(server)
   @Get('{id}')
-  @Response(404, 'Server not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   getServer(@Path() id: string): Promise<Unbrand<XoServer>> {
     return this.getObject(id as XoServer['id'])
   }
