@@ -60,13 +60,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   get type() {
     return 'azure'
   }
-  async _sync() {
-    await this.#containerClient.createIfNotExists()
-    await super._sync()
-  }
 
-  async #makePrefix(path) {
-    return path.endsWith('/') ? path : `${path}/`
+  #makePrefix(path) {
+    return path === '/' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
   async #isNotEmptyDir(dir) {
@@ -94,6 +90,11 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       })
       readableStream.on('error', reject)
     })
+  }
+
+  async _sync() {
+    await this.#containerClient.createIfNotExists()
+    await super._sync()
   }
 
   async _outputStream(file, data) {
@@ -126,10 +127,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   // list blobs in container
   async _list(path) {
-    const prefix = path === '/' ? '' : path + '/'
     const result = []
-    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix })) {
-      const strippedName = item.name.startsWith(`${path}/`) ? item.name.replace(`${path}/`, '') : item.name
+    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: this.#makePrefix(path) })) {
+      const strippedName = item.name.replace(`${path}/`, '')
       result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
     }
     return result
@@ -203,7 +203,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _rmtree(path) {
-    const iter = this.#containerClient.listBlobsFlat({ prefix: path?.endsWith('/') ? path : `${path}/` })
+    const iter = this.#containerClient.listBlobsFlat({ prefix: this.#makePrefix(path) })
     await asyncEach(
       iter,
       async item => {
