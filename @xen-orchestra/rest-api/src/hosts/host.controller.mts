@@ -14,7 +14,6 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import type { CollectionQueryParams } from '../open-api/common/request.common.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -36,9 +35,10 @@ export class HostController extends XapiXoController<XoHost> {
   @Get('')
   getHosts(
     @Request() req: ExRequest,
-    @Queries() queries: CollectionQueryParams
+    @Query() fields?: string,
+    @Query() filter?: string,
+    @Query() limit?: number
   ): string[] | WithHref<Unbrand<XoHost>>[] | WithHref<Partial<Unbrand<XoHost>>>[] {
-    const { filter, limit } = queries
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
