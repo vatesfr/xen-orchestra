@@ -20,6 +20,7 @@
   - `/rest/v0/srs` (PR [#8419](https://github.com/vatesfr/xen-orchestra/pull/8419))
   - `/rest/v0/srs/<sr-id>` (PR [#8419](https://github.com/vatesfr/xen-orchestra/pull/8419))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
+- [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 
 ### Bug fixes
 
@@ -52,7 +53,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi patch
 - xo-server minor
-- xo-server-netbox patch
+- xo-server-netbox minor
 - xo-server-perf-alert patch
 - xo-web minor
 
