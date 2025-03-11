@@ -3,7 +3,6 @@ import {
   Get,
   Path,
   Post,
-  Produces,
   Queries,
   Query,
   Request,
@@ -20,7 +19,14 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
 import { CollectionQueryParams } from '../open-api/common/request.common.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  actionAsyncroneResp,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -92,22 +98,22 @@ export class VmController extends XapiXoController<XoVm> {
     }
   }
 
-  /*
+  /**
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(202, 'Action executed asynchronously', 'text/plain')
-  @Response(204, 'No content')
-  @Response(404, 'VM not found')
-  @Response(500, 'Internal server error, XenServer/XCP-ng error')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async startVm(@Path() id: string, @Query() sync?: boolean) {
     const vmId = id as XoVm['id']
     const action = () => this.getXapiObject(vmId).$callAsync('start', false, false)
 
     return this.createAction(action, {
       sync,
-      statusCode: 204,
+      statusCode: noContentResp.status,
       taskProperties: {
         name: 'start VM',
         objectId: vmId,
