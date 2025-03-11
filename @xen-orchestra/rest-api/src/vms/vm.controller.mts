@@ -1,4 +1,17 @@
-import { Example, Get, Path, Queries, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Example,
+  Get,
+  Path,
+  Post,
+  Queries,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  Tags,
+  SuccessResponse,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
@@ -6,9 +19,17 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
 import { CollectionQueryParams } from '../open-api/common/request.common.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  actionAsyncroneResp,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
@@ -75,5 +96,28 @@ export class VmController extends XapiXoController<XoVm> {
       }
       throw error
     }
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/start')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async startVm(@Path() id: string, @Query() sync?: boolean) {
+    const vmId = id as XoVm['id']
+    const action = () => this.getXapiObject(vmId).$callAsync('start', false, false)
+
+    return this.createAction(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'start VM',
+        objectId: vmId,
+      },
+    })
   }
 }

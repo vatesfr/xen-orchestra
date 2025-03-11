@@ -13,6 +13,12 @@ export type Unbrand<T> = {
         : T[K]
 }
 
+export const actionAsyncroneResp = {
+  status: 202,
+  description: 'Action executed asynchronously',
+  produce: 'text/plain',
+} as const
+
 export const unauthorizedResp = {
   status: 401,
   description: 'Authentication required',
@@ -21,6 +27,11 @@ export const unauthorizedResp = {
 export const notFoundResp = {
   status: 404,
   description: 'Resource not found',
+} as const
+
+export const noContentResp = {
+  status: 204,
+  description: 'No content',
 } as const
 
 export const internalServerErrorResp = {
