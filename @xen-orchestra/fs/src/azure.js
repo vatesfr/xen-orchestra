@@ -5,6 +5,7 @@ import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
+import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
@@ -92,19 +93,28 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     })
   }
 
+  async #getChunk(stream, i, streamLength) {
+    const start = i * MAX_BLOCK_SIZE
+    const end = Math.min(start + MAX_BLOCK_SIZE, streamLength)
+    const size = end - start
+
+    await skipStrict(stream, start)
+    return await readChunkStrict(stream, size)
+  }
+
   async _sync() {
     await this.#containerClient.createIfNotExists()
     await super._sync()
   }
 
-  async _outputStream(file, data) {
-    if (data.length < MIN_BLOCK_SIZE) {
-      await this._writeFile(file, data)
+  async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
+    if (streamLength < MIN_BLOCK_SIZE) {
+      await this._writeFile(path, input)
       return
     }
 
-    const blobClient = this.#containerClient.getBlockBlobClient(file)
-    const blockCount = Math.ceil(data.length / MAX_BLOCK_SIZE)
+    const blobClient = this.#containerClient.getBlockBlobClient(path)
+    const blockCount = Math.ceil(streamLength / MAX_BLOCK_SIZE)
 
     if (blockCount > MAX_BLOCK_COUNT) {
       throw new Error(`File too large. Maximum upload size is ${MAX_BLOCK_SIZE * MAX_BLOCK_COUNT} bytes`)
@@ -114,10 +124,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     for (let i = 0; i < blockCount; i++) {
       const blockId = Buffer.from(i.toString().padStart(6, '0')).toString('base64')
       blockIds.push(blockId)
-
-      const start = i * MAX_BLOCK_SIZE
-      const end = Math.min(start + MAX_BLOCK_SIZE, data.length)
-      const chunk = data.slice(start, end)
+      const chunk = await this.#getChunk(input, i, streamLength)
 
       await blobClient.stageBlock(blockId, chunk, chunk.length)
     }
