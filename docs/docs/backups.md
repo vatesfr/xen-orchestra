@@ -277,7 +277,6 @@ You can also restore specific files and directories inside a VM. It works with a
    - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
    - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)
    - [Resilient File System](https://learn.microsoft.com/en-us/windows-server/storage/refs/refs-overview) (ReFS)
-
 :::
 
 ### Restore a file
