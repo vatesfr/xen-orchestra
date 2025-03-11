@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { Controller } from 'tsoa'
+import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { Request } from 'express'
 import type { XapiXoRecord } from '@vates/types/xo'
 
@@ -52,9 +52,9 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends Controlle
       sync = false,
       taskProperties,
     }: {
-      statusCode?: number
+      statusCode?: HttpStatusCodeLiteral
       sync?: boolean
-      taskProperties: { name: string; objectId: T['id']; [key: string]: unknown }
+      taskProperties: { name: string; objectId: T['id']; args?: Record<string, unknown>; [key: string]: unknown }
     }
   ) {
     taskProperties.name = 'REST API: ' + taskProperties.name
