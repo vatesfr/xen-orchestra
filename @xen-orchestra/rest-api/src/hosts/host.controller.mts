@@ -1,4 +1,4 @@
-import { Example, Get, Path, Queries, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
