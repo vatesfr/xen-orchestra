@@ -605,7 +605,7 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs', 'vms', 'hosts', 'srs']
+    const swaggerEndpoints = ['docs', 'vms', 'hosts']
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema

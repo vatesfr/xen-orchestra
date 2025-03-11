@@ -5,7 +5,6 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
-  STORAGE_OPERATIONS,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
@@ -228,28 +227,8 @@ export type XoPool = BaseXapiXo & {
 }
 
 export type XoSr = BaseXapiXo & {
-  $PBDs: XoPbd['id'][]
-
-  $container: XoPool['id'] | XoHost['id']
-
-  VDIs: XoVdi['id'][]
-
-  allocationStrategy: 'thin' | 'thick' | 'unknown'
-  content_type?: string
-  current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
-  inMaintenanceMode: boolean
-  name_description: string
-  name_label: string
-  other_config: Record<string, string>
-  physical_usage: number | null
-  shared: boolean
-  size: number | null
-  sm_config: Record<string, string>
-  SR_type?: string
-  tags: string[]
   type: 'SR'
-  usage: number | null
 }
 
 export type XoUser = {
