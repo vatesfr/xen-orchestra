@@ -17,6 +17,7 @@ import type {
   XenApiRecordLoadErrorEvent,
   XenApiRecordModEvent,
   XenApiSr,
+  XenApiVbd,
   XenApiVdi,
   XenApiVif,
   XenApiVm,
@@ -312,10 +313,13 @@ export default class XenApi {
           )
         ),
 
-      setVCPUs: (vmRefs: VmRefs, count: number) =>
+      setVCPUsNumberLive: (vmRefs: VmRefs, count: number) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_number_live', [vmRef, String(count)]))),
 
-      setCpuCap: (vmRefs: VmRefs, cap: number | null) =>
+      setVCPUsAtStartup: (vmRefs: VmRefs, count: number) =>
+        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_at_startup', [vmRef, count]))),
+
+      setVCpuCap: (vmRefs: VmRefs, cap: number | null) =>
         Promise.all(
           castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'cap', cap?.toString() ?? '']))
         ),
@@ -325,7 +329,7 @@ export default class XenApi {
           castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'mask', mask?.join(',') ?? '']))
         ),
 
-      setCpusStaticMax: (vmRefs: VmRefs, max: number) =>
+      setVCPUsMax: (vmRefs: VmRefs, max: number) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, String(max)]))),
 
       setCpuWeight: (vmRefs: VmRefs, weight: number | null) =>
@@ -562,11 +566,12 @@ export default class XenApi {
   // TODO move to another file
   get vbd() {
     type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
+    type VbdRefs = XenApiVbd['$ref'] | XenApiVbd['$ref'][]
     type VdiRef = XenApiVdi['$ref']
     type VbdCreateParams = {
       vmRefs: VmRefs
       vdiRef: VdiRef
-      userdevice: string
+      userdevice: string | undefined
       bootable: boolean
       mode: string
       type: string
@@ -577,7 +582,7 @@ export default class XenApi {
     }
 
     return {
-      create: ({
+      create: async ({
         vmRefs,
         vdiRef,
         userdevice,
@@ -589,6 +594,28 @@ export default class XenApi {
         qos_algorithm_params = {},
         qos_algorithm_type = '',
       }: VbdCreateParams) => {
+        if (!userdevice) {
+          const allowedDevices = await this.vm.getAllowedVBDDevices(vmRefs)
+
+          if (allowedDevices.length === 0) {
+            throw new Error('no allowed VBD devices')
+          }
+
+          const allowedDevicesFlat = allowedDevices.flat()
+
+          if (type === 'CD') {
+            // Choose position 3 if allowed.
+            userdevice = allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
+          } else {
+            userdevice = allowedDevicesFlat.shift()
+
+            // Avoid userdevice 3 if possible.
+            if (userdevice === '3' && allowedDevices.length > 1) {
+              userdevice = allowedDevicesFlat[1]
+            }
+          }
+        }
+
         return Promise.all(
           castArray(vmRefs).map(vmRef => {
             const vbdRecord = {
@@ -608,6 +635,11 @@ export default class XenApi {
           })
         )
       },
+      insert: (vbdRefs: VbdRefs, vdiRef: VdiRef) =>
+        Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.insert', [vbdRef, vdiRef]))),
+
+      setBootable: (vbdRefs: VbdRefs, bootable: boolean) =>
+        Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.set_bootable', [vbdRef, bootable]))),
     }
   }
 }
