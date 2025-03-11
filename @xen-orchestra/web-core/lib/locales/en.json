@@ -301,6 +301,8 @@
   "new-vm.vm-name": "VM name",
   "new-vm.tags": "Tags",
   "new-vm.boot-firmware": "Boot firmware",
+  "new-vm.boot-firmware-uefi": "The boot firmware is UEFI",
+  "new-vm.boot-firmware-bios": "The template already contains the BIOS strings",
   "new-vm.copy-host": "Copy host",
   "new-vm.vm-description": "VM description",
   "new-vm.affinity-host": "Affinity host",
