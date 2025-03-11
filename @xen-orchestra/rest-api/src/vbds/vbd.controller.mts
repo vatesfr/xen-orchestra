@@ -4,14 +4,15 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoVbd } from '@vates/types'
 
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vbds')
 @Security('*')
-@Response(401, 'Authentication required')
+@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vbds')
 @provide(VbdController)
 export class VbdController extends XapiXoController<XoVbd> {
@@ -43,7 +44,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    */
   @Example(vbd)
   @Get('{id}')
-  @Response(404, 'VBD not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   getVbd(@Path() id: string): Unbrand<XoVbd> {
     return this.getObject(id as XoVbd['id'])
   }
