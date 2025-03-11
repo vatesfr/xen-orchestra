@@ -28,17 +28,17 @@
         <div>
           <div v-if="vmState.isDiskTemplateSelected">
             <div class="install-radio-container">
-              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="no-config">
+              <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
                 {{ $t('new-vm.no-config') }}
               </UiRadioButton>
-              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="ssh-key">
+              <UiRadioButton v-model="installMethod" accent="brand" value="ssh-key">
                 {{ $t('new-vm.ssh-key') }}
               </UiRadioButton>
-              <UiRadioButton v-model="vmState.installMode.properties.method" accent="brand" value="custom_config">
+              <UiRadioButton v-model="installMethod" accent="brand" value="custom_config">
                 {{ $t('new-vm.custom-config') }}
               </UiRadioButton>
             </div>
-            <div v-if="vmState.installMode.properties.method === 'ssh-key'" class="install-ssh-key-container">
+            <div v-if="installMethod === 'ssh-key'" class="install-ssh-key-container">
               <div class="install-chips">
                 <UiChip
                   v-for="(key, index) in vmState.sshKeys"
@@ -56,7 +56,7 @@
                 </UiButton>
               </div>
             </div>
-            <div v-if="vmState.installMode.properties.method === 'custom_config'" class="install-custom-config">
+            <div v-if="installMethod === 'custom_config'" class="install-custom-config">
               <div class="col-left">
                 <UiTextarea
                   v-model="vmState.cloudConfig"
@@ -81,28 +81,23 @@
           </div>
           <div>
             <div class="install-radio-container">
-              <UiRadioButton
-                v-model="vmState.installMode.properties.method"
-                :disabled="!vmState.new_vm_template"
-                accent="brand"
-                value="iso_dvd"
-              >
+              <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
                 {{ $t('new-vm.iso-dvd') }}
               </UiRadioButton>
               <UiRadioButton
-                v-model="vmState.installMode.properties.method"
+                v-model="installMethod"
                 :disabled="!vmState.new_vm_template"
                 accent="brand"
-                value="pxe"
+                value="network"
               >
                 {{ $t('new-vm.pxe') }}
               </UiRadioButton>
             </div>
             <!--        // Todo: Replace by the new select component -->
-            <select v-if="vmState.installMode.properties.method === 'iso_dvd'" v-model="vmState.selectedVdi">
-              <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="srName">
+            <select v-if="installMethod === 'cdrom'" v-model="installMode.repository">
+              <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="vdisGrouped">
                 <optgroup :label="srName">
-                  <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.name_label">
+                  <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.id">
                     {{ vdi.name_label }}
                   </option>
                 </optgroup>
@@ -252,9 +247,7 @@
                   <td>
                     <!--        // Todo: Replace by the new select component -->
                     <select v-model="disk.sr">
-                      <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.name_label">
-                        {{ sr.name_label }}
-                      </option>
+                      <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
                     </select>
                   </td>
                   <td>
@@ -282,9 +275,7 @@
                   <td>
                     <!--        // Todo: Replace by the new select component -->
                     <select v-model="disk.sr">
-                      <option v-for="sr in srs" :key="sr.id" :value="sr.name_label">
-                        {{ sr.name_label }}
-                      </option>
+                      <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
                     </select>
                   </td>
                   <td>
@@ -415,7 +406,7 @@ const router = useRouter()
 const { t } = useI18n()
 
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
-const { pifsByNetwork } = usePifStore().subscribe()
+const { pifsByNetwork, get: getPif } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
 const { records: vmsTemplates, vmsTemplatesByPool } = useVmTemplateStore().subscribe()
 const { records: srs, get: getSr, vdisGroupedBySrName } = useSrStore().subscribe()
@@ -426,17 +417,46 @@ const { hostsByPool } = useHostStore().subscribe()
 
 const isLoading = ref(false)
 
+// INSTALL METHOD COMPOSABLE
+type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network'
+
+interface InstallMode {
+  method: InstallMethod
+  repository: string
+}
+
+const useInstallMode = () => {
+  const installMode = reactive<InstallMode>({
+    method: 'no-config',
+    repository: '',
+  })
+
+  const setInstallMethod = (method: InstallMethod) => {
+    installMode.method = method
+
+    if (method === 'network') {
+      installMode.repository = ' '
+    }
+  }
+
+  return {
+    installMode,
+    setInstallMethod,
+  }
+}
+
+const { installMode, setInstallMethod } = useInstallMode()
+
+const installMethod = computed({
+  get: () => installMode.method,
+  set: (value: InstallMethod) => setInstallMethod(value),
+})
+
 const vmState = reactive({
   vm_name: '',
   vm_description: '',
   selectedNetwork: '',
   toggle: false,
-  installMode: {
-    properties: {
-      method: '',
-      repository: '',
-    },
-  },
   tags: [] as string[],
   affinity_host: '',
   boot_firmware: '',
@@ -445,7 +465,6 @@ const vmState = reactive({
   auto_poweron: false,
   clone: false,
   ssh_key: '',
-  selectedVdi: '',
   networkConfig: '',
   cloudConfig: '',
   vCpu: 0,
@@ -490,7 +509,7 @@ const addStorageEntry = () => {
   vmState.VDIs.push({
     name_label: (vmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: t('new-vm.created-by-xo'),
-    sr: poolDefaultSr ? poolDefaultSr.name_label : '',
+    sr: poolDefaultSr ? poolDefaultSr.id : '',
     size: 0,
   })
 }
@@ -525,16 +544,16 @@ const getCopyHostBiosStrings = computed({
 
 const getDefaultSr = computed(() => {
   const defaultSr = vmState.pool?.default_SR
-  return vmState.pool ? getSr(defaultSr as Branded<'sr'>)?.name_label : ''
+  return vmState.pool ? getSr(defaultSr as Branded<'sr'>)?.id : ''
 })
 
 const getFilteredSrs = computed(() => {
-  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0)
+  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
 const getVDis = (template: XoVmTemplate): Disk[] =>
   template.template_info?.disks
-    ?.filter(disk => disk.size) // Filter out disks without a size
+    ?.filter(disk => disk.size)
     .map((disk, index) => ({
       name_label: `${vmState?.vm_name || 'disk'}_${index}_${generateRandomString(4)}`,
       name_description: t('new-vm.created-by-xo'),
@@ -554,7 +573,7 @@ const getExistingDisks = (template: XoVmTemplate): Disk[] =>
             name_label: vdi.name_label,
             name_description: vdi.name_description,
             size: byteFormatter(vdi.size),
-            sr: getSr(vdi.$SR)?.name_label || '',
+            sr: getSr(vdi.$SR)?.id || '',
           }
         : null
     })
@@ -563,17 +582,25 @@ const getExistingDisks = (template: XoVmTemplate): Disk[] =>
 const getAutomaticNetwork = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
 const getDefaultNetwork = (template?: XoVmTemplate) => {
-  if (!template) return []
+  if (!template || !vmState.pool) return null
 
-  return getAutomaticNetwork.value.length
-    ? getAutomaticNetwork.value
-    : networks.value.find(network => pifsByNetwork.value.get(network.id)?.every(pif => pif.management))
-      ? [networks.value.find(network => pifsByNetwork.value.get(network.id)?.every(pif => pif.management))!]
-      : []
+  const automaticNetwork = getAutomaticNetwork.value.find(network => network.$pool === vmState.pool?.id)
+  if (automaticNetwork) {
+    return automaticNetwork
+  }
+
+  return (
+    networks.value.find(
+      network => network.$pool === vmState.pool?.id && pifsByNetwork.value.get(network.id)?.every(pif => pif.management)
+    ) || null
+  )
 }
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
-  const defaultNetwork = getDefaultNetwork(template)[0]
+  const defaultNetwork = getDefaultNetwork(template)
+  const pifId = defaultNetwork!.PIFs[0] as Branded<'pif'>
+  const pif = getPif(pifId)
+  const defaultMac = pif?.mac || ''
 
   return template.VIFs.length
     ? (template.VIFs.map(ref => {
@@ -581,12 +608,12 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
         return vif
           ? {
               interface: getNetwork(vif.$network)?.id || '',
-              macAddress: vif.MAC || '00:00:00:00:00:00',
+              macAddress: vif.MAC,
             }
           : null
       }).filter(Boolean) as NetworkInterface[])
     : defaultNetwork
-      ? [{ interface: defaultNetwork.id, macAddress: '00:00:00:00:00:00' }]
+      ? [{ interface: defaultNetwork.id, macAddress: defaultMac }]
       : []
 }
 
@@ -594,7 +621,7 @@ const addNetworkInterface = () => {
   if (!vmsTemplates.value.length) return
 
   const template = (vmState.new_vm_template = vmsTemplates.value[0])
-  const defaultNetwork = getDefaultNetwork(template)[0]
+  const defaultNetwork = getDefaultNetwork(template)
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork?.id || '',
@@ -667,18 +694,16 @@ const vmData = computed(() => {
       mac: net.macAddress,
     })),
     ...(vmState.affinity_host ? { affinity: vmState.affinity_host } : {}),
-    ...(vmState.installMode?.properties.method && vmState.installMode.properties.method !== 'no-config'
-      ? { install: vmState.installMode }
-      : {}),
+    ...(installMode.method && installMode.method !== 'no-config' ? { install: installMode } : {}),
   }
 })
 
 const createNewVM = async () => {
   try {
-    isLoading.value = true
+    // isLoading.value = true
     await createVM(vmData.value, vmState.pool!.id)
-    isLoading.value = false
-    redirectToHome()
+    // isLoading.value = false
+    // redirectToHome()
   } catch (error) {
     console.error('Error creating VM:', error)
   }
