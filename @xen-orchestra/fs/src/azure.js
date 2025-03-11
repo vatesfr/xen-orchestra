@@ -5,7 +5,7 @@ import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
-import { readChunkStrict, skipStrict } from '@vates/read-chunk'
+import { readChunkStrict } from '@vates/read-chunk'
 
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
@@ -93,45 +93,56 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     })
   }
 
-  async #getChunk(stream, i, streamLength) {
-    const start = i * MAX_BLOCK_SIZE
-    const end = Math.min(start + MAX_BLOCK_SIZE, streamLength)
-    const size = end - start
-
-    await skipStrict(stream, start)
-    return await readChunkStrict(stream, size)
-  }
-
   async _sync() {
     await this.#containerClient.createIfNotExists()
     await super._sync()
   }
 
   async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
-    if (streamLength < MIN_BLOCK_SIZE) {
+    let blockSize
+
+    if (maxStreamLength === undefined) {
+      warn(
+        `Writing ${path} to a azure blob storage without a max size set will cut it to ${MAX_BLOCK_COUNT * MAX_BLOCK_SIZE} bytes`,
+        { path }
+      )
+      blockSize = MIN_BLOCK_SIZE
+    } else if (maxStreamLength < MIN_BLOCK_SIZE) {
       await this._writeFile(path, input)
       return
+    } else {
+      const minBlockSize = Math.ceil(maxStreamLength / MAX_BLOCK_COUNT) // Minimal possible block size for the block count allowed
+      const adjustedMinSize = Math.max(minBlockSize, MIN_BLOCK_SIZE) // Block size must be larger than minimum block size allowed
+      blockSize = Math.min(adjustedMinSize, MAX_BLOCK_SIZE) // Block size must be smaller than max block size allowed
     }
 
     const blobClient = this.#containerClient.getBlockBlobClient(path)
-    const blockCount = Math.ceil(streamLength / MAX_BLOCK_SIZE)
+    const blockCount = Math.ceil(streamLength / blockSize)
 
     if (blockCount > MAX_BLOCK_COUNT) {
       throw new Error(`File too large. Maximum upload size is ${MAX_BLOCK_SIZE * MAX_BLOCK_COUNT} bytes`)
     }
+
     const blockIds = []
 
     for (let i = 0; i < blockCount; i++) {
       const blockId = Buffer.from(i.toString().padStart(6, '0')).toString('base64')
-      blockIds.push(blockId)
-      const chunk = await this.#getChunk(input, i, streamLength)
-
+      const chunk = await readChunkStrict(input, blockSize)
       await blobClient.stageBlock(blockId, chunk, chunk.length)
+      blockIds.push(blockId)
     }
 
     await blobClient.commitBlockList(blockIds)
-  }
 
+    if (validator !== undefined) {
+      try {
+        await validator.call(this, path)
+      } catch (error) {
+        await this.__unlink(path)
+        throw error
+      }
+    }
+  }
   // list blobs in container
   async _list(path) {
     const result = []
