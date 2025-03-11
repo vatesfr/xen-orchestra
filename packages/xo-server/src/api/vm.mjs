@@ -204,6 +204,16 @@ export const create = defer(async function ($defer, params) {
     ])
   }
 
+  const acls = extract(params, 'acls')
+  if (acls !== undefined) {
+    await Promise.all(
+      acls.map(async ({ subject, action }) => {
+        await this.addAcl(subject, vm.id, action)
+        $defer.onFailure(() => this.removeAcl(subject, vm.id, action))
+      })
+    )
+  }
+
   for (const vif of xapiVm.$VIFs) {
     xapi.xo.addObject(vif)
     await this.allocIpAddresses(vif.$id, concat(vif.ipv4_allowed, vif.ipv6_allowed)).catch(() => xapi.deleteVif(vif))
@@ -222,6 +232,18 @@ export const create = defer(async function ($defer, params) {
 })
 
 create.params = {
+  acls: {
+    type: 'array',
+    optional: true,
+    items: {
+      type: 'object',
+      properties: {
+        subject: { type: 'string' },
+        action: { type: 'string' },
+      },
+    },
+  },
+
   affinityHost: { type: 'string', optional: true },
 
   bootAfterCreate: {

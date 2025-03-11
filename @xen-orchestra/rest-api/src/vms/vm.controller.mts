@@ -1,18 +1,41 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Example,
+  Get,
+  Path,
+  Post,
+  Queries,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  Tags,
+  SuccessResponse,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
+import { CollectionQueryParams } from '../open-api/common/request.common.mjs'
+import {
+  actionAsyncroneResp,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { Unbrand, WithHref } from '../helpers/helper.type.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
 @Security('*')
-@Response(401, 'Authentication required')
+@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 // the `provide` decorator is mandatory on class that injects/receives dependencies.
 // It automatically bind the class to the IOC container that handles dependency injection
@@ -33,10 +56,9 @@ export class VmController extends XapiXoController<XoVm> {
   @Get('')
   getVms(
     @Request() req: ExRequest,
-    @Query() fields?: string,
-    @Query() filter?: string,
-    @Query() limit?: number
+    @Queries() queries: CollectionQueryParams
   ): string[] | WithHref<Unbrand<XoVm>>[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+    const { filter, limit } = queries
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
@@ -46,7 +68,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vm)
   @Get('{id}')
-  @Response(404, 'VM not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
   }
@@ -59,7 +81,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(vmStatsExample)
   @Get('{id}/stats')
-  @Response(404, 'VM not found')
+  @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid granularity, VM is halted or host could not be found')
   async getVmStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiVmStats> {
     try {
@@ -74,5 +96,28 @@ export class VmController extends XapiXoController<XoVm> {
       }
       throw error
     }
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/start')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async startVm(@Path() id: string, @Query() sync?: boolean) {
+    const vmId = id as XoVm['id']
+    const action = () => this.getXapiObject(vmId).$callAsync('start', false, false)
+
+    return this.createAction(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'start VM',
+        objectId: vmId,
+      },
+    })
   }
 }

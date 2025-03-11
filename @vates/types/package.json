@@ -13,6 +13,10 @@
     "./common": {
       "default": "./dist/common.mjs",
       "types": "./dist/common.d.mts"
+    },
+    "./lib/vates/*": {
+      "default": "./dist/lib/vates-*.mjs",
+      "type": "./dist/lib/vates-*.d.mts"
     }
   },
   "type": "module",
