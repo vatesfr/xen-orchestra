@@ -68,12 +68,9 @@ export default class VhdEsxiCowd extends VhdAbstract {
     strictEqual(grainSize, 1) // 1 grain should be 1 sector long
     strictEqual(buffer.readUInt32LE(20), 4) // grain directory position in sectors
 
-    const nbGrainDirectoryEntries = buffer.readUInt32LE(24)
-    strictEqual(nbGrainDirectoryEntries, Math.ceil(numSectors / 4096))
     const size = numSectors * 512
-    // a grain directory entry contains the address of a grain table
-    // a grain table can adresses at most 4096 grain of 512 Bytes of data
-    this.#header = unpackHeader(createHeader(Math.ceil(size / (4096 * 512))))
+
+    this.#header = unpackHeader(createHeader(Math.ceil(size / (2 * 1024 * 1024) /* vhd block size */)))
     const geometry = _computeGeometryForSize(size)
     this.#footer = unpackFooter(
       createFooter(size, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, this.#parentVhd.footer.diskType)
@@ -81,6 +78,8 @@ export default class VhdEsxiCowd extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
+    // a grain directory entry contains the address of a grain table
+    // a grain table can adresses at most 4096 grain of 512 Bytes of data
     const nbBlocks = this.header.maxTableEntries
     this.#grainDirectory = await this.#read(2048 /* header length */, nbBlocks * 4)
   }

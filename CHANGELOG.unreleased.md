@@ -33,6 +33,7 @@
 - [Netbox] Fix synchronization not working if `checkNetboxVersion` is disabled in the config (PR [#8416](https://github.com/vatesfr/xen-orchestra/pull/8416))
 - [Continuous replication]: Fix `"Expected "actual" to be strictly unequal to: undefined"` when adding a new disk to an already replicated VM (PR [#8400](https://github.com/vatesfr/xen-orchestra/pull/8400))
 - [Netbox] Fix `500 Internal Server Error` when 2 VMs have the same name but different case (PR [#8413](https://github.com/vatesfr/xen-orchestra/pull/8413))
+- [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
 
 ### Packages to release
 
@@ -53,6 +54,7 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xapi patch
 - xo-server minor
 - xo-server-netbox minor
