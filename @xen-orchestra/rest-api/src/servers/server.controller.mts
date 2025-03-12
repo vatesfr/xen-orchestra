@@ -29,7 +29,7 @@ export class ServerController extends XoController<XoServer> {
   }
 
   /**
-   * @example fields "status,uuid"
+   * @example fields "status,id"
    * @example filter "status:/^connected$/"
    * @example limit 42
    */

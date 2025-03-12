@@ -5,10 +5,12 @@ export const serverIds = [
 
 export const partialServers = [
   {
+    id: '63375ed4-6d71-4fce-91b0-0a98921b1f9f',
     status: 'connected',
     href: '/rest/v0/servers/63375ed4-6d71-4fce-91b0-0a98921b1f9f',
   },
   {
+    id: '7202d2b7-913a-473b-b6d1-39447a51643f',
     status: 'connected',
     href: '/rest/v0/servers/7202d2b7-913a-473b-b6d1-39447a51643f',
   },
