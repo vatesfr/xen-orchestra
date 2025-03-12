@@ -14,7 +14,7 @@ export async function consume(disk: Disk, { blockDelay = 20, concurrency = 8 } =
     nbBlocks = 0
 
   await asyncEach(
-    await disk.diskBlocks(),
+    disk.diskBlocks(),
     async (block: DiskBlock) => {
       consumed += block.data.length
       nbBlocks++
@@ -31,7 +31,3 @@ export async function consume(disk: Disk, { blockDelay = 20, concurrency = 8 } =
     speed: Math.round((consumed * 1000) / duration / 1024 / 1024), // in MB/s
   })
 }
-
-const debug = new DebugDisk({ nbBlocks: 5000, blockSize: 1024 * 1024, fillRate: 80 })
-await debug.init()
-await consume(debug, { concurrency: 32 })

@@ -7,8 +7,7 @@ export type DiskBlock = {
 export type BytesLength = number
 
 export abstract class Disk {
-  generatedDiskBlocks = 0
-  yieldedDiskBlocks = 0
+  #generatedDiskBlocks = 0 
   #parent?: Disk
   get parent(): Disk | undefined {
     return this.#parent
@@ -21,7 +20,7 @@ export abstract class Disk {
 
   abstract isDifferencing(): boolean
   // optional method
-  instantiateParent(): Promise<Disk> {
+  instantiateParent(): Disk {
     throw new Error('Method not implemented.')
   }
   async openParent(): Promise<Disk> {
@@ -31,7 +30,7 @@ export abstract class Disk {
     if (!this.isDifferencing()) {
       throw new Error("Can't open the parent of a non differencing disk")
     }
-    this.#parent = await this.instantiateParent()
+    this.#parent = this.instantiateParent()
     await this.#parent.init()
     return this.#parent
   }
@@ -47,21 +46,18 @@ export abstract class Disk {
   async *diskBlocks(uid?: string): AsyncGenerator<DiskBlock> {
     try {
       const blockGenerator = await this.buildDiskBlockGenerator()
-      console.log('got generator', blockGenerator)
       for await (const block of blockGenerator) {
-        this.generatedDiskBlocks++
+        this.#generatedDiskBlocks++
         yield block
-        this.yieldedDiskBlocks++
       }
-      console.log('done')
-    } catch (err) {
-      console.error('Disk.generator', err)
     } finally {
-      console.log('finally')
       await this.close()
     }
   }
 
+  getNbGeneratedBlock():number{
+    return this.#generatedDiskBlocks
+  }
   check() {
     // @todo move here the checks done in cleanVm if possible
     return Promise.resolve(true)
@@ -81,6 +77,10 @@ export abstract class RandomAccessDisk extends Disk {
   #parent?: RandomAccessDisk
   get parent(): RandomAccessDisk | undefined {
     return this.#parent
+  }
+  // optional method
+  instantiateParent(): RandomAccessDisk {
+    throw new Error('Method not implemented.')
   }
   // can read data parent if block size are not aligned
   // but only if this disk has data on this block

@@ -55,20 +55,18 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     }
 
     // @todo : reimplement throttle,nbsource: d use
-    const timestamp = Date.now()
+    const timestamp = Date.now() 
     await this._callWriters(
       writer =>
         writer.transfer({
           deltaExport: fork(deltaExport),
-          isVhdDifferencing,
-          sizeContainers: {},
+          isVhdDifferencing, 
           timestamp,
           vm,
           vmSnapshot: exportedVm,
         }),
       'writer.transfer()'
     )
- 
     await this._callWriters(
       writer =>
         writer.updateUuidAndChain({
@@ -89,15 +87,6 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     if (exportedVm.is_a_snapshot) {
       await markExportSuccessfull(this._xapi, exportedVm.$ref)
     }
-
-    const size = Object.values({}).reduce((sum, { size }) => sum + size, 0)
-    const end = Date.now()
-    const duration = end - timestamp
-    debug('transfer complete', {
-      duration,
-      speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
-      size,
-    })
 
     await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
   }

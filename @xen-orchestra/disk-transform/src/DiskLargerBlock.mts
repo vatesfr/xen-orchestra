@@ -56,7 +56,7 @@ export class DiskLargerBlock extends RandomAccessDisk{
     isDifferencing(): boolean {
         return  this.#source.isDifferencing()
     }
-    instantiateParent(): Promise<Disk> {
+    instantiateParent(): RandomAccessDisk {
         return  this.#source.instantiateParent()
     } 
     getBlockIndexes(): Array<number> {

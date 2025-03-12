@@ -235,7 +235,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
-          size = size + disk.generatedDiskBlocks * disk.getBlockSize()
+          size = size + disk.getNbGeneratedBlock() * disk.getBlockSize()
         },
         {
           concurrency: settings.diskPerVmConcurrency,
@@ -244,10 +244,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
       return { size }
     })
-    metadataContent.size = 0 // @todo return the size written byt this writer
+    metadataContent.size = size // @todo return exactly the size written by this writer
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
+    return {size }
   }
 }
 decorateClass(IncrementalRemoteWriter, {

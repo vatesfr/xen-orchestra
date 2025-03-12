@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { DebugDisk } from './utils/DebugDisk.mjs'
 import { DiskChain } from './DiskChain.mjs'
 
-test('Disk class', async t => {
+test('Disk Chain class', async t => {
   const blockSize = 1024
   const nbBlocks = 20
   const nbDisks = 5
@@ -41,7 +41,8 @@ test('Disk class', async t => {
     }
 
     const foundKeys = []
-    for await (const block of await chain.diskBlocks()) {
+    const generator =  chain.diskBlocks()
+    for await (const block of generator) {
       foundKeys.push(block.index)
       assert.strictEqual(block.data.length, blockSize)
       if (block.index < nbDisks) {
@@ -52,7 +53,7 @@ test('Disk class', async t => {
       }
     }
 
-    assert.strictEqual(chain.yieldedDiskBlocks, nbBlocks)
+    assert.strictEqual(chain.getNbGeneratedBlock(), nbBlocks)
 
     keys.sort()
     foundKeys.sort()
