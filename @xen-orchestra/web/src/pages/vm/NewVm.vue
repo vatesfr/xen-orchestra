@@ -27,9 +27,12 @@
         <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
         <div>
           <div v-if="vmState.isDiskTemplateSelected">
-            <div class="install-radio-container">
+            <div class="install-settings-container">
               <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
                 {{ $t('new-vm.no-config') }}
+              </UiRadioButton>
+              <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
+                {{ $t('new-vm.iso-dvd') }}
               </UiRadioButton>
               <UiRadioButton v-model="installMethod" accent="brand" value="ssh-key">
                 {{ $t('new-vm.ssh-key') }}
@@ -79,8 +82,8 @@
               </div>
             </div>
           </div>
-          <div>
-            <div class="install-radio-container">
+          <div v-else class="install-settings-container">
+            <div class="radio-container">
               <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
                 {{ $t('new-vm.iso-dvd') }}
               </UiRadioButton>
@@ -107,7 +110,6 @@
         </div>
         <!--      SYSTEM SECTION -->
         <UiTitle>{{ $t('new-vm.system') }}</UiTitle>
-        <UiToggle v-model="vmState.toggle" class="multi-creation-toggle">{{ $t('new-vm.multi-creation') }}</UiToggle>
         <div class="system-container">
           <div class="col-left">
             <UiInput v-model="vmState.vm_name" name="vm_name" href="''" accent="brand">
@@ -382,7 +384,6 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { type Disk, type NetworkInterface } from '@core/types/new-vm.type'
 import {
   faAlignLeft,
@@ -417,7 +418,7 @@ const { hostsByPool } = useHostStore().subscribe()
 
 const isLoading = ref(false)
 
-// INSTALL METHOD COMPOSABLE
+// INSTALL METHOD
 type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network'
 
 interface InstallMode {
@@ -455,9 +456,6 @@ const installMethod = computed({
 const vmState = reactive({
   vm_name: '',
   vm_description: '',
-  selectedNetwork: '',
-  toggle: false,
-  tags: [] as string[],
   affinity_host: '',
   boot_firmware: '',
   new_vm_template: null as XoVmTemplate | null,
@@ -700,10 +698,15 @@ const vmData = computed(() => {
 
 const createNewVM = async () => {
   try {
-    // isLoading.value = true
+    isLoading.value = true
     await createVM(vmData.value, vmState.pool!.id)
-    // isLoading.value = false
-    // redirectToHome()
+    isLoading.value = false
+    redirectToHome()
+    // http://localhost:5173/#/vm/456d7f17-9a72-72fc-7d50-0cd843b53843/console
+    // await router.push({
+    //   name: '/vm/[id]/console',
+    //   params: { id: vmId! },
+    // })
   } catch (error) {
     console.error('Error creating VM:', error)
   }
@@ -744,14 +747,18 @@ watchEffect(() => {
   }
 }
 
-.install-radio-container {
+.install-settings-container {
   display: flex;
-  gap: 15rem;
+  flex-direction: column;
+  gap: 2.4rem;
   margin: 1rem 0;
+  .radio-container {
+    display: flex;
+    gap: 15rem;
+  }
 }
 
-.install-ssh-key-container,
-.multi-creation-toggle {
+.install-ssh-key-container {
   margin-block-start: 3rem;
 }
 
