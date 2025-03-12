@@ -93,6 +93,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.close()
       if (err.code === 'VDI_CANT_DO_DELTA') {
         warn(`can't compute delta of XapiVhdStreamSource ${vdiRef} from ${baseRef}, fallBack to a full`)
+        // @todo : should clear CBT status since it probably a little broken
         source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
         await source.init()
       } else {

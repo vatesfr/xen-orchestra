@@ -82,7 +82,7 @@ export class BaseVhd {
    */
   async *vhdblockGenerator() {
     const generator = this.#source.diskBlocks()
-    for await (const { data } of generator) {
+    for await (const { data, } of generator) {
       yield Buffer.concat([FULL_BLOCK_BITMAP, data])
     }
   }

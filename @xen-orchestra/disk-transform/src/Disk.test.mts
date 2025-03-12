@@ -28,12 +28,12 @@ test('Disk class', async t => {
       disk.blocks[key] = true
     }
     const foundKeys = []
-    for await (const block of await disk.diskBlocks()) {
+    const generator =  disk.diskBlocks()
+    for await (const block of generator) {
       foundKeys.push(block.index)
       assert.strictEqual(block.data.length, blockSize)
     }
-
-    assert.strictEqual(disk.yieldedDiskBlocks, 2)
+    assert.strictEqual(disk.getNbGeneratedBlock(), 2)
 
     keys.sort()
     foundKeys.sort()

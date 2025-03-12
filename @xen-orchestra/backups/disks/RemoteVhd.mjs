@@ -143,9 +143,9 @@ export class RemoteVhd extends RandomAccessDisk {
   }
   /**
    *
-   * @returns {Promise<Disk>}
+   * @returns {Disk}
    */
-  async instantiateParent() {
+  instantiateParent() {
     if (this.#vhd === undefined) {
       throw new Error(`can't call openParent of a RemoteVhd before init`)
     }

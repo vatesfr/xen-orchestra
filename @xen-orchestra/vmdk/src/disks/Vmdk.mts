@@ -11,7 +11,7 @@ export class VmdkDisk extends RandomDiskPassthrough{
     #accessor:FileAccessor
     #path:string
     constructor(accessor:FileAccessor, path:string){
-        super()
+        super(undefined)
         this.#accessor = accessor
         this.#path = path
     }

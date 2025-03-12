@@ -21,7 +21,7 @@ export class VmdkCowd extends RandomAccessDisk{
 
     }
 
-    async instantiateParent():Promise<RandomAccessDisk>{
+    instantiateParent():RandomAccessDisk{
         return new VmdkDisk(this.#accessor, join(dirname(this.#path), this.#parentPath))
     }
 
