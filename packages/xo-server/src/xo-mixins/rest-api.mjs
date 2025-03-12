@@ -614,6 +614,7 @@ export default class RestApi {
       },
       hosts: {},
       srs: {},
+      vdis: {},
     }
 
     const withParams = (fn, paramsSchema) => {
