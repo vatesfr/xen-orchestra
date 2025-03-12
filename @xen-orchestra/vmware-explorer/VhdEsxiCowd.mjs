@@ -79,7 +79,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
   async readBlockAllocationTable() {
     // a grain directory entry contains the address of a grain table
-    // a grain table can adresses at most 4096 grain of 512 Bytes of data
+    // a grain table can address at most 4096 grain of 512 Bytes of data
     const nbBlocks = this.header.maxTableEntries
     this.#grainDirectory = await this.#read(2048 /* header length */, nbBlocks * 4)
   }
