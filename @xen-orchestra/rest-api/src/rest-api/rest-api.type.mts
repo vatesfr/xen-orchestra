@@ -20,6 +20,8 @@ type XapiRecordByXapiXoRecord = {
   SR: XenApiSrWrapped
   VBD: XenApiVbdWrapped
   VDI: XenApiVdiWrapped
+  'VDI-snapshot': XenApiVdiWrapped
+  'VDI-unmanaged': XenApiVdiWrapped
   VGPU: XenApiVgpuWrapped
   VIF: XenApiVifWrapped
   VM: XenApiVmWrapped
