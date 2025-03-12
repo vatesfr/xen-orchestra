@@ -6,6 +6,8 @@ import type {
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
   STORAGE_OPERATIONS,
+  VDI_OPERATIONS,
+  VDI_TYPE,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
@@ -277,9 +279,40 @@ export type XoVbd = BaseXapiXo & {
   VM: XoVm['id']
 }
 
-export type XoVdi = BaseXapiXo & {
+type BaseXoVdi = BaseXapiXo & {
+  $SR: XoSr['id']
+  $VBDs: XoVbd['id'][]
+
+  VDI_type: VDI_TYPE
+
+  cbt_enabled?: boolean
+  current_operations: Record<string, VDI_OPERATIONS>
+  missing: boolean
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  parent?: XoVdiUnmanaged['id']
+  size: number
+  snapshots: XoVdiSnapshot['id'][]
+  tags: string[]
+  usage: number
+}
+
+export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
   type: 'VDI'
+}
+
+export type XoVdiSnapshot = BaseXoVdi & {
+  id: Branded<'VDI-snapshot'>
+  snapshot_time: number
+  $snapshot_of?: XoVdi['id']
+  type: 'VDI-snapshot'
+}
+
+export type XoVdiUnmanaged = BaseXoVdi & {
+  id: Branded<'VDI-unmanaged'>
+  type: 'VDI-unmanaged'
 }
 
 export type XoVgpu = BaseXapiXo & {
@@ -339,6 +372,8 @@ export type XapiXoRecord =
   | XoSr
   | XoVbd
   | XoVdi
+  | XoVdiSnapshot
+  | XoVdiUnmanaged
   | XoVgpu
   | XoVif
   | XoVm
