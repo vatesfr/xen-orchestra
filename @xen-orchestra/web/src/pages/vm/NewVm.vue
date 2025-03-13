@@ -328,7 +328,6 @@
         variant="primary"
         accent="brand"
         size="medium"
-        :busy="isLoading"
         @click="createNewVM"
       >
         {{ $t('new-vm.create') }}
@@ -379,7 +378,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, reactive, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -396,8 +395,6 @@ const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdis } = useVdiStore().subscribe()
 const { get: getVifs } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
-
-const isLoading = ref(false)
 
 // INSTALL METHOD
 type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network'
@@ -674,15 +671,7 @@ const vmData = computed(() => {
 
 const createNewVM = async () => {
   try {
-    // isLoading.value = true
     await createVM(vmData.value, vmState.pool!.id)
-    // isLoading.value = false
-    // redirectToHome()
-    // http://localhost:5173/#/vm/456d7f17-9a72-72fc-7d50-0cd843b53843/console
-    // await router.push({
-    //   name: '/vm/[id]/console',
-    //   params: { id: vmId! },
-    // })
   } catch (error) {
     console.error('Error creating VM:', error)
   }
