@@ -264,8 +264,16 @@ export type XoUser = {
 }
 
 export type XoVbd = BaseXapiXo & {
+  attached: boolean
+  bootable: boolean
+  device: string | null
   id: Branded<'VBD'>
+  is_cd_drive: boolean
+  position?: string
+  read_only: boolean
   type: 'VBD'
+  VDI: XoVdi['id']
+  VM: XoVm['id']
 }
 
 export type XoVdi = BaseXapiXo & {
