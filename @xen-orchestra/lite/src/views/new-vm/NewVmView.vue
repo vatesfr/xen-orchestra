@@ -349,7 +349,14 @@
         <RouterLink :to="{ name: 'home' }">
           <UiButton variant="secondary" accent="brand" size="medium">{{ $t('cancel') }}</UiButton>
         </RouterLink>
-        <UiButton variant="primary" accent="brand" size="medium" @click="createVM">
+        <UiButton
+          variant="primary"
+          accent="brand"
+          size="medium"
+          :busy="isLoading"
+          :disabled="!vmState.new_vm_template || isLoading"
+          @click="createVM"
+        >
           {{ $t('new-vm.create') }}
         </UiButton>
       </div>
@@ -405,8 +412,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { computed, reactive, watchEffect } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
@@ -420,6 +428,9 @@ const { getByOpaqueRef: getOpaqueRefPif } = usePifStore().subscribe()
 
 // i18n setup
 const { t } = useI18n()
+const router = useRouter()
+
+const isLoading = ref(false)
 
 const vmState = reactive({
   vm_name: '',
@@ -680,7 +691,7 @@ const createVM = async () => {
     console.error('Error : templateRef is undefined or invalid.')
     return
   }
-
+  isLoading.value = true
   try {
     const isDefaultTemplate =
       vmState.new_vm_template &&
@@ -836,15 +847,18 @@ const createVM = async () => {
     if (vmCreationParams.value.bootAfterCreate) {
       await xapi.vm.start(vmRef)
     }
+    isLoading.value = false
+    if (isLoading.value === false) {
+      await router.push({
+        name: 'vm.console',
+        params: { uuid: vm.uuid },
+      })
+    }
   } catch (error) {
+    isLoading.value = false
     console.error('Erreur lors de la création de la VM :', error)
   }
 }
-
-watchEffect(() => {
-  console.log('vmState', vmState)
-  console.log('template', templates.value)
-})
 </script>
 
 <style scoped lang="postcss">
