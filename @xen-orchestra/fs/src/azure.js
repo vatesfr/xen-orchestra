@@ -63,7 +63,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   #makePrefix(path) {
-    return path === '/' ? '' : path.endsWith('/') ? path : `${path}/`
+    return path === '.' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
   async #isNotEmptyDir(dir) {
@@ -145,16 +145,26 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
   // list blobs in container
   async _list(path) {
-    const result = []
-    for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: this.#makePrefix(path) })) {
-      const strippedName = item.name.replace(`${path}/`, '')
-      result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
+    try {
+      const result = []
+      for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: this.#makePrefix(path) })) {
+        const strippedName = item.name.replace(`${path}/`, '')
+        result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
+      }
+      return result
+    } catch (error) {
+      if (error.statusCode === 404) {
+        const error = new Error(`ENOENT: No such file or directory`)
+        error.code = 'ENOENT'
+        error.path = path
+        throw error
+      }
+      throw error
     }
-    return result
   }
 
   // uploads a file to a blob
-  async _writeFile(file, data) {
+  async _outputFile(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
     if (data.length > MAX_BLOCK_SIZE) {
       await this._outputStream(file, data)
@@ -169,7 +179,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       const response = await blobClient.download()
       return await response.readableStreamBody
     } catch (e) {
-      if (e.name === 'RestError' && e.statusCode === 404) {
+      if (e.name === 'RestError' && e.code === 'BlobNotFound') {
         const error = new Error(`ENOENT: no such file '${this.#dir}'`, e)
         error.code = 'ENOENT'
         error.path = this.#dir
@@ -217,6 +227,16 @@ export default class AzureHandler extends RemoteHandlerAbstract {
         }
       }
       throw e
+    }
+  }
+
+  async _mkdir(path) {
+    const blobClient = this.#containerClient.getBlobClient(path)
+    if (await blobClient.getProperties()) {
+      const error = new Error(`ENOTDIR: file already exists, mkdir '${path}'`)
+      error.code = 'ENOTDIR'
+      error.path = path
+      throw error
     }
   }
 
