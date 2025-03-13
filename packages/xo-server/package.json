@@ -30,6 +30,11 @@
   "dependencies": {
     "@iarna/toml": "^2.2.1",
     "@isaacs/ttlcache": "^1.4.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.1",
+    "@opentelemetry/sdk-metrics": "^1.30.1",
+    "@opentelemetry/sdk-node": "^0.57.2",
+    "@opentelemetry/sdk-trace-node": "^1.30.1",
     "@vates/async-each": "^1.0.0",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
@@ -163,7 +168,7 @@
     "build": "cross-env NODE_ENV=production yarn run _build",
     "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
-    "start": "node dist/cli.mjs",
+    "start": "node --require ./dist/instrumentation.js dist/cli.mjs",
     "test": "cd dist && node --test"
   },
   "author": {
