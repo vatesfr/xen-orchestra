@@ -45,7 +45,7 @@
   "backups.vms-protection.tooltip": "Una máquina virtual está «protejida» si está en una tarea de salvaguarda, con un horario activado, y la última ejecución tuvo éxito",
   "backups.vms-protection.unprotected": "En al menos una tarea pero no está protejida",
   "bond": "Bond",
-  "bond-devices": "Enterfaces del bond",
+  "bond-devices": "Dispositivos enlazados",
   "bond-status": "Estado del bond",
   "bytes.gi": "Gio",
   "bytes.ki": "Kio",
