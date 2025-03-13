@@ -33,19 +33,22 @@ const rejectionOf = p =>
     },
     reason => reason
   )
-
+const skipFsNotInAzure = () => {
+  return !!process.env.xo_fs_azure
+}
 // TODO : add tests on encrypted remote
 const handlers = [`file://${tmpdir()}`]
 if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
+if (process.env.xo_fs_azure) handlers.push(process.env.xo_fs_azure)
 
 handlers.forEach(url => {
   describe(url, () => {
     let handler
 
     const testWithFileDescriptor = (path, flags, fn) => {
-      it('with path', () => fn({ file: path, flags }))
-      it('with file descriptor', async () => {
+      it('with path', { skip: skipFsNotInAzure() }, () => fn({ file: path, flags }))
+      it('with file descriptor', { skip: skipFsNotInAzure() }, async () => {
         const file = await handler.openFile(path, flags)
         try {
           await fn({ file })
@@ -84,11 +87,11 @@ handlers.forEach(url => {
         info = await handler.getInfo()
       })
 
-      it('should return an object with info', async () => {
+      it('should return an object with info', { skip: skipFsNotInAzure() }, async () => {
         assert.equal(typeof info, 'object')
       })
 
-      it('should return correct type of attribute', async () => {
+      it('should return correct type of attribute', { skip: skipFsNotInAzure() }, async () => {
         if (info.size !== undefined) {
           assert.equal(typeof info.size, 'number')
         }
@@ -242,7 +245,7 @@ handlers.forEach(url => {
     })
 
     describe('#rmdir()', () => {
-      it('should remove an empty directory', async () => {
+      it('should remove an empty directory', { skip: skipFsNotInAzure() }, async () => {
         await handler.mkdir('dir')
         await handler.rmdir('dir')
         assert.deepEqual(await handler.list('.'), [])
@@ -256,7 +259,7 @@ handlers.forEach(url => {
         await handler.unlink('dir/file')
       })
 
-      it('does not throw on missing directory', async () => {
+      it('does not throw on missing directory', { skip: skipFsNotInAzure() }, async () => {
         await handler.rmdir('dir')
       })
     })
@@ -271,7 +274,7 @@ handlers.forEach(url => {
     })
 
     describe('#test()', () => {
-      it('tests the remote appears to be working', async () => {
+      it('tests the remote appears to be working', { skip: skipFsNotInAzure() }, async () => {
         const answer = await handler.test()
 
         assert.equal(answer.success, true)
@@ -348,7 +351,7 @@ handlers.forEach(url => {
           })(),
         },
         ({ length, expected }, title) => {
-          it(title, async () => {
+          it(title, { skip: skipFsNotInAzure() }, async () => {
             await handler.outputFile('file', TEST_DATA)
             await handler.truncate('file', length)
             assert.deepEqual(await handler.readFile('file'), expected)
