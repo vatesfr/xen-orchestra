@@ -67,6 +67,7 @@ const className = computed(() =>
   padding: 1.2rem;
   gap: 0.8rem;
   height: 4.5rem;
+  cursor: default;
 
   &.accent--normal {
     color: var(--color-neutral-txt-primary);
@@ -136,7 +137,7 @@ const className = computed(() =>
 
     &.disabled {
       color: var(--color-neutral-txt-secondary);
-      background-color: var(--color-neutral-background-primary);
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
@@ -161,7 +162,7 @@ const className = computed(() =>
 
     &.disabled {
       color: var(--color-neutral-txt-secondary);
-      background-color: var(--color-neutral-background-primary);
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
@@ -186,7 +187,7 @@ const className = computed(() =>
 
     &.disabled {
       color: var(--color-neutral-txt-secondary);
-      background-color: var(--color-neutral-background-primary);
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
