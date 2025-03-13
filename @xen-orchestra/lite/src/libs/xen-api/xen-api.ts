@@ -257,17 +257,26 @@ export default class XenApi {
       setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
         Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
 
-      setAutoPowerOn: (vmRefs: XenApiVm['$ref'], value: boolean) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef =>
-            this.call('VM.set_other_config', [
-              vmRef,
-              {
-                auto_poweron: value ? 'true' : null,
-              },
-            ])
-          )
-        ),
+      setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) =>
+        Promise.all([
+          this.call('VM.set_other_config', [
+            vmRef,
+            {
+              auto_poweron: String(value),
+            },
+          ]),
+        ]),
+
+      setHvmBootFirmware: (vmRef: XenApiVm['$ref'], firmware: string) =>
+        Promise.all([
+          this.call('VM.set_HVM_boot_params', [vmRef, { firmware }]),
+          this.call('VM.set_platform', [
+            vmRef,
+            {
+              'device-model': 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat'),
+            },
+          ]),
+        ]),
 
       setVirtualizationMode: (vmRefs: XenApiVm['$ref'], virtualizationMode: 'pv' | 'hvm') => {
         if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
