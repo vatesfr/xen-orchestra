@@ -1,6 +1,11 @@
 <template>
   <Transition name="slide">
-    <nav v-if="isDesktop || isOpen" ref="navElement" :class="{ collapsible: isMobile }" class="app-navigation">
+    <nav
+      v-if="uiStore.isDesktop || isOpen"
+      ref="navElement"
+      :class="{ collapsible: uiStore.isMobile }"
+      class="app-navigation"
+    >
       <StoryMenu v-if="route.meta.hasStoryNav" />
       <InfraPoolList v-else />
     </nav>
@@ -20,7 +25,6 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const uiStore = useUiStore()
-const { isMobile, isDesktop } = storeToRefs(uiStore)
 
 const navigationStore = useNavigationStore()
 const { isOpen, trigger } = storeToRefs(navigationStore)
@@ -36,6 +40,7 @@ whenever(isOpen, () => {
     },
     {
       ignore: [trigger],
+      controls: false,
     }
   )
 })

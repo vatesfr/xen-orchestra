@@ -74,6 +74,7 @@ const open = (event: MouseEvent) => {
   nextTick(() => {
     clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
       ignore: [event.currentTarget as HTMLElement],
+      controls: false,
     })
 
     placementJs(event.currentTarget as HTMLElement, unrefElement(menu), {

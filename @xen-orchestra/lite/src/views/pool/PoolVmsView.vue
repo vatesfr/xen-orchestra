@@ -2,11 +2,11 @@
   <UiCard class="pool-vms-view">
     <UiCardTitle subtitle>
       {{ $t('vms') }}
-      <template v-if="isMobile" #right>
+      <template v-if="uiStore.isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
     </UiCardTitle>
-    <VmsActionsBar v-if="isDesktop" :selected-refs="selectedVmsRefs" />
+    <VmsActionsBar v-if="uiStore.isDesktop" :selected-refs="selectedVmsRefs" />
     <CollectionTable
       v-model="selectedVmsRefs"
       :available-filters="filters"
@@ -51,7 +51,6 @@ import type { Filters } from '@/types/filter'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faPowerOff } from '@fortawesome/free-solid-svg-icons'
-import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -61,7 +60,7 @@ const titleStore = usePageTitleStore()
 titleStore.setTitle(t('vms'))
 
 const { records: vms } = useVmStore().subscribe()
-const { isMobile, isDesktop } = storeToRefs(useUiStore())
+const uiStore = useUiStore()
 
 const filters: Filters = {
   name_label: { label: t('name'), type: 'string' },

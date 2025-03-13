@@ -46,7 +46,7 @@
     </template>
   </div>
 
-  <div v-else-if="isMobile" class="not-available">
+  <div v-else-if="uiStore.isMobile" class="not-available">
     <p>{{ $t('deploy-xoa-available-on-desktop') }}</p>
   </div>
 
@@ -240,7 +240,6 @@ import {
   faDownload,
   faExclamationCircle,
 } from '@fortawesome/free-solid-svg-icons'
-import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -258,7 +257,6 @@ const invalidField = (message: string) =>
   })
 
 const uiStore = useUiStore()
-const { isMobile } = storeToRefs(uiStore)
 
 const xapi = useXenApiStore().getXapi()
 
