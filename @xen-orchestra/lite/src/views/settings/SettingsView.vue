@@ -82,8 +82,8 @@
           v-for="colorModeOption in colorModeOptions"
           :key="colorModeOption"
           class="option"
-          :class="{ selected: colorMode === colorModeOption }"
-          @click="colorMode = colorModeOption"
+          :class="{ selected: uiStore.colorMode === colorModeOption }"
+          @click="uiStore.colorMode = colorModeOption"
         >
           <img v-if="colorModeOption === 'light'" src="@/assets/color-mode-light.svg" :alt="$t('dark-mode.disable')" />
           <img
@@ -93,7 +93,7 @@
           />
           <img v-else src="@/assets/color-mode-auto.svg" :alt="$t('dark-mode.auto')" />
           <span>
-            <UiIcon v-if="colorMode === colorModeOption" :icon="faCheck" />
+            <UiIcon v-if="uiStore.colorMode === colorModeOption" :icon="faCheck" />
             {{ $t(`theme-${colorModeOption}`) }}
           </span>
         </div>
@@ -125,7 +125,6 @@ import { locales } from '@core/i18n'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { BasicColorSchema } from '@vueuse/core'
-import { storeToRefs } from 'pinia'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -145,7 +144,8 @@ const xcpVersion = computed(() => poolMaster.value?.software_version.product_ver
 watch(locale, newLocale => localStorage.setItem('lang', newLocale))
 
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
-const { colorMode } = storeToRefs(useUiStore())
+
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>

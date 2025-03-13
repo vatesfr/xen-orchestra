@@ -1,12 +1,12 @@
 <template>
   <MenuList
     :disabled="selectedRefs.length === 0"
-    :horizontal="!isMobile"
-    :no-border="!isMobile"
+    :horizontal="uiStore.isDesktop"
+    :no-border="uiStore.isDesktop"
     class="vms-actions-bar"
     placement="bottom-end"
   >
-    <template v-if="isMobile" #trigger="{ isOpen, open }">
+    <template v-if="uiStore.isMobile" #trigger="{ isOpen, open }">
       <UiButtonIcon accent="brand" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
@@ -40,14 +40,13 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
-import { storeToRefs } from 'pinia'
 
 defineProps<{
   disabled?: boolean
   selectedRefs: XenApiVm['$ref'][]
 }>()
 
-const { isMobile } = storeToRefs(useUiStore())
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
