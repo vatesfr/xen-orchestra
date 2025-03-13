@@ -4,6 +4,27 @@ import { loadJson } from '../utils/load-json'
 import { toClassName } from '../utils/to-class-name'
 import { toType } from '../utils/to-type'
 
+const VERSION_BY_CODE_NAME: Record<string, number> = {
+  rio: 4.0,
+  miami: 4.1,
+  symc: 4.1,
+  orlando: 5.0,
+  'orlando-update-1': 5.1,
+  george: 5.5,
+  'midnight-ride': 5.6,
+  cowley: 5.6,
+  boston: 6.0,
+  tampa: 6.1,
+  clearwater: 6.2,
+  'vgpu-tech-preview': 6.2,
+  'vgpu-productisation': 6.2,
+  'clearwater-felton': 6.2,
+  creedence: 6.5,
+  cream: 6.5,
+  indigo: 6.5,
+  dundee: 7.0,
+}
+
 function sortProperties(p1: string, p2: string) {
   return p1.replace('/** @deprecated */', '').trim().localeCompare(p2.replace('/** @deprecated */', '').trim())
 }
@@ -11,24 +32,19 @@ function sortProperties(p1: string, p2: string) {
 export const generateRecord = (item: XapiItem) => {
   const properties = item.fields.map(field => {
     const isPublished = field.lifecycle.state === 'Published_s'
-    const isFromRio = field.lifecycle.transitions.some(t => t.release === 'rio' && t.transition === 'published')
+    const isPublishedAfterDundee =
+      isPublished &&
+      field.lifecycle.transitions.some(
+        t => t.transition === 'published' && VERSION_BY_CODE_NAME[t.release] === undefined
+      )
     const isDeprecated = field.lifecycle.transitions.some(t => t.transition === 'deprecated')
-    const isOptional = field.default === undefined || field.default === 'Null' || field.default === 'OpaqueRef:NULL'
 
     function isAlwaysExisting() {
-      if (field.name === 'uuid') {
-        return true
-      }
-
-      if (!isPublished || !isFromRio || isDeprecated) {
+      if (!isPublished || isPublishedAfterDundee) {
         return false
       }
 
-      if (field.type.endsWith(' set')) {
-        return true
-      }
-
-      return !isOptional
+      return true
     }
 
     // const isAlwaysExisting =
@@ -44,9 +60,16 @@ export const generateRecord = (item: XapiItem) => {
   })
 
   properties.unshift(`  $ref: Branded<'${item.name}'>`)
-  properties.unshift(`  $type: '${item.name}'`)
 
-  return `export interface ${toClassName(item.name)} {\n${properties.sort(sortProperties).join('\n')}\n}`
+  const isInterfaceDeprecated = item.lifecycle.transitions.some(t => t.transition === 'deprecated')
+
+  const interface_schema = [
+    `export interface ${toClassName(item.name)} {\n${properties.sort(sortProperties).join('\n')}\n}`,
+  ]
+  if (isInterfaceDeprecated) {
+    interface_schema.unshift('/** @deprecated */')
+  }
+  return interface_schema.join('\n')
 }
 
 const recordCommand = new Command('record')
