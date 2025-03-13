@@ -307,6 +307,7 @@
   "new-vm.vm-description": "VM description",
   "new-vm.affinity-host": "Affinity host",
   "new-vm.memory": "Memory",
+  "new-vm.socketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket",
   "new-vm.vcpu": "VCPU",
   "new-vm.ram": "RAM",
   "new-vm.topology": "Topology",

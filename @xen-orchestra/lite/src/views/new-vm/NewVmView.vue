@@ -4,7 +4,7 @@
       {{ $t('new-vm.add') }}
     </TitleBar>
     <UiCard>
-      <!--      TEMPLATE SECTION -->
+      <!-- TEMPLATE SECTION -->
       <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
       <div class="template-container">
         <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
@@ -16,7 +16,7 @@
           </optgroup>
         </FormSelect>
       </div>
-      <!--      INSTALL SETTINGS SECTION -->
+      <!-- INSTALL SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
       <div>
         <div v-if="vmState.isDiskTemplateSelected" class="install-settings-container">
@@ -28,7 +28,7 @@
               v-model="vmState.installMode"
               :disabled="!vmState.new_vm_template"
               accent="brand"
-              value="iso_dvd"
+              value="ISO"
             >
               {{ $t('new-vm.iso-dvd') }}
             </UiRadioButton>
@@ -42,7 +42,7 @@
               </UiRadioButton>
             -->
           </div>
-          <FormSelect v-if="vmState.installMode === 'iso_dvd'" v-model="vmState.selectedVdi">
+          <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
             <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="srName">
               <optgroup :label="srName">
                 <option v-for="vdi in vdisGrouped" :key="vdi.$ref" :value="vdi.$ref">
@@ -53,7 +53,7 @@
           </FormSelect>
           <!-- TODO need to be add later -->
           <!--
-           <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
+           <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
               <div class="install-chips">
                 <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
                   {{ key }}
@@ -97,7 +97,7 @@
               v-model="vmState.installMode"
               :disabled="!vmState.new_vm_template"
               accent="brand"
-              value="iso_dvd"
+              value="ISO"
             >
               {{ $t('new-vm.iso-dvd') }}
             </UiRadioButton>
@@ -105,12 +105,12 @@
               v-model="vmState.installMode"
               :disabled="!vmState.new_vm_template"
               accent="brand"
-              value="pxe"
+              value="PXE"
             >
               {{ $t('new-vm.pxe') }}
             </UiRadioButton>
           </div>
-          <FormSelect v-if="vmState.installMode === 'iso_dvd'" v-model="vmState.selectedVdi">
+          <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
             <template v-for="(VDIsGrouped, srName) in vdisGroupedBySrName" :key="srName">
               <optgroup :label="srName">
                 <option v-for="vdi in VDIsGrouped" :key="vdi.$ref" :value="vdi.$ref">
@@ -139,6 +139,7 @@
             </FormSelect>
           </div>
           <div
+            v-if="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
             v-tooltip="{
               placement: 'top-start',
               content:
@@ -146,6 +147,11 @@
             }"
           >
             <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand" disabled>
+              {{ $t('new-vm.copy-host') }}
+            </UiCheckbox>
+          </div>
+          <div v-else>
+            <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">
               {{ $t('new-vm.copy-host') }}
             </UiCheckbox>
           </div>
@@ -161,7 +167,8 @@
       <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
       <div class="memory-container">
         <UiInput v-model="vmState.vCPU" accent="brand" href="''">{{ $t('new-vm.vcpu') }}</UiInput>
-        <UiInput v-model="vmState.ram" accent="brand" href="''">{{ $t('new-vm.ram') }}</UiInput>
+        <!-- TODO remove (GB) when we can use new selector -->
+        <UiInput v-model="ramFormatted" accent="brand" href="''">{{ $t('new-vm.ram') }} (GB)</UiInput>
         <UiInput v-model="vmState.topology" accent="brand" href="''" disabled>{{ $t('new-vm.topology') }}</UiInput>
       </div>
       <!-- NETWORK SECTION -->
@@ -221,7 +228,7 @@
           </tbody>
         </VtsTable>
       </div>
-      <!--      STORAGE SECTION -->
+      <!-- STORAGE SECTION -->
       <UiTitle>{{ $t('new-vm.storage') }}</UiTitle>
       <div class="storage-container">
         <VtsTable vertical-border>
@@ -237,7 +244,8 @@
               </th>
               <th id="disk-size">
                 <VtsIcon accent="current" :icon="faMemory" />
-                {{ $t('new-vm.size') }}
+                <!-- TODO remove (GB) when we can use new selector -->
+                {{ $t('new-vm.size') }} (GB)
               </th>
               <th id="disk-description">
                 <VtsIcon accent="current" :icon="faAlignLeft" />
@@ -255,7 +263,7 @@
                       {{ `${sr.name_label} -` }}
                       {{
                         $t('n-gb-left', {
-                          n: byteFormatter(sr.physical_size - sr.physical_utilisation),
+                          n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
                         })
                       }}
                     </option>
@@ -281,7 +289,7 @@
                       {{ `${sr.name_label} -` }}
                       {{
                         $t('n-gb-left', {
-                          n: byteFormatter(sr.physical_size - sr.physical_utilisation),
+                          n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
                         })
                       }}
                     </option>
@@ -317,22 +325,22 @@
           </tbody>
         </VtsTable>
       </div>
-      <!--      SETTINGS SECTION -->
+      <!-- SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.settings') }}</UiTitle>
       <div class="settings-container">
         <UiCheckboxGroup accent="brand">
           <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-          <UiCheckbox v-model="vmState.auto_power" accent="brand" disabled>{{ $t('new-vm.auto-power') }}</UiCheckbox>
-          <UiCheckbox v-model="vmState.fast_clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+          <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+          <UiCheckbox v-model="vmState.fast_clone" accent="brand" disabled>{{ $t('new-vm.fast-clone') }}</UiCheckbox>
         </UiCheckboxGroup>
       </div>
-      <!--      SUMMARY SECTION -->
+      <!-- SUMMARY SECTION -->
       <UiTitle>{{ $t('new-vm.summary') }}</UiTitle>
       <div class="summary-container">
         <VtsResources>
           <VtsResource :icon="faDisplay" count="1" label="VMs" />
           <VtsResource :icon="faMicrochip" :count="vmState.vCPU" label="vCPUs" />
-          <VtsResource :icon="faMemory" :count="vmState.ram" label="RAM" />
+          <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" label="RAM" />
           <VtsResource :icon="faDatabase" :count="vmState.existingDisks.length + vmState.VDIs.length" label="SR" />
           <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" label="Interfaces" />
         </VtsResources>
@@ -442,8 +450,11 @@ const vmState = reactive({
   defaultNetwork: null,
 })
 
-const byteFormatter = (value: number) => {
-  return Math.floor(value / 1024 ** 3)
+const bytesToGiB = (bytes: number) => {
+  return Math.floor(bytes / 1024 ** 3)
+}
+const giBToBytes = (giB: number) => {
+  return giB * 1024 ** 3
 }
 
 const generateRandomString = (length: number): string => {
@@ -464,16 +475,17 @@ const addStorageEntry = () => {
   }
 }
 
-const addSshKey = () => {
-  if (vmState.ssh_key.trim()) {
-    vmState.sshKeys.push(vmState.ssh_key.trim())
-    vmState.ssh_key = ''
-  }
-}
-
-const removeSshKey = (index: number) => {
-  vmState.sshKeys.splice(index, 1)
-}
+// TODO re add when it work
+// const addSshKey = () => {
+//   if (vmState.ssh_key.trim()) {
+//     vmState.sshKeys.push(vmState.ssh_key.trim())
+//     vmState.ssh_key = ''
+//   }
+// }
+//
+// const removeSshKey = (index: number) => {
+//   vmState.sshKeys.splice(index, 1)
+// }
 
 const isDiskTemplate = (template: XenApiVm) => {
   return template && template.VBDs.length !== 0 && template.name_label !== 'Other install media'
@@ -485,15 +497,28 @@ const getBootFirmwares = computed(() => [
   ...new Set(templates.value.map(template => template.HVM_boot_params.firmware)),
 ])
 
-const getCopyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi')
-
 const getDefaultSr = computed(() => (pool && pool.value ? getOpaqueRefSr(pool.value?.default_SR)?.$ref : ''))
 
 const getFilteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
 const poolName = computed(() => pool.value?.name_label)
 
-const templateHasBioStrings = computed(() => vmState.new_vm_template)
+const hostMasterRef = computed(() => pool.value?.master)
+
+const templateHasBiosStrings = computed(() => {
+  return vmState.new_vm_template !== null && Object.keys(vmState?.new_vm_template.bios_strings).length > 0
+})
+
+const getCopyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi' && templateHasBiosStrings.value)
+
+const ramFormatted = computed<number>({
+  get() {
+    return bytesToGiB(vmState.ram)
+  },
+  set(newValue) {
+    vmState.ram = giBToBytes(newValue)
+  },
+})
 
 const getVDis = (template: XenApiVm) => {
   const VdisArray = [] as Disk[]
@@ -512,7 +537,7 @@ const getVDis = (template: XenApiVm) => {
   VdisArray.push({
     name_label: (vmState.vm_name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
-    size: Number(size),
+    size: bytesToGiB(Number(size)),
     SR: getDefaultSr.value,
   })
 
@@ -535,7 +560,7 @@ const getExistingDisks = (template: XenApiVm) => {
       existingDisksArray.push({
         name_label: vdi.name_label,
         name_description: vdi.name_description,
-        size: vdi.virtual_size,
+        size: bytesToGiB(vdi.virtual_size),
         SR: vdi.SR ? getOpaqueRefSr(vdi.SR)?.$ref : getDefaultSr.value,
       })
     }
@@ -615,47 +640,6 @@ const onTemplateChange = () => {
   vmState.VDIs = getVDis(template)
   vmState.existingDisks = getExistingDisks(template)
   vmState.networkInterfaces = getExistingInterface(template)
-
-  console.log('VDIs Disks:', vmState.VDIs)
-  console.log('Existing Disks:', vmState.existingDisks)
-}
-
-// TODO to remove, it's just a exemple of data to send
-const data = {
-  affinityHost: null,
-  clone: false,
-  existingDisks: vmState.existingDisks,
-  installation: undefined,
-  name_label: vmState.vm_name,
-  template: vmState.new_vm_template?.uuid,
-  VDIs: vmState.VDIs,
-  VIFs: vmState.networkInterfaces,
-  resourceSet: null,
-  coresPerSocket: undefined,
-  CPUs: vmState.vCPU,
-  cpusMax: 0,
-  cpuWeight: null,
-  cpuCap: null,
-  name_description: vmState.vm_description,
-  memory: vmState.ram,
-  memoryMax: 0,
-  memoryMin: 0,
-  memoryStaticMax: 0,
-  pv_args: '',
-  autoPoweron: false,
-  bootAfterCreate: false,
-  copyHostBiosStrings: false,
-  createVtpm: false,
-  destroyCloudConfigVdiAfterBoot: false,
-  secureBoot: false,
-  share: false,
-  cloudConfig: '',
-  networkConfig: undefined,
-  coreOs: false,
-  tags: [],
-  vgpuType: null,
-  gpuGroup: null,
-  hvmBootFirmware: undefined,
 }
 
 const vmCreationParams = computed(() => ({
@@ -677,7 +661,7 @@ const vmCreationParams = computed(() => ({
   memory: vmState.ram,
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
-  copyHostBiosStrings: vmState.copyHostBiosStrings,
+  copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
   hvmBootFirmware: vmState.boot_firmware,
   tags: vmState.tags.split(',').map(tag => tag.trim()),
   cloudConfig: '',
@@ -689,6 +673,8 @@ const createVM = async () => {
   const templateRef = vmCreationParams.value.template
   const newVmName = vmCreationParams.value.name_label
   const selectedVdiRef = vmCreationParams.value.installRepository
+  const newVDIs = vmCreationParams.value.VDIs
+  const existingDisks = vmCreationParams.value.existingDisks
 
   if (!templateRef) {
     console.error('Error : templateRef is undefined or invalid.')
@@ -716,7 +702,10 @@ const createVM = async () => {
     const installMethod = vmState.selectedVdi ? 'cd' : 'network'
 
     if (vm.domain_type === 'hvm') {
-      // TODO for network
+      if ((newVDIs.length === 0 && existingDisks.length === 0) || installMethod === 'network') {
+        const { order } = vm.HVM_boot_params
+        await xapi.call('VM.set_HVM_boot_params', [vmRef[0], { order: order ? 'n' + order.replace('n', '') : 'ncd' }])
+      }
     } else {
       if (vm.PV_bootloader === 'eliloader') {
         if (installMethod === 'network') {
@@ -745,6 +734,16 @@ const createVM = async () => {
         type: 'CD',
         bootable: true,
       })
+    }
+
+    // COPY BIOS strings
+    if (
+      vmState.new_vm_template?.bios_strings.length &&
+      vmCreationParams.value.hvmBootFirmware !== 'uefi' &&
+      vm.domain_type === 'hvm' &&
+      vmCreationParams.value.copyHostBiosStrings
+    ) {
+      await xapi.call('VM.copy_bios_strings', [vmRef, vmState.new_vm_template.affinity ?? hostMasterRef])
     }
 
     // VIFs CREATION
@@ -785,8 +784,6 @@ const createVM = async () => {
     }
 
     // VDIs AND VBDs CREATION
-    const newVDIs = vmCreationParams.value.VDIs
-    const existingDisks = vmCreationParams.value.existingDisks
 
     const VBDs = await xapi.getField<string[]>('VM', vmRef[0], 'VBDs')
 
@@ -794,7 +791,7 @@ const createVM = async () => {
       const vdiRef = await xapi.vdi.create({
         name_description: vdi.name_description,
         name_label: vdi.name_label,
-        virtual_size: vdi.size,
+        virtual_size: giBToBytes(vdi.size),
         SR: vdi.SR,
       })
 
@@ -831,6 +828,8 @@ const createVM = async () => {
       xapi.vm.setNameDescription(vmRef, vmCreationParams.value.name_description),
       xapi.vm.setMemory(vmRef, vmCreationParams.value.memory),
       xapi.vm.setVCPUsAtStartup(vmRef, vmCreationParams.value.CPUs),
+      xapi.vm.setHvmBootFirmware(vmRef[0], vmCreationParams.value.hvmBootFirmware),
+      xapi.vm.setAutoPowerOn(vmRef[0], vmCreationParams.value.autoPoweron),
     ])
 
     // BOOT VM AFTER CREATION
@@ -845,7 +844,6 @@ const createVM = async () => {
 watchEffect(() => {
   console.log('vmState', vmState)
   console.log('template', templates.value)
-  console.log(' templateHasBioStrings', templateHasBioStrings)
 })
 </script>
 
