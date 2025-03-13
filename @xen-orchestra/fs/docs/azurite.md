@@ -32,7 +32,9 @@ azurite --blobHost 0.0.0.0 --silent --location c:\azurite --debug c:\azurite\deb
 3. Configure Connection String on Your Local Machine
 
 Replace `AZURITE_CONNECTION_STRING` with the following connection string in the storage operations commands:
+
 `DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://<VM_IP>:10000/devstoreaccount1;QueueEndpoint=http://<VM_IP>:10001/devstoreaccount1;TableEndpoint=http://<VM_IP>:10002/devstoreaccount1;`
+
 **Replace `<VM_IP>` with the actual IP address of your VM where Azurite is running.**
 
 ---
