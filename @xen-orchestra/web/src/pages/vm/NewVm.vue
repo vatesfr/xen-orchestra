@@ -1,196 +1,255 @@
 <template>
-  <form @submit="onSubmit">
-    <UiHeadBar :icon="faPlus">
-      {{ $t('new-vm.add') }}
-      <template #actions>
-        <select id="select" v-model="vmState.pool">
-          <option v-for="pool in pools" :key="pool.id" :value="pool">
-            {{ pool.name_label }}
-          </option>
-        </select>
-      </template>
-    </UiHeadBar>
-    <UiCard v-if="vmState.pool" class="container">
-      <!--      TEMPLATE SECTION -->
-      <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
+  {{ vmState.existingDisks }}
+  <UiHeadBar :icon="faPlus">
+    {{ $t('new-vm.add') }}
+    <template #actions>
+      <select id="select" v-model="vmState.pool">
+        <option v-for="pool in pools" :key="pool.id" :value="pool">
+          {{ pool.name_label }}
+        </option>
+      </select>
+    </template>
+  </UiHeadBar>
+  <UiCard v-if="vmState.pool" class="container">
+    <!--      TEMPLATE SECTION -->
+    <UiTitle>{{ $t('new-vm.template') }}</UiTitle>
+    <div>
+      <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
+      <!--        // Todo: Replace by the new select component -->
+      <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange">
+        <option v-for="template in vmsTemplatesByPool.get(vmState.pool.id)" :key="template.id" :value="template">
+          {{ template.name_label }}
+        </option>
+      </select>
+    </div>
+    <div v-if="vmState.new_vm_template">
+      <!--      INSTALL SETTINGS SECTION -->
+      <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
       <div>
-        <p class="typo p1-regular">{{ $t('new-vm.pick-template') }}</p>
-        <!--        // Todo: Replace by the new select component -->
-        <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange">
-          <option v-for="template in vmsTemplatesByPool.get(vmState.pool.id)" :key="template.id" :value="template">
-            {{ template.name_label }}
-          </option>
-        </select>
-      </div>
-      <div v-if="vmState.new_vm_template">
-        <!--      INSTALL SETTINGS SECTION -->
-        <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
-        <div>
-          <div v-if="vmState.isDiskTemplateSelected">
-            <div class="install-settings-container">
-              <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
-                {{ $t('new-vm.no-config') }}
-              </UiRadioButton>
-              <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
-                {{ $t('new-vm.iso-dvd') }}
-              </UiRadioButton>
-              <UiRadioButton v-model="installMethod" accent="brand" value="ssh-key">
-                {{ $t('new-vm.ssh-key') }}
-              </UiRadioButton>
-              <UiRadioButton v-model="installMethod" accent="brand" value="custom_config">
-                {{ $t('new-vm.custom-config') }}
-              </UiRadioButton>
+        <div v-if="vmState.isDiskTemplateSelected">
+          <div class="install-settings-container">
+            <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
+              {{ $t('new-vm.no-config') }}
+            </UiRadioButton>
+            <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
+              {{ $t('new-vm.iso-dvd') }}
+            </UiRadioButton>
+            <UiRadioButton v-model="installMethod" accent="brand" value="ssh-key">
+              {{ $t('new-vm.ssh-key') }}
+            </UiRadioButton>
+            <UiRadioButton v-model="installMethod" accent="brand" value="custom_config">
+              {{ $t('new-vm.custom-config') }}
+            </UiRadioButton>
+          </div>
+          <div v-if="installMethod === 'ssh-key'" class="install-ssh-key-container">
+            <div class="install-chips">
+              <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
+                {{ key }}
+              </UiChip>
             </div>
-            <div v-if="installMethod === 'ssh-key'" class="install-ssh-key-container">
-              <div class="install-chips">
-                <UiChip
-                  v-for="(key, index) in vmState.sshKeys"
-                  :key="index"
-                  accent="info"
-                  @remove="removeSshKey(index)"
-                >
-                  {{ key }}
-                </UiChip>
-              </div>
-              <div class="install-ssh-key">
-                <UiInput v-model="vmState.ssh_key" :placeholder="t('new-vm.paste-public-key')" accent="brand" />
-                <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
-                  {{ $t('add') }}
-                </UiButton>
-              </div>
-            </div>
-            <div v-if="installMethod === 'custom_config'" class="install-custom-config">
-              <div class="col-left">
-                <UiTextarea
-                  v-model="vmState.cloudConfig"
-                  :placeholder="$t('new-vm.write-configurations')"
-                  accent="brand"
-                  href="''"
-                >
-                  {{ $t('new-vm.user-config') }}
-                </UiTextarea>
-              </div>
-              <div class="col-right">
-                <UiTextarea
-                  v-model="vmState.networkConfig"
-                  :placeholder="$t('new-vm.write-configurations')"
-                  accent="brand"
-                  href="''"
-                >
-                  {{ $t('new-vm.network-config') }}
-                </UiTextarea>
-              </div>
+            <div class="install-ssh-key">
+              <UiInput v-model="vmState.ssh_key" :placeholder="t('new-vm.paste-public-key')" accent="brand" />
+              <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey">
+                {{ $t('add') }}
+              </UiButton>
             </div>
           </div>
-          <div v-else class="install-settings-container">
-            <div class="radio-container">
-              <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
-                {{ $t('new-vm.iso-dvd') }}
-              </UiRadioButton>
-              <UiRadioButton
-                v-model="installMethod"
-                :disabled="!vmState.new_vm_template"
+          <div v-if="installMethod === 'custom_config'" class="install-custom-config">
+            <div class="col-left">
+              <UiTextarea
+                v-model="vmState.cloudConfig"
+                :placeholder="$t('new-vm.write-configurations')"
                 accent="brand"
-                value="network"
+                href="''"
               >
-                {{ $t('new-vm.pxe') }}
-              </UiRadioButton>
+                {{ $t('new-vm.user-config') }}
+              </UiTextarea>
             </div>
-            <!--        // Todo: Replace by the new select component -->
-            <select v-if="installMethod === 'cdrom'" v-model="installMode.repository">
-              <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="vdisGrouped">
-                <optgroup :label="srName">
-                  <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.id">
-                    {{ vdi.name_label }}
-                  </option>
-                </optgroup>
-              </template>
-            </select>
+            <div class="col-right">
+              <UiTextarea
+                v-model="vmState.networkConfig"
+                :placeholder="$t('new-vm.write-configurations')"
+                accent="brand"
+                href="''"
+              >
+                {{ $t('new-vm.network-config') }}
+              </UiTextarea>
+            </div>
           </div>
         </div>
-        <!--      SYSTEM SECTION -->
-        <UiTitle>{{ $t('new-vm.system') }}</UiTitle>
-        <div class="system-container">
-          <div class="col-left">
-            <UiInput v-model="vmState.vm_name" name="vm_name" href="''" accent="brand">
-              {{ $t('new-vm.vm-name') }}
-            </UiInput>
-            <!--        // Todo: Replace by the new select component -->
-            <label for="select">{{ $t('new-vm.tags') }}</label
-            ><select v-if="vmState" id="select" v-model="vmState.tags" multiple>
-              <option v-for="tag in vmState.new_vm_template?.tags" :key="tag" :value="tag">
-                {{ tag }}
-              </option>
-            </select>
-            <label for="select">{{ $t('new-vm.boot-firmware') }}</label
-            ><select id="select" v-model="vmState.boot_firmware">
-              <option v-for="firmware in getBootFirmwares" :key="firmware" :value="firmware">
-                {{ firmware }}
-              </option>
-            </select>
-            <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+        <div v-else class="install-settings-container">
+          <div class="radio-container">
+            <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
+              {{ $t('new-vm.iso-dvd') }}
+            </UiRadioButton>
+            <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="network">
+              {{ $t('new-vm.pxe') }}
+            </UiRadioButton>
           </div>
-          <div class="col-right">
-            <UiTextarea v-model="vmState.vm_description" class="description" accent="brand" href="''">
-              {{ $t('new-vm.vm-description') }}
-            </UiTextarea>
-            <label for="select">{{ $t('new-vm.affinity-host') }}</label>
-            <select id="select" v-model="vmState.affinity_host">
-              <option v-for="host in getHosts" :key="host.id" :value="host.id">
-                {{ host.name_label }}
-              </option>
-            </select>
-          </div>
+          <!--        // Todo: Replace by the new select component -->
+          <select v-if="installMethod === 'cdrom'" v-model="installMode.repository">
+            <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="vdisGrouped">
+              <optgroup :label="srName">
+                <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.id">
+                  {{ vdi.name_label }}
+                </option>
+              </optgroup>
+            </template>
+          </select>
         </div>
-        <!--      MEMORY SECTION -->
-        <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
-        <div class="memory-container">
-          <UiInput v-model="vmState.vCpu" name="vCpu" accent="brand" type="number" href="''">
-            {{ $t('new-vm.vcpu') }}
+      </div>
+      <!--      SYSTEM SECTION -->
+      <UiTitle>{{ $t('new-vm.system') }}</UiTitle>
+      <div class="system-container">
+        <div class="col-left">
+          <UiInput v-model="vmState.vm_name" href="''" accent="brand">
+            {{ $t('new-vm.vm-name') }}
           </UiInput>
-          {{ vmState.vCpu }}
-          <UiInput v-model="vmState.ram" name="ram" accent="brand" type="number" href="''">
-            {{ $t('new-vm.ram') }}
-          </UiInput>
-          <select id="topology" v-model="vmState.vCpu" :disabled="!vmState.new_vm_template">
-            <option
-              v-for="coresPerSocket in coresPerSocketOptions"
-              :key="coresPerSocket.value"
-              :value="coresPerSocket.value"
-            >
-              {{ coresPerSocket.label }}
+          <!--        // Todo: Replace by the new select component -->
+          <label for="select">{{ $t('new-vm.tags') }}</label
+          ><select v-if="vmState" id="select" v-model="vmState.tags" multiple>
+            <option v-for="tag in vmState.new_vm_template?.tags" :key="tag" :value="tag">
+              {{ tag }}
+            </option>
+          </select>
+          <label for="select">{{ $t('new-vm.boot-firmware') }}</label
+          ><select id="select" v-model="vmState.boot_firmware">
+            <option v-for="firmware in getBootFirmwares" :key="firmware" :value="firmware">
+              {{ firmware }}
+            </option>
+          </select>
+          <UiCheckbox v-model="getCopyHostBiosStrings" accent="brand">{{ $t('new-vm.copy-host') }}</UiCheckbox>
+        </div>
+        <div class="col-right">
+          <UiTextarea v-model="vmState.vm_description" class="description" accent="brand" href="''">
+            {{ $t('new-vm.vm-description') }}
+          </UiTextarea>
+          <label for="select">{{ $t('new-vm.affinity-host') }}</label>
+          <select id="select" v-model="vmState.affinity_host">
+            <option v-for="host in getHosts" :key="host.id" :value="host.id">
+              {{ host.name_label }}
             </option>
           </select>
         </div>
-        <!--      NETWORK SECTION -->
-        <UiTitle>{{ $t('new-vm.vifs') }}</UiTitle>
-        <div class="network-container">
-          <VtsTable vertical-border>
-            <thead>
-              <tr>
-                <th id="interfaces">
-                  <VtsIcon accent="current" :icon="faNetworkWired" />
-                  {{ $t('new-vm.interfaces') }}
-                </th>
-                <th id="mac_addresses">
-                  <VtsIcon accent="current" :icon="faAt" />
-                  {{ $t('new-vm.mac-addresses') }}
-                </th>
-                <th id="delete" />
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(network, index) in vmState.networkInterfaces" :key="index">
+      </div>
+      <!--      MEMORY SECTION -->
+      <UiTitle>{{ $t('new-vm.memory') }}</UiTitle>
+      <div class="memory-container">
+        <UiInput v-model="vmState.vCpu" accent="brand" type="number" href="''">
+          {{ $t('new-vm.vcpu') }}
+        </UiInput>
+        {{ vmState.vCpu }}
+        <UiInput v-model="vmState.ram" accent="brand" type="number" href="''">
+          {{ $t('new-vm.ram') }}
+        </UiInput>
+        <select id="topology" v-model="vmState.vCpu" :disabled="!vmState.new_vm_template">
+          <option
+            v-for="coresPerSocket in coresPerSocketOptions"
+            :key="coresPerSocket.value"
+            :value="coresPerSocket.value"
+          >
+            {{ coresPerSocket.label }}
+          </option>
+        </select>
+      </div>
+      <!--      NETWORK SECTION -->
+      <UiTitle>{{ $t('new-vm.vifs') }}</UiTitle>
+      <div class="network-container">
+        <VtsTable vertical-border>
+          <thead>
+            <tr>
+              <th id="interfaces">
+                <VtsIcon accent="current" :icon="faNetworkWired" />
+                {{ $t('new-vm.interfaces') }}
+              </th>
+              <th id="mac_addresses">
+                <VtsIcon accent="current" :icon="faAt" />
+                {{ $t('new-vm.mac-addresses') }}
+              </th>
+              <th id="delete" />
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(network, index) in vmState.networkInterfaces" :key="index">
+              <td>
+                <!--        // Todo: Replace by the new select component -->
+                <select v-model="network.interface">
+                  <option v-for="nw in networks" :key="nw.id" :value="nw.id">
+                    {{ nw.name_label }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <UiInput v-model="network.macAddress" :placeholder="t('new-vm.auto-generated')" accent="brand" />
+              </td>
+              <td>
+                <UiButtonIcon
+                  :icon="faTrash"
+                  size="medium"
+                  accent="brand"
+                  variant="secondary"
+                  @click="vmState.networkInterfaces.splice(index, 1)"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">
+                <UiButton
+                  :left-icon="faPlus"
+                  variant="tertiary"
+                  accent="brand"
+                  size="medium"
+                  @click="addNetworkInterface"
+                >
+                  {{ $t('new-vm.new') }}
+                </UiButton>
+              </td>
+            </tr>
+          </tbody>
+        </VtsTable>
+      </div>
+      <!--      STORAGE SECTION -->
+      <UiTitle>{{ $t('new-vm.storage') }}</UiTitle>
+      <div class="storage-container">
+        <VtsTable vertical-border>
+          <thead>
+            <tr>
+              <th id="storage-repositories">
+                <VtsIcon accent="current" :icon="faDatabase" />
+                {{ $t('new-vm.storage-repositories') }}
+              </th>
+              <th id="disk-name">
+                <VtsIcon accent="current" :icon="faAlignLeft" />
+                {{ $t('new-vm.disk-name') }}
+              </th>
+              <th id="disk-size">
+                <VtsIcon accent="current" :icon="faMemory" />
+                {{ $t('new-vm.size') }}
+              </th>
+              <th id="disk-description">
+                <VtsIcon accent="current" :icon="faAlignLeft" />
+                {{ $t('new-vm.description') }}
+              </th>
+              <th id="delete" />
+            </tr>
+          </thead>
+          <tbody>
+            <template v-if="vmState.existingDisks && vmState.existingDisks.length > 0">
+              <tr v-for="(disk, index) in vmState.existingDisks" :key="index">
                 <td>
                   <!--        // Todo: Replace by the new select component -->
-                  <select v-model="network.interface">
-                    <option v-for="nw in networks" :key="nw.id" :value="nw.id">
-                      {{ nw.name_label }}
-                    </option>
+                  <select v-model="disk.sr">
+                    <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
                   </select>
                 </td>
                 <td>
-                  <UiInput v-model="network.macAddress" :placeholder="t('new-vm.auto-generated')" accent="brand" />
+                  <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
+                </td>
+                <td>
+                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
+                </td>
+                <td>
+                  <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
                 </td>
                 <td>
                   <UiButtonIcon
@@ -198,160 +257,84 @@
                     size="medium"
                     accent="brand"
                     variant="secondary"
-                    @click="vmState.networkInterfaces.splice(index, 1)"
+                    @click="vmState.existingDisks.splice(index, 1)"
                   />
                 </td>
               </tr>
-              <tr>
-                <td colspan="3">
-                  <UiButton
-                    :left-icon="faPlus"
-                    variant="tertiary"
-                    accent="brand"
+            </template>
+            <template v-if="vmState.VDIs && vmState.VDIs.length > 0">
+              <tr v-for="(disk, index) in vmState.VDIs" :key="index">
+                <td>
+                  <!--        // Todo: Replace by the new select component -->
+                  <select v-model="disk.sr">
+                    <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
+                  </select>
+                </td>
+                <td>
+                  <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
+                </td>
+                <td>
+                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
+                </td>
+                <td>
+                  <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
+                </td>
+                <td>
+                  <UiButtonIcon
+                    :icon="faTrash"
                     size="medium"
-                    @click="addNetworkInterface"
-                  >
-                    {{ $t('new-vm.new') }}
-                  </UiButton>
+                    accent="brand"
+                    variant="secondary"
+                    @click="vmState.VDIs.splice(index, 1)"
+                  />
                 </td>
               </tr>
-            </tbody>
-          </VtsTable>
-        </div>
-        <!--      STORAGE SECTION -->
-        <UiTitle>{{ $t('new-vm.storage') }}</UiTitle>
-        <div class="storage-container">
-          <VtsTable vertical-border>
-            <thead>
-              <tr>
-                <th id="storage-repositories">
-                  <VtsIcon accent="current" :icon="faDatabase" />
-                  {{ $t('new-vm.storage-repositories') }}
-                </th>
-                <th id="disk-name">
-                  <VtsIcon accent="current" :icon="faAlignLeft" />
-                  {{ $t('new-vm.disk-name') }}
-                </th>
-                <th id="disk-size">
-                  <VtsIcon accent="current" :icon="faMemory" />
-                  {{ $t('new-vm.size') }}
-                </th>
-                <th id="disk-description">
-                  <VtsIcon accent="current" :icon="faAlignLeft" />
-                  {{ $t('new-vm.description') }}
-                </th>
-                <th id="delete" />
-              </tr>
-            </thead>
-            <tbody>
-              <template v-if="vmState.existingDisks && vmState.existingDisks.length > 0">
-                <tr v-for="(disk, index) in vmState.existingDisks" :key="index">
-                  <td>
-                    <!--        // Todo: Replace by the new select component -->
-                    <select v-model="disk.sr">
-                      <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
-                    </select>
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiButtonIcon
-                      :icon="faTrash"
-                      size="medium"
-                      accent="brand"
-                      variant="secondary"
-                      @click="vmState.existingDisks.splice(index, 1)"
-                    />
-                  </td>
-                </tr>
-              </template>
-              <template v-if="vmState.VDIs && vmState.VDIs.length > 0">
-                <tr v-for="(disk, index) in vmState.VDIs" :key="index">
-                  <td>
-                    <!--        // Todo: Replace by the new select component -->
-                    <select v-model="disk.sr">
-                      <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">{{ sr.name_label }}</option>
-                    </select>
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
-                  </td>
-                  <td>
-                    <UiButtonIcon
-                      :icon="faTrash"
-                      size="medium"
-                      accent="brand"
-                      variant="secondary"
-                      @click="vmState.VDIs.splice(index, 1)"
-                    />
-                  </td>
-                </tr>
-              </template>
-              <tr>
-                <td colspan="5">
-                  <UiButton
-                    :left-icon="faPlus"
-                    variant="tertiary"
-                    accent="brand"
-                    size="medium"
-                    @click="addStorageEntry"
-                  >
-                    {{ $t('new-vm.new') }}
-                  </UiButton>
-                </td>
-              </tr>
-            </tbody>
-          </VtsTable>
-        </div>
-        <!--      SETTINGS SECTION -->
-        <UiTitle>{{ $t('new-vm.settings') }}</UiTitle>
-        <div class="settings-container">
-          <UiCheckboxGroup accent="brand">
-            <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
-            <UiCheckbox v-model="vmState.auto_poweron" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
-            <UiCheckbox v-model="vmState.clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
-          </UiCheckboxGroup>
-        </div>
-        <!--      SUMMARY SECTION -->
-        <UiTitle>{{ $t('new-vm.summary') }}</UiTitle>
-        <div class="summary-container">
-          <VtsResources>
-            <VtsResource :icon="faDisplay" count="1" label="VMs" />
-            <VtsResource :icon="faMicrochip" :count="vmState.vCpu" label="vCPUs" />
-            <VtsResource :icon="faMemory" :count="vmState.ram" label="RAM" />
-            <VtsResource :icon="faDatabase" :count="totalDisks" label="SR" />
-            <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" label="Interfaces" />
-          </VtsResources>
-        </div>
+            </template>
+            <tr>
+              <td colspan="5">
+                <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addStorageEntry">
+                  {{ $t('new-vm.new') }}
+                </UiButton>
+              </td>
+            </tr>
+          </tbody>
+        </VtsTable>
       </div>
-      <div class="footer">
-        <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToHome">{{ $t('cancel') }}</UiButton>
-        <UiButton
-          type="submit"
-          :disabled="!vmState.new_vm_template || !meta.valid"
-          variant="primary"
-          accent="brand"
-          size="medium"
-          :busy="isLoading"
-        >
-          {{ $t('new-vm.create') }}
-        </UiButton>
+      <!--      SETTINGS SECTION -->
+      <UiTitle>{{ $t('new-vm.settings') }}</UiTitle>
+      <div class="settings-container">
+        <UiCheckboxGroup accent="brand">
+          <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
+          <UiCheckbox v-model="vmState.auto_poweron" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
+          <UiCheckbox v-model="vmState.clone" accent="brand">{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+        </UiCheckboxGroup>
       </div>
-    </UiCard>
-  </form>
+      <!--      SUMMARY SECTION -->
+      <UiTitle>{{ $t('new-vm.summary') }}</UiTitle>
+      <div class="summary-container">
+        <VtsResources>
+          <VtsResource :icon="faDisplay" count="1" label="VMs" />
+          <VtsResource :icon="faMicrochip" :count="vmState.vCpu" label="vCPUs" />
+          <VtsResource :icon="faMemory" :count="vmState.ram" label="RAM" />
+          <VtsResource :icon="faDatabase" :count="totalDisks" label="SR" />
+          <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" label="Interfaces" />
+        </VtsResources>
+      </div>
+    </div>
+    <div class="footer">
+      <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToHome">{{ $t('cancel') }}</UiButton>
+      <UiButton
+        :disabled="!vmState.new_vm_template"
+        variant="primary"
+        accent="brand"
+        size="medium"
+        :busy="isLoading"
+        @click="createNewVM"
+      >
+        {{ $t('new-vm.create') }}
+      </UiButton>
+    </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
@@ -367,7 +350,6 @@ import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
-import { createVMSchema } from '@/validation/vm-create.schema'
 import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
@@ -396,7 +378,6 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
-import { useForm } from 'vee-validate'
 
 import { computed, reactive, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -465,6 +446,7 @@ const vmState = reactive({
   ssh_key: '',
   networkConfig: '',
   cloudConfig: '',
+  tags: [],
   vCpu: 0,
   ram: 0,
   maxRam: 0,
@@ -479,12 +461,6 @@ const vmState = reactive({
   networkInterfaces: [] as NetworkInterface[],
   defaultNetwork: null,
   pool: null as XoPool | null,
-})
-
-const formSchema = computed(() => createVMSchema(vmState.maxRam, vmState.maxVcpu))
-
-const { handleSubmit, meta } = useForm({
-  validationSchema: formSchema,
 })
 
 const getHosts = computed(() => {
@@ -698,10 +674,10 @@ const vmData = computed(() => {
 
 const createNewVM = async () => {
   try {
-    isLoading.value = true
+    // isLoading.value = true
     await createVM(vmData.value, vmState.pool!.id)
-    isLoading.value = false
-    redirectToHome()
+    // isLoading.value = false
+    // redirectToHome()
     // http://localhost:5173/#/vm/456d7f17-9a72-72fc-7d50-0cd843b53843/console
     // await router.push({
     //   name: '/vm/[id]/console',
@@ -711,10 +687,6 @@ const createNewVM = async () => {
     console.error('Error creating VM:', error)
   }
 }
-const onSubmit = handleSubmit(values => {
-  createNewVM()
-  return values
-})
 
 watchEffect(() => {
   if (pools.value.length === 1 && !vmState.pool) {
