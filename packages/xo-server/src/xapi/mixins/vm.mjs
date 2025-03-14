@@ -8,7 +8,6 @@ import lte from 'lodash/lte.js'
 import forEach from 'lodash/forEach.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
-import semver from 'semver'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
@@ -491,13 +490,13 @@ const methods = {
 
     hasVendorDevice: true,
 
+    // deprecated, property kept for backward compatibility, for XCP 8.3+ use nestedVirt instead
     expNestedHvm: {
-      set: (expNestedHvm, vm) => {
-        const platformVersion = semver.satisfies(vm.hardware_platform_version, '>=3.4')
-          ? 'nested-virt'
-          : 'exp-nested-hvm'
-        vm.update_platform(platformVersion, expNestedHvm ? 'true' : null)
-      },
+      set: (expNestedHvm, vm) => vm.update_platform('exp-nested-hvm', expNestedHvm ? 'true' : null),
+    },
+
+    nestedVirt: {
+      set: (nestedVirt, vm) => vm.update_platform('nested-virt', nestedVirt ? 'true' : null),
     },
 
     nicType: {

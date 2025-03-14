@@ -399,9 +399,12 @@ const TRANSFORMS = {
           version: version && parseXml(version).docker_version,
         }
       })(),
-      expNestedHvm: semver.satisfies(obj.hardware_platform_version, '>=3.4')
+      // deprecated, use nestedVirt instead
+      expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      nestedVirt: obj.platform['nested-virt'] === 'true',
+      isNestedVirtEnable: semver.satisfies(obj.hardware_platform_version, '>=3.4')
         ? obj.platform['nested-virt'] === 'true'
-        : obj.platform['exp-nested-hvm'] === true,
+        : obj.platform['exp-nested-hvm'] === 'true',
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,

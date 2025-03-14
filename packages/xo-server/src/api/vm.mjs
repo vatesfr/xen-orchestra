@@ -750,6 +750,8 @@ set.params = {
 
   expNestedHvm: { type: 'boolean', optional: true },
 
+  nestedVirt: { type: 'boolean', optional: true },
+
   // Move the vm In to/Out of Self Service
   resourceSet: { type: ['string', 'null'], optional: true },
 
