@@ -242,6 +242,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
+    if (typeof file !== 'string') {
+      file = file.fd
+    }
     const blobClient = this.#containerClient.getBlobClient(file)
     const properties = await blobClient.getProperties()
     return properties.contentLength
@@ -254,6 +257,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     try {
       const blobClient = this.#containerClient.getBlobClient(file)
       const blobSize = (await blobClient.getProperties()).contentLength
+      if (blobSize === 0) {
+        console.warn(`Blob is empty: ${file}`)
+        return { bytesRead: 0, buffer }
+      }
       if (position >= blobSize) {
         throw new Error(`Requested range starts beyond blob size: ${blobSize}`)
       }
