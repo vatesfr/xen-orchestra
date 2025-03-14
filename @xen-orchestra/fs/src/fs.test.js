@@ -136,12 +136,12 @@ handlers.forEach(url => {
         assert.deepEqual(await handler.list('.'), ['dir'])
       })
 
-      it('does not throw on existing directory', { skip: skipFsNotInAzure() }, async () => {
+      it('does not throw on existing directory', async () => {
         await handler.mkdir('dir')
         await handler.mkdir('dir')
       })
 
-      it('throws ENOTDIR on existing file', { skip: skipFsNotInAzure() }, async () => {
+      it('throws ENOTDIR on existing file', async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mkdir('file'))
         assert.equal(error.code, 'ENOTDIR')
