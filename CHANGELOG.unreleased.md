@@ -15,6 +15,9 @@
   - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
   - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
 
+- **Azure Blob Storage**:
+  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -37,7 +40,12 @@
 
 <!--packages-start-->
 
-- @vates/types minor
+- @xen-orchestra/fs minor
+- @vates/generator-toolbox patch
+- @vates/nbd-client patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform major
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
 - xo-web patch
