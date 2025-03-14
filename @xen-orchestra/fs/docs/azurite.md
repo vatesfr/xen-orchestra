@@ -37,6 +37,8 @@ Replace `AZURITE_CONNECTION_STRING` with the following connection string in the 
 
 **Replace `<VM_IP>` with the actual IP address of your VM where Azurite is running.**
 
+**The account name (devstoreaccount1) and key provided in the connection string above are the default credentials for Azurite. These credentials are publicly documented and can be used by anyone for local development and testing**
+
 ---
 
 ### 4. Perform Storage Operations
