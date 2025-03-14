@@ -164,7 +164,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       if (error.statusCode === 404) {
         throw error
       }
-      throw error
+      throw e
     }
   }
 
