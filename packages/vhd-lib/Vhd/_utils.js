@@ -38,13 +38,26 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 exports.BUF_BLOCK_UNUSED = BUF_BLOCK_UNUSED
 
 /**
+ * @typedef {Object} Header
+ * @property {string} cookie
+ * @property {number} dataOffset
+ * @property {number} tableOffset
+ * @property {number} headerVersion
+ * @property {number} maxTableEntries
+ * @property {number} blockSize
+ * @property {number} checksum
+ * @property {number} parentTimestamp
+ * @property {string} parentUnicodeName
+ */
+
+/**
  * Check and parse the header buffer to build an header object
  *
  * @param {Buffer} bufHeader
  * @param {Object} footer
- * @returns {Object} the parsed header
+ * @returns {Header} the parsed header
  */
-exports.unpackHeader = (bufHeader, footer) => {
+exports.unpackHeader = (bufHeader, footer = undefined) => {
   assertChecksum('header', bufHeader, fuHeader)
 
   const header = fuHeader.unpack(bufHeader)
@@ -53,11 +66,31 @@ exports.unpackHeader = (bufHeader, footer) => {
 }
 
 /**
+ * @typedef {Object} Footer
+ * @property {string} cookie
+ * @property {number} features
+ * @property {number} fileFormatVersion
+ * @property {number} dataOffset
+ * @property {number} timestamp
+ * @property {string} creatorApplication
+ * @property {number} creatorVersion
+ * @property {creatorHostOs} creatorHostOs
+ * @property {number} originalSize
+ * @property {number} currentSize
+ * @property {object} diskGeometry
+ * @property {number} diskGeometry.heads
+ * @property {number} diskGeometry.cylinders
+ * @property {number} diskGeometry.sectorsPerTrackCylinder
+ * @property {number} diskType
+ * @property {number} checksum
+ * @property {Buffer} uuid
+ */
+
+/**
  * Check and parse the footer buffer to build a footer object
  *
  * @param {Buffer} bufHeader
- * @param {Object} footer
- * @returns {Object} the parsed footer
+ * @returns {Footer} the parsed footer
  */
 
 exports.unpackFooter = bufFooter => {

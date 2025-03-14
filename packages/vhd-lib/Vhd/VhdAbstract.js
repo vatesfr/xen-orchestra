@@ -41,14 +41,6 @@ exports.VhdAbstract = class VhdAbstract {
     return computeSectorsPerBlock(this.header.blockSize)
   }
 
-  get header() {
-    throw new Error('get header is not implemented')
-  }
-
-  get footer() {
-    throw new Error('get footer not implemented')
-  }
-
   /**
    * instantiate a Vhd
    *
