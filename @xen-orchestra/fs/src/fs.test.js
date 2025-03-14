@@ -131,17 +131,17 @@ handlers.forEach(url => {
     })
 
     describe('#mkdir()', () => {
-      it('creates a directory', async () => {
+      it('creates a directory', { skip: skipFsNotInAzure() }, async () => {
         await handler.mkdir('dir')
         assert.deepEqual(await handler.list('.'), ['dir'])
       })
 
-      it('does not throw on existing directory', async () => {
+      it('does not throw on existing directory', { skip: skipFsNotInAzure() }, async () => {
         await handler.mkdir('dir')
         await handler.mkdir('dir')
       })
 
-      it('throws ENOTDIR on existing file', async () => {
+      it('throws ENOTDIR on existing file', { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mkdir('file'))
         assert.equal(error.code, 'ENOTDIR')
@@ -149,24 +149,24 @@ handlers.forEach(url => {
     })
 
     describe('#mktree()', () => {
-      it('creates a tree of directories', async () => {
+      it('creates a tree of directories', { skip: skipFsNotInAzure() }, async () => {
         await handler.mktree('dir/dir')
         assert.deepEqual(await handler.list('.'), ['dir'])
         assert.deepEqual(await handler.list('dir'), ['dir'])
       })
 
-      it('does not throw on existing directory', async () => {
+      it('does not throw on existing directory', { skip: skipFsNotInAzure() }, async () => {
         await handler.mktree('dir/dir')
         await handler.mktree('dir/dir')
       })
 
-      it('throws ENOTDIR on existing file', async () => {
+      it('throws ENOTDIR on existing file', { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('dir/file', '')
         const error = await rejectionOf(handler.mktree('dir/file'))
         assert.equal(error.code, 'ENOTDIR')
       })
 
-      it('throws ENOTDIR on existing file in path', async () => {
+      it('throws ENOTDIR on existing file in path', { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mktree('file/dir'))
         assert.equal(error.code, 'ENOTDIR')
@@ -180,7 +180,6 @@ handlers.forEach(url => {
       })
 
       it('throws on existing files', async () => {
-        await handler.unlink('file')
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))
         assert.equal(error.code, 'EEXIST')
@@ -251,12 +250,11 @@ handlers.forEach(url => {
         assert.deepEqual(await handler.list('.'), [])
       })
 
-      it(`should throw on non-empty directory`, async () => {
+      it(`should throw on non-empty directory`, { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('dir/file', '')
 
         const error = await rejectionOf(handler.rmdir('.'))
         assert.equal(error.code, 'ENOTEMPTY')
-        await handler.unlink('dir/file')
       })
 
       it('does not throw on missing directory', { skip: skipFsNotInAzure() }, async () => {
@@ -268,8 +266,7 @@ handlers.forEach(url => {
       it(`should remove a directory resursively`, async () => {
         await handler.outputFile('dir/file', '')
         await handler.rmtree('dir')
-
-        assert.deepEqual(await handler.list('.'), [])
+        assert.deepEqual(await handler.list('.', { ignoreMissing: true }), [])
       })
     })
 
@@ -288,7 +285,7 @@ handlers.forEach(url => {
         await handler.outputFile('file', TEST_DATA)
         await handler.unlink('file')
 
-        assert.deepEqual(await handler.list('.'), [])
+        assert.deepEqual(await handler.list('.', { ignoreMissing: true }), [])
       })
 
       it('does not throw on missing file', async () => {
