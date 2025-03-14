@@ -31,6 +31,9 @@
 - [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Expose `GET /rest/v0/pcis` and `GET /rest/v0/pcis/<pci-id>` (PR [#8686](https://github.com/vatesfr/xen-orchestra/pull/8686))
 
+- **Azure Blob Storage**:
+  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
+
 ### Bug fixes
 
 [REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
@@ -55,7 +58,12 @@
 
 <!--packages-start-->
 
-- @vates/types minor
+- @xen-orchestra/fs minor
+- @vates/generator-toolbox patch
+- @vates/nbd-client patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform major
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
