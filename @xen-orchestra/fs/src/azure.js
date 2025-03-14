@@ -251,9 +251,14 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const blobClient = this.#containerClient.getBlobClient(file)
     try {
-      const downloadResponse = await blobClient.download(position, buffer.length)
+      const blobClient = this.#containerClient.getBlobClient(file)
+      const blobSize = (await blobClient.getProperties()).contentLength
+      if (position >= blobSize) {
+        throw new Error(`Requested range starts beyond blob size: ${blobSize}`)
+      }
+
+      const downloadResponse = await blobClient.download(position, Math.min(blobSize - position, buffer.length))
       const bytesRead = await this.#streamToBuffer(downloadResponse.readableStreamBody, buffer)
       return { bytesRead, buffer }
     } catch (e) {
