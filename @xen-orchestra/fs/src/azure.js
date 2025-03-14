@@ -248,8 +248,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _read(file, buffer, position = 0) {
+    if (typeof file !== 'string') {
+      file = file.fd
+    }
     const blobClient = this.#containerClient.getBlobClient(file)
-
     try {
       const downloadResponse = await blobClient.download(position, buffer.length)
       const bytesRead = await this.#streamToBuffer(downloadResponse.readableStreamBody, buffer)
