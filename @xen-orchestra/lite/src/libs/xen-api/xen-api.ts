@@ -513,7 +513,7 @@ export default class XenApi {
               qos_algorithm_type,
             }
 
-            return this.call('VIF.create', [vifRecord])
+            return this.call<XenApiVif['$ref']>('VIF.create', [vifRecord])
           })
         )
       },
@@ -561,8 +561,9 @@ export default class XenApi {
           tags,
         }
 
-        return this.call('VDI.create', [vdiRecord])
+        return this.call<XenApiVdi['$ref']>('VDI.create', [vdiRecord])
       },
+
       delete: (vdiRefs: VdiRefs) => Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.destroy', [vdiRef]))),
 
       setNameDescription: (vdiRefs: VdiRefs, nameDescription: string) =>
@@ -581,11 +582,11 @@ export default class XenApi {
     type VbdCreateParams = {
       vmRefs: VmRefs
       vdiRef: VdiRef
-      userdevice: string | undefined
-      bootable: boolean
-      mode: string
-      type: string
-      empty: boolean
+      userdevice?: string | undefined
+      bootable?: boolean
+      mode?: string
+      type?: string
+      empty?: boolean
       other_config?: Record<string, any>
       qos_algorithm_params?: Record<string, any>
       qos_algorithm_type?: string
@@ -641,10 +642,13 @@ export default class XenApi {
               qos_algorithm_type,
             }
 
-            return this.call('VBD.create', [vbdRecord])
+            return this.call<XenApiVbd['$ref']>('VBD.create', [vbdRecord])
           })
         )
       },
+
+      delete: (vbdRefs: VbdRefs) => Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.destroy', [vbdRef]))),
+
       insert: (vbdRefs: VbdRefs, vdiRef: VdiRef) =>
         Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.insert', [vbdRef, vdiRef]))),
 
