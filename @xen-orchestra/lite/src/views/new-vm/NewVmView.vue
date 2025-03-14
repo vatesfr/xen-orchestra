@@ -19,9 +19,9 @@
       <!-- INSTALL SETTINGS SECTION -->
       <UiTitle>{{ $t('new-vm.install-settings') }}</UiTitle>
       <div>
-        <div v-if="vmState.isDiskTemplateSelected" class="install-settings-container">
+        <div v-if="isDiskTemplate" class="install-settings-container">
           <div class="radio-container">
-            <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
+            <UiRadioButton v-model="vmState.installMode" accent="brand" value="noConfigDrive">
               {{ $t('new-vm.no-config') }}
             </UiRadioButton>
             <UiRadioButton
@@ -32,7 +32,7 @@
             >
               {{ $t('new-vm.iso-dvd') }}
             </UiRadioButton>
-            <!-- TODO need to be add later -->
+            <!-- TODO need to be add later after confirmation -->
             <!--
               <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
                 {{ $t('new-vm.ssh-key') }}
@@ -51,7 +51,7 @@
               </optgroup>
             </template>
           </FormSelect>
-          <!-- TODO need to be add later -->
+          <!-- TODO need to be add later after confirmation -->
           <!--
            <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
               <div class="install-chips">
@@ -331,7 +331,9 @@
         <UiCheckboxGroup accent="brand">
           <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('new-vm.boot-vm') }}</UiCheckbox>
           <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ $t('new-vm.auto-power') }}</UiCheckbox>
-          <UiCheckbox v-model="vmState.fast_clone" accent="brand" disabled>{{ $t('new-vm.fast-clone') }}</UiCheckbox>
+          <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">
+            {{ $t('new-vm.fast-clone') }}
+          </UiCheckbox>
         </UiCheckboxGroup>
       </div>
       <!-- SUMMARY SECTION -->
@@ -379,7 +381,7 @@ import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { type Disk, type NetworkInterface } from '@/types/new-vm'
+import { type Disk, type NetworkInterface, type VmState } from '@/types/new-vm'
 
 // UI components imports from web-core
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -430,9 +432,9 @@ const { getByOpaqueRef: getOpaqueRefPif } = usePifStore().subscribe()
 const { t } = useI18n()
 const router = useRouter()
 
-const isLoading = ref(false)
+const isLoading = ref<boolean>(false)
 
-const vmState = reactive({
+const vmState = reactive<VmState>({
   vm_name: '',
   vm_description: '',
   toggle: false,
@@ -440,12 +442,12 @@ const vmState = reactive({
   tags: '',
   affinity_host: '',
   boot_firmware: '',
-  new_vm_template: null as XenApiVm | null,
+  new_vm_template: null,
   boot_vm: true,
   auto_power: false,
-  fast_clone: false,
+  fast_clone: true,
   ssh_key: '',
-  selectedVdi: '',
+  selectedVdi: null,
   networkConfig: '',
   cloudConfig: '',
   vCPU: 0,
@@ -453,11 +455,10 @@ const vmState = reactive({
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
-  sshKeys: [] as string[],
-  isDiskTemplateSelected: false,
-  existingDisks: [] as Disk[],
-  VDIs: [] as Disk[],
-  networkInterfaces: [] as NetworkInterface[],
+  sshKeys: [],
+  existingDisks: [],
+  VDIs: [],
+  networkInterfaces: [],
   defaultNetwork: null,
 })
 
@@ -467,6 +468,15 @@ const bytesToGiB = (bytes: number) => {
 const giBToBytes = (giB: number) => {
   return giB * 1024 ** 3
 }
+
+const ramFormatted = computed<number>({
+  get() {
+    return bytesToGiB(vmState.ram)
+  },
+  set(newValue) {
+    vmState.ram = giBToBytes(newValue)
+  },
+})
 
 const generateRandomString = (length: number): string => {
   return Math.random()
@@ -497,10 +507,17 @@ const addStorageEntry = () => {
 // const removeSshKey = (index: number) => {
 //   vmState.sshKeys.splice(index, 1)
 // }
+const poolName = computed(() => pool.value?.name_label)
 
-const isDiskTemplate = (template: XenApiVm) => {
-  return template && template.VBDs.length !== 0 && template.name_label !== 'Other install media'
-}
+const hostMasterRef = computed(() => pool.value?.master)
+
+const isDiskTemplate = computed(() => {
+  return (
+    vmState.new_vm_template &&
+    vmState.new_vm_template.VBDs.length !== 0 &&
+    vmState.new_vm_template.name_label !== 'Other install media'
+  )
+})
 
 const getAutomaticNetwork = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
@@ -512,73 +529,11 @@ const getDefaultSr = computed(() => (pool && pool.value ? getOpaqueRefSr(pool.va
 
 const getFilteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
-const poolName = computed(() => pool.value?.name_label)
-
-const hostMasterRef = computed(() => pool.value?.master)
-
-const templateHasBiosStrings = computed(() => {
-  return vmState.new_vm_template !== null && Object.keys(vmState?.new_vm_template.bios_strings).length > 0
-})
+const templateHasBiosStrings = computed(
+  () => vmState.new_vm_template !== null && Object.keys(vmState?.new_vm_template.bios_strings).length > 0
+)
 
 const getCopyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi' && templateHasBiosStrings.value)
-
-const ramFormatted = computed<number>({
-  get() {
-    return bytesToGiB(vmState.ram)
-  },
-  set(newValue) {
-    vmState.ram = giBToBytes(newValue)
-  },
-})
-
-const getVDis = (template: XenApiVm) => {
-  const VdisArray = [] as Disk[]
-
-  const parser = new DOMParser()
-  const xmlString = template.other_config.disks
-  const xmlDoc = parser.parseFromString(xmlString, 'application/xml')
-
-  const diskElement = xmlDoc.querySelector('disk')
-  const size = diskElement?.getAttribute('size')
-
-  if (size === undefined) {
-    return []
-  }
-
-  VdisArray.push({
-    name_label: (vmState.vm_name || 'disk') + '_' + generateRandomString(4),
-    name_description: 'Created by XO',
-    size: bytesToGiB(Number(size)),
-    SR: getDefaultSr.value,
-  })
-
-  return VdisArray
-}
-
-const getExistingDisks = (template: XenApiVm) => {
-  const existingDisksArray = [] as Disk[]
-
-  template.VBDs.forEach(vbdRef => {
-    const vbd = getOpaqueRefVbd(vbdRef)
-
-    if (!vbd || vbd.type === 'CD') {
-      return
-    }
-
-    const vdi = getOpaqueRefVdi(vbd.VDI)
-
-    if (vdi) {
-      existingDisksArray.push({
-        name_label: vdi.name_label,
-        name_description: vdi.name_description,
-        size: bytesToGiB(vdi.virtual_size),
-        SR: vdi.SR ? getOpaqueRefSr(vdi.SR)?.$ref : getDefaultSr.value,
-      })
-    }
-  })
-
-  return existingDisksArray
-}
 
 const getDefaultNetwork = (template: XenApiVm) => {
   if (template === undefined) {
@@ -634,28 +589,76 @@ const addNetworkInterface = () => {
   }
 }
 
+const getVDis = (template: XenApiVm) => {
+  const VdisArray = [] as Disk[]
+
+  const parser = new DOMParser()
+  const xmlString = template.other_config.disks
+  const xmlDoc = parser.parseFromString(xmlString, 'application/xml')
+
+  const diskElement = xmlDoc.querySelector('disk')
+  const size = diskElement?.getAttribute('size')
+
+  if (size === undefined) {
+    return []
+  }
+
+  VdisArray.push({
+    name_label: (vmState.vm_name || 'disk') + '_' + generateRandomString(4),
+    name_description: 'Created by XO',
+    size: bytesToGiB(Number(size)),
+    SR: getDefaultSr.value,
+  })
+
+  return VdisArray
+}
+
+const getExistingDisks = (template: XenApiVm) => {
+  const existingDisksArray = [] as Disk[]
+
+  template.VBDs.forEach(vbdRef => {
+    const vbd = getOpaqueRefVbd(vbdRef)
+
+    if (!vbd || vbd.type === 'CD') {
+      return
+    }
+
+    const vdi = getOpaqueRefVdi(vbd.VDI)
+
+    if (vdi) {
+      existingDisksArray.push({
+        name_label: vdi.name_label,
+        name_description: vdi.name_description,
+        size: bytesToGiB(vdi.virtual_size),
+        SR: vdi.SR ? getOpaqueRefSr(vdi.SR)?.$ref : getDefaultSr.value,
+      })
+    }
+  })
+
+  return existingDisksArray
+}
+
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
 
-  vmState.isDiskTemplateSelected = isDiskTemplate(template)
-
   const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
 
-  vmState.vm_name = name_label
-  vmState.vm_description = other_config.default_template === 'true' ? '' : name_description
-  vmState.boot_firmware = HVM_boot_params.firmware
-  vmState.vCPU = VCPUs_at_startup
-  vmState.ram = memory_dynamic_max
-
-  vmState.VDIs = getVDis(template)
-  vmState.existingDisks = getExistingDisks(template)
-  vmState.networkInterfaces = getExistingInterface(template)
+  Object.assign(vmState, {
+    vm_name: name_label,
+    vm_description: other_config.default_template === 'true' ? '' : name_description,
+    boot_firmware: HVM_boot_params.firmware,
+    vCPU: VCPUs_at_startup,
+    ram: memory_dynamic_max,
+    VDIs: getVDis(template),
+    existingDisks: getExistingDisks(template),
+    networkInterfaces: getExistingInterface(template),
+  })
 }
 
 const vmCreationParams = computed(() => ({
   affinityHost: vmState.affinity_host,
-  clone: vmState.fast_clone,
+  clone: isDiskTemplate.value && vmState.fast_clone,
   existingDisks: vmState.existingDisks,
   installMode: vmState.installMode,
   installRepository: vmState.selectedVdi,
@@ -687,20 +690,21 @@ const createVM = async () => {
   const newVDIs = vmCreationParams.value.VDIs
   const existingDisks = vmCreationParams.value.existingDisks
 
+  const $defer = []
+
   if (!templateRef) {
     console.error('Error : templateRef is undefined or invalid.')
     return
   }
-  isLoading.value = true
-  try {
-    const isDefaultTemplate =
-      vmState.new_vm_template &&
-      vmState.new_vm_template.VBDs.length !== 0 &&
-      vmState.new_vm_template.name_label !== 'Other install media'
 
-    const vmRef = isDefaultTemplate
+  isLoading.value = true
+
+  try {
+    const vmRef = vmCreationParams.value.clone
       ? await xapi.vm.clone({ [templateRef]: newVmName })
       : await xapi.vm.copy({ [templateRef]: newVmName }, '')
+
+    $defer.push(() => xapi.vm.delete(vmRef))
 
     // Removes disks from the provision XML, we will create them by ourselves.
     await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
@@ -780,7 +784,7 @@ const createVM = async () => {
             device = allowedDevices.shift()
           }
 
-          await xapi.vif.create({
+          const vifRef = await xapi.vif.create({
             device,
             vmRefs: vmRef,
             network: vif.network,
@@ -790,6 +794,8 @@ const createVM = async () => {
             qos_algorithm_params: {},
             qos_algorithm_type: '',
           })
+
+          $defer.push(() => xapi.vif.delete(vifRef))
         })
       )
     }
@@ -806,10 +812,14 @@ const createVM = async () => {
         SR: vdi.SR,
       })
 
-      await xapi.vbd.create({
+      $defer.push(() => xapi.vdi.delete(vdiRef))
+
+      const vbdRef = await xapi.vbd.create({
         vmRefs: vmRef,
         vdiRef,
       })
+
+      $defer.push(() => xapi.vbd.delete(vbdRef))
     }
 
     // EDIT VBDs IN CASE OF EXISTING DISKS
@@ -857,6 +867,14 @@ const createVM = async () => {
   } catch (error) {
     isLoading.value = false
     console.error('Erreur lors de la création de la VM :', error)
+
+    // We cannot use defer and decorate with due to an issue with export (to catch errors during creation)
+    // So I create defer manually
+    // TODO remove when import work
+    const revertedCb = $defer.reverse()
+    for (const cb of revertedCb) {
+      await cb()
+    }
   }
 }
 </script>
